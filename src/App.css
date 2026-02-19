@@ -1,0 +1,238 @@
+#root {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem;
+}
+
+h1 {
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #888;
+  margin-bottom: 2rem;
+}
+
+/* Search Section */
+.search-section {
+  margin-bottom: 2rem;
+}
+
+.search-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.search-row input {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #1a1a1a;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.search-row button {
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  background: #646cff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.search-row button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Location Results */
+.locations-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.location-item {
+  padding: 0.75rem 1rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.location-item:hover {
+  background: #333;
+}
+
+.location-name {
+  font-weight: 600;
+}
+
+.location-path {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+/* Selected Building */
+.selected-building {
+  background: #1e293b;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.selected-building .name {
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.selected-building button {
+  background: transparent;
+  color: #888;
+  border: 1px solid #555;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+/* Date Filters */
+.filters {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.filters label {
+  font-size: 0.9rem;
+  color: #aaa;
+}
+
+.filters input[type="date"] {
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: 1px solid #444;
+  background: #1a1a1a;
+  color: #fff;
+}
+
+.filters button {
+  padding: 0.5rem 1.2rem;
+  border-radius: 6px;
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* Transactions Table */
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.transactions-table th,
+.transactions-table td {
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 1px solid #333;
+}
+
+.transactions-table th {
+  color: #aaa;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.transactions-table td {
+  font-size: 0.95rem;
+}
+
+/* Status Messages */
+.loading {
+  text-align: center;
+  padding: 2rem;
+  color: #888;
+}
+
+.error {
+  background: #7f1d1d;
+  color: #fca5a5;
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.empty {
+  text-align: center;
+  padding: 2rem;
+  color: #666;
+}
+
+/* Raw JSON toggle */
+.raw-toggle {
+  margin-top: 1rem;
+}
+
+.raw-toggle button {
+  background: transparent;
+  border: 1px solid #555;
+  color: #aaa;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.raw-json {
+  background: #111;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+  overflow-x: auto;
+  max-height: 400px;
+  overflow-y: auto;
+  font-size: 0.8rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Stats banner */
+.stats {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.stat-card {
+  background: #1e293b;
+  padding: 1rem 1.25rem;
+  border-radius: 8px;
+  flex: 1;
+  min-width: 140px;
+}
+
+.stat-card .label {
+  font-size: 0.8rem;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.stat-card .value {
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-top: 0.25rem;
+}
