@@ -14,3 +14,25 @@ The React Compiler is not enabled on this template because of its impact on dev 
 ## Expanding the ESLint configuration
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+
+## Daily GitHub Action
+
+This repo includes `.github/workflows/daily-enrichment.yml` to run Bayut enrichment every day.
+
+### Required secret
+
+- `RAPIDAPI_KEY`: your RapidAPI key for `uae-real-estate2`.
+
+### Optional repository variables
+
+- `SHEET_URL`: custom Google Sheets CSV export URL.
+- `ENRICH_GROUP_LIMIT`: set to `0` for all groups, or a positive number for a test subset.
+- `REQUEST_DELAY_MS`: delay between API calls (default handled by script).
+- `REQUEST_RETRIES`: retry count for API failures.
+- `FAIL_ON_ERROR`: set to `1` to fail workflow if any group fails.
+
+### Local/manual run
+
+```bash
+npm run daily:enrich
+```
