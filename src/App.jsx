@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { fetchTransactions, searchLocations } from "./api/bayut";
 import "./App.css";
 
@@ -647,6 +647,26 @@ function mapLeadRow(record, index, mapping, today) {
   };
 }
 
+function AutoSizeMessage({ value }) {
+  const textareaRef = useRef(null);
+
+  useLayoutEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    textarea.style.height = "0px";
+    textarea.style.height = `${textarea.scrollHeight}px`;
+  }, [value]);
+
+  return (
+    <textarea
+      ref={textareaRef}
+      className="message-textarea"
+      readOnly
+      value={value}
+    />
+  );
+}
+
 // --- App ---
 
 function App() {
@@ -1023,7 +1043,7 @@ function App() {
                   {insight?.status === "error" && <p className="error-sm">Bayut: {insight.error}</p>}
 
                   <div className="msg-block">
-                    <textarea readOnly value={message} rows={5} />
+                    <AutoSizeMessage value={message} />
                     <button className="btn-sm" onClick={() => copyMessage(lead.id, message)}>
                       {copiedLeadId === lead.id ? "Copied" : "Copy"}
                     </button>

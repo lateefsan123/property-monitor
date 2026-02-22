@@ -275,20 +275,21 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   align-items: flex-start;
 }
 
-.msg-block textarea {
+.msg-block .message-textarea {
   flex: 1;
   padding: 6px 8px;
   border: 1px solid #eee;
   border-radius: 4px;
   font-size: 0.8rem;
   line-height: 1.4;
-  resize: vertical;
-  min-height: 90px;
+  resize: none;
+  min-height: 0;
+  overflow: hidden;
   background: #fafafa;
   color: #333;
 }
 
-.msg-block textarea:focus {
+.msg-block .message-textarea:focus {
   outline: none;
   border-color: #ccc;
 }
