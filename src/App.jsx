@@ -362,13 +362,6 @@ function extractTransactionLocationLabel(tx, fallback = null) {
   return fallback || "-";
 }
 
-function extractTransactionLocationId(tx) {
-  const value = tx?.location?.id;
-  const numeric = parseNumber(value);
-  if (numeric !== null) return Math.round(numeric);
-  return String(value || "").trim() || null;
-}
-
 function extractTransactionFloor(tx) {
   for (const value of [tx?.property?.floor, tx?.floor]) {
     const normalized = String(value || "").trim();
@@ -543,57 +536,17 @@ function summarizeTransactions(transactions) {
   };
 }
 
-function buildMessage(lead, metrics) {
-  const name = lead.name || "there";
-  const building = lead.building || "your building";
-  const bedroom = lead.bedroom || "unit";
-
-  const range = metrics?.min && metrics?.max ? formatRange(metrics.min, metrics.max) : null;
-  const avgPsf = metrics?.psf ? formatPsf(metrics.psf) : null;
-  const avgPrice = metrics?.avg ? formatPrice(metrics.avg) : null;
-
-  if (lead.statusRule?.id === "prospect") {
-    return [
-      `Hi ${name}, Musa here - your specialist in ${building}.`,
-      "",
-      `Quick check-in on your ${bedroom}.`,
-      avgPsf ? `Recent transactions are averaging ${avgPsf}${range ? `, with sales around ${range}.` : "."}` : "I can share a fresh market snapshot for your building today.",
-      "",
-      "If you want a quick valuation, I am happy to send one over.",
-    ].join("\n");
-  }
-
-  if (lead.statusRule?.id === "market_appraisal") {
-    return [
-      `Hi ${name},`,
-      "",
-      `The market is active in ${building}.`,
-      range ? `Recent ${lead.bedroomLabel} transactions are between ${range}.` : "Buyer activity has picked up and I can send you the latest deal range.",
-      avgPrice ? `Current average sale level is around ${avgPrice}.` : "",
-      "",
-      "If you are still considering selling, this is a strong time to discuss next steps.",
-    ].filter(Boolean).join("\n");
-  }
-
-  if (lead.statusRule?.id === "for_sale_available") {
-    return [
-      `Hi ${name},`,
-      "",
-      `Quick update on your ${bedroom} in ${building}:`,
-      "I am actively speaking with buyers, arranging viewings, and negotiating to secure the best outcome.",
-      avgPsf ? `Latest market benchmark is around ${avgPsf}.` : "",
-      "",
-      "I will keep you posted on every serious offer.",
-    ].filter(Boolean).join("\n");
-  }
+function buildMessage(lead) {
+  const name = lead.name || "";
+  const cleanedBuilding = cleanBuildingName(lead.building) || "your building";
 
   return [
-    `Hi ${name}, Musa here.`,
+    `Hi ${name}, quick update on recent transactions in ${cleanedBuilding}.`,
     "",
-    `I am sharing a quick update for ${building}.`,
-    avgPsf ? `Current benchmark is around ${avgPsf}.` : "",
-    "Let me know if you would like an updated valuation.",
-  ].filter(Boolean).join("\n");
+    "Buyer activity remains strong, and your unit is in hot demand.",
+    "",
+    "If you would like to further discuss the sale of your unit, please let me know.",
+  ].join("\n");
 }
 
 function mapLeadRow(record, index, mapping, today) {
@@ -795,7 +748,7 @@ function App() {
     // Mark only selected test batch as loading
     const loadingUpdates = {};
     for (const lead of targetLeads) {
-      loadingUpdates[lead.id] = { status: "loading", message: buildMessage(lead, null) };
+      loadingUpdates[lead.id] = { status: "loading", message: buildMessage(lead) };
     }
     setInsights((prev) => ({ ...prev, ...loadingUpdates }));
 
@@ -881,7 +834,7 @@ function App() {
             ...metrics,
             locationName,
             recentTransactions,
-            message: buildMessage(lead, metrics),
+            message: buildMessage(lead),
           };
         }
         setInsights((prev) => ({ ...prev, ...updates }));
@@ -889,7 +842,7 @@ function App() {
         // Mark all leads in this group as errored
         const updates = {};
         for (const lead of group.leads) {
-          updates[lead.id] = { status: "error", error: err.message, message: buildMessage(lead, null) };
+          updates[lead.id] = { status: "error", error: err.message, message: buildMessage(lead) };
         }
         setInsights((prev) => ({ ...prev, ...updates }));
       }
@@ -989,7 +942,7 @@ function App() {
           <div className="lead-list">
             {pagedLeads.map((lead) => {
               const insight = insights[lead.id];
-              const message = insight?.message || buildMessage(lead, null);
+              const message = insight?.message || buildMessage(lead);
 
               return (
                 <article key={lead.id} className="lead-card">
