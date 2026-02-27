@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchTransactions, searchLocations } from "./api/bayut";
 import "./App.css";
 
 const SHEET_URL = "https://docs.google.com/spreadsheets/d/1-DgZjG5T93t5zmrHmyekKkOLwCRIYEMMOK4AbOrYOVU/edit?gid=865690319";
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 const PAGE_SIZE = 10;
+const SENT_LEADS_KEY = "sent_leads_v1";
 const LOCATION_CACHE_KEY = "bayut_location_cache_v1";
 const RAW_LOCATION_CACHE_DAYS = Number(import.meta.env.VITE_LOCATION_CACHE_DAYS ?? "30");
 const LOCATION_CACHE_DAYS = Number.isFinite(RAW_LOCATION_CACHE_DAYS) && RAW_LOCATION_CACHE_DAYS > 0
@@ -57,6 +58,25 @@ function saveLocationCache(cache) {
   } catch {
     // Ignore localStorage write errors; API flow can still proceed.
   }
+}
+
+function loadSentLeads() {
+  if (typeof window === "undefined") return {};
+  try {
+    const raw = window.localStorage.getItem(SENT_LEADS_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveSentLeads(sent) {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(SENT_LEADS_KEY, JSON.stringify(sent));
+  } catch {}
 }
 
 function getCachedLocation(cache, searchName, nowMs = Date.now()) {
@@ -536,17 +556,54 @@ function summarizeTransactions(transactions) {
   };
 }
 
-function buildMessage(lead) {
+function formatPhoneForWhatsApp(raw) {
+  const digits = String(raw || "").replace(/[^0-9]/g, "");
+  if (!digits) return null;
+  // If it starts with 0, assume UAE and replace with 971
+  if (digits.startsWith("0")) return "971" + digits.slice(1);
+  // If it already has country code
+  if (digits.startsWith("971")) return digits;
+  // Otherwise return as-is
+  return digits;
+}
+
+function formatPriceShort(value) {
+  if (!value) return "-";
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M AED`;
+  if (value >= 1_000) return `${Math.round(value / 1_000)}K AED`;
+  return `${Math.round(value)} AED`;
+}
+
+function buildMessage(lead, insight) {
   const name = lead.name || "";
   const cleanedBuilding = cleanBuildingName(lead.building) || "your building";
 
-  return [
+  const lines = [
     `Hi ${name}, quick update on recent transactions in ${cleanedBuilding}.`,
     "",
+  ];
+
+  const txs = insight?.recentTransactions;
+  if (txs?.length) {
+    for (const tx of txs) {
+      const parts = [];
+      if (tx.locationLabel && tx.locationLabel !== "-") parts.push(tx.locationLabel);
+      if (tx.beds !== null && tx.beds !== undefined) parts.push(tx.beds === 0 ? "Studio" : `${tx.beds} Bed`);
+      parts.push(formatPriceShort(tx.price));
+      if (tx.area) parts.push(`${Math.round(tx.area).toLocaleString("en-US")} sqft`);
+      if (tx.date) parts.push(formatDate(tx.date));
+      lines.push(`- ${parts.join(" | ")}`);
+    }
+    lines.push("");
+  }
+
+  lines.push(
     "Buyer activity remains strong, and your unit is in hot demand.",
     "",
     "If you would like to further discuss the sale of your unit, please let me know.",
-  ].join("\n");
+  );
+
+  return lines.join("\n");
 }
 
 function mapLeadRow(record, index, mapping, today) {
@@ -600,24 +657,8 @@ function mapLeadRow(record, index, mapping, today) {
   };
 }
 
-function AutoSizeMessage({ value }) {
-  const textareaRef = useRef(null);
-
-  useLayoutEffect(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-    textarea.style.height = "0px";
-    textarea.style.height = `${textarea.scrollHeight}px`;
-  }, [value]);
-
-  return (
-    <textarea
-      ref={textareaRef}
-      className="message-textarea"
-      readOnly
-      value={value}
-    />
-  );
+function MessagePreview({ value }) {
+  return <div className="message-preview">{value}</div>;
 }
 
 // --- App ---
@@ -634,6 +675,21 @@ function App() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sentLeads, setSentLeads] = useState(loadSentLeads);
+  const [sentFilter, setSentFilter] = useState("all");
+
+  function toggleSent(leadId) {
+    setSentLeads((prev) => {
+      const next = { ...prev };
+      if (next[leadId]) {
+        delete next[leadId];
+      } else {
+        next[leadId] = Date.now();
+      }
+      saveSentLeads(next);
+      return next;
+    });
+  }
 
   // Auto-load the sheet on mount
   useEffect(() => {
@@ -688,6 +744,12 @@ function App() {
   const filteredLeads = useMemo(() => {
     let result = showDueOnly ? dueLeads : leads;
 
+    if (sentFilter === "sent") {
+      result = result.filter((l) => sentLeads[l.id]);
+    } else if (sentFilter === "unsent") {
+      result = result.filter((l) => !sentLeads[l.id]);
+    }
+
     if (statusFilter !== "all") {
       result = result.filter((l) => l.statusRule?.id === statusFilter);
     }
@@ -703,7 +765,7 @@ function App() {
     }
 
     return result;
-  }, [showDueOnly, dueLeads, leads, statusFilter, searchTerm]);
+  }, [showDueOnly, dueLeads, leads, sentFilter, sentLeads, statusFilter, searchTerm]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
@@ -748,7 +810,7 @@ function App() {
     // Mark only selected test batch as loading
     const loadingUpdates = {};
     for (const lead of targetLeads) {
-      loadingUpdates[lead.id] = { status: "loading", message: buildMessage(lead) };
+      loadingUpdates[lead.id] = { status: "loading", message: buildMessage(lead, null) };
     }
     setInsights((prev) => ({ ...prev, ...loadingUpdates }));
 
@@ -828,13 +890,11 @@ function App() {
 
         // Apply to all leads in this building group
         const updates = {};
+        const insightData = { status: "ready", ...metrics, locationName, recentTransactions };
         for (const lead of group.leads) {
           updates[lead.id] = {
-            status: "ready",
-            ...metrics,
-            locationName,
-            recentTransactions,
-            message: buildMessage(lead),
+            ...insightData,
+            message: buildMessage(lead, insightData),
           };
         }
         setInsights((prev) => ({ ...prev, ...updates }));
@@ -842,7 +902,7 @@ function App() {
         // Mark all leads in this group as errored
         const updates = {};
         for (const lead of group.leads) {
-          updates[lead.id] = { status: "error", error: err.message, message: buildMessage(lead) };
+          updates[lead.id] = { status: "error", error: err.message, message: buildMessage(lead, null) };
         }
         setInsights((prev) => ({ ...prev, ...updates }));
       }
@@ -927,6 +987,22 @@ function App() {
                 Due only
               </label>
 
+              <div className="tabs">
+                {[
+                  { id: "all", label: "All" },
+                  { id: "unsent", label: "Unsent" },
+                  { id: "sent", label: "Sent" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    className={`tab${sentFilter === tab.id ? " active" : ""}`}
+                    onClick={() => { setSentFilter(tab.id); setCurrentPage(1); }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
               <button className="btn-primary" onClick={enrichDueLeads} disabled={enriching}>
                 {enriching ? `Fetching (${enrichProgress.done}/${enrichProgress.total})` : "Fetch Bayut data"}
               </button>
@@ -942,10 +1018,10 @@ function App() {
           <div className="lead-list">
             {pagedLeads.map((lead) => {
               const insight = insights[lead.id];
-              const message = insight?.message || buildMessage(lead);
+              const message = insight?.message || buildMessage(lead, insight);
 
               return (
-                <article key={lead.id} className="lead-card">
+                <article key={lead.id} className={`lead-card${sentLeads[lead.id] ? " lead-sent" : ""}`}>
                   <div className="lead-top">
                     <div>
                       <span className="lead-name">{lead.name || "Unnamed"}</span>
@@ -960,7 +1036,7 @@ function App() {
                   <div className="lead-meta">
                     <span>{lead.bedroom || "-"}</span>
                     <span>{formatDate(lead.lastContactDate)}</span>
-                    <span>{lead.phone || "-"}</span>
+                    <span>{lead.phone ? <><svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> {lead.phone}</> : "-"}</span>
                     <span>Due: {formatDate(lead.nextDueDate)}</span>
                   </div>
 
@@ -996,10 +1072,30 @@ function App() {
                   {insight?.status === "error" && <p className="error-sm">Bayut: {insight.error}</p>}
 
                   <div className="msg-block">
-                    <AutoSizeMessage value={message} />
-                    <button className="btn-sm" onClick={() => copyMessage(lead.id, message)}>
-                      {copiedLeadId === lead.id ? "Copied" : "Copy"}
-                    </button>
+                    <MessagePreview value={message} />
+                    <div className="msg-actions">
+                      <button className="btn-sm" onClick={() => copyMessage(lead.id, message)}>
+                        {copiedLeadId === lead.id ? "Copied" : "Copy"}
+                      </button>
+                      {lead.phone && (
+                        <a
+                          className="btn-sm btn-wa"
+                          href={`https://wa.me/${formatPhoneForWhatsApp(lead.phone)}?text=${encodeURIComponent(message)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={() => toggleSent(lead.id)}
+                        >
+                          <svg className="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
+                          WhatsApp
+                        </a>
+                      )}
+                      <button
+                        className={`btn-sm${sentLeads[lead.id] ? " btn-sent" : ""}`}
+                        onClick={() => toggleSent(lead.id)}
+                      >
+                        {sentLeads[lead.id] ? "Sent" : "Mark Sent"}
+                      </button>
+                    </div>
                   </div>
                 </article>
               );
