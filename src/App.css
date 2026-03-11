@@ -332,8 +332,13 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   font-weight: 500;
 }
 
-.btn-wa:hover {
+.btn-wa:hover:not(:disabled) {
   background: #1ebe57;
+}
+
+button.btn-wa:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .btn-wa .icon {
