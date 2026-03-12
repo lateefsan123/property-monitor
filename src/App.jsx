@@ -914,7 +914,7 @@ function App() {
     setEnriching(false);
   }
 
-  function bulkWhatsApp() {
+  function bulkWhatsApp(markAsSent = true) {
     const targets = pagedLeads.filter((l) => l.phone && formatPhoneForWhatsApp(l.phone));
     if (!targets.length) return;
     for (let i = 0; i < targets.length; i++) {
@@ -924,7 +924,7 @@ function App() {
       const phone = formatPhoneForWhatsApp(lead.phone);
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
       setTimeout(() => window.open(url, "_blank"), i * 600);
-      if (!sentLeads[lead.id]) toggleSent(lead.id);
+      if (markAsSent && !sentLeads[lead.id]) toggleSent(lead.id);
     }
   }
 
@@ -1103,7 +1103,7 @@ function App() {
                       {lead.phone && (
                         <a
                           className="btn-sm btn-wa"
-                          href={`https://wa.me/${formatPhoneForWhatsApp(lead.phone)}?text=${encodeURIComponent(message)}`}
+                          href={`https://web.whatsapp.com/send?phone=${formatPhoneForWhatsApp(lead.phone)}&text=${encodeURIComponent(message)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           onClick={() => toggleSent(lead.id)}
