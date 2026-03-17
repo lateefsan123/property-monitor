@@ -8,9 +8,12 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "daily:enrich": "node scripts/daily-enrichment-report.mjs"
+    "daily:enrich": "node scripts/daily-enrichment-report.mjs",
+    "fetch:bayut": "node scripts/fetch-bayut-all.mjs"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.99.2",
+    "pg": "^8.20.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"
   },

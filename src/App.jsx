@@ -1,22 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
-import { fetchTransactions, searchLocations } from "./api/bayut";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { supabase } from "./supabase";
+import { aiMapColumns } from "./ai-mapper";
 import "./App.css";
-
-const SHEET_URL = "https://docs.google.com/spreadsheets/d/1-DgZjG5T93t5zmrHmyekKkOLwCRIYEMMOK4AbOrYOVU/edit?gid=865690319";
 const MILLISECONDS_PER_DAY = 24 * 60 * 60 * 1000;
 const PAGE_SIZE = 10;
-const SENT_LEADS_KEY = "sent_leads_v1";
-const LOCATION_CACHE_KEY = "bayut_location_cache_v1";
-const RAW_LOCATION_CACHE_DAYS = Number(import.meta.env.VITE_LOCATION_CACHE_DAYS ?? "30");
-const LOCATION_CACHE_DAYS = Number.isFinite(RAW_LOCATION_CACHE_DAYS) && RAW_LOCATION_CACHE_DAYS > 0
-  ? RAW_LOCATION_CACHE_DAYS
-  : 30;
-const LOCATION_CACHE_TTL_MS = LOCATION_CACHE_DAYS * MILLISECONDS_PER_DAY;
-const RAW_ENRICH_GROUP_LIMIT = Number(import.meta.env.VITE_ENRICH_TEST_GROUP_LIMIT ?? (import.meta.env.DEV ? "8" : "0"));
-const ENRICH_GROUP_LIMIT = Number.isFinite(RAW_ENRICH_GROUP_LIMIT) && RAW_ENRICH_GROUP_LIMIT > 0
-  ? Math.floor(RAW_ENRICH_GROUP_LIMIT)
-  : 0;
-
 const STATUS_RULES = [
   { id: "prospect", label: "Prospect", days: 75, keywords: ["prospect"] },
   { id: "market_appraisal", label: "Market Appraisal", days: 25, keywords: ["market appraisal", "appraisal", "valuation"] },
@@ -39,74 +26,7 @@ function normalizeToken(value) {
   return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
-function loadLocationCache() {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(LOCATION_CACHE_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
 
-function saveLocationCache(cache) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(LOCATION_CACHE_KEY, JSON.stringify(cache));
-  } catch {
-    // Ignore localStorage write errors; API flow can still proceed.
-  }
-}
-
-function loadSentLeads() {
-  if (typeof window === "undefined") return {};
-  try {
-    const raw = window.localStorage.getItem(SENT_LEADS_KEY);
-    if (!raw) return {};
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
-  }
-}
-
-function saveSentLeads(sent) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(SENT_LEADS_KEY, JSON.stringify(sent));
-  } catch {}
-}
-
-function getCachedLocation(cache, searchName, nowMs = Date.now()) {
-  const key = normalizeToken(searchName);
-  if (!key) return null;
-  const entry = cache[key];
-  if (!entry || typeof entry !== "object") return null;
-  if (typeof entry.savedAt !== "number") return null;
-  if (nowMs - entry.savedAt > LOCATION_CACHE_TTL_MS) return null;
-  return entry.location && typeof entry.location === "object" ? entry.location : null;
-}
-
-function setCachedLocation(cache, searchName, location, nowMs = Date.now()) {
-  const key = normalizeToken(searchName);
-  if (!key || !location || typeof location !== "object") return;
-  cache[key] = {
-    savedAt: nowMs,
-    location: {
-      id: location.id ?? null,
-      externalID: location.externalID ?? null,
-      location_id: location.location_id ?? null,
-      name: location.name ?? null,
-      title: location.title ?? null,
-      name_l1: location.name_l1 ?? null,
-      full_name: location.full_name ?? null,
-      path: location.path ?? null,
-      location: Array.isArray(location.location) ? location.location : (location.location ?? null),
-    },
-  };
-}
 
 function inferColumn(headers, aliases) {
   const normalizedHeaders = headers.map((header) => ({ header, normalized: normalizeToken(header) }));
@@ -249,13 +169,6 @@ function dayDelta(fromDate, toDate) {
   return Math.floor((startOfDay(toDate) - startOfDay(fromDate)) / MILLISECONDS_PER_DAY);
 }
 
-function toIsoDateLocal(dateValue) {
-  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-}
 
 function parseDateValue(rawValue) {
   const raw = String(rawValue || "").trim();
@@ -415,19 +328,6 @@ function buildRecentTransactions(transactions, limit = 5, fallbackLocation = nul
     .slice(0, limit);
 }
 
-function extractLocationId(loc) {
-  return loc?.id || loc?.externalID || loc?.location_id || null;
-}
-
-function extractLocationName(loc) {
-  return loc?.name || loc?.title || loc?.name_l1 || "Unknown";
-}
-
-function toList(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (!payload) return [];
-  return payload.hits || payload.results || payload.transactions || [];
-}
 
 // Strip bedroom counts, apartment numbers, and noise from building names
 // "Forte 3 bed" -> "Forte", "Burj views one bed" -> "Burj views"
@@ -508,30 +408,6 @@ function buildGoogleCsvUrl(rawUrl) {
   }
 }
 
-function pickBestLocation(locations, buildingName) {
-  const target = normalizeToken(buildingName);
-  if (!target) return null;
-
-  let best = null;
-  let bestScore = -1;
-
-  for (const loc of locations) {
-    const name = extractLocationName(loc);
-    const fullPath = loc?.full_name || loc?.path || (Array.isArray(loc?.location) ? loc.location.join(" ") : "");
-    const nName = normalizeToken(name);
-    const nFull = normalizeToken(fullPath);
-
-    let score = 0;
-    if (nName === target) score += 120;
-    if (nName.includes(target) || target.includes(nName)) score += 70;
-    if (nFull.includes(target)) score += 35;
-    score += Math.max(0, 20 - Math.abs(name.length - buildingName.length));
-
-    if (score > bestScore) { bestScore = score; best = loc; }
-  }
-
-  return best;
-}
 
 function summarizeTransactions(transactions) {
   const prices = [];
@@ -565,6 +441,12 @@ function formatPhoneForWhatsApp(raw) {
   if (digits.startsWith("971")) return digits;
   // Otherwise return as-is
   return digits;
+}
+
+function countNewTransactionsSince(insight, sentTimestamp) {
+  if (!insight?.allTransactionDates?.length || !sentTimestamp) return 0;
+  const sentDate = startOfDay(new Date(sentTimestamp));
+  return insight.allTransactionDates.filter((d) => d > sentDate).length;
 }
 
 function formatPriceShort(value) {
@@ -663,66 +545,116 @@ function MessagePreview({ value }) {
 
 // --- App ---
 
-function App() {
+function App({ session }) {
   const [leads, setLeads] = useState([]);
   const [insights, setInsights] = useState({});
   const [loading, setLoading] = useState(true);
+  const [importing, setImporting] = useState(false);
   const [enriching, setEnriching] = useState(false);
-  const [enrichProgress, setEnrichProgress] = useState({ done: 0, total: 0 });
   const [error, setError] = useState(null);
   const [showDueOnly, setShowDueOnly] = useState(true);
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [sentLeads, setSentLeads] = useState(loadSentLeads);
-  const [sentFilter, setSentFilter] = useState("all");
+  const [sentLeads, setSentLeads] = useState({});
+  const [sheetUrl, setSheetUrl] = useState("");
+  const [showImport, setShowImport] = useState(false);
+  const [viewTab, setViewTab] = useState("active");
+  const [dataFilter, setDataFilter] = useState("all"); // "all" | "with_data" | "no_data"
+  const [expandedLeads, setExpandedLeads] = useState({});
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "light");
+  const [usernameInput, setUsernameInput] = useState("");
+  const [savingUsername, setSavingUsername] = useState(false);
 
-  function toggleSent(leadId) {
+  const displayName = session.user.user_metadata?.username;
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("theme", theme);
+  }, [theme]);
+
+  const userId = session.user.id;
+
+  async function saveUsername(e) {
+    e.preventDefault();
+    const trimmed = usernameInput.trim();
+    if (!trimmed) return;
+    setSavingUsername(true);
+    const { error } = await supabase.auth.updateUser({ data: { username: trimmed } });
+    if (error) setError(error.message);
+    setSavingUsername(false);
+  }
+
+  async function toggleSent(leadId) {
     setSentLeads((prev) => {
       const next = { ...prev };
       if (next[leadId]) {
         delete next[leadId];
+        supabase.from("sent_leads").delete().eq("user_id", userId).eq("lead_id", leadId).then();
       } else {
         next[leadId] = Date.now();
+        supabase.from("sent_leads").upsert({ user_id: userId, lead_id: leadId }).then();
       }
-      saveSentLeads(next);
       return next;
     });
   }
 
-  // Auto-load the sheet on mount
+  // Load leads from Supabase on mount
   useEffect(() => {
-    loadSheet();
+    loadLeads();
   }, []);
 
-  async function loadSheet() {
+  async function loadLeads() {
     setLoading(true);
     setError(null);
 
     try {
-      const csvUrl = buildGoogleCsvUrl(SHEET_URL);
-      if (!csvUrl) throw new Error("Invalid sheet URL.");
+      // Fetch leads for this user
+      const { data: dbLeads, error: lErr } = await supabase
+        .from("leads")
+        .select("*")
+        .eq("user_id", userId)
+        .order("id");
+      if (lErr) throw new Error(lErr.message);
 
-      const response = await fetch(csvUrl);
-      if (!response.ok) throw new Error(`Failed to load sheet (${response.status})`);
-
-      const csvText = await response.text();
-      const rows = parseCsvText(csvText);
-      const { headers, records } = rowsToObjects(rows);
-
-      if (!headers.length) throw new Error("Sheet has no header row.");
-
-      const mapping = inferMapping(headers);
-
-      if (!mapping.name || !mapping.building || !mapping.status || !mapping.lastContact) {
-        throw new Error("Could not detect lead headers. Ensure the sheet has name, building, status, and date columns.");
-      }
+      // Fetch sent status
+      const { data: sentRows } = await supabase
+        .from("sent_leads")
+        .select("lead_id, sent_at")
+        .eq("user_id", userId);
+      const sentMap = {};
+      for (const s of sentRows || []) sentMap[s.lead_id] = new Date(s.sent_at).getTime();
+      setSentLeads(sentMap);
 
       const today = startOfDay(new Date());
 
-      const parsed = records
-        .map((record, index) => mapLeadRow(record, index, mapping, today))
+      const parsed = (dbLeads || [])
+        .map((row, index) => {
+          // Build a record compatible with mapLeadRow
+          const record = {
+            __row: row.id,
+            _name: row.name || "",
+            _building: row.building || "",
+            _bedroom: row.bedroom || "",
+            _status: row.status || "",
+            _lastContact: row.last_contact || "",
+            _phone: row.phone || "",
+            _unit: row.unit || "",
+          };
+          const mapping = {
+            name: "_name",
+            building: "_building",
+            bedroom: "_bedroom",
+            status: "_status",
+            lastContact: "_lastContact",
+            phone: "_phone",
+            unit: "_unit",
+          };
+          const lead = mapLeadRow(record, index, mapping, today);
+          lead.id = row.id; // Use DB id for sent_leads FK
+          return lead;
+        })
         .filter((lead) => lead.name || lead.building || lead.phone)
         .sort((a, b) => {
           if (a.isDue !== b.isDue) return a.isDue ? -1 : 1;
@@ -739,19 +671,128 @@ function App() {
     }
   }
 
+  async function importFromSheet() {
+    if (!sheetUrl.trim()) { setError("Paste a Google Sheet URL first."); return; }
+
+    setImporting(true);
+    setError(null);
+
+    try {
+      const csvUrl = buildGoogleCsvUrl(sheetUrl.trim());
+      if (!csvUrl) throw new Error("Invalid Google Sheet URL. Paste the full URL from your browser.");
+
+      const response = await fetch(csvUrl);
+      if (!response.ok) throw new Error(`Failed to load sheet (${response.status}). Make sure the sheet is shared publicly or "Anyone with the link".`);
+
+      const csvText = await response.text();
+      const rawRows = parseCsvText(csvText);
+      const { headers, records } = rowsToObjects(rawRows);
+
+      if (!headers.length) throw new Error("Sheet has no header row.");
+
+      // Try hardcoded inference first, fall back to AI
+      let mapping = inferMapping(headers);
+      const hasMinimum = mapping.name && mapping.building;
+
+      if (!hasMinimum) {
+        // Use AI to map columns
+        const sampleData = rawRows.slice(0, 6);
+        mapping = await aiMapColumns(headers, sampleData);
+      }
+
+      if (!mapping.name && !mapping.building && !mapping.phone) {
+        throw new Error("Could not map any columns. Make sure the sheet has seller names, buildings, or phone numbers.");
+      }
+
+      // Build rows for Supabase
+      const leadsToInsert = records
+        .map((record) => {
+          const name = mapping.name ? record[mapping.name] : "";
+          const building = mapping.building ? record[mapping.building] : "";
+          const bedroom = mapping.bedroom ? record[mapping.bedroom] : "";
+          const status = mapping.status ? record[mapping.status] : "";
+          const lastContactRaw = mapping.lastContact ? record[mapping.lastContact] : "";
+          const phone = mapping.phone ? record[mapping.phone] : "";
+          const unit = mapping.unit ? record[mapping.unit] : "";
+
+          if (!name && !building && !phone) return null;
+
+          const lastContactDate = parseDateValue(lastContactRaw);
+
+          return {
+            user_id: userId,
+            name: name || null,
+            building: building || null,
+            bedroom: bedroom || null,
+            unit: unit || null,
+            phone: phone || null,
+            status: status || null,
+            last_contact: lastContactDate ? lastContactDate.toISOString().split("T")[0] : null,
+          };
+        })
+        .filter(Boolean);
+
+      if (!leadsToInsert.length) throw new Error("No valid leads found in sheet.");
+
+      // Clear existing leads for this user, then insert fresh
+      await supabase.from("sent_leads").delete().eq("user_id", userId);
+      await supabase.from("leads").delete().eq("user_id", userId);
+
+      // Insert in batches
+      const batchSize = 200;
+      for (let i = 0; i < leadsToInsert.length; i += batchSize) {
+        const batch = leadsToInsert.slice(i, i + batchSize);
+        const { error: iErr } = await supabase.from("leads").insert(batch);
+        if (iErr) throw new Error(iErr.message);
+      }
+
+      setShowImport(false);
+      setSheetUrl("");
+      await loadLeads();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setImporting(false);
+    }
+  }
+
   const dueLeads = useMemo(() => leads.filter((l) => l.isDue), [leads]);
 
-  const filteredLeads = useMemo(() => {
-    let result = showDueOnly ? dueLeads : leads;
+  // Split leads into active vs done based on sent status and new transactions
+  const { activeLeads, doneLeads } = useMemo(() => {
+    const active = [];
+    const done = [];
+    const MIN_NEW_TXS = 2;
 
-    if (sentFilter === "sent") {
-      result = result.filter((l) => sentLeads[l.id]);
-    } else if (sentFilter === "unsent") {
-      result = result.filter((l) => !sentLeads[l.id]);
+    for (const lead of leads) {
+      const sentAt = sentLeads[lead.id];
+      if (!sentAt) {
+        active.push(lead);
+      } else {
+        const newTxCount = countNewTransactionsSince(insights[lead.id], sentAt);
+        if (newTxCount >= MIN_NEW_TXS) {
+          active.push({ ...lead, newTxSinceSent: newTxCount });
+        } else {
+          done.push(lead);
+        }
+      }
     }
+
+    return { activeLeads: active, doneLeads: done };
+  }, [leads, sentLeads, insights]);
+
+  const filteredLeads = useMemo(() => {
+    const pool = viewTab === "done" ? doneLeads : activeLeads;
+    let result = showDueOnly ? pool.filter((l) => l.isDue) : pool;
 
     if (statusFilter !== "all") {
       result = result.filter((l) => l.statusRule?.id === statusFilter);
+    }
+
+    if (dataFilter === "with_data") {
+      result = result.filter((l) => insights[l.id]?.status === "ready");
+    } else if (dataFilter === "no_data") {
+      result = result.filter((l) => insights[l.id]?.status !== "ready");
     }
 
     if (searchTerm.trim()) {
@@ -765,7 +806,7 @@ function App() {
     }
 
     return result;
-  }, [showDueOnly, dueLeads, leads, sentFilter, sentLeads, statusFilter, searchTerm]);
+  }, [viewTab, activeLeads, doneLeads, showDueOnly, statusFilter, dataFilter, searchTerm, insights]);
 
   const totalPages = Math.max(1, Math.ceil(filteredLeads.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
@@ -776,146 +817,119 @@ function App() {
     [insights],
   );
 
+  // Auto-enrich when leads are loaded
+  const hasAutoEnriched = useRef(false);
+  useEffect(() => {
+    if (!loading && leads.length > 0 && !hasAutoEnriched.current) {
+      hasAutoEnriched.current = true;
+      enrichDueLeads();
+    }
+  }, [loading, leads]);
+
   async function enrichDueLeads() {
     const targets = leads.filter((l) => l.building);
     if (!targets.length) { setError("No leads with a building name."); return; }
 
-    // Step 1: Group leads by cleaned building + bedroom filters
-    const buildingGroups = {};
-    for (const lead of targets) {
-      const cleaned = cleanBuildingName(lead.building);
-      const normalized = normalizeToken(cleaned);
-      if (!normalized) continue;
-
-      const beds = Array.isArray(lead.bedFilterValues) && lead.bedFilterValues.length
-        ? [...lead.bedFilterValues].sort((a, b) => a - b)
-        : null;
-      const bedKey = beds ? beds.join(",") : "any";
-      const key = `${normalized}::${bedKey}`;
-
-      if (!buildingGroups[key]) buildingGroups[key] = { searchName: cleaned, beds, leads: [] };
-      buildingGroups[key].leads.push(lead);
-    }
-
-    const uniqueQueries = Object.values(buildingGroups);
-    const activeQueries = ENRICH_GROUP_LIMIT > 0
-      ? uniqueQueries.slice(0, ENRICH_GROUP_LIMIT)
-      : uniqueQueries;
-    const targetLeads = activeQueries.flatMap((group) => group.leads);
-    if (!activeQueries.length || !targetLeads.length) {
-      setError("No leads available for enrichment.");
-      return;
-    }
-
-    // Mark only selected test batch as loading
-    const loadingUpdates = {};
-    for (const lead of targetLeads) {
-      loadingUpdates[lead.id] = { status: "loading", message: buildMessage(lead, null) };
-    }
-    setInsights((prev) => ({ ...prev, ...loadingUpdates }));
-
     setEnriching(true);
     setError(null);
-    setEnrichProgress({ done: 0, total: activeQueries.length });
 
-    const now = new Date();
-    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-    const startDate = toIsoDateLocal(monthStart);
-    const endDate = toIsoDateLocal(now);
-    const locationCache = loadLocationCache();
-    let locationCacheDirty = false;
-    const cacheTimestamp = Date.now();
+    try {
+      // Collect unique building keys for this batch
+      const keyMap = {};
+      for (const lead of targets) {
+        const cleaned = cleanBuildingName(lead.building);
+        const key = normalizeToken(cleaned);
+        if (key) keyMap[key] = cleaned;
+      }
+      const buildingKeys = Object.keys(keyMap);
 
-    // Step 2: Fetch Bayut data once per unique building + bedroom filter
-    for (let i = 0; i < activeQueries.length; i += 1) {
-      const group = activeQueries[i];
+      // Fetch buildings from Supabase
+      const { data: buildingRows, error: bErr } = await supabase
+        .from("buildings")
+        .select("key, location_name")
+        .in("key", buildingKeys);
+      if (bErr) throw new Error(bErr.message);
 
-      // Rate limit: 2s between query groups
-      if (i > 0) await new Promise((r) => setTimeout(r, 2000));
+      const buildingLookup = {};
+      for (const b of buildingRows || []) buildingLookup[b.key] = b;
 
-      try {
-        let best = getCachedLocation(locationCache, group.searchName, cacheTimestamp);
-        if (!best) {
-          const locPayload = await searchLocations(group.searchName);
-          const locs = toList(locPayload);
-          best = pickBestLocation(locs, group.searchName);
-          if (!best) throw new Error(`No match for "${group.searchName}"`);
-          setCachedLocation(locationCache, group.searchName, best, cacheTimestamp);
-          locationCacheDirty = true;
+      // Fetch transactions for these buildings
+      const { data: txRows, error: tErr } = await supabase
+        .from("transactions")
+        .select("*")
+        .in("building_key", buildingKeys);
+      if (tErr) throw new Error(tErr.message);
+
+      // Group transactions by building_key
+      const txByBuilding = {};
+      for (const tx of txRows || []) {
+        if (!txByBuilding[tx.building_key]) txByBuilding[tx.building_key] = [];
+        // Map DB columns to the shape the existing helpers expect
+        txByBuilding[tx.building_key].push({
+          amount: tx.amount,
+          category: tx.category,
+          date: tx.date,
+          property: {
+            floor: tx.floor,
+            beds: tx.beds,
+            type: tx.property_type,
+            builtup_area: { sqft: tx.builtup_area_sqft },
+          },
+          location: {
+            location: tx.location_name,
+            full_location: tx.full_location,
+            coordinates: { latitude: tx.latitude, longitude: tx.longitude },
+          },
+        });
+      }
+
+      const updates = {};
+      let matched = 0;
+
+      for (const lead of targets) {
+        const cleaned = cleanBuildingName(lead.building);
+        const key = normalizeToken(cleaned);
+        const building = buildingLookup[key];
+
+        if (!building || !txByBuilding[key]?.length) {
+          updates[lead.id] = { status: "error", error: "No data found", message: buildMessage(lead, null) };
+          continue;
         }
 
-        let locId = extractLocationId(best);
-        if (!locId) {
-          // Fallback for stale/incomplete cache entries.
-          const locPayload = await searchLocations(group.searchName);
-          const locs = toList(locPayload);
-          best = pickBestLocation(locs, group.searchName);
-          if (!best) throw new Error(`No match for "${group.searchName}"`);
-          locId = extractLocationId(best);
-          if (!locId) throw new Error("Location has no ID.");
-          setCachedLocation(locationCache, group.searchName, best, cacheTimestamp);
-          locationCacheDirty = true;
-        }
+        let txs = txByBuilding[key];
 
-        if (!locId) throw new Error("Location has no ID.");
-
-        // Wait before transactions call
-        await new Promise((r) => setTimeout(r, 2000));
-
-        const txRequest = {
-          locationIds: [locId],
-          startDate,
-          endDate,
-          beds: group.beds || undefined,
-          purpose: "for-sale",
-          category: "residential",
-          completionStatus: "completed",
-          sortBy: "date",
-          order: "desc",
-        };
-
-        let txPayload = await fetchTransactions(txRequest);
-        let txs = toList(txPayload);
-
-        // If strict bedroom filter is too narrow, retry without it once.
-        if (!txs.length && txRequest.beds?.length) {
-          await new Promise((r) => setTimeout(r, 1200));
-          txPayload = await fetchTransactions({ ...txRequest, beds: undefined });
-          txs = toList(txPayload);
+        // Filter by bedroom if lead has a specific bedroom filter
+        if (Array.isArray(lead.bedFilterValues) && lead.bedFilterValues.length) {
+          const bedFiltered = txs.filter((tx) => {
+            const beds = extractBeds(tx);
+            return beds !== null && lead.bedFilterValues.includes(beds);
+          });
+          if (bedFiltered.length) txs = bedFiltered;
         }
 
         const metrics = summarizeTransactions(txs);
-        const locationName = extractLocationName(best);
+        const locationName = building.location_name || cleaned;
         const recentTransactions = buildRecentTransactions(txs, 5, locationName);
-
-        // Apply to all leads in this building group
-        const updates = {};
-        const insightData = { status: "ready", ...metrics, locationName, recentTransactions };
-        for (const lead of group.leads) {
-          updates[lead.id] = {
-            ...insightData,
-            message: buildMessage(lead, insightData),
-          };
-        }
-        setInsights((prev) => ({ ...prev, ...updates }));
-      } catch (err) {
-        // Mark all leads in this group as errored
-        const updates = {};
-        for (const lead of group.leads) {
-          updates[lead.id] = { status: "error", error: err.message, message: buildMessage(lead, null) };
-        }
-        setInsights((prev) => ({ ...prev, ...updates }));
+        const allTransactionDates = txs.map((tx) => extractTransactionDate(tx)).filter(Boolean);
+        const insightData = { status: "ready", ...metrics, locationName, recentTransactions, allTransactionDates };
+        updates[lead.id] = { ...insightData, message: buildMessage(lead, insightData) };
+        matched++;
       }
 
-      setEnrichProgress({ done: i + 1, total: activeQueries.length });
+      setInsights((prev) => ({ ...prev, ...updates }));
+
+      if (matched === 0) {
+        setError("No buildings matched in Supabase. Run \"npm run fetch:bayut\" to update.");
+      }
+    } catch (err) {
+      setError(err.message);
     }
 
-    if (locationCacheDirty) saveLocationCache(locationCache);
     setEnriching(false);
   }
 
   function bulkWhatsApp(markAsSent = true) {
-    const targets = pagedLeads.filter((l) => l.phone && formatPhoneForWhatsApp(l.phone));
+    const targets = pagedLeads.filter((l) => l.phone && formatPhoneForWhatsApp(l.phone) && insights[l.id]?.status === "ready");
     if (!targets.length) return;
     for (let i = 0; i < targets.length; i++) {
       const lead = targets[i];
@@ -938,28 +952,156 @@ function App() {
     }
   }
 
+  // --- Username prompt ---
+  if (!displayName) {
+    return (
+      <div className="auth-page">
+        <div className="auth-card">
+          <img src={theme === "dark" ? "/darkmode logo.png" : "/logo.png"} alt="Seller Signal" className="auth-logo" />
+          <p className="auth-subtitle">Choose a display name to get started</p>
+          {error && <div className="error">{error}</div>}
+          <form onSubmit={saveUsername}>
+            <input
+              type="text"
+              placeholder="Username"
+              value={usernameInput}
+              onChange={(e) => setUsernameInput(e.target.value)}
+              required
+              minLength={2}
+              style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--border)", borderRadius: 6, fontSize: "0.88rem", background: "var(--bg-input)", color: "var(--text)", boxSizing: "border-box" }}
+            />
+            <button className="btn-primary" type="submit" disabled={savingUsername}>
+              {savingUsername ? "Saving..." : "Continue"}
+            </button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   // --- Loading state ---
   if (loading) {
     return (
       <div className="page">
-        <header className="page-header">
-          <h1>Seller Follow-up</h1>
-        </header>
         <div className="empty">Loading sellers...</div>
       </div>
     );
   }
 
   return (
-    <div className="page">
-      <header className="page-header">
-        <h1>Seller Follow-up</h1>
-        <p className="subtitle">
-          {leads.length} sellers loaded
-          {dueLeads.length > 0 && <> &middot; <strong>{dueLeads.length} due</strong></>}
-          {readyCount > 0 && <> &middot; {readyCount} enriched</>}
-        </p>
-      </header>
+    <>
+      <nav className="topnav">
+        <div className="topnav-brand">
+          <img src={theme === "dark" ? "/darkmode logo.png" : "/logo.png"} alt="Seller Signal" className="topnav-logo" />
+          <span className="user-email">{displayName}</span>
+        </div>
+        <div className="topnav-actions">
+          <button
+            className="theme-toggle"
+            onClick={() => setTheme((t) => t === "light" ? "dark" : "light")}
+            aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
+          >
+            <span className="theme-toggle-track">
+              <span className="theme-toggle-icon theme-toggle-sun">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-3a1 1 0 01-1-1V1a1 1 0 112 0v2a1 1 0 01-1 1zm0 18a1 1 0 01-1-1v-2a1 1 0 112 0v2a1 1 0 01-1 1zm9-9h-2a1 1 0 110-2h2a1 1 0 110 2zM6 13H4a1 1 0 110-2h2a1 1 0 110 2zm12.364-5.95l-1.414-1.414a1 1 0 111.414-1.414l1.414 1.414a1 1 0 01-1.414 1.414zM7.05 18.364l-1.414-1.414a1 1 0 111.414-1.414l1.414 1.414a1 1 0 01-1.414 1.414zm11.314 0a1 1 0 01-1.414 0l-1.414-1.414a1 1 0 111.414-1.414l1.414 1.414a1 1 0 010 1.414zM7.05 7.05a1 1 0 01-1.414 0L4.222 5.636a1 1 0 111.414-1.414L7.05 5.636a1 1 0 010 1.414z"/></svg>
+              </span>
+              <span className="theme-toggle-icon theme-toggle-moon">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 3a9 9 0 109 9c0-.46-.04-.92-.1-1.36a5.389 5.389 0 01-4.4 2.26 5.403 5.403 0 01-3.14-9.8c-.44-.06-.9-.1-1.36-.1z"/></svg>
+              </span>
+              <span className={`theme-toggle-thumb${theme === "dark" ? " dark" : ""}`} />
+            </span>
+          </button>
+          <button className="btn-sm" onClick={() => setShowImport(!showImport)}>
+            {showImport ? "Cancel" : "Import"}
+          </button>
+          <button className="btn-sm" onClick={() => supabase.auth.signOut()}>Sign Out</button>
+        </div>
+      </nav>
+
+      <div className="page">
+
+      {/* Summary stat cards */}
+      {leads.length > 0 && <h2 className="section-title">Market Overview</h2>}
+      {leads.length > 0 && (() => {
+        const allInsights = Object.values(insights).filter((i) => i?.status === "ready");
+        const allPrices = allInsights.flatMap((i) => i.recentTransactions?.map((t) => t.price) || []).filter(Boolean);
+        const totalTxns = allInsights.reduce((sum, i) => sum + (i.count || 0), 0);
+        const avgPrice = allPrices.length ? allPrices.reduce((a, b) => a + b, 0) / allPrices.length : null;
+        const avgPsf = allInsights.filter((i) => i.psf).length
+          ? allInsights.filter((i) => i.psf).reduce((sum, i) => sum + i.psf, 0) / allInsights.filter((i) => i.psf).length
+          : null;
+
+        return (
+          <div className="stat-cards">
+            <div className="stat-card">
+              <span className="stat-label">Total Sellers</span>
+              <span className="stat-value">{leads.length.toLocaleString()}</span>
+              {dueLeads.length > 0 && <span className="stat-change due">{activeLeads.filter((l) => l.isDue).length} due</span>}
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Average Price (AED)</span>
+              <span className="stat-value">{avgPrice ? formatPrice(avgPrice) : "-"}</span>
+              {totalTxns > 0 && <span className="stat-change">{totalTxns} transactions</span>}
+            </div>
+            <div className="stat-card">
+              <span className="stat-label">Average Price per sqft (AED)</span>
+              <span className="stat-value">{avgPsf ? formatPsf(avgPsf) : "-"}</span>
+              {readyCount > 0 && <span className="stat-change ok">{readyCount} enriched</span>}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Top buildings pills */}
+      {leads.length > 0 && (() => {
+        const buildingCounts = {};
+        for (const lead of leads) {
+          const cleaned = cleanBuildingName(lead.building);
+          if (!cleaned) continue;
+          buildingCounts[cleaned] = (buildingCounts[cleaned] || 0) + 1;
+        }
+        const topBuildings = Object.entries(buildingCounts)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 6);
+
+        if (!topBuildings.length) return null;
+        return (
+          <div className="section-block">
+            <h3 className="section-subtitle">Top Buildings</h3>
+            <div className="location-pills">
+            {topBuildings.map(([name, count]) => (
+              <button
+                key={name}
+                className={`location-pill${searchTerm === name ? " active" : ""}`}
+                onClick={() => { setSearchTerm(searchTerm === name ? "" : name); setCurrentPage(1); }}
+              >
+                {name} <span className="pill-count">({count})</span>
+              </button>
+            ))}
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* Seller Leads section */}
+      {leads.length > 0 && <h2 className="section-title">Seller Leads</h2>}
+
+      {/* Active / Done view tabs */}
+      <div className="view-tabs">
+        {[
+          { id: "active", label: "Active", count: activeLeads.length },
+          { id: "done", label: "Done", count: doneLeads.length },
+        ].map((tab) => (
+          <button
+            key={tab.id}
+            className={`view-tab${viewTab === tab.id ? " active" : ""}`}
+            onClick={() => { setViewTab(tab.id); setCurrentPage(1); }}
+          >
+            {tab.label}
+            <span className="view-tab-count">{tab.count}</span>
+          </button>
+        ))}
+      </div>
 
       {error && <div className="error">{error}</div>}
 
@@ -992,6 +1134,22 @@ function App() {
                 ))}
               </div>
 
+              <div className="tabs">
+                {[
+                  { id: "all", label: "All" },
+                  { id: "with_data", label: "Has Data" },
+                  { id: "no_data", label: "No Data" },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    className={`tab${dataFilter === tab.id ? " active" : ""}`}
+                    onClick={() => { setDataFilter(tab.id); setCurrentPage(1); }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+
               <label className="toggle">
                 <input
                   type="checkbox"
@@ -1001,38 +1159,46 @@ function App() {
                 Due only
               </label>
 
-              <div className="tabs">
-                {[
-                  { id: "all", label: "All" },
-                  { id: "unsent", label: "Unsent" },
-                  { id: "sent", label: "Sent" },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    className={`tab${sentFilter === tab.id ? " active" : ""}`}
-                    onClick={() => { setSentFilter(tab.id); setCurrentPage(1); }}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-
-              <button className="btn-primary" onClick={enrichDueLeads} disabled={enriching}>
-                {enriching ? `Fetching (${enrichProgress.done}/${enrichProgress.total})` : "Fetch Bayut data"}
+              <button
+                className="btn-sm"
+                onClick={() => {
+                  const allIds = filteredLeads.map((l) => l.id);
+                  const allExpanded = allIds.every((id) => expandedLeads[id]);
+                  setExpandedLeads((prev) => {
+                    const next = { ...prev };
+                    for (const id of allIds) next[id] = !allExpanded;
+                    return next;
+                  });
+                }}
+              >
+                {filteredLeads.every((l) => expandedLeads[l.id]) ? "Collapse All" : "Expand All"}
               </button>
 
               <button
                 className="btn-wa"
                 onClick={bulkWhatsApp}
-                disabled={!pagedLeads.some((l) => l.phone)}
+                disabled={!pagedLeads.some((l) => l.phone && insights[l.id]?.status === "ready")}
               >
                 <svg className="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-                Bulk WhatsApp ({pagedLeads.filter((l) => l.phone).length})
+                Send All ({pagedLeads.filter((l) => l.phone && insights[l.id]?.status === "ready").length})
               </button>
-
-              <button onClick={loadSheet} disabled={loading}>Reload</button>
             </div>
           </div>
+
+          {/* Import panel */}
+          {showImport && (
+            <div className="import-panel">
+              <input
+                type="text"
+                placeholder="Paste Google Sheet URL..."
+                value={sheetUrl}
+                onChange={(e) => setSheetUrl(e.target.value)}
+              />
+              <button className="btn-primary" onClick={importFromSheet} disabled={importing}>
+                {importing ? "Importing..." : "Import"}
+              </button>
+            </div>
+          )}
 
           {/* Count */}
           <p className="count-text">{filteredLeads.length} leads</p>
@@ -1044,82 +1210,104 @@ function App() {
               const message = insight?.message || buildMessage(lead, insight);
 
               return (
-                <article key={lead.id} className={`lead-card${sentLeads[lead.id] ? " lead-sent" : ""}`}>
-                  <div className="lead-top">
+                <article key={lead.id} className={`lead-card${sentLeads[lead.id] ? " lead-sent" : ""}${expandedLeads[lead.id] ? " lead-expanded" : ""}`}>
+                  <div
+                    className="lead-top"
+                    onClick={() => setExpandedLeads((prev) => ({ ...prev, [lead.id]: !prev[lead.id] }))}
+                    style={{ cursor: "pointer" }}
+                  >
                     <div>
                       <span className="lead-name">{lead.name || "Unnamed"}</span>
-                      <span className="lead-building">{lead.building || "-"}</span>
+                      <span className="lead-building">
+                        <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        {" "}{lead.building || "-"}
+                      </span>
                     </div>
-                    <div className="badge-row">
-                      <span className="badge">{lead.statusLabel}</span>
-                      <span className={`badge ${lead.isDue ? "due" : "ok"}`}>{lead.dueLabel}</span>
-                    </div>
-                  </div>
-
-                  <div className="lead-meta">
-                    <span>{lead.bedroom || "-"}</span>
-                    <span>{formatDate(lead.lastContactDate)}</span>
-                    <span>{lead.phone ? <><svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg> {lead.phone}</> : "-"}</span>
-                    <span>Due: {formatDate(lead.nextDueDate)}</span>
-                  </div>
-
-                  {insight?.status === "ready" && (
-                    <>
-                      <div className="bayut-row">
-                        <span>{insight.count} txns</span>
-                        <span>Avg {formatPrice(insight.avg)}</span>
-                        <span>{formatPsf(insight.psf)}</span>
-                        <span>{formatRange(insight.min, insight.max)}</span>
+                    <div className="lead-top-actions">
+                      <div className="badge-row">
+                        <span className="badge">{lead.statusLabel}</span>
+                        <span className={`badge ${lead.isDue ? "due" : "ok"}`}>{lead.dueLabel}</span>
+                        {insight?.status === "ready" && <span className="badge ok">Enriched</span>}
+                        {lead.newTxSinceSent && <span className="badge due">{lead.newTxSinceSent} new txns</span>}
                       </div>
-                      {insight.recentTransactions?.length > 0 ? (
-                        <div className="tx-list">
-                          <p className="tx-title">Recent sales (this month) in {insight.locationName || lead.building}</p>
-                          <div className="tx-items">
-                            {insight.recentTransactions.map((tx) => (
-                              <div key={tx.id} className="tx-item">
-                                <span>{formatDate(tx.date)}</span>
-                                <span>{formatPrice(tx.price)}</span>
-                                <span>{formatBedsLabel(tx.beds)}</span>
-                                <span>{tx.area ? `${Math.round(tx.area).toLocaleString("en-US")} sqft` : "-"}</span>
-                                <span>{`${tx.locationLabel} (Flr ${tx.floor || "-"})`}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : (
-                        <p className="muted">No priced sales found in this month window.</p>
-                      )}
-                    </>
-                  )}
-                  {insight?.status === "loading" && <p className="muted">Loading Bayut data...</p>}
-                  {insight?.status === "error" && <p className="error-sm">Bayut: {insight.error}</p>}
-
-                  <div className="msg-block">
-                    <MessagePreview value={message} />
-                    <div className="msg-actions">
-                      <button className="btn-sm" onClick={() => copyMessage(lead.id, message)}>
-                        {copiedLeadId === lead.id ? "Copied" : "Copy"}
-                      </button>
-                      {lead.phone && (
+                      {lead.phone ? (
                         <a
                           className="btn-sm btn-wa"
                           href={`https://web.whatsapp.com/send?phone=${formatPhoneForWhatsApp(lead.phone)}&text=${encodeURIComponent(message)}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          onClick={() => toggleSent(lead.id)}
+                          onClick={(e) => { e.stopPropagation(); if (!sentLeads[lead.id]) toggleSent(lead.id); }}
                         >
                           <svg className="icon" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg>
-                          WhatsApp
+                          {sentLeads[lead.id] ? "Sent" : "Send"}
                         </a>
+                      ) : (
+                        <button className="btn-sm" onClick={(e) => { e.stopPropagation(); copyMessage(lead.id, message); }}>
+                          {copiedLeadId === lead.id ? "Copied" : "Copy"}
+                        </button>
                       )}
-                      <button
-                        className={`btn-sm${sentLeads[lead.id] ? " btn-sent" : ""}`}
-                        onClick={() => toggleSent(lead.id)}
-                      >
-                        {sentLeads[lead.id] ? "Sent" : "Mark Sent"}
-                      </button>
                     </div>
                   </div>
+
+                  {expandedLeads[lead.id] && (
+                    <>
+                      <div className="lead-meta">
+                        <span>{lead.bedroom || "-"}</span>
+                        <span>{formatDate(lead.lastContactDate)}</span>
+                        {lead.phone && <span>{lead.phone}</span>}
+                      </div>
+
+                      {insight?.status === "ready" && (
+                        <>
+                          <div className="bayut-row">
+                            <span>{insight.count} txns</span>
+                            <span>Avg {formatPrice(insight.avg)}</span>
+                            <span>{formatPsf(insight.psf)}</span>
+                            <span>{formatRange(insight.min, insight.max)}</span>
+                          </div>
+                          {insight.recentTransactions?.length > 0 ? (
+                            <div className="tx-table-wrap">
+                              <p className="tx-table-title">Sales History in {insight.locationName || lead.building}</p>
+                              <table className="tx-table">
+                                <thead>
+                                  <tr>
+                                    <th>DATE</th>
+                                    <th>LOCATION</th>
+                                    <th>PRICE (AED)</th>
+                                    <th>BEDS</th>
+                                    <th>AREA (SQFT)</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {insight.recentTransactions.map((tx) => (
+                                    <tr key={tx.id}>
+                                      <td className="tx-date">{formatDate(tx.date)}</td>
+                                      <td>
+                                        <span className="tx-location">{tx.locationLabel}</span>
+                                        {tx.floor && <span className="tx-floor">Floor {tx.floor}</span>}
+                                      </td>
+                                      <td className="tx-price">{formatPrice(tx.price)}</td>
+                                      <td>{formatBedsLabel(tx.beds)}</td>
+                                      <td>{tx.area ? Math.round(tx.area).toLocaleString("en-US") : "-"}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+                          ) : (
+                            <p className="muted">No priced sales found in this period.</p>
+                          )}
+                        </>
+                      )}
+                      {insight?.status === "loading" && <p className="muted">Loading Bayut data...</p>}
+                      {insight?.status === "error" && <p className="error-sm">Bayut: {insight.error}</p>}
+
+                      <div className="msg-block">
+                        <p className="msg-label">Message Preview</p>
+                        <MessagePreview value={message} />
+                      </div>
+                    </>
+                  )}
                 </article>
               );
             })}
@@ -1136,8 +1324,52 @@ function App() {
         </>
       )}
 
-      {!loading && !leads.length && <div className="empty">No sellers found in sheet.</div>}
+      {!loading && !leads.length && (
+        <div className="onboarding">
+          <div className="onboarding-card">
+            <div className="onboarding-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                <polyline points="14 2 14 8 20 8"/>
+                <line x1="16" y1="13" x2="8" y2="13"/>
+                <line x1="16" y1="17" x2="8" y2="17"/>
+                <polyline points="10 9 9 9 8 9"/>
+              </svg>
+            </div>
+            <h2 className="onboarding-title">Welcome to Seller Signal</h2>
+            <p className="onboarding-subtitle">Import your leads to get started</p>
+            <div className="onboarding-steps">
+              <div className="onboarding-step">
+                <span className="step-number">1</span>
+                <span>Open your spreadsheet in Google Sheets</span>
+              </div>
+              <div className="onboarding-step">
+                <span className="step-number">2</span>
+                <span>Make sure it's shared (<strong>Anyone with the link</strong>)</span>
+              </div>
+              <div className="onboarding-step">
+                <span className="step-number">3</span>
+                <span>Copy the URL and paste it below</span>
+              </div>
+            </div>
+            <div className="onboarding-input">
+              <input
+                type="text"
+                placeholder="Paste your Google Sheet URL here..."
+                value={sheetUrl}
+                onChange={(e) => setSheetUrl(e.target.value)}
+                autoFocus
+              />
+              <button className="btn-primary" onClick={importFromSheet} disabled={importing}>
+                {importing ? "Importing..." : "Import Spreadsheet"}
+              </button>
+            </div>
+            {error && <div className="error" style={{ marginTop: 12 }}>{error}</div>}
+          </div>
+        </div>
+      )}
     </div>
+    </>
   );
 }
 
