@@ -462,10 +462,16 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   flex-direction: column;
   gap: 8px;
   user-select: none;
+  cursor: pointer;
 }
 
 .lead-top:hover {
   opacity: 0.85;
+}
+
+.lead-top:focus-visible {
+  outline: 2px solid var(--tab-active-bg);
+  outline-offset: 4px;
 }
 
 .lead-top-actions {
@@ -883,6 +889,7 @@ button.btn-wa:disabled {
 }
 
 .auth-card input[type="email"],
+.auth-card input[type="text"],
 .auth-card input[type="password"] {
   width: 100%;
   padding: 9px 12px;

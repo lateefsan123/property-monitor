@@ -3,12 +3,14 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import Auth from './Auth.jsx'
-import { supabase } from './supabase'
+import { supabase, supabaseConfigError } from './supabase'
 
-function Root() {
+export function Root() {
   const [session, setSession] = useState(undefined)
 
   useEffect(() => {
+    if (!supabase) return undefined
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
     })
@@ -19,6 +21,16 @@ function Root() {
 
     return () => subscription.unsubscribe()
   }, [])
+
+  if (supabaseConfigError) {
+    return (
+      <div className="page">
+        <div className="error">
+          {supabaseConfigError} Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to the build environment, then redeploy GitHub Pages.
+        </div>
+      </div>
+    )
+  }
 
   if (session === undefined) {
     return <div className="page"><div className="empty">Loading...</div></div>

@@ -36,3 +36,16 @@ This repo includes `.github/workflows/daily-enrichment.yml` to run Bayut enrichm
 ```bash
 npm run daily:enrich
 ```
+
+## GitHub Pages build secrets
+
+GitHub Pages deploys this app from a static Vite build, so client env vars must exist during the workflow build step.
+
+Required repository secrets:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+
+Optional repository secrets:
+
+- `VITE_RAPIDAPI_KEY`
