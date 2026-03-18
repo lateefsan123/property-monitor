@@ -1,7 +1,7 @@
 import { useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from "react";
 import { WHATSAPP_OPEN_DELAY_MS } from "./constants";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
-import { buildMarketStats, buildTopBuildings, filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
+import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
 import { fetchLeadInsights, fetchUserLeads, persistLeadSentState, replaceUserLeadsFromSheet } from "./services";
 
 export function useSellerSignalPage(userId) {
@@ -133,12 +133,6 @@ export function useSellerSignalPage(userId) {
     [currentPage, filteredLeads],
   );
 
-  const marketStats = useMemo(
-    () => buildMarketStats(leads, insights, activeLeads),
-    [activeLeads, insights, leads],
-  );
-
-  const topBuildings = useMemo(() => buildTopBuildings(leads), [leads]);
   const isAllExpanded = filteredLeads.length > 0 && filteredLeads.every((lead) => expandedLeads[lead.id]);
   const sendAllCount = pagedLeads.filter((lead) => {
     const phone = formatPhoneForWhatsApp(lead.phone);
@@ -200,11 +194,6 @@ export function useSellerSignalPage(userId) {
 
   function updateSheetUrl(value) {
     setSheetUrl(value);
-  }
-
-  function toggleBuildingSearch(buildingName) {
-    setSearchTerm((currentValue) => (currentValue === buildingName ? "" : buildingName));
-    resetPaging();
   }
 
   async function importFromSheet() {
@@ -300,7 +289,6 @@ export function useSellerSignalPage(userId) {
     insights,
     isAllExpanded,
     loading,
-    marketStats,
     pagedLeads,
     safePage,
     searchTerm,
@@ -310,7 +298,6 @@ export function useSellerSignalPage(userId) {
     showDueOnly,
     showImport,
     statusFilter,
-    topBuildings,
     totalPages,
     viewTab,
     actions: {
@@ -324,7 +311,6 @@ export function useSellerSignalPage(userId) {
       selectViewTab,
       setDueOnly,
       toggleAllExpanded,
-      toggleBuildingSearch,
       toggleImportPanel,
       toggleLeadExpanded,
       toggleSent,

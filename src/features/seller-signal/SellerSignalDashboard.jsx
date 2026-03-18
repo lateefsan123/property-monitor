@@ -1,11 +1,11 @@
 import { supabase } from "../../supabase";
 import AppTopNav from "./components/AppTopNav";
-import DashboardOverview from "./components/DashboardOverview";
 import FiltersToolbar from "./components/FiltersToolbar";
 import ImportPanel from "./components/ImportPanel";
 import LeadCard from "./components/LeadCard";
 import OnboardingState from "./components/OnboardingState";
 import Pagination from "./components/Pagination";
+import StickyActionBar from "./components/StickyActionBar";
 import ViewTabs from "./components/ViewTabs";
 import { useSellerSignalPage } from "./useSellerSignalPage";
 
@@ -39,16 +39,6 @@ export default function SellerSignalDashboard({
       <div className="page">
         {dashboard.hasLeads ? (
           <>
-            <DashboardOverview
-              leadsCount={dashboard.marketStats.totalSellers}
-              marketStats={dashboard.marketStats}
-              onSelectBuilding={dashboard.actions.toggleBuildingSearch}
-              searchTerm={dashboard.searchTerm}
-              topBuildings={dashboard.topBuildings}
-            />
-
-            <h2 className="section-title">Seller Leads</h2>
-
             <ViewTabs
               activeCount={dashboard.activeLeads.length}
               doneCount={dashboard.doneLeads.length}
@@ -59,17 +49,14 @@ export default function SellerSignalDashboard({
             {dashboard.error && <div className="error">{dashboard.error}</div>}
 
             <FiltersToolbar
-              canSendAll={dashboard.sendAllCount > 0}
               dataFilter={dashboard.dataFilter}
               isAllExpanded={dashboard.isAllExpanded}
               onDataFilterChange={dashboard.actions.selectDataFilter}
               onSearchTermChange={dashboard.actions.updateSearchTerm}
-              onSendAll={dashboard.actions.bulkWhatsApp}
               onStatusFilterChange={dashboard.actions.selectStatusFilter}
               onToggleAllExpanded={dashboard.actions.toggleAllExpanded}
               onToggleDueOnly={dashboard.actions.setDueOnly}
               searchTerm={dashboard.searchTerm}
-              sendAllCount={dashboard.sendAllCount}
               showDueOnly={dashboard.showDueOnly}
               statusFilter={dashboard.statusFilter}
             />
@@ -106,6 +93,12 @@ export default function SellerSignalDashboard({
               onNext={dashboard.actions.goToNextPage}
               onPrevious={dashboard.actions.goToPreviousPage}
               totalPages={dashboard.totalPages}
+            />
+
+            <StickyActionBar 
+              onSendAll={dashboard.actions.bulkWhatsApp}
+              canSendAll={dashboard.sendAllCount > 0}
+              sendAllCount={dashboard.sendAllCount}
             />
           </>
         ) : (

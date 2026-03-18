@@ -11,6 +11,7 @@ export default function Auth() {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const [theme] = useThemePreference();
+  const logoSrc = `${import.meta.env.BASE_URL}${theme === "dark" ? "darkmode%20logo.png" : "logo.png"}`;
 
   async function handleEmailAuth(event) {
     event.preventDefault();
@@ -48,7 +49,7 @@ export default function Auth() {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <img src={theme === "dark" ? "/darkmode logo.png" : "/logo.png"} alt="Seller Signal" className="auth-logo" />
+        <img src={logoSrc} alt="Seller Signal" className="auth-logo" />
         <p className="auth-subtitle">{isSignUp ? "Create an account" : "Sign in to continue"}</p>
 
         {error && <div className="error">{error}</div>}

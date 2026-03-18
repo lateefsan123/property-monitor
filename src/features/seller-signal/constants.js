@@ -4,7 +4,6 @@ export const HEADER_SCAN_LIMIT = 40;
 export const IMPORT_SAMPLE_ROW_LIMIT = 6;
 export const IMPORT_BATCH_SIZE = 200;
 export const RECENT_TRANSACTIONS_LIMIT = 5;
-export const TOP_BUILDINGS_LIMIT = 6;
 export const WHATSAPP_OPEN_DELAY_MS = 600;
 export const MIN_NEW_TRANSACTIONS_TO_REACTIVATE = 2;
 

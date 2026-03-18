@@ -17,15 +17,15 @@ function MoonIcon() {
 export default function AppTopNav({
   displayName,
   onSignOut,
-  onToggleImport,
   onToggleTheme,
-  showImport,
   theme,
 }) {
+  const logoSrc = `${import.meta.env.BASE_URL}${theme === "dark" ? "darkmode%20logo.png" : "logo.png"}`;
+
   return (
     <nav className="topnav">
       <div className="topnav-brand">
-        <img src={theme === "dark" ? "/darkmode logo.png" : "/logo.png"} alt="Seller Signal" className="topnav-logo" />
+        <img src={logoSrc} alt="Seller Signal" className="topnav-logo" />
         <span className="user-email">{displayName}</span>
       </div>
 
@@ -45,10 +45,6 @@ export default function AppTopNav({
             </span>
             <span className={`theme-toggle-thumb${theme === "dark" ? " dark" : ""}`} />
           </span>
-        </button>
-
-        <button type="button" className="btn-sm" onClick={onToggleImport}>
-          {showImport ? "Cancel" : "Import"}
         </button>
 
         <button type="button" className="btn-sm" onClick={onSignOut}>

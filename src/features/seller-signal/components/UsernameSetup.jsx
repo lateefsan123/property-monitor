@@ -5,6 +5,7 @@ export default function UsernameSetup({ theme }) {
   const [username, setUsername] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const logoSrc = `${import.meta.env.BASE_URL}${theme === "dark" ? "darkmode%20logo.png" : "logo.png"}`;
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -24,7 +25,7 @@ export default function UsernameSetup({ theme }) {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <img src={theme === "dark" ? "/darkmode logo.png" : "/logo.png"} alt="Seller Signal" className="auth-logo" />
+        <img src={logoSrc} alt="Seller Signal" className="auth-logo" />
         <p className="auth-subtitle">Choose a display name to get started</p>
 
         {error && <div className="error">{error}</div>}
