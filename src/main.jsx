@@ -23,10 +23,12 @@ export function Root() {
   }, [])
 
   if (supabaseConfigError) {
+    console.error(supabaseConfigError)
+
     return (
       <div className="page">
         <div className="error">
-          {supabaseConfigError} Add `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` to the build environment, then redeploy GitHub Pages.
+          The app is temporarily unavailable right now.
         </div>
       </div>
     )

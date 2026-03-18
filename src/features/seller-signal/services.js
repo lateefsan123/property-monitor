@@ -153,7 +153,7 @@ export async function fetchLeadInsights(leads) {
     if (!building || !allTransactions.length) {
       updates[lead.id] = {
         status: "error",
-        error: "No data found",
+        error: "Property market data is not available yet.",
         message: buildMessage(lead, null),
       };
       continue;

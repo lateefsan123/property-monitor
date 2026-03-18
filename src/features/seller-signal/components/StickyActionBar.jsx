@@ -1,7 +1,6 @@
 export default function StickyActionBar({
   canSendAll,
   onSendAll,
-  sendAllCount,
 }) {
   return (
     <div className="floating-action-container">

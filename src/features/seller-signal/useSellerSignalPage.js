@@ -77,7 +77,7 @@ export function useSellerSignalPage(userId) {
 
       setInsights((previousInsights) => ({ ...previousInsights, ...updates }));
       if (matched === 0) {
-        setError("No buildings matched in Supabase. Run \"npm run fetch:bayut\" to update.");
+        setError("Property market data is not available for these buildings yet.");
       }
     } catch (enrichmentError) {
       setError(enrichmentError.message);

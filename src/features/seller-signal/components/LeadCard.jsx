@@ -156,7 +156,7 @@ export default function LeadCard({
           )}
 
           {insight?.status === "loading" && <p className="muted">Loading Bayut data...</p>}
-          {insight?.status === "error" && <p className="error-sm">Bayut: {insight.error}</p>}
+          {insight?.status === "error" && <p className="error-sm">{insight.error}</p>}
 
           <div className="msg-block">
             <p className="msg-label">Message Preview</p>
