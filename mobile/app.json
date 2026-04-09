@@ -1,0 +1,46 @@
+{
+  "expo": {
+    "name": "seller signal",
+    "slug": "seller-signal",
+    "owner": "lateefsan-2",
+    "version": "1.0.0",
+    "scheme": "seller-signal",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.lateefsan.sellersignal",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.lateefsan.sellersignal",
+      "adaptiveIcon": {
+        "backgroundColor": "#E6F4FE",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-dev-client",
+      "expo-web-browser",
+      "expo-sharing"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "4cae8513-9326-42eb-8cdb-3b07f6785b71"
+      }
+    }
+  }
+}
