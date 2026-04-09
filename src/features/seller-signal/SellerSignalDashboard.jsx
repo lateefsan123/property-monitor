@@ -1,13 +1,15 @@
+import { useEffect, useState } from "react";
 import { supabase } from "../../supabase";
 import AppTopNav from "./components/AppTopNav";
 import FiltersToolbar from "./components/FiltersToolbar";
 import ImportPanel from "./components/ImportPanel";
+import LeadImportEmptyState from "./components/LeadImportEmptyState";
 import LeadCard from "./components/LeadCard";
-import OnboardingState from "./components/OnboardingState";
 import Pagination from "./components/Pagination";
 import StickyActionBar from "./components/StickyActionBar";
 import ViewTabs from "./components/ViewTabs";
 import { useSellerSignalPage } from "./useSellerSignalPage";
+import { normalizeToken } from "./spreadsheet";
 
 export default function SellerSignalDashboard({
   displayName,
@@ -16,6 +18,14 @@ export default function SellerSignalDashboard({
   userId,
 }) {
   const dashboard = useSellerSignalPage(userId);
+  const [buildingImages, setBuildingImages] = useState({});
+
+  useEffect(() => {
+    fetch("/data/building-images.json")
+      .then((res) => res.json())
+      .then(setBuildingImages)
+      .catch(() => {});
+  }, []);
 
   if (dashboard.loading) {
     return (
@@ -76,6 +86,7 @@ export default function SellerSignalDashboard({
               {dashboard.pagedLeads.map((lead) => (
                 <LeadCard
                   key={lead.id}
+                  buildingImageUrl={buildingImages[normalizeToken(lead.building)]}
                   copiedLeadId={dashboard.copiedLeadId}
                   insight={dashboard.insights[lead.id]}
                   isExpanded={Boolean(dashboard.expandedLeads[lead.id])}
@@ -102,7 +113,7 @@ export default function SellerSignalDashboard({
             />
           </>
         ) : (
-          <OnboardingState
+          <LeadImportEmptyState
             error={dashboard.error}
             importing={dashboard.importing}
             onImport={dashboard.actions.importFromSheet}

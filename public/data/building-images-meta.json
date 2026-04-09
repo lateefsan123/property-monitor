@@ -1,0 +1,554 @@
+{
+  "67": {
+    "buildingName": "Al Ramth 67",
+    "searchName": "67",
+    "coordinates": {
+      "latitude": 25.004123,
+      "longitude": 55.252709
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112257/171305",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "theloftseast": {
+    "buildingName": "The Lofts East",
+    "searchName": "The Lofts East",
+    "coordinates": {
+      "latitude": 25.19738,
+      "longitude": 55.269859
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112102/171318",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "theloftscentral": {
+    "buildingName": "The Lofts Central Tower",
+    "searchName": "The Lofts Central",
+    "coordinates": {
+      "latitude": 25.196944,
+      "longitude": 55.269626
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112102/171318",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "forte": {
+    "buildingName": "Forte 1",
+    "searchName": "Forte",
+    "coordinates": {
+      "latitude": 25.195246,
+      "longitude": 55.269559
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112103/171318",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "theloftswest": {
+    "buildingName": "The Lofts West",
+    "searchName": "The Lofts West",
+    "coordinates": {
+      "latitude": 25.196555,
+      "longitude": 55.269432
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112102/171317",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "burjvista": {
+    "buildingName": "Burj Vista 2",
+    "searchName": "Burj Vista",
+    "coordinates": {
+      "latitude": 25.198443,
+      "longitude": 55.270758
+    },
+    "source": "wikipedia",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/en/f/f7/Burj_Vista_20241101.jpg",
+    "sourcePageTitle": "Burj Vista",
+    "sourcePageUrl": "https://en.wikipedia.org/wiki/Burj_Vista"
+  },
+  "acttowers": {
+    "buildingName": "Act One | Act Two Towers",
+    "searchName": "Act Towers",
+    "coordinates": {
+      "latitude": 25.192794,
+      "longitude": 55.271131
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112105/171319",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "boulevardpoint": {
+    "buildingName": "Boulevard Point",
+    "searchName": "Boulevard Point",
+    "coordinates": {
+      "latitude": 25.193282,
+      "longitude": 55.281022
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112105/171326",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "thebay": {
+    "buildingName": "The Bay",
+    "searchName": "The Bay",
+    "coordinates": {
+      "latitude": 25.190629,
+      "longitude": 55.291175
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112107/171333",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "peninsulafive": {
+    "buildingName": "Peninsula Five",
+    "searchName": "Peninsula Five",
+    "coordinates": {
+      "latitude": 25.183752,
+      "longitude": 55.266352
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112113/171315",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "opera": {
+    "buildingName": "Opera Grand",
+    "searchName": "Opera…",
+    "coordinates": {
+      "latitude": 25.195499,
+      "longitude": 55.271766
+    },
+    "source": "wikipedia",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/en/5/58/Opera_Grand_20241102.jpg",
+    "sourcePageTitle": "Opera Grand",
+    "sourcePageUrl": "https://en.wikipedia.org/wiki/Opera_Grand"
+  },
+  "peninsulatwo": {
+    "buildingName": "Peninsula Two",
+    "searchName": "Peninsula Two",
+    "coordinates": {
+      "latitude": 25.185730574223,
+      "longitude": 55.26730288317
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112111/171316",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "erin": {
+    "buildingName": "Erin",
+    "searchName": "Erin",
+    "coordinates": {
+      "latitude": 25.203467718887,
+      "longitude": 55.258856071805
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112097/171310",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "thea": {
+    "buildingName": "The A…",
+    "searchName": "The A…",
+    "coordinates": {
+      "latitude": 25.278223514352,
+      "longitude": 55.350080030719
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112037/171376",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "thecrestmark": {
+    "buildingName": "The Crestmark",
+    "searchName": "The Crestmark",
+    "coordinates": {
+      "latitude": 25.186943736397,
+      "longitude": 55.283864218729
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112110/171328",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "grande": {
+    "buildingName": "Grande",
+    "searchName": "Grande",
+    "coordinates": {
+      "latitude": 25.195018,
+      "longitude": 55.270476
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112103/171318",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "standpoint": {
+    "buildingName": "Standpoint Tower 1",
+    "searchName": "Standpoint…",
+    "coordinates": {
+      "latitude": 25.197037,
+      "longitude": 55.271062
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112102/171319",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "trillionaireresid": {
+    "buildingName": "Trillionaire Residences by Binghatti",
+    "searchName": "Trillionaire Resid...",
+    "coordinates": {
+      "latitude": 25.184506,
+      "longitude": 55.281507
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112112/171326",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "towerc": {
+    "buildingName": "Tower C",
+    "searchName": "Tower C",
+    "coordinates": {
+      "latitude": 25.186346,
+      "longitude": 55.291936
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112110/171334",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "gran": {
+    "buildingName": "Gran…",
+    "searchName": "Gran…",
+    "coordinates": {
+      "latitude": 24.965048015222,
+      "longitude": 55.2200086156
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112288/171281",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "oper": {
+    "buildingName": "Opera Grand",
+    "searchName": "Oper…",
+    "coordinates": {
+      "latitude": 25.195499,
+      "longitude": 55.271766
+    },
+    "source": "wikipedia",
+    "imageUrl": "https://upload.wikimedia.org/wikipedia/en/5/58/Opera_Grand_20241102.jpg",
+    "sourcePageTitle": "Opera Grand",
+    "sourcePageUrl": "https://en.wikipedia.org/wiki/Opera_Grand"
+  },
+  "damacmaiso": {
+    "buildingName": "Damac Maison Prive Tower A",
+    "searchName": "Damac Maiso…",
+    "coordinates": {
+      "latitude": 25.184591,
+      "longitude": 55.275082
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112112/171322",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "forte2": {
+    "buildingName": "Forte 2",
+    "searchName": "Forte 2",
+    "coordinates": {
+      "latitude": 25.195246,
+      "longitude": 55.269559
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112103/171318",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "peninsulathree": {
+    "buildingName": "Peninsula Three",
+    "searchName": "Peninsula Three",
+    "coordinates": {
+      "latitude": 25.185479,
+      "longitude": 55.268973
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112111/171317",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "voltatower": {
+    "buildingName": "Volta Tower",
+    "searchName": "Volta Tower",
+    "coordinates": {
+      "latitude": 25.0549479102,
+      "longitude": 55.193916539111
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112216/171262",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "southridge5": {
+    "buildingName": "South Ridge 5",
+    "searchName": "South Ridge 5",
+    "coordinates": {
+      "latitude": 25.186948,
+      "longitude": 55.278975
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112110/171324",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "thesterlingeast": {
+    "buildingName": "The Sterling East",
+    "searchName": "The Sterling East…",
+    "coordinates": {
+      "latitude": 25.188543,
+      "longitude": 55.281919
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112109/171327",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "noblestow": {
+    "buildingName": "Nobles Tower",
+    "searchName": "Nobles Tow...",
+    "coordinates": {
+      "latitude": 25.184945,
+      "longitude": 55.289624
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112112/171332",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "29burjboulevar": {
+    "buildingName": "29 Boulevard Podium",
+    "searchName": "29 Burj Boulevar…",
+    "coordinates": {
+      "latitude": 25.192143,
+      "longitude": 55.272784
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112106/171320",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "burjalnujoom": {
+    "buildingName": "Burj Al Nujoom",
+    "searchName": "Burj Al Nujoom",
+    "coordinates": {
+      "latitude": 25.191151,
+      "longitude": 55.282046
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112107/171327",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "kempinskiblvd": {
+    "buildingName": "Kempinski The Boulevard (The Address The Blvd)",
+    "searchName": "Kempinski BLVD...",
+    "coordinates": {
+      "latitude": 25.200813,
+      "longitude": 55.276276
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112099/171322",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "aykoncitytowe": {
+    "buildingName": "Aykon City Tower C",
+    "searchName": "Aykon City Towe…",
+    "coordinates": {
+      "latitude": 25.180581,
+      "longitude": 55.252602
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112115/171305",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "vidadubaimall": {
+    "buildingName": "Vida Dubai Mall Tower 1",
+    "searchName": "Vida Dubai Mall…",
+    "coordinates": {
+      "latitude": 25.196356,
+      "longitude": 55.283629
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112102/171328",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "terracesmarasi": {
+    "buildingName": "Terraces Marasi Drive",
+    "searchName": "Terraces Marasi…",
+    "coordinates": {
+      "latitude": 25.184876,
+      "longitude": 55.285378
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112112/171329",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "terra": {
+    "buildingName": "Terra Nova",
+    "searchName": "Terra…",
+    "coordinates": {
+      "latitude": 25.050902,
+      "longitude": 55.280098
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112219/171325",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "mamashelter": {
+    "buildingName": "Mama Shelter (Luxury Family Residences II)",
+    "searchName": "Mama Shelter",
+    "coordinates": {
+      "latitude": 25.180141,
+      "longitude": 55.272011
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112115/171319",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "adressfountainviews": {
+    "buildingName": "The Address Fountain Views 2",
+    "searchName": "Adress fountain views",
+    "coordinates": {
+      "latitude": 25.194911,
+      "longitude": 55.282549
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112104/171327",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "burjviews": {
+    "buildingName": "Burj Views A",
+    "searchName": "Burj views",
+    "coordinates": {
+      "latitude": 25.190199,
+      "longitude": 55.281357
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112107/171326",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "bellevuetowers": {
+    "buildingName": "Bellevue Tower 2",
+    "searchName": "BELLEVUE TOWERS",
+    "coordinates": {
+      "latitude": 25.187137,
+      "longitude": 55.275906
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112110/171322",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "oneresidence": {
+    "buildingName": "one residence",
+    "searchName": "one residence",
+    "coordinates": {
+      "latitude": 25.190333,
+      "longitude": 55.304833
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112107/171343",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "thesignature": {
+    "buildingName": "DAMAC Maison Mall Street (The Signature)",
+    "searchName": "The Signature",
+    "coordinates": {
+      "latitude": 25.195212,
+      "longitude": 55.283858
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112103/171328",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "thedistinction": {
+    "buildingName": "DAMAC Maison The Distinction",
+    "searchName": "THE DISTINCTION",
+    "coordinates": {
+      "latitude": 25.187985,
+      "longitude": 55.279713
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112109/171325",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "uppercrest": {
+    "buildingName": "Upper Crest (Burjside Terrace)",
+    "searchName": "UPPER CREST",
+    "coordinates": {
+      "latitude": 25.193536,
+      "longitude": 55.284457
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112105/171328",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "difccentralpark": {
+    "buildingName": "Central Park Residence Tower",
+    "searchName": "DIFC CENTRAL PARK",
+    "coordinates": {
+      "latitude": 25.206484573588,
+      "longitude": 55.275149377264
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112094/171322",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "zadatower": {
+    "buildingName": "Zada Tower",
+    "searchName": "ZADA TOWER",
+    "coordinates": {
+      "latitude": 25.184497,
+      "longitude": 55.261755
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112112/171312",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  },
+  "vida": {
+    "buildingName": "Tower B1",
+    "searchName": "VIDA",
+    "coordinates": {
+      "latitude": 25.078648,
+      "longitude": 55.158361
+    },
+    "source": "arcgis-world-imagery",
+    "imageUrl": "https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/18/112197/171237",
+    "sourcePageTitle": null,
+    "sourcePageUrl": null
+  }
+}

@@ -20,7 +20,7 @@ export default function AppTopNav({
   onToggleTheme,
   theme,
 }) {
-  const logoSrc = `${import.meta.env.BASE_URL}${theme === "dark" ? "darkmode%20logo.png" : "logo.png"}`;
+  const logoSrc = `${import.meta.env.BASE_URL}logo.png`;
 
   return (
     <nav className="topnav">

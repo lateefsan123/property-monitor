@@ -49,3 +49,102 @@ Required repository secrets:
 Optional repository secrets:
 
 - `VITE_RAPIDAPI_KEY`
+
+## Stripe billing setup
+
+This repo now uses:
+
+- Stripe Checkout on the web app
+- Native App Store / Google Play subscriptions in the mobile app through RevenueCat
+
+Web uses a single monthly Stripe plan. Mobile uses a RevenueCat offering for `seller signal Pro`.
+
+### Web Stripe setup
+
+The web app expects Stripe billing to run through Supabase Edge Functions.
+
+Required Stripe secrets in Supabase:
+
+- `STRIPE_SECRET_KEY`
+- `STRIPE_WEBHOOK_SECRET`
+- `STRIPE_MONTHLY_PRICE_ID`
+- `STRIPE_SUCCESS_URL` for the web fallback success redirect
+- `STRIPE_CANCEL_URL` for the web fallback cancel redirect
+
+Database setup:
+
+```bash
+supabase db push
+```
+
+Edge functions to deploy:
+
+```bash
+supabase functions deploy create-checkout-session --no-verify-jwt
+supabase functions deploy sync-subscription-status --no-verify-jwt
+supabase functions deploy stripe-webhook
+```
+
+Stripe webhook endpoint:
+
+```text
+https://<your-project-ref>.supabase.co/functions/v1/stripe-webhook
+```
+
+Subscribe the webhook to these Stripe events:
+
+- `checkout.session.completed`
+- `customer.subscription.created`
+- `customer.subscription.updated`
+- `customer.subscription.deleted`
+
+## Mobile native subscription setup
+
+The Expo mobile app no longer uses Stripe for unlocking paid features. Mobile billing runs through RevenueCat, which sits on top of Apple In-App Purchase and Google Play Billing.
+
+### Required mobile env vars
+
+Create `mobile/.env` from `mobile/.env.example` and fill in:
+
+- `EXPO_PUBLIC_REVENUECAT_TEST_API_KEY` for local/dev testing with RevenueCat Test Store
+- `EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY`
+- `EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY`
+- `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID`
+
+### RevenueCat dashboard setup
+
+Configure RevenueCat with:
+
+1. An iOS app and Android app for this project
+2. One entitlement matching `EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID`
+3. One current offering for `seller signal Pro`
+4. One monthly package in that offering
+5. Store products in App Store Connect and Google Play for the monthly subscription
+
+Recommended entitlement identifier:
+
+- `seller_signal_pro`
+
+Recommended store product identifier:
+
+- `seller_signal_pro_monthly`
+
+The mobile app expects the current RevenueCat offering to expose a `monthly` package only. The app uses its own custom paywall screen and RevenueCat for products, purchases, entitlements, restore, and Customer Center.
+
+You do not need to create a RevenueCat dashboard paywall unless you explicitly want to use RevenueCat Paywalls instead of the in-app custom screen.
+
+### Expo / EAS build notes
+
+Native purchases require a development build or a store build. Expo Go is not enough for real App Store / Google Play purchase flows.
+
+Build helpers are configured in `mobile/eas.json`.
+
+Common commands:
+
+```bash
+cd mobile
+npx eas build --profile development --platform ios
+npx eas build --profile development --platform android
+```
+
+Use the `preview` or `production` profile once the store products and RevenueCat project are ready.

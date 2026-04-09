@@ -1,22 +1,10 @@
 import { useState } from "react";
 import "./App.css";
-import OnboardingScreen from "./OnboardingScreen";
-import SubscriptionScreen from "./SubscriptionScreen";
 import SellerSignalDashboard from "./features/seller-signal/SellerSignalDashboard";
 import UsernameSetup from "./features/seller-signal/components/UsernameSetup";
 import { useThemePreference } from "./hooks/useThemePreference";
 
-function App({
-  billingError,
-  billingMessage,
-  billingLoading,
-  checkoutPending,
-  onboardingCompleted,
-  onCompleteOnboarding,
-  onStartCheckout,
-  session,
-  subscriptionAccessGranted,
-}) {
+function App({ session }) {
   const [theme, setTheme] = useThemePreference();
   const [displayNameOverride, setDisplayNameOverride] = useState({
     userId: null,
@@ -37,21 +25,8 @@ function App({
     );
   }
 
-  if (!onboardingCompleted) {
-    return <OnboardingScreen onComplete={onCompleteOnboarding} />;
-  }
-
-  if (!subscriptionAccessGranted) {
-    return (
-      <SubscriptionScreen
-        billingError={billingError}
-        billingMessage={billingMessage}
-        checkoutPending={checkoutPending}
-        onStartCheckout={onStartCheckout}
-        subscriptionLoading={billingLoading}
-      />
-    );
-  }
+  // Onboarding and Stripe subscription gates are temporarily hidden on web.
+  // To restore: re-enable the !onboardingCompleted and !subscriptionAccessGranted checks below.
 
   return (
     <SellerSignalDashboard

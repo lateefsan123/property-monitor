@@ -60,6 +60,7 @@ function TransactionTable({ insight, lead }) {
 }
 
 export default function LeadCard({
+  buildingImageUrl,
   copiedLeadId,
   insight,
   isExpanded,
@@ -91,47 +92,57 @@ export default function LeadCard({
         onClick={() => onToggleExpanded(lead.id)}
         onKeyDown={handleHeaderKeyDown}
       >
-        <div>
-          <span className="lead-name">{lead.name || "Unnamed"}</span>
-          <span className="lead-building">
-            <HomeIcon /> {lead.building || "-"}
-          </span>
-        </div>
-
-        <div className="lead-top-actions">
-          <div className="badge-row">
-            <span className="badge">{lead.statusLabel}</span>
-            <span className={`badge ${lead.isDue ? "due" : "ok"}`}>{lead.dueLabel}</span>
-            {insight?.status === "ready" && <span className="badge ok">Enriched</span>}
-            {lead.newTxSinceSent && <span className="badge due">{lead.newTxSinceSent} new txns</span>}
+        {buildingImageUrl && (
+          <img
+            className="lead-building-img"
+            src={buildingImageUrl}
+            alt={lead.building}
+            loading="lazy"
+          />
+        )}
+        <div className="lead-top-info">
+          <div>
+            <span className="lead-name">{lead.name || "Unnamed"}</span>
+            <span className="lead-building">
+              <HomeIcon /> {lead.building || "-"}
+            </span>
           </div>
 
-          {whatsappUrl ? (
-            <a
-              className="btn-sm btn-wa"
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(event) => {
-                event.stopPropagation();
-                if (!isSent) void onToggleSent(lead.id);
-              }}
-            >
-              <WhatsAppIcon />
-              {isSent ? "Sent" : "Send"}
-            </a>
-          ) : (
-            <button
-              type="button"
-              className="btn-sm"
-              onClick={(event) => {
-                event.stopPropagation();
-                void onCopyMessage(lead.id, message);
-              }}
-            >
-              {copiedLeadId === lead.id ? "Copied" : "Copy"}
-            </button>
-          )}
+          <div className="lead-top-actions">
+            <div className="badge-row">
+              <span className="badge">{lead.statusLabel}</span>
+              <span className={`badge ${lead.isDue ? "due" : "ok"}`}>{lead.dueLabel}</span>
+              {insight?.status === "ready" && <span className="badge ok">Enriched</span>}
+              {lead.newTxSinceSent && <span className="badge due">{lead.newTxSinceSent} new txns</span>}
+            </div>
+
+            {whatsappUrl ? (
+              <a
+                className="btn-sm btn-wa"
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  if (!isSent) void onToggleSent(lead.id);
+                }}
+              >
+                <WhatsAppIcon />
+                {isSent ? "Sent" : "Send"}
+              </a>
+            ) : (
+              <button
+                type="button"
+                className="btn-sm"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  void onCopyMessage(lead.id, message);
+                }}
+              >
+                {copiedLeadId === lead.id ? "Copied" : "Copy"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

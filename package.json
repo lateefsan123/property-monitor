@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "daily:enrich": "node scripts/daily-enrichment-report.mjs",
-    "fetch:bayut": "node scripts/fetch-bayut-all.mjs"
+    "fetch:bayut": "node scripts/fetch-bayut-all.mjs",
+    "build:listing-alerts": "node scripts/build-listing-alerts-feed.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.2",

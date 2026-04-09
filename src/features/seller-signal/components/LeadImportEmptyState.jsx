@@ -1,4 +1,4 @@
-export default function OnboardingState({
+export default function LeadImportEmptyState({
   error,
   importing,
   onImport,
@@ -6,9 +6,9 @@ export default function OnboardingState({
   sheetUrl,
 }) {
   return (
-    <div className="onboarding">
-      <div className="onboarding-card">
-        <div className="onboarding-icon">
+    <div className="lead-import-empty">
+      <div className="lead-import-empty-card">
+        <div className="lead-import-empty-icon">
           <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14 2 14 8 20 8" />
@@ -18,26 +18,26 @@ export default function OnboardingState({
           </svg>
         </div>
 
-        <h2 className="onboarding-title">Welcome to Seller Signal</h2>
-        <p className="onboarding-subtitle">Import your leads to get started</p>
+        <h2 className="lead-import-empty-title">Import your leads</h2>
+        <p className="lead-import-empty-subtitle">Paste your Google Sheet to start building your seller pipeline.</p>
 
-        <div className="onboarding-steps">
-          <div className="onboarding-step">
-            <span className="step-number">1</span>
+        <div className="lead-import-empty-steps">
+          <div className="lead-import-empty-step">
+            <span className="lead-import-empty-step-number">1</span>
             <span>Open your spreadsheet in Google Sheets</span>
           </div>
-          <div className="onboarding-step">
-            <span className="step-number">2</span>
+          <div className="lead-import-empty-step">
+            <span className="lead-import-empty-step-number">2</span>
             <span>Make sure it&apos;s shared (<strong>Anyone with the link</strong>)</span>
           </div>
-          <div className="onboarding-step">
-            <span className="step-number">3</span>
+          <div className="lead-import-empty-step">
+            <span className="lead-import-empty-step-number">3</span>
             <span>Copy the URL and paste it below</span>
           </div>
         </div>
 
         <form
-          className="onboarding-input"
+          className="lead-import-empty-input"
           onSubmit={(event) => {
             event.preventDefault();
             onImport();
@@ -50,7 +50,7 @@ export default function OnboardingState({
             onChange={(event) => onSheetUrlChange(event.target.value)}
             autoFocus
           />
-          <button className="btn-primary" type="submit" disabled={importing}>
+          <button className="btn-primary" type="submit" disabled={importing || !sheetUrl}>
             {importing ? "Importing..." : "Import Spreadsheet"}
           </button>
         </form>
