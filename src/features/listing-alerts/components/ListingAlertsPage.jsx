@@ -272,6 +272,7 @@ function ListingAlertsFilters({
   setWatchingOnly,
   trackedOnly,
   setTrackedOnly,
+  showTrackedToggle,
   priceChangedOnly,
   setPriceChangedOnly,
   trackedStatusFilter,
@@ -297,7 +298,7 @@ function ListingAlertsFilters({
           Watching only
         </label>
 
-        {viewTab === "listings" ? (
+        {viewTab === "listings" && showTrackedToggle ? (
           <>
             <label className="toggle">
               <input
@@ -386,6 +387,11 @@ export default function ListingAlertsPage() {
   const [selectedListingKey, setSelectedListingKey] = useState(null);
   const hasTrackedUnits = alerts.stats.trackedListingCount > 0;
   const buildingFilterOptions = alerts.watchedBuildings || [];
+  const autoTracking = alerts.autoTracking;
+
+  useEffect(() => {
+    if (autoTracking && trackedOnly) setTrackedOnly(false);
+  }, [autoTracking, trackedOnly]);
 
   useEffect(() => {
     if (listingBuildingFilter === "all") return;
@@ -574,6 +580,7 @@ export default function ListingAlertsPage() {
         onBack={() => setSelectedListingKey(null)}
         onOpenExternal={() => openListing(selectedListing.bayutUrl)}
         onToggleTracking={() => toggleListingTracking(selectedListing)}
+        autoTracking={autoTracking}
       />
     );
   }
@@ -640,6 +647,7 @@ export default function ListingAlertsPage() {
         setWatchingOnly={setWatchingOnly}
         trackedOnly={trackedOnly}
         setTrackedOnly={setTrackedOnly}
+        showTrackedToggle={!autoTracking}
         priceChangedOnly={priceChangedOnly}
         setPriceChangedOnly={setPriceChangedOnly}
         trackedStatusFilter={trackedStatusFilter}
@@ -659,6 +667,11 @@ export default function ListingAlertsPage() {
       ) : null}
       {alerts.watchError ? (
         <div className="la-error-box">{alerts.watchError}</div>
+      ) : null}
+      {alerts.alertSummary?.newListingCount > 0 ? (
+        <div className="la-notice-box">
+          {alerts.alertSummary.newListingCount} new {alerts.alertSummary.newListingCount === 1 ? "listing" : "listings"} added since the last check.
+        </div>
       ) : null}
 
       <div className="la-results-bar">

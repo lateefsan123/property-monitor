@@ -281,6 +281,7 @@ export default function ListingDetailPage({
   onBack,
   onOpenExternal,
   onToggleTracking,
+  autoTracking = false,
 }) {
   if (!listing) return null;
 
@@ -298,7 +299,7 @@ export default function ListingDetailPage({
   const area = formatArea(listing.areaSqft);
 
   const eyebrowBits = [
-    isTracked ? "Tracked unit" : "Live unit",
+    autoTracking ? "Auto-tracked unit" : (isTracked ? "Tracked unit" : "Live unit"),
     listing.community || listing.cluster || null,
     bedsBaths,
   ].filter(Boolean);
@@ -328,13 +329,17 @@ export default function ListingDetailPage({
           <div className="ld-area">{area}</div>
 
           <div className="ld-actions">
-            <button
-              type="button"
-              className={`btn-sm${isTracked ? "" : " btn-primary"}`}
-              onClick={onToggleTracking}
-            >
-              {isTracked ? "Stop tracking" : "Track unit"}
-            </button>
+            {!autoTracking ? (
+              <button
+                type="button"
+                className={`btn-sm${isTracked ? "" : " btn-primary"}`}
+                onClick={onToggleTracking}
+              >
+                {isTracked ? "Stop tracking" : "Track unit"}
+              </button>
+            ) : (
+              <span className="ld-auto-track">Tracking all units in this building</span>
+            )}
             {listing.bayutUrl ? (
               <button type="button" className="btn-sm" onClick={onOpenExternal}>
                 Open on Bayut

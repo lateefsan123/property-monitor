@@ -17,6 +17,7 @@ const PAGE_SIZE = 25;
 const MAX_PAGES = 20;
 const MAX_LISTINGS_PER_BUILDING = 500;
 const MAX_WATCHED_BUILDINGS = 4;
+const TRACK_ALL_LISTINGS = true;
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -191,16 +192,19 @@ async function syncUser({
     return { userId, watched: 0, tracked: 0, changes: 0 };
   }
 
-  const { data: trackedRows, error: trackedError } = await supabaseAdmin
-    .from("listing_alerts_tracked_listings")
-    .select("location_id, listing_id")
-    .eq("user_id", userId);
+  let selectedListingKeys: string[] = [];
+  if (!TRACK_ALL_LISTINGS) {
+    const { data: trackedRows, error: trackedError } = await supabaseAdmin
+      .from("listing_alerts_tracked_listings")
+      .select("location_id, listing_id")
+      .eq("user_id", userId);
 
-  if (trackedError) throw trackedError;
+    if (trackedError) throw trackedError;
 
-  const selectedListingKeys = parseSelectedListingKeys(
-    (trackedRows || []).map((row) => toTrackedKey(String(row.location_id), String(row.listing_id))).filter(Boolean),
-  );
+    selectedListingKeys = parseSelectedListingKeys(
+      (trackedRows || []).map((row) => toTrackedKey(String(row.location_id), String(row.listing_id))).filter(Boolean),
+    );
+  }
 
   const currentBuildings = [];
   for (const location of watchedItems) {
@@ -233,6 +237,7 @@ async function syncUser({
     watchedItems,
     selectedListingKeys,
     checkedAt,
+    trackAllListings: TRACK_ALL_LISTINGS,
   });
 
   const { error: upsertError } = await supabaseAdmin
@@ -250,7 +255,7 @@ async function syncUser({
   return {
     userId,
     watched: watchedItems.length,
-    tracked: selectedListingKeys.length,
+    tracked: TRACK_ALL_LISTINGS ? nextState.summary?.trackedListingCount || 0 : selectedListingKeys.length,
     changes: nextState.summary?.totalChanges || 0,
   };
 }
