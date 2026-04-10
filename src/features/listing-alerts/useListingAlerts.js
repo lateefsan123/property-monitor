@@ -49,8 +49,19 @@ function parseVerifiedAt(value) {
 }
 
 function getErrorMessage(error) {
-  if (error instanceof Error) return error.message;
-  return String(error || "Unexpected error");
+  if (!error) return "Unexpected error";
+  if (typeof error === "string") return error;
+  if (error instanceof Error) return error.message || "Unexpected error";
+  if (typeof error?.message === "string") return error.message;
+  if (typeof error?.error === "string") return error.error;
+  if (typeof error?.error?.message === "string") return error.error.message;
+  if (typeof error?.details === "string") return error.details;
+  if (typeof error?.hint === "string") return error.hint;
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
 }
 
 function sortBuildings(left, right) {

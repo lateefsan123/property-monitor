@@ -9,8 +9,10 @@ import {
   fetchUserLeads,
   persistLeadSentState,
   replaceUserLeadsFromSheet,
+  updateLeadStatus,
   upsertLeadSource,
 } from "./services";
+import { applyLeadStatus } from "./lead-utils";
 
 export function useSellerSignalPage(userId) {
   const [leads, setLeads] = useState([]);
@@ -36,21 +38,20 @@ export function useSellerSignalPage(userId) {
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const MAX_LEAD_SOURCES = 4;
 
+  function normalizeSources(sources) {
+    if (!Array.isArray(sources)) return [];
+    return sources.map((source) => ({
+      ...source,
+      type: "building",
+    }));
+  }
+
   function limitLeadSources(sources) {
     if (!Array.isArray(sources)) return [];
-    const sorted = [...sources].sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0));
-    const personal = sorted.find((source) => source.type === "personal");
-    const buildings = sorted.filter((source) => source.type !== "personal");
-    const selected = [];
-
-    if (personal) selected.push(personal);
-    for (const source of buildings) {
-      if (selected.length >= MAX_LEAD_SOURCES) break;
-      selected.push(source);
-    }
-
-    if (!selected.length) return sorted.slice(0, MAX_LEAD_SOURCES);
-    return selected;
+    const normalized = normalizeSources(sources);
+    return normalized
+      .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
+      .slice(0, MAX_LEAD_SOURCES);
   }
 
   async function loadLeadsIntoState(showLoader = true) {
@@ -196,9 +197,7 @@ export function useSellerSignalPage(userId) {
     () =>
       (leadSources || []).map((source) => ({
         id: source.id,
-        label: source.type === "personal"
-          ? (source.label || "Personal")
-          : (source.building_name || source.label || "Building"),
+        label: source.building_name || source.label || `Sheet ${source.sort_order + 1}`,
       })),
     [leadSources],
   );
@@ -348,6 +347,23 @@ export function useSellerSignalPage(userId) {
     }
   }
 
+  async function changeLeadStatus(leadId, status) {
+    if (!leadId) return;
+    const previousLeads = leads;
+    setLeads((current) =>
+      current.map((lead) =>
+        lead.id === leadId ? applyLeadStatus(lead, status) : lead,
+      ),
+    );
+
+    try {
+      await updateLeadStatus({ userId, leadId, status });
+    } catch (statusError) {
+      setError(statusError.message);
+      setLeads(previousLeads);
+    }
+  }
+
   function bulkWhatsApp(markAsSent = true) {
     const targets = pagedLeads.filter((lead) => {
       const phone = formatPhoneForWhatsApp(lead.phone);
@@ -427,6 +443,7 @@ export function useSellerSignalPage(userId) {
       toggleImportPanel,
       toggleLeadExpanded,
       toggleSent,
+      updateLeadStatus: changeLeadStatus,
       updateLeadSourceField,
       updateSearchTerm,
       updateSheetUrl,

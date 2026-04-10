@@ -83,6 +83,7 @@ export default function SellerSignalDashboard({ userId }) {
                 onCopyMessage={dashboard.actions.copyMessage}
                 onToggleExpanded={dashboard.actions.toggleLeadExpanded}
                 onToggleSent={dashboard.actions.toggleSent}
+                onUpdateStatus={dashboard.actions.updateLeadStatus}
               />
             ))}
           </div>

@@ -70,6 +70,7 @@ export default function LeadCard({
   onCopyMessage,
   onToggleExpanded,
   onToggleSent,
+  onUpdateStatus,
 }) {
   const message = insight?.message || buildMessage(lead, insight);
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
@@ -153,6 +154,30 @@ export default function LeadCard({
             <span>{lead.bedroom || "-"}</span>
             <span>{formatDate(lead.lastContactDate)}</span>
             {lead.phone && <span>{lead.phone}</span>}
+          </div>
+
+          <div className="lead-status-actions">
+            <span className="lead-status-label">Status</span>
+            <div className="lead-status-buttons">
+              {[
+                { id: "prospect", label: "Prospect", value: "Prospect" },
+                { id: "market_appraisal", label: "Appraisal", value: "Appraisal" },
+                { id: "for_sale_available", label: "For Sale", value: "For Sale" },
+              ].map((option) => {
+                const isActive = lead.statusRule?.id === option.id;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    className={`btn-sm lead-status-btn${isActive ? " active" : ""}`}
+                    onClick={() => onUpdateStatus?.(lead.id, option.value)}
+                    disabled={isActive}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {insight?.status === "ready" && (

@@ -201,12 +201,22 @@ export async function fetchLeadSources(userId) {
   return data || [];
 }
 
+export async function updateLeadStatus({ userId, leadId, status }) {
+  if (!userId || !leadId) return;
+  const { error } = await supabase
+    .from("leads")
+    .update({ status })
+    .eq("user_id", userId)
+    .eq("id", leadId);
+  if (error) throw new Error(error.message);
+}
+
 export async function createDefaultLeadSources(userId) {
   const defaults = [
-    { user_id: userId, label: "Personal", type: "personal", building_name: null, sheet_url: null, sort_order: 0 },
-    { user_id: userId, label: "BLVD CENTRAL 1", type: "building", building_name: "BLVD CENTRAL 1", sheet_url: null, sort_order: 1 },
-    { user_id: userId, label: "Building 2", type: "building", building_name: "Building 2", sheet_url: null, sort_order: 2 },
-    { user_id: userId, label: "Building 3", type: "building", building_name: "Building 3", sheet_url: null, sort_order: 3 },
+    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 0 },
+    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 1 },
+    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 2 },
+    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 3 },
   ];
 
   const { error } = await supabase.from("lead_sources").insert(defaults);
@@ -288,8 +298,8 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
   }
 
   const defaultStatus = "Prospect";
-  const defaultBuilding = source?.type === "building" ? (source?.building_name || source?.label) : null;
-  const overrideBuilding = source?.type === "building";
+  const defaultBuilding = source?.building_name || source?.label || null;
+  const overrideBuilding = Boolean(source);
 
   const leadsToInsert = records
     .map((record) => createLeadInsertRecord(record, mapping, userId, {

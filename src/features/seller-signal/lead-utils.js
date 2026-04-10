@@ -256,6 +256,34 @@ export function mapStoredLeadRow(row, index, today) {
   return lead;
 }
 
+export function applyLeadStatus(lead, nextStatus, today = new Date()) {
+  const record = {
+    __row: lead.rowNumber || lead.id || 0,
+    _name: lead.name || "",
+    _building: lead.building || "",
+    _bedroom: lead.bedroom || "",
+    _status: nextStatus || "",
+    _lastContact: lead.lastContactRaw || (lead.lastContactDate ? lead.lastContactDate.toISOString().split("T")[0] : ""),
+    _phone: lead.phone || "",
+    _unit: lead.unit || "",
+  };
+
+  const mapping = {
+    name: "_name",
+    building: "_building",
+    bedroom: "_bedroom",
+    status: "_status",
+    lastContact: "_lastContact",
+    phone: "_phone",
+    unit: "_unit",
+  };
+
+  const updated = mapLeadRow(record, 0, mapping, today);
+  updated.id = lead.id;
+  updated.sourceId = lead.sourceId || null;
+  return updated;
+}
+
 export function createLeadInsertRecord(record, mapping, userId, options = {}) {
   const {
     sourceId = null,

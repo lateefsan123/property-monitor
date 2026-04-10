@@ -1,15 +1,4 @@
-function getSourceLabel(source) {
-  if (!source) return "";
-  if (source.type === "personal") {
-    return source.label || "Personal";
-  }
-  return source.building_name || source.label || "Building";
-}
-
-function getSourceTitle(source) {
-  if (!source) return "";
-  return source.type === "personal" ? "Personal spreadsheet" : "Building spreadsheet";
-}
+import { useState } from "react";
 
 export default function LeadSourcesPanel({
   sources,
@@ -19,70 +8,64 @@ export default function LeadSourcesPanel({
   onSourceChange,
   onSourceSave,
 }) {
+  const [open, setOpen] = useState(false);
+
   if (!sources?.length) return null;
+
+  const totalLeads = sources.reduce((sum, s) => sum + (leadCounts?.[s.id] || 0), 0);
 
   return (
     <div className="source-panel">
-      <div className="source-panel-header">
-        <div>
-          <h3 className="source-panel-title">Spreadsheets</h3>
-          <p className="source-panel-subtitle">Keep one personal sheet plus up to three building templates.</p>
-        </div>
-        <div className="source-panel-note">Everyone imported from these sheets defaults to Prospect.</div>
-      </div>
+      <button
+        type="button"
+        className="source-panel-toggle"
+        onClick={() => setOpen((v) => !v)}
+      >
+        <span className="source-panel-toggle-icon">{open ? "\u25BE" : "\u25B8"}</span>
+        <h3 className="source-panel-title">Spreadsheets</h3>
+        <span className="source-panel-subtitle">
+          {sources.length} source{sources.length !== 1 && "s"} · {totalLeads} leads
+        </span>
+      </button>
 
-      <div className="source-grid">
-        {sources.map((source) => {
-          const count = leadCounts?.[source.id] || 0;
-          const labelValue = source.type === "personal"
-            ? source.label || ""
-            : source.building_name || source.label || "";
-          return (
-            <div className="source-card" key={source.id}>
-              <div className="source-card-header">
-                <div>
-                  <div className="source-card-title">{getSourceTitle(source)}</div>
-                  <div className="source-card-meta">{count} leads</div>
-                </div>
-                <span className={`source-badge ${source.type === "personal" ? "source-badge-personal" : "source-badge-building"}`}>
-                  {source.type === "personal" ? "Personal" : "Building"}
-                </span>
-              </div>
-
-              <label className="source-field">
-                <span>{source.type === "personal" ? "Label" : "Building name"}</span>
+      {open && (
+        <div className="source-list">
+          {sources.map((source) => {
+            const count = leadCounts?.[source.id] || 0;
+            const labelValue = source.building_name || source.label || "";
+            const importing = importingSourceId === source.id;
+            return (
+              <div className="source-row" key={source.id}>
                 <input
+                  className="source-row-name"
                   type="text"
                   value={labelValue}
-                  onChange={(event) => onSourceChange(source.id, source.type === "personal" ? "label" : "building_name", event.target.value)}
+                  onChange={(e) => onSourceChange(source.id, "building_name", e.target.value)}
                   onBlur={() => onSourceSave(source.id)}
-                  placeholder={source.type === "personal" ? "Personal" : "e.g. Marina Gate 2"}
+                  placeholder="Building name"
                 />
-              </label>
-
-              <label className="source-field">
-                <span>Google Sheet URL</span>
                 <input
+                  className="source-row-url"
                   type="text"
                   value={source.sheet_url || ""}
-                  onChange={(event) => onSourceChange(source.id, "sheet_url", event.target.value)}
+                  onChange={(e) => onSourceChange(source.id, "sheet_url", e.target.value)}
                   onBlur={() => onSourceSave(source.id)}
-                  placeholder="https://docs.google.com/spreadsheets/d/..."
+                  placeholder="Google Sheet URL"
                 />
-              </label>
-
-              <button
-                type="button"
-                className="btn-primary source-import-btn"
-                disabled={!source.sheet_url || importingSourceId === source.id}
-                onClick={() => onImport(source.id)}
-              >
-                {importingSourceId === source.id ? "Importing..." : `Import ${getSourceLabel(source)}`}
-              </button>
-            </div>
-          );
-        })}
-      </div>
+                <span className="source-row-count">{count} leads</span>
+                <button
+                  type="button"
+                  className="source-row-import"
+                  disabled={!source.sheet_url || importing}
+                  onClick={() => onImport(source.id)}
+                >
+                  {importing ? "Importing..." : "Import"}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
