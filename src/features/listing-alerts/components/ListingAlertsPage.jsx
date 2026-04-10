@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   formatArea,
   formatBedsAndBaths,
@@ -7,6 +7,7 @@ import {
   formatPriceRange,
   formatSyncTimestamp,
 } from "../formatters";
+import Pagination from "../../seller-signal/components/Pagination";
 import { useListingAlerts } from "../useListingAlerts";
 import ListingDetailPage from "./ListingDetailPage";
 
@@ -36,6 +37,8 @@ const TRACK_STATUS_OPTIONS = [
   { id: "active", label: "Active" },
   { id: "removed", label: "Off market" },
 ];
+
+const LISTINGS_PAGE_SIZE = 25;
 
 // ---------- Icons ----------
 
@@ -103,11 +106,12 @@ function TrackingPill() {
   return <span className="la-tracking-pill">Tracking</span>;
 }
 
-function WatchButton({ active, onClick }) {
+function WatchButton({ active, disabled, onClick }) {
   return (
     <button
       type="button"
       className={`btn-sm la-watch-btn${active ? " active" : ""}`}
+      disabled={disabled}
       onClick={(event) => {
         event.stopPropagation();
         onClick();
@@ -121,7 +125,7 @@ function WatchButton({ active, onClick }) {
 
 // ---------- Rows ----------
 
-function BuildingRow({ building, isWatched, onToggleWatch, onPress, changeCount }) {
+function BuildingRow({ building, isWatched, watchDisabled, onToggleWatch, onPress, changeCount }) {
   const hasListingCount = Number.isFinite(building.listingCount);
   const countLine = hasListingCount
     ? `${building.listingCount} ${building.listingCount === 1 ? "listing" : "listings"}`
@@ -169,7 +173,7 @@ function BuildingRow({ building, isWatched, onToggleWatch, onPress, changeCount 
         ) : null}
       </div>
 
-      <WatchButton active={isWatched} onClick={onToggleWatch} />
+      <WatchButton active={isWatched} disabled={watchDisabled} onClick={onToggleWatch} />
     </div>
   );
 }
@@ -276,6 +280,9 @@ function ListingAlertsFilters({
   setPriceFilter,
   bedsFilter,
   setBedsFilter,
+  buildingFilterOptions,
+  listingBuildingFilter,
+  setListingBuildingFilter,
   hasTrackedUnits,
 }) {
   return (
@@ -315,6 +322,24 @@ function ListingAlertsFilters({
 
       {viewTab === "listings" ? (
         <div className="toolbar-actions la-filter-groups">
+          {buildingFilterOptions.length ? (
+            <div className="la-filter-group">
+              <span className="la-filter-group-label">Building</span>
+              <select
+                className="la-filter-select"
+                value={listingBuildingFilter}
+                onChange={(event) => setListingBuildingFilter(event.target.value)}
+              >
+                <option value="all">All watched buildings</option>
+                {buildingFilterOptions.map((building) => (
+                  <option key={building.locationId} value={building.locationId}>
+                    {building.buildingName}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ) : null}
+
           {hasTrackedUnits ? (
             <div className="la-filter-group">
               <span className="la-filter-group-label">Status</span>
@@ -353,14 +378,24 @@ export default function ListingAlertsPage() {
   const [priceFilter, setPriceFilter] = useState("all");
   const [bedsFilter, setBedsFilter] = useState("all");
   const [trackedStatusFilter, setTrackedStatusFilter] = useState("all");
-  // When the user drills into a building from the Buildings tab, we scope the Listings tab
-  // to that building. Cleared when the user manually switches back to Buildings or hits Clear.
-  const [buildingScope, setBuildingScope] = useState(null);
+  const [listingBuildingFilter, setListingBuildingFilter] = useState("all");
+  const [listingsPage, setListingsPage] = useState(1);
   // We store only the lookup key (locationId + id) and derive the live listing object from
   // the current alerts data — that way the detail view automatically reflects fresh prices,
   // tracking state changes, and history updates without a setState-in-effect ping-pong.
   const [selectedListingKey, setSelectedListingKey] = useState(null);
   const hasTrackedUnits = alerts.stats.trackedListingCount > 0;
+  const buildingFilterOptions = alerts.watchedBuildings || [];
+
+  useEffect(() => {
+    if (listingBuildingFilter === "all") return;
+    if (buildingFilterOptions.some((building) => building.locationId === listingBuildingFilter)) return;
+    setListingBuildingFilter("all");
+  }, [buildingFilterOptions, listingBuildingFilter]);
+
+  useEffect(() => {
+    setListingsPage(1);
+  }, [bedsFilter, listingBuildingFilter, priceChangedOnly, priceFilter, trackedOnly, trackedStatusFilter, viewTab, watchingOnly]);
 
   const selectedListing = useMemo(() => {
     if (!selectedListingKey) return null;
@@ -387,21 +422,15 @@ export default function ListingAlertsPage() {
 
   function openBuildingListings(building) {
     if (!building) return;
-    setBuildingScope({
-      locationId: building.locationId,
-      name: building.buildingName,
-    });
+    if (!alerts.watchedSet?.has(building.locationId)) {
+      const didWatch = alerts.actions.toggleWatch(building);
+      if (!didWatch) return;
+    }
+    setListingBuildingFilter(building.locationId || "all");
     setViewTab("listings");
   }
 
-  function clearBuildingScope() {
-    setBuildingScope(null);
-  }
-
   function handleViewTabChange(nextTab) {
-    if (nextTab === "buildings") {
-      setBuildingScope(null);
-    }
     setViewTab(nextTab);
   }
 
@@ -416,27 +445,24 @@ export default function ListingAlertsPage() {
   }, [alerts.changeItems]);
 
   const buildings = useMemo(() => {
-    const source = watchingOnly
-      ? alerts.watchedBuildings
-      : alerts.usingLiveSearch
-        ? alerts.searchResults
-        : alerts.popularBuildings;
-    return source || [];
+    if (watchingOnly) return alerts.watchedBuildings || [];
+    if (alerts.usingLiveSearch) return alerts.searchResults || [];
+    return [...(alerts.watchedBuildings || []), ...(alerts.popularBuildings || [])];
   }, [alerts.popularBuildings, alerts.searchResults, alerts.usingLiveSearch, alerts.watchedBuildings, watchingOnly]);
 
   const listings = useMemo(() => {
     let source = [];
 
     if (!alerts.stats.watchedBuildingCount) {
-      source = alerts.latestListings || [];
+      source = [];
     } else if (trackedOnly || trackedStatusFilter !== "all") {
       source = alerts.trackedListings || [];
     } else {
       source = alerts.latestListings || [];
     }
 
-    if (buildingScope?.locationId) {
-      source = source.filter((l) => l.locationId === buildingScope.locationId);
+    if (listingBuildingFilter !== "all") {
+      source = source.filter((l) => l.locationId === listingBuildingFilter);
     }
 
     if (watchingOnly && alerts.watchedSet?.size) {
@@ -488,7 +514,7 @@ export default function ListingAlertsPage() {
     alerts.trackedListings,
     alerts.watchedSet,
     bedsFilter,
-    buildingScope,
+    listingBuildingFilter,
     priceChangedOnly,
     priceFilter,
     trackedOnly,
@@ -500,8 +526,35 @@ export default function ListingAlertsPage() {
   const countLabel = viewTab === "buildings"
     ? `${count} ${count === 1 ? "building" : "buildings"}`
     : `${count} ${count === 1 ? "listing" : "listings"}`;
+  const selectedBuildingOption = useMemo(
+    () => buildingFilterOptions.find((building) => building.locationId === listingBuildingFilter) || null,
+    [buildingFilterOptions, listingBuildingFilter],
+  );
+  const totalLiveListings = useMemo(() => {
+    if (!alerts.stats.watchedBuildingCount) return 0;
+    if (listingBuildingFilter !== "all") {
+      if (Number.isFinite(selectedBuildingOption?.listingCount)) return selectedBuildingOption.listingCount;
+      return selectedBuildingOption?.listings?.length || 0;
+    }
+
+    return buildingFilterOptions.reduce((sum, building) => {
+      if (Number.isFinite(building?.listingCount)) return sum + building.listingCount;
+      return sum + (building?.listings?.length || 0);
+    }, 0);
+  }, [alerts.stats.watchedBuildingCount, buildingFilterOptions, listingBuildingFilter, selectedBuildingOption]);
+  const totalLiveListingsLabel = listingBuildingFilter !== "all"
+    ? selectedBuildingOption?.buildingName || "selected building"
+    : "watched buildings";
+  const listingTotalPages = Math.max(1, Math.ceil(listings.length / LISTINGS_PAGE_SIZE));
+  const listingSafePage = Math.min(listingsPage, listingTotalPages);
+  const listingVisibleStart = count ? ((listingSafePage - 1) * LISTINGS_PAGE_SIZE) + 1 : 0;
+  const listingVisibleEnd = Math.min(listingSafePage * LISTINGS_PAGE_SIZE, count);
+  const pagedListings = useMemo(() => {
+    const startIndex = (listingSafePage - 1) * LISTINGS_PAGE_SIZE;
+    return listings.slice(startIndex, startIndex + LISTINGS_PAGE_SIZE);
+  }, [listingSafePage, listings]);
   const listingHeaderText = !alerts.stats.watchedBuildingCount
-    ? "Watch a building to browse its live units"
+    ? "Watch a building to browse its apartments"
     : !hasTrackedUnits
       ? `Pick the exact units you care about, last checked ${formatSyncTimestamp(alerts.alertSummary.lastCheckedAt)}`
       : `${alerts.stats.trackedListingCount} tracked ${alerts.stats.trackedListingCount === 1 ? "unit" : "units"}, ${alerts.alertSummary.totalChanges} changes, last checked ${formatSyncTimestamp(alerts.alertSummary.lastCheckedAt)}`;
@@ -525,7 +578,7 @@ export default function ListingAlertsPage() {
     );
   }
 
-  const items = viewTab === "buildings" ? buildings : listings;
+  const items = viewTab === "buildings" ? buildings : pagedListings;
   const showEmpty = items.length === 0;
 
   const showRefresh = viewTab === "listings" && alerts.stats.watchedBuildingCount > 0;
@@ -568,16 +621,6 @@ export default function ListingAlertsPage() {
         })}
       </div>
 
-      {viewTab === "listings" && buildingScope ? (
-        <div className="la-scope-banner">
-          <span className="la-scope-banner-label">Showing units in</span>
-          <span className="la-scope-banner-name">{buildingScope.name}</span>
-          <button type="button" className="btn-sm la-scope-banner-clear" onClick={clearBuildingScope}>
-            Clear
-          </button>
-        </div>
-      ) : null}
-
       {viewTab === "buildings" ? (
         <div className="toolbar la-search">
           <input
@@ -605,17 +648,33 @@ export default function ListingAlertsPage() {
         setPriceFilter={setPriceFilter}
         bedsFilter={bedsFilter}
         setBedsFilter={setBedsFilter}
+        buildingFilterOptions={buildingFilterOptions}
+        listingBuildingFilter={listingBuildingFilter}
+        setListingBuildingFilter={setListingBuildingFilter}
         hasTrackedUnits={hasTrackedUnits}
       />
 
       {alerts.searchError && viewTab === "buildings" ? (
         <div className="la-error-box">{alerts.searchError}</div>
       ) : null}
-      {alerts.watchError && watchingOnly ? (
+      {alerts.watchError ? (
         <div className="la-error-box">{alerts.watchError}</div>
       ) : null}
 
-      <p className="count-text">{countLabel}</p>
+      <div className="la-results-bar">
+        <span className="la-results-count">
+          {viewTab === "listings" && totalLiveListings > count
+            ? `${countLabel} loaded`
+            : countLabel}
+        </span>
+        {viewTab === "listings" ? (
+          <span className="la-results-meta">
+            {totalLiveListings > 0 ? `${totalLiveListings} total live in ${totalLiveListingsLabel} • ` : ""}
+            {count ? `Showing ${listingVisibleStart}-${listingVisibleEnd}` : "Showing 0"}
+            {` • Page ${listingSafePage}/${listingTotalPages}`}
+          </span>
+        ) : null}
+      </div>
 
       <div className="la-list">
         {showEmpty ? (
@@ -631,13 +690,11 @@ export default function ListingAlertsPage() {
               <div className="la-empty-text">
                 {viewTab === "buildings"
                   ? "Try a broader search term, or switch off the Watching filter."
-                  : buildingScope
-                    ? "No live units for this building yet. Try clearing other filters, or watch the building so we can pull its listings."
-                    : alerts.stats.watchedBuildingCount
+                  : alerts.stats.watchedBuildingCount
                       ? hasTrackedUnits
                         ? "Try another filter, or switch off Tracked only to browse more live units."
                         : "Open a live unit and track the exact ones you want alerts for."
-                      : "Watch a few buildings first and this tab will start showing their live units."}
+                      : "Watch a building first, then this tab will show its live apartments."}
               </div>
             </div>
           )
@@ -652,6 +709,7 @@ export default function ListingAlertsPage() {
                   <BuildingRow
                     building={item}
                     isWatched={alerts.watchedSet?.has(item.locationId)}
+                    watchDisabled={!alerts.watchedSet?.has(item.locationId) && alerts.stats.watchedBuildingCount >= alerts.watchLimit}
                     onToggleWatch={() => alerts.actions.toggleWatch(item)}
                     onPress={() => openBuildingListings(item)}
                     changeCount={changeCount}
@@ -671,6 +729,17 @@ export default function ListingAlertsPage() {
           })
         )}
       </div>
+
+      {viewTab === "listings" ? (
+        <div className="la-pagination">
+          <Pagination
+            currentPage={listingSafePage}
+            totalPages={listingTotalPages}
+            onPrevious={() => setListingsPage((page) => Math.max(1, page - 1))}
+            onNext={() => setListingsPage((page) => Math.min(listingTotalPages, page + 1))}
+          />
+        </div>
+      ) : null}
 
     </div>
   );

@@ -8,10 +8,10 @@ const corsHeaders = {
 const API_HOST = "uae-real-estate2.p.rapidapi.com";
 const BASE_URL = `https://${API_HOST}`;
 const PAGE_SIZE = 25;
-const MAX_PAGES = 3;
-const MAX_LISTINGS_PER_BUILDING = 20;
+const MAX_PAGES = 20;
+const MAX_LISTINGS_PER_BUILDING = 500;
 const MAX_SEARCH_RESULTS = 8;
-const MAX_WATCHED_BUILDINGS = 8;
+const MAX_WATCHED_BUILDINGS = 4;
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -190,7 +190,7 @@ async function fetchListingsForLocation(location: any, apiKey: string) {
       addedThisPage += 1;
     }
 
-    if (!results.length || results.length < PAGE_SIZE || addedThisPage === 0) break;
+    if (!results.length || results.length < PAGE_SIZE || addedThisPage === 0 || deduped.size >= MAX_LISTINGS_PER_BUILDING) break;
   }
 
   const listings = [...deduped.values()]

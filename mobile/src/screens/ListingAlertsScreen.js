@@ -191,9 +191,10 @@ function SearchIcon({ color }) {
 
 // ---------- Small building components ----------
 
-function WatchButton({ active, onPress, colors }) {
+function WatchButton({ active, disabled, onPress, colors }) {
   return (
     <Pressable
+      disabled={disabled}
       onPress={(e) => {
         e.stopPropagation?.();
         onPress();
@@ -208,8 +209,9 @@ function WatchButton({ active, onPress, colors }) {
           borderWidth: active ? 0 : 1,
           borderColor: colors.border,
           backgroundColor: active ? colors.tabActiveBg : "transparent",
+          opacity: disabled ? 0.45 : 1,
         },
-        pressed && { opacity: 0.82 },
+        pressed && !disabled && { opacity: 0.82 },
       ]}
     >
       <BellDotIcon
@@ -220,7 +222,7 @@ function WatchButton({ active, onPress, colors }) {
   );
 }
 
-function BuildingRow({ building, colors, isWatched, onToggleWatch, changeCount }) {
+function BuildingRow({ building, colors, isWatched, watchDisabled, onToggleWatch, onPress, changeCount }) {
   const hasListingCount = Number.isFinite(building.listingCount);
   const countLine = hasListingCount
     ? `${building.listingCount} ${building.listingCount === 1 ? "listing" : "listings"}`
@@ -234,7 +236,7 @@ function BuildingRow({ building, colors, isWatched, onToggleWatch, changeCount }
         : "Watch to load listings";
 
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+    <Pressable onPress={onPress} style={({ pressed }) => [{ flexDirection: "row", alignItems: "center", gap: 12 }, pressed && { opacity: 0.85 }]}>
       {building.imageUrl ? (
         <Image source={{ uri: building.imageUrl }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: colors.bgBadge }} />
       ) : (
@@ -265,8 +267,8 @@ function BuildingRow({ building, colors, isWatched, onToggleWatch, changeCount }
         ) : null}
       </View>
 
-      <WatchButton active={isWatched} onPress={onToggleWatch} colors={colors} />
-    </View>
+      <WatchButton active={isWatched} disabled={watchDisabled} onPress={onToggleWatch} colors={colors} />
+    </Pressable>
   );
 }
 
@@ -411,9 +413,11 @@ export default function ListingAlertsScreen({ onBack, theme }) {
   const [priceFilter, setPriceFilter] = useState("all");
   const [bedsFilter, setBedsFilter] = useState("all");
   const [trackedStatusFilter, setTrackedStatusFilter] = useState("all");
+  const [listingBuildingFilter, setListingBuildingFilter] = useState("all");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedListing, setSelectedListing] = useState(null);
   const hasTrackedUnits = alerts.stats.trackedListingCount > 0;
+  const buildingFilterOptions = alerts.watchedBuildings || [];
 
   // Swipe between tabs — same pattern as Dashboard
   const stateRef = useRef({ viewTab, setViewTab });
@@ -448,6 +452,22 @@ export default function ListingAlertsScreen({ onBack, theme }) {
     alerts.actions.toggleListingSelection(listing);
   }
 
+  function openBuildingListings(building) {
+    if (!building) return;
+    if (!alerts.watchedSet?.has(building.locationId)) {
+      const didWatch = alerts.actions.toggleWatch(building);
+      if (!didWatch) return;
+    }
+    setListingBuildingFilter(building.locationId || "all");
+    setViewTab("listings");
+  }
+
+  useEffect(() => {
+    if (listingBuildingFilter === "all") return;
+    if (buildingFilterOptions.some((building) => building.locationId === listingBuildingFilter)) return;
+    setListingBuildingFilter("all");
+  }, [buildingFilterOptions, listingBuildingFilter]);
+
   useEffect(() => {
     if (!selectedListing) return;
 
@@ -472,23 +492,24 @@ export default function ListingAlertsScreen({ onBack, theme }) {
   }, [alerts.changeItems]);
 
   const buildings = useMemo(() => {
-    const source = watchingOnly
-      ? alerts.watchedBuildings
-      : alerts.usingLiveSearch
-        ? alerts.searchResults
-        : alerts.popularBuildings;
-    return source || [];
+    if (watchingOnly) return alerts.watchedBuildings || [];
+    if (alerts.usingLiveSearch) return alerts.searchResults || [];
+    return [...(alerts.watchedBuildings || []), ...(alerts.popularBuildings || [])];
   }, [alerts.popularBuildings, alerts.searchResults, alerts.usingLiveSearch, alerts.watchedBuildings, watchingOnly]);
 
   const listings = useMemo(() => {
     let source = [];
 
     if (!alerts.stats.watchedBuildingCount) {
-      source = alerts.latestListings || [];
+      source = [];
     } else if (trackedOnly || trackedStatusFilter !== "all") {
       source = alerts.trackedListings || [];
     } else {
       source = alerts.latestListings || [];
+    }
+
+    if (listingBuildingFilter !== "all") {
+      source = source.filter((l) => l.locationId === listingBuildingFilter);
     }
 
     if (watchingOnly && alerts.watchedSet?.size) {
@@ -540,6 +561,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
     alerts.trackedListings,
     alerts.watchedSet,
     bedsFilter,
+    listingBuildingFilter,
     priceChangedOnly,
     priceFilter,
     trackedOnly,
@@ -552,7 +574,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
     ? `${count} ${count === 1 ? "building" : "buildings"}`
     : `${count} ${count === 1 ? "listing" : "listings"}`;
   const listingHeaderText = !alerts.stats.watchedBuildingCount
-    ? "Watch a building to browse its live units"
+    ? "Watch a building to browse its apartments"
     : !hasTrackedUnits
       ? `Pick the exact units you care about, last checked ${formatSyncTimestamp(alerts.alertSummary.lastCheckedAt)}`
       : `${alerts.stats.trackedListingCount} tracked ${alerts.stats.trackedListingCount === 1 ? "unit" : "units"}, ${alerts.alertSummary.totalChanges} changes, last checked ${formatSyncTimestamp(alerts.alertSummary.lastCheckedAt)}`;
@@ -589,7 +611,9 @@ export default function ListingAlertsScreen({ onBack, theme }) {
           building={item}
           colors={colors}
           isWatched={alerts.watchedSet?.has(item.locationId)}
+          watchDisabled={!alerts.watchedSet?.has(item.locationId) && alerts.stats.watchedBuildingCount >= alerts.watchLimit}
           onToggleWatch={() => alerts.actions.toggleWatch(item)}
+          onPress={() => openBuildingListings(item)}
           changeCount={changeCount}
         />
       );
@@ -673,7 +697,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
           <Text style={s.errorText}>{alerts.searchError}</Text>
         </View>
       ) : null}
-      {alerts.watchError && watchingOnly ? (
+      {alerts.watchError ? (
         <View style={s.errorBox}>
           <Text style={s.errorText}>{alerts.watchError}</Text>
         </View>
@@ -705,7 +729,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
                       ? hasTrackedUnits
                         ? "Try another filter, or switch off Tracked only to browse more live units."
                         : "Open a live unit and track the exact ones you want alerts for."
-                      : "Watch a few buildings first and this tab will start showing their live units."}
+                      : "Watch a building first, then this tab will show its live apartments."}
                 </Text>
               </View>
             )
@@ -762,6 +786,31 @@ export default function ListingAlertsScreen({ onBack, theme }) {
                         onPress={() => setTrackedStatusFilter(opt.id)}
                       >
                         <Text style={[s.chipText, trackedStatusFilter === opt.id && s.chipTextActive]}>{opt.label}</Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </>
+              ) : null}
+
+              {buildingFilterOptions.length ? (
+                <>
+                  <Text style={s.sectionLabel}>Building</Text>
+                  <View style={s.chipRow}>
+                    <Pressable
+                      style={[s.chip, listingBuildingFilter === "all" && s.chipActive]}
+                      onPress={() => setListingBuildingFilter("all")}
+                    >
+                      <Text style={[s.chipText, listingBuildingFilter === "all" && s.chipTextActive]}>All watched buildings</Text>
+                    </Pressable>
+                    {buildingFilterOptions.map((building) => (
+                      <Pressable
+                        key={building.locationId}
+                        style={[s.chip, listingBuildingFilter === building.locationId && s.chipActive]}
+                        onPress={() => setListingBuildingFilter(building.locationId)}
+                      >
+                        <Text style={[s.chipText, listingBuildingFilter === building.locationId && s.chipTextActive]}>
+                          {building.buildingName}
+                        </Text>
                       </Pressable>
                     ))}
                   </View>
@@ -981,4 +1030,3 @@ const styles = (c) =>
     },
     toggleLabel: { fontSize: 15, color: c.text },
   });
-

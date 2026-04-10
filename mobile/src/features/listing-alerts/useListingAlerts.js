@@ -14,8 +14,8 @@ import {
 } from "./change-detection";
 
 const DEFAULT_SUGGESTION_COUNT = 8;
-const DEFAULT_LISTING_COUNT = 20;
 const SEARCH_DEBOUNCE_MS = 350;
+const MAX_WATCHED_BUILDINGS = 4;
 
 function parseVerifiedAt(value) {
   if (!value) return 0;
@@ -346,10 +346,9 @@ export function useListingAlerts() {
   );
 
   const latestListings = useMemo(() => {
-    const sourceBuildings = watchedItems.length ? watchedBuildings : FEED_BUILDINGS;
-    const listingLimit = watchedItems.length ? 120 : DEFAULT_LISTING_COUNT;
+    if (!watchedBuildings.length) return [];
 
-    return sourceBuildings
+    return watchedBuildings
       .flatMap((building) =>
         (building.listings || []).map((listing) => {
           const trackedKey = createTrackedListingKey(building.locationId, listing.id);
@@ -383,9 +382,8 @@ export function useListingAlerts() {
           };
         }),
       )
-      .sort(sortListings)
-      .slice(0, listingLimit);
-  }, [changeState.listingHistory, selectedListingSet, watchedBuildings, watchedItems.length]);
+      .sort(sortListings);
+  }, [changeState.listingHistory, selectedListingSet, watchedBuildings]);
 
   const trackedListings = useMemo(
     () =>
@@ -445,13 +443,19 @@ export function useListingAlerts() {
     if (!normalized) return;
 
     const removing = watchedSet.has(normalized.locationId);
+    if (!removing && watchedItems.length >= MAX_WATCHED_BUILDINGS) {
+      setWatchError(`You can watch up to ${MAX_WATCHED_BUILDINGS} buildings.`);
+      return false;
+    }
+
     const nextWatchedItems = removing
       ? watchedItems.filter((entry) => entry.locationId !== normalized.locationId)
       : [...watchedItems, normalized];
 
+    setWatchError(null);
     setWatchedItems(nextWatchedItems);
 
-    if (!removing) return;
+    if (!removing) return true;
 
     const nextSelectedListingKeys = selectedListingKeys.filter((key) => key.split(":")[0] !== normalized.locationId);
     setSelectedListingKeys(nextSelectedListingKeys);
@@ -464,6 +468,8 @@ export function useListingAlerts() {
     } else {
       rebuildChangeState(nextSelectedListingKeys, nextWatchedItems);
     }
+
+    return true;
   }
 
   function toggleListingSelection(listing) {
@@ -498,6 +504,7 @@ export function useListingAlerts() {
     stats,
     trackedListings,
     usingLiveSearch,
+    watchLimit: MAX_WATCHED_BUILDINGS,
     watchError,
     watchedBuildings,
     watchedLoading,

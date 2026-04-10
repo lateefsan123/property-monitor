@@ -2016,6 +2016,26 @@ button.btn-wa:disabled {
   font-size: 0.82rem;
 }
 
+.la-results-bar {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 4px 16px 0;
+}
+
+.la-results-count {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-name);
+}
+
+.la-results-meta {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
 /* List */
 .la-list {
   flex: 1;
@@ -2275,6 +2295,20 @@ button.btn-wa:disabled {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.06em;
+}
+
+.la-filter-select {
+  min-width: 180px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 8px 12px;
+  background: var(--bg-card);
+  color: var(--text);
+  font: inherit;
+}
+
+.la-pagination {
+  padding: 8px 16px 20px;
 }
 
 /* ========================================================================
