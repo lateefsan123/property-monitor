@@ -4,7 +4,10 @@ import path from "node:path";
 const ROOT = process.cwd();
 const MANIFEST_PATH = path.join(ROOT, "reports", "bayut-apartment-images", "manifest.json");
 const BUILDING_META_PATH = path.join(ROOT, "public", "data", "building-images-meta.json");
-const OUTPUT_PATH = path.join(ROOT, "mobile", "src", "data", "listing-alerts-feed.json");
+const OUTPUT_PATHS = [
+  path.join(ROOT, "mobile", "src", "data", "listing-alerts-feed.json"),
+  path.join(ROOT, "public", "data", "listing-alerts-feed.json"),
+];
 const LISTINGS_PER_BUILDING = 8;
 
 function parseVerifiedAt(value) {
@@ -83,10 +86,11 @@ async function main() {
     buildings,
   };
 
-  await fs.writeFile(OUTPUT_PATH, `${JSON.stringify(output, null, 2)}\n`, "utf8");
+  const serialized = `${JSON.stringify(output, null, 2)}\n`;
+  await Promise.all(OUTPUT_PATHS.map((outputPath) => fs.writeFile(outputPath, serialized, "utf8")));
 
   console.log(
-    `Wrote ${buildings.length} buildings / ${output.summary.listingsIncluded} listings to ${path.relative(ROOT, OUTPUT_PATH)}`,
+    `Wrote ${buildings.length} buildings / ${output.summary.listingsIncluded} listings to ${OUTPUT_PATHS.map((p) => path.relative(ROOT, p)).join(", ")}`,
   );
 }
 
