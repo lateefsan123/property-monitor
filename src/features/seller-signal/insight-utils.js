@@ -1,6 +1,6 @@
 import { RECENT_TRANSACTIONS_LIMIT } from "./constants";
 import { formatDate, formatPriceShort } from "./formatters";
-import { cleanBuildingName, parseDateValue, startOfDay } from "./lead-utils";
+import { cleanBuildingName, formatBuildingLabel, parseDateValue, startOfDay } from "./lead-utils";
 
 function parseNumber(value) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
@@ -137,7 +137,7 @@ export function formatPhoneForWhatsApp(rawValue) {
 
 export function buildMessage(lead, insight) {
   const name = lead.name || "";
-  const cleanedBuilding = cleanBuildingName(lead.building) || "your building";
+  const cleanedBuilding = formatBuildingLabel(lead.building) || cleanBuildingName(lead.building) || "your building";
   const lines = [
     `Hi ${name}, quick update on recent transactions in ${cleanedBuilding}.`,
     "",

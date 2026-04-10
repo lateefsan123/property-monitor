@@ -2,19 +2,29 @@ import { useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from "
 import { WHATSAPP_OPEN_DELAY_MS } from "./constants";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
 import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
-import { fetchLeadInsights, fetchUserLeads, persistLeadSentState, replaceUserLeadsFromSheet } from "./services";
+import {
+  createDefaultLeadSources,
+  fetchLeadInsights,
+  fetchLeadSources,
+  fetchUserLeads,
+  persistLeadSentState,
+  replaceUserLeadsFromSheet,
+  upsertLeadSource,
+} from "./services";
 
 export function useSellerSignalPage(userId) {
   const [leads, setLeads] = useState([]);
   const [insights, setInsights] = useState({});
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
+  const [importingSourceId, setImportingSourceId] = useState(null);
   const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState(null);
   const [showDueOnly, setShowDueOnly] = useState(true);
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sentLeads, setSentLeads] = useState({});
   const [sheetUrl, setSheetUrl] = useState("");
@@ -22,7 +32,26 @@ export function useSellerSignalPage(userId) {
   const [viewTab, setViewTab] = useState("active");
   const [dataFilter, setDataFilter] = useState("all");
   const [expandedLeads, setExpandedLeads] = useState({});
+  const [leadSources, setLeadSources] = useState([]);
   const deferredSearchTerm = useDeferredValue(searchTerm);
+  const MAX_LEAD_SOURCES = 4;
+
+  function limitLeadSources(sources) {
+    if (!Array.isArray(sources)) return [];
+    const sorted = [...sources].sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0));
+    const personal = sorted.find((source) => source.type === "personal");
+    const buildings = sorted.filter((source) => source.type !== "personal");
+    const selected = [];
+
+    if (personal) selected.push(personal);
+    for (const source of buildings) {
+      if (selected.length >= MAX_LEAD_SOURCES) break;
+      selected.push(source);
+    }
+
+    if (!selected.length) return sorted.slice(0, MAX_LEAD_SOURCES);
+    return selected;
+  }
 
   async function loadLeadsIntoState(showLoader = true) {
     if (showLoader) setLoading(true);
@@ -42,12 +71,32 @@ export function useSellerSignalPage(userId) {
     }
   }
 
+  async function loadSourcesIntoState() {
+    if (!userId) return;
+    try {
+      let sources = await fetchLeadSources(userId);
+      if (!sources.length) {
+        await createDefaultLeadSources(userId);
+        sources = await fetchLeadSources(userId);
+      }
+      const limitedSources = limitLeadSources(sources);
+      setLeadSources(limitedSources);
+      setSourceFilter((current) => {
+        if (current === "all") return "all";
+        return limitedSources.some((source) => source.id === current) ? current : "all";
+      });
+    } catch (loadError) {
+      setError(loadError.message);
+    }
+  }
+
   const loadLeadsOnMount = useEffectEvent(() => {
     void loadLeadsIntoState(true);
   });
 
   useEffect(() => {
     loadLeadsOnMount();
+    void loadSourcesIntoState();
   }, [userId]);
 
   async function enrichLeadData() {
@@ -122,15 +171,36 @@ export function useSellerSignalPage(userId) {
         insights,
         searchTerm: deferredSearchTerm,
         showDueOnly,
+        sourceFilter,
         statusFilter,
         viewTab,
       }),
-    [activeLeads, dataFilter, deferredSearchTerm, doneLeads, insights, showDueOnly, statusFilter, viewTab],
+    [activeLeads, dataFilter, deferredSearchTerm, doneLeads, insights, showDueOnly, sourceFilter, statusFilter, viewTab],
   );
 
   const { totalPages, safePage, pagedLeads } = useMemo(
     () => paginateLeads(filteredLeads, currentPage),
     [currentPage, filteredLeads],
+  );
+
+  const sourceCounts = useMemo(() => {
+    const counts = {};
+    for (const lead of leads) {
+      if (!lead.sourceId) continue;
+      counts[lead.sourceId] = (counts[lead.sourceId] || 0) + 1;
+    }
+    return counts;
+  }, [leads]);
+
+  const sourceOptions = useMemo(
+    () =>
+      (leadSources || []).map((source) => ({
+        id: source.id,
+        label: source.type === "personal"
+          ? (source.label || "Personal")
+          : (source.building_name || source.label || "Building"),
+      })),
+    [leadSources],
   );
 
   const isAllExpanded = filteredLeads.length > 0 && filteredLeads.every((lead) => expandedLeads[lead.id]);
@@ -155,6 +225,11 @@ export function useSellerSignalPage(userId) {
 
   function selectDataFilter(value) {
     setDataFilter(value);
+    resetPaging();
+  }
+
+  function selectSourceFilter(value) {
+    setSourceFilter(value);
     resetPaging();
   }
 
@@ -196,12 +271,42 @@ export function useSellerSignalPage(userId) {
     setSheetUrl(value);
   }
 
-  async function importFromSheet() {
+  function updateLeadSourceField(sourceId, field, value) {
+    setLeadSources((previous) =>
+      previous.map((source) =>
+        source.id === sourceId
+          ? { ...source, [field]: value }
+          : source,
+      ),
+    );
+  }
+
+  async function persistLeadSource(sourceId) {
+    const source = leadSources.find((item) => item.id === sourceId);
+    if (!source) return;
+
+    try {
+      await upsertLeadSource(source);
+    } catch (persistError) {
+      setError(persistError.message);
+    }
+  }
+
+  async function importFromSheet(sourceId = null) {
     setImporting(true);
+    setImportingSourceId(sourceId);
     setError(null);
 
     try {
-      await replaceUserLeadsFromSheet(userId, sheetUrl);
+      if (sourceId) {
+        await persistLeadSource(sourceId);
+      }
+      const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
+      await replaceUserLeadsFromSheet({
+        userId,
+        source,
+        rawSheetUrl: sourceId ? source?.sheet_url : sheetUrl,
+      });
       setShowImport(false);
       setSheetUrl("");
       await loadLeadsIntoState(false);
@@ -209,6 +314,7 @@ export function useSellerSignalPage(userId) {
       setError(importError.message);
     } finally {
       setImporting(false);
+      setImportingSourceId(null);
     }
   }
 
@@ -286,6 +392,7 @@ export function useSellerSignalPage(userId) {
     filteredLeads,
     hasLeads: leads.length > 0,
     importing,
+    importingSourceId,
     insights,
     isAllExpanded,
     loading,
@@ -295,6 +402,10 @@ export function useSellerSignalPage(userId) {
     sendAllCount,
     sentLeads,
     sheetUrl,
+    leadSources,
+    sourceCounts,
+    sourceOptions,
+    sourceFilter,
     showDueOnly,
     showImport,
     statusFilter,
@@ -306,7 +417,9 @@ export function useSellerSignalPage(userId) {
       goToNextPage,
       goToPreviousPage,
       importFromSheet,
+      persistLeadSource,
       selectDataFilter,
+      selectSourceFilter,
       selectStatusFilter,
       selectViewTab,
       setDueOnly,
@@ -314,6 +427,7 @@ export function useSellerSignalPage(userId) {
       toggleImportPanel,
       toggleLeadExpanded,
       toggleSent,
+      updateLeadSourceField,
       updateSearchTerm,
       updateSheetUrl,
     },

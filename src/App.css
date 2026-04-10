@@ -376,6 +376,30 @@ body {
   flex-wrap: wrap;
 }
 
+.toolbar-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.toolbar-select {
+  min-width: 180px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 7px 12px;
+  background: var(--bg-card);
+  color: var(--text);
+  font: inherit;
+}
+
 /* Tabs */
 /* View tabs (Active / Done) — pill segmented control */
 .view-tabs {
@@ -1041,6 +1065,122 @@ button.btn-wa:disabled {
 /* Import Panel Dropzone */
 .import-panel-container {
   margin-bottom: 24px;
+}
+
+/* Lead Sources Panel */
+.source-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 16px;
+  padding: 20px 22px;
+}
+
+.source-panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.source-panel-title {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-name);
+}
+
+.source-panel-subtitle {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.source-panel-note {
+  align-self: center;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.source-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.source-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 12px;
+  background: var(--bg);
+}
+
+.source-card-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.source-card-title {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-name);
+}
+
+.source-card-meta {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.source-badge {
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.source-badge-personal {
+  background: var(--bg-badge);
+  color: var(--text);
+}
+
+.source-badge-building {
+  background: var(--badge-ok-bg);
+  color: var(--badge-ok-text);
+}
+
+.source-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.source-field input {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.82rem;
+}
+
+.source-field input:focus {
+  outline: none;
+  border-color: var(--text-faint);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.04);
+}
+
+.source-import-btn {
+  width: 100%;
 }
 
 .import-dropzone {

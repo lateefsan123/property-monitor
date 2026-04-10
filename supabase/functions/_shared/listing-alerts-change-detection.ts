@@ -1,7 +1,3 @@
-export const WATCHED_BUILDINGS_KEY = "@listing_alerts_watched_buildings_v2";
-export const LISTING_ALERTS_STATE_KEY = "@listing_alerts_state_v1";
-export const SELECTED_LISTINGS_KEY = "@listing_alerts_selected_listings_v1";
-
 const MAX_HISTORY_EVENTS = 12;
 
 export const EMPTY_ALERT_SUMMARY = Object.freeze({
@@ -13,68 +9,68 @@ export const EMPTY_ALERT_SUMMARY = Object.freeze({
   priceDropCount: 0,
   priceIncreaseCount: 0,
   removedListingCount: 0,
-  lastCheckedAt: null,
+  lastCheckedAt: null as string | null,
   hasSnapshot: false,
 });
 
-function toLocationId(value) {
+function toLocationId(value: unknown) {
   if (value == null) return null;
   return String(value).trim() || null;
 }
 
-function toListingId(value) {
+function toListingId(value: unknown) {
   if (value == null) return null;
   return String(value).trim() || null;
 }
 
-function toFiniteNumber(value) {
-  return Number.isFinite(value) ? value : null;
+function toFiniteNumber(value: unknown) {
+  return Number.isFinite(value) ? Number(value) : null;
 }
 
-function toText(value, fallback = null) {
+function toText(value: unknown, fallback: string | null = null) {
   const next = String(value || "").trim();
   return next || fallback;
 }
 
-function parseVerifiedAt(value) {
+function parseVerifiedAt(value: unknown) {
   if (!value) return 0;
   const parsed = new Date(String(value).replace(" ", "T"));
   return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
 }
 
-export function createTrackedListingKey(locationId, listingId) {
+export function createTrackedListingKey(locationId: unknown, listingId: unknown) {
   const normalizedLocationId = toLocationId(locationId);
   const normalizedListingId = toListingId(listingId);
   if (!normalizedLocationId || !normalizedListingId) return null;
   return `${normalizedLocationId}:${normalizedListingId}`;
 }
 
-function sanitizeSelectedListingKey(value) {
+function sanitizeSelectedListingKey(value: unknown) {
   if (typeof value !== "string") return null;
   const [rawLocationId, ...rawListingIdParts] = value.split(":");
   const rawListingId = rawListingIdParts.join(":");
   return createTrackedListingKey(rawLocationId, rawListingId);
 }
 
-export function parseSelectedListingKeys(raw) {
+export function parseSelectedListingKeys(raw: unknown) {
   try {
     const parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
     if (!Array.isArray(parsed)) return [];
 
-    return [...new Set(parsed.map(sanitizeSelectedListingKey).filter(Boolean))];
+    return [...new Set(parsed.map(sanitizeSelectedListingKey).filter(Boolean))] as string[];
   } catch {
     return [];
   }
 }
 
-const CHANGE_TYPE_ORDER = {
+const CHANGE_TYPE_ORDER: Record<string, number> = {
   price_drop: 0,
   price_increase: 1,
   new: 2,
   removed: 3,
 };
 
-function sortChangeItems(left, right) {
+function sortChangeItems(left: any, right: any) {
   const orderDelta = (CHANGE_TYPE_ORDER[left.type] ?? 99) - (CHANGE_TYPE_ORDER[right.type] ?? 99);
   if (orderDelta !== 0) return orderDelta;
 
@@ -88,7 +84,7 @@ function sortChangeItems(left, right) {
   return (right.price || 0) - (left.price || 0);
 }
 
-function sanitizeListing(listing, building) {
+function sanitizeListing(listing: any, building: any) {
   const id = toListingId(listing?.id);
   if (!id) return null;
 
@@ -109,9 +105,29 @@ function sanitizeListing(listing, building) {
   };
 }
 
-function sanitizeSnapshotBuilding(building, checkedAt) {
+function buildSnapshotStats(listings: any[]) {
+  let latestVerifiedAt: string | null = null;
+  const prices: number[] = [];
+
+  for (const listing of listings) {
+    if (Number.isFinite(listing?.price)) prices.push(Number(listing.price));
+    if (listing?.verifiedAt) {
+      if (!latestVerifiedAt || parseVerifiedAt(listing.verifiedAt) > parseVerifiedAt(latestVerifiedAt)) {
+        latestVerifiedAt = listing.verifiedAt;
+      }
+    }
+  }
+
+  return {
+    latestVerifiedAt,
+    lowestPrice: prices.length ? Math.min(...prices) : null,
+    highestPrice: prices.length ? Math.max(...prices) : null,
+  };
+}
+
+function sanitizeSnapshotBuilding(building: any, checkedAt: string | null) {
   const locationId = toLocationId(building?.locationId);
-  const listings = {};
+  const listings: Record<string, any> = {};
 
   for (const listing of building?.listings || []) {
     const sanitized = sanitizeListing(listing, building);
@@ -120,17 +136,7 @@ function sanitizeSnapshotBuilding(building, checkedAt) {
   }
 
   const listingValues = Object.values(listings);
-  let latestVerifiedAt = null;
-  const prices = [];
-
-  for (const listing of listingValues) {
-    if (Number.isFinite(listing?.price)) prices.push(listing.price);
-    if (listing?.verifiedAt) {
-      if (!latestVerifiedAt || parseVerifiedAt(listing.verifiedAt) > parseVerifiedAt(latestVerifiedAt)) {
-        latestVerifiedAt = listing.verifiedAt;
-      }
-    }
-  }
+  const snapshotStats = buildSnapshotStats(listingValues);
 
   return {
     locationId,
@@ -140,15 +146,15 @@ function sanitizeSnapshotBuilding(building, checkedAt) {
     checkedAt,
     listings,
     listingCount: Number.isFinite(building?.listingCount) ? building.listingCount : listingValues.length,
-    latestVerifiedAt: toText(building?.latestVerifiedAt, latestVerifiedAt),
-    lowestPrice: toFiniteNumber(building?.lowestPrice ?? (prices.length ? Math.min(...prices) : null)),
-    highestPrice: toFiniteNumber(building?.highestPrice ?? (prices.length ? Math.max(...prices) : null)),
+    latestVerifiedAt: toText(building?.latestVerifiedAt, snapshotStats.latestVerifiedAt),
+    lowestPrice: toFiniteNumber(building?.lowestPrice ?? snapshotStats.lowestPrice),
+    highestPrice: toFiniteNumber(building?.highestPrice ?? snapshotStats.highestPrice),
     imageUrl: toText(building?.imageUrl) || (listingValues[0]?.coverPhoto ?? null),
     fetchError: toText(building?.fetchError),
   };
 }
 
-function sanitizeHistoryEvent(event) {
+function sanitizeHistoryEvent(event: any) {
   const type = ["new", "price_drop", "price_increase", "removed", "reappeared"].includes(event?.type)
     ? event.type
     : null;
@@ -164,7 +170,7 @@ function sanitizeHistoryEvent(event) {
   };
 }
 
-function sanitizeListingHistoryEntry(entry) {
+function sanitizeListingHistoryEntry(entry: any) {
   const locationId = toLocationId(entry?.locationId);
   const id = toListingId(entry?.id);
   if (!locationId || !id) return null;
@@ -210,7 +216,7 @@ function sanitizeListingHistoryEntry(entry) {
   };
 }
 
-function sanitizeChangeItem(item) {
+function sanitizeChangeItem(item: any) {
   const type = ["new", "price_drop", "price_increase", "removed"].includes(item?.type) ? item.type : null;
   const id = toListingId(item?.id);
   const locationId = toLocationId(item?.locationId);
@@ -236,7 +242,7 @@ function sanitizeChangeItem(item) {
   };
 }
 
-function sanitizeStoredState(state) {
+function sanitizeStoredState(state: any) {
   if (!state || typeof state !== "object") return createEmptyListingAlertsState();
 
   const summary = {
@@ -252,28 +258,28 @@ function sanitizeStoredState(state) {
     hasSnapshot: Boolean(state?.summary?.hasSnapshot),
   };
 
-  const snapshot = {};
+  const snapshot: Record<string, any> = {};
   for (const [locationId, building] of Object.entries(state?.snapshot || {})) {
     const normalizedLocationId = toLocationId(locationId);
     if (!normalizedLocationId) continue;
 
     snapshot[normalizedLocationId] = sanitizeSnapshotBuilding(
-      { ...building, locationId: normalizedLocationId, listings: Object.values(building?.listings || {}) },
-      toText(building?.checkedAt),
+      { ...building, locationId: normalizedLocationId, listings: Object.values((building as any)?.listings || {}) },
+      toText((building as any)?.checkedAt),
     );
   }
 
-  const buildingChanges = {};
+  const buildingChanges: Record<string, any> = {};
   for (const [locationId, change] of Object.entries(state?.buildingChanges || {})) {
     const normalizedLocationId = toLocationId(locationId);
     if (!normalizedLocationId) continue;
 
-    const newListingCount = Number.isFinite(change?.newListingCount) ? change.newListingCount : 0;
-    const priceDropCount = Number.isFinite(change?.priceDropCount) ? change.priceDropCount : 0;
-    const priceIncreaseCount = Number.isFinite(change?.priceIncreaseCount) ? change.priceIncreaseCount : 0;
-    const removedListingCount = Number.isFinite(change?.removedListingCount) ? change.removedListingCount : 0;
-    const totalChanges = Number.isFinite(change?.totalChanges)
-      ? change.totalChanges
+    const newListingCount = Number.isFinite((change as any)?.newListingCount) ? (change as any).newListingCount : 0;
+    const priceDropCount = Number.isFinite((change as any)?.priceDropCount) ? (change as any).priceDropCount : 0;
+    const priceIncreaseCount = Number.isFinite((change as any)?.priceIncreaseCount) ? (change as any).priceIncreaseCount : 0;
+    const removedListingCount = Number.isFinite((change as any)?.removedListingCount) ? (change as any).removedListingCount : 0;
+    const totalChanges = Number.isFinite((change as any)?.totalChanges)
+      ? (change as any).totalChanges
       : newListingCount + priceDropCount + priceIncreaseCount + removedListingCount;
     if (!totalChanges) continue;
 
@@ -283,7 +289,7 @@ function sanitizeStoredState(state) {
       priceIncreaseCount,
       removedListingCount,
       totalChanges,
-      latestChangedAt: toText(change?.latestChangedAt),
+      latestChangedAt: toText((change as any)?.latestChangedAt),
     };
   }
 
@@ -291,7 +297,7 @@ function sanitizeStoredState(state) {
     ? state.changeItems.map(sanitizeChangeItem).filter(Boolean).sort(sortChangeItems)
     : [];
 
-  const listingHistory = {};
+  const listingHistory: Record<string, any> = {};
   for (const [key, entry] of Object.entries(state?.listingHistory || {})) {
     const sanitized = sanitizeListingHistoryEntry({ ...entry, key });
     if (!sanitized) continue;
@@ -309,7 +315,7 @@ function sanitizeStoredState(state) {
   };
 }
 
-export function createEmptyListingAlertsState(summaryOverrides = {}) {
+export function createEmptyListingAlertsState(summaryOverrides: Record<string, unknown> = {}) {
   return {
     summary: {
       ...EMPTY_ALERT_SUMMARY,
@@ -322,7 +328,7 @@ export function createEmptyListingAlertsState(summaryOverrides = {}) {
   };
 }
 
-export function parseListingAlertsState(raw) {
+export function parseListingAlertsState(raw: unknown) {
   if (!raw) return createEmptyListingAlertsState();
 
   try {
@@ -333,16 +339,7 @@ export function parseListingAlertsState(raw) {
   }
 }
 
-export function getWatchedBuildingCount(rawWatchlist) {
-  try {
-    const parsed = typeof rawWatchlist === "string" ? JSON.parse(rawWatchlist) : rawWatchlist;
-    return Array.isArray(parsed) ? parsed.length : 0;
-  } catch {
-    return 0;
-  }
-}
-
-function appendHistoryEvent(currentEvents, event) {
+function appendHistoryEvent(currentEvents: any[] | undefined, event: any) {
   const sanitized = sanitizeHistoryEvent(event);
   if (!sanitized) return currentEvents || [];
 
@@ -350,7 +347,16 @@ function appendHistoryEvent(currentEvents, event) {
   return next.slice(-MAX_HISTORY_EVENTS);
 }
 
-function buildHistoryEntry(listing, previousEntry, { checkedAt, eventType = null, previousPrice = null, priceDelta = null }) {
+function buildHistoryEntry(
+  listing: any,
+  previousEntry: any,
+  { checkedAt, eventType = null, previousPrice = null, priceDelta = null }: {
+    checkedAt: string;
+    eventType?: string | null;
+    previousPrice?: number | null;
+    priceDelta?: number | null;
+  },
+) {
   const sanitizedPrevious = sanitizeListingHistoryEntry(previousEntry);
   const locationId = toLocationId(listing?.locationId);
   const id = toListingId(listing?.id);
@@ -416,7 +422,7 @@ function buildHistoryEntry(listing, previousEntry, { checkedAt, eventType = null
   return next;
 }
 
-function markListingRemoved(previousEntry, previousListing, checkedAt) {
+function markListingRemoved(previousEntry: any, previousListing: any, checkedAt: string) {
   const sanitizedPrevious = sanitizeListingHistoryEntry(previousEntry);
   if (!sanitizedPrevious) return null;
   if (sanitizedPrevious.currentStatus === "removed") return sanitizedPrevious;
@@ -448,7 +454,7 @@ function markListingRemoved(previousEntry, previousListing, checkedAt) {
   };
 }
 
-function buildRemovedChangeItem(previousEntry, previousListing) {
+function buildRemovedChangeItem(previousEntry: any, previousListing: any) {
   const sanitizedPrevious = sanitizeListingHistoryEntry(previousEntry);
   const price = sanitizedPrevious?.lastKnownPrice ?? toFiniteNumber(previousListing?.price);
 
@@ -478,14 +484,22 @@ export function buildListingAlertsState({
   watchedItems,
   selectedListingKeys,
   checkedAt = new Date().toISOString(),
+}: {
+  currentBuildings: any[];
+  previousState?: any;
+  watchedItems: any[];
+  selectedListingKeys?: unknown;
+  checkedAt?: string;
 }) {
   const previous = parseListingAlertsState(previousState);
   const previousSnapshot = previous.snapshot || {};
   const previousListingHistory = previous.listingHistory || {};
   const activeLocationIds = [...new Set((watchedItems || []).map((item) => toLocationId(item?.locationId)).filter(Boolean))];
   const activeLocationSet = new Set(activeLocationIds);
-  const selectedKeySet = new Set(parseSelectedListingKeys(selectedListingKeys).filter((key) => activeLocationSet.has(key.split(":")[0])));
-  const selectedIdsByLocation = {};
+  const selectedKeySet = new Set(
+    parseSelectedListingKeys(selectedListingKeys).filter((key) => activeLocationSet.has(key.split(":")[0])),
+  );
+  const selectedIdsByLocation: Record<string, Set<string>> = {};
 
   for (const trackedKey of selectedKeySet) {
     const [locationId, ...listingIdParts] = trackedKey.split(":");
@@ -497,16 +511,16 @@ export function buildListingAlertsState({
 
   if (!activeLocationIds.length) return createEmptyListingAlertsState();
 
-  const currentMap = {};
+  const currentMap: Record<string, any> = {};
   for (const building of currentBuildings || []) {
     const locationId = toLocationId(building?.locationId);
     if (locationId) currentMap[locationId] = building;
   }
 
-  const nextSnapshot = {};
-  const nextBuildingChanges = {};
-  const nextChangeItems = [];
-  const nextListingHistory = {};
+  const nextSnapshot: Record<string, any> = {};
+  const nextBuildingChanges: Record<string, any> = {};
+  const nextChangeItems: any[] = [];
+  const nextListingHistory: Record<string, any> = {};
 
   for (const [key, entry] of Object.entries(previousListingHistory)) {
     const sanitized = sanitizeListingHistoryEntry({ ...entry, key });
@@ -537,7 +551,7 @@ export function buildListingAlertsState({
     let priceDropCount = 0;
     let priceIncreaseCount = 0;
     let removedListingCount = 0;
-    let latestChangedAt = null;
+    let latestChangedAt: string | null = null;
 
     if (!selectedListingIds?.size) continue;
 
@@ -559,7 +573,9 @@ export function buildListingAlertsState({
       }
 
       const wasRemoved = previousEntry?.currentStatus === "removed";
-      const previousPrice = Number.isFinite(previousListing?.price) ? previousListing.price : previousEntry?.currentPrice ?? previousEntry?.lastKnownPrice ?? null;
+      const previousPrice = Number.isFinite(previousListing?.price)
+        ? previousListing.price
+        : previousEntry?.currentPrice ?? previousEntry?.lastKnownPrice ?? null;
 
       let changeType = null;
       let historyEventType = null;

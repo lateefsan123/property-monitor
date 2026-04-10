@@ -88,6 +88,57 @@ export function cleanBuildingName(raw) {
   return name || String(raw || "").trim();
 }
 
+function expandBoulevard(value) {
+  return String(value || "").replace(/\bblvd\b\.?/gi, "Boulevard");
+}
+
+function compressBoulevard(value) {
+  return String(value || "").replace(/\bboulevard\b/gi, "Blvd");
+}
+
+export function formatBuildingLabel(raw) {
+  if (!raw) return "";
+  const cleaned = cleanBuildingName(raw);
+  if (!cleaned) return "";
+  return expandBoulevard(cleaned);
+}
+
+export function getBuildingKeyVariants(raw) {
+  const cleaned = cleanBuildingName(raw);
+  if (!cleaned) return [];
+  const numberMap = {
+    one: "1",
+    two: "2",
+    three: "3",
+    four: "4",
+    five: "5",
+    six: "6",
+    seven: "7",
+    eight: "8",
+    nine: "9",
+    ten: "10",
+  };
+  const replaceNumberWords = (value) => {
+    let next = String(value || "");
+    for (const [word, digit] of Object.entries(numberMap)) {
+      next = next.replace(new RegExp(`\\b${word}\\b`, "gi"), digit);
+    }
+    return next;
+  };
+  const variants = new Set();
+  const addVariant = (value) => {
+    const normalized = normalizeToken(value);
+    if (normalized) variants.add(normalized);
+  };
+  addVariant(cleaned);
+  addVariant(replaceNumberWords(cleaned));
+  addVariant(expandBoulevard(cleaned));
+  addVariant(replaceNumberWords(expandBoulevard(cleaned)));
+  addVariant(compressBoulevard(cleaned));
+  addVariant(replaceNumberWords(compressBoulevard(cleaned)));
+  return [...variants].filter(Boolean);
+}
+
 function parseBedroom(rawValue) {
   const raw = String(rawValue || "").trim();
   if (!raw) return { label: "unit", beds: null };
@@ -201,10 +252,17 @@ export function mapStoredLeadRow(row, index, today) {
 
   const lead = mapLeadRow(record, index, mapping, today);
   lead.id = row.id;
+  lead.sourceId = row.source_id || null;
   return lead;
 }
 
-export function createLeadInsertRecord(record, mapping, userId) {
+export function createLeadInsertRecord(record, mapping, userId, options = {}) {
+  const {
+    sourceId = null,
+    defaultStatus = null,
+    defaultBuilding = null,
+    overrideBuilding = false,
+  } = options;
   const name = mapping.name ? record[mapping.name] : "";
   const building = mapping.building ? record[mapping.building] : "";
   const bedroom = mapping.bedroom ? record[mapping.bedroom] : "";
@@ -213,19 +271,23 @@ export function createLeadInsertRecord(record, mapping, userId) {
   const phone = mapping.phone ? record[mapping.phone] : "";
   const unit = mapping.unit ? record[mapping.unit] : "";
 
-  if (!name && !building && !phone) return null;
+  const resolvedBuilding = overrideBuilding ? (defaultBuilding || "") : (building || defaultBuilding || "");
+  const resolvedStatus = status || defaultStatus || "";
+
+  if (!name && !resolvedBuilding && !phone) return null;
 
   const lastContactDate = parseDateValue(lastContactRaw);
 
   return {
     user_id: userId,
     name: name || null,
-    building: building || null,
+    building: resolvedBuilding || null,
     bedroom: bedroom || null,
     unit: unit || null,
     phone: phone || null,
-    status: status || null,
+    status: resolvedStatus || null,
     last_contact: lastContactDate ? lastContactDate.toISOString().split("T")[0] : null,
+    source_id: sourceId,
   };
 }
 

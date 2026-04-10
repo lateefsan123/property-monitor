@@ -146,13 +146,27 @@ export function rowsToObjects(rows) {
 }
 
 export function buildGoogleCsvUrl(rawUrl) {
-  try {
-    const parsed = new URL(String(rawUrl || "").trim());
-    const sheetIdMatch = parsed.pathname.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
-    if (!sheetIdMatch) return null;
-    const gid = parsed.searchParams.get("gid") || "0";
-    return `https://docs.google.com/spreadsheets/d/${sheetIdMatch[1]}/export?format=csv&gid=${gid}`;
-  } catch {
-    return null;
+  const input = String(rawUrl || "").trim();
+  if (!input) return null;
+
+  const normalized = input.startsWith("http")
+    ? input
+    : input.startsWith("docs.google.com")
+      ? `https://${input}`
+      : input;
+
+  const sheetIdMatch = normalized.match(/\/spreadsheets\/d\/([a-zA-Z0-9-_]+)/);
+  const gidMatch = normalized.match(/[?&#]gid=([0-9]+)/);
+  if (sheetIdMatch) {
+    if (gidMatch) {
+      return `https://docs.google.com/spreadsheets/d/${sheetIdMatch[1]}/export?format=csv&gid=${gidMatch[1]}`;
+    }
+    return `https://docs.google.com/spreadsheets/d/${sheetIdMatch[1]}/export?format=csv`;
   }
+
+  if (/^[a-zA-Z0-9-_]{20,}$/.test(normalized)) {
+    return `https://docs.google.com/spreadsheets/d/${normalized}/export?format=csv`;
+  }
+
+  return null;
 }

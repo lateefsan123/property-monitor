@@ -190,7 +190,7 @@ async function fetchListingsForLocation(location: any, apiKey: string) {
       addedThisPage += 1;
     }
 
-    if (!results.length || results.length < PAGE_SIZE || addedThisPage === 0 || deduped.size >= MAX_LISTINGS_PER_BUILDING) break;
+    if (!results.length || addedThisPage === 0 || deduped.size >= MAX_LISTINGS_PER_BUILDING) break;
   }
 
   const listings = [...deduped.values()]

@@ -1,5 +1,6 @@
 import { formatBedsLabel, formatDate, formatPrice, formatPsf, formatRange } from "../formatters";
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
+import { formatBuildingLabel } from "../lead-utils";
 
 function MessagePreview({ value }) {
   return <div className="message-preview">{value}</div>;
@@ -104,7 +105,7 @@ export default function LeadCard({
           <div>
             <span className="lead-name">{lead.name || "Unnamed"}</span>
             <span className="lead-building">
-              <HomeIcon /> {lead.building || "-"}
+              <HomeIcon /> {formatBuildingLabel(lead.building) || lead.building || "-"}
             </span>
           </div>
 

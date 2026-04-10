@@ -30,11 +30,16 @@ export function filterLeads({
   insights,
   searchTerm,
   showDueOnly,
+  sourceFilter,
   statusFilter,
   viewTab,
 }) {
   const baseLeads = viewTab === "done" ? doneLeads : activeLeads;
   let result = showDueOnly ? baseLeads.filter((lead) => lead.isDue) : baseLeads;
+
+  if (sourceFilter && sourceFilter !== "all") {
+    result = result.filter((lead) => lead.sourceId === sourceFilter);
+  }
 
   if (statusFilter !== "all") {
     result = result.filter((lead) => lead.statusRule?.id === statusFilter);

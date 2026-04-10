@@ -119,6 +119,19 @@ function sanitizeSnapshotBuilding(building, checkedAt) {
     listings[sanitized.id] = sanitized;
   }
 
+  const listingValues = Object.values(listings);
+  let latestVerifiedAt = null;
+  const prices = [];
+
+  for (const listing of listingValues) {
+    if (Number.isFinite(listing?.price)) prices.push(listing.price);
+    if (listing?.verifiedAt) {
+      if (!latestVerifiedAt || parseVerifiedAt(listing.verifiedAt) > parseVerifiedAt(latestVerifiedAt)) {
+        latestVerifiedAt = listing.verifiedAt;
+      }
+    }
+  }
+
   return {
     locationId,
     buildingName: toText(building?.buildingName, "Unknown"),
@@ -126,6 +139,12 @@ function sanitizeSnapshotBuilding(building, checkedAt) {
     fullPath: toText(building?.fullPath),
     checkedAt,
     listings,
+    listingCount: Number.isFinite(building?.listingCount) ? building.listingCount : listingValues.length,
+    latestVerifiedAt: toText(building?.latestVerifiedAt, latestVerifiedAt),
+    lowestPrice: toFiniteNumber(building?.lowestPrice ?? (prices.length ? Math.min(...prices) : null)),
+    highestPrice: toFiniteNumber(building?.highestPrice ?? (prices.length ? Math.max(...prices) : null)),
+    imageUrl: toText(building?.imageUrl) || (listingValues[0]?.coverPhoto ?? null),
+    fetchError: toText(building?.fetchError),
   };
 }
 

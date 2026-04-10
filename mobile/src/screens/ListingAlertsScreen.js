@@ -57,6 +57,8 @@ const TRACK_STATUS_OPTIONS = [
   { id: "removed", label: "Off market" },
 ];
 
+const LISTINGS_PAGE_SIZE = 25;
+
 // ---------- Icons ----------
 
 function BackIcon({ color }) {
@@ -415,6 +417,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
   const [trackedStatusFilter, setTrackedStatusFilter] = useState("all");
   const [listingBuildingFilter, setListingBuildingFilter] = useState("all");
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [listingsPage, setListingsPage] = useState(1);
   const [selectedListing, setSelectedListing] = useState(null);
   const hasTrackedUnits = alerts.stats.trackedListingCount > 0;
   const buildingFilterOptions = alerts.watchedBuildings || [];
@@ -469,6 +472,10 @@ export default function ListingAlertsScreen({ onBack, theme }) {
   }, [buildingFilterOptions, listingBuildingFilter]);
 
   useEffect(() => {
+    setListingsPage(1);
+  }, [bedsFilter, listingBuildingFilter, priceChangedOnly, priceFilter, trackedOnly, trackedStatusFilter, viewTab, watchingOnly]);
+
+  useEffect(() => {
     if (!selectedListing) return;
 
     const nextSelectedListing = [...(alerts.latestListings || []), ...(alerts.trackedListings || [])].find(
@@ -494,8 +501,8 @@ export default function ListingAlertsScreen({ onBack, theme }) {
   const buildings = useMemo(() => {
     if (watchingOnly) return alerts.watchedBuildings || [];
     if (alerts.usingLiveSearch) return alerts.searchResults || [];
-    return [...(alerts.watchedBuildings || []), ...(alerts.popularBuildings || [])];
-  }, [alerts.popularBuildings, alerts.searchResults, alerts.usingLiveSearch, alerts.watchedBuildings, watchingOnly]);
+    return alerts.watchedBuildings || [];
+  }, [alerts.searchResults, alerts.usingLiveSearch, alerts.watchedBuildings, watchingOnly]);
 
   const listings = useMemo(() => {
     let source = [];
@@ -573,6 +580,33 @@ export default function ListingAlertsScreen({ onBack, theme }) {
   const countLabel = viewTab === "buildings"
     ? `${count} ${count === 1 ? "building" : "buildings"}`
     : `${count} ${count === 1 ? "listing" : "listings"}`;
+  const selectedBuildingOption = useMemo(
+    () => buildingFilterOptions.find((building) => building.locationId === listingBuildingFilter) || null,
+    [buildingFilterOptions, listingBuildingFilter],
+  );
+  const totalLiveListings = useMemo(() => {
+    if (!alerts.stats.watchedBuildingCount) return 0;
+    if (listingBuildingFilter !== "all") {
+      if (Number.isFinite(selectedBuildingOption?.listingCount)) return selectedBuildingOption.listingCount;
+      return selectedBuildingOption?.listings?.length || 0;
+    }
+
+    return buildingFilterOptions.reduce((sum, building) => {
+      if (Number.isFinite(building?.listingCount)) return sum + building.listingCount;
+      return sum + (building?.listings?.length || 0);
+    }, 0);
+  }, [alerts.stats.watchedBuildingCount, buildingFilterOptions, listingBuildingFilter, selectedBuildingOption]);
+  const totalLiveListingsLabel = listingBuildingFilter !== "all"
+    ? selectedBuildingOption?.buildingName || "selected building"
+    : "watched buildings";
+  const listingTotalPages = Math.max(1, Math.ceil(listings.length / LISTINGS_PAGE_SIZE));
+  const listingSafePage = Math.min(listingsPage, listingTotalPages);
+  const listingVisibleStart = count ? ((listingSafePage - 1) * LISTINGS_PAGE_SIZE) + 1 : 0;
+  const listingVisibleEnd = Math.min(listingSafePage * LISTINGS_PAGE_SIZE, count);
+  const pagedListings = useMemo(() => {
+    const startIndex = (listingSafePage - 1) * LISTINGS_PAGE_SIZE;
+    return listings.slice(startIndex, startIndex + LISTINGS_PAGE_SIZE);
+  }, [listingSafePage, listings]);
   const listingHeaderText = !alerts.stats.watchedBuildingCount
     ? "Watch a building to browse its apartments"
     : !hasTrackedUnits
@@ -704,9 +738,24 @@ export default function ListingAlertsScreen({ onBack, theme }) {
       ) : null}
 
       {/* List — flat rows with hairline separators, same as Dashboard */}
+      <View style={s.resultsBar}>
+        <Text style={s.resultsCount}>
+          {viewTab === "listings" && totalLiveListings > count
+            ? `${countLabel} loaded`
+            : countLabel}
+        </Text>
+        {viewTab === "listings" ? (
+          <Text style={s.resultsMeta}>
+            {totalLiveListings > 0 ? `${totalLiveListings} total live in ${totalLiveListingsLabel} • ` : ""}
+            {count ? `Showing ${listingVisibleStart}-${listingVisibleEnd}` : "Showing 0"}
+            {` • Page ${listingSafePage}/${listingTotalPages}`}
+          </Text>
+        ) : null}
+      </View>
+
       <View style={s.listWrap} {...swipeResponder.panHandlers}>
         <FlatList
-          data={viewTab === "buildings" ? buildings : listings}
+          data={viewTab === "buildings" ? buildings : pagedListings}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
           contentContainerStyle={s.listContent}
@@ -738,6 +787,36 @@ export default function ListingAlertsScreen({ onBack, theme }) {
       </View>
 
       {/* FAB — filter bottom sheet */}
+      {viewTab === "listings" ? (
+        <View style={s.paginationBar}>
+          <Pressable
+            disabled={listingSafePage <= 1}
+            onPress={() => setListingsPage((page) => Math.max(1, page - 1))}
+            style={({ pressed }) => [
+              s.paginationButton,
+              listingSafePage <= 1 && s.paginationDisabled,
+              pressed && listingSafePage > 1 && { opacity: 0.85 },
+            ]}
+          >
+            <Text style={s.paginationText}>Previous</Text>
+          </Pressable>
+          <Text style={s.paginationStatus}>
+            Page {listingSafePage} of {listingTotalPages}
+          </Text>
+          <Pressable
+            disabled={listingSafePage >= listingTotalPages}
+            onPress={() => setListingsPage((page) => Math.min(listingTotalPages, page + 1))}
+            style={({ pressed }) => [
+              s.paginationButton,
+              listingSafePage >= listingTotalPages && s.paginationDisabled,
+              pressed && listingSafePage < listingTotalPages && { opacity: 0.85 },
+            ]}
+          >
+            <Text style={s.paginationText}>Next</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       <Pressable style={({ pressed }) => [s.fab, pressed && { opacity: 0.85 }]} onPress={() => setSheetOpen(true)}>
         <TuneIcon color={colors.bg} />
       </Pressable>
@@ -962,6 +1041,20 @@ const styles = (c) =>
     listWrap: { flex: 1 },
     listContent: { padding: 16, paddingBottom: 120 },
     separator: { height: StyleSheet.hairlineWidth, marginVertical: 18, marginHorizontal: -16 },
+    resultsBar: {
+      paddingHorizontal: 16,
+      paddingBottom: 6,
+      gap: 2,
+    },
+    resultsCount: {
+      fontSize: 13,
+      fontWeight: "700",
+      color: c.text,
+    },
+    resultsMeta: {
+      fontSize: 12,
+      color: c.textFaint,
+    },
 
     // Empty state
     emptyWrap: {
@@ -1000,6 +1093,33 @@ const styles = (c) =>
       shadowOpacity: 0.25,
       shadowRadius: 12,
       elevation: 8,
+    },
+
+    paginationBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingHorizontal: 16,
+      paddingBottom: 22,
+      gap: 10,
+    },
+    paginationButton: {
+      paddingHorizontal: 14,
+      paddingVertical: 8,
+      borderRadius: 16,
+      backgroundColor: c.bgCard,
+    },
+    paginationDisabled: {
+      opacity: 0.5,
+    },
+    paginationText: {
+      fontSize: 12,
+      fontWeight: "700",
+      color: c.text,
+    },
+    paginationStatus: {
+      fontSize: 12,
+      color: c.textMuted,
     },
 
     // Bottom sheet
