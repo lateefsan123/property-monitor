@@ -16,7 +16,7 @@ const BASE_URL = `https://${API_HOST}`;
 const PAGE_SIZE = 25;
 const MAX_PAGES = 20;
 const MAX_LISTINGS_PER_BUILDING = 500;
-const MAX_WATCHED_BUILDINGS = 4;
+const MAX_WATCHED_BUILDINGS = 1000;
 const TRACK_ALL_LISTINGS = true;
 
 function jsonResponse(body: unknown, status = 200) {

@@ -7,6 +7,16 @@ export function startOfDay(dateValue) {
   return date;
 }
 
+export function formatDateInputValue(dateValue) {
+  const date = dateValue instanceof Date ? dateValue : parseDateValue(dateValue);
+  if (!date) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function addDays(dateValue, days) {
   const date = startOfDay(dateValue);
   date.setDate(date.getDate() + days);
@@ -256,16 +266,30 @@ export function mapStoredLeadRow(row, index, today) {
   return lead;
 }
 
-export function applyLeadStatus(lead, nextStatus, today = new Date()) {
+export function sortLeadsByPriority(leads) {
+  return [...(leads || [])].sort((left, right) => {
+    if (left.isDue !== right.isDue) return left.isDue ? -1 : 1;
+    if (left.overdueDays !== right.overdueDays) return right.overdueDays - left.overdueDays;
+
+    const leftRow = Number(left.rowNumber ?? left.id ?? 0);
+    const rightRow = Number(right.rowNumber ?? right.id ?? 0);
+    return leftRow - rightRow;
+  });
+}
+
+function buildDerivedLead(lead, overrides = {}, today = new Date()) {
+  const currentLastContact = lead.lastContactRaw ?? (
+    lead.lastContactDate ? formatDateInputValue(lead.lastContactDate) : ""
+  );
   const record = {
     __row: lead.rowNumber || lead.id || 0,
-    _name: lead.name || "",
-    _building: lead.building || "",
-    _bedroom: lead.bedroom || "",
-    _status: nextStatus || "",
-    _lastContact: lead.lastContactRaw || (lead.lastContactDate ? lead.lastContactDate.toISOString().split("T")[0] : ""),
-    _phone: lead.phone || "",
-    _unit: lead.unit || "",
+    _name: overrides.name ?? lead.name ?? "",
+    _building: overrides.building ?? lead.building ?? "",
+    _bedroom: overrides.bedroom ?? lead.bedroom ?? "",
+    _status: overrides.status ?? lead.status ?? "",
+    _lastContact: overrides.lastContact ?? currentLastContact,
+    _phone: overrides.phone ?? lead.phone ?? "",
+    _unit: overrides.unit ?? lead.unit ?? "",
   };
 
   const mapping = {
@@ -280,8 +304,17 @@ export function applyLeadStatus(lead, nextStatus, today = new Date()) {
 
   const updated = mapLeadRow(record, 0, mapping, today);
   updated.id = lead.id;
+  updated.rowNumber = lead.rowNumber;
   updated.sourceId = lead.sourceId || null;
   return updated;
+}
+
+export function applyLeadStatus(lead, nextStatus, today = new Date()) {
+  return buildDerivedLead(lead, { status: nextStatus }, today);
+}
+
+export function applyLeadEdits(lead, nextValues, today = new Date()) {
+  return buildDerivedLead(lead, nextValues, today);
 }
 
 export function createLeadInsertRecord(record, mapping, userId, options = {}) {

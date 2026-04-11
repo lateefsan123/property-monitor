@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
 import { Svg, Path } from "react-native-svg";
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
+import { formatBuildingLabel } from "../lead-utils";
 
 function PhoneIcon({ size = 14, color }) {
   return (
@@ -127,7 +128,7 @@ export default function LeadCard({ buildingImageUrl, isSent, isDone, lead, insig
           <Text style={{ fontSize: 18, fontWeight: "800", color: c.textName, textDecorationLine: isDone ? "line-through" : "none" }}>{lead.name || "Unnamed"}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
             <HomeIcon size={14} color={c.textMuted} />
-            <Text style={{ fontSize: 15, color: c.textMuted }} numberOfLines={1}>{lead.building || "-"}</Text>
+            <Text style={{ fontSize: 15, color: c.textMuted }} numberOfLines={1}>{formatBuildingLabel(lead.building) || "-"}</Text>
           </View>
           {lead.phone && (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>

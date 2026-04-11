@@ -1,5 +1,6 @@
 import { StrictMode, useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
+import { QueryClientProvider } from "@tanstack/react-query";
 import "./index.css";
 import App from "./App.jsx";
 import Auth from "./Auth.jsx";
@@ -10,6 +11,7 @@ import {
   syncCheckoutSession,
 } from "./billing";
 import ResetPassword from "./ResetPassword.jsx";
+import { queryClient } from "./queryClient";
 import { supabase, supabaseConfigError } from "./supabase";
 
 const ONBOARDING_STORAGE_KEY = "seller_signal_onboarding_completed_v2";
@@ -290,6 +292,8 @@ export function Root() {
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <Root />
+    <QueryClientProvider client={queryClient}>
+      <Root />
+    </QueryClientProvider>
   </StrictMode>,
 );

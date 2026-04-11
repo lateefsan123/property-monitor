@@ -2,6 +2,13 @@ import { formatBedsLabel, formatDate, formatPrice, formatPsf, formatRange } from
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
 import { formatBuildingLabel } from "../lead-utils";
 
+const EDIT_STATUS_OPTIONS = [
+  { value: "", label: "No status" },
+  { value: "Prospect", label: "Prospect" },
+  { value: "Appraisal", label: "Appraisal" },
+  { value: "For Sale", label: "For Sale" },
+];
+
 function MessagePreview({ value }) {
   return <div className="message-preview">{value}</div>;
 }
@@ -60,14 +67,133 @@ function TransactionTable({ insight, lead }) {
   return <p className="muted">No priced sales found in this period.</p>;
 }
 
+function getEditStatusOptions(currentStatus) {
+  if (!currentStatus || EDIT_STATUS_OPTIONS.some((option) => option.value === currentStatus)) {
+    return EDIT_STATUS_OPTIONS;
+  }
+
+  return [
+    EDIT_STATUS_OPTIONS[0],
+    { value: currentStatus, label: `${currentStatus} (Current)` },
+    ...EDIT_STATUS_OPTIONS.slice(1),
+  ];
+}
+
+function LeadEditForm({ draft, isDeleting, isSaving, onCancel, onChange, onDelete, onSave }) {
+  const statusOptions = getEditStatusOptions(draft?.status);
+
+  return (
+    <form
+      className="lead-edit-form"
+      onSubmit={(event) => {
+        event.preventDefault();
+        onSave?.();
+      }}
+    >
+      <div className="lead-edit-grid">
+        <label className="lead-edit-field">
+          <span>Name</span>
+          <input
+            type="text"
+            value={draft?.name || ""}
+            onChange={(event) => onChange?.("name", event.target.value)}
+            placeholder="Seller name"
+          />
+        </label>
+
+        <label className="lead-edit-field">
+          <span>Building</span>
+          <input
+            type="text"
+            value={draft?.building || ""}
+            onChange={(event) => onChange?.("building", event.target.value)}
+            placeholder="Building name"
+          />
+        </label>
+
+        <label className="lead-edit-field">
+          <span>Phone</span>
+          <input
+            type="tel"
+            value={draft?.phone || ""}
+            onChange={(event) => onChange?.("phone", event.target.value)}
+            placeholder="+971..."
+          />
+        </label>
+
+        <label className="lead-edit-field">
+          <span>Bedroom</span>
+          <input
+            type="text"
+            value={draft?.bedroom || ""}
+            onChange={(event) => onChange?.("bedroom", event.target.value)}
+            placeholder="2BR"
+          />
+        </label>
+
+        <label className="lead-edit-field">
+          <span>Unit</span>
+          <input
+            type="text"
+            value={draft?.unit || ""}
+            onChange={(event) => onChange?.("unit", event.target.value)}
+            placeholder="Unit 1203"
+          />
+        </label>
+
+        <label className="lead-edit-field">
+          <span>Status</span>
+          <select value={draft?.status || ""} onChange={(event) => onChange?.("status", event.target.value)}>
+            {statusOptions.map((option) => (
+              <option key={option.value || "blank"} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="lead-edit-field">
+          <span>Last contact</span>
+          <input
+            type="date"
+            value={draft?.lastContact || ""}
+            onChange={(event) => onChange?.("lastContact", event.target.value)}
+          />
+        </label>
+      </div>
+
+      <div className="lead-edit-actions">
+        <button type="submit" className="btn-sm btn-primary" disabled={isSaving || isDeleting}>
+          {isSaving ? "Saving..." : "Save"}
+        </button>
+        <button type="button" className="btn-sm" disabled={isSaving || isDeleting} onClick={onCancel}>
+          Cancel
+        </button>
+        <button type="button" className="btn-sm btn-danger" disabled={isSaving || isDeleting} onClick={onDelete}>
+          {isDeleting ? "Deleting..." : "Delete"}
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export default function LeadCard({
   buildingImageUrl,
   copiedLeadId,
+  editDraft,
   insight,
+  isDeleting,
+  isEditing,
   isExpanded,
+  isSaving,
   isSent,
   lead,
+  onCancelEditing,
   onCopyMessage,
+  onDelete,
+  onEditFieldChange,
+  onSaveEdit,
+  onStartEditing,
   onToggleExpanded,
   onToggleSent,
   onUpdateStatus,
@@ -114,6 +240,7 @@ export default function LeadCard({
             <div className="badge-row">
               <span className="badge">{lead.statusLabel}</span>
               <span className={`badge ${lead.isDue ? "due" : "ok"}`}>{lead.dueLabel}</span>
+              {insight?.status === "loading" && <span className="badge loading">Loading data</span>}
               {insight?.status === "ready" && <span className="badge ok">Enriched</span>}
               {lead.newTxSinceSent && <span className="badge due">{lead.newTxSinceSent} new txns</span>}
             </div>
@@ -135,13 +262,15 @@ export default function LeadCard({
             ) : (
               <button
                 type="button"
-                className="btn-sm"
+                className="btn-sm btn-wa"
                 onClick={(event) => {
                   event.stopPropagation();
                   void onCopyMessage(lead.id, message);
+                  if (!isSent) void onToggleSent(lead.id);
                 }}
               >
-                {copiedLeadId === lead.id ? "Copied" : "Copy"}
+                <WhatsAppIcon />
+                {isSent ? "Sent" : copiedLeadId === lead.id ? "Copied" : "Send"}
               </button>
             )}
           </div>
@@ -151,54 +280,87 @@ export default function LeadCard({
       {isExpanded && (
         <>
           <div className="lead-meta">
-            <span>{lead.bedroom || "-"}</span>
-            <span>{formatDate(lead.lastContactDate)}</span>
-            {lead.phone && <span>{lead.phone}</span>}
-          </div>
-
-          <div className="lead-status-actions">
-            <span className="lead-status-label">Status</span>
-            <div className="lead-status-buttons">
-              {[
-                { id: "prospect", label: "Prospect", value: "Prospect" },
-                { id: "market_appraisal", label: "Appraisal", value: "Appraisal" },
-                { id: "for_sale_available", label: "For Sale", value: "For Sale" },
-              ].map((option) => {
-                const isActive = lead.statusRule?.id === option.id;
-                return (
-                  <button
-                    key={option.id}
-                    type="button"
-                    className={`btn-sm lead-status-btn${isActive ? " active" : ""}`}
-                    onClick={() => onUpdateStatus?.(lead.id, option.value)}
-                    disabled={isActive}
-                  >
-                    {option.label}
-                  </button>
-                );
-              })}
+            <div className="lead-meta-details">
+              <span>{lead.bedroom || "-"}</span>
+              <span>{formatDate(lead.lastContactDate)}</span>
+              {lead.phone && <span>{lead.phone}</span>}
+              {lead.unit && <span>{lead.unit}</span>}
             </div>
+            {!isEditing && (
+              <div className="lead-card-actions">
+                <button type="button" className="btn-sm" disabled={isSaving || isDeleting} onClick={() => onStartEditing?.(lead.id)}>
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  className="btn-sm btn-danger"
+                  disabled={isSaving || isDeleting}
+                  onClick={() => onDelete?.(lead.id)}
+                >
+                  {isDeleting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            )}
           </div>
 
-          {insight?.status === "ready" && (
+          {isEditing ? (
+            <LeadEditForm
+              draft={editDraft}
+              isDeleting={isDeleting}
+              isSaving={isSaving}
+              onCancel={onCancelEditing}
+              onChange={onEditFieldChange}
+              onDelete={() => onDelete?.(lead.id)}
+              onSave={() => onSaveEdit?.(lead.id)}
+            />
+          ) : (
             <>
-              <div className="bayut-row">
-                <span>{insight.count} txns</span>
-                <span>Avg {formatPrice(insight.avg)}</span>
-                <span>{formatPsf(insight.psf)}</span>
-                <span>{formatRange(insight.min, insight.max)}</span>
+
+              <div className="lead-status-actions">
+                <span className="lead-status-label">Status</span>
+                <div className="lead-status-buttons">
+                  {[
+                    { id: "prospect", label: "Prospect", value: "Prospect" },
+                    { id: "market_appraisal", label: "Appraisal", value: "Appraisal" },
+                    { id: "for_sale_available", label: "For Sale", value: "For Sale" },
+                  ].map((option) => {
+                    const isActive = lead.statusRule?.id === option.id;
+                    return (
+                      <button
+                        key={option.id}
+                        type="button"
+                        className={`btn-sm lead-status-btn${isActive ? " active" : ""}`}
+                        onClick={() => onUpdateStatus?.(lead.id, option.value)}
+                        disabled={isActive || isSaving || isDeleting}
+                      >
+                        {option.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-              <TransactionTable insight={insight} lead={lead} />
+
+              {insight?.status === "ready" && (
+                <>
+                  <div className="bayut-row">
+                    <span>{insight.count} txns</span>
+                    <span>Avg {formatPrice(insight.avg)}</span>
+                    <span>{formatPsf(insight.psf)}</span>
+                    <span>{formatRange(insight.min, insight.max)}</span>
+                  </div>
+                  <TransactionTable insight={insight} lead={lead} />
+                </>
+              )}
+
+              {insight?.status === "loading" && <p className="muted">Loading market data...</p>}
+              {insight?.status === "error" && <p className="error-sm">{insight.error}</p>}
+
+              <div className="msg-block">
+                <p className="msg-label">Message Preview</p>
+                <MessagePreview value={message} />
+              </div>
             </>
           )}
-
-          {insight?.status === "loading" && <p className="muted">Loading Bayut data...</p>}
-          {insight?.status === "error" && <p className="error-sm">{insight.error}</p>}
-
-          <div className="msg-block">
-            <p className="msg-label">Message Preview</p>
-            <MessagePreview value={message} />
-          </div>
         </>
       )}
     </article>

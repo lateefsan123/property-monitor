@@ -7,12 +7,18 @@ export default function LeadSourcesPanel({
   onImport,
   onSourceChange,
   onSourceSave,
+  legacySheetUrl,
+  importingLegacy,
+  onLegacyUrlChange,
+  onLegacyImport,
 }) {
   const [open, setOpen] = useState(false);
 
   if (!sources?.length) return null;
 
-  const totalLeads = sources.reduce((sum, s) => sum + (leadCounts?.[s.id] || 0), 0);
+  const legacyCount = leadCounts?.legacy || 0;
+  const totalLeads = sources.reduce((sum, s) => sum + (leadCounts?.[s.id] || 0), 0) + legacyCount;
+  const showLegacyRow = legacyCount > 0 || Boolean(legacySheetUrl);
 
   return (
     <div className="source-panel">
@@ -64,6 +70,32 @@ export default function LeadSourcesPanel({
               </div>
             );
           })}
+          {showLegacyRow && (
+            <div className="source-row" key="legacy">
+              <input
+                className="source-row-name"
+                type="text"
+                value="Legacy spreadsheet"
+                readOnly
+              />
+              <input
+                className="source-row-url"
+                type="text"
+                value={legacySheetUrl || ""}
+                onChange={(e) => onLegacyUrlChange?.(e.target.value)}
+                placeholder="Google Sheet URL"
+              />
+              <span className="source-row-count">{legacyCount} leads</span>
+              <button
+                type="button"
+                className="source-row-import"
+                disabled={!legacySheetUrl || importingLegacy}
+                onClick={() => onLegacyImport?.()}
+              >
+                {importingLegacy ? "Importing..." : "Import"}
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

@@ -38,7 +38,11 @@ export function filterLeads({
   let result = showDueOnly ? baseLeads.filter((lead) => lead.isDue) : baseLeads;
 
   if (sourceFilter && sourceFilter !== "all") {
-    result = result.filter((lead) => lead.sourceId === sourceFilter);
+    if (sourceFilter === "legacy") {
+      result = result.filter((lead) => !lead.sourceId);
+    } else {
+      result = result.filter((lead) => lead.sourceId === sourceFilter);
+    }
   }
 
   if (statusFilter !== "all") {

@@ -1,14 +1,14 @@
-import { useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import { ActivityIndicator, FlatList, PanResponder, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Svg, Path, Line } from "react-native-svg";
+import { Svg, Line, Path } from "react-native-svg";
 import BottomSheet from "../components/BottomSheet";
 import LeadImportEmptyState from "../features/seller-signal/components/LeadImportEmptyState";
 import LeadCard from "../features/seller-signal/components/LeadCard";
 import LeadDetailSheet from "../features/seller-signal/components/LeadDetailSheet";
 import Pagination from "../features/seller-signal/components/Pagination";
 import { DATA_FILTER_OPTIONS, STATUS_FILTER_OPTIONS } from "../features/seller-signal/constants";
-import { normalizeToken } from "../features/seller-signal/spreadsheet";
+import { getBuildingKeyVariants } from "../features/seller-signal/lead-utils";
 import { useSellerSignalPage } from "../features/seller-signal/useSellerSignalPage";
 import buildingImages from "../data/building-images.json";
 import { supabase } from "../supabase";
@@ -20,31 +20,27 @@ export default function DashboardScreen({ onBack, theme, userId }) {
   const s = styles(colors);
 
   const [sheetOpen, setSheetOpen] = useState(false);
-  const [selectedLead, setSelectedLead] = useState(null);
+  const [selectedLeadId, setSelectedLeadId] = useState(null);
+  const selectedLead = useMemo(
+    () => d.leads.find((lead) => lead.id === selectedLeadId) || null,
+    [d.leads, selectedLeadId],
+  );
 
-  // Swipe between Active / Done tabs.
-  // Keep a latest-value ref so the PanResponder (created once) always sees the
-  // current viewTab and selectViewTab from the hook.
-  const dRef = useRef(d);
-  dRef.current = d;
-  const swipeResponder = useRef(
-    PanResponder.create({
-      // Only claim the gesture when the user is moving clearly horizontally,
-      // so vertical FlatList scrolling stays untouched.
-      onMoveShouldSetPanResponder: (_, g) =>
-        Math.abs(g.dx) > 20 && Math.abs(g.dx) > Math.abs(g.dy) * 2,
-      onPanResponderRelease: (_, g) => {
-        const latest = dRef.current;
-        if (g.dx < -60) {
-          // swipe left → go to Done
-          if (latest.viewTab === "active") latest.actions.selectViewTab("done");
-        } else if (g.dx > 60) {
-          // swipe right → go to Active
-          if (latest.viewTab === "done") latest.actions.selectViewTab("active");
-        }
-      },
-    })
-  ).current;
+  const swipeResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          Math.abs(gesture.dx) > 20 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 2,
+        onPanResponderRelease: (_, gesture) => {
+          if (gesture.dx < -60 && d.viewTab === "active") {
+            d.actions.selectViewTab("done");
+          } else if (gesture.dx > 60 && d.viewTab === "done") {
+            d.actions.selectViewTab("active");
+          }
+        },
+      }),
+    [d.actions, d.viewTab],
+  );
 
   if (d.loading) {
     return (
@@ -82,7 +78,6 @@ export default function DashboardScreen({ onBack, theme, userId }) {
 
   return (
     <SafeAreaView style={s.page} edges={["top"]}>
-      {/* Tab bar: Active / Done — pill segmented control */}
       <View style={s.tabBar}>
         {onBack ? (
           <Pressable style={s.backBtn} onPress={onBack} hitSlop={12}>
@@ -114,7 +109,6 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         <Text style={s.leadCount}>{d.filteredLeads.length} leads</Text>
       </View>
 
-      {/* Search */}
       <View style={s.searchBar}>
         <TextInput
           style={s.searchInput}
@@ -131,7 +125,6 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         </View>
       )}
 
-      {/* Lead list — horizontally swipeable to change tab */}
       <View style={s.listWrap} {...swipeResponder.panHandlers}>
         <FlatList
           data={d.pagedLeads}
@@ -139,12 +132,15 @@ export default function DashboardScreen({ onBack, theme, userId }) {
           contentContainerStyle={s.listContent}
           renderItem={({ item }) => (
             <LeadCard
-              buildingImageUrl={buildingImages[normalizeToken(item.building)]}
+              buildingImageUrl={(() => {
+                const match = getBuildingKeyVariants(item.building).find((key) => buildingImages[key]);
+                return match ? buildingImages[match] : undefined;
+              })()}
               isSent={Boolean(d.sentLeads[item.id])}
               isDone={d.viewTab === "done"}
               lead={item}
               insight={d.insights[item.id]}
-              onPress={setSelectedLead}
+              onPress={(lead) => setSelectedLeadId(lead.id)}
               copiedLeadId={d.copiedLeadId}
               onCopyMessage={d.actions.copyMessage}
               onToggleSent={d.actions.toggleSent}
@@ -166,7 +162,6 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         />
       </View>
 
-      {/* Floating controls button */}
       <Pressable
         style={({ pressed }) => [s.fab, pressed && { opacity: 0.85 }]}
         onPress={() => setSheetOpen(true)}
@@ -184,7 +179,6 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         </Svg>
       </Pressable>
 
-      {/* Sign out button */}
       <Pressable
         style={({ pressed }) => [s.fabSmall, pressed && { opacity: 0.85 }]}
         onPress={() => supabase.auth.signOut()}
@@ -196,51 +190,79 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         </Svg>
       </Pressable>
 
-      {/* Lead detail sheet */}
       <LeadDetailSheet
-        visible={Boolean(selectedLead)}
-        onClose={() => setSelectedLead(null)}
+        visible={Boolean(selectedLeadId && selectedLead)}
+        onClose={() => setSelectedLeadId(null)}
         lead={selectedLead}
         insight={selectedLead ? d.insights[selectedLead.id] : null}
+        editDraft={selectedLead && d.editingLeadId === selectedLead.id ? d.editingLeadDraft : null}
         isSent={selectedLead ? Boolean(d.sentLeads[selectedLead.id]) : false}
+        isDeleting={selectedLead ? d.deletingLeadId === selectedLead.id : false}
+        isEditing={selectedLead ? d.editingLeadId === selectedLead.id : false}
+        isSaving={selectedLead ? d.savingLeadId === selectedLead.id : false}
         copiedLeadId={d.copiedLeadId}
+        onCancelEditing={d.actions.cancelEditingLead}
         onCopyMessage={d.actions.copyMessage}
+        onDelete={d.actions.deleteLead}
+        onEditFieldChange={d.actions.updateLeadDraftField}
+        onSaveEdit={d.actions.saveLeadEdits}
+        onStartEditing={d.actions.startEditingLead}
         onToggleSent={d.actions.toggleSent}
+        onUpdateStatus={d.actions.updateLeadStatus}
         colors={colors}
       />
 
-      {/* Bottom sheet with all controls */}
       <BottomSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} colors={colors}>
         <ScrollView style={s.sheetScroll} contentContainerStyle={s.sheetContent} showsVerticalScrollIndicator={false}>
-          {/* Status filter */}
           <Text style={s.sectionLabel}>Status</Text>
           <View style={s.chipRow}>
-            {STATUS_FILTER_OPTIONS.map((opt) => (
+            {STATUS_FILTER_OPTIONS.map((option) => (
               <Pressable
-                key={opt.id}
-                style={[s.chip, d.statusFilter === opt.id && s.chipActive]}
-                onPress={() => d.actions.selectStatusFilter(opt.id)}
+                key={option.id}
+                style={[s.chip, d.statusFilter === option.id && s.chipActive]}
+                onPress={() => d.actions.selectStatusFilter(option.id)}
               >
-                <Text style={[s.chipText, d.statusFilter === opt.id && s.chipTextActive]}>{opt.label}</Text>
+                <Text style={[s.chipText, d.statusFilter === option.id && s.chipTextActive]}>{option.label}</Text>
               </Pressable>
             ))}
           </View>
 
-          {/* Data filter */}
+          {d.sourceOptions.length ? (
+            <>
+              <Text style={s.sectionLabel}>Spreadsheet</Text>
+              <View style={s.chipRow}>
+                <Pressable
+                  style={[s.chip, d.sourceFilter === "all" && s.chipActive]}
+                  onPress={() => d.actions.selectSourceFilter("all")}
+                >
+                  <Text style={[s.chipText, d.sourceFilter === "all" && s.chipTextActive]}>All</Text>
+                </Pressable>
+                {d.sourceOptions.map((option) => (
+                  <Pressable
+                    key={option.id}
+                    style={[s.chip, d.sourceFilter === option.id && s.chipActive]}
+                    onPress={() => d.actions.selectSourceFilter(option.id)}
+                  >
+                    <Text style={[s.chipText, d.sourceFilter === option.id && s.chipTextActive]}>{option.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          ) : null}
+
           <Text style={s.sectionLabel}>Data</Text>
           <View style={s.chipRow}>
-            {DATA_FILTER_OPTIONS.map((opt) => (
+            {DATA_FILTER_OPTIONS.map((option) => (
               <Pressable
-                key={opt.id}
-                style={[s.chip, d.dataFilter === opt.id && s.chipActive]}
-                onPress={() => d.actions.selectDataFilter(opt.id)}
+                key={option.id}
+                style={[s.chip, d.dataFilter === option.id && s.chipActive]}
+                onPress={() => d.actions.selectDataFilter(option.id)}
               >
-                <Text style={[s.chipText, d.dataFilter === opt.id && s.chipTextActive]}>{opt.label}</Text>
+                <Text style={[s.chipText, d.dataFilter === option.id && s.chipTextActive]}>{option.label}</Text>
               </Pressable>
             ))}
           </View>
 
-          {/* Toggles */}
           <View style={s.toggleSection}>
             <View style={s.toggleRow}>
               <Text style={s.toggleLabel}>Due only</Text>
@@ -261,8 +283,6 @@ const styles = (c) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: c.bg },
     centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-
-    // Tab bar — pill segmented control
     tabBar: {
       flexDirection: "row",
       alignItems: "center",
@@ -314,7 +334,6 @@ const styles = (c) =>
       fontSize: 12,
       color: c.textFaint,
     },
-
     errorBox: {
       marginHorizontal: 16,
       marginTop: 8,
@@ -323,8 +342,6 @@ const styles = (c) =>
       padding: 10,
     },
     errorText: { color: c.errorText, fontSize: 13 },
-
-    // Search
     searchBar: {
       paddingHorizontal: 16,
       paddingVertical: 10,
@@ -337,17 +354,12 @@ const styles = (c) =>
       backgroundColor: c.bgCard,
       color: c.text,
     },
-
-    // List
     listWrap: { flex: 1 },
     listContent: { padding: 16, paddingBottom: 100 },
     separator: { height: StyleSheet.hairlineWidth, marginVertical: 18, marginHorizontal: -16 },
-
-    // FAB
     fab: {
       position: "absolute",
       bottom: 44,
-      left: "auto",
       right: 20,
       width: 60,
       height: 60,
@@ -365,7 +377,6 @@ const styles = (c) =>
     fabSmall: {
       position: "absolute",
       bottom: 116,
-      left: "auto",
       right: 26,
       width: 44,
       height: 44,
@@ -380,7 +391,6 @@ const styles = (c) =>
       shadowRadius: 8,
       elevation: 6,
     },
-    // Bottom sheet content
     sheetScroll: { maxHeight: 500 },
     sheetContent: { paddingHorizontal: 24, paddingBottom: 32, gap: 14 },
     sectionLabel: {

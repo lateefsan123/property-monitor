@@ -1,22 +1,71 @@
 import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { WHATSAPP_OPEN_DELAY_MS } from "./constants";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
+import { applyLeadEdits, applyLeadStatus, formatDateInputValue, sortLeadsByPriority } from "./lead-utils";
 import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
-import { fetchLeadInsights, fetchUserLeads, persistLeadSentState, replaceUserLeadsFromSheet } from "./services";
+import {
+  createDefaultLeadSources,
+  deleteLead,
+  fetchLeadInsights,
+  fetchLeadSources,
+  fetchUserLeads,
+  persistLeadSentState,
+  replaceUserLeadsFromSheet,
+  updateLead,
+  updateLeadStatus,
+  upsertLeadSource,
+} from "./services";
+
+const MAX_LEAD_SOURCES = 4;
+
+function normalizeSources(sources) {
+  if (!Array.isArray(sources)) return [];
+  return sources.map((source) => ({
+    ...source,
+    type: "building",
+  }));
+}
+
+function limitLeadSources(sources) {
+  return normalizeSources(sources)
+    .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
+    .slice(0, MAX_LEAD_SOURCES);
+}
+
+async function fetchSellerSources(userId) {
+  let sources = await fetchLeadSources(userId);
+  if (!sources.length) {
+    await createDefaultLeadSources(userId);
+    sources = await fetchLeadSources(userId);
+  }
+  return limitLeadSources(sources);
+}
+
+function getErrorMessage(error) {
+  if (!error) return "Unexpected error";
+  if (typeof error === "string") return error;
+  if (error instanceof Error) return error.message || "Unexpected error";
+  if (typeof error?.message === "string") return error.message;
+  return "Unexpected error";
+}
 
 export function useSellerSignalPage(userId) {
   const [leads, setLeads] = useState([]);
+  const [leadSources, setLeadSources] = useState([]);
   const [insights, setInsights] = useState({});
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
+  const [importingSourceId, setImportingSourceId] = useState(null);
+  const [savingSourceId, setSavingSourceId] = useState(null);
   const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState(null);
   const [showDueOnly, setShowDueOnly] = useState(true);
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [sourceFilter, setSourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sentLeads, setSentLeads] = useState({});
   const [sheetUrl, setSheetUrl] = useState("");
@@ -24,44 +73,82 @@ export function useSellerSignalPage(userId) {
   const [viewTab, setViewTab] = useState("active");
   const [dataFilter, setDataFilter] = useState("all");
   const [expandedLeads, setExpandedLeads] = useState({});
+  const [editingLeadId, setEditingLeadId] = useState(null);
+  const [editingLeadDraft, setEditingLeadDraft] = useState(null);
+  const [savingLeadId, setSavingLeadId] = useState(null);
+  const [deletingLeadId, setDeletingLeadId] = useState(null);
+  const deferredSearchTerm = useDeferredValue(searchTerm);
   const hasAutoEnriched = useRef(false);
 
-  async function loadLeadsIntoState(showLoader = true) {
+  function createLeadEditDraft(lead) {
+    if (!lead) return null;
+    return {
+      name: lead.name || "",
+      building: lead.building || "",
+      bedroom: lead.bedroom || "",
+      unit: lead.unit || "",
+      phone: lead.phone || "",
+      status: lead.status || "",
+      lastContact: formatDateInputValue(lead.lastContactRaw || lead.lastContactDate),
+    };
+  }
+
+  const loadLeadsIntoState = useCallback(async (showLoader = true) => {
+    if (!userId) {
+      setLeads([]);
+      setLeadSources([]);
+      setSentLeads({});
+      setInsights({});
+      setExpandedLeads({});
+      setEditingLeadId(null);
+      setEditingLeadDraft(null);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     if (showLoader) setLoading(true);
     setError(null);
 
     try {
-      const { leads: nextLeads, sentMap } = await fetchUserLeads(userId);
+      const [{ leads: nextLeads, sentMap }, nextSources] = await Promise.all([
+        fetchUserLeads(userId),
+        fetchSellerSources(userId),
+      ]);
       setLeads(nextLeads);
+      setLeadSources(nextSources);
       setSentLeads(sentMap);
       setInsights({});
       setExpandedLeads({});
+      setEditingLeadId(null);
+      setEditingLeadDraft(null);
       setCurrentPage(1);
       hasAutoEnriched.current = false;
     } catch (loadError) {
-      setError(loadError.message);
+      setError(getErrorMessage(loadError));
     } finally {
       if (showLoader) setLoading(false);
     }
-  }
+  }, [userId]);
 
   useEffect(() => {
     void loadLeadsIntoState(true);
-  }, [userId]);
+  }, [loadLeadsIntoState]);
 
-  async function enrichLeadData() {
-    const targetLeads = leads.filter((lead) => lead.building);
-    if (!targetLeads.length) {
-      setError("No leads with a building name.");
-      return;
-    }
+  const enrichLeads = useCallback(async (targetLeads) => {
+    if (!targetLeads.length) return;
 
     setEnriching(true);
     setError(null);
     setInsights((previousInsights) => {
       const nextInsights = { ...previousInsights };
       for (const lead of targetLeads) {
-        nextInsights[lead.id] = { ...previousInsights[lead.id], status: "loading" };
+        nextInsights[lead.id] = {
+          ...previousInsights[lead.id],
+          status: "loading",
+          error: null,
+          message: buildMessage(lead, null),
+        };
       }
       return nextInsights;
     });
@@ -70,7 +157,11 @@ export function useSellerSignalPage(userId) {
       const { hasTargets, matched, updates } = await fetchLeadInsights(targetLeads);
       if (!hasTargets) {
         setError("No leads with a building name.");
-        setInsights({});
+        setInsights((previousInsights) => {
+          const nextInsights = { ...previousInsights };
+          for (const lead of targetLeads) delete nextInsights[lead.id];
+          return nextInsights;
+        });
         return;
       }
 
@@ -79,14 +170,15 @@ export function useSellerSignalPage(userId) {
         setError("Property market data is not available for these buildings yet.");
       }
     } catch (enrichmentError) {
-      setError(enrichmentError.message);
+      const message = getErrorMessage(enrichmentError);
+      setError(message);
       setInsights((previousInsights) => {
         const nextInsights = { ...previousInsights };
         for (const lead of targetLeads) {
           nextInsights[lead.id] = {
             ...previousInsights[lead.id],
             status: "error",
-            error: enrichmentError.message,
+            error: message,
             message: buildMessage(lead, null),
           };
         }
@@ -95,15 +187,29 @@ export function useSellerSignalPage(userId) {
     } finally {
       setEnriching(false);
     }
-  }
+  }, []);
+
+  const enrichLeadData = useCallback(async () => {
+    const targetLeads = leads.filter((lead) => lead.building);
+    if (!targetLeads.length) {
+      setError("No leads with a building name.");
+      return;
+    }
+
+    await enrichLeads(targetLeads);
+  }, [enrichLeads, leads]);
 
   useEffect(() => {
     if (loading || enriching || !leads.length || hasAutoEnriched.current) return;
-    const hasInsights = Object.keys(insights).length > 0;
-    if (hasInsights) return;
+    if (Object.keys(insights).length > 0) return;
     hasAutoEnriched.current = true;
     void enrichLeadData();
-  }, [enriching, insights, leads, loading]);
+  }, [enrichLeadData, enriching, insights, leads, loading]);
+
+  const effectiveSourceFilter = useMemo(
+    () => (sourceFilter === "all" || leadSources.some((source) => source.id === sourceFilter) ? sourceFilter : "all"),
+    [leadSources, sourceFilter],
+  );
 
   const { activeLeads, doneLeads } = useMemo(
     () => splitLeadsBySentStatus(leads, sentLeads, insights),
@@ -117,17 +223,36 @@ export function useSellerSignalPage(userId) {
         doneLeads,
         dataFilter,
         insights,
-        searchTerm,
+        searchTerm: deferredSearchTerm,
         showDueOnly,
+        sourceFilter: effectiveSourceFilter,
         statusFilter,
         viewTab,
       }),
-    [activeLeads, dataFilter, searchTerm, doneLeads, insights, showDueOnly, statusFilter, viewTab],
+    [activeLeads, dataFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, showDueOnly, statusFilter, viewTab],
   );
 
   const { totalPages, safePage, pagedLeads } = useMemo(
     () => paginateLeads(filteredLeads, currentPage),
     [currentPage, filteredLeads],
+  );
+
+  const sourceCounts = useMemo(() => {
+    const counts = {};
+    for (const lead of leads) {
+      if (!lead.sourceId) continue;
+      counts[lead.sourceId] = (counts[lead.sourceId] || 0) + 1;
+    }
+    return counts;
+  }, [leads]);
+
+  const sourceOptions = useMemo(
+    () =>
+      leadSources.map((source) => ({
+        id: source.id,
+        label: source.building_name || source.label || `Sheet ${Number(source.sort_order ?? 0) + 1}`,
+      })),
+    [leadSources],
   );
 
   const isAllExpanded = filteredLeads.length > 0 && filteredLeads.every((lead) => expandedLeads[lead.id]);
@@ -152,6 +277,11 @@ export function useSellerSignalPage(userId) {
 
   function selectDataFilter(value) {
     setDataFilter(value);
+    resetPaging();
+  }
+
+  function selectSourceFilter(value) {
+    setSourceFilter(value);
     resetPaging();
   }
 
@@ -193,19 +323,57 @@ export function useSellerSignalPage(userId) {
     setSheetUrl(value);
   }
 
-  async function importFromSheet() {
-    setImporting(true);
+  function updateLeadSourceField(sourceId, field, value) {
+    setLeadSources((current) =>
+      current.map((source) => (
+        source.id === sourceId
+          ? { ...source, [field]: value }
+          : source
+      )),
+    );
+  }
+
+  async function persistLeadSource(sourceId) {
+    const source = leadSources.find((item) => item.id === sourceId);
+    if (!source) return;
+
+    setSavingSourceId(sourceId);
     setError(null);
 
     try {
-      await replaceUserLeadsFromSheet(userId, sheetUrl);
+      await upsertLeadSource(source);
+      setLeadSources(await fetchSellerSources(userId));
+    } catch (persistError) {
+      setError(getErrorMessage(persistError));
+    } finally {
+      setSavingSourceId(null);
+    }
+  }
+
+  async function importFromSheet(sourceId = null) {
+    setImporting(true);
+    setImportingSourceId(sourceId);
+    setError(null);
+
+    try {
+      const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
+      if (sourceId && source) {
+        await upsertLeadSource(source);
+      }
+      await replaceUserLeadsFromSheet({
+        userId,
+        source,
+        rawSheetUrl: sourceId ? source?.sheet_url : sheetUrl,
+      });
       setShowImport(false);
       setSheetUrl("");
+      setCopiedLeadId(null);
       await loadLeadsIntoState(false);
     } catch (importError) {
-      setError(importError.message);
+      setError(getErrorMessage(importError));
     } finally {
       setImporting(false);
+      setImportingSourceId(null);
     }
   }
 
@@ -226,7 +394,7 @@ export function useSellerSignalPage(userId) {
     try {
       await persistLeadSentState(userId, leadId, shouldMarkSent);
     } catch (persistError) {
-      setError(persistError.message);
+      setError(getErrorMessage(persistError));
       setSentLeads((previous) => {
         const next = { ...previous };
         if (previousSentAt) {
@@ -236,6 +404,143 @@ export function useSellerSignalPage(userId) {
         }
         return next;
       });
+    }
+  }
+
+  async function changeLeadStatus(leadId, status) {
+    const previousLeads = leads;
+    setError(null);
+    setLeads((current) =>
+      sortLeadsByPriority(
+        current.map((lead) => (lead.id === leadId ? applyLeadStatus(lead, status) : lead)),
+      ),
+    );
+
+    try {
+      await updateLeadStatus({ userId, leadId, status });
+    } catch (statusError) {
+      setError(getErrorMessage(statusError));
+      setLeads(previousLeads);
+    }
+  }
+
+  function startEditingLead(leadId) {
+    const lead = leads.find((item) => item.id === leadId);
+    if (!lead) return;
+    setEditingLeadId(leadId);
+    setEditingLeadDraft(createLeadEditDraft(lead));
+  }
+
+  function cancelEditingLead() {
+    setEditingLeadId(null);
+    setEditingLeadDraft(null);
+  }
+
+  function updateLeadDraftField(field, value) {
+    setEditingLeadDraft((current) => (current ? { ...current, [field]: value } : current));
+  }
+
+  async function saveLeadEdits(leadId) {
+    if (!leadId || editingLeadId !== leadId || !editingLeadDraft) return;
+
+    const hasVisibleValue = [editingLeadDraft.name, editingLeadDraft.building, editingLeadDraft.phone]
+      .some((value) => String(value || "").trim());
+    if (!hasVisibleValue) {
+      setError("Seller needs at least a name, building, or phone number.");
+      return;
+    }
+
+    const currentLead = leads.find((item) => item.id === leadId);
+    if (!currentLead) return;
+
+    const previousLeads = leads;
+    const previousInsights = insights;
+    const nextLead = applyLeadEdits(currentLead, editingLeadDraft);
+
+    setSavingLeadId(leadId);
+    setError(null);
+    setLeads((current) =>
+      sortLeadsByPriority(
+        current.map((lead) => (lead.id === leadId ? nextLead : lead)),
+      ),
+    );
+    setInsights((current) => ({
+      ...current,
+      [leadId]: {
+        ...current[leadId],
+        status: "loading",
+        error: null,
+        message: buildMessage(nextLead, null),
+      },
+    }));
+
+    try {
+      await updateLead({ userId, leadId, updates: editingLeadDraft });
+      setEditingLeadId(null);
+      setEditingLeadDraft(null);
+
+      if (nextLead.building) {
+        const { updates } = await fetchLeadInsights([nextLead]);
+        setInsights((current) => ({ ...current, ...updates }));
+      } else {
+        setInsights((current) => ({
+          ...current,
+          [leadId]: {
+            status: "error",
+            error: "Property market data is not available yet.",
+            message: buildMessage(nextLead, null),
+          },
+        }));
+      }
+    } catch (saveError) {
+      setError(getErrorMessage(saveError));
+      setLeads(previousLeads);
+      setInsights(previousInsights);
+    } finally {
+      setSavingLeadId(null);
+    }
+  }
+
+  async function removeLead(leadId) {
+    const previousLeads = leads;
+    const previousSentLeads = sentLeads;
+    const previousInsights = insights;
+    const previousExpanded = expandedLeads;
+
+    setDeletingLeadId(leadId);
+    setError(null);
+    setLeads((current) => current.filter((lead) => lead.id !== leadId));
+    setSentLeads((current) => {
+      const next = { ...current };
+      delete next[leadId];
+      return next;
+    });
+    setInsights((current) => {
+      const next = { ...current };
+      delete next[leadId];
+      return next;
+    });
+    setExpandedLeads((current) => {
+      const next = { ...current };
+      delete next[leadId];
+      return next;
+    });
+    if (copiedLeadId === leadId) setCopiedLeadId(null);
+    if (editingLeadId === leadId) {
+      setEditingLeadId(null);
+      setEditingLeadDraft(null);
+    }
+
+    try {
+      await deleteLead({ userId, leadId });
+    } catch (deleteError) {
+      setError(getErrorMessage(deleteError));
+      setLeads(previousLeads);
+      setSentLeads(previousSentLeads);
+      setInsights(previousInsights);
+      setExpandedLeads(previousExpanded);
+    } finally {
+      setDeletingLeadId(null);
     }
   }
 
@@ -277,40 +582,60 @@ export function useSellerSignalPage(userId) {
     activeLeads,
     copiedLeadId,
     dataFilter,
+    deletingLeadId,
     doneLeads,
+    editingLeadDraft,
+    editingLeadId,
     error,
     expandedLeads,
     filteredLeads,
     hasLeads: leads.length > 0,
     importing,
+    importingSourceId,
     insights,
     isAllExpanded,
+    leadSources,
+    leads,
     loading,
     pagedLeads,
     safePage,
+    savingLeadId,
+    savingSourceId,
     searchTerm,
     sendAllCount,
     sentLeads,
     sheetUrl,
     showDueOnly,
     showImport,
+    sourceCounts,
+    sourceFilter: effectiveSourceFilter,
+    sourceOptions,
     statusFilter,
     totalPages,
     viewTab,
     actions: {
       bulkWhatsApp,
+      cancelEditingLead,
       copyMessage,
+      deleteLead: removeLead,
       goToNextPage,
       goToPreviousPage,
       importFromSheet,
+      persistLeadSource,
+      saveLeadEdits,
       selectDataFilter,
+      selectSourceFilter,
       selectStatusFilter,
       selectViewTab,
       setDueOnly,
+      startEditingLead,
       toggleAllExpanded,
       toggleImportPanel,
       toggleLeadExpanded,
       toggleSent,
+      updateLeadDraftField,
+      updateLeadSourceField,
+      updateLeadStatus: changeLeadStatus,
       updateSearchTerm,
       updateSheetUrl,
     },

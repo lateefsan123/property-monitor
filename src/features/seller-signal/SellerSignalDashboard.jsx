@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import FiltersToolbar from "./components/FiltersToolbar";
 import LeadSourcesPanel from "./components/LeadSourcesPanel";
 import LeadCard from "./components/LeadCard";
@@ -8,21 +8,39 @@ import ViewTabs from "./components/ViewTabs";
 import { useSellerSignalPage } from "./useSellerSignalPage";
 import { getBuildingKeyVariants } from "./lead-utils";
 
+async function fetchBuildingImages({ signal }) {
+  const response = await fetch("/data/building-images.json", { signal });
+  if (!response.ok) return {};
+  return response.json();
+}
+
 export default function SellerSignalDashboard({ userId }) {
   const dashboard = useSellerSignalPage(userId);
-  const [buildingImages, setBuildingImages] = useState({});
-
-  useEffect(() => {
-    fetch("/data/building-images.json")
-      .then((res) => res.json())
-      .then(setBuildingImages)
-      .catch(() => {});
-  }, []);
+  const buildingImagesQuery = useQuery({
+    queryKey: ["seller-signal", "building-images"],
+    queryFn: fetchBuildingImages,
+    staleTime: 10 * 60 * 1000,
+  });
+  const buildingImages = buildingImagesQuery.data || {};
 
   if (dashboard.loading) {
     return (
       <div className="page">
-        <div className="empty">Loading sellers...</div>
+        <div className="lead-list" aria-busy="true" aria-label="Loading sellers">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div className="skeleton-card" key={index}>
+              <div className="skeleton-card-row">
+                <div className="skeleton-avatar" />
+                <div className="skeleton-stack">
+                  <div className="skeleton-bar tall medium" />
+                  <div className="skeleton-bar short" />
+                </div>
+                <div className="skeleton-bar pill" />
+              </div>
+              <div className="skeleton-bar long" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -45,6 +63,10 @@ export default function SellerSignalDashboard({ userId }) {
         onImport={dashboard.actions.importFromSheet}
         onSourceChange={dashboard.actions.updateLeadSourceField}
         onSourceSave={dashboard.actions.persistLeadSource}
+        legacySheetUrl={dashboard.legacySheetUrl}
+        importingLegacy={dashboard.importingLegacy}
+        onLegacyUrlChange={dashboard.actions.updateLegacySheetUrl}
+        onLegacyImport={dashboard.actions.importLegacySheet}
       />
 
       <FiltersToolbar
@@ -63,6 +85,13 @@ export default function SellerSignalDashboard({ userId }) {
         statusFilter={dashboard.statusFilter}
       />
 
+      {dashboard.refreshing && dashboard.hasLeads ? (
+        <div className="refreshing-strip" role="status" aria-live="polite">
+          <span className="refreshing-dot" />
+          Refreshing seller data...
+        </div>
+      ) : null}
+
       {dashboard.hasLeads ? (
         <>
           <p className="count-text">{dashboard.filteredLeads.length} leads</p>
@@ -72,15 +101,25 @@ export default function SellerSignalDashboard({ userId }) {
               <LeadCard
                 key={lead.id}
                 buildingImageUrl={(() => {
+                  if (!lead.sourceId) return undefined;
                   const match = getBuildingKeyVariants(lead.building).find((key) => buildingImages[key]);
                   return match ? buildingImages[match] : undefined;
                 })()}
                 copiedLeadId={dashboard.copiedLeadId}
+                editDraft={dashboard.editingLeadId === lead.id ? dashboard.editingLeadDraft : null}
                 insight={dashboard.insights[lead.id]}
+                isDeleting={dashboard.deletingLeadId === lead.id}
+                isEditing={dashboard.editingLeadId === lead.id}
                 isExpanded={Boolean(dashboard.expandedLeads[lead.id])}
+                isSaving={dashboard.savingLeadId === lead.id}
                 isSent={Boolean(dashboard.sentLeads[lead.id])}
                 lead={lead}
+                onCancelEditing={dashboard.actions.cancelEditingLead}
                 onCopyMessage={dashboard.actions.copyMessage}
+                onDelete={dashboard.actions.deleteLead}
+                onEditFieldChange={dashboard.actions.updateLeadDraftField}
+                onSaveEdit={dashboard.actions.saveLeadEdits}
+                onStartEditing={dashboard.actions.startEditingLead}
                 onToggleExpanded={dashboard.actions.toggleLeadExpanded}
                 onToggleSent={dashboard.actions.toggleSent}
                 onUpdateStatus={dashboard.actions.updateLeadStatus}

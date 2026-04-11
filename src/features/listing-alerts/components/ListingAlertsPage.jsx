@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   formatArea,
   formatBedsAndBaths,
@@ -24,14 +24,6 @@ const PRICE_BUCKETS = [
   { id: "gt6", label: "6M+", min: 6_000_000 },
 ];
 
-const BED_OPTIONS = [
-  { id: "all", label: "All" },
-  { id: "studio", label: "Studio", match: (b) => b === 0 },
-  { id: "1", label: "1 bed", match: (b) => b === 1 },
-  { id: "2", label: "2 bed", match: (b) => b === 2 },
-  { id: "3plus", label: "3+ bed", match: (b) => Number.isFinite(b) && b >= 3 },
-];
-
 const TRACK_STATUS_OPTIONS = [
   { id: "all", label: "All" },
   { id: "active", label: "Active" },
@@ -39,6 +31,7 @@ const TRACK_STATUS_OPTIONS = [
 ];
 
 const LISTINGS_PAGE_SIZE = 25;
+const EMPTY_OPTIONS = [];
 
 // ---------- Icons ----------
 
@@ -47,6 +40,24 @@ function HomeIcon({ size = 14 }) {
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
       <path d="M9 22V12h6v10" />
+    </svg>
+  );
+}
+
+function SearchIcon({ size = 16 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="7" />
+      <path d="M21 21l-4.35-4.35" />
+    </svg>
+  );
+}
+
+function LocationPinIcon({ size = 15 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 21s-6-4.35-6-10a6 6 0 1 1 12 0c0 5.65-6 10-6 10Z" />
+      <circle cx="12" cy="11" r="2.5" />
     </svg>
   );
 }
@@ -123,20 +134,35 @@ function WatchButton({ active, disabled, onClick }) {
   );
 }
 
+function getSearchOptionLabel(option) {
+  return option?.buildingName || option?.searchName || "Unknown";
+}
+
+function getSearchOptionMeta(option) {
+  const fullPath = String(option?.fullPath || "").trim();
+  if (!fullPath) return null;
+
+  const label = getSearchOptionLabel(option).toLowerCase();
+  const parts = fullPath.split("|").map((part) => part.trim()).filter(Boolean);
+  const remaining = parts.filter((part, index) => index !== 0 || part.toLowerCase() !== label);
+
+  return (remaining.length ? remaining : parts).join(", ");
+}
+
 // ---------- Rows ----------
 
 function BuildingRow({ building, isWatched, watchDisabled, onToggleWatch, onPress, changeCount }) {
-  const hasListingCount = Number.isFinite(building.listingCount);
-  const countLine = hasListingCount
-    ? `${building.listingCount} ${building.listingCount === 1 ? "listing" : "listings"}`
+  const loadedCount = building?.listings?.length || 0;
+  const countLine = isWatched
+    ? loadedCount
+      ? `${loadedCount} ${loadedCount === 1 ? "listing" : "listings"}`
+      : "No live listings"
     : building.fullPath || "Bayut location";
   const priceLine = building.fetchError
     ? "Live pricing unavailable"
-    : hasListingCount && building.listingCount === 0
-      ? "No live listings"
-      : building.lowestPrice != null || building.highestPrice != null
-        ? formatPriceRange(building.lowestPrice, building.highestPrice)
-        : "Watch to load listings";
+    : building.lowestPrice != null || building.highestPrice != null
+      ? formatPriceRange(building.lowestPrice, building.highestPrice)
+      : "Watch to load listings";
 
   return (
     <div
@@ -279,8 +305,6 @@ function ListingAlertsFilters({
   setTrackedStatusFilter,
   priceFilter,
   setPriceFilter,
-  bedsFilter,
-  setBedsFilter,
   buildingFilterOptions,
   listingBuildingFilter,
   setListingBuildingFilter,
@@ -356,11 +380,6 @@ function ListingAlertsFilters({
             <span className="la-filter-group-label">Price</span>
             <FilterTabs options={PRICE_BUCKETS} value={priceFilter} onChange={setPriceFilter} />
           </div>
-
-          <div className="la-filter-group">
-            <span className="la-filter-group-label">Beds</span>
-            <FilterTabs options={BED_OPTIONS} value={bedsFilter} onChange={setBedsFilter} />
-          </div>
         </div>
       ) : null}
     </div>
@@ -377,31 +396,41 @@ export default function ListingAlertsPage() {
   const [trackedOnly, setTrackedOnly] = useState(false);
   const [priceChangedOnly, setPriceChangedOnly] = useState(false);
   const [priceFilter, setPriceFilter] = useState("all");
-  const [bedsFilter, setBedsFilter] = useState("all");
   const [trackedStatusFilter, setTrackedStatusFilter] = useState("all");
   const [listingBuildingFilter, setListingBuildingFilter] = useState("all");
   const [listingsPage, setListingsPage] = useState(1);
+  const [selectedSearchOption, setSelectedSearchOption] = useState(null);
+  const [searchMenuOpen, setSearchMenuOpen] = useState(false);
+  const [searchActiveIndex, setSearchActiveIndex] = useState(0);
+  const searchBoxRef = useRef(null);
   // We store only the lookup key (locationId + id) and derive the live listing object from
   // the current alerts data — that way the detail view automatically reflects fresh prices,
   // tracking state changes, and history updates without a setState-in-effect ping-pong.
   const [selectedListingKey, setSelectedListingKey] = useState(null);
   const hasTrackedUnits = alerts.stats.trackedListingCount > 0;
-  const buildingFilterOptions = alerts.watchedBuildings || [];
+  const buildingFilterOptions = alerts.watchedBuildings ?? EMPTY_OPTIONS;
   const autoTracking = alerts.autoTracking;
-
-  useEffect(() => {
-    if (autoTracking && trackedOnly) setTrackedOnly(false);
-  }, [autoTracking, trackedOnly]);
-
-  useEffect(() => {
-    if (listingBuildingFilter === "all") return;
-    if (buildingFilterOptions.some((building) => building.locationId === listingBuildingFilter)) return;
-    setListingBuildingFilter("all");
+  const searchOptions = alerts.searchResults ?? EMPTY_OPTIONS;
+  const effectiveTrackedOnly = autoTracking ? false : trackedOnly;
+  const effectiveListingBuildingFilter = useMemo(() => {
+    if (listingBuildingFilter === "all") return "all";
+    return buildingFilterOptions.some((building) => building.locationId === listingBuildingFilter)
+      ? listingBuildingFilter
+      : "all";
   }, [buildingFilterOptions, listingBuildingFilter]);
 
   useEffect(() => {
-    setListingsPage(1);
-  }, [bedsFilter, listingBuildingFilter, priceChangedOnly, priceFilter, trackedOnly, trackedStatusFilter, viewTab, watchingOnly]);
+    function handlePointerDown(event) {
+      if (!searchBoxRef.current?.contains(event.target)) {
+        setSearchMenuOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handlePointerDown);
+    return () => {
+      document.removeEventListener("mousedown", handlePointerDown);
+    };
+  }, []);
 
   const selectedListing = useMemo(() => {
     if (!selectedListingKey) return null;
@@ -433,11 +462,43 @@ export default function ListingAlertsPage() {
       if (!didWatch) return;
     }
     setListingBuildingFilter(building.locationId || "all");
+    setListingsPage(1);
     setViewTab("listings");
   }
 
   function handleViewTabChange(nextTab) {
+    setListingsPage(1);
     setViewTab(nextTab);
+  }
+
+  function handleWatchingOnlyChange(nextValue) {
+    setListingsPage(1);
+    setWatchingOnly(nextValue);
+  }
+
+  function handleTrackedOnlyChange(nextValue) {
+    setListingsPage(1);
+    setTrackedOnly(nextValue);
+  }
+
+  function handlePriceChangedOnlyChange(nextValue) {
+    setListingsPage(1);
+    setPriceChangedOnly(nextValue);
+  }
+
+  function handleTrackedStatusFilterChange(nextValue) {
+    setListingsPage(1);
+    setTrackedStatusFilter(nextValue);
+  }
+
+  function handlePriceFilterChange(nextValue) {
+    setListingsPage(1);
+    setPriceFilter(nextValue);
+  }
+
+  function handleListingBuildingFilterChange(nextValue) {
+    setListingsPage(1);
+    setListingBuildingFilter(nextValue);
   }
 
   const changeCountByBuilding = useMemo(() => {
@@ -450,32 +511,45 @@ export default function ListingAlertsPage() {
     return map;
   }, [alerts.changeItems]);
 
+  const selectedSearchBuilding = useMemo(() => {
+    if (!selectedSearchOption?.locationId) return null;
+    return (alerts.watchedBuildings || []).find((building) => building.locationId === selectedSearchOption.locationId)
+      || searchOptions.find((building) => building.locationId === selectedSearchOption.locationId)
+      || selectedSearchOption;
+  }, [alerts.watchedBuildings, searchOptions, selectedSearchOption]);
+
   const buildings = useMemo(() => {
-    if (watchingOnly) return alerts.watchedBuildings || [];
-    if (alerts.usingLiveSearch) return alerts.searchResults || [];
+    if (watchingOnly) {
+      if (selectedSearchBuilding?.locationId) {
+        return (alerts.watchedBuildings || []).filter((building) => building.locationId === selectedSearchBuilding.locationId);
+      }
+      return alerts.watchedBuildings || [];
+    }
+    if (selectedSearchBuilding) return [selectedSearchBuilding];
+    if (alerts.usingLiveSearch) return searchOptions;
     return [...(alerts.watchedBuildings || []), ...(alerts.popularBuildings || [])];
-  }, [alerts.popularBuildings, alerts.searchResults, alerts.usingLiveSearch, alerts.watchedBuildings, watchingOnly]);
+  }, [alerts.popularBuildings, alerts.usingLiveSearch, alerts.watchedBuildings, searchOptions, selectedSearchBuilding, watchingOnly]);
 
   const listings = useMemo(() => {
     let source = [];
 
     if (!alerts.stats.watchedBuildingCount) {
       source = [];
-    } else if (trackedOnly || trackedStatusFilter !== "all") {
+    } else if (effectiveTrackedOnly || trackedStatusFilter !== "all") {
       source = alerts.trackedListings || [];
     } else {
       source = alerts.latestListings || [];
     }
 
-    if (listingBuildingFilter !== "all") {
-      source = source.filter((l) => l.locationId === listingBuildingFilter);
+    if (effectiveListingBuildingFilter !== "all") {
+      source = source.filter((l) => l.locationId === effectiveListingBuildingFilter);
     }
 
     if (watchingOnly && alerts.watchedSet?.size) {
       source = source.filter((l) => alerts.watchedSet.has(l.locationId));
     }
 
-    if (trackedOnly) {
+    if (effectiveTrackedOnly) {
       source = source.filter((l) => l.isTracked || l.currentStatus);
     }
 
@@ -508,22 +582,16 @@ export default function ListingAlertsPage() {
       });
     }
 
-    const bed = BED_OPTIONS.find((b) => b.id === bedsFilter);
-    if (bed && bed.match) {
-      source = source.filter((l) => bed.match(l.beds));
-    }
-
     return source;
   }, [
     alerts.latestListings,
     alerts.stats.watchedBuildingCount,
     alerts.trackedListings,
     alerts.watchedSet,
-    bedsFilter,
-    listingBuildingFilter,
+    effectiveListingBuildingFilter,
+    effectiveTrackedOnly,
     priceChangedOnly,
     priceFilter,
-    trackedOnly,
     trackedStatusFilter,
     watchingOnly,
   ]);
@@ -533,22 +601,24 @@ export default function ListingAlertsPage() {
     ? `${count} ${count === 1 ? "building" : "buildings"}`
     : `${count} ${count === 1 ? "listing" : "listings"}`;
   const selectedBuildingOption = useMemo(
-    () => buildingFilterOptions.find((building) => building.locationId === listingBuildingFilter) || null,
-    [buildingFilterOptions, listingBuildingFilter],
+    () => buildingFilterOptions.find((building) => building.locationId === effectiveListingBuildingFilter) || null,
+    [buildingFilterOptions, effectiveListingBuildingFilter],
   );
   const totalLiveListings = useMemo(() => {
     if (!alerts.stats.watchedBuildingCount) return 0;
-    if (listingBuildingFilter !== "all") {
+    if (effectiveListingBuildingFilter !== "all") {
+      if (selectedBuildingOption?.listings?.length) return selectedBuildingOption.listings.length;
       if (Number.isFinite(selectedBuildingOption?.listingCount)) return selectedBuildingOption.listingCount;
-      return selectedBuildingOption?.listings?.length || 0;
+      return 0;
     }
 
     return buildingFilterOptions.reduce((sum, building) => {
+      if (building?.listings?.length) return sum + building.listings.length;
       if (Number.isFinite(building?.listingCount)) return sum + building.listingCount;
-      return sum + (building?.listings?.length || 0);
+      return sum;
     }, 0);
-  }, [alerts.stats.watchedBuildingCount, buildingFilterOptions, listingBuildingFilter, selectedBuildingOption]);
-  const totalLiveListingsLabel = listingBuildingFilter !== "all"
+  }, [alerts.stats.watchedBuildingCount, buildingFilterOptions, effectiveListingBuildingFilter, selectedBuildingOption]);
+  const totalLiveListingsLabel = effectiveListingBuildingFilter !== "all"
     ? selectedBuildingOption?.buildingName || "selected building"
     : "watched buildings";
   const listingTotalPages = Math.max(1, Math.ceil(listings.length / LISTINGS_PAGE_SIZE));
@@ -568,7 +638,22 @@ export default function ListingAlertsPage() {
   if (!alerts.hydrated) {
     return (
       <div className="la-page">
-        <div className="la-loading">Loading listing alerts...</div>
+        <div className="la-list" aria-busy="true" aria-label="Loading listing alerts">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div className="la-list-item" key={index}>
+              <div className="skeleton-card">
+                <div className="skeleton-card-row">
+                  <div className="skeleton-avatar" />
+                  <div className="skeleton-stack">
+                    <div className="skeleton-bar tall medium" />
+                    <div className="skeleton-bar short" />
+                  </div>
+                  <div className="skeleton-bar pill" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -586,10 +671,85 @@ export default function ListingAlertsPage() {
   }
 
   const items = viewTab === "buildings" ? buildings : pagedListings;
-  const showEmpty = items.length === 0;
+  const isListLoading =
+    (viewTab === "buildings" && alerts.searchLoading)
+    || (viewTab === "listings" && alerts.watchedLoading);
+  const showSkeletonList = isListLoading && items.length === 0;
+  const showEmpty = items.length === 0 && !showSkeletonList;
+  const showRefreshingStrip = isListLoading && items.length > 0;
 
   const showRefresh = viewTab === "listings" && alerts.stats.watchedBuildingCount > 0;
   const showListingSubtitle = viewTab === "listings" && alerts.stats.watchedBuildingCount > 0;
+  const safeSearchActiveIndex = searchOptions.length
+    ? Math.min(searchActiveIndex, searchOptions.length - 1)
+    : 0;
+  const showSearchDropdown = viewTab === "buildings"
+    && searchMenuOpen
+    && alerts.searchTerm.trim().length >= 2
+    && (alerts.searchLoading || Boolean(alerts.searchError) || searchOptions.length > 0 || !selectedSearchOption);
+
+  function handleSearchInputChange(event) {
+    const nextValue = event.target.value;
+    setSelectedSearchOption(null);
+    setSearchMenuOpen(nextValue.trim().length >= 2);
+    setSearchActiveIndex(0);
+    alerts.actions.setSearchTerm(nextValue);
+  }
+
+  function handleSearchOptionSelect(option) {
+    if (!option) return;
+    setSelectedSearchOption(option);
+    setSearchMenuOpen(false);
+    setSearchActiveIndex(0);
+    alerts.actions.setSearchTerm(getSearchOptionLabel(option));
+  }
+
+  function clearSearchSelection() {
+    setSelectedSearchOption(null);
+    setSearchMenuOpen(false);
+    setSearchActiveIndex(0);
+    alerts.actions.setSearchTerm("");
+  }
+
+  function handleSearchKeyDown(event) {
+    if (event.key === "Escape") {
+      setSearchMenuOpen(false);
+      return;
+    }
+
+    if (alerts.searchTerm.trim().length < 2) return;
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      if (!searchMenuOpen) {
+        setSearchMenuOpen(true);
+        setSearchActiveIndex(0);
+        return;
+      }
+      setSearchMenuOpen(true);
+      if (!searchOptions.length) return;
+      setSearchActiveIndex((current) => (current + 1) % searchOptions.length);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      if (!searchMenuOpen) {
+        setSearchMenuOpen(true);
+        setSearchActiveIndex(Math.max(searchOptions.length - 1, 0));
+        return;
+      }
+      setSearchMenuOpen(true);
+      if (!searchOptions.length) return;
+      setSearchActiveIndex((current) => (current - 1 + searchOptions.length) % searchOptions.length);
+      return;
+    }
+
+    if (event.key === "Enter" && searchMenuOpen && searchOptions.length) {
+      event.preventDefault();
+      handleSearchOptionSelect(searchOptions[safeSearchActiveIndex] || searchOptions[0]);
+    }
+  }
 
   return (
     <div className="la-page">
@@ -630,35 +790,98 @@ export default function ListingAlertsPage() {
 
       {viewTab === "buildings" ? (
         <div className="toolbar la-search">
-          <input
-            type="text"
-            placeholder="Search buildings on Bayut..."
-            value={alerts.searchTerm}
-            onChange={(event) => alerts.actions.setSearchTerm(event.target.value)}
-            autoCapitalize="none"
-            autoCorrect="off"
-          />
+          <div className="la-search-box" ref={searchBoxRef}>
+            <div className="la-search-input-wrap">
+              <span className="la-search-icon" aria-hidden="true">
+                <SearchIcon size={16} />
+              </span>
+              <input
+                type="text"
+                placeholder="Search buildings on Bayut..."
+                value={alerts.searchTerm}
+                onChange={handleSearchInputChange}
+                onFocus={() => {
+                  if (alerts.searchTerm.trim().length >= 2) {
+                    setSearchMenuOpen(true);
+                  }
+                }}
+                onKeyDown={handleSearchKeyDown}
+                autoCapitalize="none"
+                autoCorrect="off"
+                autoComplete="off"
+                aria-autocomplete="list"
+                aria-expanded={showSearchDropdown}
+                aria-label="Search buildings"
+              />
+              {alerts.searchTerm ? (
+                <button
+                  type="button"
+                  className="la-search-clear"
+                  onClick={clearSearchSelection}
+                >
+                  Clear
+                </button>
+              ) : null}
+            </div>
+
+            {showSearchDropdown ? (
+              <div className="la-search-dropdown" role="listbox" aria-label="Available building options">
+                {alerts.searchLoading ? (
+                  <div className="la-search-dropdown-state">Searching available buildings...</div>
+                ) : alerts.searchError ? (
+                  <div className="la-search-dropdown-state">Search is unavailable right now.</div>
+                ) : searchOptions.length ? (
+                  searchOptions.map((option, index) => {
+                    const meta = getSearchOptionMeta(option);
+                    const isActive = index === safeSearchActiveIndex;
+                    const isSelected = selectedSearchBuilding?.locationId === option.locationId;
+                    return (
+                      <button
+                        key={option.locationId}
+                        type="button"
+                        className={`la-search-option${isActive ? " active" : ""}${isSelected ? " selected" : ""}`}
+                        onMouseDown={(event) => event.preventDefault()}
+                        onClick={() => handleSearchOptionSelect(option)}
+                        role="option"
+                        aria-selected={isSelected}
+                      >
+                        <span className="la-search-option-icon" aria-hidden="true">
+                          <LocationPinIcon size={15} />
+                        </span>
+                        <span className="la-search-option-copy">
+                          <span className="la-search-option-title">
+                            <span className="la-search-option-name">{getSearchOptionLabel(option)}</span>
+                            {meta ? <span className="la-search-option-meta">, {meta}</span> : null}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })
+                ) : (
+                  <div className="la-search-dropdown-state">No available buildings match that search.</div>
+                )}
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : null}
 
       <ListingAlertsFilters
         viewTab={viewTab}
         watchingOnly={watchingOnly}
-        setWatchingOnly={setWatchingOnly}
-        trackedOnly={trackedOnly}
-        setTrackedOnly={setTrackedOnly}
+        setWatchingOnly={handleWatchingOnlyChange}
+        trackedOnly={effectiveTrackedOnly}
+        setTrackedOnly={handleTrackedOnlyChange}
         showTrackedToggle={!autoTracking}
         priceChangedOnly={priceChangedOnly}
-        setPriceChangedOnly={setPriceChangedOnly}
+        setPriceChangedOnly={handlePriceChangedOnlyChange}
         trackedStatusFilter={trackedStatusFilter}
-        setTrackedStatusFilter={setTrackedStatusFilter}
+        setTrackedStatusFilter={handleTrackedStatusFilterChange}
         priceFilter={priceFilter}
-        setPriceFilter={setPriceFilter}
-        bedsFilter={bedsFilter}
-        setBedsFilter={setBedsFilter}
+        setPriceFilter={handlePriceFilterChange}
         buildingFilterOptions={buildingFilterOptions}
-        listingBuildingFilter={listingBuildingFilter}
-        setListingBuildingFilter={setListingBuildingFilter}
+        listingBuildingFilter={effectiveListingBuildingFilter}
+        setListingBuildingFilter={handleListingBuildingFilterChange}
         hasTrackedUnits={hasTrackedUnits}
       />
 
@@ -689,28 +912,44 @@ export default function ListingAlertsPage() {
         ) : null}
       </div>
 
-      <div className="la-list">
-        {showEmpty ? (
-          viewTab === "buildings" && alerts.searchLoading ? (
-            <div className="la-empty">
-              <div className="la-empty-text">Searching Bayut buildings...</div>
-            </div>
-          ) : (
-            <div className="la-empty">
-              <div className="la-empty-title">
-                {viewTab === "buildings" ? "No buildings match" : "No listings match"}
+      {showRefreshingStrip ? (
+        <div className="la-refreshing-strip" role="status" aria-live="polite">
+          <span className="la-refreshing-dot" />
+          {viewTab === "buildings" ? "Searching Bayut..." : "Refreshing listings..."}
+        </div>
+      ) : null}
+
+      <div className="la-list" aria-busy={isListLoading || undefined}>
+        {showSkeletonList ? (
+          Array.from({ length: 6 }).map((_, index) => (
+            <div className="la-list-item" key={`skeleton-${index}`}>
+              <div className="skeleton-card">
+                <div className="skeleton-card-row">
+                  <div className="skeleton-avatar" />
+                  <div className="skeleton-stack">
+                    <div className="skeleton-bar tall medium" />
+                    <div className="skeleton-bar short" />
+                  </div>
+                  <div className="skeleton-bar pill" />
+                </div>
               </div>
-              <div className="la-empty-text">
-                {viewTab === "buildings"
-                  ? "Try a broader search term, or switch off the Watching filter."
-                  : alerts.stats.watchedBuildingCount
-                      ? hasTrackedUnits
-                        ? "Try another filter, or switch off Tracked only to browse more live units."
-                        : "Open a live unit and track the exact ones you want alerts for."
-                      : "Watch a building first, then this tab will show its live apartments."}
-              </div>
             </div>
-          )
+          ))
+        ) : showEmpty ? (
+          <div className="la-empty">
+            <div className="la-empty-title">
+              {viewTab === "buildings" ? "No buildings match" : "No listings match"}
+            </div>
+            <div className="la-empty-text">
+              {viewTab === "buildings"
+                ? "Try a broader search term, or switch off the Watching filter."
+                : alerts.stats.watchedBuildingCount
+                    ? hasTrackedUnits
+                      ? "Try another filter, or switch off Tracked only to browse more live units."
+                      : "Open a live unit and track the exact ones you want alerts for."
+                    : "Watch a building first, then this tab will show its live apartments."}
+            </div>
+          </div>
         ) : (
           items.map((item, index) => {
             if (viewTab === "buildings") {

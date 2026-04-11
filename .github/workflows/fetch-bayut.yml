@@ -1,4 +1,4 @@
-name: Fetch Bayut Transactions
+name: Fetch DLD Transactions
 
 on:
   schedule:
@@ -25,12 +25,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Fetch all Bayut transactions & sync to Supabase
-        run: npm run fetch:bayut
+      - name: Fetch all DLD transactions & sync to Supabase
+        run: npm run fetch:dld
         env:
-          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
           SHEET_URL: ${{ vars.SHEET_URL }}
-          REQUEST_DELAY_MS: ${{ vars.REQUEST_DELAY_MS }}
-          REQUEST_RETRIES: ${{ vars.REQUEST_RETRIES }}
+          DLD_LIVE_DAYS: ${{ vars.DLD_LIVE_DAYS }}
           VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

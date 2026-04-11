@@ -10,10 +10,13 @@
     "preview": "vite preview",
     "daily:enrich": "node scripts/daily-enrichment-report.mjs",
     "fetch:bayut": "node scripts/fetch-bayut-all.mjs",
+    "fetch:dld": "node scripts/import-dld-transactions.mjs --live",
+    "import:dld": "node scripts/import-dld-transactions.mjs",
     "build:listing-alerts": "node scripts/build-listing-alerts-feed.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.2",
+    "@tanstack/react-query": "^5.97.0",
     "pg": "^8.20.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0"

@@ -191,6 +191,30 @@ function SearchIcon({ color }) {
   );
 }
 
+function LocationPinIcon({ size = 15, color }) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M12 21s-6-4.35-6-10a6 6 0 1 1 12 0c0 5.65-6 10-6 10Z" />
+      <Circle cx="12" cy="11" r="2.5" />
+    </Svg>
+  );
+}
+
+function getSearchOptionLabel(option) {
+  return option?.buildingName || option?.searchName || "Unknown";
+}
+
+function getSearchOptionMeta(option) {
+  const fullPath = String(option?.fullPath || "").trim();
+  if (!fullPath) return null;
+
+  const label = getSearchOptionLabel(option).toLowerCase();
+  const parts = fullPath.split("|").map((part) => part.trim()).filter(Boolean);
+  const remaining = parts.filter((part, index) => index !== 0 || part.toLowerCase() !== label);
+
+  return (remaining.length ? remaining : parts).join(", ");
+}
+
 // ---------- Small building components ----------
 
 function WatchButton({ active, disabled, onPress, colors }) {
@@ -418,24 +442,29 @@ export default function ListingAlertsScreen({ onBack, theme }) {
   const [listingBuildingFilter, setListingBuildingFilter] = useState("all");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [listingsPage, setListingsPage] = useState(1);
-  const [selectedListing, setSelectedListing] = useState(null);
+  const [selectedListingKey, setSelectedListingKey] = useState(null);
+  const [selectedSearchOption, setSelectedSearchOption] = useState(null);
+  const [searchMenuOpen, setSearchMenuOpen] = useState(false);
   const hasTrackedUnits = alerts.stats.trackedListingCount > 0;
-  const buildingFilterOptions = alerts.watchedBuildings || [];
+  const buildingFilterOptions = useMemo(() => alerts.watchedBuildings || [], [alerts.watchedBuildings]);
+  const searchResults = useMemo(() => alerts.searchResults || [], [alerts.searchResults]);
+  const searchTerm = alerts.searchTerm || "";
+  const searchInputRef = useRef(null);
+  const searchBlurTimeoutRef = useRef(null);
 
   // Swipe between tabs — same pattern as Dashboard
-  const stateRef = useRef({ viewTab, setViewTab });
-  stateRef.current = { viewTab, setViewTab };
-  const swipeResponder = useRef(
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_, g) =>
-        Math.abs(g.dx) > 20 && Math.abs(g.dx) > Math.abs(g.dy) * 2,
-      onPanResponderRelease: (_, g) => {
-        const current = stateRef.current;
-        if (g.dx < -60 && current.viewTab === "buildings") current.setViewTab("listings");
-        else if (g.dx > 60 && current.viewTab === "listings") current.setViewTab("buildings");
-      },
-    })
-  ).current;
+  const swipeResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gesture) =>
+          Math.abs(gesture.dx) > 20 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 2,
+        onPanResponderRelease: (_, gesture) => {
+          if (gesture.dx < -60 && viewTab === "buildings") handleViewTabChange("listings");
+          else if (gesture.dx > 60 && viewTab === "listings") handleViewTabChange("buildings");
+        },
+      }),
+    [viewTab],
+  );
 
   async function openListing(url) {
     if (!url) return;
@@ -447,7 +476,8 @@ export default function ListingAlertsScreen({ onBack, theme }) {
   }
 
   function openListingDetails(listing) {
-    setSelectedListing(listing);
+    if (!listing) return;
+    setSelectedListingKey(listing.key || `${listing.locationId}:${listing.id}`);
   }
 
   function toggleListingTracking(listing) {
@@ -462,30 +492,55 @@ export default function ListingAlertsScreen({ onBack, theme }) {
       if (!didWatch) return;
     }
     setListingBuildingFilter(building.locationId || "all");
+    setListingsPage(1);
     setViewTab("listings");
   }
 
-  useEffect(() => {
-    if (listingBuildingFilter === "all") return;
-    if (buildingFilterOptions.some((building) => building.locationId === listingBuildingFilter)) return;
-    setListingBuildingFilter("all");
-  }, [buildingFilterOptions, listingBuildingFilter]);
-
-  useEffect(() => {
+  function handleViewTabChange(nextValue) {
     setListingsPage(1);
-  }, [bedsFilter, listingBuildingFilter, priceChangedOnly, priceFilter, trackedOnly, trackedStatusFilter, viewTab, watchingOnly]);
+    setViewTab(nextValue);
+  }
+
+  function handleWatchingOnlyChange(nextValue) {
+    setListingsPage(1);
+    setWatchingOnly(nextValue);
+  }
+
+  function handleTrackedOnlyChange(nextValue) {
+    setListingsPage(1);
+    setTrackedOnly(nextValue);
+  }
+
+  function handlePriceChangedOnlyChange(nextValue) {
+    setListingsPage(1);
+    setPriceChangedOnly(nextValue);
+  }
+
+  function handlePriceFilterChange(nextValue) {
+    setListingsPage(1);
+    setPriceFilter(nextValue);
+  }
+
+  function handleBedsFilterChange(nextValue) {
+    setListingsPage(1);
+    setBedsFilter(nextValue);
+  }
+
+  function handleTrackedStatusFilterChange(nextValue) {
+    setListingsPage(1);
+    setTrackedStatusFilter(nextValue);
+  }
+
+  function handleListingBuildingFilterChange(nextValue) {
+    setListingsPage(1);
+    setListingBuildingFilter(nextValue);
+  }
 
   useEffect(() => {
-    if (!selectedListing) return;
-
-    const nextSelectedListing = [...(alerts.latestListings || []), ...(alerts.trackedListings || [])].find(
-      (item) => item.key === selectedListing.key || (item.locationId === selectedListing.locationId && item.id === selectedListing.id),
-    );
-
-    if (nextSelectedListing) {
-      setSelectedListing(nextSelectedListing);
-    }
-  }, [alerts.latestListings, alerts.trackedListings, selectedListing]);
+    return () => {
+      if (searchBlurTimeoutRef.current) clearTimeout(searchBlurTimeoutRef.current);
+    };
+  }, []);
 
   // Per-building change counts (so we can show a small "N updates" pill on the row)
   const changeCountByBuilding = useMemo(() => {
@@ -498,11 +553,38 @@ export default function ListingAlertsScreen({ onBack, theme }) {
     return map;
   }, [alerts.changeItems]);
 
+  const selectedListing = useMemo(() => {
+    if (!selectedListingKey) return null;
+    return [...(alerts.latestListings || []), ...(alerts.trackedListings || [])].find(
+      (item) => item.key === selectedListingKey || `${item.locationId}:${item.id}` === selectedListingKey,
+    ) || null;
+  }, [alerts.latestListings, alerts.trackedListings, selectedListingKey]);
+
+  const selectedSearchBuilding = useMemo(() => {
+    if (!selectedSearchOption?.locationId) return null;
+    return (alerts.watchedBuildings || []).find((building) => building.locationId === selectedSearchOption.locationId)
+      || searchResults.find((building) => building.locationId === selectedSearchOption.locationId)
+      || selectedSearchOption;
+  }, [alerts.watchedBuildings, searchResults, selectedSearchOption]);
+
+  const effectiveListingBuildingFilter = useMemo(() => {
+    if (listingBuildingFilter === "all") return "all";
+    return buildingFilterOptions.some((building) => building.locationId === listingBuildingFilter)
+      ? listingBuildingFilter
+      : "all";
+  }, [buildingFilterOptions, listingBuildingFilter]);
+
   const buildings = useMemo(() => {
-    if (watchingOnly) return alerts.watchedBuildings || [];
-    if (alerts.usingLiveSearch) return alerts.searchResults || [];
-    return alerts.watchedBuildings || [];
-  }, [alerts.searchResults, alerts.usingLiveSearch, alerts.watchedBuildings, watchingOnly]);
+    if (watchingOnly) {
+      if (selectedSearchBuilding?.locationId) {
+        return (alerts.watchedBuildings || []).filter((building) => building.locationId === selectedSearchBuilding.locationId);
+      }
+      return alerts.watchedBuildings || [];
+    }
+    if (selectedSearchBuilding) return [selectedSearchBuilding];
+    if (alerts.usingLiveSearch) return searchResults;
+    return [...(alerts.watchedBuildings || []), ...(alerts.popularBuildings || [])];
+  }, [alerts.popularBuildings, alerts.usingLiveSearch, alerts.watchedBuildings, searchResults, selectedSearchBuilding, watchingOnly]);
 
   const listings = useMemo(() => {
     let source = [];
@@ -515,8 +597,8 @@ export default function ListingAlertsScreen({ onBack, theme }) {
       source = alerts.latestListings || [];
     }
 
-    if (listingBuildingFilter !== "all") {
-      source = source.filter((l) => l.locationId === listingBuildingFilter);
+    if (effectiveListingBuildingFilter !== "all") {
+      source = source.filter((l) => l.locationId === effectiveListingBuildingFilter);
     }
 
     if (watchingOnly && alerts.watchedSet?.size) {
@@ -568,7 +650,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
     alerts.trackedListings,
     alerts.watchedSet,
     bedsFilter,
-    listingBuildingFilter,
+    effectiveListingBuildingFilter,
     priceChangedOnly,
     priceFilter,
     trackedOnly,
@@ -581,12 +663,12 @@ export default function ListingAlertsScreen({ onBack, theme }) {
     ? `${count} ${count === 1 ? "building" : "buildings"}`
     : `${count} ${count === 1 ? "listing" : "listings"}`;
   const selectedBuildingOption = useMemo(
-    () => buildingFilterOptions.find((building) => building.locationId === listingBuildingFilter) || null,
-    [buildingFilterOptions, listingBuildingFilter],
+    () => buildingFilterOptions.find((building) => building.locationId === effectiveListingBuildingFilter) || null,
+    [buildingFilterOptions, effectiveListingBuildingFilter],
   );
   const totalLiveListings = useMemo(() => {
     if (!alerts.stats.watchedBuildingCount) return 0;
-    if (listingBuildingFilter !== "all") {
+    if (effectiveListingBuildingFilter !== "all") {
       if (Number.isFinite(selectedBuildingOption?.listingCount)) return selectedBuildingOption.listingCount;
       return selectedBuildingOption?.listings?.length || 0;
     }
@@ -595,8 +677,8 @@ export default function ListingAlertsScreen({ onBack, theme }) {
       if (Number.isFinite(building?.listingCount)) return sum + building.listingCount;
       return sum + (building?.listings?.length || 0);
     }, 0);
-  }, [alerts.stats.watchedBuildingCount, buildingFilterOptions, listingBuildingFilter, selectedBuildingOption]);
-  const totalLiveListingsLabel = listingBuildingFilter !== "all"
+  }, [alerts.stats.watchedBuildingCount, buildingFilterOptions, effectiveListingBuildingFilter, selectedBuildingOption]);
+  const totalLiveListingsLabel = effectiveListingBuildingFilter !== "all"
     ? selectedBuildingOption?.buildingName || "selected building"
     : "watched buildings";
   const listingTotalPages = Math.max(1, Math.ceil(listings.length / LISTINGS_PAGE_SIZE));
@@ -612,6 +694,31 @@ export default function ListingAlertsScreen({ onBack, theme }) {
     : !hasTrackedUnits
       ? `Pick the exact units you care about, last checked ${formatSyncTimestamp(alerts.alertSummary.lastCheckedAt)}`
       : `${alerts.stats.trackedListingCount} tracked ${alerts.stats.trackedListingCount === 1 ? "unit" : "units"}, ${alerts.alertSummary.totalChanges} changes, last checked ${formatSyncTimestamp(alerts.alertSummary.lastCheckedAt)}`;
+  const showSearchDropdown = viewTab === "buildings"
+    && searchMenuOpen
+    && searchTerm.trim().length >= 2
+    && (alerts.searchLoading || Boolean(alerts.searchError) || searchResults.length > 0 || !selectedSearchOption);
+
+  function handleSearchInputChange(nextValue) {
+    setSelectedSearchOption(null);
+    setSearchMenuOpen(nextValue.trim().length >= 2);
+    alerts.actions.setSearchTerm(nextValue);
+  }
+
+  function handleSearchOptionSelect(option) {
+    if (!option) return;
+    setSelectedSearchOption(option);
+    setSearchMenuOpen(false);
+    alerts.actions.setSearchTerm(getSearchOptionLabel(option));
+    searchInputRef.current?.blur?.();
+  }
+
+  function clearSearchSelection() {
+    setSelectedSearchOption(null);
+    setSearchMenuOpen(false);
+    alerts.actions.setSearchTerm("");
+    searchInputRef.current?.focus?.();
+  }
 
   if (!alerts.hydrated) {
     return (
@@ -686,7 +793,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
               <Pressable
                 key={tab.id}
                 style={[s.pillTab, isActive && s.pillTabActive]}
-                onPress={() => setViewTab(tab.id)}
+                onPress={() => handleViewTabChange(tab.id)}
               >
                 <Text style={[s.pillTabLabel, isActive && s.pillTabLabelActive]}>
                   {tab.label}
@@ -702,17 +809,81 @@ export default function ListingAlertsScreen({ onBack, theme }) {
       {/* Search — only on Buildings tab */}
       {viewTab === "buildings" ? (
         <View style={s.searchBar}>
-          <View style={s.searchInputWrap}>
-            <SearchIcon color={colors.textFaint} />
-            <TextInput
-              style={s.searchInput}
-              placeholder="Search buildings on Bayut..."
-              placeholderTextColor={colors.textFaint}
-              value={alerts.searchTerm}
-              onChangeText={alerts.actions.setSearchTerm}
-              autoCapitalize="none"
-              autoCorrect={false}
-            />
+          <View style={s.searchBox}>
+            <View style={s.searchInputWrap}>
+              <SearchIcon color={colors.textFaint} />
+              <TextInput
+                ref={searchInputRef}
+                style={s.searchInput}
+                placeholder="Search buildings on Bayut..."
+                placeholderTextColor={colors.textFaint}
+                value={searchTerm}
+                onChangeText={handleSearchInputChange}
+                onFocus={() => {
+                  if (searchTerm.trim().length >= 2) setSearchMenuOpen(true);
+                }}
+                onBlur={() => {
+                  if (searchBlurTimeoutRef.current) clearTimeout(searchBlurTimeoutRef.current);
+                  searchBlurTimeoutRef.current = setTimeout(() => setSearchMenuOpen(false), 120);
+                }}
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
+              {searchTerm ? (
+                <Pressable style={s.searchClearBtn} onPress={clearSearchSelection}>
+                  <Text style={s.searchClearText}>Clear</Text>
+                </Pressable>
+              ) : null}
+            </View>
+
+            {showSearchDropdown ? (
+              <View style={s.searchDropdown}>
+                {alerts.searchLoading ? (
+                  <Text style={s.searchDropdownState}>Searching available buildings...</Text>
+                ) : alerts.searchError ? (
+                  <Text style={s.searchDropdownState}>Search is unavailable right now.</Text>
+                ) : searchResults.length ? (
+                  <ScrollView
+                    style={s.searchDropdownScroll}
+                    nestedScrollEnabled
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                  >
+                    {searchResults.map((option) => {
+                      const meta = getSearchOptionMeta(option);
+                      const isSelected = selectedSearchBuilding?.locationId === option.locationId;
+                      return (
+                        <Pressable
+                          key={option.locationId}
+                          style={({ pressed }) => [
+                            s.searchOption,
+                            isSelected && s.searchOptionSelected,
+                            pressed && { opacity: 0.82 },
+                          ]}
+                          onPress={() => handleSearchOptionSelect(option)}
+                        >
+                          <View style={s.searchOptionIconWrap}>
+                            <LocationPinIcon size={15} color={colors.textMuted} />
+                          </View>
+                          <View style={s.searchOptionCopy}>
+                            <Text style={s.searchOptionTitle} numberOfLines={1}>
+                              {getSearchOptionLabel(option)}
+                            </Text>
+                            {meta ? (
+                              <Text style={s.searchOptionMeta} numberOfLines={1}>
+                                {meta}
+                              </Text>
+                            ) : null}
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                  </ScrollView>
+                ) : (
+                  <Text style={s.searchDropdownState}>No available buildings match that search.</Text>
+                )}
+              </View>
+            ) : null}
           </View>
         </View>
       ) : (
@@ -829,7 +1000,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
             <Text style={s.toggleLabel}>Watching only</Text>
             <Switch
               value={watchingOnly}
-              onValueChange={setWatchingOnly}
+              onValueChange={handleWatchingOnlyChange}
               trackColor={{ false: colors.border, true: colors.tabActiveBg }}
             />
           </View>
@@ -840,7 +1011,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
                 <Text style={s.toggleLabel}>Tracked units only</Text>
                 <Switch
                   value={trackedOnly}
-                  onValueChange={setTrackedOnly}
+                  onValueChange={handleTrackedOnlyChange}
                   trackColor={{ false: colors.border, true: colors.tabActiveBg }}
                 />
               </View>
@@ -849,7 +1020,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
                 <Text style={s.toggleLabel}>Price moves only</Text>
                 <Switch
                   value={priceChangedOnly}
-                  onValueChange={setPriceChangedOnly}
+                  onValueChange={handlePriceChangedOnlyChange}
                   trackColor={{ false: colors.border, true: colors.tabActiveBg }}
                 />
               </View>
@@ -862,7 +1033,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
                       <Pressable
                         key={opt.id}
                         style={[s.chip, trackedStatusFilter === opt.id && s.chipActive]}
-                        onPress={() => setTrackedStatusFilter(opt.id)}
+                        onPress={() => handleTrackedStatusFilterChange(opt.id)}
                       >
                         <Text style={[s.chipText, trackedStatusFilter === opt.id && s.chipTextActive]}>{opt.label}</Text>
                       </Pressable>
@@ -876,18 +1047,18 @@ export default function ListingAlertsScreen({ onBack, theme }) {
                   <Text style={s.sectionLabel}>Building</Text>
                   <View style={s.chipRow}>
                     <Pressable
-                      style={[s.chip, listingBuildingFilter === "all" && s.chipActive]}
-                      onPress={() => setListingBuildingFilter("all")}
+                      style={[s.chip, effectiveListingBuildingFilter === "all" && s.chipActive]}
+                      onPress={() => handleListingBuildingFilterChange("all")}
                     >
-                      <Text style={[s.chipText, listingBuildingFilter === "all" && s.chipTextActive]}>All watched buildings</Text>
+                      <Text style={[s.chipText, effectiveListingBuildingFilter === "all" && s.chipTextActive]}>All watched buildings</Text>
                     </Pressable>
                     {buildingFilterOptions.map((building) => (
                       <Pressable
                         key={building.locationId}
-                        style={[s.chip, listingBuildingFilter === building.locationId && s.chipActive]}
-                        onPress={() => setListingBuildingFilter(building.locationId)}
+                        style={[s.chip, effectiveListingBuildingFilter === building.locationId && s.chipActive]}
+                        onPress={() => handleListingBuildingFilterChange(building.locationId)}
                       >
-                        <Text style={[s.chipText, listingBuildingFilter === building.locationId && s.chipTextActive]}>
+                        <Text style={[s.chipText, effectiveListingBuildingFilter === building.locationId && s.chipTextActive]}>
                           {building.buildingName}
                         </Text>
                       </Pressable>
@@ -902,7 +1073,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
                   <Pressable
                     key={opt.id}
                     style={[s.chip, priceFilter === opt.id && s.chipActive]}
-                    onPress={() => setPriceFilter(opt.id)}
+                    onPress={() => handlePriceFilterChange(opt.id)}
                   >
                     <Text style={[s.chipText, priceFilter === opt.id && s.chipTextActive]}>{opt.label}</Text>
                   </Pressable>
@@ -915,7 +1086,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
                   <Pressable
                     key={opt.id}
                     style={[s.chip, bedsFilter === opt.id && s.chipActive]}
-                    onPress={() => setBedsFilter(opt.id)}
+                    onPress={() => handleBedsFilterChange(opt.id)}
                   >
                     <Text style={[s.chipText, bedsFilter === opt.id && s.chipTextActive]}>{opt.label}</Text>
                   </Pressable>
@@ -982,6 +1153,10 @@ const styles = (c) =>
     searchBar: {
       paddingHorizontal: 16,
       paddingVertical: 10,
+      zIndex: 20,
+    },
+    searchBox: {
+      position: "relative",
     },
     searchInputWrap: {
       flexDirection: "row",
@@ -997,6 +1172,70 @@ const styles = (c) =>
       fontSize: 15,
       color: c.text,
       paddingVertical: 0,
+    },
+    searchClearBtn: {
+      marginLeft: "auto",
+    },
+    searchClearText: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: c.textMuted,
+    },
+    searchDropdown: {
+      position: "absolute",
+      top: 56,
+      left: 0,
+      right: 0,
+      backgroundColor: c.bgCard,
+      borderRadius: 18,
+      borderWidth: 1,
+      borderColor: c.border,
+      shadowColor: "#000",
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: c.isDark ? 0.35 : 0.12,
+      shadowRadius: 16,
+      elevation: 10,
+      overflow: "hidden",
+      zIndex: 30,
+    },
+    searchDropdownScroll: {
+      maxHeight: 280,
+    },
+    searchDropdownState: {
+      paddingHorizontal: 16,
+      paddingVertical: 14,
+      fontSize: 13,
+      color: c.textMuted,
+    },
+    searchOption: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 10,
+      paddingHorizontal: 14,
+      paddingVertical: 12,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: c.borderLight || c.border,
+    },
+    searchOptionSelected: {
+      backgroundColor: c.bgBadge,
+    },
+    searchOptionIconWrap: {
+      width: 24,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    searchOptionCopy: {
+      flex: 1,
+      gap: 2,
+    },
+    searchOptionTitle: {
+      fontSize: 15,
+      fontWeight: "700",
+      color: c.textName,
+    },
+    searchOptionMeta: {
+      fontSize: 13,
+      color: c.textMuted,
     },
     listingHeader: {
       flexDirection: "row",

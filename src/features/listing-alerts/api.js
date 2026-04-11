@@ -1,13 +1,14 @@
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-async function postToBayutAlerts(body) {
+async function postToBayutAlerts(body, { signal } = {}) {
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
     throw new Error("Supabase is not configured");
   }
 
   const response = await fetch(`${SUPABASE_URL}/functions/v1/bayut-alerts`, {
     method: "POST",
+    signal,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
@@ -26,12 +27,12 @@ async function postToBayutAlerts(body) {
   return data;
 }
 
-export async function searchBayutAlertLocations(query) {
-  const data = await postToBayutAlerts({ mode: "search", query });
+export async function searchBayutAlertLocations(query, options) {
+  const data = await postToBayutAlerts({ mode: "search", query }, options);
   return Array.isArray(data.locations) ? data.locations : [];
 }
 
-export async function fetchBayutWatchedBuildings(locations) {
-  const data = await postToBayutAlerts({ mode: "watchlist", locations });
+export async function fetchBayutWatchedBuildings(locations, options) {
+  const data = await postToBayutAlerts({ mode: "watchlist", locations }, options);
   return Array.isArray(data.buildings) ? data.buildings : [];
 }

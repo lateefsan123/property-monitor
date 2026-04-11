@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { fetchBayutWatchedBuildings, searchBayutAlertLocations } from "./api";
 import { supabase } from "../../supabase";
 import {
@@ -14,10 +15,12 @@ import {
 
 const DEFAULT_SUGGESTION_COUNT = 8;
 const SEARCH_DEBOUNCE_MS = 350;
-const MAX_WATCHED_BUILDINGS = 4;
+const MAX_WATCHED_BUILDINGS = 1000;
 const AUTO_TRACK_ALL_LISTINGS = true;
 
 const FEED_URL = `${import.meta.env.BASE_URL}data/listing-alerts-feed.json`;
+const EMPTY_FEED = { buildings: [], generatedAt: null };
+const EMPTY_LIST = [];
 
 function safeGetItem(key) {
   try {
@@ -47,6 +50,12 @@ function parseVerifiedAt(value) {
   if (!value) return 0;
   const parsed = new Date(String(value).replace(" ", "T"));
   return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
+}
+
+function getLoadedListingCount(building) {
+  const loaded = building?.listings?.length || 0;
+  if (loaded) return loaded;
+  return Number.isFinite(building?.listingCount) ? building.listingCount : 0;
 }
 
 function getErrorMessage(error) {
@@ -134,7 +143,11 @@ function snapshotToRemoteBuilding(building) {
   return {
     ...building,
     listings,
-    listingCount: Number.isFinite(building?.listingCount) ? building.listingCount : listings.length,
+    listingCount: listings.length
+      ? listings.length
+      : Number.isFinite(building?.listingCount)
+        ? building.listingCount
+        : 0,
     latestVerifiedAt,
     lowestPrice: Number.isFinite(building?.lowestPrice)
       ? building.lowestPrice
@@ -222,25 +235,55 @@ function toFallbackWatchedBuilding(item, buildingMap) {
   };
 }
 
+async function fetchListingAlertsFeed({ signal }) {
+  const response = await fetch(FEED_URL, { signal });
+  if (!response.ok) return EMPTY_FEED;
+
+  const data = await response.json();
+  const buildings = (data.buildings || [])
+    .map((building) => ({ ...building, locationId: toLocationId(building.locationId) }))
+    .filter((building) => building.locationId)
+    .sort(sortBuildings);
+
+  return {
+    buildings,
+    generatedAt: data.generatedAt || null,
+  };
+}
+
+async function fetchNormalizedWatchedBuildings(watchedItems, signal) {
+  const buildings = await fetchBayutWatchedBuildings(watchedItems, { signal });
+  return buildings
+    .map((building) => ({ ...building, locationId: toLocationId(building.locationId) }))
+    .sort(sortBuildings);
+}
+
 export function useListingAlerts() {
-  const [feed, setFeed] = useState({ buildings: [], generatedAt: null });
   const [watchedItems, setWatchedItems] = useState([]);
   const [selectedListingKeys, setSelectedListingKeys] = useState([]);
   const [watchedBuildingsRemote, setWatchedBuildingsRemote] = useState([]);
   const [changeState, setChangeState] = useState(() => createEmptyListingAlertsState());
   const [sessionUserId, setSessionUserId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [searchLoading, setSearchLoading] = useState(false);
-  const [watchedLoading, setWatchedLoading] = useState(false);
+  const [remoteWatchedLoading, setRemoteWatchedLoading] = useState(false);
   const [hydrated, setHydrated] = useState(false);
-  const [searchError, setSearchError] = useState(null);
   const [watchError, setWatchError] = useState(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
   const changeStateRef = useRef(createEmptyListingAlertsState());
   const selectedListingKeysRef = useRef([]);
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
   const remoteEnabled = Boolean(supabase && sessionUserId);
+  const normalizedSearchTerm = deferredSearchTerm.trim();
+
+  const feedQuery = useQuery({
+    queryKey: ["listing-alerts-feed"],
+    queryFn: fetchListingAlertsFeed,
+    placeholderData: EMPTY_FEED,
+    staleTime: 5 * 60 * 1000,
+  });
+  const feed = feedQuery.data || EMPTY_FEED;
+  const feedBuildings = feed.buildings || EMPTY_LIST;
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -262,34 +305,10 @@ export function useListingAlerts() {
     };
   }, []);
 
-  // Load static feed JSON once at mount.
-  useEffect(() => {
-    let isActive = true;
-    fetch(FEED_URL)
-      .then((res) => (res.ok ? res.json() : { buildings: [], generatedAt: null }))
-      .then((data) => {
-        if (!isActive) return;
-        const buildings = (data.buildings || [])
-          .map((building) => ({ ...building, locationId: toLocationId(building.locationId) }))
-          .filter((building) => building.locationId)
-          .sort(sortBuildings);
-        setFeed({ buildings, generatedAt: data.generatedAt || null });
-      })
-      .catch(() => {
-        if (!isActive) return;
-        setFeed({ buildings: [], generatedAt: null });
-      });
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
-  const feedBuildings = feed.buildings;
-
   async function loadRemoteState({ showLoading = true } = {}) {
     if (!supabase || !sessionUserId) return;
 
-    if (showLoading) setWatchedLoading(true);
+    if (showLoading) setRemoteWatchedLoading(true);
     setWatchError(null);
 
     try {
@@ -347,10 +366,32 @@ export function useListingAlerts() {
       safeSetItem(WATCHED_BUILDINGS_KEY, JSON.stringify(nextWatchedItems));
       safeSetItem(SELECTED_LISTINGS_KEY, JSON.stringify(nextSelectedKeys));
       safeSetItem(LISTING_ALERTS_STATE_KEY, JSON.stringify(nextState));
+
+      const snapshotListingCount = snapshotBuildings.reduce((sum, building) => sum + (building.listings?.length || 0), 0);
+      if ((!snapshotBuildings.length || snapshotListingCount === 0) && nextWatchedItems.length) {
+        try {
+          const buildings = await fetchBayutWatchedBuildings(nextWatchedItems);
+          const normalizedBuildings = buildings.map((building) => ({ ...building, locationId: toLocationId(building.locationId) })).sort(sortBuildings);
+          const nextFallbackState = buildListingAlertsState({
+            currentBuildings: normalizedBuildings,
+            previousState: nextState,
+            watchedItems: nextWatchedItems,
+            selectedListingKeys: nextSelectedKeys,
+            trackAllListings: AUTO_TRACK_ALL_LISTINGS,
+          });
+
+          setWatchedBuildingsRemote(normalizedBuildings);
+          setChangeState(nextFallbackState);
+          changeStateRef.current = nextFallbackState;
+          safeSetItem(LISTING_ALERTS_STATE_KEY, JSON.stringify(nextFallbackState));
+        } catch {
+          // ignore live fallback failure
+        }
+      }
     } catch (error) {
       setWatchError(getErrorMessage(error));
     } finally {
-      if (showLoading) setWatchedLoading(false);
+      if (showLoading) setRemoteWatchedLoading(false);
       setHydrated(true);
     }
   }
@@ -421,89 +462,64 @@ export function useListingAlerts() {
     safeSetItem(SELECTED_LISTINGS_KEY, JSON.stringify(selectedListingKeys));
   }, [hydrated, selectedListingKeys]);
 
-  useEffect(() => {
-    const query = searchTerm.trim();
-    if (query.length < 2) {
-      setSearchResults([]);
-      setSearchLoading(false);
-      setSearchError(null);
-      return undefined;
-    }
+  const searchQuery = useQuery({
+    queryKey: ["listing-alerts-search", normalizedSearchTerm],
+    enabled: normalizedSearchTerm.length >= 2,
+    placeholderData: (previousData) => previousData,
+    queryFn: ({ signal }) => searchBayutAlertLocations(normalizedSearchTerm, { signal }),
+    staleTime: SEARCH_DEBOUNCE_MS,
+  });
 
-    let isActive = true;
-    setSearchLoading(true);
-    setSearchError(null);
+  const searchResults = useMemo(() => {
+    if (normalizedSearchTerm.length < 2) return EMPTY_LIST;
+    return (searchQuery.data || EMPTY_LIST)
+      .map((item) => normalizeWatchedItem(item, feedBuildings))
+      .filter(Boolean);
+  }, [feedBuildings, normalizedSearchTerm, searchQuery.data]);
 
-    const timeoutId = setTimeout(async () => {
-      try {
-        const results = await searchBayutAlertLocations(query);
-        if (!isActive) return;
-        setSearchResults(results.map((item) => normalizeWatchedItem(item, feedBuildings)).filter(Boolean));
-      } catch (error) {
-        if (!isActive) return;
-        setSearchResults([]);
-        setSearchError(error.message);
-      } finally {
-        if (isActive) setSearchLoading(false);
-      }
-    }, SEARCH_DEBOUNCE_MS);
-
-    return () => {
-      isActive = false;
-      clearTimeout(timeoutId);
-    };
-  }, [searchTerm, feedBuildings]);
+  const localWatchedBuildingsQuery = useQuery({
+    queryKey: ["listing-alerts-watched-buildings", refreshNonce, watchedItems],
+    enabled: hydrated && !remoteEnabled && watchedItems.length > 0,
+    placeholderData: (previousData) => previousData,
+    queryFn: ({ signal }) => fetchNormalizedWatchedBuildings(watchedItems, signal),
+    staleTime: 60 * 1000,
+  });
 
   useEffect(() => {
-    if (!hydrated) return undefined;
-    if (remoteEnabled) return undefined;
+    if (!hydrated || remoteEnabled) return;
     if (!watchedItems.length) {
       const emptyState = createEmptyListingAlertsState();
       setWatchedBuildingsRemote([]);
-      setWatchedLoading(false);
       setWatchError(null);
       setChangeState(emptyState);
       changeStateRef.current = emptyState;
       safeRemoveItem(LISTING_ALERTS_STATE_KEY);
-      return undefined;
+      return;
     }
 
-    let isActive = true;
-    setWatchedLoading(true);
+    if (localWatchedBuildingsQuery.error) {
+      setWatchedBuildingsRemote([]);
+      setWatchError(getErrorMessage(localWatchedBuildingsQuery.error));
+      return;
+    }
+
+    if (!localWatchedBuildingsQuery.data) return;
+
+    const normalizedBuildings = localWatchedBuildingsQuery.data;
+    const nextChangeState = buildListingAlertsState({
+      currentBuildings: normalizedBuildings,
+      previousState: changeStateRef.current,
+      watchedItems,
+      selectedListingKeys: selectedListingKeysRef.current,
+      trackAllListings: AUTO_TRACK_ALL_LISTINGS,
+    });
+
     setWatchError(null);
-
-    async function loadWatchedBuildings() {
-      try {
-        const buildings = await fetchBayutWatchedBuildings(watchedItems);
-        if (!isActive) return;
-        const normalizedBuildings = buildings.map((building) => ({ ...building, locationId: toLocationId(building.locationId) })).sort(sortBuildings);
-        const nextChangeState = buildListingAlertsState({
-          currentBuildings: normalizedBuildings,
-          previousState: changeStateRef.current,
-          watchedItems,
-          selectedListingKeys: selectedListingKeysRef.current,
-          trackAllListings: AUTO_TRACK_ALL_LISTINGS,
-        });
-
-        setWatchedBuildingsRemote(normalizedBuildings);
-        setChangeState(nextChangeState);
-        changeStateRef.current = nextChangeState;
-        safeSetItem(LISTING_ALERTS_STATE_KEY, JSON.stringify(nextChangeState));
-      } catch (error) {
-        if (!isActive) return;
-        setWatchedBuildingsRemote([]);
-        setWatchError(error.message);
-      } finally {
-        if (isActive) setWatchedLoading(false);
-      }
-    }
-
-    void loadWatchedBuildings();
-
-    return () => {
-      isActive = false;
-    };
-  }, [hydrated, refreshNonce, watchedItems, remoteEnabled]);
+    setWatchedBuildingsRemote(normalizedBuildings);
+    setChangeState(nextChangeState);
+    changeStateRef.current = nextChangeState;
+    safeSetItem(LISTING_ALERTS_STATE_KEY, JSON.stringify(nextChangeState));
+  }, [hydrated, localWatchedBuildingsQuery.data, localWatchedBuildingsQuery.error, remoteEnabled, watchedItems]);
 
   const buildingMap = useMemo(() => {
     const next = {};
@@ -541,6 +557,13 @@ export function useListingAlerts() {
     () => feedBuildings.filter((building) => !watchedSet.has(building.locationId) && matchesSearch(building, searchValue)).slice(0, DEFAULT_SUGGESTION_COUNT),
     [feedBuildings, searchValue, watchedSet],
   );
+  const searchLoading = normalizedSearchTerm.length >= 2 && searchQuery.fetchStatus === "fetching";
+  const searchError = normalizedSearchTerm.length >= 2 && searchQuery.error
+    ? getErrorMessage(searchQuery.error)
+    : null;
+  const watchedLoading = remoteEnabled
+    ? remoteWatchedLoading
+    : hydrated && watchedItems.length > 0 && localWatchedBuildingsQuery.fetchStatus === "fetching";
 
   const latestListings = useMemo(() => {
     if (!watchedBuildings.length) return [];
@@ -558,7 +581,7 @@ export function useListingAlerts() {
             buildingKey: building.key || building.locationId,
             buildingName: building.buildingName,
             buildingImageUrl: building.imageUrl,
-            buildingListingCount: building.listingCount,
+            buildingListingCount: getLoadedListingCount(building),
             trackedKey,
             isTracked: trackedKey ? (AUTO_TRACK_ALL_LISTINGS || effectiveSelectedSet.has(trackedKey)) : false,
             previousPrice: historyEntry?.previousPrice ?? null,
@@ -580,7 +603,7 @@ export function useListingAlerts() {
         }),
       )
       .sort(sortListings);
-  }, [changeState.listingHistory, selectedListingSet, watchedBuildings]);
+  }, [changeState.listingHistory, effectiveSelectedSet, watchedBuildings]);
 
   const trackedListings = useMemo(
     () =>
@@ -596,7 +619,7 @@ export function useListingAlerts() {
   );
 
   const stats = useMemo(() => {
-    const totalListings = watchedBuildings.reduce((sum, building) => sum + (building.listingCount || 0), 0);
+    const totalListings = watchedBuildings.reduce((sum, building) => sum + getLoadedListingCount(building), 0);
     return {
       watchedBuildingCount: watchedItems.length,
       watchedListingCount: totalListings,
@@ -758,11 +781,12 @@ export function useListingAlerts() {
   async function refresh() {
     if (!watchedItems.length || watchedLoading) return;
     if (!remoteEnabled) {
+      setWatchError(null);
       setRefreshNonce((current) => current + 1);
       return;
     }
 
-    setWatchedLoading(true);
+    setRemoteWatchedLoading(true);
     setWatchError(null);
 
     try {
@@ -772,7 +796,7 @@ export function useListingAlerts() {
     } catch (error) {
       setWatchError(getErrorMessage(error));
     } finally {
-      setWatchedLoading(false);
+      setRemoteWatchedLoading(false);
     }
   }
 

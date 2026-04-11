@@ -1,9 +1,8 @@
 import * as FileSystem from "expo-file-system";
 import * as Sharing from "expo-sharing";
-import { Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Svg, Line, Path } from "react-native-svg";
-import ImportPanel from "../features/seller-signal/components/ImportPanel";
 import { TEMPLATE_CSV_HEADERS } from "../features/seller-signal/constants";
 import { useSellerSignalPage } from "../features/seller-signal/useSellerSignalPage";
 import { getTheme } from "../theme";
@@ -17,10 +16,82 @@ function BackIcon({ color }) {
   );
 }
 
+function SourceCard({ colors, count, importing, onImport, onSave, onUpdateField, saving, source }) {
+  const labelValue = source.building_name || source.label || "";
+
+  return (
+    <View style={[s.sourceCard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
+      <View style={s.sourceHeader}>
+        <Text style={[s.sourceTitle, { color: colors.textName }]}>
+          {labelValue || `Spreadsheet ${Number(source.sort_order ?? 0) + 1}`}
+        </Text>
+        <Text style={[s.sourceMeta, { color: colors.textMuted }]}>{count} leads</Text>
+      </View>
+
+      <View style={s.fieldGroup}>
+        <Text style={[s.fieldLabel, { color: colors.textMuted }]}>Building name</Text>
+        <TextInput
+          style={[s.input, { backgroundColor: colors.bgInput, borderColor: colors.border, color: colors.text }]}
+          placeholder="Boulevard Central 1"
+          placeholderTextColor={colors.textFaint}
+          value={source.building_name || ""}
+          onChangeText={(value) => onUpdateField(source.id, "building_name", value)}
+        />
+      </View>
+
+      <View style={s.fieldGroup}>
+        <Text style={[s.fieldLabel, { color: colors.textMuted }]}>Google Sheet URL</Text>
+        <TextInput
+          style={[s.input, { backgroundColor: colors.bgInput, borderColor: colors.border, color: colors.text }]}
+          placeholder="https://docs.google.com/..."
+          placeholderTextColor={colors.textFaint}
+          autoCapitalize="none"
+          keyboardType="url"
+          value={source.sheet_url || ""}
+          onChangeText={(value) => onUpdateField(source.id, "sheet_url", value)}
+        />
+      </View>
+
+      <View style={s.cardActions}>
+        <Pressable
+          style={({ pressed }) => [
+            s.secondaryBtn,
+            { borderColor: colors.border, opacity: saving ? 0.65 : pressed ? 0.8 : 1 },
+          ]}
+          disabled={saving}
+          onPress={() => onSave(source.id)}
+        >
+          {saving ? (
+            <ActivityIndicator size="small" color={colors.textSecondary} />
+          ) : (
+            <Text style={[s.secondaryBtnText, { color: colors.textSecondary }]}>Save</Text>
+          )}
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [
+            s.primaryBtn,
+            { backgroundColor: colors.btnPrimaryBg, opacity: !source.sheet_url || importing ? 0.5 : pressed ? 0.8 : 1 },
+          ]}
+          disabled={!source.sheet_url || importing}
+          onPress={() => onImport(source.id)}
+        >
+          {importing ? (
+            <ActivityIndicator size="small" color={colors.btnPrimaryText} />
+          ) : (
+            <Text style={[s.primaryBtnText, { color: colors.btnPrimaryText }]}>Import</Text>
+          )}
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
 export default function SpreadsheetScreen({ onBack, theme, userId }) {
   const d = useSellerSignalPage(userId);
   const colors = getTheme(theme);
-  const s = styles(colors);
+  const styles = createStyles(colors);
+  const totalLeads = Object.values(d.sourceCounts || {}).reduce((sum, count) => sum + count, 0);
 
   async function downloadTemplate() {
     const path = `${FileSystem.cacheDirectory}seller-signal-template.csv`;
@@ -31,47 +102,72 @@ export default function SpreadsheetScreen({ onBack, theme, userId }) {
     });
   }
 
+  if (d.loading && !d.leadSources.length) {
+    return (
+      <SafeAreaView style={styles.page} edges={["top"]}>
+        <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} />
+        <View style={styles.centered}>
+          <ActivityIndicator size="large" color={colors.textMuted} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
-    <SafeAreaView style={s.page} edges={["top"]}>
+    <SafeAreaView style={styles.page} edges={["top"]}>
       <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} />
 
-      <View style={s.header}>
-        <Pressable style={s.backBtn} onPress={onBack} hitSlop={12}>
+      <View style={styles.header}>
+        <Pressable style={styles.backBtn} onPress={onBack} hitSlop={12}>
           <BackIcon color={colors.text} />
         </Pressable>
-        <Text style={s.title}>Spreadsheet</Text>
+        <Text style={styles.title}>Spreadsheets</Text>
         <View style={{ width: 32 }} />
       </View>
 
-      <ScrollView contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-        <Text style={s.sectionLabel}>Import from Google Sheets</Text>
-        <Text style={s.helper}>
-          Paste the URL of a shared Google Sheet that follows the template. Your leads will be merged in.
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryTitle}>
+            {d.leadSources.length} source{d.leadSources.length === 1 ? "" : "s"}
+          </Text>
+          <Text style={styles.summaryMeta}>{totalLeads} leads</Text>
+        </View>
+        <Text style={styles.helper}>
+          Save a building name and public Google Sheet URL for each source. Importing a source replaces only that source's leads.
         </Text>
-        <ImportPanel
-          importing={d.importing}
-          onImport={d.actions.importFromSheet}
-          onSheetUrlChange={d.actions.updateSheetUrl}
-          sheetUrl={d.sheetUrl}
-          colors={colors}
-        />
 
-        <View style={s.divider} />
+        <View style={styles.sourceList}>
+          {d.leadSources.map((source) => (
+            <SourceCard
+              key={source.id}
+              colors={colors}
+              count={d.sourceCounts[source.id] || 0}
+              importing={d.importingSourceId === source.id}
+              onImport={d.actions.importFromSheet}
+              onSave={d.actions.persistLeadSource}
+              onUpdateField={d.actions.updateLeadSourceField}
+              saving={d.savingSourceId === source.id}
+              source={source}
+            />
+          ))}
+        </View>
 
-        <Text style={s.sectionLabel}>Template</Text>
-        <Text style={s.helper}>
+        <View style={styles.divider} />
+
+        <Text style={styles.sectionLabel}>Template</Text>
+        <Text style={styles.helper}>
           Download a blank CSV with the correct column headers, fill it in, and upload it to Google Sheets.
         </Text>
         <Pressable
-          style={({ pressed }) => [s.templateBtn, pressed && { opacity: 0.75 }]}
+          style={({ pressed }) => [styles.templateBtn, pressed && { opacity: 0.75 }]}
           onPress={downloadTemplate}
         >
-          <Text style={s.templateBtnText}>Download Template</Text>
+          <Text style={styles.templateBtnText}>Download Template</Text>
         </Pressable>
 
         {d.error && (
-          <View style={s.errorBox}>
-            <Text style={s.errorText}>{d.error}</Text>
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{d.error}</Text>
           </View>
         )}
       </ScrollView>
@@ -79,9 +175,77 @@ export default function SpreadsheetScreen({ onBack, theme, userId }) {
   );
 }
 
-const styles = (c) =>
+const s = StyleSheet.create({
+  sourceCard: {
+    borderWidth: 1,
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+  },
+  sourceHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  sourceTitle: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "700",
+  },
+  sourceMeta: {
+    fontSize: 13,
+  },
+  fieldGroup: {
+    gap: 6,
+  },
+  fieldLabel: {
+    fontSize: 12,
+    fontWeight: "700",
+    letterSpacing: 0.4,
+    textTransform: "uppercase",
+  },
+  input: {
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 15,
+  },
+  cardActions: {
+    flexDirection: "row",
+    gap: 10,
+  },
+  secondaryBtn: {
+    flex: 1,
+    borderWidth: 1,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  secondaryBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  primaryBtn: {
+    flex: 1,
+    borderRadius: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+  },
+  primaryBtnText: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+});
+
+const createStyles = (c) =>
   StyleSheet.create({
     page: { flex: 1, backgroundColor: c.bg },
+    centered: { flex: 1, justifyContent: "center", alignItems: "center" },
     header: {
       flexDirection: "row",
       alignItems: "center",
@@ -102,7 +266,21 @@ const styles = (c) =>
     },
     content: {
       padding: 20,
-      gap: 10,
+      gap: 12,
+    },
+    summaryRow: {
+      flexDirection: "row",
+      alignItems: "baseline",
+      gap: 8,
+    },
+    summaryTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: c.textName,
+    },
+    summaryMeta: {
+      fontSize: 14,
+      color: c.textMuted,
     },
     sectionLabel: {
       fontSize: 12,
@@ -116,17 +294,19 @@ const styles = (c) =>
       fontSize: 13,
       color: c.textMuted,
       lineHeight: 18,
-      marginBottom: 4,
+    },
+    sourceList: {
+      gap: 12,
     },
     divider: {
       height: StyleSheet.hairlineWidth,
       backgroundColor: c.border,
-      marginVertical: 20,
+      marginVertical: 12,
     },
     templateBtn: {
       borderWidth: 1,
       borderColor: c.textName,
-      borderRadius: 10,
+      borderRadius: 12,
       paddingVertical: 14,
       alignItems: "center",
     },
@@ -136,7 +316,7 @@ const styles = (c) =>
       fontSize: 14,
     },
     errorBox: {
-      marginTop: 16,
+      marginTop: 8,
       backgroundColor: c.errorBg,
       borderRadius: 10,
       padding: 12,

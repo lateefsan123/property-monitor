@@ -1,162 +1,229 @@
-import { useDeferredValue, useEffect, useEffectEvent, useMemo, useState } from "react";
+import { useDeferredValue, useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { WHATSAPP_OPEN_DELAY_MS } from "./constants";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
 import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
 import {
   createDefaultLeadSources,
+  deleteLead,
   fetchLeadInsights,
   fetchLeadSources,
   fetchUserLeads,
   persistLeadSentState,
+  replaceLegacyLeadsFromSheet,
   replaceUserLeadsFromSheet,
+  updateLead,
   updateLeadStatus,
   upsertLeadSource,
 } from "./services";
-import { applyLeadStatus } from "./lead-utils";
+import { applyLeadEdits, applyLeadStatus, formatDateInputValue, sortLeadsByPriority } from "./lead-utils";
+
+const MAX_LEAD_SOURCES = 4;
+const LEGACY_SOURCE_ID = "legacy";
+const LEGACY_SOURCE_LABEL = "Legacy spreadsheet";
+const EMPTY_LEADS_DATA = { leads: [], sentMap: {} };
+const EMPTY_LEADS = [];
+const EMPTY_SOURCES = [];
+const EMPTY_SENT_MAP = {};
+
+function getErrorMessage(error) {
+  if (!error) return null;
+  if (typeof error === "string") return error;
+  if (error instanceof Error) return error.message || "Unexpected error";
+  if (typeof error?.message === "string") return error.message;
+  return "Unexpected error";
+}
+
+function sellerLeadsQueryKey(userId) {
+  return ["seller-signal", "leads", userId];
+}
+
+function sellerSourcesQueryKey(userId) {
+  return ["seller-signal", "sources", userId];
+}
+
+function sellerInsightsQueryKey(userId, targetKeys) {
+  return ["seller-signal", "insights", userId, targetKeys];
+}
+
+function sellerInsightsQueryPrefix(userId) {
+  return ["seller-signal", "insights", userId];
+}
+
+function normalizeSources(sources) {
+  if (!Array.isArray(sources)) return [];
+  return sources.map((source) => ({
+    ...source,
+    type: "building",
+  }));
+}
+
+function limitLeadSources(sources) {
+  if (!Array.isArray(sources)) return [];
+  const normalized = normalizeSources(sources);
+  return normalized
+    .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
+    .slice(0, MAX_LEAD_SOURCES);
+}
+
+async function fetchSellerSources(userId) {
+  let sources = await fetchLeadSources(userId);
+  if (!sources.length) {
+    await createDefaultLeadSources(userId);
+    sources = await fetchLeadSources(userId);
+  }
+  return limitLeadSources(sources);
+}
+
+function buildInsightTarget(lead) {
+  return {
+    id: lead.id,
+    name: lead.name || "",
+    building: lead.building || "",
+  };
+}
+
+function buildLoadingInsights(targets) {
+  const updates = {};
+  for (const lead of targets) {
+    updates[lead.id] = {
+      status: "loading",
+      error: null,
+      message: buildMessage(lead, null),
+    };
+  }
+  return updates;
+}
+
+function buildErroredInsights(targets, message) {
+  const updates = {};
+  for (const lead of targets) {
+    updates[lead.id] = {
+      status: "error",
+      error: message,
+      message: buildMessage(lead, null),
+    };
+  }
+  return updates;
+}
+
+function updateLeadsCache(queryClient, userId, updater) {
+  queryClient.setQueryData(sellerLeadsQueryKey(userId), (current) => updater(current || EMPTY_LEADS_DATA));
+}
 
 export function useSellerSignalPage(userId) {
-  const [leads, setLeads] = useState([]);
-  const [insights, setInsights] = useState({});
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const legacySheetStorageKey = userId ? `seller-signal:legacy-sheet-url:${userId}` : null;
+  const [actionError, setActionError] = useState(null);
   const [importing, setImporting] = useState(false);
   const [importingSourceId, setImportingSourceId] = useState(null);
-  const [enriching, setEnriching] = useState(false);
-  const [error, setError] = useState(null);
+  const [importingLegacy, setImportingLegacy] = useState(false);
+  const [legacySheetUrl, setLegacySheetUrlState] = useState(() => {
+    if (typeof window === "undefined" || !legacySheetStorageKey) return "";
+    return window.localStorage.getItem(legacySheetStorageKey) || "";
+  });
   const [showDueOnly, setShowDueOnly] = useState(true);
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [sentLeads, setSentLeads] = useState({});
   const [sheetUrl, setSheetUrl] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [viewTab, setViewTab] = useState("active");
   const [dataFilter, setDataFilter] = useState("all");
   const [expandedLeads, setExpandedLeads] = useState({});
-  const [leadSources, setLeadSources] = useState([]);
+  const [editingLeadId, setEditingLeadId] = useState(null);
+  const [editingLeadDraft, setEditingLeadDraft] = useState(null);
+  const [savingLeadId, setSavingLeadId] = useState(null);
+  const [deletingLeadId, setDeletingLeadId] = useState(null);
   const deferredSearchTerm = useDeferredValue(searchTerm);
-  const MAX_LEAD_SOURCES = 4;
 
-  function normalizeSources(sources) {
-    if (!Array.isArray(sources)) return [];
-    return sources.map((source) => ({
-      ...source,
-      type: "building",
-    }));
+  function createLeadEditDraft(lead) {
+    if (!lead) return null;
+    return {
+      name: lead.name || "",
+      building: lead.building || "",
+      bedroom: lead.bedroom || "",
+      unit: lead.unit || "",
+      phone: lead.phone || "",
+      status: lead.status || "",
+      lastContact: formatDateInputValue(lead.lastContactRaw || lead.lastContactDate),
+    };
   }
 
-  function limitLeadSources(sources) {
-    if (!Array.isArray(sources)) return [];
-    const normalized = normalizeSources(sources);
-    return normalized
-      .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
-      .slice(0, MAX_LEAD_SOURCES);
-  }
-
-  async function loadLeadsIntoState(showLoader = true) {
-    if (showLoader) setLoading(true);
-    setError(null);
-
-    try {
-      const { leads: nextLeads, sentMap } = await fetchUserLeads(userId);
-      setLeads(nextLeads);
-      setSentLeads(sentMap);
-      setInsights({});
-      setExpandedLeads({});
-      setCurrentPage(1);
-    } catch (loadError) {
-      setError(loadError.message);
-    } finally {
-      if (showLoader) setLoading(false);
-    }
-  }
-
-  async function loadSourcesIntoState() {
-    if (!userId) return;
-    try {
-      let sources = await fetchLeadSources(userId);
-      if (!sources.length) {
-        await createDefaultLeadSources(userId);
-        sources = await fetchLeadSources(userId);
-      }
-      const limitedSources = limitLeadSources(sources);
-      setLeadSources(limitedSources);
-      setSourceFilter((current) => {
-        if (current === "all") return "all";
-        return limitedSources.some((source) => source.id === current) ? current : "all";
-      });
-    } catch (loadError) {
-      setError(loadError.message);
-    }
-  }
-
-  const loadLeadsOnMount = useEffectEvent(() => {
-    void loadLeadsIntoState(true);
+  const leadsQuery = useQuery({
+    queryKey: sellerLeadsQueryKey(userId),
+    enabled: Boolean(userId),
+    queryFn: () => fetchUserLeads(userId),
+    staleTime: 30 * 1000,
   });
 
-  useEffect(() => {
-    loadLeadsOnMount();
-    void loadSourcesIntoState();
-  }, [userId]);
-
-  async function enrichLeadData() {
-    const targetLeads = leads.filter((lead) => lead.building);
-    if (!targetLeads.length) {
-      setError("No leads with a building name.");
-      return;
-    }
-
-    setEnriching(true);
-    setError(null);
-    setInsights((previousInsights) => {
-      const nextInsights = { ...previousInsights };
-      for (const lead of targetLeads) {
-        nextInsights[lead.id] = { ...previousInsights[lead.id], status: "loading" };
-      }
-      return nextInsights;
-    });
-
-    try {
-      const { hasTargets, matched, updates } = await fetchLeadInsights(targetLeads);
-      if (!hasTargets) {
-        setError("No leads with a building name.");
-        setInsights({});
-        return;
-      }
-
-      setInsights((previousInsights) => ({ ...previousInsights, ...updates }));
-      if (matched === 0) {
-        setError("Property market data is not available for these buildings yet.");
-      }
-    } catch (enrichmentError) {
-      setError(enrichmentError.message);
-      setInsights((previousInsights) => {
-        const nextInsights = { ...previousInsights };
-        for (const lead of targetLeads) {
-          nextInsights[lead.id] = {
-            ...previousInsights[lead.id],
-            status: "error",
-            error: enrichmentError.message,
-            message: buildMessage(lead, null),
-          };
-        }
-        return nextInsights;
-      });
-    } finally {
-      setEnriching(false);
-    }
-  }
-
-  const autoEnrichLeads = useEffectEvent(() => {
-    const hasInsights = Object.keys(insights).length > 0;
-    if (loading || enriching || !leads.length || hasInsights) return;
-    void enrichLeadData();
+  const leadSourcesQuery = useQuery({
+    queryKey: sellerSourcesQueryKey(userId),
+    enabled: Boolean(userId),
+    queryFn: () => fetchSellerSources(userId),
+    staleTime: 60 * 1000,
   });
 
-  useEffect(() => {
-    autoEnrichLeads();
-  }, [enriching, insights, leads, loading]);
+  const leadsData = leadsQuery.data || EMPTY_LEADS_DATA;
+  const leads = leadsData.leads || EMPTY_LEADS;
+  const sentLeads = leadsData.sentMap || EMPTY_SENT_MAP;
+  const leadSources = leadSourcesQuery.data || EMPTY_SOURCES;
+  const hasLegacyLeads = useMemo(() => leads.some((lead) => !lead.sourceId), [leads]);
+  const effectiveSourceFilter = useMemo(
+    () => {
+      if (sourceFilter === "all") return "all";
+      if (sourceFilter === LEGACY_SOURCE_ID) return hasLegacyLeads ? LEGACY_SOURCE_ID : "all";
+      return leadSources.some((source) => source.id === sourceFilter) ? sourceFilter : "all";
+    },
+    [hasLegacyLeads, leadSources, sourceFilter],
+  );
+
+  const insightTargets = useMemo(
+    () => leads.filter((lead) => lead.building).map(buildInsightTarget),
+    [leads],
+  );
+  const insightTargetKeys = useMemo(
+    () => insightTargets.map((lead) => `${lead.id}:${lead.name}:${lead.building}`),
+    [insightTargets],
+  );
+
+  const insightsQuery = useQuery({
+    queryKey: sellerInsightsQueryKey(userId, insightTargetKeys),
+    enabled: Boolean(userId) && insightTargets.length > 0,
+    queryFn: () => fetchLeadInsights(insightTargets),
+    staleTime: 10 * 60 * 1000,
+  });
+  const persistLeadSourceMutation = useMutation({
+    mutationFn: (source) => upsertLeadSource(source),
+  });
+  const importLeadsMutation = useMutation({
+    mutationFn: ({ source, rawSheetUrl }) => replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }),
+  });
+  const importLegacyLeadsMutation = useMutation({
+    mutationFn: ({ rawSheetUrl }) => replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }),
+  });
+  const toggleSentMutation = useMutation({
+    mutationFn: ({ leadId, shouldMarkSent }) => persistLeadSentState(userId, leadId, shouldMarkSent),
+  });
+  const updateLeadStatusMutation = useMutation({
+    mutationFn: ({ leadId, status }) => updateLeadStatus({ userId, leadId, status }),
+  });
+  const updateLeadMutation = useMutation({
+    mutationFn: ({ leadId, updates }) => updateLead({ userId, leadId, updates }),
+  });
+  const deleteLeadMutation = useMutation({
+    mutationFn: ({ leadId }) => deleteLead({ userId, leadId }),
+  });
+
+  const insights = useMemo(() => {
+    if (!insightTargets.length) return {};
+    if (insightsQuery.data?.updates) return insightsQuery.data.updates;
+    if (insightsQuery.isFetching) return buildLoadingInsights(insightTargets);
+    if (insightsQuery.error) return buildErroredInsights(insightTargets, getErrorMessage(insightsQuery.error));
+    return {};
+  }, [insightTargets, insightsQuery.data, insightsQuery.error, insightsQuery.isFetching]);
 
   const { activeLeads, doneLeads } = useMemo(
     () => splitLeadsBySentStatus(leads, sentLeads, insights),
@@ -172,11 +239,11 @@ export function useSellerSignalPage(userId) {
         insights,
         searchTerm: deferredSearchTerm,
         showDueOnly,
-        sourceFilter,
+        sourceFilter: effectiveSourceFilter,
         statusFilter,
         viewTab,
       }),
-    [activeLeads, dataFilter, deferredSearchTerm, doneLeads, insights, showDueOnly, sourceFilter, statusFilter, viewTab],
+    [activeLeads, dataFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, showDueOnly, statusFilter, viewTab],
   );
 
   const { totalPages, safePage, pagedLeads } = useMemo(
@@ -187,19 +254,24 @@ export function useSellerSignalPage(userId) {
   const sourceCounts = useMemo(() => {
     const counts = {};
     for (const lead of leads) {
-      if (!lead.sourceId) continue;
-      counts[lead.sourceId] = (counts[lead.sourceId] || 0) + 1;
+      const key = lead.sourceId || LEGACY_SOURCE_ID;
+      counts[key] = (counts[key] || 0) + 1;
     }
     return counts;
   }, [leads]);
 
   const sourceOptions = useMemo(
-    () =>
-      (leadSources || []).map((source) => ({
+    () => {
+      const options = leadSources.map((source) => ({
         id: source.id,
         label: source.building_name || source.label || `Sheet ${source.sort_order + 1}`,
-      })),
-    [leadSources],
+      }));
+      if (sourceCounts[LEGACY_SOURCE_ID]) {
+        options.push({ id: LEGACY_SOURCE_ID, label: LEGACY_SOURCE_LABEL });
+      }
+      return options;
+    },
+    [leadSources, sourceCounts],
   );
 
   const isAllExpanded = filteredLeads.length > 0 && filteredLeads.every((lead) => expandedLeads[lead.id]);
@@ -207,6 +279,26 @@ export function useSellerSignalPage(userId) {
     const phone = formatPhoneForWhatsApp(lead.phone);
     return phone && insights[lead.id]?.status === "ready";
   }).length;
+
+  const fetchError = leadsQuery.error
+    ? getErrorMessage(leadsQuery.error)
+    : leadSourcesQuery.error
+      ? getErrorMessage(leadSourcesQuery.error)
+      : null;
+  const insightNotice = insightTargets.length
+    ? insightsQuery.error
+      ? getErrorMessage(insightsQuery.error)
+      : insightsQuery.data?.hasTargets && insightsQuery.data.matched === 0
+        ? "Property market data is not available for these buildings yet."
+        : null
+    : leads.length
+      ? "No leads with a building name."
+      : null;
+  const error = actionError || fetchError || insightNotice;
+  const loading = (leadsQuery.isPending && !leadsQuery.data) || (leadSourcesQuery.isPending && !leadSourcesQuery.data);
+  const refreshing =
+    (leadsQuery.isFetching && !leadsQuery.isPending)
+    || (insightsQuery.isFetching && leads.length > 0);
 
   function resetPaging() {
     setCurrentPage(1);
@@ -271,46 +363,86 @@ export function useSellerSignalPage(userId) {
   }
 
   function updateLeadSourceField(sourceId, field, value) {
-    setLeadSources((previous) =>
-      previous.map((source) =>
+    queryClient.setQueryData(sellerSourcesQueryKey(userId), (current) =>
+      (current || EMPTY_SOURCES).map((source) =>
         source.id === sourceId
           ? { ...source, [field]: value }
           : source,
-      ),
-    );
+      ));
   }
 
   async function persistLeadSource(sourceId) {
     const source = leadSources.find((item) => item.id === sourceId);
     if (!source) return;
 
+    setActionError(null);
     try {
-      await upsertLeadSource(source);
+      await persistLeadSourceMutation.mutateAsync(source);
+      await queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) });
     } catch (persistError) {
-      setError(persistError.message);
+      setActionError(getErrorMessage(persistError));
+    }
+  }
+
+  function updateLegacySheetUrl(value) {
+    const next = String(value || "");
+    setLegacySheetUrlState(next);
+    if (typeof window !== "undefined" && legacySheetStorageKey) {
+      if (next) window.localStorage.setItem(legacySheetStorageKey, next);
+      else window.localStorage.removeItem(legacySheetStorageKey);
+    }
+  }
+
+  async function importLegacySheet() {
+    const trimmed = legacySheetUrl.trim();
+    if (!trimmed) {
+      setActionError("Paste a Google Sheet URL first.");
+      return;
+    }
+    setImportingLegacy(true);
+    setActionError(null);
+
+    try {
+      await importLegacyLeadsMutation.mutateAsync({ rawSheetUrl: trimmed });
+      setExpandedLeads({});
+      setEditingLeadId(null);
+      setEditingLeadDraft(null);
+      setCopiedLeadId(null);
+      setCurrentPage(1);
+      await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
+      queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
+    } catch (importError) {
+      setActionError(getErrorMessage(importError));
+    } finally {
+      setImportingLegacy(false);
     }
   }
 
   async function importFromSheet(sourceId = null) {
     setImporting(true);
     setImportingSourceId(sourceId);
-    setError(null);
+    setActionError(null);
 
     try {
-      if (sourceId) {
-        await persistLeadSource(sourceId);
-      }
       const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
-      await replaceUserLeadsFromSheet({
-        userId,
+      if (sourceId && source) {
+        await persistLeadSourceMutation.mutateAsync(source);
+      }
+      await importLeadsMutation.mutateAsync({
         source,
         rawSheetUrl: sourceId ? source?.sheet_url : sheetUrl,
       });
       setShowImport(false);
       setSheetUrl("");
-      await loadLeadsIntoState(false);
+      setExpandedLeads({});
+      setEditingLeadId(null);
+      setEditingLeadDraft(null);
+      setCopiedLeadId(null);
+      setCurrentPage(1);
+      await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
+      queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
     } catch (importError) {
-      setError(importError.message);
+      setActionError(getErrorMessage(importError));
     } finally {
       setImporting(false);
       setImportingSourceId(null);
@@ -318,49 +450,153 @@ export function useSellerSignalPage(userId) {
   }
 
   async function toggleSent(leadId) {
+    const previousData = queryClient.getQueryData(sellerLeadsQueryKey(userId));
     const previousSentAt = sentLeads[leadId] || null;
     const shouldMarkSent = !previousSentAt;
 
-    setSentLeads((previous) => {
-      const next = { ...previous };
+    setActionError(null);
+    updateLeadsCache(queryClient, userId, (current) => {
+      const nextSentMap = { ...current.sentMap };
       if (shouldMarkSent) {
-        next[leadId] = Date.now();
+        nextSentMap[leadId] = Date.now();
       } else {
-        delete next[leadId];
+        delete nextSentMap[leadId];
       }
-      return next;
+      return { ...current, sentMap: nextSentMap };
     });
 
     try {
-      await persistLeadSentState(userId, leadId, shouldMarkSent);
+      await toggleSentMutation.mutateAsync({ leadId, shouldMarkSent });
     } catch (persistError) {
-      setError(persistError.message);
-      setSentLeads((previous) => {
-        const next = { ...previous };
-        if (previousSentAt) {
-          next[leadId] = previousSentAt;
-        } else {
-          delete next[leadId];
-        }
-        return next;
-      });
+      setActionError(getErrorMessage(persistError));
+      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
     }
   }
 
   async function changeLeadStatus(leadId, status) {
     if (!leadId) return;
-    const previousLeads = leads;
-    setLeads((current) =>
-      current.map((lead) =>
-        lead.id === leadId ? applyLeadStatus(lead, status) : lead,
+
+    const previousData = queryClient.getQueryData(sellerLeadsQueryKey(userId));
+    setActionError(null);
+    updateLeadsCache(queryClient, userId, (current) => ({
+      ...current,
+      leads: sortLeadsByPriority(
+        current.leads.map((lead) =>
+          lead.id === leadId ? applyLeadStatus(lead, status) : lead,
+        ),
       ),
-    );
+    }));
 
     try {
-      await updateLeadStatus({ userId, leadId, status });
+      await updateLeadStatusMutation.mutateAsync({ leadId, status });
     } catch (statusError) {
-      setError(statusError.message);
-      setLeads(previousLeads);
+      setActionError(getErrorMessage(statusError));
+      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
+    }
+  }
+
+  function startEditingLead(leadId) {
+    const lead = leads.find((item) => item.id === leadId);
+    if (!lead) return;
+    setEditingLeadId(leadId);
+    setEditingLeadDraft(createLeadEditDraft(lead));
+  }
+
+  function cancelEditingLead() {
+    setEditingLeadId(null);
+    setEditingLeadDraft(null);
+  }
+
+  function updateLeadDraftField(field, value) {
+    setEditingLeadDraft((current) => (current ? { ...current, [field]: value } : current));
+  }
+
+  async function saveLeadEdits(leadId) {
+    if (!leadId || editingLeadId !== leadId || !editingLeadDraft) return;
+
+    const hasVisibleValue = [editingLeadDraft.name, editingLeadDraft.building, editingLeadDraft.phone]
+      .some((value) => String(value || "").trim());
+    if (!hasVisibleValue) {
+      setActionError("Seller needs at least a name, building, or phone number.");
+      return;
+    }
+
+    const currentLead = leads.find((item) => item.id === leadId);
+    if (!currentLead) return;
+
+    const previousData = queryClient.getQueryData(sellerLeadsQueryKey(userId));
+    const nextLead = applyLeadEdits(currentLead, editingLeadDraft);
+
+    setSavingLeadId(leadId);
+    setActionError(null);
+    updateLeadsCache(queryClient, userId, (current) => ({
+      ...current,
+      leads: sortLeadsByPriority(
+        current.leads.map((lead) => (lead.id === leadId ? nextLead : lead)),
+      ),
+    }));
+
+    try {
+      await updateLeadMutation.mutateAsync({ leadId, updates: editingLeadDraft });
+      setEditingLeadId(null);
+      setEditingLeadDraft(null);
+    } catch (saveError) {
+      setActionError(getErrorMessage(saveError));
+      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
+    } finally {
+      setSavingLeadId(null);
+    }
+  }
+
+  async function removeLead(leadId) {
+    if (!leadId) return;
+
+    const targetLead = leads.find((item) => item.id === leadId);
+    if (!targetLead) return;
+
+    const targetLabel = targetLead.name || targetLead.building || "this seller";
+    const shouldDelete = typeof window === "undefined"
+      ? true
+      : window.confirm(`Delete ${targetLabel}? This action cannot be undone.`);
+    if (!shouldDelete) return;
+
+    const previousData = queryClient.getQueryData(sellerLeadsQueryKey(userId));
+    const previousExpandedLeads = expandedLeads;
+    const previousEditingLeadId = editingLeadId;
+    const previousEditingLeadDraft = editingLeadDraft;
+
+    setDeletingLeadId(leadId);
+    setActionError(null);
+    updateLeadsCache(queryClient, userId, (current) => {
+      const nextSentMap = { ...current.sentMap };
+      delete nextSentMap[leadId];
+      return {
+        ...current,
+        leads: current.leads.filter((lead) => lead.id !== leadId),
+        sentMap: nextSentMap,
+      };
+    });
+    setExpandedLeads((current) => {
+      const next = { ...current };
+      delete next[leadId];
+      return next;
+    });
+    if (copiedLeadId === leadId) setCopiedLeadId(null);
+    if (editingLeadId === leadId) {
+      setEditingLeadId(null);
+      setEditingLeadDraft(null);
+    }
+
+    try {
+      await deleteLeadMutation.mutateAsync({ leadId });
+    } catch (deleteError) {
+      setActionError(getErrorMessage(deleteError));
+      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
+      setExpandedLeads(previousExpandedLeads);
+      setEditingLeadId(previousEditingLeadId);
+      setEditingLeadDraft(previousEditingLeadDraft);
+    } finally {
+      setDeletingLeadId(null);
     }
   }
 
@@ -394,7 +630,7 @@ export function useSellerSignalPage(userId) {
         setCopiedLeadId((currentValue) => (currentValue === leadId ? null : currentValue));
       }, 1200);
     } catch {
-      setError("Clipboard copy failed.");
+      setActionError("Clipboard copy failed.");
     }
   }
 
@@ -402,49 +638,63 @@ export function useSellerSignalPage(userId) {
     activeLeads,
     copiedLeadId,
     dataFilter,
+    deletingLeadId,
     doneLeads,
+    editingLeadDraft,
+    editingLeadId,
     error,
     expandedLeads,
     filteredLeads,
     hasLeads: leads.length > 0,
     importing,
+    importingLegacy,
     importingSourceId,
     insights,
+    legacySheetUrl,
     isAllExpanded,
+    leadSources,
     loading,
     pagedLeads,
+    refreshing,
     safePage,
+    savingLeadId,
     searchTerm,
     sendAllCount,
     sentLeads,
     sheetUrl,
-    leadSources,
-    sourceCounts,
-    sourceOptions,
-    sourceFilter,
     showDueOnly,
     showImport,
+    sourceCounts,
+    sourceFilter: effectiveSourceFilter,
+    sourceOptions,
     statusFilter,
     totalPages,
     viewTab,
     actions: {
       bulkWhatsApp,
+      cancelEditingLead,
       copyMessage,
+      deleteLead: removeLead,
       goToNextPage,
       goToPreviousPage,
       importFromSheet,
+      importLegacySheet,
       persistLeadSource,
+      saveLeadEdits,
       selectDataFilter,
       selectSourceFilter,
       selectStatusFilter,
       selectViewTab,
       setDueOnly,
+      startEditingLead,
       toggleAllExpanded,
       toggleImportPanel,
       toggleLeadExpanded,
       toggleSent,
-      updateLeadStatus: changeLeadStatus,
+      updateLeadDraftField,
+      updateLegacySheetUrl,
       updateLeadSourceField,
+      updateLeadStatus: changeLeadStatus,
       updateSearchTerm,
       updateSheetUrl,
     },

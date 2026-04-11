@@ -1,14 +1,17 @@
 import { aiMapColumns } from "../../ai-mapper";
 import { fetchTransactions, searchLocations } from "../../api/bayut";
 import { supabase } from "../../supabase";
-import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
-import { buildMessage, buildRecentTransactions, extractBeds, extractTransactionDate, summarizeTransactions } from "./insight-utils";
-import { cleanBuildingName, createLeadInsertRecord, getBuildingKeyVariants, mapStoredLeadRow, startOfDay } from "./lead-utils";
+import { fetchDldFallbackTransactions } from "./dld";
+import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT, MILLISECONDS_PER_DAY } from "./constants";
+import { buildMessage, buildRecentTransactions, extractTransactionDate, summarizeTransactions } from "./insight-utils";
+import { cleanBuildingName, createLeadInsertRecord, getBuildingKeyVariants, mapStoredLeadRow, sortLeadsByPriority, startOfDay } from "./lead-utils";
 import { buildGoogleCsvUrl, inferMapping, parseCsvText, rowsToObjects } from "./spreadsheet";
 
 const FALLBACK_TRANSACTION_PAGES = 2;
 const FALLBACK_TRANSACTION_LIMIT = 120;
-const fallbackTransactionsCache = new Map();
+const FALLBACK_STALE_DAYS = 10;
+const FALLBACK_FETCH_CONCURRENCY = 4;
+const bayutFallbackTransactionsCache = new Map();
 
 function normalizeToken(value) {
   return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -84,10 +87,23 @@ function toList(payload) {
   return payload.hits || payload.results || payload.transactions || [];
 }
 
-async function fetchFallbackTransactions(buildingName) {
+function isTransactionsStale(transactions) {
+  if (!transactions?.length) return true;
+  const dates = transactions
+    .map((transaction) => extractTransactionDate(transaction))
+    .filter(Boolean);
+  if (!dates.length) return true;
+  const latest = dates.reduce((max, date) => (date > max ? date : max), dates[0]);
+  const today = startOfDay(new Date());
+  const latestDay = startOfDay(latest);
+  const ageDays = Math.floor((today - latestDay) / MILLISECONDS_PER_DAY);
+  return ageDays > FALLBACK_STALE_DAYS;
+}
+
+async function fetchBayutFallbackTransactions(buildingName) {
   const key = normalizeToken(buildingName);
   if (!key) return null;
-  if (fallbackTransactionsCache.has(key)) return fallbackTransactionsCache.get(key);
+  if (bayutFallbackTransactionsCache.has(key)) return bayutFallbackTransactionsCache.get(key);
 
   const task = (async () => {
     try {
@@ -133,16 +149,26 @@ async function fetchFallbackTransactions(buildingName) {
     }
   })();
 
-  fallbackTransactionsCache.set(key, task);
+  bayutFallbackTransactionsCache.set(key, task);
   return task;
 }
 
-function sortLeads(leads) {
-  return leads.sort((left, right) => {
-    if (left.isDue !== right.isDue) return left.isDue ? -1 : 1;
-    if (left.overdueDays !== right.overdueDays) return right.overdueDays - left.overdueDays;
-    return left.rowNumber - right.rowNumber;
+async function populateFallbackTransactions(entries, target, loader, concurrency = FALLBACK_FETCH_CONCURRENCY) {
+  if (!entries.length) return;
+
+  let cursor = 0;
+  const workerCount = Math.min(concurrency, entries.length);
+
+  const workers = Array.from({ length: workerCount }, async () => {
+    while (cursor < entries.length) {
+      const currentIndex = cursor;
+      cursor += 1;
+      const [normalized, name] = entries[currentIndex];
+      target[normalized] = await loader(name);
+    }
   });
+
+  await Promise.all(workers);
 }
 
 function mapStoredTransaction(transactionRow) {
@@ -181,7 +207,7 @@ export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
   const sentMap = {};
   for (const row of sentRows || []) sentMap[row.lead_id] = new Date(row.sent_at).getTime();
 
-  const leads = sortLeads(
+  const leads = sortLeadsByPriority(
     (leadRows || [])
       .map((row, index) => mapStoredLeadRow(row, index, today))
       .filter((lead) => lead.name || lead.building || lead.phone),
@@ -208,6 +234,52 @@ export async function updateLeadStatus({ userId, leadId, status }) {
     .update({ status })
     .eq("user_id", userId)
     .eq("id", leadId);
+  if (error) throw new Error(error.message);
+}
+
+function emptyToNull(value) {
+  const trimmed = String(value ?? "").trim();
+  return trimmed || null;
+}
+
+export async function updateLead({ userId, leadId, updates }) {
+  if (!userId || !leadId) return;
+
+  const payload = {
+    name: emptyToNull(updates?.name),
+    building: emptyToNull(updates?.building),
+    bedroom: emptyToNull(updates?.bedroom),
+    unit: emptyToNull(updates?.unit),
+    phone: emptyToNull(updates?.phone),
+    status: emptyToNull(updates?.status),
+    last_contact: updates?.lastContact ? updates.lastContact : null,
+  };
+
+  const { error } = await supabase
+    .from("leads")
+    .update(payload)
+    .eq("user_id", userId)
+    .eq("id", leadId);
+
+  if (error) throw new Error(error.message);
+}
+
+export async function deleteLead({ userId, leadId }) {
+  if (!userId || !leadId) return;
+
+  const { error: sentDeleteError } = await supabase
+    .from("sent_leads")
+    .delete()
+    .eq("user_id", userId)
+    .eq("lead_id", leadId);
+  if (sentDeleteError) throw new Error(sentDeleteError.message);
+
+  const { error } = await supabase
+    .from("leads")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", leadId);
+
   if (error) throw new Error(error.message);
 }
 
@@ -265,6 +337,80 @@ async function clearLeadsForSource(userId, sourceId) {
   if (leadDeleteError) throw new Error(leadDeleteError.message);
 }
 
+async function clearLegacyLeads(userId) {
+  const { data: legacyRows, error: selectError } = await supabase
+    .from("leads")
+    .select("id")
+    .eq("user_id", userId)
+    .is("source_id", null);
+  if (selectError) throw new Error(selectError.message);
+
+  const legacyIds = (legacyRows || []).map((row) => row.id);
+  if (legacyIds.length) {
+    const { error: sentDeleteError } = await supabase.from("sent_leads").delete().in("lead_id", legacyIds);
+    if (sentDeleteError) throw new Error(sentDeleteError.message);
+  }
+
+  const { error: leadDeleteError } = await supabase
+    .from("leads")
+    .delete()
+    .eq("user_id", userId)
+    .is("source_id", null);
+  if (leadDeleteError) throw new Error(leadDeleteError.message);
+}
+
+export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
+  const sheetUrl = String(rawSheetUrl || "").trim();
+  if (!sheetUrl) throw new Error("Paste a Google Sheet URL first.");
+
+  const csvUrl = buildGoogleCsvUrl(sheetUrl);
+  if (!csvUrl) throw new Error("Invalid Google Sheet URL. Paste the full URL from your browser.");
+
+  let response;
+  try {
+    response = await fetch(csvUrl);
+  } catch {
+    throw new Error("Could not fetch the sheet. Make sure the link is public (Share > Anyone with the link) and paste the full URL or sheet ID.");
+  }
+  if (!response.ok) {
+    throw new Error(`Failed to load sheet (${response.status}). Make sure the sheet is shared publicly or "Anyone with the link".`);
+  }
+
+  const csvText = await response.text();
+  const rawRows = parseCsvText(csvText);
+  const { headers, records } = rowsToObjects(rawRows);
+
+  if (!headers.length) throw new Error("Sheet has no header row.");
+
+  let mapping = inferMapping(headers);
+  if (!(mapping.name && mapping.building)) {
+    mapping = await aiMapColumns(headers, rawRows.slice(0, IMPORT_SAMPLE_ROW_LIMIT));
+  }
+
+  if (!mapping.name && !mapping.building && !mapping.phone) {
+    throw new Error("Could not map any columns. Make sure the sheet has seller names, buildings, or phone numbers.");
+  }
+
+  const leadsToInsert = records
+    .map((record) => createLeadInsertRecord(record, mapping, userId, {
+      sourceId: null,
+      defaultStatus: "Prospect",
+    }))
+    .filter(Boolean);
+
+  if (!leadsToInsert.length) throw new Error("No valid leads found in sheet.");
+
+  await clearLegacyLeads(userId);
+
+  for (let index = 0; index < leadsToInsert.length; index += IMPORT_BATCH_SIZE) {
+    const batch = leadsToInsert.slice(index, index + IMPORT_BATCH_SIZE);
+    const { error } = await supabase.from("leads").insert(batch);
+    if (error) throw new Error(error.message);
+  }
+
+  return { count: leadsToInsert.length };
+}
+
 export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }) {
   const sheetUrl = String(rawSheetUrl || source?.sheet_url || "").trim();
   if (!sheetUrl) throw new Error("Paste a Google Sheet URL first.");
@@ -275,7 +421,7 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
   let response;
   try {
     response = await fetch(csvUrl);
-  } catch (fetchError) {
+  } catch {
     throw new Error("Could not fetch the sheet. Make sure the link is public (Share > Anyone with the link) and paste the full URL or sheet ID.");
   }
   if (!response.ok) {
@@ -369,20 +515,39 @@ export async function fetchLeadInsights(leads) {
     transactionsByBuilding[transaction.building_key].push(mapStoredTransaction(transaction));
   }
 
-  const missingBuildings = new Map();
+  const fallbackCandidates = new Map();
   for (const lead of targets) {
     const cleaned = cleanBuildingName(lead.building);
     const keys = getBuildingKeyVariants(lead.building);
     if (!keys.length) continue;
-    const hasTransactions = keys.some((key) => (transactionsByBuilding[key] || []).length > 0);
-    if (!hasTransactions) missingBuildings.set(normalizeToken(cleaned), cleaned);
+    const baseTransactions = keys.flatMap((key) => transactionsByBuilding[key] || []);
+    if (!baseTransactions.length || isTransactionsStale(baseTransactions)) {
+      fallbackCandidates.set(normalizeToken(cleaned), cleaned);
+    }
   }
 
   const fallbackTransactionsByName = {};
-  if (missingBuildings.size) {
-    await Promise.all([...missingBuildings.entries()].map(async ([normalized, name]) => {
-      fallbackTransactionsByName[normalized] = await fetchFallbackTransactions(name);
-    }));
+  const fallbackEntries = [...fallbackCandidates.entries()];
+  if (fallbackCandidates.size) {
+    try {
+      Object.assign(fallbackTransactionsByName, await fetchDldFallbackTransactions([...fallbackCandidates.values()]));
+    } catch {
+      // DLD is primary, but the browser path can fail on upstream CORS/preflight.
+    }
+
+    const bayutFallbackEntries = fallbackEntries.filter(
+      ([normalized]) => !fallbackTransactionsByName[normalized]?.transactions?.length,
+    );
+
+    await populateFallbackTransactions(bayutFallbackEntries, fallbackTransactionsByName, fetchBayutFallbackTransactions);
+  }
+
+  if (!Object.keys(fallbackTransactionsByName).length && fallbackEntries.length) {
+    await populateFallbackTransactions(
+      fallbackEntries.filter(([normalized]) => !fallbackTransactionsByName[normalized]?.transactions?.length),
+      fallbackTransactionsByName,
+      fetchBayutFallbackTransactions,
+    );
   }
 
   const updates = {};
@@ -395,12 +560,10 @@ export async function fetchLeadInsights(leads) {
     const building = matchedKey ? buildingLookup[matchedKey] : null;
     let allTransactions = matchedKey ? (transactionsByBuilding[matchedKey] || []) : [];
     let locationName = building?.location_name || cleaned;
-    if (!allTransactions.length) {
-      const fallback = fallbackTransactionsByName[normalizeToken(cleaned)];
-      if (fallback?.transactions?.length) {
-        allTransactions = fallback.transactions;
-        locationName = fallback.locationName || locationName;
-      }
+    const fallback = fallbackTransactionsByName[normalizeToken(cleaned)];
+    if ((!allTransactions.length || isTransactionsStale(allTransactions)) && fallback?.transactions?.length) {
+      allTransactions = fallback.transactions;
+      locationName = fallback.locationName || locationName;
     }
 
     if (!allTransactions.length) {
@@ -412,14 +575,7 @@ export async function fetchLeadInsights(leads) {
       continue;
     }
 
-    let filteredTransactions = allTransactions;
-    if (Array.isArray(lead.bedFilterValues) && lead.bedFilterValues.length) {
-      const bedroomMatches = allTransactions.filter((transaction) => {
-        const beds = extractBeds(transaction);
-        return beds !== null && lead.bedFilterValues.includes(beds);
-      });
-      if (bedroomMatches.length) filteredTransactions = bedroomMatches;
-    }
+    const filteredTransactions = allTransactions;
 
     const metrics = summarizeTransactions(filteredTransactions);
     const recentTransactions = buildRecentTransactions(filteredTransactions, locationName);

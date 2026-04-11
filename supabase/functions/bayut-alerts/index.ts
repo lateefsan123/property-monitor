@@ -11,7 +11,7 @@ const PAGE_SIZE = 25;
 const MAX_PAGES = 20;
 const MAX_LISTINGS_PER_BUILDING = 500;
 const MAX_SEARCH_RESULTS = 8;
-const MAX_WATCHED_BUILDINGS = 4;
+const MAX_WATCHED_BUILDINGS = 1000;
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {

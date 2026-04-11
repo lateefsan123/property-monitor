@@ -7,6 +7,16 @@ export function startOfDay(dateValue) {
   return date;
 }
 
+export function formatDateInputValue(dateValue) {
+  const date = dateValue instanceof Date ? dateValue : parseDateValue(dateValue);
+  if (!date) return "";
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function addDays(dateValue, days) {
   const date = startOfDay(dateValue);
   date.setDate(date.getDate() + days);
@@ -86,6 +96,62 @@ export function cleanBuildingName(raw) {
     .trim();
 
   return name || String(raw || "").trim();
+}
+
+function expandBoulevard(value) {
+  return String(value || "").replace(/\bblvd\b\.?/gi, "Boulevard");
+}
+
+function compressBoulevard(value) {
+  return String(value || "").replace(/\bboulevard\b/gi, "Blvd");
+}
+
+export function formatBuildingLabel(raw) {
+  if (!raw) return "";
+  const cleaned = cleanBuildingName(raw);
+  if (!cleaned) return "";
+  return expandBoulevard(cleaned);
+}
+
+export function getBuildingKeyVariants(raw) {
+  const cleaned = cleanBuildingName(raw);
+  if (!cleaned) return [];
+
+  const numberMap = {
+    one: "1",
+    two: "2",
+    three: "3",
+    four: "4",
+    five: "5",
+    six: "6",
+    seven: "7",
+    eight: "8",
+    nine: "9",
+    ten: "10",
+  };
+
+  const replaceNumberWords = (value) => {
+    let next = String(value || "");
+    for (const [word, digit] of Object.entries(numberMap)) {
+      next = next.replace(new RegExp(`\\b${word}\\b`, "gi"), digit);
+    }
+    return next;
+  };
+
+  const variants = new Set();
+  const addVariant = (value) => {
+    const normalized = normalizeToken(value);
+    if (normalized) variants.add(normalized);
+  };
+
+  addVariant(cleaned);
+  addVariant(replaceNumberWords(cleaned));
+  addVariant(expandBoulevard(cleaned));
+  addVariant(replaceNumberWords(expandBoulevard(cleaned)));
+  addVariant(compressBoulevard(cleaned));
+  addVariant(replaceNumberWords(compressBoulevard(cleaned)));
+
+  return [...variants].filter(Boolean);
 }
 
 function parseBedroom(rawValue) {
@@ -201,10 +267,68 @@ export function mapStoredLeadRow(row, index, today) {
 
   const lead = mapLeadRow(record, index, mapping, today);
   lead.id = row.id;
+  lead.sourceId = row.source_id || null;
   return lead;
 }
 
-export function createLeadInsertRecord(record, mapping, userId) {
+export function sortLeadsByPriority(leads) {
+  return [...(leads || [])].sort((left, right) => {
+    if (left.isDue !== right.isDue) return left.isDue ? -1 : 1;
+    if (left.overdueDays !== right.overdueDays) return right.overdueDays - left.overdueDays;
+
+    const leftRow = Number(left.rowNumber ?? left.id ?? 0);
+    const rightRow = Number(right.rowNumber ?? right.id ?? 0);
+    return leftRow - rightRow;
+  });
+}
+
+function buildDerivedLead(lead, overrides = {}, today = new Date()) {
+  const currentLastContact = lead.lastContactRaw ?? (
+    lead.lastContactDate ? formatDateInputValue(lead.lastContactDate) : ""
+  );
+  const record = {
+    __row: lead.rowNumber || lead.id || 0,
+    _name: overrides.name ?? lead.name ?? "",
+    _building: overrides.building ?? lead.building ?? "",
+    _bedroom: overrides.bedroom ?? lead.bedroom ?? "",
+    _status: overrides.status ?? lead.status ?? "",
+    _lastContact: overrides.lastContact ?? currentLastContact,
+    _phone: overrides.phone ?? lead.phone ?? "",
+    _unit: overrides.unit ?? lead.unit ?? "",
+  };
+
+  const mapping = {
+    name: "_name",
+    building: "_building",
+    bedroom: "_bedroom",
+    status: "_status",
+    lastContact: "_lastContact",
+    phone: "_phone",
+    unit: "_unit",
+  };
+
+  const updated = mapLeadRow(record, 0, mapping, today);
+  updated.id = lead.id;
+  updated.rowNumber = lead.rowNumber;
+  updated.sourceId = lead.sourceId || null;
+  return updated;
+}
+
+export function applyLeadStatus(lead, nextStatus, today = new Date()) {
+  return buildDerivedLead(lead, { status: nextStatus }, today);
+}
+
+export function applyLeadEdits(lead, nextValues, today = new Date()) {
+  return buildDerivedLead(lead, nextValues, today);
+}
+
+export function createLeadInsertRecord(record, mapping, userId, options = {}) {
+  const {
+    sourceId = null,
+    defaultStatus = null,
+    defaultBuilding = null,
+    overrideBuilding = false,
+  } = options;
   const name = mapping.name ? record[mapping.name] : "";
   const building = mapping.building ? record[mapping.building] : "";
   const bedroom = mapping.bedroom ? record[mapping.bedroom] : "";
@@ -213,19 +337,23 @@ export function createLeadInsertRecord(record, mapping, userId) {
   const phone = mapping.phone ? record[mapping.phone] : "";
   const unit = mapping.unit ? record[mapping.unit] : "";
 
-  if (!name && !building && !phone) return null;
+  const resolvedBuilding = overrideBuilding ? (defaultBuilding || "") : (building || defaultBuilding || "");
+  const resolvedStatus = status || defaultStatus || "";
+
+  if (!name && !resolvedBuilding && !phone) return null;
 
   const lastContactDate = parseDateValue(lastContactRaw);
 
   return {
     user_id: userId,
     name: name || null,
-    building: building || null,
+    building: resolvedBuilding || null,
     bedroom: bedroom || null,
     unit: unit || null,
     phone: phone || null,
-    status: status || null,
+    status: resolvedStatus || null,
     last_contact: lastContactDate ? lastContactDate.toISOString().split("T")[0] : null,
+    source_id: sourceId,
   };
 }
 

@@ -30,6 +30,7 @@ export function filterLeads({
   insights,
   searchTerm,
   showDueOnly,
+  sourceFilter,
   statusFilter,
   viewTab,
 }) {
@@ -44,6 +45,10 @@ export function filterLeads({
     result = result.filter((lead) => insights[lead.id]?.status === "ready");
   } else if (dataFilter === "no_data") {
     result = result.filter((lead) => insights[lead.id]?.status !== "ready");
+  }
+
+  if (sourceFilter && sourceFilter !== "all") {
+    result = result.filter((lead) => lead.sourceId === sourceFilter);
   }
 
   if (searchTerm.trim()) {
