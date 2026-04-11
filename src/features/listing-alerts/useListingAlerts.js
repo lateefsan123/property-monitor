@@ -11,6 +11,7 @@ import {
   parseSelectedListingKeys,
   SELECTED_LISTINGS_KEY,
   WATCHED_BUILDINGS_KEY,
+  WATCHED_BUILDINGS_SNAPSHOT_KEY,
 } from "./change-detection";
 
 const DEFAULT_SUGGESTION_COUNT = 8;
@@ -405,6 +406,7 @@ export function useListingAlerts() {
         const rawWatchlist = safeGetItem(WATCHED_BUILDINGS_KEY);
         const rawAlertState = safeGetItem(LISTING_ALERTS_STATE_KEY);
         const rawSelectedListings = safeGetItem(SELECTED_LISTINGS_KEY);
+        const rawWatchedSnapshot = safeGetItem(WATCHED_BUILDINGS_SNAPSHOT_KEY);
         if (!isActive) return;
 
         let initialWatchedItems = [];
@@ -413,6 +415,17 @@ export function useListingAlerts() {
           if (Array.isArray(parsedWatchlist)) {
             initialWatchedItems = uniqueWatchedItems(parsedWatchlist, feedBuildings);
             setWatchedItems(initialWatchedItems);
+          }
+        }
+
+        if (rawWatchedSnapshot) {
+          try {
+            const parsedSnapshot = JSON.parse(rawWatchedSnapshot);
+            if (Array.isArray(parsedSnapshot) && parsedSnapshot.length) {
+              setWatchedBuildingsRemote(parsedSnapshot);
+            }
+          } catch {
+            safeRemoveItem(WATCHED_BUILDINGS_SNAPSHOT_KEY);
           }
         }
 
@@ -494,11 +507,11 @@ export function useListingAlerts() {
       setChangeState(emptyState);
       changeStateRef.current = emptyState;
       safeRemoveItem(LISTING_ALERTS_STATE_KEY);
+      safeRemoveItem(WATCHED_BUILDINGS_SNAPSHOT_KEY);
       return;
     }
 
     if (localWatchedBuildingsQuery.error) {
-      setWatchedBuildingsRemote([]);
       setWatchError(getErrorMessage(localWatchedBuildingsQuery.error));
       return;
     }
@@ -519,6 +532,7 @@ export function useListingAlerts() {
     setChangeState(nextChangeState);
     changeStateRef.current = nextChangeState;
     safeSetItem(LISTING_ALERTS_STATE_KEY, JSON.stringify(nextChangeState));
+    safeSetItem(WATCHED_BUILDINGS_SNAPSHOT_KEY, JSON.stringify(normalizedBuildings));
   }, [hydrated, localWatchedBuildingsQuery.data, localWatchedBuildingsQuery.error, remoteEnabled, watchedItems]);
 
   const buildingMap = useMemo(() => {
@@ -755,6 +769,7 @@ export function useListingAlerts() {
       setChangeState(emptyState);
       changeStateRef.current = emptyState;
       safeRemoveItem(LISTING_ALERTS_STATE_KEY);
+      safeRemoveItem(WATCHED_BUILDINGS_SNAPSHOT_KEY);
     } else {
       rebuildChangeState(nextSelectedListingKeys, nextWatchedItems);
     }

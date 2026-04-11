@@ -1,6 +1,7 @@
 export const WATCHED_BUILDINGS_KEY = "@listing_alerts_watched_buildings_v2";
 export const LISTING_ALERTS_STATE_KEY = "@listing_alerts_state_v1";
 export const SELECTED_LISTINGS_KEY = "@listing_alerts_selected_listings_v1";
+export const WATCHED_BUILDINGS_SNAPSHOT_KEY = "@listing_alerts_watched_snapshot_v1";
 
 const MAX_HISTORY_EVENTS = 12;
 

@@ -527,8 +527,8 @@ export default function ListingAlertsPage() {
     }
     if (selectedSearchBuilding) return [selectedSearchBuilding];
     if (alerts.usingLiveSearch) return searchOptions;
-    return [...(alerts.watchedBuildings || []), ...(alerts.popularBuildings || [])];
-  }, [alerts.popularBuildings, alerts.usingLiveSearch, alerts.watchedBuildings, searchOptions, selectedSearchBuilding, watchingOnly]);
+    return alerts.watchedBuildings || [];
+  }, [alerts.usingLiveSearch, alerts.watchedBuildings, searchOptions, selectedSearchBuilding, watchingOnly]);
 
   const listings = useMemo(() => {
     let source = [];
