@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import FiltersToolbar from "./components/FiltersToolbar";
-import LeadSourcesPanel from "./components/LeadSourcesPanel";
 import LeadCard from "./components/LeadCard";
+import LeadModal from "./components/LeadModal";
 import Pagination from "./components/Pagination";
 import StickyActionBar from "./components/StickyActionBar";
 import ViewTabs from "./components/ViewTabs";
@@ -48,40 +48,42 @@ export default function SellerSignalDashboard({ userId }) {
   return (
     <div className="page">
       <ViewTabs
-        activeCount={dashboard.activeLeads.length}
-        doneCount={dashboard.doneLeads.length}
         onChange={dashboard.actions.selectViewTab}
         value={dashboard.viewTab}
       />
 
       {dashboard.error && <div className="error">{dashboard.error}</div>}
 
-      <LeadSourcesPanel
-        sources={dashboard.leadSources}
-        leadCounts={dashboard.sourceCounts}
-        importingSourceId={dashboard.importingSourceId}
-        onImport={dashboard.actions.importFromSheet}
-        onSourceChange={dashboard.actions.updateLeadSourceField}
-        onSourceSave={dashboard.actions.persistLeadSource}
-        legacySheetUrl={dashboard.legacySheetUrl}
-        importingLegacy={dashboard.importingLegacy}
-        onLegacyUrlChange={dashboard.actions.updateLegacySheetUrl}
-        onLegacyImport={dashboard.actions.importLegacySheet}
-      />
+      {dashboard.sourceOptions?.length > 0 && (
+        <div className="source-tabs">
+          <button
+            type="button"
+            className={`source-tab${dashboard.sourceFilter === "all" ? " active" : ""}`}
+            onClick={() => dashboard.actions.selectSourceFilter("all")}
+          >
+            All
+          </button>
+          {dashboard.sourceOptions.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              className={`source-tab${dashboard.sourceFilter === option.id ? " active" : ""}`}
+              onClick={() => dashboard.actions.selectSourceFilter(option.id)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      )}
 
       <FiltersToolbar
         dataFilter={dashboard.dataFilter}
         isAllExpanded={dashboard.isAllExpanded}
         onDataFilterChange={dashboard.actions.selectDataFilter}
         onSearchTermChange={dashboard.actions.updateSearchTerm}
-        onSourceFilterChange={dashboard.actions.selectSourceFilter}
         onStatusFilterChange={dashboard.actions.selectStatusFilter}
         onToggleAllExpanded={dashboard.actions.toggleAllExpanded}
-        onToggleDueOnly={dashboard.actions.setDueOnly}
         searchTerm={dashboard.searchTerm}
-        showDueOnly={dashboard.showDueOnly}
-        sourceFilter={dashboard.sourceFilter}
-        sourceOptions={dashboard.sourceOptions}
         statusFilter={dashboard.statusFilter}
       />
 
@@ -96,36 +98,61 @@ export default function SellerSignalDashboard({ userId }) {
         <>
           <p className="count-text">{dashboard.filteredLeads.length} leads</p>
 
-          <div className="lead-list">
-            {dashboard.pagedLeads.map((lead) => (
-              <LeadCard
-                key={lead.id}
-                buildingImageUrl={(() => {
-                  if (!lead.sourceId) return undefined;
-                  const match = getBuildingKeyVariants(lead.building).find((key) => buildingImages[key]);
-                  return match ? buildingImages[match] : undefined;
-                })()}
+          <div className="lead-table-wrap">
+            <table className="lead-table">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Building</th>
+                  <th>Bed</th>
+                  <th>Unit</th>
+                  <th>Status</th>
+                  <th>Phone</th>
+                  <th>Contact</th>
+                </tr>
+              </thead>
+              <tbody>
+                {dashboard.pagedLeads.map((lead) => (
+                  <LeadCard
+                    key={lead.id}
+                    copiedLeadId={dashboard.copiedLeadId}
+                    insight={dashboard.insights[lead.id]}
+                    isSent={Boolean(dashboard.sentLeads[lead.id])}
+                    lead={lead}
+                    onCopyMessage={dashboard.actions.copyMessage}
+                    onToggleExpanded={dashboard.actions.toggleLeadExpanded}
+                    onToggleSent={dashboard.actions.toggleSent}
+                  />
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {(() => {
+            const modalLead = dashboard.pagedLeads.find((l) => dashboard.expandedLeads[l.id]);
+            if (!modalLead) return null;
+            return (
+              <LeadModal
                 copiedLeadId={dashboard.copiedLeadId}
-                editDraft={dashboard.editingLeadId === lead.id ? dashboard.editingLeadDraft : null}
-                insight={dashboard.insights[lead.id]}
-                isDeleting={dashboard.deletingLeadId === lead.id}
-                isEditing={dashboard.editingLeadId === lead.id}
-                isExpanded={Boolean(dashboard.expandedLeads[lead.id])}
-                isSaving={dashboard.savingLeadId === lead.id}
-                isSent={Boolean(dashboard.sentLeads[lead.id])}
-                lead={lead}
+                editDraft={dashboard.editingLeadId === modalLead.id ? dashboard.editingLeadDraft : null}
+                insight={dashboard.insights[modalLead.id]}
+                isDeleting={dashboard.deletingLeadId === modalLead.id}
+                isEditing={dashboard.editingLeadId === modalLead.id}
+                isSaving={dashboard.savingLeadId === modalLead.id}
+                isSent={Boolean(dashboard.sentLeads[modalLead.id])}
+                lead={modalLead}
                 onCancelEditing={dashboard.actions.cancelEditingLead}
+                onClose={() => dashboard.actions.toggleLeadExpanded(modalLead.id)}
                 onCopyMessage={dashboard.actions.copyMessage}
                 onDelete={dashboard.actions.deleteLead}
                 onEditFieldChange={dashboard.actions.updateLeadDraftField}
                 onSaveEdit={dashboard.actions.saveLeadEdits}
                 onStartEditing={dashboard.actions.startEditingLead}
-                onToggleExpanded={dashboard.actions.toggleLeadExpanded}
                 onToggleSent={dashboard.actions.toggleSent}
                 onUpdateStatus={dashboard.actions.updateLeadStatus}
               />
-            ))}
-          </div>
+            );
+          })()}
 
           <Pagination
             currentPage={dashboard.safePage}

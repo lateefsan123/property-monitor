@@ -17,15 +17,18 @@ If you are developing a production application, we recommend using TypeScript wi
 
 ## Daily GitHub Action
 
-This repo includes `.github/workflows/daily-enrichment.yml` to run Bayut enrichment every day.
+This repo includes `.github/workflows/daily-enrichment.yml` to refresh the Bayut transaction cache in Supabase every day from a canonical building registry and generate the enrichment report.
 
 ### Required secret
 
 - `RAPIDAPI_KEY`: your RapidAPI key for `uae-real-estate2`.
+- `SUPABASE_SERVICE_ROLE_KEY`: used by the daily Bayut cache refresh to upsert buildings and transactions.
 
 ### Optional repository variables
 
-- `SHEET_URL`: custom Google Sheets CSV export URL.
+- `BUILDINGS_FILE`: optional path to a custom building registry JSON file. Defaults to `public/data/downtown-dubai-building-registry.json`.
+- `SHEET_URL`: legacy Google Sheets CSV export URL fallback if a registry file is not available.
+- `BAYUT_MONTH_WINDOW`: rolling transaction window for the daily cache refresh. Defaults to `6`.
 - `ENRICH_GROUP_LIMIT`: set to `0` for all groups, or a positive number for a test subset.
 - `REQUEST_DELAY_MS`: delay between API calls (default handled by script).
 - `REQUEST_RETRIES`: retry count for API failures.

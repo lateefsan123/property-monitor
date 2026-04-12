@@ -29,13 +29,12 @@ export function filterLeads({
   dataFilter,
   insights,
   searchTerm,
-  showDueOnly,
   sourceFilter,
   statusFilter,
   viewTab,
 }) {
   const baseLeads = viewTab === "done" ? doneLeads : activeLeads;
-  let result = showDueOnly ? baseLeads.filter((lead) => lead.isDue) : baseLeads;
+  let result = baseLeads;
 
   if (sourceFilter && sourceFilter !== "all") {
     if (sourceFilter === "legacy") {

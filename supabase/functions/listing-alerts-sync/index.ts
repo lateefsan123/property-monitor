@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCachedListings, setCachedListings } from "../_shared/listing-cache.ts";
 import {
   buildListingAlertsState,
   createEmptyListingAlertsState,
@@ -14,8 +15,8 @@ const corsHeaders = {
 const API_HOST = "uae-real-estate2.p.rapidapi.com";
 const BASE_URL = `https://${API_HOST}`;
 const PAGE_SIZE = 25;
-const MAX_PAGES = 20;
-const MAX_LISTINGS_PER_BUILDING = 500;
+const MAX_PAGES = 7;
+const MAX_LISTINGS_PER_BUILDING = 175;
 const MAX_WATCHED_BUILDINGS = 1000;
 const TRACK_ALL_LISTINGS = true;
 
@@ -209,7 +210,14 @@ async function syncUser({
   const currentBuildings = [];
   for (const location of watchedItems) {
     try {
-      currentBuildings.push(await fetchListingsForLocation(location, apiKey));
+      const cached = await getCachedListings(supabaseAdmin, location.locationId);
+      if (cached) {
+        currentBuildings.push(cached);
+        continue;
+      }
+      const building = await fetchListingsForLocation(location, apiKey);
+      await setCachedListings(supabaseAdmin, building);
+      currentBuildings.push(building);
     } catch (error) {
       currentBuildings.push(buildEmptyBuilding(location, (error as Error).message));
     }

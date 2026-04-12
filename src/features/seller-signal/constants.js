@@ -24,16 +24,14 @@ export const COLUMN_ALIASES = {
 };
 
 export const STATUS_FILTER_OPTIONS = [
-  { id: "all", label: "All" },
   { id: "prospect", label: "Prospect" },
   { id: "market_appraisal", label: "Appraisal" },
   { id: "for_sale_available", label: "For Sale" },
 ];
 
 export const DATA_FILTER_OPTIONS = [
-  { id: "all", label: "All" },
-  { id: "with_data", label: "Has Data" },
-  { id: "no_data", label: "No Data" },
+  { id: "with_data", label: "Market Data" },
+  { id: "no_data", label: "No Market Data" },
 ];
 
 export const VIEW_TAB_OPTIONS = [

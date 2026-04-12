@@ -1,4 +1,4 @@
-import { useDeferredValue, useMemo, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { WHATSAPP_OPEN_DELAY_MS } from "./constants";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
@@ -114,6 +114,7 @@ function updateLeadsCache(queryClient, userId, updater) {
 export function useSellerSignalPage(userId) {
   const queryClient = useQueryClient();
   const legacySheetStorageKey = userId ? `seller-signal:legacy-sheet-url:${userId}` : null;
+  const sourceFilterStorageKey = userId ? `seller-signal:source-filter:${userId}` : null;
   const [actionError, setActionError] = useState(null);
   const [importing, setImporting] = useState(false);
   const [importingSourceId, setImportingSourceId] = useState(null);
@@ -122,16 +123,18 @@ export function useSellerSignalPage(userId) {
     if (typeof window === "undefined" || !legacySheetStorageKey) return "";
     return window.localStorage.getItem(legacySheetStorageKey) || "";
   });
-  const [showDueOnly, setShowDueOnly] = useState(true);
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [sourceFilter, setSourceFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("prospect");
+  const [sourceFilter, setSourceFilter] = useState(() => {
+    if (typeof window === "undefined" || !sourceFilterStorageKey) return "all";
+    return window.localStorage.getItem(sourceFilterStorageKey) || "all";
+  });
   const [currentPage, setCurrentPage] = useState(1);
   const [sheetUrl, setSheetUrl] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [viewTab, setViewTab] = useState("active");
-  const [dataFilter, setDataFilter] = useState("all");
+  const [dataFilter, setDataFilter] = useState("with_data");
   const [expandedLeads, setExpandedLeads] = useState({});
   const [editingLeadId, setEditingLeadId] = useState(null);
   const [editingLeadDraft, setEditingLeadDraft] = useState(null);
@@ -180,6 +183,24 @@ export function useSellerSignalPage(userId) {
     [hasLegacyLeads, leadSources, sourceFilter],
   );
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (!sourceFilterStorageKey) {
+      setSourceFilter("all");
+      return;
+    }
+    setSourceFilter(window.localStorage.getItem(sourceFilterStorageKey) || "all");
+  }, [sourceFilterStorageKey]);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !sourceFilterStorageKey) return;
+    if (effectiveSourceFilter === "all") {
+      window.localStorage.removeItem(sourceFilterStorageKey);
+      return;
+    }
+    window.localStorage.setItem(sourceFilterStorageKey, effectiveSourceFilter);
+  }, [effectiveSourceFilter, sourceFilterStorageKey]);
+
   const insightTargets = useMemo(
     () => leads.filter((lead) => lead.building).map(buildInsightTarget),
     [leads],
@@ -225,10 +246,22 @@ export function useSellerSignalPage(userId) {
     return {};
   }, [insightTargets, insightsQuery.data, insightsQuery.error, insightsQuery.isFetching]);
 
-  const { activeLeads, doneLeads } = useMemo(
+  const { activeLeads: allActiveLeads, doneLeads: allDoneLeads } = useMemo(
     () => splitLeadsBySentStatus(leads, sentLeads, insights),
     [insights, leads, sentLeads],
   );
+
+  const activeLeads = useMemo(() => {
+    if (!effectiveSourceFilter || effectiveSourceFilter === "all") return allActiveLeads;
+    if (effectiveSourceFilter === LEGACY_SOURCE_ID) return allActiveLeads.filter((lead) => !lead.sourceId);
+    return allActiveLeads.filter((lead) => lead.sourceId === effectiveSourceFilter);
+  }, [allActiveLeads, effectiveSourceFilter]);
+
+  const doneLeads = useMemo(() => {
+    if (!effectiveSourceFilter || effectiveSourceFilter === "all") return allDoneLeads;
+    if (effectiveSourceFilter === LEGACY_SOURCE_ID) return allDoneLeads.filter((lead) => !lead.sourceId);
+    return allDoneLeads.filter((lead) => lead.sourceId === effectiveSourceFilter);
+  }, [allDoneLeads, effectiveSourceFilter]);
 
   const filteredLeads = useMemo(
     () =>
@@ -238,12 +271,11 @@ export function useSellerSignalPage(userId) {
         dataFilter,
         insights,
         searchTerm: deferredSearchTerm,
-        showDueOnly,
         sourceFilter: effectiveSourceFilter,
         statusFilter,
         viewTab,
       }),
-    [activeLeads, dataFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, showDueOnly, statusFilter, viewTab],
+    [activeLeads, dataFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, statusFilter, viewTab],
   );
 
   const { totalPages, safePage, pagedLeads } = useMemo(
@@ -324,10 +356,6 @@ export function useSellerSignalPage(userId) {
     resetPaging();
   }
 
-  function setDueOnly(value) {
-    setShowDueOnly(value);
-    resetPaging();
-  }
 
   function selectViewTab(value) {
     setViewTab(value);
@@ -662,7 +690,6 @@ export function useSellerSignalPage(userId) {
     sendAllCount,
     sentLeads,
     sheetUrl,
-    showDueOnly,
     showImport,
     sourceCounts,
     sourceFilter: effectiveSourceFilter,
@@ -685,7 +712,6 @@ export function useSellerSignalPage(userId) {
       selectSourceFilter,
       selectStatusFilter,
       selectViewTab,
-      setDueOnly,
       startEditingLead,
       toggleAllExpanded,
       toggleImportPanel,

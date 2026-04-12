@@ -1,171 +1,9 @@
 import { aiMapColumns } from "../../ai-mapper";
-import { fetchTransactions, searchLocations } from "../../api/bayut";
 import { supabase } from "../../supabase";
-import { fetchDldFallbackTransactions } from "./dld";
-import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT, MILLISECONDS_PER_DAY } from "./constants";
+import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
 import { buildMessage, buildRecentTransactions, extractBeds, extractTransactionDate, summarizeTransactions } from "./insight-utils";
 import { cleanBuildingName, createLeadInsertRecord, getBuildingKeyVariants, mapStoredLeadRow, sortLeadsByPriority, startOfDay } from "./lead-utils";
-import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToObjects } from "./spreadsheet";
-
-const FALLBACK_TRANSACTION_PAGES = 2;
-const FALLBACK_TRANSACTION_LIMIT = 120;
-const FALLBACK_STALE_DAYS = 10;
-const FALLBACK_FETCH_CONCURRENCY = 4;
-const bayutFallbackTransactionsCache = new Map();
-
-function expandBoulevard(value) {
-  return String(value || "").replace(/\bblvd\b\.?/gi, "Boulevard");
-}
-
-function replaceNumberWords(value) {
-  const numberMap = {
-    one: "1",
-    two: "2",
-    three: "3",
-    four: "4",
-    five: "5",
-    six: "6",
-    seven: "7",
-    eight: "8",
-    nine: "9",
-    ten: "10",
-  };
-  let next = String(value || "");
-  for (const [word, digit] of Object.entries(numberMap)) {
-    next = next.replace(new RegExp(`\\b${word}\\b`, "gi"), digit);
-  }
-  return next;
-}
-
-function buildSearchVariants(name) {
-  const cleaned = cleanBuildingName(name);
-  const variants = new Set();
-  const add = (value) => {
-    const trimmed = String(value || "").trim();
-    if (trimmed) variants.add(trimmed);
-  };
-  add(cleaned);
-  add(expandBoulevard(cleaned));
-  add(replaceNumberWords(cleaned));
-  add(replaceNumberWords(expandBoulevard(cleaned)));
-  return [...variants];
-}
-
-function extractLocationName(location) {
-  return location?.name || location?.title || location?.name_l1 || "Unknown";
-}
-
-function extractFullPath(location) {
-  return location?.full_name
-    || location?.path
-    || (Array.isArray(location?.location) ? location.location.join(" | ") : "")
-    || "";
-}
-
-function scoreLocation(location, query) {
-  const target = normalizeToken(query);
-  const name = extractLocationName(location);
-  const fullPath = extractFullPath(location);
-  const normalizedName = normalizeToken(name);
-  const normalizedFullPath = normalizeToken(fullPath);
-
-  let score = 0;
-  if (normalizedName === target) score += 120;
-  if (normalizedName.includes(target) || target.includes(normalizedName)) score += 70;
-  if (normalizedFullPath.includes(target)) score += 35;
-  score += Math.max(0, 20 - Math.abs(name.length - query.length));
-  return score;
-}
-
-function toList(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (!payload) return [];
-  return payload.hits || payload.results || payload.transactions || [];
-}
-
-function isTransactionsStale(transactions) {
-  if (!transactions?.length) return true;
-  const dates = transactions
-    .map((transaction) => extractTransactionDate(transaction))
-    .filter(Boolean);
-  if (!dates.length) return true;
-  const latest = dates.reduce((max, date) => (date > max ? date : max), dates[0]);
-  const today = startOfDay(new Date());
-  const latestDay = startOfDay(latest);
-  const ageDays = Math.floor((today - latestDay) / MILLISECONDS_PER_DAY);
-  return ageDays > FALLBACK_STALE_DAYS;
-}
-
-async function fetchBayutFallbackTransactions(buildingName) {
-  const key = normalizeToken(buildingName);
-  if (!key) return null;
-  if (bayutFallbackTransactionsCache.has(key)) return bayutFallbackTransactionsCache.get(key);
-
-  const task = (async () => {
-    try {
-      const variants = buildSearchVariants(buildingName);
-      let bestLocation = null;
-      for (const variant of variants) {
-        const payload = await searchLocations(variant);
-        const locations = toList(payload);
-        if (!locations.length) continue;
-        const scored = locations
-          .map((location) => ({ location, score: scoreLocation(location, variant) }))
-          .sort((left, right) => right.score - left.score);
-        bestLocation = scored[0]?.location || null;
-        if (bestLocation) break;
-      }
-
-      const locationId = bestLocation?.id || bestLocation?.externalID || bestLocation?.location_id || null;
-      if (!locationId) return null;
-
-      const allTransactions = [];
-      for (let page = 0; page < FALLBACK_TRANSACTION_PAGES; page += 1) {
-        const payload = await fetchTransactions({
-          locationIds: [locationId],
-          page,
-          purpose: "for-sale",
-          category: "residential",
-          completionStatus: "completed",
-          sortBy: "date",
-          order: "desc",
-        });
-        const results = toList(payload);
-        if (!results.length) break;
-        allTransactions.push(...results);
-        if (allTransactions.length >= FALLBACK_TRANSACTION_LIMIT) break;
-      }
-
-      return {
-        locationName: extractLocationName(bestLocation),
-        transactions: allTransactions.slice(0, FALLBACK_TRANSACTION_LIMIT),
-      };
-    } catch {
-      return null;
-    }
-  })();
-
-  bayutFallbackTransactionsCache.set(key, task);
-  return task;
-}
-
-async function populateFallbackTransactions(entries, target, loader, concurrency = FALLBACK_FETCH_CONCURRENCY) {
-  if (!entries.length) return;
-
-  let cursor = 0;
-  const workerCount = Math.min(concurrency, entries.length);
-
-  const workers = Array.from({ length: workerCount }, async () => {
-    while (cursor < entries.length) {
-      const currentIndex = cursor;
-      cursor += 1;
-      const [normalized, name] = entries[currentIndex];
-      target[normalized] = await loader(name);
-    }
-  });
-
-  await Promise.all(workers);
-}
+import { buildGoogleCsvUrl, inferMapping, parseCsvText, rowsToObjects } from "./spreadsheet";
 
 function mapStoredTransaction(transactionRow) {
   return {
@@ -440,41 +278,6 @@ export async function fetchLeadInsights(leads) {
     transactionsByBuilding[transaction.building_key].push(mapStoredTransaction(transaction));
   }
 
-  const fallbackCandidates = new Map();
-  for (const lead of targets) {
-    const cleaned = cleanBuildingName(lead.building);
-    const keys = getBuildingKeyVariants(lead.building);
-    if (!keys.length) continue;
-    const baseTransactions = keys.flatMap((key) => transactionsByBuilding[key] || []);
-    if (!baseTransactions.length || isTransactionsStale(baseTransactions)) {
-      fallbackCandidates.set(normalizeToken(cleaned), cleaned);
-    }
-  }
-
-  const fallbackTransactionsByName = {};
-  const fallbackEntries = [...fallbackCandidates.entries()];
-  if (fallbackCandidates.size) {
-    try {
-      Object.assign(fallbackTransactionsByName, await fetchDldFallbackTransactions([...fallbackCandidates.values()]));
-    } catch {
-      // Keep Bayut as a mobile-safe fallback if DLD is unavailable.
-    }
-
-    const bayutFallbackEntries = fallbackEntries.filter(
-      ([normalized]) => !fallbackTransactionsByName[normalized]?.transactions?.length,
-    );
-
-    await populateFallbackTransactions(bayutFallbackEntries, fallbackTransactionsByName, fetchBayutFallbackTransactions);
-  }
-
-  if (!Object.keys(fallbackTransactionsByName).length && fallbackEntries.length) {
-    await populateFallbackTransactions(
-      fallbackEntries.filter(([normalized]) => !fallbackTransactionsByName[normalized]?.transactions?.length),
-      fallbackTransactionsByName,
-      fetchBayutFallbackTransactions,
-    );
-  }
-
   const updates = {};
   let matched = 0;
 
@@ -483,14 +286,8 @@ export async function fetchLeadInsights(leads) {
     const keys = getBuildingKeyVariants(lead.building);
     const matchedKey = keys.find((key) => buildingLookup[key]) || keys[0];
     const building = matchedKey ? buildingLookup[matchedKey] : null;
-    let allTransactions = matchedKey ? (transactionsByBuilding[matchedKey] || []) : [];
-    let locationName = building?.location_name || cleaned;
-    const fallback = fallbackTransactionsByName[normalizeToken(cleaned)];
-
-    if ((!allTransactions.length || isTransactionsStale(allTransactions)) && fallback?.transactions?.length) {
-      allTransactions = fallback.transactions;
-      locationName = fallback.locationName || locationName;
-    }
+    const allTransactions = matchedKey ? (transactionsByBuilding[matchedKey] || []) : [];
+    const locationName = building?.location_name || cleaned;
 
     if (!allTransactions.length) {
       updates[lead.id] = {
