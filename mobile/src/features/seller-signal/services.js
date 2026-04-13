@@ -3,7 +3,7 @@ import { supabase } from "../../supabase";
 import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
 import { buildMessage, buildRecentTransactions, extractBeds, extractTransactionDate, summarizeTransactions } from "./insight-utils";
 import { cleanBuildingName, createLeadInsertRecord, getBuildingKeyVariants, mapStoredLeadRow, sortLeadsByPriority, startOfDay } from "./lead-utils";
-import { buildGoogleCsvUrl, inferMapping, parseCsvText, rowsToObjects } from "./spreadsheet";
+import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToObjects } from "./spreadsheet";
 
 function mapStoredTransaction(transactionRow) {
   return {
@@ -86,6 +86,66 @@ export async function updateLeadStatus({ userId, leadId, status }) {
 function emptyToNull(value) {
   const trimmed = String(value ?? "").trim();
   return trimmed || null;
+}
+
+function normalizePhoneKey(value) {
+  return String(value || "").replace(/[^0-9]/g, "");
+}
+
+function buildLeadStateKey(lead, sourceId = null) {
+  return [
+    sourceId ?? lead?.source_id ?? "legacy",
+    normalizeToken(lead?.name),
+    normalizeToken(cleanBuildingName(lead?.building)),
+    normalizeToken(lead?.unit),
+    normalizeToken(lead?.bedroom),
+    normalizePhoneKey(lead?.phone),
+  ].join(":");
+}
+
+function buildExistingLeadStateMap(rows, sourceId = null) {
+  const map = new Map();
+
+  for (const row of rows || []) {
+    const key = buildLeadStateKey(row, sourceId);
+    if (!key) continue;
+    if (!map.has(key)) map.set(key, row);
+  }
+
+  return map;
+}
+
+function dedupeIncomingLeads(leads, sourceId = null) {
+  const seen = new Set();
+  const result = [];
+
+  for (const lead of leads || []) {
+    const key = buildLeadStateKey(lead, sourceId);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(lead);
+  }
+
+  return result;
+}
+
+function filterNewLeads(leads, existingRows, sourceId = null) {
+  const existingState = buildExistingLeadStateMap(existingRows, sourceId);
+  return dedupeIncomingLeads(leads, sourceId).filter((lead) => !existingState.has(buildLeadStateKey(lead, sourceId)));
+}
+
+async function fetchExistingLeadsForSource(userId, sourceId) {
+  const query = supabase
+    .from("leads")
+    .select("id, source_id, name, building, bedroom, unit, phone, status, last_contact, sent_at, notes")
+    .eq("user_id", userId);
+
+  const { data, error } = sourceId
+    ? await query.eq("source_id", sourceId)
+    : await query.is("source_id", null);
+
+  if (error) throw new Error(error.message);
+  return data || [];
 }
 
 export async function updateLead({ userId, leadId, updates }) {
@@ -233,23 +293,16 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
 
   if (!leadsToInsert.length) throw new Error("No valid leads found in sheet.");
 
-  if (source?.id) {
-    await clearLeadsForSource(userId, source.id);
-  } else {
-    const { error: sentDeleteError } = await supabase.from("sent_leads").delete().eq("user_id", userId);
-    if (sentDeleteError) throw new Error(sentDeleteError.message);
+  const existingSourceLeads = await fetchExistingLeadsForSource(userId, source?.id || null);
+  const newLeadsToInsert = filterNewLeads(leadsToInsert, existingSourceLeads, source?.id || null);
 
-    const { error: leadDeleteError } = await supabase.from("leads").delete().eq("user_id", userId);
-    if (leadDeleteError) throw new Error(leadDeleteError.message);
-  }
-
-  for (let index = 0; index < leadsToInsert.length; index += IMPORT_BATCH_SIZE) {
-    const batch = leadsToInsert.slice(index, index + IMPORT_BATCH_SIZE);
+  for (let index = 0; index < newLeadsToInsert.length; index += IMPORT_BATCH_SIZE) {
+    const batch = newLeadsToInsert.slice(index, index + IMPORT_BATCH_SIZE);
     const { error } = await supabase.from("leads").insert(batch);
     if (error) throw new Error(error.message);
   }
 
-  return { count: leadsToInsert.length };
+  return { count: newLeadsToInsert.length };
 }
 
 export async function fetchLeadInsights(leads) {
