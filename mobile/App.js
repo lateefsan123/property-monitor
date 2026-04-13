@@ -384,7 +384,8 @@ export default function App() {
     );
   }
 
-  if (!hasSubscriptionAccess(subscriptionState.customerInfo)) {
+  // TODO: Re-enable paywall once App Store products are configured
+  if (false && !hasSubscriptionAccess(subscriptionState.customerInfo)) {
     return (
       <SafeAreaProvider>
         <SubscriptionScreen

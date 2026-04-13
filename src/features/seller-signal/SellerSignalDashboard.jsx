@@ -147,6 +147,7 @@ export default function SellerSignalDashboard({ userId }) {
                 onDelete={dashboard.actions.deleteLead}
                 onEditFieldChange={dashboard.actions.updateLeadDraftField}
                 onSaveEdit={dashboard.actions.saveLeadEdits}
+                onSaveNotes={dashboard.actions.saveNotes}
                 onStartEditing={dashboard.actions.startEditingLead}
                 onToggleSent={dashboard.actions.toggleSent}
                 onUpdateStatus={dashboard.actions.updateLeadStatus}

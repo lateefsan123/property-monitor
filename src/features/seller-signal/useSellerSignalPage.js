@@ -576,6 +576,22 @@ export function useSellerSignalPage(userId) {
     }
   }
 
+  async function saveNotes(leadId, notes) {
+    if (!leadId) return;
+    try {
+      await updateLeadMutation.mutateAsync({ leadId, updates: { notes } });
+      queryClient.setQueryData(sellerLeadsQueryKey(userId), (current) => {
+        if (!current?.leads) return current;
+        return {
+          ...current,
+          leads: current.leads.map((l) => (l.id === leadId ? { ...l, notes: notes.trim() || "" } : l)),
+        };
+      });
+    } catch (saveError) {
+      setActionError(getErrorMessage(saveError));
+    }
+  }
+
   async function removeLead(leadId) {
     if (!leadId) return;
 
@@ -708,6 +724,7 @@ export function useSellerSignalPage(userId) {
       importLegacySheet,
       persistLeadSource,
       saveLeadEdits,
+      saveNotes,
       selectDataFilter,
       selectSourceFilter,
       selectStatusFilter,

@@ -617,27 +617,7 @@ export function useListingAlerts() {
         }),
       )
       .sort(sortListings)
-      // DEV ONLY: inject sample price drops for testing
-      .map((l, i) => {
-        const p = l.price || 3_000_000;
-        if (i === 0) return { ...l, priceDelta: -500_000, previousPrice: p + 500_000, dropsCount: 1, totalChanges: 3, priceHistory: [
-          { price: p + 800_000, at: "2026-03-01", type: "first_seen" },
-          { price: p + 500_000, at: "2026-03-15", type: "price_drop" },
-          { price: p + 500_000, at: "2026-03-28", type: "verified" },
-          { price: p, at: "2026-04-10", type: "price_drop" },
-        ]};
-        if (i === 2) return { ...l, priceDelta: -200_000, previousPrice: p + 200_000, dropsCount: 1, totalChanges: 2, priceHistory: [
-          { price: p + 200_000, at: "2026-03-10", type: "first_seen" },
-          { price: p, at: "2026-04-05", type: "price_drop" },
-        ]};
-        if (i === 5) return { ...l, priceDelta: -1_000_000, previousPrice: p + 1_000_000, dropsCount: 2, totalChanges: 4, increasesCount: 1, priceHistory: [
-          { price: p + 1_500_000, at: "2026-02-15", type: "first_seen" },
-          { price: p + 1_000_000, at: "2026-03-01", type: "price_drop" },
-          { price: p + 1_200_000, at: "2026-03-15", type: "price_increase" },
-          { price: p, at: "2026-04-08", type: "price_drop" },
-        ]};
-        return l;
-      });
+;
   }, [changeState.listingHistory, effectiveSelectedSet, watchedBuildings]);
 
   const trackedListings = useMemo(

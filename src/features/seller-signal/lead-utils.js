@@ -306,6 +306,7 @@ export function mapStoredLeadRow(row, index, today) {
   const lead = mapLeadRow(record, index, mapping, today);
   lead.id = row.id;
   lead.sourceId = row.source_id || null;
+  lead.notes = row.notes || "";
   return lead;
 }
 

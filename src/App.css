@@ -661,6 +661,55 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   gap: 8px;
 }
 
+.lead-modal-notes {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.lead-modal-notes-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.lead-modal-notes-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+.lead-modal-notes-status {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+.lead-modal-notes-input {
+  width: 100%;
+  min-height: 60px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-input);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.84rem;
+  resize: vertical;
+  box-sizing: border-box;
+}
+
+.lead-modal-notes-input:focus {
+  outline: none;
+  border-color: var(--text-faint);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.04);
+}
+
+.lead-modal-notes-input::placeholder {
+  color: var(--text-faint);
+}
+
 .lead-modal-footer {
   display: flex;
   gap: 8px;

@@ -18,7 +18,8 @@
       "bundleIdentifier": "com.lateefsan.sellersignal",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "buildNumber": "3"
     },
     "android": {
       "package": "com.lateefsan.sellersignal",

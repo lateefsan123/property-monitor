@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { formatBedsLabel, formatDate, formatPrice, formatPsf, formatRange } from "../formatters";
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
 import { formatBuildingLabel } from "../lead-utils";
@@ -6,6 +6,7 @@ import { formatLeadBedroom, extractUnitFromBuilding, formatLeadUnit, WhatsAppIco
 
 const EDIT_STATUS_OPTIONS = [
   { value: "", label: "No status" },
+  { value: "Not Interested", label: "Not Interested" },
   { value: "Prospect", label: "Prospect" },
   { value: "Appraisal", label: "Appraisal" },
   { value: "For Sale", label: "For Sale" },
@@ -186,10 +187,34 @@ export default function LeadModal({
   onDelete,
   onEditFieldChange,
   onSaveEdit,
+  onSaveNotes,
   onStartEditing,
   onToggleSent,
   onUpdateStatus,
 }) {
+  const [notesValue, setNotesValue] = useState(lead.notes || "");
+  const [notesSaving, setNotesSaving] = useState(false);
+  const notesTimerRef = useRef(null);
+
+  function handleNotesChange(event) {
+    const next = event.target.value;
+    setNotesValue(next);
+    // Auto-save after 1 second of no typing
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    notesTimerRef.current = setTimeout(() => {
+      setNotesSaving(true);
+      Promise.resolve(onSaveNotes?.(lead.id, next)).finally(() => setNotesSaving(false));
+    }, 1000);
+  }
+
+  function handleNotesBlur() {
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    if (notesValue !== (lead.notes || "")) {
+      setNotesSaving(true);
+      Promise.resolve(onSaveNotes?.(lead.id, notesValue)).finally(() => setNotesSaving(false));
+    }
+  }
+
   const message = insight?.message || buildMessage(lead, insight);
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
   const displayBuildingLabel = insight?.locationName || formatBuildingLabel(lead.building) || lead.building || "-";
@@ -250,6 +275,7 @@ export default function LeadModal({
                     <span className="lead-modal-detail-label">Status</span>
                     <div className="lead-status-buttons">
                       {[
+                        { id: "not_interested", label: "Not Interested", value: "Not Interested" },
                         { id: "prospect", label: "Prospect", value: "Prospect" },
                         { id: "market_appraisal", label: "Appraisal", value: "Appraisal" },
                         { id: "for_sale_available", label: "For Sale", value: "For Sale" },
@@ -343,6 +369,22 @@ export default function LeadModal({
                     </button>
                   )}
                 </div>
+              </div>
+
+              {/* Notes */}
+              <div className="lead-modal-notes">
+                <div className="lead-modal-notes-header">
+                  <span className="lead-modal-notes-label">Notes</span>
+                  {notesSaving ? <span className="lead-modal-notes-status">Saving...</span> : null}
+                </div>
+                <textarea
+                  className="lead-modal-notes-input"
+                  value={notesValue}
+                  onChange={handleNotesChange}
+                  onBlur={handleNotesBlur}
+                  placeholder="Add notes about this lead..."
+                  rows={3}
+                />
               </div>
 
               {/* Footer actions */}

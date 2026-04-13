@@ -166,6 +166,7 @@ export async function updateLead({ userId, leadId, updates }) {
     status: emptyToNull(updates?.status),
     last_contact: updates?.lastContact ? updates.lastContact : null,
   };
+  if (updates?.notes != null) payload.notes = updates.notes.trim() || null;
 
   const { error } = await supabase
     .from("leads")
