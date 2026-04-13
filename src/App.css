@@ -710,11 +710,54 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
   color: var(--text-faint);
 }
 
-.lead-modal-footer {
+.lead-modal-header-actions {
   display: flex;
+  align-items: center;
   gap: 8px;
-  padding-top: 8px;
-  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.lead-modal-wa-fixed {
+  position: sticky;
+  bottom: 0;
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--bg-card-border);
+}
+
+.lead-modal-wa-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border-radius: 10px;
+  background: #25d366;
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.lead-modal-wa-btn:hover {
+  background: #1fbd5a;
+}
+
+.lead-modal-wa-btn .icon {
+  width: 18px;
+  height: 18px;
+}
+
+.lead-modal-wa-nophone {
+  background: var(--tab-active-bg);
+}
+
+.lead-modal-wa-nophone:hover {
+  background: var(--btn-primary-hover);
 }
 
 /* Legacy card classes kept for skeleton loader */
@@ -1012,8 +1055,8 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .tx-table-title {
   margin: 0;
-  padding: 10px 14px;
-  font-size: 0.82rem;
+  padding: 6px 10px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text);
   background: var(--bg-tx-header);
@@ -1023,13 +1066,13 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
 .tx-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
 }
 
 .tx-table thead th {
-  padding: 8px 12px;
+  padding: 4px 10px;
   text-align: left;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.04em;
@@ -1048,7 +1091,7 @@ button:disabled { opacity: 0.35; cursor: not-allowed; }
 }
 
 .tx-table tbody td {
-  padding: 10px 12px;
+  padding: 5px 10px;
   color: var(--text-tx);
   vertical-align: middle;
 }

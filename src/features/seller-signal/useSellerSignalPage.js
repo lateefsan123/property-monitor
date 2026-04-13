@@ -495,6 +495,11 @@ export function useSellerSignalPage(userId) {
 
     try {
       await toggleSentMutation.mutateAsync({ leadId, shouldMarkSent });
+      if (shouldMarkSent) {
+        const today = new Date().toISOString().slice(0, 10);
+        await updateLeadMutation.mutateAsync({ leadId, updates: { lastContact: today } });
+        queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
+      }
     } catch (persistError) {
       setActionError(getErrorMessage(persistError));
       queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);

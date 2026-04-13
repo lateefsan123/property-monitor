@@ -39,6 +39,7 @@ export default function LeadCard({
   isSent,
   lead,
   onCopyMessage,
+  onDelete,
   onToggleExpanded,
   onToggleSent,
 }) {
@@ -84,6 +85,12 @@ export default function LeadCard({
     <tr
       className={`lead-row${isSent ? " lead-sent" : ""}`}
       onClick={() => onToggleExpanded(lead.id)}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        if (window.confirm(`Delete "${lead.name || "this lead"}"?`)) {
+          onDelete?.(lead.id);
+        }
+      }}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();

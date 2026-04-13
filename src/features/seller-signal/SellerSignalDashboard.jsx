@@ -120,6 +120,7 @@ export default function SellerSignalDashboard({ userId }) {
                     isSent={Boolean(dashboard.sentLeads[lead.id])}
                     lead={lead}
                     onCopyMessage={dashboard.actions.copyMessage}
+                    onDelete={dashboard.actions.deleteLead}
                     onToggleExpanded={dashboard.actions.toggleLeadExpanded}
                     onToggleSent={dashboard.actions.toggleSent}
                   />

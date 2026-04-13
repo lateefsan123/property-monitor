@@ -249,9 +249,16 @@ export default function LeadModal({
               {unitLabel && <span className="lead-modal-chip">{unitLabel}</span>}
             </div>
           </div>
-          <button type="button" className="lead-modal-close" onClick={onClose} aria-label="Close">
-            <CloseIcon />
-          </button>
+          <div className="lead-modal-header-actions">
+            {!isEditing && (
+              <button type="button" className="btn-sm" disabled={isSaving || isDeleting} onClick={() => onStartEditing?.(lead.id)}>
+                Edit
+              </button>
+            )}
+            <button type="button" className="lead-modal-close" onClick={onClose} aria-label="Close">
+              <CloseIcon />
+            </button>
+          </div>
         </div>
 
         {/* Body */}
@@ -273,27 +280,7 @@ export default function LeadModal({
                 <div className="lead-modal-detail-grid">
                   <div className="lead-modal-detail">
                     <span className="lead-modal-detail-label">Status</span>
-                    <div className="lead-status-buttons">
-                      {[
-                        { id: "not_interested", label: "Not Interested", value: "Not Interested" },
-                        { id: "prospect", label: "Prospect", value: "Prospect" },
-                        { id: "market_appraisal", label: "Appraisal", value: "Appraisal" },
-                        { id: "for_sale_available", label: "For Sale", value: "For Sale" },
-                      ].map((option) => {
-                        const isActive = lead.statusRule?.id === option.id;
-                        return (
-                          <button
-                            key={option.id}
-                            type="button"
-                            className={`btn-sm lead-status-btn${isActive ? " active" : ""}`}
-                            onClick={() => onUpdateStatus?.(lead.id, option.value)}
-                            disabled={isActive || isSaving || isDeleting}
-                          >
-                            {option.label}
-                          </button>
-                        );
-                      })}
-                    </div>
+                    <span className="lead-modal-detail-value">{lead.statusLabel || "-"}</span>
                   </div>
                   <div className="lead-modal-detail">
                     <span className="lead-modal-detail-label">Phone</span>
@@ -343,32 +330,6 @@ export default function LeadModal({
               <div className="lead-modal-section">
                 <div className="lead-modal-section-header">Message</div>
                 <MessagePreview value={message} />
-                <div className="lead-modal-message-actions">
-                  {whatsappUrl ? (
-                    <a
-                      className="btn-sm btn-wa"
-                      href={whatsappUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={() => { if (!isSent) void onToggleSent(lead.id); }}
-                    >
-                      <WhatsAppIcon />
-                      {isSent ? "Sent" : "Send via WhatsApp"}
-                    </a>
-                  ) : (
-                    <button
-                      type="button"
-                      className="btn-sm btn-wa btn-wa-nophone"
-                      onClick={() => {
-                        void onCopyMessage(lead.id, message);
-                        if (!isSent) void onToggleSent(lead.id);
-                      }}
-                    >
-                      <WhatsAppIcon />
-                      {isSent ? "Sent" : copiedLeadId === lead.id ? "Copied!" : "Copy message"}
-                    </button>
-                  )}
-                </div>
               </div>
 
               {/* Notes */}
@@ -387,23 +348,39 @@ export default function LeadModal({
                 />
               </div>
 
-              {/* Footer actions */}
-              <div className="lead-modal-footer">
-                <button type="button" className="btn-sm" disabled={isSaving || isDeleting} onClick={() => onStartEditing?.(lead.id)}>
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  className="btn-sm btn-danger"
-                  disabled={isSaving || isDeleting}
-                  onClick={() => onDelete?.(lead.id)}
-                >
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </button>
-              </div>
             </>
           )}
         </div>
+
+        {/* Fixed WhatsApp button */}
+        {!isEditing && (
+          <div className="lead-modal-wa-fixed">
+            {whatsappUrl ? (
+              <a
+                className="lead-modal-wa-btn"
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => { if (!isSent) void onToggleSent(lead.id); }}
+              >
+                <WhatsAppIcon />
+                {isSent ? "Sent" : "Send via WhatsApp"}
+              </a>
+            ) : (
+              <button
+                type="button"
+                className="lead-modal-wa-btn lead-modal-wa-nophone"
+                onClick={() => {
+                  void onCopyMessage(lead.id, message);
+                  if (!isSent) void onToggleSent(lead.id);
+                }}
+              >
+                <WhatsAppIcon />
+                {isSent ? "Sent" : copiedLeadId === lead.id ? "Copied!" : "Copy message"}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
