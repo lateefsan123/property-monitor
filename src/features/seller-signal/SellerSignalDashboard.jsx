@@ -85,6 +85,7 @@ export default function SellerSignalDashboard({ userId }) {
         onToggleAllExpanded={dashboard.actions.toggleAllExpanded}
         searchTerm={dashboard.searchTerm}
         statusFilter={dashboard.statusFilter}
+        viewTab={dashboard.viewTab}
       />
 
       {dashboard.refreshing && dashboard.hasLeads ? (

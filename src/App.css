@@ -278,6 +278,11 @@ body {
   flex-wrap: wrap;
 }
 
+.toolbar-note {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
 .toolbar-group {
   display: inline-flex;
   align-items: center;

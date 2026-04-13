@@ -24,6 +24,7 @@ export default function FiltersToolbar({
   onStatusFilterChange,
   searchTerm,
   statusFilter,
+  viewTab,
 }) {
   return (
     <div className="toolbar">
@@ -35,10 +36,14 @@ export default function FiltersToolbar({
       />
 
       <div className="toolbar-actions">
-        <FilterTabs options={STATUS_FILTER_OPTIONS} value={statusFilter} onChange={onStatusFilterChange} />
-        <FilterTabs options={DATA_FILTER_OPTIONS} value={dataFilter} onChange={onDataFilterChange} />
-
-
+        {viewTab === "done" ? (
+          <div className="toolbar-note">Done shows every sent seller in this source.</div>
+        ) : (
+          <>
+            <FilterTabs options={STATUS_FILTER_OPTIONS} value={statusFilter} onChange={onStatusFilterChange} />
+            <FilterTabs options={DATA_FILTER_OPTIONS} value={dataFilter} onChange={onDataFilterChange} />
+          </>
+        )}
       </div>
     </div>
   );
