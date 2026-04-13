@@ -484,8 +484,8 @@ export async function fetchLeadInsights(leads) {
 
 export async function persistLeadSentState(userId, leadId, isSent) {
   if (isSent) {
-    const { error } = await supabase.from("sent_leads").upsert({ user_id: userId, lead_id: leadId });
-    if (error) throw new Error(error.message);
+    const { error } = await supabase.from("sent_leads").insert({ user_id: userId, lead_id: leadId });
+    if (error && error.code !== "23505") throw new Error(error.message);
     return;
   }
 

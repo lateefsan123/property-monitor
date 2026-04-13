@@ -206,6 +206,7 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         onDelete={d.actions.deleteLead}
         onEditFieldChange={d.actions.updateLeadDraftField}
         onSaveEdit={d.actions.saveLeadEdits}
+        onSaveNotes={d.actions.saveNotes}
         onStartEditing={d.actions.startEditingLead}
         onToggleSent={d.actions.toggleSent}
         onUpdateStatus={d.actions.updateLeadStatus}

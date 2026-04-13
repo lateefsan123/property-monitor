@@ -501,6 +501,16 @@ export function useSellerSignalPage(userId) {
     }
   }
 
+  async function saveNotes(leadId, notes) {
+    if (!leadId) return;
+    try {
+      await updateLead({ userId, leadId, updates: { notes } });
+      setLeads((current) => current.map((l) => (l.id === leadId ? { ...l, notes: notes.trim() || "" } : l)));
+    } catch (saveError) {
+      setError(getErrorMessage(saveError));
+    }
+  }
+
   async function removeLead(leadId) {
     const previousLeads = leads;
     const previousSentLeads = sentLeads;
@@ -623,6 +633,7 @@ export function useSellerSignalPage(userId) {
       importFromSheet,
       persistLeadSource,
       saveLeadEdits,
+      saveNotes,
       selectDataFilter,
       selectSourceFilter,
       selectStatusFilter,

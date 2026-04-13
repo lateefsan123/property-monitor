@@ -368,20 +368,24 @@ export function useListingAlerts() {
       safeSetItem(SELECTED_LISTINGS_KEY, JSON.stringify(nextSelectedKeys));
       safeSetItem(LISTING_ALERTS_STATE_KEY, JSON.stringify(nextState));
 
-      const snapshotListingCount = snapshotBuildings.reduce((sum, building) => sum + (building.listings?.length || 0), 0);
-      if ((!snapshotBuildings.length || snapshotListingCount === 0) && nextWatchedItems.length) {
+      const snapshotLocationIds = new Set(snapshotBuildings.map((b) => String(b.locationId)));
+      const missingItems = nextWatchedItems.filter((item) => !snapshotLocationIds.has(String(item.locationId)));
+      const needsLiveFetch = missingItems.length > 0 || (nextWatchedItems.length > 0 && snapshotBuildings.length === 0);
+      if (needsLiveFetch) {
         try {
-          const buildings = await fetchBayutWatchedBuildings(nextWatchedItems);
+          const itemsToFetch = missingItems.length ? missingItems : nextWatchedItems;
+          const buildings = await fetchBayutWatchedBuildings(itemsToFetch);
           const normalizedBuildings = buildings.map((building) => ({ ...building, locationId: toLocationId(building.locationId) })).sort(sortBuildings);
+          const mergedBuildings = [...snapshotBuildings.filter((b) => !normalizedBuildings.some((nb) => String(nb.locationId) === String(b.locationId))), ...normalizedBuildings].sort(sortBuildings);
           const nextFallbackState = buildListingAlertsState({
-            currentBuildings: normalizedBuildings,
+            currentBuildings: mergedBuildings,
             previousState: nextState,
             watchedItems: nextWatchedItems,
             selectedListingKeys: nextSelectedKeys,
             trackAllListings: AUTO_TRACK_ALL_LISTINGS,
           });
 
-          setWatchedBuildingsRemote(normalizedBuildings);
+          setWatchedBuildingsRemote(mergedBuildings);
           setChangeState(nextFallbackState);
           changeStateRef.current = nextFallbackState;
           safeSetItem(LISTING_ALERTS_STATE_KEY, JSON.stringify(nextFallbackState));
