@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import listingAlertsFeed from "../../data/listing-alerts-feed.json";
 import { fetchBayutWatchedBuildings, searchBayutAlertLocations } from "./api";
 import { supabase } from "../../supabase";
@@ -12,11 +12,12 @@ import {
   parseSelectedListingKeys,
   SELECTED_LISTINGS_KEY,
   WATCHED_BUILDINGS_KEY,
+  WATCHED_BUILDINGS_SNAPSHOT_KEY,
 } from "./change-detection";
 
 const DEFAULT_SUGGESTION_COUNT = 8;
 const SEARCH_DEBOUNCE_MS = 350;
-const MAX_WATCHED_BUILDINGS = 4;
+const MAX_WATCHED_BUILDINGS = 1000;
 const AUTO_TRACK_ALL_LISTINGS = true;
 
 function parseVerifiedAt(value) {
@@ -25,10 +26,26 @@ function parseVerifiedAt(value) {
   return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
 }
 
+function getLoadedListingCount(building) {
+  const loaded = building?.listings?.length || 0;
+  if (loaded) return loaded;
+  return Number.isFinite(building?.listingCount) ? building.listingCount : 0;
+}
+
 function getErrorMessage(error) {
-  if (error instanceof Error) return error.message;
+  if (!error) return "Unexpected error";
   if (typeof error === "string") return error;
-  return String(error || "Unexpected error");
+  if (error instanceof Error) return error.message || "Unexpected error";
+  if (typeof error?.message === "string") return error.message;
+  if (typeof error?.error === "string") return error.error;
+  if (typeof error?.error?.message === "string") return error.error.message;
+  if (typeof error?.details === "string") return error.details;
+  if (typeof error?.hint === "string") return error.hint;
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return String(error);
+  }
 }
 
 function sortBuildings(left, right) {
@@ -209,8 +226,10 @@ export function useListingAlerts() {
   const [refreshNonce, setRefreshNonce] = useState(0);
   const changeStateRef = useRef(createEmptyListingAlertsState());
   const selectedListingKeysRef = useRef([]);
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
   const remoteEnabled = Boolean(supabase && sessionUserId);
+  const normalizedSearchTerm = deferredSearchTerm.trim();
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -297,11 +316,8 @@ export function useListingAlerts() {
       ]);
 
       const snapshotListingCount = snapshotBuildings.reduce((sum, building) => sum + (building.listings?.length || 0), 0);
-      const historyEntryCount = Object.keys(nextState.listingHistory || {}).length;
       const needsLiveFallback = nextWatchedItems.length && (
-        !snapshotBuildings.length
-        || snapshotListingCount === 0
-        || (AUTO_TRACK_ALL_LISTINGS && historyEntryCount < snapshotListingCount)
+        !snapshotBuildings.length || snapshotListingCount === 0
       );
       if (needsLiveFallback) {
         try {
@@ -336,10 +352,11 @@ export function useListingAlerts() {
 
     async function loadLocalState() {
       try {
-        const [[, rawWatchlist], [, rawAlertState], [, rawSelectedListings]] = await AsyncStorage.multiGet([
+        const [[, rawWatchlist], [, rawAlertState], [, rawSelectedListings], [, rawWatchedSnapshot]] = await AsyncStorage.multiGet([
           WATCHED_BUILDINGS_KEY,
           LISTING_ALERTS_STATE_KEY,
           SELECTED_LISTINGS_KEY,
+          WATCHED_BUILDINGS_SNAPSHOT_KEY,
         ]);
         if (!isActive) return;
 
@@ -349,6 +366,17 @@ export function useListingAlerts() {
           if (Array.isArray(parsedWatchlist)) {
             initialWatchedItems = uniqueWatchedItems(parsedWatchlist);
             setWatchedItems(initialWatchedItems);
+          }
+        }
+
+        if (rawWatchedSnapshot) {
+          try {
+            const parsedSnapshot = JSON.parse(rawWatchedSnapshot);
+            if (Array.isArray(parsedSnapshot) && parsedSnapshot.length) {
+              setWatchedBuildingsRemote(parsedSnapshot);
+            }
+          } catch {
+            void AsyncStorage.removeItem(WATCHED_BUILDINGS_SNAPSHOT_KEY);
           }
         }
 
@@ -398,8 +426,7 @@ export function useListingAlerts() {
   }, [hydrated, selectedListingKeys]);
 
   useEffect(() => {
-    const query = searchTerm.trim();
-    if (query.length < 2) {
+    if (normalizedSearchTerm.length < 2) {
       setSearchResults([]);
       setSearchLoading(false);
       setSearchError(null);
@@ -412,7 +439,7 @@ export function useListingAlerts() {
 
     const timeoutId = setTimeout(async () => {
       try {
-        const results = await searchBayutAlertLocations(query);
+        const results = await searchBayutAlertLocations(normalizedSearchTerm);
         if (!isActive) return;
         setSearchResults(results.map(normalizeWatchedItem).filter(Boolean));
       } catch (error) {
@@ -428,7 +455,7 @@ export function useListingAlerts() {
       isActive = false;
       clearTimeout(timeoutId);
     };
-  }, [searchTerm]);
+  }, [normalizedSearchTerm]);
 
   useEffect(() => {
     if (!hydrated) return undefined;
@@ -440,7 +467,7 @@ export function useListingAlerts() {
       setWatchError(null);
       setChangeState(emptyState);
       changeStateRef.current = emptyState;
-      void AsyncStorage.removeItem(LISTING_ALERTS_STATE_KEY);
+      void AsyncStorage.multiRemove([LISTING_ALERTS_STATE_KEY, WATCHED_BUILDINGS_SNAPSHOT_KEY]);
       return undefined;
     }
 
@@ -464,11 +491,13 @@ export function useListingAlerts() {
         setWatchedBuildingsRemote(normalizedBuildings);
         setChangeState(nextChangeState);
         changeStateRef.current = nextChangeState;
-        await AsyncStorage.setItem(LISTING_ALERTS_STATE_KEY, JSON.stringify(nextChangeState));
+        await AsyncStorage.multiSet([
+          [LISTING_ALERTS_STATE_KEY, JSON.stringify(nextChangeState)],
+          [WATCHED_BUILDINGS_SNAPSHOT_KEY, JSON.stringify(normalizedBuildings)],
+        ]);
       } catch (error) {
         if (!isActive) return;
-        setWatchedBuildingsRemote([]);
-        setWatchError(error.message);
+        setWatchError(getErrorMessage(error));
       } finally {
         if (isActive) setWatchedLoading(false);
       }
@@ -534,7 +563,7 @@ export function useListingAlerts() {
             buildingKey: building.key || building.locationId,
             buildingName: building.buildingName,
             buildingImageUrl: building.imageUrl,
-            buildingListingCount: building.listingCount,
+            buildingListingCount: getLoadedListingCount(building),
             trackedKey,
             isTracked: trackedKey ? (AUTO_TRACK_ALL_LISTINGS || effectiveSelectedSet.has(trackedKey)) : false,
             previousPrice: historyEntry?.previousPrice ?? null,
@@ -572,7 +601,7 @@ export function useListingAlerts() {
   );
 
   const stats = useMemo(() => {
-    const totalListings = watchedBuildings.reduce((sum, building) => sum + (building.listingCount || 0), 0);
+    const totalListings = watchedBuildings.reduce((sum, building) => sum + getLoadedListingCount(building), 0);
     return {
       watchedBuildingCount: watchedItems.length,
       watchedListingCount: totalListings,
@@ -707,7 +736,7 @@ export function useListingAlerts() {
       const emptyState = createEmptyListingAlertsState();
       setChangeState(emptyState);
       changeStateRef.current = emptyState;
-      void AsyncStorage.removeItem(LISTING_ALERTS_STATE_KEY);
+      void AsyncStorage.multiRemove([LISTING_ALERTS_STATE_KEY, WATCHED_BUILDINGS_SNAPSHOT_KEY]);
     } else {
       rebuildChangeState(nextSelectedListingKeys, nextWatchedItems);
     }
@@ -734,6 +763,7 @@ export function useListingAlerts() {
   async function refresh() {
     if (!watchedItems.length || watchedLoading) return;
     if (!remoteEnabled) {
+      setWatchError(null);
       setRefreshNonce((current) => current + 1);
       return;
     }

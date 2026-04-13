@@ -27,10 +27,11 @@ import SettingsScreen from "./src/screens/SettingsScreen";
 import SpreadsheetScreen from "./src/screens/SpreadsheetScreen";
 import SubscriptionScreen from "./src/screens/SubscriptionScreen";
 import UsernameSetupScreen from "./src/screens/UsernameSetupScreen";
+import { registerForPushNotifications, saveTokenToSupabase } from "./src/notifications";
 import { supabase } from "./src/supabase";
 import { getTheme } from "./src/theme";
 
-const ONBOARDING_KEY = "@seller_signal_onboarding_completed_v2";
+const ONBOARDING_KEY = "@seller_signal_onboarding_completed_v3";
 const INITIAL_SUBSCRIPTION_STATE = {
   currentOffering: null,
   customerInfo: null,
@@ -97,6 +98,13 @@ export default function App() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!sessionUserId) return;
+    registerForPushNotifications().then((token) => {
+      if (token) saveTokenToSupabase(token);
+    });
+  }, [sessionUserId]);
 
   useEffect(() => {
     let ignore = false;
@@ -218,6 +226,11 @@ export default function App() {
   async function handleOnboardingComplete() {
     await AsyncStorage.setItem(ONBOARDING_KEY, "true");
     setGateState((currentState) => ({ ...currentState, onboardingCompleted: true }));
+  }
+
+  async function handleReplayOnboarding() {
+    await AsyncStorage.removeItem(ONBOARDING_KEY);
+    setGateState((currentState) => ({ ...currentState, onboardingCompleted: false }));
   }
 
   async function handleStartSubscriptionPurchase() {
@@ -431,6 +444,7 @@ export default function App() {
         manageSubscriptionPending={subscriptionState.managePending}
         onBack={goHome}
         onManageSubscription={handleOpenCustomerCenter}
+        onReplayOnboarding={handleReplayOnboarding}
         onToggleTheme={toggleTheme}
         subscriptionStoreLabel={getSubscriptionStoreLabel()}
         theme={theme}

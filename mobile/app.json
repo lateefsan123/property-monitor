@@ -36,7 +36,14 @@
     "plugins": [
       "expo-dev-client",
       "expo-web-browser",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#000000"
+        }
+      ]
     ],
     "extra": {
       "eas": {

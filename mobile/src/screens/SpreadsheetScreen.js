@@ -1,9 +1,6 @@
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
 import { ActivityIndicator, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Svg, Line, Path } from "react-native-svg";
-import { TEMPLATE_CSV_HEADERS } from "../features/seller-signal/constants";
+import { Svg, Circle, Line, Path } from "react-native-svg";
 import { useSellerSignalPage } from "../features/seller-signal/useSellerSignalPage";
 import { getTheme } from "../theme";
 
@@ -16,34 +13,47 @@ function BackIcon({ color }) {
   );
 }
 
-function SourceCard({ colors, count, importing, onImport, onSave, onUpdateField, saving, source }) {
-  const labelValue = source.building_name || source.label || "";
+function LinkIcon({ color }) {
+  return (
+    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
+      <Path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
+    </Svg>
+  );
+}
+
+function CheckIcon({ color }) {
+  return (
+    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M20 6L9 17l-5-5" />
+    </Svg>
+  );
+}
+
+function SourceRow({ colors, count, importing, onImport, onSave, onUpdateField, saving, source, isLast }) {
+  const name = source.building_name || "";
+  const hasUrl = Boolean(source.sheet_url);
 
   return (
-    <View style={[s.sourceCard, { backgroundColor: colors.bgCard, borderColor: colors.border }]}>
-      <View style={s.sourceHeader}>
-        <Text style={[s.sourceTitle, { color: colors.textName }]}>
-          {labelValue || `Spreadsheet ${Number(source.sort_order ?? 0) + 1}`}
-        </Text>
-        <Text style={[s.sourceMeta, { color: colors.textMuted }]}>{count} leads</Text>
-      </View>
-
-      <View style={s.fieldGroup}>
-        <Text style={[s.fieldLabel, { color: colors.textMuted }]}>Building name</Text>
+    <View style={[rowStyles.container, !isLast && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }]}>
+      <View style={rowStyles.nameRow}>
         <TextInput
-          style={[s.input, { backgroundColor: colors.bgInput, borderColor: colors.border, color: colors.text }]}
-          placeholder="Boulevard Central 1"
+          style={[rowStyles.nameInput, { color: colors.textName }]}
+          placeholder="Building name"
           placeholderTextColor={colors.textFaint}
-          value={source.building_name || ""}
+          value={name}
           onChangeText={(value) => onUpdateField(source.id, "building_name", value)}
         />
+        <Text style={[rowStyles.count, { color: colors.textMuted }]}>
+          {count} {count === 1 ? "lead" : "leads"}
+        </Text>
       </View>
 
-      <View style={s.fieldGroup}>
-        <Text style={[s.fieldLabel, { color: colors.textMuted }]}>Google Sheet URL</Text>
+      <View style={rowStyles.urlRow}>
+        <LinkIcon color={hasUrl ? colors.textMuted : colors.textFaint} />
         <TextInput
-          style={[s.input, { backgroundColor: colors.bgInput, borderColor: colors.border, color: colors.text }]}
-          placeholder="https://docs.google.com/..."
+          style={[rowStyles.urlInput, { color: colors.text }]}
+          placeholder="Google Sheet URL"
           placeholderTextColor={colors.textFaint}
           autoCapitalize="none"
           keyboardType="url"
@@ -52,34 +62,31 @@ function SourceCard({ colors, count, importing, onImport, onSave, onUpdateField,
         />
       </View>
 
-      <View style={s.cardActions}>
+      <View style={rowStyles.actions}>
         <Pressable
-          style={({ pressed }) => [
-            s.secondaryBtn,
-            { borderColor: colors.border, opacity: saving ? 0.65 : pressed ? 0.8 : 1 },
-          ]}
+          style={({ pressed }) => [rowStyles.saveBtn, { borderColor: colors.border, opacity: saving ? 0.5 : pressed ? 0.8 : 1 }]}
           disabled={saving}
           onPress={() => onSave(source.id)}
         >
           {saving ? (
-            <ActivityIndicator size="small" color={colors.textSecondary} />
+            <ActivityIndicator size="small" color={colors.textMuted} />
           ) : (
-            <Text style={[s.secondaryBtnText, { color: colors.textSecondary }]}>Save</Text>
+            <CheckIcon color={colors.textMuted} />
           )}
         </Pressable>
 
         <Pressable
           style={({ pressed }) => [
-            s.primaryBtn,
-            { backgroundColor: colors.btnPrimaryBg, opacity: !source.sheet_url || importing ? 0.5 : pressed ? 0.8 : 1 },
+            rowStyles.importBtn,
+            { backgroundColor: colors.btnPrimaryBg, opacity: !hasUrl || importing ? 0.4 : pressed ? 0.8 : 1 },
           ]}
-          disabled={!source.sheet_url || importing}
+          disabled={!hasUrl || importing}
           onPress={() => onImport(source.id)}
         >
           {importing ? (
             <ActivityIndicator size="small" color={colors.btnPrimaryText} />
           ) : (
-            <Text style={[s.primaryBtnText, { color: colors.btnPrimaryText }]}>Import</Text>
+            <Text style={[rowStyles.importBtnText, { color: colors.btnPrimaryText }]}>Import</Text>
           )}
         </Pressable>
       </View>
@@ -87,20 +94,68 @@ function SourceCard({ colors, count, importing, onImport, onSave, onUpdateField,
   );
 }
 
+const rowStyles = StyleSheet.create({
+  container: {
+    paddingVertical: 16,
+    gap: 10,
+  },
+  nameRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  nameInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: "600",
+    padding: 0,
+  },
+  count: {
+    fontSize: 13,
+  },
+  urlRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  urlInput: {
+    flex: 1,
+    fontSize: 14,
+    padding: 0,
+  },
+  actions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginTop: 2,
+  },
+  saveBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  importBtn: {
+    flex: 1,
+    borderRadius: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 10,
+  },
+  importBtnText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+});
+
 export default function SpreadsheetScreen({ onBack, theme, userId }) {
   const d = useSellerSignalPage(userId);
   const colors = getTheme(theme);
   const styles = createStyles(colors);
   const totalLeads = Object.values(d.sourceCounts || {}).reduce((sum, count) => sum + count, 0);
-
-  async function downloadTemplate() {
-    const path = `${FileSystem.cacheDirectory}seller-signal-template.csv`;
-    await FileSystem.writeAsStringAsync(path, TEMPLATE_CSV_HEADERS);
-    await Sharing.shareAsync(path, {
-      mimeType: "text/csv",
-      UTI: "public.comma-separated-values-text",
-    });
-  }
 
   if (d.loading && !d.leadSources.length) {
     return (
@@ -127,22 +182,18 @@ export default function SpreadsheetScreen({ onBack, theme, userId }) {
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.summaryRow}>
-          <Text style={styles.summaryTitle}>
-            {d.leadSources.length} source{d.leadSources.length === 1 ? "" : "s"}
-          </Text>
-          <Text style={styles.summaryMeta}>{totalLeads} leads</Text>
+          <Text style={styles.summaryCount}>{totalLeads}</Text>
+          <Text style={styles.summaryLabel}>leads across {d.leadSources.length} {d.leadSources.length === 1 ? "source" : "sources"}</Text>
         </View>
-        <Text style={styles.helper}>
-          Save a building name and public Google Sheet URL for each source. Importing a source replaces only that source's leads.
-        </Text>
 
         <View style={styles.sourceList}>
-          {d.leadSources.map((source) => (
-            <SourceCard
+          {d.leadSources.map((source, index) => (
+            <SourceRow
               key={source.id}
               colors={colors}
               count={d.sourceCounts[source.id] || 0}
               importing={d.importingSourceId === source.id}
+              isLast={index === d.leadSources.length - 1}
               onImport={d.actions.importFromSheet}
               onSave={d.actions.persistLeadSource}
               onUpdateField={d.actions.updateLeadSourceField}
@@ -151,19 +202,6 @@ export default function SpreadsheetScreen({ onBack, theme, userId }) {
             />
           ))}
         </View>
-
-        <View style={styles.divider} />
-
-        <Text style={styles.sectionLabel}>Template</Text>
-        <Text style={styles.helper}>
-          Download a blank CSV with the correct column headers, fill it in, and upload it to Google Sheets.
-        </Text>
-        <Pressable
-          style={({ pressed }) => [styles.templateBtn, pressed && { opacity: 0.75 }]}
-          onPress={downloadTemplate}
-        >
-          <Text style={styles.templateBtnText}>Download Template</Text>
-        </Pressable>
 
         {d.error && (
           <View style={styles.errorBox}>
@@ -174,73 +212,6 @@ export default function SpreadsheetScreen({ onBack, theme, userId }) {
     </SafeAreaView>
   );
 }
-
-const s = StyleSheet.create({
-  sourceCard: {
-    borderWidth: 1,
-    borderRadius: 16,
-    padding: 16,
-    gap: 12,
-  },
-  sourceHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 12,
-  },
-  sourceTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "700",
-  },
-  sourceMeta: {
-    fontSize: 13,
-  },
-  fieldGroup: {
-    gap: 6,
-  },
-  fieldLabel: {
-    fontSize: 12,
-    fontWeight: "700",
-    letterSpacing: 0.4,
-    textTransform: "uppercase",
-  },
-  input: {
-    borderWidth: 1,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    fontSize: 15,
-  },
-  cardActions: {
-    flexDirection: "row",
-    gap: 10,
-  },
-  secondaryBtn: {
-    flex: 1,
-    borderWidth: 1,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  secondaryBtnText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  primaryBtn: {
-    flex: 1,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-  },
-  primaryBtnText: {
-    fontSize: 14,
-    fontWeight: "700",
-  },
-});
 
 const createStyles = (c) =>
   StyleSheet.create({
@@ -265,58 +236,29 @@ const createStyles = (c) =>
       color: c.textName,
     },
     content: {
-      padding: 20,
-      gap: 12,
+      paddingHorizontal: 20,
+      paddingBottom: 40,
     },
     summaryRow: {
       flexDirection: "row",
       alignItems: "baseline",
-      gap: 8,
+      gap: 6,
+      paddingVertical: 16,
     },
-    summaryTitle: {
-      fontSize: 18,
+    summaryCount: {
+      fontSize: 24,
       fontWeight: "700",
       color: c.textName,
     },
-    summaryMeta: {
-      fontSize: 14,
+    summaryLabel: {
+      fontSize: 15,
       color: c.textMuted,
-    },
-    sectionLabel: {
-      fontSize: 12,
-      fontWeight: "700",
-      color: c.textMuted,
-      textTransform: "uppercase",
-      letterSpacing: 0.8,
-      marginTop: 8,
-    },
-    helper: {
-      fontSize: 13,
-      color: c.textMuted,
-      lineHeight: 18,
     },
     sourceList: {
-      gap: 12,
-    },
-    divider: {
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: c.border,
-      marginVertical: 12,
-    },
-    templateBtn: {
-      borderWidth: 1,
-      borderColor: c.textName,
-      borderRadius: 12,
-      paddingVertical: 14,
-      alignItems: "center",
-    },
-    templateBtnText: {
-      color: c.textName,
-      fontWeight: "600",
-      fontSize: 14,
+      // no gap — dividers are handled per-row
     },
     errorBox: {
-      marginTop: 8,
+      marginTop: 12,
       backgroundColor: c.errorBg,
       borderRadius: 10,
       padding: 12,
