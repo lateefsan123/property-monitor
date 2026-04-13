@@ -64,14 +64,14 @@ export function useSellerSignalPage(userId) {
   const [showDueOnly, setShowDueOnly] = useState(true);
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("prospect");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sentLeads, setSentLeads] = useState({});
   const [sheetUrl, setSheetUrl] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [viewTab, setViewTab] = useState("active");
-  const [dataFilter, setDataFilter] = useState("all");
+  const [dataFilter, setDataFilter] = useState("with_data");
   const [expandedLeads, setExpandedLeads] = useState({});
   const [editingLeadId, setEditingLeadId] = useState(null);
   const [editingLeadDraft, setEditingLeadDraft] = useState(null);

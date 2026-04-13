@@ -17,6 +17,7 @@ import {
 const DEFAULT_SUGGESTION_COUNT = 8;
 const SEARCH_DEBOUNCE_MS = 350;
 const MAX_WATCHED_BUILDINGS = 4;
+const AUTO_TRACK_ALL_LISTINGS = true;
 
 function parseVerifiedAt(value) {
   if (!value) return 0;
@@ -294,6 +295,34 @@ export function useListingAlerts() {
         [SELECTED_LISTINGS_KEY, JSON.stringify(nextSelectedKeys)],
         [LISTING_ALERTS_STATE_KEY, JSON.stringify(nextState)],
       ]);
+
+      const snapshotListingCount = snapshotBuildings.reduce((sum, building) => sum + (building.listings?.length || 0), 0);
+      const historyEntryCount = Object.keys(nextState.listingHistory || {}).length;
+      const needsLiveFallback = nextWatchedItems.length && (
+        !snapshotBuildings.length
+        || snapshotListingCount === 0
+        || (AUTO_TRACK_ALL_LISTINGS && historyEntryCount < snapshotListingCount)
+      );
+      if (needsLiveFallback) {
+        try {
+          const buildings = await fetchBayutWatchedBuildings(nextWatchedItems);
+          const normalizedBuildings = buildings.map((building) => ({ ...building, locationId: toLocationId(building.locationId) })).sort(sortBuildings);
+          const nextFallbackState = buildListingAlertsState({
+            currentBuildings: normalizedBuildings,
+            previousState: nextState,
+            watchedItems: nextWatchedItems,
+            selectedListingKeys: nextSelectedKeys,
+            trackAllListings: AUTO_TRACK_ALL_LISTINGS,
+          });
+
+          setWatchedBuildingsRemote(normalizedBuildings);
+          setChangeState(nextFallbackState);
+          changeStateRef.current = nextFallbackState;
+          await AsyncStorage.setItem(LISTING_ALERTS_STATE_KEY, JSON.stringify(nextFallbackState));
+        } catch {
+          // ignore live fallback failure
+        }
+      }
     } catch (error) {
       setWatchError(getErrorMessage(error));
     } finally {
@@ -429,6 +458,7 @@ export function useListingAlerts() {
           previousState: changeStateRef.current,
           watchedItems,
           selectedListingKeys: selectedListingKeysRef.current,
+          trackAllListings: AUTO_TRACK_ALL_LISTINGS,
         });
 
         setWatchedBuildingsRemote(normalizedBuildings);
@@ -459,6 +489,10 @@ export function useListingAlerts() {
 
   const watchedSet = useMemo(() => new Set(watchedItems.map((item) => item.locationId)), [watchedItems]);
   const selectedListingSet = useMemo(() => new Set(selectedListingKeys), [selectedListingKeys]);
+  const effectiveSelectedSet = useMemo(() => {
+    if (!AUTO_TRACK_ALL_LISTINGS) return selectedListingSet;
+    return new Set(Object.keys(changeState.listingHistory || {}));
+  }, [changeState.listingHistory, selectedListingSet]);
 
   const watchedBuildings = useMemo(() => {
     const remoteMap = {};
@@ -502,7 +536,7 @@ export function useListingAlerts() {
             buildingImageUrl: building.imageUrl,
             buildingListingCount: building.listingCount,
             trackedKey,
-            isTracked: trackedKey ? selectedListingSet.has(trackedKey) : false,
+            isTracked: trackedKey ? (AUTO_TRACK_ALL_LISTINGS || effectiveSelectedSet.has(trackedKey)) : false,
             previousPrice: historyEntry?.previousPrice ?? null,
             priceDelta: historyEntry?.priceDelta ?? null,
             currentStatus: historyEntry?.currentStatus ?? null,
@@ -522,19 +556,19 @@ export function useListingAlerts() {
         }),
       )
       .sort(sortListings);
-  }, [changeState.listingHistory, selectedListingSet, watchedBuildings]);
+  }, [changeState.listingHistory, effectiveSelectedSet, watchedBuildings]);
 
   const trackedListings = useMemo(
     () =>
       Object.values(changeState.listingHistory || {})
-        .filter((entry) => watchedSet.has(entry.locationId) && selectedListingSet.has(entry.key))
+        .filter((entry) => watchedSet.has(entry.locationId) && effectiveSelectedSet.has(entry.key))
         .map((entry) => ({
           ...entry,
           price: entry.currentStatus === "active" ? entry.currentPrice : entry.lastKnownPrice,
           buildingKey: entry.locationId,
         }))
         .sort(sortTrackedListings),
-    [changeState.listingHistory, selectedListingSet, watchedSet],
+    [changeState.listingHistory, effectiveSelectedSet, watchedSet],
   );
 
   const stats = useMemo(() => {
@@ -542,19 +576,21 @@ export function useListingAlerts() {
     return {
       watchedBuildingCount: watchedItems.length,
       watchedListingCount: totalListings,
-      trackedListingCount: selectedListingKeys.length,
+      trackedListingCount: AUTO_TRACK_ALL_LISTINGS ? effectiveSelectedSet.size : selectedListingKeys.length,
       freshestListingAt: latestListings[0]?.verifiedAt || null,
       generatedAt: listingAlertsFeed.generatedAt || null,
     };
-  }, [latestListings, selectedListingKeys.length, watchedBuildings, watchedItems.length]);
+  }, [effectiveSelectedSet.size, latestListings, selectedListingKeys.length, watchedBuildings, watchedItems.length]);
 
   const alertSummary = useMemo(
     () => ({
       ...changeState.summary,
       watchedBuildingCount: watchedItems.length || changeState.summary.watchedBuildingCount,
-      trackedListingCount: selectedListingKeys.length || changeState.summary.trackedListingCount,
+      trackedListingCount: AUTO_TRACK_ALL_LISTINGS
+        ? effectiveSelectedSet.size || changeState.summary.trackedListingCount
+        : selectedListingKeys.length || changeState.summary.trackedListingCount,
     }),
-    [changeState.summary, selectedListingKeys.length, watchedItems.length],
+    [changeState.summary, effectiveSelectedSet.size, selectedListingKeys.length, watchedItems.length],
   );
 
   function rebuildChangeState(nextSelectedListingKeys, nextWatchedItems = watchedItems) {
@@ -570,6 +606,7 @@ export function useListingAlerts() {
       watchedItems: nextWatchedItems,
       selectedListingKeys: nextSelectedListingKeys,
       checkedAt: changeStateRef.current.summary?.lastCheckedAt || new Date().toISOString(),
+      trackAllListings: AUTO_TRACK_ALL_LISTINGS,
     });
 
     setChangeState(nextChangeState);
@@ -679,6 +716,7 @@ export function useListingAlerts() {
   }
 
   function toggleListingSelection(listing) {
+    if (AUTO_TRACK_ALL_LISTINGS) return;
     const trackedKey = createTrackedListingKey(listing?.locationId, listing?.id);
     if (!trackedKey) return;
 
@@ -716,6 +754,7 @@ export function useListingAlerts() {
 
   return {
     alertSummary,
+    autoTracking: AUTO_TRACK_ALL_LISTINGS,
     changeItems: changeState.changeItems,
     generatedAt: listingAlertsFeed.generatedAt || null,
     hydrated,

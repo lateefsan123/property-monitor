@@ -478,21 +478,27 @@ export function buildListingAlertsState({
   watchedItems,
   selectedListingKeys,
   checkedAt = new Date().toISOString(),
+  trackAllListings = false,
 }) {
   const previous = parseListingAlertsState(previousState);
   const previousSnapshot = previous.snapshot || {};
   const previousListingHistory = previous.listingHistory || {};
+  const isInitialSnapshot = !previous.summary?.hasSnapshot;
   const activeLocationIds = [...new Set((watchedItems || []).map((item) => toLocationId(item?.locationId)).filter(Boolean))];
   const activeLocationSet = new Set(activeLocationIds);
-  const selectedKeySet = new Set(parseSelectedListingKeys(selectedListingKeys).filter((key) => activeLocationSet.has(key.split(":")[0])));
+  const selectedKeySet = trackAllListings
+    ? new Set()
+    : new Set(parseSelectedListingKeys(selectedListingKeys).filter((key) => activeLocationSet.has(key.split(":")[0])));
   const selectedIdsByLocation = {};
 
-  for (const trackedKey of selectedKeySet) {
-    const [locationId, ...listingIdParts] = trackedKey.split(":");
-    const listingId = listingIdParts.join(":");
-    if (!locationId || !listingId) continue;
-    if (!selectedIdsByLocation[locationId]) selectedIdsByLocation[locationId] = new Set();
-    selectedIdsByLocation[locationId].add(listingId);
+  if (!trackAllListings) {
+    for (const trackedKey of selectedKeySet) {
+      const [locationId, ...listingIdParts] = trackedKey.split(":");
+      const listingId = listingIdParts.join(":");
+      if (!locationId || !listingId) continue;
+      if (!selectedIdsByLocation[locationId]) selectedIdsByLocation[locationId] = new Set();
+      selectedIdsByLocation[locationId].add(listingId);
+    }
   }
 
   if (!activeLocationIds.length) return createEmptyListingAlertsState();
@@ -510,7 +516,12 @@ export function buildListingAlertsState({
 
   for (const [key, entry] of Object.entries(previousListingHistory)) {
     const sanitized = sanitizeListingHistoryEntry({ ...entry, key });
-    if (!sanitized || !selectedKeySet.has(sanitized.key)) continue;
+    if (!sanitized) continue;
+    if (trackAllListings) {
+      if (!activeLocationSet.has(sanitized.locationId)) continue;
+    } else if (!selectedKeySet.has(sanitized.key)) {
+      continue;
+    }
     nextListingHistory[sanitized.key] = sanitized;
   }
 
@@ -532,7 +543,9 @@ export function buildListingAlertsState({
     nextSnapshot[locationId] = snapshotBuilding;
 
     const previousListings = previousBuilding?.listings || {};
-    const selectedListingIds = selectedIdsByLocation[locationId];
+    const selectedListingIds = trackAllListings
+      ? new Set([...Object.keys(snapshotBuilding.listings), ...Object.keys(previousListings)])
+      : selectedIdsByLocation[locationId];
     let newListingCount = 0;
     let priceDropCount = 0;
     let priceIncreaseCount = 0;
@@ -540,6 +553,23 @@ export function buildListingAlertsState({
     let latestChangedAt = null;
 
     if (!selectedListingIds?.size) continue;
+
+    if (trackAllListings && isInitialSnapshot) {
+      for (const listingId of selectedListingIds) {
+        const listing = snapshotBuilding.listings[listingId];
+        if (!listing) continue;
+        const historyKey = createTrackedListingKey(locationId, listingId);
+        if (!historyKey || nextListingHistory[historyKey]) continue;
+        const seedEntry = buildHistoryEntry(listing, null, {
+          checkedAt,
+          eventType: null,
+          previousPrice: null,
+          priceDelta: null,
+        });
+        if (seedEntry?.key) nextListingHistory[seedEntry.key] = seedEntry;
+      }
+      continue;
+    }
 
     for (const listingId of selectedListingIds) {
       const listing = snapshotBuilding.listings[listingId];
@@ -619,7 +649,7 @@ export function buildListingAlertsState({
 
   const summary = {
     watchedBuildingCount: activeLocationIds.length,
-    trackedListingCount: selectedKeySet.size,
+    trackedListingCount: trackAllListings ? Object.keys(nextListingHistory).length : selectedKeySet.size,
     changedBuildingCount: Object.keys(nextBuildingChanges).length,
     totalChanges: nextChangeItems.length,
     newListingCount: nextChangeItems.filter((item) => item.type === "new").length,

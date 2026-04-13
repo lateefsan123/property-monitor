@@ -5,7 +5,6 @@ import {
   FlatList,
   Image,
   Linking,
-  PanResponder,
   Pressable,
   ScrollView,
   StatusBar,
@@ -30,11 +29,6 @@ import { useListingAlerts } from "../features/listing-alerts/useListingAlerts";
 import { getTheme } from "../theme";
 import ListingDetailScreen from "./ListingDetailScreen";
 
-const VIEW_TAB_OPTIONS = [
-  { id: "buildings", label: "Buildings" },
-  { id: "listings", label: "Listings" },
-];
-
 const PRICE_BUCKETS = [
   { id: "all", label: "All" },
   { id: "lt1", label: "< 1M", max: 1_000_000 },
@@ -43,18 +37,11 @@ const PRICE_BUCKETS = [
   { id: "gt6", label: "6M+", min: 6_000_000 },
 ];
 
-const BED_OPTIONS = [
-  { id: "all", label: "All" },
-  { id: "studio", label: "Studio", match: (b) => b === 0 },
-  { id: "1", label: "1 bed", match: (b) => b === 1 },
-  { id: "2", label: "2 bed", match: (b) => b === 2 },
-  { id: "3plus", label: "3+ bed", match: (b) => Number.isFinite(b) && b >= 3 },
-];
-
 const TRACK_STATUS_OPTIONS = [
   { id: "all", label: "All" },
   { id: "active", label: "Active" },
   { id: "removed", label: "Off market" },
+  { id: "price-drops", label: "Price drops" },
 ];
 
 const LISTINGS_PAGE_SIZE = 25;
@@ -298,57 +285,6 @@ function BuildingRow({ building, colors, isWatched, watchDisabled, onToggleWatch
   );
 }
 
-function ListingRow({ listing, colors, onOpen }) {
-  return (
-    <Pressable onPress={onOpen} style={({ pressed }) => [{ flexDirection: "row", alignItems: "center", gap: 12 }, pressed && { opacity: 0.85 }]}>
-      {listing.coverPhoto ? (
-        <Image source={{ uri: listing.coverPhoto }} style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: colors.bgBadge }} />
-      ) : (
-        <View style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: colors.bgBadge }} />
-      )}
-
-      <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 17, fontWeight: "800", color: colors.textName }} numberOfLines={1}>
-          {listing.title || "Untitled listing"}
-        </Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-          <HomeIcon size={13} color={colors.textMuted} />
-          <Text style={{ fontSize: 14, color: colors.textMuted }} numberOfLines={1}>
-            {listing.buildingName}
-          </Text>
-        </View>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 }}>
-          <Text style={{ fontSize: 14, color: colors.text, fontWeight: "700" }} numberOfLines={1}>
-            {formatPriceRange(listing.price, listing.price)}
-          </Text>
-          <PriceDeltaChip priceDelta={listing.priceDelta} colors={colors} />
-        </View>
-        {Number.isFinite(listing.previousPrice) && listing.previousPrice !== listing.price ? (
-          <Text style={{ fontSize: 11, color: colors.textFaint, marginTop: 1 }} numberOfLines={1}>
-            Was {formatPrice(listing.previousPrice)}
-          </Text>
-        ) : null}
-        <Text style={{ fontSize: 12, color: colors.textFaint, marginTop: 2 }} numberOfLines={1}>
-          {formatBedsAndBaths(listing.beds, listing.baths)} | {formatArea(listing.areaSqft)} | {formatListingTimestamp(listing.verifiedAt)}
-        </Text>
-      </View>
-
-      <View
-        style={{
-          alignItems: "center",
-          justifyContent: "center",
-          width: 40,
-          height: 40,
-          borderRadius: 20,
-          backgroundColor: colors.whatsappBg,
-        }}
-      >
-        <ExternalLinkIcon size={16} color={colors.whatsappText} />
-      </View>
-    </Pressable>
-  );
-}
-
 function ListingHistoryRow({ listing, colors, onPress, onOpenExternal }) {
   const isTracked = Boolean(listing.isTracked);
   const isRemoved = listing.currentStatus === "removed";
@@ -432,39 +368,27 @@ export default function ListingAlertsScreen({ onBack, theme }) {
   const s = styles(colors);
   const alerts = useListingAlerts();
 
-  const [viewTab, setViewTab] = useState("buildings");
+  const [selectedBuildingId, setSelectedBuildingId] = useState(null);
   const [watchingOnly, setWatchingOnly] = useState(false);
   const [trackedOnly, setTrackedOnly] = useState(false);
   const [priceChangedOnly, setPriceChangedOnly] = useState(false);
   const [priceFilter, setPriceFilter] = useState("all");
-  const [bedsFilter, setBedsFilter] = useState("all");
   const [trackedStatusFilter, setTrackedStatusFilter] = useState("all");
-  const [listingBuildingFilter, setListingBuildingFilter] = useState("all");
   const [sheetOpen, setSheetOpen] = useState(false);
   const [listingsPage, setListingsPage] = useState(1);
   const [selectedListingKey, setSelectedListingKey] = useState(null);
   const [selectedSearchOption, setSelectedSearchOption] = useState(null);
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
   const hasTrackedUnits = alerts.stats.trackedListingCount > 0;
+  const autoTracking = alerts.autoTracking;
+  const effectiveTrackedOnly = autoTracking ? false : trackedOnly;
   const buildingFilterOptions = useMemo(() => alerts.watchedBuildings || [], [alerts.watchedBuildings]);
   const searchResults = useMemo(() => alerts.searchResults || [], [alerts.searchResults]);
   const searchTerm = alerts.searchTerm || "";
   const searchInputRef = useRef(null);
   const searchBlurTimeoutRef = useRef(null);
-
-  // Swipe between tabs — same pattern as Dashboard
-  const swipeResponder = useMemo(
-    () =>
-      PanResponder.create({
-        onMoveShouldSetPanResponder: (_, gesture) =>
-          Math.abs(gesture.dx) > 20 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 2,
-        onPanResponderRelease: (_, gesture) => {
-          if (gesture.dx < -60 && viewTab === "buildings") handleViewTabChange("listings");
-          else if (gesture.dx > 60 && viewTab === "listings") handleViewTabChange("buildings");
-        },
-      }),
-    [viewTab],
-  );
+  const viewTab = selectedBuildingId ? "listings" : "buildings";
+  const effectiveListingBuildingFilter = selectedBuildingId || "all";
 
   async function openListing(url) {
     if (!url) return;
@@ -491,14 +415,13 @@ export default function ListingAlertsScreen({ onBack, theme }) {
       const didWatch = alerts.actions.toggleWatch(building);
       if (!didWatch) return;
     }
-    setListingBuildingFilter(building.locationId || "all");
+    setSelectedBuildingId(building.locationId || null);
     setListingsPage(1);
-    setViewTab("listings");
   }
 
-  function handleViewTabChange(nextValue) {
+  function goBackToBuildings() {
+    setSelectedBuildingId(null);
     setListingsPage(1);
-    setViewTab(nextValue);
   }
 
   function handleWatchingOnlyChange(nextValue) {
@@ -521,19 +444,9 @@ export default function ListingAlertsScreen({ onBack, theme }) {
     setPriceFilter(nextValue);
   }
 
-  function handleBedsFilterChange(nextValue) {
-    setListingsPage(1);
-    setBedsFilter(nextValue);
-  }
-
   function handleTrackedStatusFilterChange(nextValue) {
     setListingsPage(1);
     setTrackedStatusFilter(nextValue);
-  }
-
-  function handleListingBuildingFilterChange(nextValue) {
-    setListingsPage(1);
-    setListingBuildingFilter(nextValue);
   }
 
   useEffect(() => {
@@ -567,13 +480,6 @@ export default function ListingAlertsScreen({ onBack, theme }) {
       || selectedSearchOption;
   }, [alerts.watchedBuildings, searchResults, selectedSearchOption]);
 
-  const effectiveListingBuildingFilter = useMemo(() => {
-    if (listingBuildingFilter === "all") return "all";
-    return buildingFilterOptions.some((building) => building.locationId === listingBuildingFilter)
-      ? listingBuildingFilter
-      : "all";
-  }, [buildingFilterOptions, listingBuildingFilter]);
-
   const buildings = useMemo(() => {
     if (watchingOnly) {
       if (selectedSearchBuilding?.locationId) {
@@ -583,15 +489,15 @@ export default function ListingAlertsScreen({ onBack, theme }) {
     }
     if (selectedSearchBuilding) return [selectedSearchBuilding];
     if (alerts.usingLiveSearch) return searchResults;
-    return [...(alerts.watchedBuildings || []), ...(alerts.popularBuildings || [])];
-  }, [alerts.popularBuildings, alerts.usingLiveSearch, alerts.watchedBuildings, searchResults, selectedSearchBuilding, watchingOnly]);
+    return alerts.watchedBuildings || [];
+  }, [alerts.usingLiveSearch, alerts.watchedBuildings, searchResults, selectedSearchBuilding, watchingOnly]);
 
   const listings = useMemo(() => {
     let source = [];
 
     if (!alerts.stats.watchedBuildingCount) {
       source = [];
-    } else if (trackedOnly || trackedStatusFilter !== "all") {
+    } else if (effectiveTrackedOnly || (trackedStatusFilter !== "all" && trackedStatusFilter !== "price-drops")) {
       source = alerts.trackedListings || [];
     } else {
       source = alerts.latestListings || [];
@@ -605,16 +511,20 @@ export default function ListingAlertsScreen({ onBack, theme }) {
       source = source.filter((l) => alerts.watchedSet.has(l.locationId));
     }
 
-    if (trackedOnly) {
+    if (effectiveTrackedOnly) {
       source = source.filter((l) => l.isTracked || l.currentStatus);
     }
 
     if (trackedStatusFilter !== "all") {
-      source = source.filter((l) => {
-        if (!l.isTracked && !l.currentStatus) return false;
-        if (trackedStatusFilter === "removed") return l.currentStatus === "removed";
-        return (l.currentStatus || "active") === "active";
-      });
+      if (trackedStatusFilter === "price-drops") {
+        source = source.filter((l) => Number.isFinite(l.priceDelta) && l.priceDelta < 0);
+      } else {
+        source = source.filter((l) => {
+          if (!l.isTracked && !l.currentStatus) return false;
+          if (trackedStatusFilter === "removed") return l.currentStatus === "removed";
+          return (l.currentStatus || "active") === "active";
+        });
+      }
     }
 
     if (priceChangedOnly) {
@@ -638,22 +548,16 @@ export default function ListingAlertsScreen({ onBack, theme }) {
       });
     }
 
-    const bed = BED_OPTIONS.find((b) => b.id === bedsFilter);
-    if (bed && bed.match) {
-      source = source.filter((l) => bed.match(l.beds));
-    }
-
     return source;
   }, [
     alerts.latestListings,
     alerts.stats.watchedBuildingCount,
     alerts.trackedListings,
     alerts.watchedSet,
-    bedsFilter,
     effectiveListingBuildingFilter,
+    effectiveTrackedOnly,
     priceChangedOnly,
     priceFilter,
-    trackedOnly,
     trackedStatusFilter,
     watchingOnly,
   ]);
@@ -689,12 +593,33 @@ export default function ListingAlertsScreen({ onBack, theme }) {
     const startIndex = (listingSafePage - 1) * LISTINGS_PAGE_SIZE;
     return listings.slice(startIndex, startIndex + LISTINGS_PAGE_SIZE);
   }, [listingSafePage, listings]);
-  const listingHeaderText = !alerts.stats.watchedBuildingCount
-    ? "Watch a building to browse its apartments"
-    : !hasTrackedUnits
-      ? `Pick the exact units you care about, last checked ${formatSyncTimestamp(alerts.alertSummary.lastCheckedAt)}`
-      : `${alerts.stats.trackedListingCount} tracked ${alerts.stats.trackedListingCount === 1 ? "unit" : "units"}, ${alerts.alertSummary.totalChanges} changes, last checked ${formatSyncTimestamp(alerts.alertSummary.lastCheckedAt)}`;
-  const showSearchDropdown = viewTab === "buildings"
+  const listingHeaderText = useMemo(() => {
+    if (!alerts.stats.watchedBuildingCount) return "Watch a building to browse its apartments";
+    const lastChecked = formatSyncTimestamp(alerts.alertSummary.lastCheckedAt);
+
+    if (selectedBuildingId) {
+      const seen = new Set();
+      const buildingListings = [];
+      for (const l of [...(alerts.trackedListings || []), ...(alerts.latestListings || [])]) {
+        if (l.locationId !== selectedBuildingId) continue;
+        const k = l.key || l.id;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        buildingListings.push(l);
+      }
+      const trackedCount = buildingListings.filter((l) => l.isTracked || l.currentStatus).length;
+      const dropCount = buildingListings.filter((l) => Number.isFinite(l.priceDelta) && l.priceDelta < 0).length;
+      const parts = [];
+      if (trackedCount) parts.push(`${trackedCount} tracked ${trackedCount === 1 ? "unit" : "units"}`);
+      if (dropCount) parts.push(`${dropCount} price ${dropCount === 1 ? "drop" : "drops"}`);
+      parts.push(`last checked ${lastChecked}`);
+      return parts.join(", ");
+    }
+
+    if (!hasTrackedUnits) return `Pick the exact units you care about, last checked ${lastChecked}`;
+    return `${alerts.stats.trackedListingCount} tracked ${alerts.stats.trackedListingCount === 1 ? "unit" : "units"}, ${alerts.alertSummary.totalChanges} changes, last checked ${lastChecked}`;
+  }, [alerts.stats.watchedBuildingCount, alerts.stats.trackedListingCount, alerts.alertSummary, alerts.trackedListings, alerts.latestListings, selectedBuildingId, hasTrackedUnits]);
+  const showSearchDropdown = !selectedBuildingId
     && searchMenuOpen
     && searchTerm.trim().length >= 2
     && (alerts.searchLoading || Boolean(alerts.searchError) || searchResults.length > 0 || !selectedSearchOption);
@@ -778,126 +703,112 @@ export default function ListingAlertsScreen({ onBack, theme }) {
     <SafeAreaView style={s.page} edges={["top"]}>
       <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} />
 
-      {/* Pill tab bar — matches Dashboard */}
-      <View style={s.tabBar}>
-        {onBack ? (
-          <Pressable style={s.backBtn} onPress={onBack} hitSlop={12}>
+      {selectedBuildingId ? (
+        <View style={s.buildingHeader}>
+          <Pressable style={s.backBtn} onPress={goBackToBuildings} hitSlop={12}>
             <BackIcon color={colors.text} />
           </Pressable>
-        ) : null}
-
-        <View style={s.pillTrack}>
-          {VIEW_TAB_OPTIONS.map((tab) => {
-            const isActive = viewTab === tab.id;
-            return (
-              <Pressable
-                key={tab.id}
-                style={[s.pillTab, isActive && s.pillTabActive]}
-                onPress={() => handleViewTabChange(tab.id)}
-              >
-                <Text style={[s.pillTabLabel, isActive && s.pillTabLabelActive]}>
-                  {tab.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </View>
-
-        <Text style={s.countText}>{countLabel}</Text>
-      </View>
-
-      {/* Search — only on Buildings tab */}
-      {viewTab === "buildings" ? (
-        <View style={s.searchBar}>
-          <View style={s.searchBox}>
-            <View style={s.searchInputWrap}>
-              <SearchIcon color={colors.textFaint} />
-              <TextInput
-                ref={searchInputRef}
-                style={s.searchInput}
-                placeholder="Search buildings on Bayut..."
-                placeholderTextColor={colors.textFaint}
-                value={searchTerm}
-                onChangeText={handleSearchInputChange}
-                onFocus={() => {
-                  if (searchTerm.trim().length >= 2) setSearchMenuOpen(true);
-                }}
-                onBlur={() => {
-                  if (searchBlurTimeoutRef.current) clearTimeout(searchBlurTimeoutRef.current);
-                  searchBlurTimeoutRef.current = setTimeout(() => setSearchMenuOpen(false), 120);
-                }}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-              {searchTerm ? (
-                <Pressable style={s.searchClearBtn} onPress={clearSearchSelection}>
-                  <Text style={s.searchClearText}>Clear</Text>
-                </Pressable>
-              ) : null}
-            </View>
-
-            {showSearchDropdown ? (
-              <View style={s.searchDropdown}>
-                {alerts.searchLoading ? (
-                  <Text style={s.searchDropdownState}>Searching available buildings...</Text>
-                ) : alerts.searchError ? (
-                  <Text style={s.searchDropdownState}>Search is unavailable right now.</Text>
-                ) : searchResults.length ? (
-                  <ScrollView
-                    style={s.searchDropdownScroll}
-                    nestedScrollEnabled
-                    keyboardShouldPersistTaps="handled"
-                    showsVerticalScrollIndicator={false}
-                  >
-                    {searchResults.map((option) => {
-                      const meta = getSearchOptionMeta(option);
-                      const isSelected = selectedSearchBuilding?.locationId === option.locationId;
-                      return (
-                        <Pressable
-                          key={option.locationId}
-                          style={({ pressed }) => [
-                            s.searchOption,
-                            isSelected && s.searchOptionSelected,
-                            pressed && { opacity: 0.82 },
-                          ]}
-                          onPress={() => handleSearchOptionSelect(option)}
-                        >
-                          <View style={s.searchOptionIconWrap}>
-                            <LocationPinIcon size={15} color={colors.textMuted} />
-                          </View>
-                          <View style={s.searchOptionCopy}>
-                            <Text style={s.searchOptionTitle} numberOfLines={1}>
-                              {getSearchOptionLabel(option)}
-                            </Text>
-                            {meta ? (
-                              <Text style={s.searchOptionMeta} numberOfLines={1}>
-                                {meta}
-                              </Text>
-                            ) : null}
-                          </View>
-                        </Pressable>
-                      );
-                    })}
-                  </ScrollView>
-                ) : (
-                  <Text style={s.searchDropdownState}>No available buildings match that search.</Text>
-                )}
-              </View>
-            ) : null}
+          <View style={s.buildingHeaderContent}>
+            <Text style={s.buildingHeaderTitle} numberOfLines={1}>
+              {selectedBuildingOption?.buildingName || "Listings"}
+            </Text>
+            <Text style={s.buildingHeaderSubtitle} numberOfLines={2}>{listingHeaderText}</Text>
           </View>
         </View>
       ) : (
-        <View style={s.listingHeader}>
-          <Text style={s.listingHeaderTitle}>{listingHeaderText}</Text>
-          {alerts.stats.watchedBuildingCount ? (
-            <Pressable style={({ pressed }) => [s.refreshPill, pressed && { opacity: 0.85 }]} onPress={alerts.actions.refresh} disabled={alerts.watchedLoading}>
-              {alerts.watchedLoading ? <ActivityIndicator size="small" color={colors.tabActiveText} /> : <Text style={s.refreshPillText}>Refresh</Text>}
-            </Pressable>
-          ) : null}
-        </View>
+        <>
+          <View style={s.tabBar}>
+            {onBack ? (
+              <Pressable style={s.backBtn} onPress={onBack} hitSlop={12}>
+                <BackIcon color={colors.text} />
+              </Pressable>
+            ) : null}
+            <Text style={s.pageTitle}>Listing Alerts</Text>
+            <Text style={s.countText}>{countLabel}</Text>
+          </View>
+
+          <View style={s.searchBar}>
+            <View style={s.searchBox}>
+              <View style={s.searchInputWrap}>
+                <SearchIcon color={colors.textFaint} />
+                <TextInput
+                  ref={searchInputRef}
+                  style={s.searchInput}
+                  placeholder="Search buildings on Bayut..."
+                  placeholderTextColor={colors.textFaint}
+                  value={searchTerm}
+                  onChangeText={handleSearchInputChange}
+                  onFocus={() => {
+                    if (searchTerm.trim().length >= 2) setSearchMenuOpen(true);
+                  }}
+                  onBlur={() => {
+                    if (searchBlurTimeoutRef.current) clearTimeout(searchBlurTimeoutRef.current);
+                    searchBlurTimeoutRef.current = setTimeout(() => setSearchMenuOpen(false), 120);
+                  }}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                />
+                {searchTerm ? (
+                  <Pressable style={s.searchClearBtn} onPress={clearSearchSelection}>
+                    <Text style={s.searchClearText}>Clear</Text>
+                  </Pressable>
+                ) : null}
+              </View>
+
+              {showSearchDropdown ? (
+                <View style={s.searchDropdown}>
+                  {alerts.searchLoading ? (
+                    <Text style={s.searchDropdownState}>Searching available buildings...</Text>
+                  ) : alerts.searchError ? (
+                    <Text style={s.searchDropdownState}>Search is unavailable right now.</Text>
+                  ) : searchResults.length ? (
+                    <ScrollView
+                      style={s.searchDropdownScroll}
+                      nestedScrollEnabled
+                      keyboardShouldPersistTaps="handled"
+                      showsVerticalScrollIndicator={false}
+                    >
+                      {searchResults.map((option) => {
+                        const meta = getSearchOptionMeta(option);
+                        const isSelected = selectedSearchBuilding?.locationId === option.locationId;
+                        return (
+                          <Pressable
+                            key={option.locationId}
+                            style={({ pressed }) => [
+                              s.searchOption,
+                              isSelected && s.searchOptionSelected,
+                              pressed && { opacity: 0.82 },
+                            ]}
+                            onPress={() => handleSearchOptionSelect(option)}
+                          >
+                            <View style={s.searchOptionIconWrap}>
+                              <LocationPinIcon size={15} color={colors.textMuted} />
+                            </View>
+                            <View style={s.searchOptionCopy}>
+                              <Text style={s.searchOptionTitle} numberOfLines={1}>
+                                {getSearchOptionLabel(option)}
+                              </Text>
+                              {meta ? (
+                                <Text style={s.searchOptionMeta} numberOfLines={1}>
+                                  {meta}
+                                </Text>
+                              ) : null}
+                            </View>
+                          </Pressable>
+                        );
+                      })}
+                    </ScrollView>
+                  ) : (
+                    <Text style={s.searchDropdownState}>No available buildings match that search.</Text>
+                  )}
+                </View>
+              ) : null}
+            </View>
+          </View>
+        </>
       )}
 
-      {alerts.searchError && viewTab === "buildings" ? (
+      {alerts.searchError && !selectedBuildingId ? (
         <View style={s.errorBox}>
           <Text style={s.errorText}>{alerts.searchError}</Text>
         </View>
@@ -924,7 +835,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
         ) : null}
       </View>
 
-      <View style={s.listWrap} {...swipeResponder.panHandlers}>
+      <View style={s.listWrap}>
         <FlatList
           data={viewTab === "buildings" ? buildings : pagedListings}
           keyExtractor={keyExtractor}
@@ -932,7 +843,7 @@ export default function ListingAlertsScreen({ onBack, theme }) {
           contentContainerStyle={s.listContent}
           ItemSeparatorComponent={() => <View style={[s.separator, { backgroundColor: colors.textFainter }]} />}
           ListEmptyComponent={
-            viewTab === "buildings" && alerts.searchLoading ? (
+            !selectedBuildingId && alerts.searchLoading ? (
               <View style={s.emptyWrap}>
                 <ActivityIndicator size="small" color={colors.textMuted} />
                 <Text style={s.emptyText}>Searching Bayut buildings...</Text>
@@ -940,16 +851,14 @@ export default function ListingAlertsScreen({ onBack, theme }) {
             ) : (
               <View style={s.emptyWrap}>
                 <Text style={s.emptyTitle}>
-                  {viewTab === "buildings" ? "No buildings match" : "No listings match"}
+                  {!selectedBuildingId ? "No buildings match" : "No listings match"}
                 </Text>
                 <Text style={s.emptyText}>
-                  {viewTab === "buildings"
+                  {!selectedBuildingId
                     ? "Try a broader search term, or switch off the Watching filter."
-                    : alerts.stats.watchedBuildingCount
-                      ? hasTrackedUnits
-                        ? "Try another filter, or switch off Tracked only to browse more live units."
-                        : "Open a live unit and track the exact ones you want alerts for."
-                      : "Watch a building first, then this tab will show its live apartments."}
+                    : hasTrackedUnits
+                      ? "Try another filter, or switch off Tracked only to browse more live units."
+                      : "No listings found for this building."}
                 </Text>
               </View>
             )
@@ -995,26 +904,30 @@ export default function ListingAlertsScreen({ onBack, theme }) {
       {/* Bottom sheet — filter chips, same pattern as Dashboard */}
       <BottomSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} colors={colors}>
         <ScrollView style={s.sheetScroll} contentContainerStyle={s.sheetContent} showsVerticalScrollIndicator={false}>
-          <Text style={s.sectionLabel}>View</Text>
-          <View style={s.toggleRow}>
-            <Text style={s.toggleLabel}>Watching only</Text>
-            <Switch
-              value={watchingOnly}
-              onValueChange={handleWatchingOnlyChange}
-              trackColor={{ false: colors.border, true: colors.tabActiveBg }}
-            />
-          </View>
-
-          {viewTab === "listings" ? (
+          {!selectedBuildingId ? (
             <>
+              <Text style={s.sectionLabel}>View</Text>
               <View style={s.toggleRow}>
-                <Text style={s.toggleLabel}>Tracked units only</Text>
+                <Text style={s.toggleLabel}>Watching only</Text>
                 <Switch
-                  value={trackedOnly}
-                  onValueChange={handleTrackedOnlyChange}
+                  value={watchingOnly}
+                  onValueChange={handleWatchingOnlyChange}
                   trackColor={{ false: colors.border, true: colors.tabActiveBg }}
                 />
               </View>
+            </>
+          ) : (
+            <>
+              {!autoTracking ? (
+                <View style={s.toggleRow}>
+                  <Text style={s.toggleLabel}>Tracked units only</Text>
+                  <Switch
+                    value={trackedOnly}
+                    onValueChange={handleTrackedOnlyChange}
+                    trackColor={{ false: colors.border, true: colors.tabActiveBg }}
+                  />
+                </View>
+              ) : null}
 
               <View style={s.toggleRow}>
                 <Text style={s.toggleLabel}>Price moves only</Text>
@@ -1025,47 +938,18 @@ export default function ListingAlertsScreen({ onBack, theme }) {
                 />
               </View>
 
-              {hasTrackedUnits ? (
-                <>
-                  <Text style={s.sectionLabel}>Status</Text>
-                  <View style={s.chipRow}>
-                    {TRACK_STATUS_OPTIONS.map((opt) => (
-                      <Pressable
-                        key={opt.id}
-                        style={[s.chip, trackedStatusFilter === opt.id && s.chipActive]}
-                        onPress={() => handleTrackedStatusFilterChange(opt.id)}
-                      >
-                        <Text style={[s.chipText, trackedStatusFilter === opt.id && s.chipTextActive]}>{opt.label}</Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </>
-              ) : null}
-
-              {buildingFilterOptions.length ? (
-                <>
-                  <Text style={s.sectionLabel}>Building</Text>
-                  <View style={s.chipRow}>
-                    <Pressable
-                      style={[s.chip, effectiveListingBuildingFilter === "all" && s.chipActive]}
-                      onPress={() => handleListingBuildingFilterChange("all")}
-                    >
-                      <Text style={[s.chipText, effectiveListingBuildingFilter === "all" && s.chipTextActive]}>All watched buildings</Text>
-                    </Pressable>
-                    {buildingFilterOptions.map((building) => (
-                      <Pressable
-                        key={building.locationId}
-                        style={[s.chip, effectiveListingBuildingFilter === building.locationId && s.chipActive]}
-                        onPress={() => handleListingBuildingFilterChange(building.locationId)}
-                      >
-                        <Text style={[s.chipText, effectiveListingBuildingFilter === building.locationId && s.chipTextActive]}>
-                          {building.buildingName}
-                        </Text>
-                      </Pressable>
-                    ))}
-                  </View>
-                </>
-              ) : null}
+              <Text style={s.sectionLabel}>Status</Text>
+              <View style={s.chipRow}>
+                {TRACK_STATUS_OPTIONS.map((opt) => (
+                  <Pressable
+                    key={opt.id}
+                    style={[s.chip, trackedStatusFilter === opt.id && s.chipActive]}
+                    onPress={() => handleTrackedStatusFilterChange(opt.id)}
+                  >
+                    <Text style={[s.chipText, trackedStatusFilter === opt.id && s.chipTextActive]}>{opt.label}</Text>
+                  </Pressable>
+                ))}
+              </View>
 
               <Text style={s.sectionLabel}>Price</Text>
               <View style={s.chipRow}>
@@ -1079,21 +963,8 @@ export default function ListingAlertsScreen({ onBack, theme }) {
                   </Pressable>
                 ))}
               </View>
-
-              <Text style={s.sectionLabel}>Bedrooms</Text>
-              <View style={s.chipRow}>
-                {BED_OPTIONS.map((opt) => (
-                  <Pressable
-                    key={opt.id}
-                    style={[s.chip, bedsFilter === opt.id && s.chipActive]}
-                    onPress={() => handleBedsFilterChange(opt.id)}
-                  >
-                    <Text style={[s.chipText, bedsFilter === opt.id && s.chipTextActive]}>{opt.label}</Text>
-                  </Pressable>
-                ))}
-              </View>
             </>
-          ) : null}
+          )}
         </ScrollView>
       </BottomSheet>
 
@@ -1106,47 +977,55 @@ const styles = (c) =>
     page: { flex: 1, backgroundColor: c.bg },
     centered: { flex: 1, justifyContent: "center", alignItems: "center" },
 
-    // Tab bar — pill segmented control (matches DashboardScreen)
+    // Header
     tabBar: {
       flexDirection: "row",
       alignItems: "center",
-      justifyContent: "center",
       paddingHorizontal: 16,
       paddingVertical: 10,
       backgroundColor: c.bg,
       position: "relative",
     },
     backBtn: {
-      position: "absolute",
-      left: 16,
-      top: 10,
       width: 40,
       height: 40,
       alignItems: "center",
       justifyContent: "center",
     },
-    pillTrack: {
-      flexDirection: "row",
-      backgroundColor: c.bgCard,
-      borderRadius: 24,
-      padding: 3,
+    pageTitle: {
+      flex: 1,
+      fontSize: 18,
+      fontWeight: "800",
+      color: c.textName,
+      textAlign: "center",
     },
-    pillTab: {
-      minWidth: 100,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 20,
-      paddingVertical: 10,
-      borderRadius: 22,
-    },
-    pillTabActive: { backgroundColor: c.tabActiveBg },
-    pillTabLabel: { fontSize: 14, fontWeight: "600", color: c.textMuted },
-    pillTabLabelActive: { color: c.tabActiveText },
     countText: {
       position: "absolute",
       right: 16,
       fontSize: 12,
       color: c.textFaint,
+    },
+    buildingHeader: {
+      flexDirection: "row",
+      alignItems: "center",
+      paddingHorizontal: 16,
+      paddingVertical: 10,
+      backgroundColor: c.bg,
+      gap: 4,
+    },
+    buildingHeaderContent: {
+      flex: 1,
+      gap: 2,
+    },
+    buildingHeaderTitle: {
+      fontSize: 18,
+      fontWeight: "800",
+      color: c.textName,
+    },
+    buildingHeaderSubtitle: {
+      fontSize: 12,
+      color: c.textMuted,
+      lineHeight: 17,
     },
 
     // Search
@@ -1237,35 +1116,6 @@ const styles = (c) =>
       fontSize: 13,
       color: c.textMuted,
     },
-    listingHeader: {
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      gap: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 10,
-    },
-    listingHeaderTitle: {
-      flex: 1,
-      fontSize: 12,
-      color: c.textMuted,
-      lineHeight: 17,
-    },
-    refreshPill: {
-      minWidth: 72,
-      alignItems: "center",
-      justifyContent: "center",
-      paddingHorizontal: 12,
-      paddingVertical: 9,
-      borderRadius: 999,
-      backgroundColor: c.tabActiveBg,
-    },
-    refreshPillText: {
-      fontSize: 12,
-      fontWeight: "700",
-      color: c.tabActiveText,
-    },
-
     // Error inline
     errorBox: {
       marginHorizontal: 16,
