@@ -29,12 +29,24 @@ export default function SpreadsheetsPage({ userId }) {
   ) + legacyCount;
   const showLegacyRow = legacyCount > 0 || Boolean(page.legacySheetUrl);
 
+  const lastSync = typeof window !== "undefined"
+    ? Number(localStorage.getItem("seller-signal:last-sheet-sync") || 0)
+    : 0;
+  const lastSyncLabel = lastSync
+    ? `Last synced ${new Date(lastSync).toLocaleString()}`
+    : "Not synced yet";
+
   return (
     <div className="page">
-      <h2 className="page-title">Spreadsheets</h2>
-      <p className="page-subtitle">
-        {page.leadSources.length} source{page.leadSources.length !== 1 && "s"} &middot; {totalLeads} leads
-      </p>
+      <div className="sheet-header">
+        <p className="page-subtitle">
+          {page.leadSources.length} source{page.leadSources.length !== 1 && "s"} &middot; {totalLeads} leads
+        </p>
+        <div className="sheet-sync-info">
+          <span className="sheet-sync-label">{lastSyncLabel}</span>
+          <span className="sheet-sync-note">Auto-syncs every hour</span>
+        </div>
+      </div>
 
       <div className="sheet-instructions">
         <h3>How to get your Google Sheets URL</h3>

@@ -1257,6 +1257,30 @@ button.btn-wa:disabled {
   color: var(--text-faint);
 }
 
+.sheet-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sheet-sync-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.sheet-sync-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.sheet-sync-note {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
 /* Sheet instructions */
 .sheet-instructions {
   padding: 16px 20px;

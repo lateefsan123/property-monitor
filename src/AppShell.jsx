@@ -6,6 +6,7 @@ import SellerSignalDashboard from "./features/seller-signal/SellerSignalDashboar
 import ListingAlertsPage from "./features/listing-alerts/components/ListingAlertsPage";
 import SpreadsheetsPage from "./features/seller-signal/components/SpreadsheetsPage";
 import { fetchUserLeads, fetchLeadInsights } from "./features/seller-signal/services";
+import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 
 const VALID_PAGES = new Set(["sellers", "listing-alerts", "spreadsheets"]);
 
@@ -63,6 +64,8 @@ export default function AppShell({ displayName, userId }) {
 
     void prefetchSellerData();
   }, [queryClient, userId]);
+
+  useAutoSheetSync(userId);
 
   function handleNavigate(pageId) {
     if (!VALID_PAGES.has(pageId)) return;
