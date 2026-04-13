@@ -497,7 +497,11 @@ export function useSellerSignalPage(userId) {
       await toggleSentMutation.mutateAsync({ leadId, shouldMarkSent });
       if (shouldMarkSent) {
         const today = new Date().toISOString().slice(0, 10);
-        await updateLeadMutation.mutateAsync({ leadId, updates: { lastContact: today } });
+        try {
+          await updateLeadMutation.mutateAsync({ leadId, updates: { lastContact: today } });
+        } catch (updateError) {
+          setActionError(`Marked as sent, but could not update last contact: ${getErrorMessage(updateError)}`);
+        }
         queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
       }
     } catch (persistError) {
