@@ -494,7 +494,16 @@ export function useSellerSignalPage(userId) {
     });
 
     try {
-      await toggleSentMutation.mutateAsync({ leadId, shouldMarkSent });
+      const persistedSentAt = await toggleSentMutation.mutateAsync({ leadId, shouldMarkSent });
+      updateLeadsCache(queryClient, userId, (current) => {
+        const nextSentMap = { ...current.sentMap };
+        if (persistedSentAt) {
+          nextSentMap[leadId] = new Date(persistedSentAt).getTime();
+        } else {
+          delete nextSentMap[leadId];
+        }
+        return { ...current, sentMap: nextSentMap };
+      });
       if (shouldMarkSent) {
         const today = new Date().toISOString().slice(0, 10);
         try {
@@ -502,8 +511,8 @@ export function useSellerSignalPage(userId) {
         } catch (updateError) {
           setActionError(`Marked as sent, but could not update last contact: ${getErrorMessage(updateError)}`);
         }
-        queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
       }
+      await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
     } catch (persistError) {
       setActionError(getErrorMessage(persistError));
       queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);

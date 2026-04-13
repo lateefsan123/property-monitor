@@ -392,7 +392,16 @@ export function useSellerSignalPage(userId) {
     });
 
     try {
-      await persistLeadSentState(userId, leadId, shouldMarkSent);
+      const persistedSentAt = await persistLeadSentState(userId, leadId, shouldMarkSent);
+      setSentLeads((previous) => {
+        const next = { ...previous };
+        if (persistedSentAt) {
+          next[leadId] = new Date(persistedSentAt).getTime();
+        } else {
+          delete next[leadId];
+        }
+        return next;
+      });
     } catch (persistError) {
       setError(getErrorMessage(persistError));
       setSentLeads((previous) => {

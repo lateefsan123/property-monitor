@@ -30,16 +30,26 @@ function mapStoredTransaction(transactionRow) {
 }
 
 export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
-  const [{ data: leadRows, error: leadError }, { data: sentRows, error: sentError }] = await Promise.all([
+  const [{ data: leadRows, error: leadError }, sentStateResult] = await Promise.all([
     supabase.from("leads").select("*").eq("user_id", userId).order("id"),
     supabase.from("sent_leads").select("lead_id, sent_at").eq("user_id", userId),
   ]);
 
   if (leadError) throw new Error(leadError.message);
-  if (sentError) throw new Error(sentError.message);
 
   const sentMap = {};
-  for (const row of sentRows || []) sentMap[row.lead_id] = new Date(row.sent_at).getTime();
+  for (const row of leadRows || []) {
+    if (!row.sent_at) continue;
+    sentMap[row.id] = new Date(row.sent_at).getTime();
+  }
+  if (!sentStateResult.error) {
+    for (const row of sentStateResult.data || []) {
+      const sentAt = new Date(row.sent_at).getTime();
+      if (!sentMap[row.lead_id] || sentAt > sentMap[row.lead_id]) {
+        sentMap[row.lead_id] = sentAt;
+      }
+    }
+  }
 
   const leads = sortLeadsByPriority(
     (leadRows || [])
@@ -330,12 +340,29 @@ export async function fetchLeadInsights(leads) {
 }
 
 export async function persistLeadSentState(userId, leadId, isSent) {
-  if (isSent) {
-    const { error } = await supabase.from("sent_leads").upsert({ user_id: userId, lead_id: leadId });
-    if (error) throw new Error(error.message);
-    return;
+  const sentAt = isSent ? new Date().toISOString() : null;
+  const { error } = await supabase
+    .from("leads")
+    .update({ sent_at: sentAt })
+    .eq("user_id", userId)
+    .eq("id", leadId);
+  if (error) throw new Error(error.message);
+
+  try {
+    if (isSent) {
+      const { error: legacyError } = await supabase.from("sent_leads").insert({ user_id: userId, lead_id: leadId, sent_at: sentAt });
+      if (legacyError && legacyError.code !== "23505") {
+        console.warn("Could not sync legacy sent_leads row", legacyError.message);
+      }
+    } else {
+      const { error: legacyError } = await supabase.from("sent_leads").delete().eq("user_id", userId).eq("lead_id", leadId);
+      if (legacyError) {
+        console.warn("Could not clear legacy sent_leads row", legacyError.message);
+      }
+    }
+  } catch (legacySyncError) {
+    console.warn("Legacy sent state sync failed", legacySyncError);
   }
 
-  const { error } = await supabase.from("sent_leads").delete().eq("user_id", userId).eq("lead_id", leadId);
-  if (error) throw new Error(error.message);
+  return sentAt;
 }

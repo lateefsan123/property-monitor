@@ -34,16 +34,17 @@ export function filterLeads({
   statusFilter,
   viewTab,
 }) {
-  const baseLeads = viewTab === "done" ? doneLeads : activeLeads;
-  let result = showDueOnly ? baseLeads.filter((lead) => lead.isDue) : baseLeads;
+  const isDoneView = viewTab === "done";
+  const baseLeads = isDoneView ? doneLeads : activeLeads;
+  let result = !isDoneView && showDueOnly ? baseLeads.filter((lead) => lead.isDue) : baseLeads;
 
-  if (statusFilter !== "all") {
+  if (!isDoneView && statusFilter !== "all") {
     result = result.filter((lead) => lead.statusRule?.id === statusFilter);
   }
 
-  if (dataFilter === "with_data") {
+  if (!isDoneView && dataFilter === "with_data") {
     result = result.filter((lead) => insights[lead.id]?.status === "ready");
-  } else if (dataFilter === "no_data") {
+  } else if (!isDoneView && dataFilter === "no_data") {
     result = result.filter((lead) => insights[lead.id]?.status !== "ready");
   }
 
