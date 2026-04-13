@@ -504,6 +504,8 @@ export function useSellerSignalPage(userId) {
         }
         return { ...current, sentMap: nextSentMap };
       });
+      setViewTab(shouldMarkSent ? "done" : "active");
+      setCurrentPage(1);
       if (shouldMarkSent) {
         const today = new Date().toISOString().slice(0, 10);
         try {

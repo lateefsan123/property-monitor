@@ -167,16 +167,17 @@ function buildSuspiciousImportError(summary) {
 export async function updateLead({ userId, leadId, updates }) {
   if (!userId || !leadId) return;
 
-  const payload = {
-    name: emptyToNull(updates?.name),
-    building: emptyToNull(updates?.building),
-    bedroom: emptyToNull(updates?.bedroom),
-    unit: emptyToNull(updates?.unit),
-    phone: emptyToNull(updates?.phone),
-    status: emptyToNull(updates?.status),
-    last_contact: updates?.lastContact ? updates.lastContact : null,
-  };
-  if (updates?.notes != null) payload.notes = updates.notes.trim() || null;
+  const payload = {};
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "name")) payload.name = emptyToNull(updates?.name);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "building")) payload.building = emptyToNull(updates?.building);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "bedroom")) payload.bedroom = emptyToNull(updates?.bedroom);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "unit")) payload.unit = emptyToNull(updates?.unit);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "phone")) payload.phone = emptyToNull(updates?.phone);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "status")) payload.status = emptyToNull(updates?.status);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "lastContact")) payload.last_contact = updates?.lastContact || null;
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "notes")) payload.notes = updates?.notes?.trim() || null;
+
+  if (!Object.keys(payload).length) return;
 
   const { error } = await supabase
     .from("leads")

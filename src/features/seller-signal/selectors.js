@@ -1,5 +1,4 @@
-import { MIN_NEW_TRANSACTIONS_TO_REACTIVATE, PAGE_SIZE } from "./constants";
-import { countNewTransactionsSince } from "./lead-utils";
+import { PAGE_SIZE } from "./constants";
 
 export function splitLeadsBySentStatus(leads, sentLeads, insights) {
   const activeLeads = [];
@@ -12,12 +11,7 @@ export function splitLeadsBySentStatus(leads, sentLeads, insights) {
       continue;
     }
 
-    const newTransactions = countNewTransactionsSince(insights[lead.id], sentAt);
-    if (newTransactions >= MIN_NEW_TRANSACTIONS_TO_REACTIVATE) {
-      activeLeads.push({ ...lead, newTxSinceSent: newTransactions });
-    } else {
-      doneLeads.push(lead);
-    }
+    doneLeads.push(lead);
   }
 
   return { activeLeads, doneLeads };

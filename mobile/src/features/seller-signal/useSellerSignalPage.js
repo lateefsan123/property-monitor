@@ -402,6 +402,8 @@ export function useSellerSignalPage(userId) {
         }
         return next;
       });
+      setViewTab(shouldMarkSent ? "done" : "active");
+      setCurrentPage(1);
     } catch (persistError) {
       setError(getErrorMessage(persistError));
       setSentLeads((previous) => {
