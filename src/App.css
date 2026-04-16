@@ -44,6 +44,9 @@
   --error-bg: #fef2f2;
   --error-border: #fecaca;
   --error-text: #b91c1c;
+  --success-bg: #f0fdf4;
+  --success-border: #bbf7d0;
+  --success-text: #15803d;
   --badge-due-bg: #fef2f2;
   --badge-due-text: #b91c1c;
   --badge-ok-bg: #f0fdf4;
@@ -101,6 +104,9 @@
   --error-bg: #2a1515;
   --error-border: #5a2020;
   --error-text: #f87171;
+  --success-bg: #0f2a1a;
+  --success-border: #166534;
+  --success-text: #4ade80;
   --badge-due-bg: #2a1515;
   --badge-due-text: #f87171;
   --badge-ok-bg: #0f2a1a;
@@ -343,6 +349,15 @@ body {
   background: var(--error-bg);
   border: 1px solid var(--error-border);
   color: var(--error-text);
+  font-size: 0.86rem;
+}
+
+.notice {
+  padding: 8px 10px;
+  border-radius: 6px;
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success-text);
   font-size: 0.86rem;
 }
 

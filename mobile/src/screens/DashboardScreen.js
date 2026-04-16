@@ -119,6 +119,12 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         />
       </View>
 
+      {d.notice && (
+        <View style={s.successBox}>
+          <Text style={s.successText}>{d.notice}</Text>
+        </View>
+      )}
+
       {d.error && (
         <View style={s.errorBox}>
           <Text style={s.errorText}>{d.error}</Text>
@@ -338,10 +344,22 @@ const styles = (c) =>
       marginHorizontal: 16,
       marginTop: 8,
       backgroundColor: c.errorBg,
+      borderWidth: 1,
+      borderColor: c.errorBorder,
       borderRadius: 10,
       padding: 10,
     },
     errorText: { color: c.errorText, fontSize: 13 },
+    successBox: {
+      marginHorizontal: 16,
+      marginTop: 8,
+      backgroundColor: c.badgeOkBg,
+      borderWidth: 1,
+      borderColor: c.border,
+      borderRadius: 10,
+      padding: 10,
+    },
+    successText: { color: c.badgeOkText, fontSize: 13 },
     searchBar: {
       paddingHorizontal: 16,
       paddingVertical: 10,

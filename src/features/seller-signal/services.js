@@ -283,13 +283,17 @@ export async function deleteLead({ userId, leadId }) {
   if (error) throw new Error(error.message);
 }
 
-export async function createDefaultLeadSources(userId) {
-  const defaults = [
-    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 0 },
-    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 1 },
-    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 2 },
-    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 3 },
-  ];
+export async function createDefaultLeadSources(userId, count = 10, startSortOrder = 0) {
+  const defaults = Array.from({ length: count }, (_, index) => ({
+    user_id: userId,
+    label: "",
+    type: "building",
+    building_name: "",
+    sheet_url: null,
+    sort_order: startSortOrder + index,
+  }));
+
+  if (!defaults.length) return;
 
   const { error } = await supabase.from("lead_sources").insert(defaults);
   if (error) throw new Error(error.message);

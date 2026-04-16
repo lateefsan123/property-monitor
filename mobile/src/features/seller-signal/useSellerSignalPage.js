@@ -1,3 +1,4 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
@@ -12,13 +13,16 @@ import {
   fetchLeadSources,
   fetchUserLeads,
   persistLeadSentState,
+  replaceLegacyLeadsFromSheet,
   replaceUserLeadsFromSheet,
   updateLead,
   updateLeadStatus,
   upsertLeadSource,
 } from "./services";
 
-const MAX_LEAD_SOURCES = 4;
+const MAX_LEAD_SOURCES = 10;
+const LEGACY_SOURCE_ID = "legacy";
+const LEGACY_SOURCE_LABEL = "Legacy spreadsheet";
 
 function normalizeSources(sources) {
   if (!Array.isArray(sources)) return [];
@@ -34,10 +38,19 @@ function limitLeadSources(sources) {
     .slice(0, MAX_LEAD_SOURCES);
 }
 
+function getNextLeadSourceSortOrder(sources) {
+  if (!Array.isArray(sources) || !sources.length) return 0;
+  return sources.reduce((max, source) => Math.max(max, Number(source.sort_order ?? -1)), -1) + 1;
+}
+
 async function fetchSellerSources(userId) {
   let sources = await fetchLeadSources(userId);
-  if (!sources.length) {
-    await createDefaultLeadSources(userId);
+  if (sources.length < MAX_LEAD_SOURCES) {
+    await createDefaultLeadSources(
+      userId,
+      MAX_LEAD_SOURCES - sources.length,
+      getNextLeadSourceSortOrder(sources),
+    );
     sources = await fetchLeadSources(userId);
   }
   return limitLeadSources(sources);
@@ -51,16 +64,34 @@ function getErrorMessage(error) {
   return "Unexpected error";
 }
 
+function formatSourceLabel(source) {
+  if (!source) return "";
+  const label = String(source.building_name || source.label || "").trim();
+  return label || `Spreadsheet ${Number(source.sort_order ?? 0) + 1}`;
+}
+
+function formatImportSuccessMessage(label, count) {
+  const countText = `${count} lead${count === 1 ? "" : "s"}`;
+  return label ? `Imported ${countText} from ${label}.` : `Imported ${countText}.`;
+}
+
+function formatImportErrorMessage(label, message) {
+  return label ? `Import failed for ${label}: ${message}` : `Import failed: ${message}`;
+}
+
 export function useSellerSignalPage(userId) {
+  const legacySheetStorageKey = userId ? `seller-signal:legacy-sheet-url:${userId}` : null;
   const [leads, setLeads] = useState([]);
   const [leadSources, setLeadSources] = useState([]);
   const [insights, setInsights] = useState({});
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [importingSourceId, setImportingSourceId] = useState(null);
+  const [importingLegacy, setImportingLegacy] = useState(false);
   const [savingSourceId, setSavingSourceId] = useState(null);
   const [enriching, setEnriching] = useState(false);
   const [error, setError] = useState(null);
+  const [notice, setNotice] = useState(null);
   const [showDueOnly, setShowDueOnly] = useState(true);
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -68,6 +99,7 @@ export function useSellerSignalPage(userId) {
   const [sourceFilter, setSourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sentLeads, setSentLeads] = useState({});
+  const [legacySheetUrl, setLegacySheetUrl] = useState("");
   const [sheetUrl, setSheetUrl] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [viewTab, setViewTab] = useState("active");
@@ -134,6 +166,26 @@ export function useSellerSignalPage(userId) {
   useEffect(() => {
     void loadLeadsIntoState(true);
   }, [loadLeadsIntoState]);
+
+  useEffect(() => {
+    if (!legacySheetStorageKey) {
+      setLegacySheetUrl("");
+      return undefined;
+    }
+
+    let cancelled = false;
+    AsyncStorage.getItem(legacySheetStorageKey)
+      .then((stored) => {
+        if (!cancelled) setLegacySheetUrl(stored || "");
+      })
+      .catch(() => {
+        if (!cancelled) setLegacySheetUrl("");
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [legacySheetStorageKey]);
 
   const enrichLeads = useCallback(async (targetLeads) => {
     if (!targetLeads.length) return;
@@ -206,9 +258,14 @@ export function useSellerSignalPage(userId) {
     void enrichLeadData();
   }, [enrichLeadData, enriching, insights, leads, loading]);
 
+  const hasLegacyLeads = useMemo(() => leads.some((lead) => !lead.sourceId), [leads]);
   const effectiveSourceFilter = useMemo(
-    () => (sourceFilter === "all" || leadSources.some((source) => source.id === sourceFilter) ? sourceFilter : "all"),
-    [leadSources, sourceFilter],
+    () => {
+      if (sourceFilter === "all") return "all";
+      if (sourceFilter === LEGACY_SOURCE_ID) return hasLegacyLeads ? LEGACY_SOURCE_ID : "all";
+      return leadSources.some((source) => source.id === sourceFilter) ? sourceFilter : "all";
+    },
+    [hasLegacyLeads, leadSources, sourceFilter],
   );
 
   const { activeLeads, doneLeads } = useMemo(
@@ -240,19 +297,24 @@ export function useSellerSignalPage(userId) {
   const sourceCounts = useMemo(() => {
     const counts = {};
     for (const lead of leads) {
-      if (!lead.sourceId) continue;
-      counts[lead.sourceId] = (counts[lead.sourceId] || 0) + 1;
+      const key = lead.sourceId || LEGACY_SOURCE_ID;
+      counts[key] = (counts[key] || 0) + 1;
     }
     return counts;
   }, [leads]);
 
   const sourceOptions = useMemo(
-    () =>
-      leadSources.map((source) => ({
+    () => {
+      const options = leadSources.map((source) => ({
         id: source.id,
         label: source.building_name || source.label || `Sheet ${Number(source.sort_order ?? 0) + 1}`,
-      })),
-    [leadSources],
+      }));
+      if (sourceCounts[LEGACY_SOURCE_ID]) {
+        options.push({ id: LEGACY_SOURCE_ID, label: LEGACY_SOURCE_LABEL });
+      }
+      return options;
+    },
+    [leadSources, sourceCounts],
   );
 
   const isAllExpanded = filteredLeads.length > 0 && filteredLeads.every((lead) => expandedLeads[lead.id]);
@@ -320,10 +382,12 @@ export function useSellerSignalPage(userId) {
   }
 
   function updateSheetUrl(value) {
+    setNotice(null);
     setSheetUrl(value);
   }
 
   function updateLeadSourceField(sourceId, field, value) {
+    setNotice(null);
     setLeadSources((current) =>
       current.map((source) => (
         source.id === sourceId
@@ -339,6 +403,7 @@ export function useSellerSignalPage(userId) {
 
     setSavingSourceId(sourceId);
     setError(null);
+    setNotice(null);
 
     try {
       await upsertLeadSource(source);
@@ -350,17 +415,54 @@ export function useSellerSignalPage(userId) {
     }
   }
 
+  function updateLegacySheetUrl(value) {
+    const next = String(value || "");
+    setNotice(null);
+    setLegacySheetUrl(next);
+    if (!legacySheetStorageKey) return;
+    const task = next
+      ? AsyncStorage.setItem(legacySheetStorageKey, next)
+      : AsyncStorage.removeItem(legacySheetStorageKey);
+    void task.catch(() => {});
+  }
+
+  async function importLegacySheet() {
+    const trimmed = legacySheetUrl.trim();
+    if (!trimmed) {
+      setError("Paste a Google Sheet URL first.");
+      setNotice(null);
+      return;
+    }
+
+    setImportingLegacy(true);
+    setError(null);
+    setNotice(null);
+
+    try {
+      const result = await replaceLegacyLeadsFromSheet({ userId, rawSheetUrl: trimmed });
+      setCopiedLeadId(null);
+      await loadLeadsIntoState(false);
+      setNotice(formatImportSuccessMessage(LEGACY_SOURCE_LABEL, result.count));
+    } catch (importError) {
+      setError(formatImportErrorMessage(LEGACY_SOURCE_LABEL, getErrorMessage(importError)));
+    } finally {
+      setImportingLegacy(false);
+    }
+  }
+
   async function importFromSheet(sourceId = null) {
     setImporting(true);
     setImportingSourceId(sourceId);
     setError(null);
+    setNotice(null);
 
     try {
       const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
+      const sourceLabel = formatSourceLabel(source);
       if (sourceId && source) {
         await upsertLeadSource(source);
       }
-      await replaceUserLeadsFromSheet({
+      const result = await replaceUserLeadsFromSheet({
         userId,
         source,
         rawSheetUrl: sourceId ? source?.sheet_url : sheetUrl,
@@ -369,8 +471,10 @@ export function useSellerSignalPage(userId) {
       setSheetUrl("");
       setCopiedLeadId(null);
       await loadLeadsIntoState(false);
+      setNotice(formatImportSuccessMessage(sourceLabel, result.count));
     } catch (importError) {
-      setError(getErrorMessage(importError));
+      const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
+      setError(formatImportErrorMessage(formatSourceLabel(source), getErrorMessage(importError)));
     } finally {
       setImporting(false);
       setImportingSourceId(null);
@@ -591,12 +695,15 @@ export function useSellerSignalPage(userId) {
     filteredLeads,
     hasLeads: leads.length > 0,
     importing,
+    importingLegacy,
     importingSourceId,
     insights,
+    legacySheetUrl,
     isAllExpanded,
     leadSources,
     leads,
     loading,
+    notice,
     pagedLeads,
     safePage,
     savingLeadId,
@@ -621,6 +728,7 @@ export function useSellerSignalPage(userId) {
       goToNextPage,
       goToPreviousPage,
       importFromSheet,
+      importLegacySheet,
       persistLeadSource,
       saveLeadEdits,
       selectDataFilter,
@@ -634,6 +742,7 @@ export function useSellerSignalPage(userId) {
       toggleLeadExpanded,
       toggleSent,
       updateLeadDraftField,
+      updateLegacySheetUrl,
       updateLeadSourceField,
       updateLeadStatus: changeLeadStatus,
       updateSearchTerm,

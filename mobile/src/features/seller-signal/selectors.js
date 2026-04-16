@@ -48,7 +48,11 @@ export function filterLeads({
   }
 
   if (sourceFilter && sourceFilter !== "all") {
-    result = result.filter((lead) => lead.sourceId === sourceFilter);
+    if (sourceFilter === "legacy") {
+      result = result.filter((lead) => !lead.sourceId);
+    } else {
+      result = result.filter((lead) => lead.sourceId === sourceFilter);
+    }
   }
 
   if (searchTerm.trim()) {

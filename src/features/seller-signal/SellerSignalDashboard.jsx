@@ -54,6 +54,7 @@ export default function SellerSignalDashboard({ userId }) {
         value={dashboard.viewTab}
       />
 
+      {dashboard.notice && <div className="notice">{dashboard.notice}</div>}
       {dashboard.error && <div className="error">{dashboard.error}</div>}
 
       <LeadSourcesPanel

@@ -281,13 +281,17 @@ export async function deleteLead({ userId, leadId }) {
   if (error) throw new Error(error.message);
 }
 
-export async function createDefaultLeadSources(userId) {
-  const defaults = [
-    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 0 },
-    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 1 },
-    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 2 },
-    { user_id: userId, label: "", type: "building", building_name: "", sheet_url: null, sort_order: 3 },
-  ];
+export async function createDefaultLeadSources(userId, count = 10, startSortOrder = 0) {
+  const defaults = Array.from({ length: count }, (_, index) => ({
+    user_id: userId,
+    label: "",
+    type: "building",
+    building_name: "",
+    sheet_url: null,
+    sort_order: startSortOrder + index,
+  }));
+
+  if (!defaults.length) return;
 
   const { error } = await supabase.from("lead_sources").insert(defaults);
   if (error) throw new Error(error.message);
@@ -333,6 +337,83 @@ async function clearLeadsForSource(userId, sourceId) {
     .eq("user_id", userId)
     .eq("source_id", sourceId);
   if (leadDeleteError) throw new Error(leadDeleteError.message);
+}
+
+async function clearLegacyLeads(userId) {
+  const { data: legacyRows, error: selectError } = await supabase
+    .from("leads")
+    .select("id")
+    .eq("user_id", userId)
+    .is("source_id", null);
+  if (selectError) throw new Error(selectError.message);
+
+  const legacyIds = (legacyRows || []).map((row) => row.id);
+  if (legacyIds.length) {
+    const { error: sentDeleteError } = await supabase.from("sent_leads").delete().in("lead_id", legacyIds);
+    if (sentDeleteError) throw new Error(sentDeleteError.message);
+  }
+
+  const { error: leadDeleteError } = await supabase
+    .from("leads")
+    .delete()
+    .eq("user_id", userId)
+    .is("source_id", null);
+  if (leadDeleteError) throw new Error(leadDeleteError.message);
+}
+
+export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
+  const sheetUrl = String(rawSheetUrl || "").trim();
+  if (!sheetUrl) throw new Error("Paste a Google Sheet URL first.");
+
+  const csvUrl = buildGoogleCsvUrl(sheetUrl);
+  if (!csvUrl) throw new Error("Invalid Google Sheet URL. Paste the full URL from your browser.");
+
+  let response;
+  try {
+    response = await fetch(csvUrl);
+  } catch {
+    throw new Error("Could not fetch the sheet. Make sure the link is public (Share > Anyone with the link) and paste the full URL or sheet ID.");
+  }
+
+  if (!response.ok) {
+    throw new Error(`Failed to load sheet (${response.status}). Make sure the sheet is shared publicly or "Anyone with the link".`);
+  }
+
+  const csvText = await response.text();
+  const rawRows = parseCsvText(csvText);
+  const { headers, records } = rowsToObjects(rawRows);
+
+  if (!headers.length) throw new Error("Sheet has no header row.");
+
+  let mapping = inferMapping(headers);
+  if (!(mapping.name && mapping.building)) {
+    mapping = await aiMapColumns(headers, rawRows.slice(0, IMPORT_SAMPLE_ROW_LIMIT));
+  }
+
+  if (!mapping.name && !mapping.building && !mapping.phone) {
+    throw new Error("Could not map any columns. Make sure the sheet has seller names, buildings, or phone numbers.");
+  }
+
+  const leadsToInsert = records
+    .map((record) => createLeadInsertRecord(record, mapping, userId, {
+      sourceId: null,
+      defaultStatus: "Prospect",
+      defaultBuilding: null,
+      overrideBuilding: false,
+    }))
+    .filter(Boolean);
+
+  if (!leadsToInsert.length) throw new Error("No valid leads found in sheet.");
+
+  await clearLegacyLeads(userId);
+
+  for (let index = 0; index < leadsToInsert.length; index += IMPORT_BATCH_SIZE) {
+    const batch = leadsToInsert.slice(index, index + IMPORT_BATCH_SIZE);
+    const { error } = await supabase.from("leads").insert(batch);
+    if (error) throw new Error(error.message);
+  }
+
+  return { count: leadsToInsert.length };
 }
 
 export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }) {

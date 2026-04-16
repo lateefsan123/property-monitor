@@ -18,7 +18,7 @@ export default function LeadSourcesPanel({
 
   const legacyCount = leadCounts?.legacy || 0;
   const totalLeads = sources.reduce((sum, s) => sum + (leadCounts?.[s.id] || 0), 0) + legacyCount;
-  const showLegacyRow = legacyCount > 0 || Boolean(legacySheetUrl);
+  const showLegacyRow = true;
 
   return (
     <div className="source-panel">
