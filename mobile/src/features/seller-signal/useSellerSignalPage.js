@@ -1,10 +1,13 @@
 import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { WHATSAPP_OPEN_DELAY_MS } from "./constants";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ENRICH_CHUNK_SIZE, WHATSAPP_OPEN_DELAY_MS } from "./constants";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
 import { applyLeadEdits, applyLeadStatus, formatDateInputValue, sortLeadsByPriority } from "./lead-utils";
 import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
+import { useAutoSheetSync } from "./useAutoSheetSync";
+import { leadsQueryKey } from "./useHomeLeadSummary";
 import {
   createDefaultLeadSources,
   deleteLead,
@@ -17,6 +20,10 @@ import {
   updateLeadStatus,
   upsertLeadSource,
 } from "./services";
+
+export function leadSourcesQueryKey(userId) {
+  return ["seller-signal", "lead-sources", userId];
+}
 
 const MAX_LEAD_SOURCES = 4;
 
@@ -52,6 +59,8 @@ function getErrorMessage(error) {
 }
 
 export function useSellerSignalPage(userId) {
+  const queryClient = useQueryClient();
+  useAutoSheetSync(userId);
   const [leads, setLeads] = useState([]);
   const [leadSources, setLeadSources] = useState([]);
   const [insights, setInsights] = useState({});
@@ -93,7 +102,26 @@ export function useSellerSignalPage(userId) {
     };
   }
 
-  const loadLeadsIntoState = useCallback(async (showLoader = true) => {
+  const leadsQuery = useQuery({
+    queryKey: leadsQueryKey(userId),
+    queryFn: () => fetchUserLeads(userId),
+    enabled: Boolean(userId),
+  });
+
+  const sourcesQuery = useQuery({
+    queryKey: leadSourcesQueryKey(userId),
+    queryFn: () => fetchSellerSources(userId),
+    enabled: Boolean(userId),
+  });
+
+  const reloadLeads = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: leadsQueryKey(userId) }),
+      queryClient.invalidateQueries({ queryKey: leadSourcesQueryKey(userId) }),
+    ]);
+  }, [queryClient, userId]);
+
+  useEffect(() => {
     if (!userId) {
       setLeads([]);
       setLeadSources([]);
@@ -107,33 +135,39 @@ export function useSellerSignalPage(userId) {
       return;
     }
 
-    if (showLoader) setLoading(true);
-    setError(null);
+    setLoading(leadsQuery.isPending || sourcesQuery.isPending);
 
-    try {
-      const [{ leads: nextLeads, sentMap }, nextSources] = await Promise.all([
-        fetchUserLeads(userId),
-        fetchSellerSources(userId),
-      ]);
-      setLeads(nextLeads);
-      setLeadSources(nextSources);
-      setSentLeads(sentMap);
-      setInsights({});
-      setExpandedLeads({});
-      setEditingLeadId(null);
-      setEditingLeadDraft(null);
-      setCurrentPage(1);
-      hasAutoEnriched.current = false;
-    } catch (loadError) {
-      setError(getErrorMessage(loadError));
-    } finally {
-      if (showLoader) setLoading(false);
+    const queryError = leadsQuery.error || sourcesQuery.error;
+    if (queryError) {
+      setError(getErrorMessage(queryError));
+      return;
     }
-  }, [userId]);
+
+    if (leadsQuery.data && sourcesQuery.data) {
+      setLeads(leadsQuery.data.leads);
+      setSentLeads(leadsQuery.data.sentMap);
+      setLeadSources(sourcesQuery.data);
+      setError(null);
+    }
+  }, [
+    leadsQuery.data,
+    leadsQuery.error,
+    leadsQuery.isPending,
+    sourcesQuery.data,
+    sourcesQuery.error,
+    sourcesQuery.isPending,
+    userId,
+  ]);
 
   useEffect(() => {
-    void loadLeadsIntoState(true);
-  }, [loadLeadsIntoState]);
+    if (!leadsQuery.isFetching || leadsQuery.isPending) return;
+    setInsights({});
+    setExpandedLeads({});
+    setEditingLeadId(null);
+    setEditingLeadDraft(null);
+    setCurrentPage(1);
+    hasAutoEnriched.current = false;
+  }, [leadsQuery.isFetching, leadsQuery.isPending]);
 
   const enrichLeads = useCallback(async (targetLeads) => {
     if (!targetLeads.length) return;
@@ -153,9 +187,19 @@ export function useSellerSignalPage(userId) {
       return nextInsights;
     });
 
+    let anyChunkHadTargets = false;
+    let totalMatched = 0;
+
     try {
-      const { hasTargets, matched, updates } = await fetchLeadInsights(targetLeads);
-      if (!hasTargets) {
+      for (let index = 0; index < targetLeads.length; index += ENRICH_CHUNK_SIZE) {
+        const chunk = targetLeads.slice(index, index + ENRICH_CHUNK_SIZE);
+        const { hasTargets, matched, updates } = await fetchLeadInsights(chunk);
+        if (hasTargets) anyChunkHadTargets = true;
+        totalMatched += matched;
+        setInsights((previousInsights) => ({ ...previousInsights, ...updates }));
+      }
+
+      if (!anyChunkHadTargets) {
         setError("No leads with a building name.");
         setInsights((previousInsights) => {
           const nextInsights = { ...previousInsights };
@@ -165,8 +209,7 @@ export function useSellerSignalPage(userId) {
         return;
       }
 
-      setInsights((previousInsights) => ({ ...previousInsights, ...updates }));
-      if (matched === 0) {
+      if (totalMatched === 0) {
         setError("Property market data is not available for these buildings yet.");
       }
     } catch (enrichmentError) {
@@ -175,6 +218,7 @@ export function useSellerSignalPage(userId) {
       setInsights((previousInsights) => {
         const nextInsights = { ...previousInsights };
         for (const lead of targetLeads) {
+          if (nextInsights[lead.id]?.status === "ready") continue;
           nextInsights[lead.id] = {
             ...previousInsights[lead.id],
             status: "error",
@@ -342,7 +386,7 @@ export function useSellerSignalPage(userId) {
 
     try {
       await upsertLeadSource(source);
-      setLeadSources(await fetchSellerSources(userId));
+      await queryClient.invalidateQueries({ queryKey: leadSourcesQueryKey(userId) });
     } catch (persistError) {
       setError(getErrorMessage(persistError));
     } finally {
@@ -368,7 +412,7 @@ export function useSellerSignalPage(userId) {
       setShowImport(false);
       setSheetUrl("");
       setCopiedLeadId(null);
-      await loadLeadsIntoState(false);
+      await reloadLeads();
     } catch (importError) {
       setError(getErrorMessage(importError));
     } finally {

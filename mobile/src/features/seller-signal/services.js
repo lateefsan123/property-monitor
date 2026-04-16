@@ -5,6 +5,71 @@ import { buildMessage, buildRecentTransactions, extractBeds, extractTransactionD
 import { cleanBuildingName, createLeadInsertRecord, getBuildingKeyVariants, mapStoredLeadRow, sortLeadsByPriority, startOfDay } from "./lead-utils";
 import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToObjects } from "./spreadsheet";
 
+const IMPORT_TRUNCATION_PATTERN = /\u2026|\.{3,}/;
+const IMPORT_TRUNCATION_FIELDS = [
+  { key: "name", label: "name" },
+  { key: "building", label: "building" },
+  { key: "unit", label: "unit" },
+];
+
+function containsImportTruncation(value) {
+  const raw = String(value || "").trim();
+  return Boolean(raw) && IMPORT_TRUNCATION_PATTERN.test(raw);
+}
+
+function summarizeImportValue(value, limit = 44) {
+  const raw = String(value || "").replace(/\s+/g, " ").trim();
+  if (raw.length <= limit) return raw;
+  return `${raw.slice(0, limit - 3).trim()}...`;
+}
+
+function collectSuspiciousImportRows(records, mapping, options = {}) {
+  const { defaultBuilding = null, overrideBuilding = false, maxExamples = 5 } = options;
+  let count = 0;
+  const examples = [];
+
+  for (const record of records || []) {
+    const values = {
+      name: mapping.name ? record[mapping.name] : "",
+      building: overrideBuilding ? (defaultBuilding || "") : (mapping.building ? record[mapping.building] : (defaultBuilding || "")),
+      unit: mapping.unit ? record[mapping.unit] : "",
+    };
+
+    const flaggedFields = IMPORT_TRUNCATION_FIELDS
+      .map((field) => {
+        const value = values[field.key];
+        if (!containsImportTruncation(value)) return null;
+        return { label: field.label, value: summarizeImportValue(value) };
+      })
+      .filter(Boolean);
+
+    if (!flaggedFields.length) continue;
+
+    count += 1;
+    if (examples.length < maxExamples) {
+      examples.push({ rowNumber: record.__row || "?", flaggedFields });
+    }
+  }
+
+  return { count, examples };
+}
+
+function buildSuspiciousImportError(summary) {
+  if (!summary?.count) return null;
+
+  const exampleText = summary.examples
+    .map((example) => {
+      const fields = example.flaggedFields.map((field) => `${field.label} "${field.value}"`).join(", ");
+      return `row ${example.rowNumber}: ${fields}`;
+    })
+    .join("; ");
+
+  const remaining = summary.count - summary.examples.length;
+  const remainingText = remaining > 0 ? ` (+${remaining} more)` : "";
+
+  return `Import blocked: ${summary.count} row(s) contain possible truncation markers.${remainingText} ${exampleText} Fix the sheet values and re-import.`;
+}
+
 function mapStoredTransaction(transactionRow) {
   return {
     amount: transactionRow.amount,
@@ -281,6 +346,13 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
   const defaultStatus = "Prospect";
   const defaultBuilding = source?.building_name || source?.label || null;
   const overrideBuilding = Boolean(source);
+
+  const suspiciousRows = collectSuspiciousImportRows(records, mapping, {
+    defaultBuilding,
+    overrideBuilding,
+  });
+  const suspiciousImportError = buildSuspiciousImportError(suspiciousRows);
+  if (suspiciousImportError) throw new Error(suspiciousImportError);
 
   const leadsToInsert = records
     .map((record) => createLeadInsertRecord(record, mapping, userId, {

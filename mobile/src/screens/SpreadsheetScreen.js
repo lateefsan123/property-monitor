@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Svg, Circle, Line, Path } from "react-native-svg";
@@ -151,10 +152,19 @@ const rowStyles = StyleSheet.create({
   },
 });
 
+const HELP_STEPS = [
+  "In Google Sheets, tap Share → \"Anyone with the link\" (Viewer). The app can't read private sheets.",
+  "Your sheet should have columns for name, building, phone, unit, bedroom, status, and last contact. Order doesn't matter — the app auto-detects them.",
+  "Below, fill in a Building name and paste the full Google Sheet URL from your browser.",
+  "Tap the check to save, then Import to pull leads in. Only new rows are added — re-importing won't create duplicates.",
+  "Saved sheets auto-sync every 5 minutes while the app is open. New rows in Sheets become leads automatically.",
+];
+
 export default function SpreadsheetScreen({ onBack, theme, userId }) {
   const d = useSellerSignalPage(userId);
   const colors = getTheme(theme);
   const styles = createStyles(colors);
+  const [helpOpen, setHelpOpen] = useState(false);
   const totalLeads = Object.values(d.sourceCounts || {}).reduce((sum, count) => sum + count, 0);
 
   if (d.loading && !d.leadSources.length) {
@@ -185,6 +195,25 @@ export default function SpreadsheetScreen({ onBack, theme, userId }) {
           <Text style={styles.summaryCount}>{totalLeads}</Text>
           <Text style={styles.summaryLabel}>leads across {d.leadSources.length} {d.leadSources.length === 1 ? "source" : "sources"}</Text>
         </View>
+
+        <Pressable
+          style={({ pressed }) => [styles.helpToggle, pressed && { opacity: 0.7 }]}
+          onPress={() => setHelpOpen((previous) => !previous)}
+        >
+          <Text style={styles.helpToggleText}>How to add a sheet</Text>
+          <Text style={styles.helpToggleChevron}>{helpOpen ? "–" : "+"}</Text>
+        </Pressable>
+
+        {helpOpen && (
+          <View style={styles.helpBox}>
+            {HELP_STEPS.map((step, index) => (
+              <View key={index} style={styles.helpStepRow}>
+                <Text style={styles.helpStepNumber}>{index + 1}.</Text>
+                <Text style={styles.helpStepText}>{step}</Text>
+              </View>
+            ))}
+          </View>
+        )}
 
         <View style={styles.sourceList}>
           {d.leadSources.map((source, index) => (
@@ -256,6 +285,50 @@ const createStyles = (c) =>
     },
     sourceList: {
       // no gap — dividers are handled per-row
+    },
+    helpToggle: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      paddingVertical: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderColor: c.border,
+      marginBottom: 4,
+    },
+    helpToggleText: {
+      fontSize: 14,
+      fontWeight: "600",
+      color: c.textName,
+    },
+    helpToggleChevron: {
+      fontSize: 20,
+      color: c.textMuted,
+      width: 20,
+      textAlign: "center",
+    },
+    helpBox: {
+      paddingVertical: 12,
+      gap: 10,
+      borderBottomWidth: StyleSheet.hairlineWidth,
+      borderBottomColor: c.border,
+      marginBottom: 8,
+    },
+    helpStepRow: {
+      flexDirection: "row",
+      gap: 8,
+    },
+    helpStepNumber: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: c.textMuted,
+      width: 18,
+    },
+    helpStepText: {
+      flex: 1,
+      fontSize: 13,
+      lineHeight: 19,
+      color: c.textMuted,
     },
     errorBox: {
       marginTop: 12,

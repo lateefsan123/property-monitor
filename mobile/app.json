@@ -19,7 +19,10 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       },
-      "buildNumber": "3"
+      "entitlements": {
+        "aps-environment": "production"
+      },
+      "buildNumber": "6"
     },
     "android": {
       "package": "com.lateefsan.sellersignal",

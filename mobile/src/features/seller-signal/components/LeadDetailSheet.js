@@ -247,17 +247,23 @@ export default function LeadDetailSheet({
   colors,
 }) {
   const insets = useSafeAreaInsets();
-
-  if (!lead) return null;
-
   const c = colors;
-  const message = insight?.message || buildMessage(lead, insight);
-  const [notesValue, setNotesValue] = useState(lead.notes || "");
+  const leadId = lead?.id ?? null;
+  const leadNotes = lead?.notes || "";
+  const [notesValue, setNotesValue] = useState(leadNotes);
   const notesTimerRef = useRef(null);
 
   useEffect(() => {
-    setNotesValue(lead.notes || "");
-  }, [lead.id, lead.notes]);
+    setNotesValue(leadNotes);
+  }, [leadId, leadNotes]);
+
+  useEffect(() => () => {
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+  }, []);
+
+  if (!lead) return null;
+
+  const message = insight?.message || buildMessage(lead, insight);
 
   function handleNotesChange(text) {
     setNotesValue(text);

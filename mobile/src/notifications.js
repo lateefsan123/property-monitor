@@ -1,39 +1,89 @@
+import Constants from "expo-constants";
+import { requireOptionalNativeModule } from "expo-modules-core";
 import { Platform } from "react-native";
-import * as Notifications from "expo-notifications";
 import { supabase } from "./supabase";
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-  }),
-});
+let notificationsModulePromise = null;
+let notificationHandlerConfigured = false;
 
-export async function registerForPushNotifications() {
-  const { status: existingStatus } = await Notifications.getPermissionsAsync();
-  let finalStatus = existingStatus;
+function getProjectId() {
+  return Constants.expoConfig?.extra?.eas?.projectId ?? Constants.easConfig?.projectId ?? null;
+}
 
-  if (existingStatus !== "granted") {
-    const { status } = await Notifications.requestPermissionsAsync();
-    finalStatus = status;
+function hasNativePushModules() {
+  const pushTokenManager = requireOptionalNativeModule("ExpoPushTokenManager");
+  const serverRegistrationModule = requireOptionalNativeModule("ExpoServerRegistrationModule");
+  return Boolean(pushTokenManager && serverRegistrationModule);
+}
+
+async function getNotificationsModule() {
+  if (!notificationsModulePromise) {
+    notificationsModulePromise = import("expo-notifications");
   }
+  return notificationsModulePromise;
+}
 
-  if (finalStatus !== "granted") return null;
+async function ensureNotificationHandlerConfigured() {
+  if (notificationHandlerConfigured) return;
 
-  if (Platform.OS === "android") {
-    await Notifications.setNotificationChannelAsync("price-drops", {
-      name: "Price Drops",
-      importance: Notifications.AndroidImportance.HIGH,
-      sound: "default",
-    });
-  }
-
-  const { data: token } = await Notifications.getExpoPushTokenAsync({
-    projectId: "4cae8513-9326-42eb-8cdb-3b07f6785b71",
+  const Notifications = await getNotificationsModule();
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
   });
 
-  return token || null;
+  notificationHandlerConfigured = true;
+}
+
+export async function registerForPushNotifications() {
+  if (Platform.OS === "web") return null;
+  if (Constants.expoGoConfig) {
+    console.warn("Remote push notifications are unavailable in Expo Go. Use a development build.");
+    return null;
+  }
+  if (!hasNativePushModules()) {
+    console.warn(
+      "Push notifications are unavailable in this installed app binary. Rebuild the development app after adding expo-notifications.",
+    );
+    return null;
+  }
+
+  const projectId = getProjectId();
+  if (!projectId) {
+    console.warn("Push notifications are not configured because the EAS project ID is missing.");
+    return null;
+  }
+
+  try {
+    const Notifications = await getNotificationsModule();
+    await ensureNotificationHandlerConfigured();
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    let finalStatus = existingStatus;
+
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+    }
+
+    if (finalStatus !== "granted") return null;
+
+    if (Platform.OS === "android") {
+      await Notifications.setNotificationChannelAsync("price-drops", {
+        name: "Price Drops",
+        importance: Notifications.AndroidImportance.HIGH,
+        sound: "default",
+      });
+    }
+
+    const { data: token } = await Notifications.getExpoPushTokenAsync({ projectId });
+    return token || null;
+  } catch (error) {
+    console.warn("Failed to register for push notifications.", error);
+    return null;
+  }
 }
 
 export async function saveTokenToSupabase(expoPushToken) {

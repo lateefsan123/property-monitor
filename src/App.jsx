@@ -2,12 +2,14 @@ import { useState } from "react";
 import "./App.css";
 import AppShell from "./AppShell";
 import UsernameSetup from "./features/seller-signal/components/UsernameSetup";
+import { useSellerSignalRealtime } from "./features/seller-signal/useSellerSignalRealtime";
 
 function App({ session }) {
   const [displayNameOverride, setDisplayNameOverride] = useState({
     userId: null,
     value: "",
   });
+  useSellerSignalRealtime(session.user.id);
   const displayName = session.user.user_metadata?.username?.trim()
     || (displayNameOverride.userId === session.user.id ? displayNameOverride.value : "");
 

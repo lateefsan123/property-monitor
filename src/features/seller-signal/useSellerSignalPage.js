@@ -34,11 +34,11 @@ function getErrorMessage(error) {
   return "Unexpected error";
 }
 
-function sellerLeadsQueryKey(userId) {
+export function sellerLeadsQueryKey(userId) {
   return ["seller-signal", "leads", userId];
 }
 
-function sellerSourcesQueryKey(userId) {
+export function sellerSourcesQueryKey(userId) {
   return ["seller-signal", "sources", userId];
 }
 

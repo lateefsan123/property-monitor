@@ -1,7 +1,7 @@
 import { aiMapColumns } from "../../ai-mapper";
 import { supabase } from "../../supabase";
 import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
-import { buildMessage, buildRecentTransactions, extractTransactionDate, summarizeTransactions } from "./insight-utils";
+import { buildMessage, buildRecentTransactions, extractBeds, extractTransactionDate, summarizeTransactions } from "./insight-utils";
 import { cleanBuildingName, createLeadInsertRecord, getBuildingKeyVariants, mapStoredLeadRow, sortLeadsByPriority, startOfDay } from "./lead-utils";
 import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToObjects } from "./spreadsheet";
 
@@ -63,6 +63,26 @@ export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
       .map((row, index) => mapStoredLeadRow(row, index, today))
       .filter((lead) => lead.name || lead.building || lead.phone),
   );
+
+  // --- DEBUG: track done leads ---
+  const doneCount = Object.keys(sentMap).length;
+  const doneIds = Object.keys(sentMap).sort();
+  const prevDoneIds = JSON.parse(sessionStorage.getItem("debug:doneIds") || "[]");
+  const missing = prevDoneIds.filter((id) => !sentMap[id]);
+  if (missing.length > 0) {
+    const now = new Date().toLocaleTimeString();
+    console.error(`[DONE-TRACKER ${now}] LEADS DISAPPEARED FROM DONE:`, missing);
+    const names = missing.map((id) => {
+      const lead = leads.find((l) => String(l.id) === String(id));
+      return lead ? `${lead.name} (${lead.building})` : `id=${id} (NOT IN LEADS)`;
+    });
+    console.error(`[DONE-TRACKER ${now}] Missing lead names:`, names);
+    console.error(`[DONE-TRACKER ${now}] Previous done count: ${prevDoneIds.length}, Current: ${doneCount}`);
+  } else if (prevDoneIds.length > 0) {
+    console.log(`[DONE-TRACKER ${new Date().toLocaleTimeString()}] Done leads OK — count: ${doneCount}`);
+  }
+  sessionStorage.setItem("debug:doneIds", JSON.stringify(doneIds));
+  // --- END DEBUG ---
 
   return { leads, sentMap };
 }
@@ -524,7 +544,14 @@ export async function fetchLeadInsights(leads) {
       continue;
     }
 
-    const filteredTransactions = allTransactions;
+    let filteredTransactions = allTransactions;
+    if (Array.isArray(lead.bedFilterValues) && lead.bedFilterValues.length) {
+      const bedroomMatches = allTransactions.filter((transaction) => {
+        const beds = extractBeds(transaction);
+        return beds !== null && lead.bedFilterValues.includes(beds);
+      });
+      if (bedroomMatches.length) filteredTransactions = bedroomMatches;
+    }
 
     const metrics = summarizeTransactions(filteredTransactions);
     const recentTransactions = buildRecentTransactions(filteredTransactions, locationName);
@@ -548,6 +575,7 @@ export async function fetchLeadInsights(leads) {
 }
 
 export async function persistLeadSentState(userId, leadId, isSent) {
+  console.log(`[DONE-TRACKER ${new Date().toLocaleTimeString()}] ${isSent ? "MARKING DONE" : "UNMARKING DONE"} lead=${leadId}`);
   const sentAt = isSent ? new Date().toISOString() : null;
   const { error } = await supabase
     .from("leads")

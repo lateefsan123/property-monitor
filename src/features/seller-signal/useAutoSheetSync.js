@@ -2,7 +2,7 @@ import { useEffect, useRef } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { fetchLeadSources, replaceUserLeadsFromSheet } from "./services";
 
-const SYNC_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
+const SYNC_INTERVAL_MS = 5 * 60 * 1000; // 5 minutes (DEBUG — was 1 hour)
 const LAST_SYNC_KEY = "seller-signal:last-sheet-sync";
 
 function getLastSyncTime() {
@@ -19,15 +19,19 @@ async function syncAllSheets(userId) {
   const linked = sources.filter((s) => s.sheet_url);
   if (!linked.length) return 0;
 
+  console.log(`[SHEET-SYNC ${new Date().toLocaleTimeString()}] Starting sync for ${linked.length} sheet(s)`);
+
   let imported = 0;
   for (const source of linked) {
     try {
-      await replaceUserLeadsFromSheet({ userId, source, rawSheetUrl: source.sheet_url });
+      const result = await replaceUserLeadsFromSheet({ userId, source, rawSheetUrl: source.sheet_url });
+      console.log(`[SHEET-SYNC ${new Date().toLocaleTimeString()}] Synced "${source.label || source.id}" — ${result?.count || 0} new leads`);
       imported += 1;
-    } catch {
-      // skip failed sheets silently
+    } catch (err) {
+      console.warn(`[SHEET-SYNC ${new Date().toLocaleTimeString()}] Failed "${source.label || source.id}":`, err.message);
     }
   }
+  console.log(`[SHEET-SYNC ${new Date().toLocaleTimeString()}] Sync complete — ${imported} sheet(s) processed`);
   return imported;
 }
 

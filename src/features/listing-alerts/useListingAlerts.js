@@ -449,10 +449,12 @@ export function useListingAlerts() {
       }
     }
 
+    // Always hydrate from localStorage first (synchronous, no flash).
+    loadLocalState();
+
+    // Then fetch fresh state from Supabase in the background.
     if (remoteEnabled) {
-      void loadRemoteState();
-    } else {
-      loadLocalState();
+      void loadRemoteState({ showLoading: false });
     }
 
     return () => {

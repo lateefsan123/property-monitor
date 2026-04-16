@@ -46,14 +46,21 @@ const ONBOARDING_SLIDES = [
     support: "This is how you stay consistent and become the area specialist they trust.",
   },
   {
-    key: "data-lives",
-    title: "Built around your current workflow",
-    body: "Your owner numbers already live in WhatsApp and your spreadsheet. When you get a new owner, you save them in both places. Seller Signal works on top of that system.",
+    key: "listing-alerts",
+    title: "Track building listings & price drops",
+    body: "See every active listing in a building, track price changes over time, and spot motivated sellers when prices drop.",
+    bullets: [
+      "Browse listings by building",
+      "Price drop alerts at a glance",
+      "Full price history per unit",
+      "Filter to see only price drops",
+    ],
+    support: "When an owner sees their neighbours dropping prices, it changes the conversation. Use this to bring real proof to your follow-ups.",
   },
   {
     key: "import-sheet",
     title: "Import your owners",
-    body: "Paste your Google Sheet and Seller Signal will organize your owners by category and prepare them for follow-up.",
+    body: "Your owners already live in WhatsApp and your spreadsheet. Paste your Google Sheet and Seller Signal will organize them by category and prepare them for follow-up.",
     fields: ["name", "phone", "building", "unit", "status", "last contact", "notes"],
   },
   {
@@ -127,11 +134,13 @@ function SlideIcon({ slideKey }) {
           <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
         </svg>
       );
-    case "data-lives":
+    case "listing-alerts":
       return (
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
-          <path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12" />
+          <path d="M1 22V6l7-4 8 4v5" />
+          <path d="M8 2v20M16 6v4" />
+          <path d="M5 9.5h3M5 13h3M5 16.5h3" />
+          <path d="M18 13v8M15 18l3 3 3-3" />
         </svg>
       );
     case "import-sheet":

@@ -3,7 +3,7 @@ import * as Sharing from "expo-sharing";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { TEMPLATE_CSV_HEADERS } from "../constants";
 
-export default function LeadImportEmptyState({ error, importing, onImport, onSheetUrlChange, onSignOut, sheetUrl, colors }) {
+export default function LeadImportEmptyState({ error, importing, onImport, onSheetUrlChange, sheetUrl, colors }) {
   const s = styles(colors);
 
   return (
@@ -47,12 +47,6 @@ export default function LeadImportEmptyState({ error, importing, onImport, onShe
       </Pressable>
 
       {error && <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View>}
-
-      {onSignOut && (
-        <Pressable style={s.signOutBtn} onPress={onSignOut}>
-          <Text style={s.signOutText}>Sign out</Text>
-        </Pressable>
-      )}
     </View>
   );
 }
@@ -112,9 +106,4 @@ const styles = (c) =>
       padding: 10,
     },
     errorText: { color: c.errorText, fontSize: 13 },
-    signOutBtn: {
-      paddingVertical: 12,
-      alignItems: "center",
-    },
-    signOutText: { color: c.textFaint, fontSize: 14, fontWeight: "500" },
   });

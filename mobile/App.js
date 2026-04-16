@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, BackHandler, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   clearSubscriptionClient,
   configureSubscriptionClient,
@@ -28,6 +29,7 @@ import SpreadsheetScreen from "./src/screens/SpreadsheetScreen";
 import SubscriptionScreen from "./src/screens/SubscriptionScreen";
 import UsernameSetupScreen from "./src/screens/UsernameSetupScreen";
 import { registerForPushNotifications, saveTokenToSupabase } from "./src/notifications";
+import { useSellerSignalRealtime } from "./src/features/seller-signal/useSellerSignalRealtime";
 import { supabase } from "./src/supabase";
 import { getTheme } from "./src/theme";
 
@@ -45,7 +47,26 @@ const INITIAL_SUBSCRIPTION_STATE = {
   statusLoading: false,
 };
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppInner />
+    </QueryClientProvider>
+  );
+}
+
+function AppInner() {
   const [session, setSession] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
@@ -62,6 +83,7 @@ export default function App() {
   const [theme, setTheme] = useThemePreference();
   const colors = getTheme(theme);
   const sessionUserId = session?.user.id ?? null;
+  useSellerSignalRealtime(sessionUserId);
   const metadataDisplayName = session?.user.user_metadata?.username?.trim() || "";
   const displayName = metadataDisplayName
     || (displayNameOverride.userId === sessionUserId ? displayNameOverride.value : "");
@@ -101,9 +123,20 @@ export default function App() {
 
   useEffect(() => {
     if (!sessionUserId) return;
-    registerForPushNotifications().then((token) => {
-      if (token) saveTokenToSupabase(token);
-    });
+
+    let isActive = true;
+
+    async function syncPushToken() {
+      const token = await registerForPushNotifications();
+      if (!isActive || !token) return;
+      await saveTokenToSupabase(token);
+    }
+
+    void syncPushToken();
+
+    return () => {
+      isActive = false;
+    };
   }, [sessionUserId]);
 
   useEffect(() => {
