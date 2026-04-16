@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, BackHandler, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
   clearSubscriptionClient,
   configureSubscriptionClient,
@@ -27,10 +28,12 @@ import SettingsScreen from "./src/screens/SettingsScreen";
 import SpreadsheetScreen from "./src/screens/SpreadsheetScreen";
 import SubscriptionScreen from "./src/screens/SubscriptionScreen";
 import UsernameSetupScreen from "./src/screens/UsernameSetupScreen";
+import { registerForPushNotifications, saveTokenToSupabase } from "./src/notifications";
+import { useSellerSignalRealtime } from "./src/features/seller-signal/useSellerSignalRealtime";
 import { supabase } from "./src/supabase";
 import { getTheme } from "./src/theme";
 
-const ONBOARDING_KEY = "@seller_signal_onboarding_completed_v2";
+const ONBOARDING_KEY = "@seller_signal_onboarding_completed_v3";
 const INITIAL_SUBSCRIPTION_STATE = {
   currentOffering: null,
   customerInfo: null,
@@ -44,7 +47,26 @@ const INITIAL_SUBSCRIPTION_STATE = {
   statusLoading: false,
 };
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60_000,
+      gcTime: 5 * 60_000,
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 export default function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <AppInner />
+    </QueryClientProvider>
+  );
+}
+
+function AppInner() {
   const [session, setSession] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
@@ -61,6 +83,7 @@ export default function App() {
   const [theme, setTheme] = useThemePreference();
   const colors = getTheme(theme);
   const sessionUserId = session?.user.id ?? null;
+  useSellerSignalRealtime(sessionUserId);
   const metadataDisplayName = session?.user.user_metadata?.username?.trim() || "";
   const displayName = metadataDisplayName
     || (displayNameOverride.userId === sessionUserId ? displayNameOverride.value : "");
@@ -97,6 +120,24 @@ export default function App() {
       subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!sessionUserId) return;
+
+    let isActive = true;
+
+    async function syncPushToken() {
+      const token = await registerForPushNotifications();
+      if (!isActive || !token) return;
+      await saveTokenToSupabase(token);
+    }
+
+    void syncPushToken();
+
+    return () => {
+      isActive = false;
+    };
+  }, [sessionUserId]);
 
   useEffect(() => {
     let ignore = false;
@@ -218,6 +259,11 @@ export default function App() {
   async function handleOnboardingComplete() {
     await AsyncStorage.setItem(ONBOARDING_KEY, "true");
     setGateState((currentState) => ({ ...currentState, onboardingCompleted: true }));
+  }
+
+  async function handleReplayOnboarding() {
+    await AsyncStorage.removeItem(ONBOARDING_KEY);
+    setGateState((currentState) => ({ ...currentState, onboardingCompleted: false }));
   }
 
   async function handleStartSubscriptionPurchase() {
@@ -384,7 +430,8 @@ export default function App() {
     );
   }
 
-  if (!hasSubscriptionAccess(subscriptionState.customerInfo)) {
+  // TODO: Re-enable paywall once App Store products are configured
+  if (false && !hasSubscriptionAccess(subscriptionState.customerInfo)) {
     return (
       <SafeAreaProvider>
         <SubscriptionScreen
@@ -430,6 +477,7 @@ export default function App() {
         manageSubscriptionPending={subscriptionState.managePending}
         onBack={goHome}
         onManageSubscription={handleOpenCustomerCenter}
+        onReplayOnboarding={handleReplayOnboarding}
         onToggleTheme={toggleTheme}
         subscriptionStoreLabel={getSubscriptionStoreLabel()}
         theme={theme}

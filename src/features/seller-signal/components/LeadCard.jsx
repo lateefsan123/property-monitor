@@ -1,26 +1,5 @@
-import { formatBedsLabel, formatDate, formatPrice, formatPsf, formatRange } from "../formatters";
-import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
+import { formatPhoneForWhatsApp } from "../insight-utils";
 import { formatBuildingLabel } from "../lead-utils";
-
-const EDIT_STATUS_OPTIONS = [
-  { value: "", label: "No status" },
-  { value: "Prospect", label: "Prospect" },
-  { value: "Appraisal", label: "Appraisal" },
-  { value: "For Sale", label: "For Sale" },
-];
-
-function MessagePreview({ value }) {
-  return <div className="message-preview">{value}</div>;
-}
-
-function HomeIcon() {
-  return (
-    <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <polyline points="9 22 9 12 15 12 15 22" />
-    </svg>
-  );
-}
 
 function WhatsAppIcon() {
   return (
@@ -30,339 +9,118 @@ function WhatsAppIcon() {
   );
 }
 
-function TransactionTable({ insight, lead }) {
-  if (insight.recentTransactions?.length > 0) {
-    return (
-      <div className="tx-table-wrap">
-        <p className="tx-table-title">Sales History in {insight.locationName || lead.building}</p>
-        <table className="tx-table">
-          <thead>
-            <tr>
-              <th>DATE</th>
-              <th>LOCATION</th>
-              <th>PRICE (AED)</th>
-              <th>BEDS</th>
-              <th>AREA (SQFT)</th>
-            </tr>
-          </thead>
-          <tbody>
-            {insight.recentTransactions.map((transaction) => (
-              <tr key={transaction.id}>
-                <td className="tx-date">{formatDate(transaction.date)}</td>
-                <td>
-                  <span className="tx-location">{transaction.locationLabel}</span>
-                  {transaction.floor && <span className="tx-floor">Floor {transaction.floor}</span>}
-                </td>
-                <td className="tx-price">{formatPrice(transaction.price)}</td>
-                <td>{formatBedsLabel(transaction.beds)}</td>
-                <td>{transaction.area ? Math.round(transaction.area).toLocaleString("en-US") : "-"}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  }
-
-  return <p className="muted">No priced sales found in this period.</p>;
+function formatLeadBedroom(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  if (/studio/i.test(raw)) return "Studio";
+  if (/^\d+$/.test(raw)) return `${raw}BR`;
+  return raw;
 }
 
-function getEditStatusOptions(currentStatus) {
-  if (!currentStatus || EDIT_STATUS_OPTIONS.some((option) => option.value === currentStatus)) {
-    return EDIT_STATUS_OPTIONS;
-  }
-
-  return [
-    EDIT_STATUS_OPTIONS[0],
-    { value: currentStatus, label: `${currentStatus} (Current)` },
-    ...EDIT_STATUS_OPTIONS.slice(1),
-  ];
+function extractUnitFromBuilding(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  const match = raw.match(/^(?:\[.*?\]\s*)?(?:Apartment|Unit|Villa)\s+([A-Za-z0-9-]+)/i);
+  return match?.[1] || null;
 }
 
-function LeadEditForm({ draft, isDeleting, isSaving, onCancel, onChange, onDelete, onSave }) {
-  const statusOptions = getEditStatusOptions(draft?.status);
-
-  return (
-    <form
-      className="lead-edit-form"
-      onSubmit={(event) => {
-        event.preventDefault();
-        onSave?.();
-      }}
-    >
-      <div className="lead-edit-grid">
-        <label className="lead-edit-field">
-          <span>Name</span>
-          <input
-            type="text"
-            value={draft?.name || ""}
-            onChange={(event) => onChange?.("name", event.target.value)}
-            placeholder="Seller name"
-          />
-        </label>
-
-        <label className="lead-edit-field">
-          <span>Building</span>
-          <input
-            type="text"
-            value={draft?.building || ""}
-            onChange={(event) => onChange?.("building", event.target.value)}
-            placeholder="Building name"
-          />
-        </label>
-
-        <label className="lead-edit-field">
-          <span>Phone</span>
-          <input
-            type="tel"
-            value={draft?.phone || ""}
-            onChange={(event) => onChange?.("phone", event.target.value)}
-            placeholder="+971..."
-          />
-        </label>
-
-        <label className="lead-edit-field">
-          <span>Bedroom</span>
-          <input
-            type="text"
-            value={draft?.bedroom || ""}
-            onChange={(event) => onChange?.("bedroom", event.target.value)}
-            placeholder="2BR"
-          />
-        </label>
-
-        <label className="lead-edit-field">
-          <span>Unit</span>
-          <input
-            type="text"
-            value={draft?.unit || ""}
-            onChange={(event) => onChange?.("unit", event.target.value)}
-            placeholder="Unit 1203"
-          />
-        </label>
-
-        <label className="lead-edit-field">
-          <span>Status</span>
-          <select value={draft?.status || ""} onChange={(event) => onChange?.("status", event.target.value)}>
-            {statusOptions.map((option) => (
-              <option key={option.value || "blank"} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
-        </label>
-
-        <label className="lead-edit-field">
-          <span>Last contact</span>
-          <input
-            type="date"
-            value={draft?.lastContact || ""}
-            onChange={(event) => onChange?.("lastContact", event.target.value)}
-          />
-        </label>
-      </div>
-
-      <div className="lead-edit-actions">
-        <button type="submit" className="btn-sm btn-primary" disabled={isSaving || isDeleting}>
-          {isSaving ? "Saving..." : "Save"}
-        </button>
-        <button type="button" className="btn-sm" disabled={isSaving || isDeleting} onClick={onCancel}>
-          Cancel
-        </button>
-        <button type="button" className="btn-sm btn-danger" disabled={isSaving || isDeleting} onClick={onDelete}>
-          {isDeleting ? "Deleting..." : "Delete"}
-        </button>
-      </div>
-    </form>
-  );
+function formatLeadUnit(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  if (/^unit\b/i.test(raw)) return raw;
+  return `Unit ${raw}`;
 }
+
+export { formatLeadBedroom, extractUnitFromBuilding, formatLeadUnit, WhatsAppIcon };
 
 export default function LeadCard({
-  buildingImageUrl,
   copiedLeadId,
-  editDraft,
   insight,
-  isDeleting,
-  isEditing,
-  isExpanded,
-  isSaving,
   isSent,
   lead,
-  onCancelEditing,
   onCopyMessage,
   onDelete,
-  onEditFieldChange,
-  onSaveEdit,
-  onStartEditing,
   onToggleExpanded,
   onToggleSent,
-  onUpdateStatus,
 }) {
-  const message = insight?.message || buildMessage(lead, insight);
+  const message = insight?.message || null;
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
+  const displayBuildingLabel = insight?.locationName || formatBuildingLabel(lead.building) || lead.building || "-";
+  const bedroomLabel = formatLeadBedroom(lead.bedroom);
+  const unitLabel = formatLeadUnit(lead.unit || extractUnitFromBuilding(lead.building));
   const whatsappUrl = whatsappPhone
-    ? `https://web.whatsapp.com/send?phone=${whatsappPhone}&text=${encodeURIComponent(message)}`
+    ? `https://web.whatsapp.com/send?phone=${whatsappPhone}&text=${encodeURIComponent(message || "")}`
     : null;
 
-  function handleHeaderKeyDown(event) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      onToggleExpanded(lead.id);
-    }
-  }
+  const sendButton = whatsappUrl ? (
+    <a
+      className="btn-sm btn-wa"
+      href={whatsappUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      onClick={(event) => {
+        event.stopPropagation();
+        if (!isSent) void onToggleSent(lead.id);
+      }}
+    >
+      <WhatsAppIcon />
+      {isSent ? "Sent" : "Send"}
+    </a>
+  ) : (
+    <button
+      type="button"
+      className="btn-sm btn-wa btn-wa-nophone"
+      onClick={(event) => {
+        event.stopPropagation();
+        if (message) void onCopyMessage(lead.id, message);
+        if (!isSent) void onToggleSent(lead.id);
+      }}
+    >
+      <WhatsAppIcon />
+      {isSent ? "Sent" : copiedLeadId === lead.id ? "Copied" : "No #"}
+    </button>
+  );
 
   return (
-    <article className={`lead-card${isSent ? " lead-sent" : ""}${isExpanded ? " lead-expanded" : ""}`}>
-      <div
-        className="lead-top"
-        role="button"
-        tabIndex={0}
-        onClick={() => onToggleExpanded(lead.id)}
-        onKeyDown={handleHeaderKeyDown}
-      >
-        {buildingImageUrl && (
-          <img
-            className="lead-building-img"
-            src={buildingImageUrl}
-            alt={lead.building}
-            loading="lazy"
-          />
-        )}
-        <div className="lead-top-info">
-          <div>
-            <span className="lead-name">{lead.name || "Unnamed"}</span>
-            <span className="lead-building">
-              <HomeIcon /> {formatBuildingLabel(lead.building) || lead.building || "-"}
-            </span>
-          </div>
-
-          <div className="lead-top-actions">
-            <div className="badge-row">
-              <span className="badge">{lead.statusLabel}</span>
-              <span className={`badge ${lead.isDue ? "due" : "ok"}`}>{lead.dueLabel}</span>
-              {insight?.status === "loading" && <span className="badge loading">Loading data</span>}
-              {insight?.status === "ready" && <span className="badge ok">Enriched</span>}
-              {lead.newTxSinceSent && <span className="badge due">{lead.newTxSinceSent} new txns</span>}
-            </div>
-
-            {whatsappUrl ? (
-              <a
-                className="btn-sm btn-wa"
-                href={whatsappUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  if (!isSent) void onToggleSent(lead.id);
-                }}
-              >
-                <WhatsAppIcon />
-                {isSent ? "Sent" : "Send"}
-              </a>
-            ) : (
-              <button
-                type="button"
-                className="btn-sm btn-wa"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  void onCopyMessage(lead.id, message);
-                  if (!isSent) void onToggleSent(lead.id);
-                }}
-              >
-                <WhatsAppIcon />
-                {isSent ? "Sent" : copiedLeadId === lead.id ? "Copied" : "Send"}
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {isExpanded && (
-        <>
-          <div className="lead-meta">
-            <div className="lead-meta-details">
-              <span>{lead.bedroom || "-"}</span>
-              <span>{formatDate(lead.lastContactDate)}</span>
-              {lead.phone && <span>{lead.phone}</span>}
-              {lead.unit && <span>{lead.unit}</span>}
-            </div>
-            {!isEditing && (
-              <div className="lead-card-actions">
-                <button type="button" className="btn-sm" disabled={isSaving || isDeleting} onClick={() => onStartEditing?.(lead.id)}>
-                  Edit
-                </button>
-                <button
-                  type="button"
-                  className="btn-sm btn-danger"
-                  disabled={isSaving || isDeleting}
-                  onClick={() => onDelete?.(lead.id)}
-                >
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {isEditing ? (
-            <LeadEditForm
-              draft={editDraft}
-              isDeleting={isDeleting}
-              isSaving={isSaving}
-              onCancel={onCancelEditing}
-              onChange={onEditFieldChange}
-              onDelete={() => onDelete?.(lead.id)}
-              onSave={() => onSaveEdit?.(lead.id)}
-            />
-          ) : (
-            <>
-
-              <div className="lead-status-actions">
-                <span className="lead-status-label">Status</span>
-                <div className="lead-status-buttons">
-                  {[
-                    { id: "prospect", label: "Prospect", value: "Prospect" },
-                    { id: "market_appraisal", label: "Appraisal", value: "Appraisal" },
-                    { id: "for_sale_available", label: "For Sale", value: "For Sale" },
-                  ].map((option) => {
-                    const isActive = lead.statusRule?.id === option.id;
-                    return (
-                      <button
-                        key={option.id}
-                        type="button"
-                        className={`btn-sm lead-status-btn${isActive ? " active" : ""}`}
-                        onClick={() => onUpdateStatus?.(lead.id, option.value)}
-                        disabled={isActive || isSaving || isDeleting}
-                      >
-                        {option.label}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {insight?.status === "ready" && (
-                <>
-                  <div className="bayut-row">
-                    <span>{insight.count} txns</span>
-                    <span>Avg {formatPrice(insight.avg)}</span>
-                    <span>{formatPsf(insight.psf)}</span>
-                    <span>{formatRange(insight.min, insight.max)}</span>
-                  </div>
-                  <TransactionTable insight={insight} lead={lead} />
-                </>
-              )}
-
-              {insight?.status === "loading" && <p className="muted">Loading market data...</p>}
-              {insight?.status === "error" && <p className="error-sm">{insight.error}</p>}
-
-              <div className="msg-block">
-                <p className="msg-label">Message Preview</p>
-                <MessagePreview value={message} />
-              </div>
-            </>
-          )}
-        </>
-      )}
-    </article>
+    <tr
+      className={`lead-row${isSent ? " lead-sent" : ""}`}
+      onClick={() => onToggleExpanded(lead.id)}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        if (window.confirm(`Delete "${lead.name || "this lead"}"?`)) {
+          onDelete?.(lead.id);
+        }
+      }}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onToggleExpanded(lead.id);
+        }
+      }}
+      tabIndex={0}
+      role="button"
+    >
+      <td className="lead-cell-name">
+        <span className="lead-name">{lead.name || "Unnamed"}</span>
+      </td>
+      <td className="lead-cell-building">
+        <span className="lead-building-label" title={displayBuildingLabel}>{displayBuildingLabel}</span>
+      </td>
+      <td className="lead-cell-bed">
+        {bedroomLabel || <span className="text-muted">—</span>}
+      </td>
+      <td className="lead-cell-unit">
+        {unitLabel || <span className="text-muted">—</span>}
+      </td>
+      <td className="lead-cell-status">
+        <span className={`badge ${lead.isDue ? "due" : ""}`}>{lead.statusLabel}</span>
+      </td>
+      <td className="lead-cell-phone">
+        {lead.phone || <span className="text-muted">—</span>}
+      </td>
+      <td className="lead-cell-action" onClick={(e) => e.stopPropagation()}>
+        {sendButton}
+      </td>
+    </tr>
   );
 }

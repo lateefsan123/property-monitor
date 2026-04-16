@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCachedListings, setCachedListings } from "../_shared/listing-cache.ts";
 import {
   buildListingAlertsState,
   createEmptyListingAlertsState,
@@ -14,10 +15,56 @@ const corsHeaders = {
 const API_HOST = "uae-real-estate2.p.rapidapi.com";
 const BASE_URL = `https://${API_HOST}`;
 const PAGE_SIZE = 25;
-const MAX_PAGES = 20;
-const MAX_LISTINGS_PER_BUILDING = 500;
+const MAX_PAGES = 7;
+const MAX_LISTINGS_PER_BUILDING = 175;
 const MAX_WATCHED_BUILDINGS = 1000;
 const TRACK_ALL_LISTINGS = true;
+
+const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
+
+async function sendPushNotifications(
+  supabaseAdmin: ReturnType<typeof createClient>,
+  userId: string,
+  priceDropItems: any[],
+) {
+  if (!priceDropItems.length) return;
+
+  const { data: tokenRows } = await supabaseAdmin
+    .from("notification_tokens")
+    .select("expo_push_token")
+    .eq("user_id", userId);
+
+  const tokens = (tokenRows || []).map((row) => row.expo_push_token).filter(Boolean);
+  if (!tokens.length) return;
+
+  const dropCount = priceDropItems.length;
+  const first = priceDropItems[0];
+  const title = dropCount === 1
+    ? `Price drop in ${first.buildingName}`
+    : `${dropCount} price drops detected`;
+  const body = dropCount === 1
+    ? `${first.title} dropped by AED ${Math.abs(first.priceDelta).toLocaleString()}`
+    : `${priceDropItems.map((item: any) => item.buildingName).filter((name: string, index: number, arr: string[]) => arr.indexOf(name) === index).slice(0, 3).join(", ")}`;
+
+  const messages = tokens.map((token) => ({
+    to: token,
+    sound: "default",
+    title,
+    body,
+    channelId: "price-drops",
+    data: { type: "price_drop", count: dropCount },
+  }));
+
+  try {
+    await fetch(EXPO_PUSH_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(messages),
+    });
+  } catch {
+    // Push delivery is best-effort; don't fail the sync.
+  }
+}
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -209,7 +256,14 @@ async function syncUser({
   const currentBuildings = [];
   for (const location of watchedItems) {
     try {
-      currentBuildings.push(await fetchListingsForLocation(location, apiKey));
+      const cached = await getCachedListings(supabaseAdmin, location.locationId);
+      if (cached) {
+        currentBuildings.push(cached);
+        continue;
+      }
+      const building = await fetchListingsForLocation(location, apiKey);
+      await setCachedListings(supabaseAdmin, building);
+      currentBuildings.push(building);
     } catch (error) {
       currentBuildings.push(buildEmptyBuilding(location, (error as Error).message));
     }
@@ -252,11 +306,15 @@ async function syncUser({
 
   if (upsertError) throw upsertError;
 
+  const priceDropItems = (nextState.changeItems || []).filter((item: any) => item.type === "price_drop");
+  await sendPushNotifications(supabaseAdmin, userId, priceDropItems);
+
   return {
     userId,
     watched: watchedItems.length,
     tracked: TRACK_ALL_LISTINGS ? nextState.summary?.trackedListingCount || 0 : selectedListingKeys.length,
     changes: nextState.summary?.totalChanges || 0,
+    priceDrops: priceDropItems.length,
   };
 }
 

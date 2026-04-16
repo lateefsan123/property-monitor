@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import * as Linking from "expo-linking";
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -239,17 +240,45 @@ export default function LeadDetailSheet({
   onDelete,
   onEditFieldChange,
   onSaveEdit,
+  onSaveNotes,
   onStartEditing,
   onToggleSent,
   onUpdateStatus,
   colors,
 }) {
   const insets = useSafeAreaInsets();
+  const c = colors;
+  const leadId = lead?.id ?? null;
+  const leadNotes = lead?.notes || "";
+  const [notesValue, setNotesValue] = useState(leadNotes);
+  const notesTimerRef = useRef(null);
+
+  useEffect(() => {
+    setNotesValue(leadNotes);
+  }, [leadId, leadNotes]);
+
+  useEffect(() => () => {
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+  }, []);
 
   if (!lead) return null;
 
-  const c = colors;
   const message = insight?.message || buildMessage(lead, insight);
+
+  function handleNotesChange(text) {
+    setNotesValue(text);
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    notesTimerRef.current = setTimeout(() => {
+      onSaveNotes?.(lead.id, text);
+    }, 1000);
+  }
+
+  function handleNotesBlur() {
+    if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
+    if (notesValue !== (lead.notes || "")) {
+      onSaveNotes?.(lead.id, notesValue);
+    }
+  }
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
 
   function handleWhatsApp() {
@@ -380,6 +409,30 @@ export default function LeadDetailSheet({
             )}
             {insight?.status === "loading" && <Text style={{ fontSize: 14, color: c.textFainter }}>Loading market data...</Text>}
             {insight?.status === "error" && <Text style={{ fontSize: 14, color: c.errorText }}>{insight.error}</Text>}
+
+            <View style={{ gap: 6 }}>
+              <Text style={{ fontSize: 11, fontWeight: "600", color: c.textFaint, letterSpacing: 0.5 }}>NOTES</Text>
+              <TextInput
+                style={{
+                  fontSize: 14,
+                  color: c.text,
+                  lineHeight: 20,
+                  backgroundColor: c.bgInput,
+                  borderColor: c.border,
+                  borderWidth: 1,
+                  borderRadius: 10,
+                  padding: 12,
+                  minHeight: 60,
+                  textAlignVertical: "top",
+                }}
+                placeholder="Add notes about this lead..."
+                placeholderTextColor={c.textFaint}
+                value={notesValue}
+                onChangeText={handleNotesChange}
+                onBlur={handleNotesBlur}
+                multiline
+              />
+            </View>
 
             <View style={{ gap: 6 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>

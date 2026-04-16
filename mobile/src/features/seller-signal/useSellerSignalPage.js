@@ -2,12 +2,17 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
-import { WHATSAPP_OPEN_DELAY_MS } from "./constants";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ENRICH_CHUNK_SIZE, WHATSAPP_OPEN_DELAY_MS } from "./constants";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
 import { applyLeadEdits, applyLeadStatus, formatDateInputValue, sortLeadsByPriority } from "./lead-utils";
 import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
+import { useAutoSheetSync } from "./useAutoSheetSync";
+import { leadsQueryKey } from "./useHomeLeadSummary";
 import {
-  createDefaultLeadSources,
+  clearLeadsForSource,
+  createLeadSource,
+  deleteLeadSource,
   deleteLead,
   fetchLeadInsights,
   fetchLeadSources,
@@ -19,6 +24,10 @@ import {
   updateLeadStatus,
   upsertLeadSource,
 } from "./services";
+
+export function leadSourcesQueryKey(userId) {
+  return ["seller-signal", "lead-sources", userId];
+}
 
 const MAX_LEAD_SOURCES = 10;
 const LEGACY_SOURCE_ID = "legacy";
@@ -32,8 +41,13 @@ function normalizeSources(sources) {
   }));
 }
 
+function isVisibleSource(source) {
+  return Boolean(String(source?.building_name || source?.label || source?.sheet_url || "").trim());
+}
+
 function limitLeadSources(sources) {
   return normalizeSources(sources)
+    .filter(isVisibleSource)
     .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
     .slice(0, MAX_LEAD_SOURCES);
 }
@@ -44,15 +58,7 @@ function getNextLeadSourceSortOrder(sources) {
 }
 
 async function fetchSellerSources(userId) {
-  let sources = await fetchLeadSources(userId);
-  if (sources.length < MAX_LEAD_SOURCES) {
-    await createDefaultLeadSources(
-      userId,
-      MAX_LEAD_SOURCES - sources.length,
-      getNextLeadSourceSortOrder(sources),
-    );
-    sources = await fetchLeadSources(userId);
-  }
+  const sources = await fetchLeadSources(userId);
   return limitLeadSources(sources);
 }
 
@@ -64,14 +70,53 @@ function getErrorMessage(error) {
   return "Unexpected error";
 }
 
+function isPlaceholderSourceLabel(source) {
+  const label = String(source?.label || "").trim();
+  return Boolean(label) && /^Spreadsheet\s+\d+$/i.test(label);
+}
+
+function getSourceName(source) {
+  if (!source) return "";
+  const buildingName = String(source.building_name || "").trim();
+  const label = String(source.label || "").trim();
+  if (buildingName && (!label || isPlaceholderSourceLabel(source))) return buildingName;
+  return label || buildingName || "";
+}
+
+function normalizeSourceDraft(source) {
+  if (!source) return source;
+  return {
+    ...source,
+    label: getSourceName(source),
+    building_name: null,
+  };
+}
+
 function formatSourceLabel(source) {
   if (!source) return "";
-  const label = String(source.building_name || source.label || "").trim();
+  const label = getSourceName(source);
   return label || `Spreadsheet ${Number(source.sort_order ?? 0) + 1}`;
 }
 
-function formatImportSuccessMessage(label, count) {
+function formatImportSuccessMessage(label, result) {
+  const count = Number(result?.count || 0);
+  const totalRows = Number(result?.totalRows ?? count);
+  const skippedCount = Number(result?.skippedCount || 0);
   const countText = `${count} lead${count === 1 ? "" : "s"}`;
+  const skippedText = `${skippedCount} existing lead${skippedCount === 1 ? "" : "s"}`;
+
+  if (count === 0 && totalRows > 0) {
+    return label
+      ? `No new leads imported from ${label}. ${skippedText} already exist for this source.`
+      : `No new leads imported. ${skippedText} already exist for this source.`;
+  }
+
+  if (skippedCount > 0) {
+    return label
+      ? `Imported ${countText} from ${label}. Skipped ${skippedText}.`
+      : `Imported ${countText}. Skipped ${skippedText}.`;
+  }
+
   return label ? `Imported ${countText} from ${label}.` : `Imported ${countText}.`;
 }
 
@@ -81,10 +126,13 @@ function formatImportErrorMessage(label, message) {
 
 export function useSellerSignalPage(userId) {
   const legacySheetStorageKey = userId ? `seller-signal:legacy-sheet-url:${userId}` : null;
+  const queryClient = useQueryClient();
+  useAutoSheetSync(userId);
   const [leads, setLeads] = useState([]);
   const [leadSources, setLeadSources] = useState([]);
   const [insights, setInsights] = useState({});
   const [loading, setLoading] = useState(true);
+  const [addingSource, setAddingSource] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importingSourceId, setImportingSourceId] = useState(null);
   const [importingLegacy, setImportingLegacy] = useState(false);
@@ -95,7 +143,7 @@ export function useSellerSignalPage(userId) {
   const [showDueOnly, setShowDueOnly] = useState(true);
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("prospect");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sentLeads, setSentLeads] = useState({});
@@ -103,12 +151,13 @@ export function useSellerSignalPage(userId) {
   const [sheetUrl, setSheetUrl] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [viewTab, setViewTab] = useState("active");
-  const [dataFilter, setDataFilter] = useState("all");
+  const [dataFilter, setDataFilter] = useState("with_data");
   const [expandedLeads, setExpandedLeads] = useState({});
   const [editingLeadId, setEditingLeadId] = useState(null);
   const [editingLeadDraft, setEditingLeadDraft] = useState(null);
   const [savingLeadId, setSavingLeadId] = useState(null);
   const [deletingLeadId, setDeletingLeadId] = useState(null);
+  const [clearingSourceId, setClearingSourceId] = useState(null);
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const hasAutoEnriched = useRef(false);
 
@@ -125,7 +174,26 @@ export function useSellerSignalPage(userId) {
     };
   }
 
-  const loadLeadsIntoState = useCallback(async (showLoader = true) => {
+  const leadsQuery = useQuery({
+    queryKey: leadsQueryKey(userId),
+    queryFn: () => fetchUserLeads(userId),
+    enabled: Boolean(userId),
+  });
+
+  const sourcesQuery = useQuery({
+    queryKey: leadSourcesQueryKey(userId),
+    queryFn: () => fetchSellerSources(userId),
+    enabled: Boolean(userId),
+  });
+
+  const reloadLeads = useCallback(async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: leadsQueryKey(userId) }),
+      queryClient.invalidateQueries({ queryKey: leadSourcesQueryKey(userId) }),
+    ]);
+  }, [queryClient, userId]);
+
+  useEffect(() => {
     if (!userId) {
       setLeads([]);
       setLeadSources([]);
@@ -139,33 +207,39 @@ export function useSellerSignalPage(userId) {
       return;
     }
 
-    if (showLoader) setLoading(true);
-    setError(null);
+    setLoading(leadsQuery.isPending || sourcesQuery.isPending);
 
-    try {
-      const [{ leads: nextLeads, sentMap }, nextSources] = await Promise.all([
-        fetchUserLeads(userId),
-        fetchSellerSources(userId),
-      ]);
-      setLeads(nextLeads);
-      setLeadSources(nextSources);
-      setSentLeads(sentMap);
-      setInsights({});
-      setExpandedLeads({});
-      setEditingLeadId(null);
-      setEditingLeadDraft(null);
-      setCurrentPage(1);
-      hasAutoEnriched.current = false;
-    } catch (loadError) {
-      setError(getErrorMessage(loadError));
-    } finally {
-      if (showLoader) setLoading(false);
+    const queryError = leadsQuery.error || sourcesQuery.error;
+    if (queryError) {
+      setError(getErrorMessage(queryError));
+      return;
     }
-  }, [userId]);
+
+    if (leadsQuery.data && sourcesQuery.data) {
+      setLeads(leadsQuery.data.leads);
+      setSentLeads(leadsQuery.data.sentMap);
+      setLeadSources(sourcesQuery.data);
+      setError(null);
+    }
+  }, [
+    leadsQuery.data,
+    leadsQuery.error,
+    leadsQuery.isPending,
+    sourcesQuery.data,
+    sourcesQuery.error,
+    sourcesQuery.isPending,
+    userId,
+  ]);
 
   useEffect(() => {
-    void loadLeadsIntoState(true);
-  }, [loadLeadsIntoState]);
+    if (!leadsQuery.isFetching || leadsQuery.isPending) return;
+    setInsights({});
+    setExpandedLeads({});
+    setEditingLeadId(null);
+    setEditingLeadDraft(null);
+    setCurrentPage(1);
+    hasAutoEnriched.current = false;
+  }, [leadsQuery.isFetching, leadsQuery.isPending]);
 
   useEffect(() => {
     if (!legacySheetStorageKey) {
@@ -205,9 +279,19 @@ export function useSellerSignalPage(userId) {
       return nextInsights;
     });
 
+    let anyChunkHadTargets = false;
+    let totalMatched = 0;
+
     try {
-      const { hasTargets, matched, updates } = await fetchLeadInsights(targetLeads);
-      if (!hasTargets) {
+      for (let index = 0; index < targetLeads.length; index += ENRICH_CHUNK_SIZE) {
+        const chunk = targetLeads.slice(index, index + ENRICH_CHUNK_SIZE);
+        const { hasTargets, matched, updates } = await fetchLeadInsights(chunk);
+        if (hasTargets) anyChunkHadTargets = true;
+        totalMatched += matched;
+        setInsights((previousInsights) => ({ ...previousInsights, ...updates }));
+      }
+
+      if (!anyChunkHadTargets) {
         setError("No leads with a building name.");
         setInsights((previousInsights) => {
           const nextInsights = { ...previousInsights };
@@ -217,8 +301,7 @@ export function useSellerSignalPage(userId) {
         return;
       }
 
-      setInsights((previousInsights) => ({ ...previousInsights, ...updates }));
-      if (matched === 0) {
+      if (totalMatched === 0) {
         setError("Property market data is not available for these buildings yet.");
       }
     } catch (enrichmentError) {
@@ -227,6 +310,7 @@ export function useSellerSignalPage(userId) {
       setInsights((previousInsights) => {
         const nextInsights = { ...previousInsights };
         for (const lead of targetLeads) {
+          if (nextInsights[lead.id]?.status === "ready") continue;
           nextInsights[lead.id] = {
             ...previousInsights[lead.id],
             status: "error",
@@ -302,12 +386,13 @@ export function useSellerSignalPage(userId) {
     }
     return counts;
   }, [leads]);
+  const canAddSource = leadSources.length < MAX_LEAD_SOURCES;
 
   const sourceOptions = useMemo(
     () => {
       const options = leadSources.map((source) => ({
         id: source.id,
-        label: source.building_name || source.label || `Sheet ${Number(source.sort_order ?? 0) + 1}`,
+        label: formatSourceLabel(source) || `Sheet ${Number(source.sort_order ?? 0) + 1}`,
       }));
       if (sourceCounts[LEGACY_SOURCE_ID]) {
         options.push({ id: LEGACY_SOURCE_ID, label: LEGACY_SOURCE_LABEL });
@@ -391,10 +476,35 @@ export function useSellerSignalPage(userId) {
     setLeadSources((current) =>
       current.map((source) => (
         source.id === sourceId
-          ? { ...source, [field]: value }
+          ? field === "building_name"
+            ? { ...source, label: value, building_name: null }
+            : { ...source, [field]: value }
           : source
       )),
     );
+  }
+
+  async function addSource() {
+    if (!canAddSource) {
+      setError(`You can add up to ${MAX_LEAD_SOURCES} spreadsheets.`);
+      setNotice(null);
+      return;
+    }
+
+    setAddingSource(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await createLeadSource(userId, {
+        label: `Spreadsheet ${getNextLeadSourceSortOrder(leadSources) + 1}`,
+        sort_order: getNextLeadSourceSortOrder(leadSources),
+      });
+      await queryClient.invalidateQueries({ queryKey: leadSourcesQueryKey(userId) });
+    } catch (createError) {
+      setError(getErrorMessage(createError));
+    } finally {
+      setAddingSource(false);
+    }
   }
 
   async function persistLeadSource(sourceId) {
@@ -406,12 +516,31 @@ export function useSellerSignalPage(userId) {
     setNotice(null);
 
     try {
-      await upsertLeadSource(source);
-      setLeadSources(await fetchSellerSources(userId));
+      await upsertLeadSource(normalizeSourceDraft(source));
+      await queryClient.invalidateQueries({ queryKey: leadSourcesQueryKey(userId) });
     } catch (persistError) {
       setError(getErrorMessage(persistError));
     } finally {
       setSavingSourceId(null);
+    }
+  }
+
+  async function clearSource(sourceId) {
+    const source = leadSources.find((item) => item.id === sourceId);
+    if (!source) return;
+
+    setClearingSourceId(sourceId);
+    setError(null);
+    setNotice(null);
+    try {
+      await clearLeadsForSource(userId, sourceId);
+      await deleteLeadSource(userId, sourceId);
+      await reloadLeads();
+      setNotice("Spreadsheet removed.");
+    } catch (clearError) {
+      setError(getErrorMessage(clearError));
+    } finally {
+      setClearingSourceId(null);
     }
   }
 
@@ -441,8 +570,8 @@ export function useSellerSignalPage(userId) {
     try {
       const result = await replaceLegacyLeadsFromSheet({ userId, rawSheetUrl: trimmed });
       setCopiedLeadId(null);
-      await loadLeadsIntoState(false);
-      setNotice(formatImportSuccessMessage(LEGACY_SOURCE_LABEL, result.count));
+      await reloadLeads();
+      setNotice(formatImportSuccessMessage(LEGACY_SOURCE_LABEL, result));
     } catch (importError) {
       setError(formatImportErrorMessage(LEGACY_SOURCE_LABEL, getErrorMessage(importError)));
     } finally {
@@ -459,19 +588,35 @@ export function useSellerSignalPage(userId) {
     try {
       const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
       const sourceLabel = formatSourceLabel(source);
+      const sourceCountBeforeImport = sourceId ? Number(sourceCounts[sourceId] || 0) : 0;
       if (sourceId && source) {
-        await upsertLeadSource(source);
+        await upsertLeadSource(normalizeSourceDraft(source));
       }
-      const result = await replaceUserLeadsFromSheet({
+      let result = await replaceUserLeadsFromSheet({
         userId,
-        source,
+        source: normalizeSourceDraft(source),
         rawSheetUrl: sourceId ? source?.sheet_url : sheetUrl,
       });
+
+      if (
+        sourceId &&
+        sourceCountBeforeImport === 0 &&
+        Number(result?.count || 0) === 0 &&
+        Number(result?.totalRows || 0) > 0
+      ) {
+        result = await replaceUserLeadsFromSheet({
+          userId,
+          source: normalizeSourceDraft(source),
+          rawSheetUrl: sourceId ? source?.sheet_url : sheetUrl,
+          replaceExisting: true,
+        });
+      }
+
       setShowImport(false);
       setSheetUrl("");
       setCopiedLeadId(null);
-      await loadLeadsIntoState(false);
-      setNotice(formatImportSuccessMessage(sourceLabel, result.count));
+      await reloadLeads();
+      setNotice(formatImportSuccessMessage(sourceLabel, result));
     } catch (importError) {
       const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
       setError(formatImportErrorMessage(formatSourceLabel(source), getErrorMessage(importError)));
@@ -496,7 +641,18 @@ export function useSellerSignalPage(userId) {
     });
 
     try {
-      await persistLeadSentState(userId, leadId, shouldMarkSent);
+      const persistedSentAt = await persistLeadSentState(userId, leadId, shouldMarkSent);
+      setSentLeads((previous) => {
+        const next = { ...previous };
+        if (persistedSentAt) {
+          next[leadId] = new Date(persistedSentAt).getTime();
+        } else {
+          delete next[leadId];
+        }
+        return next;
+      });
+      setViewTab(shouldMarkSent ? "done" : "active");
+      setCurrentPage(1);
     } catch (persistError) {
       setError(getErrorMessage(persistError));
       setSentLeads((previous) => {
@@ -605,6 +761,16 @@ export function useSellerSignalPage(userId) {
     }
   }
 
+  async function saveNotes(leadId, notes) {
+    if (!leadId) return;
+    try {
+      await updateLead({ userId, leadId, updates: { notes } });
+      setLeads((current) => current.map((l) => (l.id === leadId ? { ...l, notes: notes.trim() || "" } : l)));
+    } catch (saveError) {
+      setError(getErrorMessage(saveError));
+    }
+  }
+
   async function removeLead(leadId) {
     const previousLeads = leads;
     const previousSentLeads = sentLeads;
@@ -686,6 +852,9 @@ export function useSellerSignalPage(userId) {
     activeLeads,
     copiedLeadId,
     dataFilter,
+    addingSource,
+    canAddSource,
+    clearingSourceId,
     deletingLeadId,
     doneLeads,
     editingLeadDraft,
@@ -721,8 +890,10 @@ export function useSellerSignalPage(userId) {
     totalPages,
     viewTab,
     actions: {
+      addSource,
       bulkWhatsApp,
       cancelEditingLead,
+      clearSource,
       copyMessage,
       deleteLead: removeLead,
       goToNextPage,
@@ -731,6 +902,7 @@ export function useSellerSignalPage(userId) {
       importLegacySheet,
       persistLeadSource,
       saveLeadEdits,
+      saveNotes,
       selectDataFilter,
       selectSourceFilter,
       selectStatusFilter,

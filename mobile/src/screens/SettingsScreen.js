@@ -40,6 +40,15 @@ function CreditCardIcon({ color }) {
   );
 }
 
+function ReplayIcon({ color }) {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Polyline points="1 4 1 10 7 10" />
+      <Path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+    </Svg>
+  );
+}
+
 function LogOutIcon({ color }) {
   return (
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
@@ -116,6 +125,7 @@ export default function SettingsScreen({
   manageSubscriptionPending = false,
   onBack,
   onManageSubscription,
+  onReplayOnboarding,
   onToggleTheme,
   subscriptionStoreLabel = "",
   theme,
@@ -199,6 +209,13 @@ export default function SettingsScreen({
             colors={colors}
           />
         ) : null}
+        <Row
+          icon={ReplayIcon}
+          label="Replay onboarding"
+          rightElement={<ChevronRight color={colors.textFaint} />}
+          onPress={onReplayOnboarding}
+          colors={colors}
+        />
         <Row
           icon={LogOutIcon}
           label="Sign out"

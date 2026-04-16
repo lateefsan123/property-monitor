@@ -106,6 +106,34 @@ function compressBoulevard(value) {
   return String(value || "").replace(/\bboulevard\b/gi, "Blvd");
 }
 
+function toggleLeadingArticle(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return [];
+  if (/^the\s+/i.test(trimmed)) {
+    return [trimmed.replace(/^the\s+/i, "").trim()];
+  }
+  return [`The ${trimmed}`];
+}
+
+function expandTowerVariant(value) {
+  const trimmed = String(value || "").trim();
+  const match = trimmed.match(/^(.*?)(?:\s+Tower|\s*T)?\s*([A-Z]|\d+)$/i);
+  if (!match) return [];
+  const base = match[1].trim();
+  const suffix = match[2].trim();
+  if (!base || !suffix) return [];
+  return [`${base} ${suffix}`, `${base} T${suffix}`, `${base} Tower ${suffix}`];
+}
+
+function toggleResidencePlurality(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return [];
+  const variants = [];
+  if (/\bresidences\b/i.test(trimmed)) variants.push(trimmed.replace(/\bresidences\b/gi, "Residence"));
+  if (/\bresidence\b/i.test(trimmed)) variants.push(trimmed.replace(/\bresidence\b/gi, "Residences"));
+  return variants;
+}
+
 export function formatBuildingLabel(raw) {
   if (!raw) return "";
   const cleaned = cleanBuildingName(raw);
@@ -140,12 +168,27 @@ export function getBuildingKeyVariants(raw) {
     const normalized = normalizeToken(value);
     if (normalized) variants.add(normalized);
   };
-  addVariant(cleaned);
-  addVariant(replaceNumberWords(cleaned));
-  addVariant(expandBoulevard(cleaned));
-  addVariant(replaceNumberWords(expandBoulevard(cleaned)));
-  addVariant(compressBoulevard(cleaned));
-  addVariant(replaceNumberWords(compressBoulevard(cleaned)));
+
+  const rawVariants = new Set([cleaned]);
+  const queue = [cleaned];
+  while (queue.length) {
+    const current = queue.shift();
+    for (const next of [
+      replaceNumberWords(current),
+      expandBoulevard(current),
+      compressBoulevard(current),
+      ...toggleLeadingArticle(current),
+      ...expandTowerVariant(current),
+      ...toggleResidencePlurality(current),
+    ]) {
+      const trimmed = String(next || "").trim();
+      if (!trimmed || rawVariants.has(trimmed)) continue;
+      rawVariants.add(trimmed);
+      queue.push(trimmed);
+    }
+  }
+
+  for (const value of rawVariants) addVariant(value);
   return [...variants].filter(Boolean);
 }
 
@@ -263,6 +306,7 @@ export function mapStoredLeadRow(row, index, today) {
   const lead = mapLeadRow(record, index, mapping, today);
   lead.id = row.id;
   lead.sourceId = row.source_id || null;
+  lead.notes = row.notes || "";
   return lead;
 }
 

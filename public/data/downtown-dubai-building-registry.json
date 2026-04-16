@@ -1,0 +1,751 @@
+{
+  "area": "Downtown Dubai",
+  "city": "Dubai",
+  "country": "UAE",
+  "purpose": "real_estate_transaction_matching",
+  "scope_note": "Building-level residential and apartment-relevant names used in Downtown Dubai public property sources. Includes towers, branded residences, serviced apartment towers, and Old Town apartment buildings. Not a government master registry.",
+  "buildings": [
+    {
+      "canonical_name": "Boulevard Crescent Tower 1",
+      "aliases": ["BLVD Crescent Tower 1", "Boulevard Crescent 1", "BLVD Crescent 1"],
+      "project": "Boulevard Crescent",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Boulevard Crescent Tower 2",
+      "aliases": ["BLVD Crescent Tower 2", "Boulevard Crescent 2", "BLVD Crescent 2"],
+      "project": "Boulevard Crescent",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Burj Vista 1",
+      "aliases": ["Burj Vista Tower 1"],
+      "project": "Burj Vista",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Burj Vista 2",
+      "aliases": ["Burj Vista Tower 2"],
+      "project": "Burj Vista",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Lofts East",
+      "aliases": ["Lofts East"],
+      "project": "The Lofts",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Lofts West",
+      "aliases": ["Lofts West"],
+      "project": "The Lofts",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Lofts Central Tower",
+      "aliases": ["Lofts Central", "The Lofts Central"],
+      "project": "The Lofts",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Standpoint Tower A",
+      "aliases": ["Standpoint A"],
+      "project": "Standpoint Towers",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Standpoint Tower B",
+      "aliases": ["Standpoint B"],
+      "project": "Standpoint Towers",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Boulevard Central Tower 1",
+      "aliases": ["Boulevard Central 1", "Boulevard Central Tower A"],
+      "project": "Boulevard Central",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Boulevard Central Tower 2",
+      "aliases": ["Boulevard Central 2", "Boulevard Central Tower B"],
+      "project": "Boulevard Central",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "29 Boulevard Tower 1",
+      "aliases": ["29 Burj Boulevard Tower 1", "29 Boulevard 1", "29 Burj Boulevard 1"],
+      "project": "29 Boulevard",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "29 Boulevard Tower 2",
+      "aliases": ["29 Burj Boulevard Tower 2", "29 Boulevard 2", "29 Burj Boulevard 2"],
+      "project": "29 Boulevard",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "BLVD Heights Tower 1",
+      "aliases": ["Boulevard Heights Tower 1", "BLVD Heights 1"],
+      "project": "BLVD Heights",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "BLVD Heights Tower 2",
+      "aliases": ["Boulevard Heights Tower 2", "BLVD Heights 2"],
+      "project": "BLVD Heights",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Bellevue Tower 1",
+      "aliases": ["Bellevue 1"],
+      "project": "Bellevue Towers",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Bellevue Tower 2",
+      "aliases": ["Bellevue 2"],
+      "project": "Bellevue Towers",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "South Ridge 1",
+      "aliases": ["South Ridge Tower 1"],
+      "project": "South Ridge",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "South Ridge 2",
+      "aliases": ["South Ridge Tower 2"],
+      "project": "South Ridge",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "South Ridge 3",
+      "aliases": ["South Ridge Tower 3"],
+      "project": "South Ridge",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "South Ridge 4",
+      "aliases": ["South Ridge Tower 4"],
+      "project": "South Ridge",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "South Ridge 5",
+      "aliases": ["South Ridge Tower 5"],
+      "project": "South Ridge",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "South Ridge 6",
+      "aliases": ["South Ridge Tower 6"],
+      "project": "South Ridge",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Burj Views A",
+      "aliases": ["Burj Views Tower A"],
+      "project": "Burj Views",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Burj Views B",
+      "aliases": ["Burj Views Tower B"],
+      "project": "Burj Views",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Burj Views C",
+      "aliases": ["Burj Views Tower C"],
+      "project": "Burj Views",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Burj Views Podium",
+      "aliases": [],
+      "project": "Burj Views",
+      "building_type": "residential_podium",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Residence 1",
+      "aliases": ["The Residences 1", "Residence Tower 1"],
+      "project": "The Residences",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Residence 2",
+      "aliases": ["The Residences 2", "Residence Tower 2"],
+      "project": "The Residences",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Residence 3",
+      "aliases": ["The Residences 3", "Residence Tower 3"],
+      "project": "The Residences",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Residence 4",
+      "aliases": ["The Residences 4", "Residence Tower 4"],
+      "project": "The Residences",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Residence 5",
+      "aliases": ["The Residences 5", "Residence Tower 5"],
+      "project": "The Residences",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Residence 6",
+      "aliases": ["The Residences 6", "Residence Tower 6"],
+      "project": "The Residences",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Residence 7",
+      "aliases": ["The Residences 7", "Residence Tower 7"],
+      "project": "The Residences",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Residence 8",
+      "aliases": ["The Residences 8", "Residence Tower 8"],
+      "project": "The Residences",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Residence 9",
+      "aliases": ["The Residences 9", "Residence Tower 9"],
+      "project": "The Residences",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Act One",
+      "aliases": ["Act One Tower"],
+      "project": "Act One | Act Two",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Act Two",
+      "aliases": ["Act Two Tower"],
+      "project": "Act One | Act Two",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Address Fountain Views 1",
+      "aliases": ["The Address Fountain Views 1", "Address Residence Fountain Views 1"],
+      "project": "Address Fountain Views",
+      "building_type": "hotel_residences",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Address Fountain Views 2",
+      "aliases": ["The Address Fountain Views 2", "Address Residence Fountain Views 2"],
+      "project": "Address Fountain Views",
+      "building_type": "hotel_residences",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Address Fountain Views 3",
+      "aliases": ["The Address Fountain Views 3", "Address Residence Fountain Views 3"],
+      "project": "Address Fountain Views",
+      "building_type": "hotel_residences",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Address Sky View Tower 1",
+      "aliases": ["Address Sky View Tower 1", "Sky View Tower 1"],
+      "project": "The Address Sky View",
+      "building_type": "hotel_residences",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Address Sky View Tower 2",
+      "aliases": ["Address Sky View Tower 2", "Sky View Tower 2"],
+      "project": "The Address Sky View",
+      "building_type": "hotel_residences",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Vida Residence Downtown",
+      "aliases": ["Vida Residences Downtown"],
+      "project": "Vida Residence Downtown",
+      "building_type": "serviced_apartments",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Address Dubai Mall",
+      "aliases": ["The Address Dubai Mall", "Address Residence Dubai Mall"],
+      "project": "Address Dubai Mall",
+      "building_type": "hotel_residences",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Kempinski The Boulevard",
+      "aliases": ["The Address The Blvd", "Address Boulevard", "The Address Boulevard"],
+      "project": "Kempinski The Boulevard",
+      "building_type": "hotel_residences",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Armani Residence",
+      "aliases": ["Armani Residences", "Armani Residence Burj Khalifa"],
+      "project": "Burj Khalifa",
+      "building_type": "branded_residences",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Burj Khalifa",
+      "aliases": ["Burj Dubai"],
+      "project": "Burj Khalifa",
+      "building_type": "mixed_use_residential",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Boulevard Point",
+      "aliases": [],
+      "project": "Boulevard Point",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Burj Royale",
+      "aliases": [],
+      "project": "Burj Royale",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Opera Grand",
+      "aliases": [],
+      "project": "Opera Grand",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Grande",
+      "aliases": ["Grande Signature Residences"],
+      "project": "Grande",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "IL Primo",
+      "aliases": ["Il Primo"],
+      "project": "IL Primo",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Burj Crown",
+      "aliases": [],
+      "project": "Burj Crown",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "DT1 Tower",
+      "aliases": ["DT1"],
+      "project": "DT1 Tower",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Burj Al Nujoom",
+      "aliases": [],
+      "project": "Burj Al Nujoom",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "DAMAC Maison Distinction",
+      "aliases": ["The Distinction", "Distinction"],
+      "project": "DAMAC Maison Distinction",
+      "building_type": "serviced_apartments",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Upper Crest",
+      "aliases": ["Burjside Terrace", "DAMAC Maison Upper Crest"],
+      "project": "Upper Crest",
+      "building_type": "serviced_apartments",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Claren Tower 1",
+      "aliases": ["Claren 1"],
+      "project": "Claren Towers",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Claren Tower 2",
+      "aliases": ["Claren 2"],
+      "project": "Claren Towers",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Forte 1",
+      "aliases": ["Forte Tower 1"],
+      "project": "Forte",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Forte 2",
+      "aliases": ["Forte Tower 2"],
+      "project": "Forte",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Bellevue Towers",
+      "aliases": ["Bellevue"],
+      "project": "Bellevue Towers",
+      "building_type": "residential_complex",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Reehan 1",
+      "aliases": ["Reehan 1"],
+      "project": "Old Town / Reehan",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Reehan 2",
+      "aliases": ["Reehan 2"],
+      "project": "Old Town / Reehan",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Reehan 3",
+      "aliases": ["Reehan 3"],
+      "project": "Old Town / Reehan",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Reehan 4",
+      "aliases": ["Reehan 4"],
+      "project": "Old Town / Reehan",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Reehan 5",
+      "aliases": ["Reehan 5"],
+      "project": "Old Town / Reehan",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Reehan 6",
+      "aliases": ["Reehan 6"],
+      "project": "Old Town / Reehan",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Reehan 7",
+      "aliases": ["Reehan 7"],
+      "project": "Old Town / Reehan",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Reehan 8",
+      "aliases": ["Reehan 8"],
+      "project": "Old Town / Reehan",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Yansoon 1",
+      "aliases": ["Yansoon 1"],
+      "project": "Old Town / Yansoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Yansoon 2",
+      "aliases": ["Yansoon 2"],
+      "project": "Old Town / Yansoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Yansoon 3",
+      "aliases": ["Yansoon 3"],
+      "project": "Old Town / Yansoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Yansoon 4",
+      "aliases": ["Yansoon 4"],
+      "project": "Old Town / Yansoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Yansoon 5",
+      "aliases": ["Yansoon 5"],
+      "project": "Old Town / Yansoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Yansoon 6",
+      "aliases": ["Yansoon 6"],
+      "project": "Old Town / Yansoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Yansoon 7",
+      "aliases": ["Yansoon 7"],
+      "project": "Old Town / Yansoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Yansoon 8",
+      "aliases": ["Yansoon 8"],
+      "project": "Old Town / Yansoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Yansoon 9",
+      "aliases": ["Yansoon 9"],
+      "project": "Old Town / Yansoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Miska 1",
+      "aliases": ["Miska 1"],
+      "project": "Old Town / Miska",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Miska 2",
+      "aliases": ["Miska 2"],
+      "project": "Old Town / Miska",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Miska 3",
+      "aliases": ["Miska 3"],
+      "project": "Old Town / Miska",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Miska 4",
+      "aliases": ["Miska 4"],
+      "project": "Old Town / Miska",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Miska 5",
+      "aliases": ["Miska 5"],
+      "project": "Old Town / Miska",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Kamoon 1",
+      "aliases": ["Kamoon 1"],
+      "project": "Old Town / Kamoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Kamoon 2",
+      "aliases": ["Kamoon 2"],
+      "project": "Old Town / Kamoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Kamoon 3",
+      "aliases": ["Kamoon 3"],
+      "project": "Old Town / Kamoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Kamoon 4",
+      "aliases": ["Kamoon 4"],
+      "project": "Old Town / Kamoon",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Zaafaran 1",
+      "aliases": ["Zaafaran 1"],
+      "project": "Old Town / Zaafaran",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Zaafaran 2",
+      "aliases": ["Zaafaran 2"],
+      "project": "Old Town / Zaafaran",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Zaafaran 3",
+      "aliases": ["Zaafaran 3"],
+      "project": "Old Town / Zaafaran",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Zaafaran 4",
+      "aliases": ["Zaafaran 4"],
+      "project": "Old Town / Zaafaran",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Zaafaran 5",
+      "aliases": ["Zaafaran 5"],
+      "project": "Old Town / Zaafaran",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Zanzebeel 1",
+      "aliases": ["Zanzebeel 1"],
+      "project": "Old Town / Zanzebeel",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Zanzebeel 2",
+      "aliases": ["Zanzebeel 2"],
+      "project": "Old Town / Zanzebeel",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Old Town - Zanzebeel 3",
+      "aliases": ["Zanzebeel 3"],
+      "project": "Old Town / Zanzebeel",
+      "building_type": "apartment_building",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "48 Burj Gate",
+      "aliases": [],
+      "project": "48 Burj Gate",
+      "building_type": "mixed_use_residential",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "One Residence",
+      "aliases": [],
+      "project": "One Residence",
+      "building_type": "residential_tower",
+      "status": "off_plan"
+    },
+    {
+      "canonical_name": "Binghatti Skyblade",
+      "aliases": [],
+      "project": "Binghatti Skyblade",
+      "building_type": "residential_tower",
+      "status": "off_plan"
+    },
+    {
+      "canonical_name": "Address Grand Downtown",
+      "aliases": [],
+      "project": "Address Grand Downtown",
+      "building_type": "branded_residences",
+      "status": "off_plan"
+    },
+    {
+      "canonical_name": "Fairmont Residences Solara Tower",
+      "aliases": ["Solara Tower"],
+      "project": "Fairmont Residences Solara Tower",
+      "building_type": "branded_residences",
+      "status": "off_plan"
+    },
+    {
+      "canonical_name": "25h Heimat",
+      "aliases": [],
+      "project": "25h Heimat",
+      "building_type": "branded_residences",
+      "status": "off_plan"
+    },
+    {
+      "canonical_name": "Rixos Financial Center Road",
+      "aliases": [],
+      "project": "Rixos Financial Center Road",
+      "building_type": "branded_residences",
+      "status": "off_plan"
+    },
+    {
+      "canonical_name": "Inaura Hotels & Residences",
+      "aliases": [],
+      "project": "Inaura Hotels & Residences",
+      "building_type": "hotel_residences",
+      "status": "off_plan"
+    },
+    {
+      "canonical_name": "Elegance Tower",
+      "aliases": [],
+      "project": "Elegance Tower",
+      "building_type": "residential_tower",
+      "status": "off_plan"
+    }
+  ]
+}

@@ -14,6 +14,18 @@ export default function LeadSourcesPanel({
 }) {
   const [open, setOpen] = useState(false);
 
+  function isPlaceholderSourceLabel(source) {
+    const label = String(source?.label || "").trim();
+    return Boolean(label) && /^Spreadsheet\s+\d+$/i.test(label);
+  }
+
+  function getSourceName(source) {
+    const buildingName = String(source?.building_name || "").trim();
+    const label = String(source?.label || "").trim();
+    if (buildingName && (!label || isPlaceholderSourceLabel(source))) return buildingName;
+    return label || buildingName || "";
+  }
+
   if (!sources?.length) return null;
 
   const legacyCount = leadCounts?.legacy || 0;
@@ -38,7 +50,7 @@ export default function LeadSourcesPanel({
         <div className="source-list">
           {sources.map((source) => {
             const count = leadCounts?.[source.id] || 0;
-            const labelValue = source.building_name || source.label || "";
+            const labelValue = getSourceName(source);
             const importing = importingSourceId === source.id;
             return (
               <div className="source-row" key={source.id}>
@@ -48,7 +60,7 @@ export default function LeadSourcesPanel({
                   value={labelValue}
                   onChange={(e) => onSourceChange(source.id, "building_name", e.target.value)}
                   onBlur={() => onSourceSave(source.id)}
-                  placeholder="Building name"
+                  placeholder="Spreadsheet name"
                 />
                 <input
                   className="source-row-url"

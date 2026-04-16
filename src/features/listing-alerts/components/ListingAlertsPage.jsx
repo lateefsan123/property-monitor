@@ -11,23 +11,15 @@ import Pagination from "../../seller-signal/components/Pagination";
 import { useListingAlerts } from "../useListingAlerts";
 import ListingDetailPage from "./ListingDetailPage";
 
-const VIEW_TAB_OPTIONS = [
-  { id: "buildings", label: "Buildings" },
-  { id: "listings", label: "Listings" },
-];
-
-const PRICE_BUCKETS = [
-  { id: "all", label: "All" },
-  { id: "lt1", label: "< 1M", max: 1_000_000 },
-  { id: "1-3", label: "1-3M", min: 1_000_000, max: 3_000_000 },
-  { id: "3-6", label: "3-6M", min: 3_000_000, max: 6_000_000 },
-  { id: "gt6", label: "6M+", min: 6_000_000 },
-];
+const PRICE_SLIDER_MIN = 0;
+const PRICE_SLIDER_MAX = 50_000_000;
+const PRICE_SLIDER_STEP = 100_000;
 
 const TRACK_STATUS_OPTIONS = [
   { id: "all", label: "All" },
   { id: "active", label: "Active" },
   { id: "removed", label: "Off market" },
+  { id: "price-drops", label: "Price drops" },
 ];
 
 const LISTINGS_PAGE_SIZE = 25;
@@ -151,7 +143,7 @@ function getSearchOptionMeta(option) {
 
 // ---------- Rows ----------
 
-function BuildingRow({ building, isWatched, watchDisabled, onToggleWatch, onPress, changeCount }) {
+function BuildingRow({ building, isWatched, watchDisabled, onToggleWatch, onPress, priceDropCount }) {
   const loadedCount = building?.listings?.length || 0;
   const countLine = isWatched
     ? loadedCount
@@ -165,8 +157,8 @@ function BuildingRow({ building, isWatched, watchDisabled, onToggleWatch, onPres
       : "Watch to load listings";
 
   return (
-    <div
-      className="la-row la-row-pressable"
+    <tr
+      className="lead-row"
       onClick={onPress}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -177,30 +169,25 @@ function BuildingRow({ building, isWatched, watchDisabled, onToggleWatch, onPres
       role="button"
       tabIndex={0}
     >
-      {building.imageUrl ? (
-        <img className="la-row-thumb" src={building.imageUrl} alt="" />
-      ) : (
-        <div className="la-row-thumb la-row-thumb-placeholder" />
-      )}
-
-      <div className="la-row-body">
-        <div className="la-row-title">{building.buildingName}</div>
-        <div className="la-row-sub">
-          <HomeIcon size={13} />
-          <span>{countLine}</span>
-        </div>
-        <div className="la-row-price">{priceLine}</div>
-        {changeCount > 0 ? (
-          <div className="la-row-badges">
-            <span className="la-update-badge">
-              {changeCount} {changeCount === 1 ? "update" : "updates"}
-            </span>
-          </div>
+      <td className="lead-cell-name">
+        <span className="lead-name">{building.buildingName}</span>
+      </td>
+      <td className="lead-cell-building">
+        <span className="lead-building-label">{countLine}</span>
+      </td>
+      <td className="la-cell-price">
+        {priceLine}
+        {priceDropCount > 0 ? (
+          <span className="la-drop-indicator">
+            <ArrowIcon direction="down" size={10} />
+            {priceDropCount} {priceDropCount === 1 ? "drop" : "drops"}
+          </span>
         ) : null}
-      </div>
-
-      <WatchButton active={isWatched} disabled={watchDisabled} onClick={onToggleWatch} />
-    </div>
+      </td>
+      <td className="lead-cell-action" onClick={(e) => e.stopPropagation()}>
+        <WatchButton active={isWatched} disabled={watchDisabled} onClick={onToggleWatch} />
+      </td>
+    </tr>
   );
 }
 
@@ -217,8 +204,8 @@ function ListingHistoryRow({ listing, onPress, onOpenExternal }) {
         : `Tracking since ${formatListingTimestamp(listing.firstSeenAt || listing.verifiedAt)}`;
 
   return (
-    <div
-      className="la-row la-row-pressable"
+    <tr
+      className="lead-row"
       onClick={onPress}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
@@ -229,47 +216,51 @@ function ListingHistoryRow({ listing, onPress, onOpenExternal }) {
       role="button"
       tabIndex={0}
     >
-      {listing.coverPhoto ? (
-        <img className="la-row-thumb" src={listing.coverPhoto} alt="" />
-      ) : (
-        <div className="la-row-thumb la-row-thumb-placeholder" />
-      )}
-
-      <div className="la-row-body">
-        <div className="la-row-title">{listing.title || "Untitled listing"}</div>
-        <div className="la-row-sub">
-          <HomeIcon size={13} />
-          <span>{listing.buildingName}</span>
-        </div>
-        <div className="la-row-price-row">
-          <span className="la-row-price">
-            {isRemoved ? `Last seen ${formatPrice(listing.lastKnownPrice)}` : formatPriceRange(currentPrice, currentPrice)}
-          </span>
-          {isTracked && !isRemoved ? <PriceDeltaChip priceDelta={listing.priceDelta} /> : null}
-          {isTracked ? <TrackingPill /> : null}
-          {isTracked && listing.currentStatus ? <StatusPill listing={listing} /> : null}
-        </div>
+      <td className="la-cell-thumb">
+        {listing.coverPhoto ? (
+          <img className="la-row-thumb" src={listing.coverPhoto} alt="" />
+        ) : (
+          <div className="la-row-thumb la-row-thumb-placeholder" />
+        )}
+      </td>
+      <td className="lead-cell-name">
+        <span className="lead-name">{listing.title || "Untitled listing"}</span>
+        {statusLine ? <span className="la-cell-sub">{statusLine}</span> : null}
+      </td>
+      <td className="lead-cell-building">
+        <span className="lead-building-label" title={listing.buildingName}>{listing.buildingName}</span>
+      </td>
+      <td className="la-cell-details">
+        {formatBedsAndBaths(listing.beds, listing.baths)}
+        <span className="la-cell-area">{formatArea(listing.areaSqft)}</span>
+      </td>
+      <td className="la-cell-price">
+        <span className="la-cell-price-value">
+          {isRemoved ? formatPrice(listing.lastKnownPrice) : formatPriceRange(currentPrice, currentPrice)}
+        </span>
+        {isTracked && !isRemoved ? <PriceDeltaChip priceDelta={listing.priceDelta} /> : null}
         {isTracked && Number.isFinite(listing.previousPrice) && listing.previousPrice !== currentPrice && !isRemoved ? (
-          <div className="la-row-was">Was {formatPrice(listing.previousPrice)}</div>
+          <span className="la-cell-was">Was {formatPrice(listing.previousPrice)}</span>
         ) : null}
-        {statusLine ? <div className="la-row-status-line">{statusLine}</div> : null}
-        <div className="la-row-meta">
-          {formatBedsAndBaths(listing.beds, listing.baths)} | {formatArea(listing.areaSqft)} | {formatListingTimestamp(listing.lastVerifiedAt || listing.verifiedAt || listing.lastSeenAt)}
-        </div>
-      </div>
-
-      <button
-        type="button"
-        className="btn-sm la-row-external-btn"
-        onClick={(event) => {
-          event.stopPropagation();
-          onOpenExternal();
-        }}
-      >
-        Bayut
-        <ExternalLinkIcon size={12} />
-      </button>
-    </div>
+      </td>
+      <td className="lead-cell-status">
+        {isTracked && listing.currentStatus ? <StatusPill listing={listing} /> : null}
+        {isTracked ? <TrackingPill /> : null}
+      </td>
+      <td className="lead-cell-action" onClick={(e) => e.stopPropagation()}>
+        <button
+          type="button"
+          className="btn-sm la-row-external-btn"
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenExternal();
+          }}
+        >
+          Bayut
+          <ExternalLinkIcon size={12} />
+        </button>
+      </td>
+    </tr>
   );
 }
 
@@ -292,6 +283,50 @@ function FilterTabs({ options, value, onChange }) {
   );
 }
 
+function formatSliderPrice(value) {
+  if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(value % 1_000_000 === 0 ? 0 : 1)}M`;
+  if (value >= 1_000) return `${Math.round(value / 1_000)}K`;
+  return String(value);
+}
+
+function PriceRangeSlider({ min, max, valueMin, valueMax, step, onMinChange, onMaxChange }) {
+  const leftPercent = ((valueMin - min) / (max - min)) * 100;
+  const rightPercent = ((valueMax - min) / (max - min)) * 100;
+
+  return (
+    <div className="la-price-slider">
+      <span className="la-price-slider-label">{formatSliderPrice(valueMin)}</span>
+      <div className="la-price-slider-track-wrap">
+        <div className="la-price-slider-track">
+          <div
+            className="la-price-slider-fill"
+            style={{ left: `${leftPercent}%`, right: `${100 - rightPercent}%` }}
+          />
+        </div>
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={valueMin}
+          onChange={(e) => onMinChange(Number(e.target.value))}
+          className="la-price-slider-input"
+        />
+        <input
+          type="range"
+          min={min}
+          max={max}
+          step={step}
+          value={valueMax}
+          onChange={(e) => onMaxChange(Number(e.target.value))}
+          className="la-price-slider-input"
+        />
+      </div>
+      <span className="la-price-slider-label">{formatSliderPrice(valueMax)}</span>
+    </div>
+  );
+}
+
 function ListingAlertsFilters({
   viewTab,
   watchingOnly,
@@ -303,24 +338,27 @@ function ListingAlertsFilters({
   setPriceChangedOnly,
   trackedStatusFilter,
   setTrackedStatusFilter,
-  priceFilter,
-  setPriceFilter,
-  buildingFilterOptions,
-  listingBuildingFilter,
-  setListingBuildingFilter,
+  priceMin,
+  priceMax,
+  priceRangeMin,
+  priceRangeMax,
+  onPriceMinChange,
+  onPriceMaxChange,
   hasTrackedUnits,
 }) {
   return (
     <div className="toolbar la-filters">
       <div className="toolbar-actions">
-        <label className="toggle">
-          <input
-            type="checkbox"
-            checked={watchingOnly}
-            onChange={(event) => setWatchingOnly(event.target.checked)}
-          />
-          Watching only
-        </label>
+        {viewTab === "buildings" ? (
+          <label className="toggle">
+            <input
+              type="checkbox"
+              checked={watchingOnly}
+              onChange={(event) => setWatchingOnly(event.target.checked)}
+            />
+            Watching only
+          </label>
+        ) : null}
 
         {viewTab === "listings" && showTrackedToggle ? (
           <>
@@ -347,39 +385,21 @@ function ListingAlertsFilters({
 
       {viewTab === "listings" ? (
         <div className="toolbar-actions la-filter-groups">
-          {buildingFilterOptions.length ? (
-            <div className="la-filter-group">
-              <span className="la-filter-group-label">Building</span>
-              <select
-                className="la-filter-select"
-                value={listingBuildingFilter}
-                onChange={(event) => setListingBuildingFilter(event.target.value)}
-              >
-                <option value="all">All watched buildings</option>
-                {buildingFilterOptions.map((building) => (
-                  <option key={building.locationId} value={building.locationId}>
-                    {building.buildingName}
-                  </option>
-                ))}
-              </select>
-            </div>
-          ) : null}
+          <FilterTabs
+            options={TRACK_STATUS_OPTIONS}
+            value={trackedStatusFilter}
+            onChange={setTrackedStatusFilter}
+          />
 
-          {hasTrackedUnits ? (
-            <div className="la-filter-group">
-              <span className="la-filter-group-label">Status</span>
-              <FilterTabs
-                options={TRACK_STATUS_OPTIONS}
-                value={trackedStatusFilter}
-                onChange={setTrackedStatusFilter}
-              />
-            </div>
-          ) : null}
-
-          <div className="la-filter-group">
-            <span className="la-filter-group-label">Price</span>
-            <FilterTabs options={PRICE_BUCKETS} value={priceFilter} onChange={setPriceFilter} />
-          </div>
+          <PriceRangeSlider
+            min={priceRangeMin}
+            max={priceRangeMax}
+            step={PRICE_SLIDER_STEP}
+            valueMin={priceMin}
+            valueMax={priceMax}
+            onMinChange={onPriceMinChange}
+            onMaxChange={onPriceMaxChange}
+          />
         </div>
       ) : null}
     </div>
@@ -391,13 +411,12 @@ function ListingAlertsFilters({
 export default function ListingAlertsPage() {
   const alerts = useListingAlerts();
 
-  const [viewTab, setViewTab] = useState("buildings");
   const [watchingOnly, setWatchingOnly] = useState(false);
   const [trackedOnly, setTrackedOnly] = useState(false);
   const [priceChangedOnly, setPriceChangedOnly] = useState(false);
-  const [priceFilter, setPriceFilter] = useState("all");
+  const [priceMin, setPriceMin] = useState(PRICE_SLIDER_MIN);
+  const [priceMax, setPriceMax] = useState(PRICE_SLIDER_MAX);
   const [trackedStatusFilter, setTrackedStatusFilter] = useState("all");
-  const [listingBuildingFilter, setListingBuildingFilter] = useState("all");
   const [listingsPage, setListingsPage] = useState(1);
   const [selectedSearchOption, setSelectedSearchOption] = useState(null);
   const [searchMenuOpen, setSearchMenuOpen] = useState(false);
@@ -407,17 +426,15 @@ export default function ListingAlertsPage() {
   // the current alerts data — that way the detail view automatically reflects fresh prices,
   // tracking state changes, and history updates without a setState-in-effect ping-pong.
   const [selectedListingKey, setSelectedListingKey] = useState(null);
+  // When a building is selected, show its listings instead of the buildings table
+  const [selectedBuildingId, setSelectedBuildingId] = useState(null);
   const hasTrackedUnits = alerts.stats.trackedListingCount > 0;
   const buildingFilterOptions = alerts.watchedBuildings ?? EMPTY_OPTIONS;
   const autoTracking = alerts.autoTracking;
   const searchOptions = alerts.searchResults ?? EMPTY_OPTIONS;
   const effectiveTrackedOnly = autoTracking ? false : trackedOnly;
-  const effectiveListingBuildingFilter = useMemo(() => {
-    if (listingBuildingFilter === "all") return "all";
-    return buildingFilterOptions.some((building) => building.locationId === listingBuildingFilter)
-      ? listingBuildingFilter
-      : "all";
-  }, [buildingFilterOptions, listingBuildingFilter]);
+  const viewTab = selectedBuildingId ? "listings" : "buildings";
+  const effectiveListingBuildingFilter = selectedBuildingId || "all";
 
   useEffect(() => {
     function handlePointerDown(event) {
@@ -461,14 +478,13 @@ export default function ListingAlertsPage() {
       const didWatch = alerts.actions.toggleWatch(building);
       if (!didWatch) return;
     }
-    setListingBuildingFilter(building.locationId || "all");
+    setSelectedBuildingId(building.locationId || null);
     setListingsPage(1);
-    setViewTab("listings");
   }
 
-  function handleViewTabChange(nextTab) {
+  function goBackToBuildings() {
+    setSelectedBuildingId(null);
     setListingsPage(1);
-    setViewTab(nextTab);
   }
 
   function handleWatchingOnlyChange(nextValue) {
@@ -491,15 +507,16 @@ export default function ListingAlertsPage() {
     setTrackedStatusFilter(nextValue);
   }
 
-  function handlePriceFilterChange(nextValue) {
+  function handlePriceMinChange(value) {
     setListingsPage(1);
-    setPriceFilter(nextValue);
+    setPriceMin(Math.min(value, priceMax));
   }
 
-  function handleListingBuildingFilterChange(nextValue) {
+  function handlePriceMaxChange(value) {
     setListingsPage(1);
-    setListingBuildingFilter(nextValue);
+    setPriceMax(Math.max(value, priceMin));
   }
+
 
   const changeCountByBuilding = useMemo(() => {
     const map = new Map();
@@ -510,6 +527,21 @@ export default function ListingAlertsPage() {
     }
     return map;
   }, [alerts.changeItems]);
+
+  const priceDropsByBuilding = useMemo(() => {
+    const map = new Map();
+    const seen = new Set();
+    for (const listing of [...(alerts.trackedListings || []), ...(alerts.latestListings || [])]) {
+      const k = listing.key || listing.id;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      if (!Number.isFinite(listing.priceDelta) || listing.priceDelta >= 0) continue;
+      const locId = listing.locationId;
+      if (!locId) continue;
+      map.set(locId, (map.get(locId) || 0) + 1);
+    }
+    return map;
+  }, [alerts.trackedListings, alerts.latestListings]);
 
   const selectedSearchBuilding = useMemo(() => {
     if (!selectedSearchOption?.locationId) return null;
@@ -530,12 +562,42 @@ export default function ListingAlertsPage() {
     return alerts.watchedBuildings || [];
   }, [alerts.usingLiveSearch, alerts.watchedBuildings, searchOptions, selectedSearchBuilding, watchingOnly]);
 
+  // Compute actual price range for the selected building's listings (before price filter is applied)
+  const buildingPriceRange = useMemo(() => {
+    if (!selectedBuildingId) return { min: PRICE_SLIDER_MIN, max: PRICE_SLIDER_MAX };
+    const seen = new Set();
+    let lo = Infinity;
+    let hi = -Infinity;
+    for (const l of [...(alerts.latestListings || []), ...(alerts.trackedListings || [])]) {
+      if (l.locationId !== selectedBuildingId) continue;
+      const k = l.key || l.id;
+      if (seen.has(k)) continue;
+      seen.add(k);
+      const price = l.currentStatus === "removed"
+        ? l.lastKnownPrice
+        : l.currentPrice ?? l.price ?? l.lastKnownPrice;
+      if (!Number.isFinite(price)) continue;
+      if (price < lo) lo = price;
+      if (price > hi) hi = price;
+    }
+    if (!Number.isFinite(lo) || !Number.isFinite(hi)) return { min: PRICE_SLIDER_MIN, max: PRICE_SLIDER_MAX };
+    const roundedMin = Math.floor(lo / PRICE_SLIDER_STEP) * PRICE_SLIDER_STEP;
+    const roundedMax = Math.ceil(hi / PRICE_SLIDER_STEP) * PRICE_SLIDER_STEP;
+    return { min: roundedMin, max: roundedMax };
+  }, [selectedBuildingId, alerts.latestListings, alerts.trackedListings]);
+
+  // Reset price slider to building's actual range when entering a building
+  useEffect(() => {
+    setPriceMin(buildingPriceRange.min);
+    setPriceMax(buildingPriceRange.max);
+  }, [buildingPriceRange.min, buildingPriceRange.max]);
+
   const listings = useMemo(() => {
     let source = [];
 
     if (!alerts.stats.watchedBuildingCount) {
       source = [];
-    } else if (effectiveTrackedOnly || trackedStatusFilter !== "all") {
+    } else if (effectiveTrackedOnly || (trackedStatusFilter !== "all" && trackedStatusFilter !== "price-drops")) {
       source = alerts.trackedListings || [];
     } else {
       source = alerts.latestListings || [];
@@ -554,11 +616,15 @@ export default function ListingAlertsPage() {
     }
 
     if (trackedStatusFilter !== "all") {
-      source = source.filter((l) => {
-        if (!l.isTracked && !l.currentStatus) return false;
-        if (trackedStatusFilter === "removed") return l.currentStatus === "removed";
-        return (l.currentStatus || "active") === "active";
-      });
+      if (trackedStatusFilter === "price-drops") {
+        source = source.filter((l) => Number.isFinite(l.priceDelta) && l.priceDelta < 0);
+      } else {
+        source = source.filter((l) => {
+          if (!l.isTracked && !l.currentStatus) return false;
+          if (trackedStatusFilter === "removed") return l.currentStatus === "removed";
+          return (l.currentStatus || "active") === "active";
+        });
+      }
     }
 
     if (priceChangedOnly) {
@@ -569,15 +635,14 @@ export default function ListingAlertsPage() {
       );
     }
 
-    const bucket = PRICE_BUCKETS.find((b) => b.id === priceFilter);
-    if (bucket && bucket.id !== "all") {
+    if (priceMin > buildingPriceRange.min || priceMax < buildingPriceRange.max) {
       source = source.filter((l) => {
         const price = l.currentStatus === "removed"
           ? l.lastKnownPrice
           : l.currentPrice ?? l.price ?? l.lastKnownPrice;
         if (!Number.isFinite(price)) return false;
-        if (bucket.min != null && price < bucket.min) return false;
-        if (bucket.max != null && price >= bucket.max) return false;
+        if (price < priceMin) return false;
+        if (price > priceMax) return false;
         return true;
       });
     }
@@ -591,7 +656,9 @@ export default function ListingAlertsPage() {
     effectiveListingBuildingFilter,
     effectiveTrackedOnly,
     priceChangedOnly,
-    priceFilter,
+    buildingPriceRange,
+    priceMin,
+    priceMax,
     trackedStatusFilter,
     watchingOnly,
   ]);
@@ -629,11 +696,32 @@ export default function ListingAlertsPage() {
     const startIndex = (listingSafePage - 1) * LISTINGS_PAGE_SIZE;
     return listings.slice(startIndex, startIndex + LISTINGS_PAGE_SIZE);
   }, [listingSafePage, listings]);
-  const listingHeaderText = !alerts.stats.watchedBuildingCount
-    ? "Watch a building to browse its apartments"
-    : !hasTrackedUnits
-      ? `Pick the exact units you care about, last checked ${formatSyncTimestamp(alerts.alertSummary.lastCheckedAt)}`
-      : `${alerts.stats.trackedListingCount} tracked ${alerts.stats.trackedListingCount === 1 ? "unit" : "units"}, ${alerts.alertSummary.totalChanges} changes, last checked ${formatSyncTimestamp(alerts.alertSummary.lastCheckedAt)}`;
+  const listingHeaderText = useMemo(() => {
+    if (!alerts.stats.watchedBuildingCount) return "Watch a building to browse its apartments";
+    const lastChecked = formatSyncTimestamp(alerts.alertSummary.lastCheckedAt);
+
+    if (selectedBuildingId) {
+      const seen = new Set();
+      const buildingListings = [];
+      for (const l of [...(alerts.trackedListings || []), ...(alerts.latestListings || [])]) {
+        if (l.locationId !== selectedBuildingId) continue;
+        const k = l.key || l.id;
+        if (seen.has(k)) continue;
+        seen.add(k);
+        buildingListings.push(l);
+      }
+      const trackedCount = buildingListings.filter((l) => l.isTracked || l.currentStatus).length;
+      const dropCount = buildingListings.filter((l) => Number.isFinite(l.priceDelta) && l.priceDelta < 0).length;
+      const parts = [];
+      if (trackedCount) parts.push(`${trackedCount} tracked ${trackedCount === 1 ? "unit" : "units"}`);
+      if (dropCount) parts.push(`${dropCount} price ${dropCount === 1 ? "drop" : "drops"}`);
+      parts.push(`last checked ${lastChecked}`);
+      return parts.join(", ");
+    }
+
+    if (!hasTrackedUnits) return `Pick the exact units you care about, last checked ${lastChecked}`;
+    return `${alerts.stats.trackedListingCount} tracked ${alerts.stats.trackedListingCount === 1 ? "unit" : "units"}, ${alerts.alertSummary.totalChanges} changes, last checked ${lastChecked}`;
+  }, [alerts.stats.watchedBuildingCount, alerts.stats.trackedListingCount, alerts.alertSummary, alerts.trackedListings, alerts.latestListings, selectedBuildingId, hasTrackedUnits]);
 
   if (!alerts.hydrated) {
     return (
@@ -678,12 +766,10 @@ export default function ListingAlertsPage() {
   const showEmpty = items.length === 0 && !showSkeletonList;
   const showRefreshingStrip = isListLoading && items.length > 0;
 
-  const showRefresh = viewTab === "listings" && alerts.stats.watchedBuildingCount > 0;
-  const showListingSubtitle = viewTab === "listings" && alerts.stats.watchedBuildingCount > 0;
   const safeSearchActiveIndex = searchOptions.length
     ? Math.min(searchActiveIndex, searchOptions.length - 1)
     : 0;
-  const showSearchDropdown = viewTab === "buildings"
+  const showSearchDropdown = !selectedBuildingId
     && searchMenuOpen
     && alerts.searchTerm.trim().length >= 2
     && (alerts.searchLoading || Boolean(alerts.searchError) || searchOptions.length > 0 || !selectedSearchOption);
@@ -753,116 +839,71 @@ export default function ListingAlertsPage() {
 
   return (
     <div className="la-page">
-      <div className="la-page-header">
-        <div className="la-page-header-titles">
-          <h1 className="la-page-title">Listing Alerts</h1>
-          {showListingSubtitle ? (
+      {selectedBuildingId ? (
+        <div className="la-page-header">
+          <div className="la-page-header-titles">
+            <h1 className="la-page-title">{selectedBuildingOption?.buildingName || "Listings"}</h1>
             <p className="la-page-subtitle">{listingHeaderText}</p>
-          ) : null}
-        </div>
-        {showRefresh ? (
-          <button
-            type="button"
-            className="btn-sm"
-            onClick={alerts.actions.refresh}
-            disabled={alerts.watchedLoading}
-          >
-            {alerts.watchedLoading ? "Refreshing..." : "Refresh"}
-          </button>
-        ) : null}
-      </div>
-
-      <div className="view-tabs la-view-tabs">
-        {VIEW_TAB_OPTIONS.map((tab) => {
-          const isActive = viewTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              className={`view-tab${isActive ? " active" : ""}`}
-              onClick={() => handleViewTabChange(tab.id)}
-            >
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {viewTab === "buildings" ? (
-        <div className="toolbar la-search">
-          <div className="la-search-box" ref={searchBoxRef}>
-            <div className="la-search-input-wrap">
-              <span className="la-search-icon" aria-hidden="true">
-                <SearchIcon size={16} />
-              </span>
-              <input
-                type="text"
-                placeholder="Search buildings on Bayut..."
-                value={alerts.searchTerm}
-                onChange={handleSearchInputChange}
-                onFocus={() => {
-                  if (alerts.searchTerm.trim().length >= 2) {
-                    setSearchMenuOpen(true);
-                  }
-                }}
-                onKeyDown={handleSearchKeyDown}
-                autoCapitalize="none"
-                autoCorrect="off"
-                autoComplete="off"
-                aria-autocomplete="list"
-                aria-expanded={showSearchDropdown}
-                aria-label="Search buildings"
-              />
-              {alerts.searchTerm ? (
-                <button
-                  type="button"
-                  className="la-search-clear"
-                  onClick={clearSearchSelection}
-                >
-                  Clear
-                </button>
-              ) : null}
-            </div>
-
-            {showSearchDropdown ? (
-              <div className="la-search-dropdown" role="listbox" aria-label="Available building options">
-                {alerts.searchLoading ? (
-                  <div className="la-search-dropdown-state">Searching available buildings...</div>
-                ) : alerts.searchError ? (
-                  <div className="la-search-dropdown-state">Search is unavailable right now.</div>
-                ) : searchOptions.length ? (
-                  searchOptions.map((option, index) => {
-                    const meta = getSearchOptionMeta(option);
-                    const isActive = index === safeSearchActiveIndex;
-                    const isSelected = selectedSearchBuilding?.locationId === option.locationId;
-                    return (
-                      <button
-                        key={option.locationId}
-                        type="button"
-                        className={`la-search-option${isActive ? " active" : ""}${isSelected ? " selected" : ""}`}
-                        onMouseDown={(event) => event.preventDefault()}
-                        onClick={() => handleSearchOptionSelect(option)}
-                        role="option"
-                        aria-selected={isSelected}
-                      >
-                        <span className="la-search-option-icon" aria-hidden="true">
-                          <LocationPinIcon size={15} />
-                        </span>
-                        <span className="la-search-option-copy">
-                          <span className="la-search-option-title">
-                            <span className="la-search-option-name">{getSearchOptionLabel(option)}</span>
-                            {meta ? <span className="la-search-option-meta">, {meta}</span> : null}
-                          </span>
-                        </span>
-                      </button>
-                    );
-                  })
-                ) : (
-                  <div className="la-search-dropdown-state">No available buildings match that search.</div>
-                )}
-              </div>
-            ) : null}
           </div>
+        </div>
+      ) : null}
+
+      {!selectedBuildingId ? (
+        <div className="toolbar" ref={searchBoxRef} style={{ position: "relative" }}>
+          <input
+            type="text"
+            placeholder="Search..."
+            value={alerts.searchTerm}
+            onChange={handleSearchInputChange}
+            onFocus={() => {
+              if (alerts.searchTerm.trim().length >= 2) {
+                setSearchMenuOpen(true);
+              }
+            }}
+            onKeyDown={handleSearchKeyDown}
+            autoCapitalize="none"
+            autoCorrect="off"
+            autoComplete="off"
+            aria-autocomplete="list"
+            aria-expanded={showSearchDropdown}
+            aria-label="Search buildings"
+          />
+
+          {showSearchDropdown ? (
+            <div className="la-search-dropdown" role="listbox" aria-label="Available building options">
+              {alerts.searchLoading ? (
+                <div className="la-search-dropdown-state">Searching available buildings...</div>
+              ) : alerts.searchError ? (
+                <div className="la-search-dropdown-state">Search is unavailable right now.</div>
+              ) : searchOptions.length ? (
+                searchOptions.map((option, index) => {
+                  const meta = getSearchOptionMeta(option);
+                  const isActive = index === safeSearchActiveIndex;
+                  const isSelected = selectedSearchBuilding?.locationId === option.locationId;
+                  return (
+                    <button
+                      key={option.locationId}
+                      type="button"
+                      className={`la-search-option${isActive ? " active" : ""}${isSelected ? " selected" : ""}`}
+                      onMouseDown={(event) => event.preventDefault()}
+                      onClick={() => handleSearchOptionSelect(option)}
+                      role="option"
+                      aria-selected={isSelected}
+                    >
+                      <span className="la-search-option-copy">
+                        <span className="la-search-option-title">
+                          <span className="la-search-option-name">{getSearchOptionLabel(option)}</span>
+                          {meta ? <span className="la-search-option-meta">, {meta}</span> : null}
+                        </span>
+                      </span>
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="la-search-dropdown-state">No buildings match that search.</div>
+              )}
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -877,15 +918,16 @@ export default function ListingAlertsPage() {
         setPriceChangedOnly={handlePriceChangedOnlyChange}
         trackedStatusFilter={trackedStatusFilter}
         setTrackedStatusFilter={handleTrackedStatusFilterChange}
-        priceFilter={priceFilter}
-        setPriceFilter={handlePriceFilterChange}
-        buildingFilterOptions={buildingFilterOptions}
-        listingBuildingFilter={effectiveListingBuildingFilter}
-        setListingBuildingFilter={handleListingBuildingFilterChange}
+        priceMin={priceMin}
+        priceMax={priceMax}
+        priceRangeMin={buildingPriceRange.min}
+        priceRangeMax={buildingPriceRange.max}
+        onPriceMinChange={handlePriceMinChange}
+        onPriceMaxChange={handlePriceMaxChange}
         hasTrackedUnits={hasTrackedUnits}
       />
 
-      {alerts.searchError && viewTab === "buildings" ? (
+      {alerts.searchError && !selectedBuildingId ? (
         <div className="la-error-box">{alerts.searchError}</div>
       ) : null}
       {alerts.watchError ? (
@@ -915,13 +957,13 @@ export default function ListingAlertsPage() {
       {showRefreshingStrip ? (
         <div className="la-refreshing-strip" role="status" aria-live="polite">
           <span className="la-refreshing-dot" />
-          {viewTab === "buildings" ? "Searching Bayut..." : "Refreshing listings..."}
+          {!selectedBuildingId ? "Searching Bayut..." : "Refreshing listings..."}
         </div>
       ) : null}
 
-      <div className="la-list" aria-busy={isListLoading || undefined}>
-        {showSkeletonList ? (
-          Array.from({ length: 6 }).map((_, index) => (
+      {showSkeletonList ? (
+        <div className="la-list" aria-busy="true">
+          {Array.from({ length: 6 }).map((_, index) => (
             <div className="la-list-item" key={`skeleton-${index}`}>
               <div className="skeleton-card">
                 <div className="skeleton-card-row">
@@ -934,53 +976,78 @@ export default function ListingAlertsPage() {
                 </div>
               </div>
             </div>
-          ))
-        ) : showEmpty ? (
-          <div className="la-empty">
-            <div className="la-empty-title">
-              {viewTab === "buildings" ? "No buildings match" : "No listings match"}
-            </div>
-            <div className="la-empty-text">
-              {viewTab === "buildings"
-                ? "Try a broader search term, or switch off the Watching filter."
-                : alerts.stats.watchedBuildingCount
-                    ? hasTrackedUnits
-                      ? "Try another filter, or switch off Tracked only to browse more live units."
-                      : "Open a live unit and track the exact ones you want alerts for."
-                    : "Watch a building first, then this tab will show its live apartments."}
-            </div>
+          ))}
+        </div>
+      ) : showEmpty ? (
+        <div className="la-empty">
+          <div className="la-empty-title">
+            {!selectedBuildingId ? "No buildings match" : "No listings match"}
           </div>
-        ) : (
-          items.map((item, index) => {
-            if (viewTab === "buildings") {
-              const changeCount = changeCountByBuilding.get(item.locationId)
-                || changeCountByBuilding.get(item.key)
-                || 0;
-              return (
-                <div key={String(item.locationId || item.key || index)} className="la-list-item">
-                  <BuildingRow
-                    building={item}
-                    isWatched={alerts.watchedSet?.has(item.locationId)}
-                    watchDisabled={!alerts.watchedSet?.has(item.locationId) && alerts.stats.watchedBuildingCount >= alerts.watchLimit}
-                    onToggleWatch={() => alerts.actions.toggleWatch(item)}
-                    onPress={() => openBuildingListings(item)}
-                    changeCount={changeCount}
+          <div className="la-empty-text">
+            {!selectedBuildingId
+              ? "Try a broader search term, or switch off the Watching filter."
+              : hasTrackedUnits
+                ? "Try another filter, or switch off Tracked only to browse more live units."
+                : "No listings found for this building."}
+          </div>
+        </div>
+      ) : (
+        <div className="lead-table-wrap">
+          <table className="lead-table">
+            <thead>
+              <tr>
+                {viewTab === "buildings" ? (
+                  <>
+                    <th>Building</th>
+                    <th>Listings</th>
+                    <th>Price</th>
+                    <th>Action</th>
+                  </>
+                ) : (
+                  <>
+                    <th style={{ width: 52 }}></th>
+                    <th>Title</th>
+                    <th>Building</th>
+                    <th>Details</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Link</th>
+                  </>
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((item, index) => {
+                if (viewTab === "buildings") {
+                  const changeCount = changeCountByBuilding.get(item.locationId)
+                    || changeCountByBuilding.get(item.key)
+                    || 0;
+                  const priceDropCount = priceDropsByBuilding.get(item.locationId) || 0;
+                  return (
+                    <BuildingRow
+                      key={String(item.locationId || item.key || index)}
+                      building={item}
+                      isWatched={alerts.watchedSet?.has(item.locationId)}
+                      watchDisabled={!alerts.watchedSet?.has(item.locationId) && alerts.stats.watchedBuildingCount >= alerts.watchLimit}
+                      onToggleWatch={() => alerts.actions.toggleWatch(item)}
+                      onPress={() => openBuildingListings(item)}
+                      priceDropCount={priceDropCount}
+                    />
+                  );
+                }
+                return (
+                  <ListingHistoryRow
+                    key={String(item.key || `${item.buildingKey || ""}-${item.id || index}`)}
+                    listing={item}
+                    onPress={() => openListingDetails(item)}
+                    onOpenExternal={() => openListing(item.bayutUrl)}
                   />
-                </div>
-              );
-            }
-            return (
-              <div key={String(item.key || `${item.buildingKey || ""}-${item.id || index}`)} className="la-list-item">
-                <ListingHistoryRow
-                  listing={item}
-                  onPress={() => openListingDetails(item)}
-                  onOpenExternal={() => openListing(item.bayutUrl)}
-                />
-              </div>
-            );
-          })
-        )}
-      </div>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {viewTab === "listings" ? (
         <div className="la-pagination">

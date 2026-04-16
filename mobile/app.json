@@ -18,7 +18,11 @@
       "bundleIdentifier": "com.lateefsan.sellersignal",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
-      }
+      },
+      "entitlements": {
+        "aps-environment": "production"
+      },
+      "buildNumber": "6"
     },
     "android": {
       "package": "com.lateefsan.sellersignal",
@@ -35,7 +39,14 @@
     "plugins": [
       "expo-dev-client",
       "expo-web-browser",
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#000000"
+        }
+      ]
     ],
     "extra": {
       "eas": {

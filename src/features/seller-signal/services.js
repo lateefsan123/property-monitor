@@ -1,175 +1,17 @@
 import { aiMapColumns } from "../../ai-mapper";
-import { fetchTransactions, searchLocations } from "../../api/bayut";
 import { supabase } from "../../supabase";
-import { fetchDldFallbackTransactions } from "./dld";
-import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT, MILLISECONDS_PER_DAY } from "./constants";
-import { buildMessage, buildRecentTransactions, extractTransactionDate, summarizeTransactions } from "./insight-utils";
+import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
+import { buildMessage, buildRecentTransactions, extractBeds, extractTransactionDate, summarizeTransactions } from "./insight-utils";
 import { cleanBuildingName, createLeadInsertRecord, getBuildingKeyVariants, mapStoredLeadRow, sortLeadsByPriority, startOfDay } from "./lead-utils";
-import { buildGoogleCsvUrl, inferMapping, parseCsvText, rowsToObjects } from "./spreadsheet";
+import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToObjects } from "./spreadsheet";
 
-const FALLBACK_TRANSACTION_PAGES = 2;
-const FALLBACK_TRANSACTION_LIMIT = 120;
-const FALLBACK_STALE_DAYS = 10;
-const FALLBACK_FETCH_CONCURRENCY = 4;
-const bayutFallbackTransactionsCache = new Map();
-
-function normalizeToken(value) {
-  return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
-}
-
-function expandBoulevard(value) {
-  return String(value || "").replace(/\bblvd\b\.?/gi, "Boulevard");
-}
-
-function replaceNumberWords(value) {
-  const numberMap = {
-    one: "1",
-    two: "2",
-    three: "3",
-    four: "4",
-    five: "5",
-    six: "6",
-    seven: "7",
-    eight: "8",
-    nine: "9",
-    ten: "10",
-  };
-  let next = String(value || "");
-  for (const [word, digit] of Object.entries(numberMap)) {
-    next = next.replace(new RegExp(`\\b${word}\\b`, "gi"), digit);
-  }
-  return next;
-}
-
-function buildSearchVariants(name) {
-  const cleaned = cleanBuildingName(name);
-  const variants = new Set();
-  const add = (value) => {
-    const trimmed = String(value || "").trim();
-    if (trimmed) variants.add(trimmed);
-  };
-  add(cleaned);
-  add(expandBoulevard(cleaned));
-  add(replaceNumberWords(cleaned));
-  add(replaceNumberWords(expandBoulevard(cleaned)));
-  return [...variants];
-}
-
-function extractLocationName(location) {
-  return location?.name || location?.title || location?.name_l1 || "Unknown";
-}
-
-function extractFullPath(location) {
-  return location?.full_name
-    || location?.path
-    || (Array.isArray(location?.location) ? location.location.join(" | ") : "")
-    || "";
-}
-
-function scoreLocation(location, query) {
-  const target = normalizeToken(query);
-  const name = extractLocationName(location);
-  const fullPath = extractFullPath(location);
-  const normalizedName = normalizeToken(name);
-  const normalizedFullPath = normalizeToken(fullPath);
-
-  let score = 0;
-  if (normalizedName === target) score += 120;
-  if (normalizedName.includes(target) || target.includes(normalizedName)) score += 70;
-  if (normalizedFullPath.includes(target)) score += 35;
-  score += Math.max(0, 20 - Math.abs(name.length - query.length));
-  return score;
-}
-
-function toList(payload) {
-  if (Array.isArray(payload)) return payload;
-  if (!payload) return [];
-  return payload.hits || payload.results || payload.transactions || [];
-}
-
-function isTransactionsStale(transactions) {
-  if (!transactions?.length) return true;
-  const dates = transactions
-    .map((transaction) => extractTransactionDate(transaction))
-    .filter(Boolean);
-  if (!dates.length) return true;
-  const latest = dates.reduce((max, date) => (date > max ? date : max), dates[0]);
-  const today = startOfDay(new Date());
-  const latestDay = startOfDay(latest);
-  const ageDays = Math.floor((today - latestDay) / MILLISECONDS_PER_DAY);
-  return ageDays > FALLBACK_STALE_DAYS;
-}
-
-async function fetchBayutFallbackTransactions(buildingName) {
-  const key = normalizeToken(buildingName);
-  if (!key) return null;
-  if (bayutFallbackTransactionsCache.has(key)) return bayutFallbackTransactionsCache.get(key);
-
-  const task = (async () => {
-    try {
-      const variants = buildSearchVariants(buildingName);
-      let bestLocation = null;
-      for (const variant of variants) {
-        const payload = await searchLocations(variant);
-        const locations = toList(payload);
-        if (!locations.length) continue;
-        const scored = locations
-          .map((location) => ({ location, score: scoreLocation(location, variant) }))
-          .sort((a, b) => b.score - a.score);
-        bestLocation = scored[0]?.location || null;
-        if (bestLocation) break;
-      }
-
-      const locationId = bestLocation?.id || bestLocation?.externalID || bestLocation?.location_id || null;
-      if (!locationId) return null;
-
-      const allTransactions = [];
-      for (let page = 0; page < FALLBACK_TRANSACTION_PAGES; page += 1) {
-        const payload = await fetchTransactions({
-          locationIds: [locationId],
-          page,
-          purpose: "for-sale",
-          category: "residential",
-          completionStatus: "completed",
-          sortBy: "date",
-          order: "desc",
-        });
-        const results = toList(payload);
-        if (!results.length) break;
-        allTransactions.push(...results);
-        if (allTransactions.length >= FALLBACK_TRANSACTION_LIMIT) break;
-      }
-
-      return {
-        locationName: extractLocationName(bestLocation),
-        transactions: allTransactions.slice(0, FALLBACK_TRANSACTION_LIMIT),
-      };
-    } catch {
-      return null;
-    }
-  })();
-
-  bayutFallbackTransactionsCache.set(key, task);
-  return task;
-}
-
-async function populateFallbackTransactions(entries, target, loader, concurrency = FALLBACK_FETCH_CONCURRENCY) {
-  if (!entries.length) return;
-
-  let cursor = 0;
-  const workerCount = Math.min(concurrency, entries.length);
-
-  const workers = Array.from({ length: workerCount }, async () => {
-    while (cursor < entries.length) {
-      const currentIndex = cursor;
-      cursor += 1;
-      const [normalized, name] = entries[currentIndex];
-      target[normalized] = await loader(name);
-    }
-  });
-
-  await Promise.all(workers);
-}
+const IMPORT_TRUNCATION_PATTERN = /\u2026|\.{3,}/;
+const IMPORT_TRUNCATION_FIELDS = [
+  { key: "name", label: "name" },
+  { key: "building", label: "building" },
+  { key: "unit", label: "unit" },
+];
+const SUPABASE_PAGE_SIZE = 1000;
 
 function mapStoredTransaction(transactionRow) {
   return {
@@ -195,23 +37,67 @@ function mapStoredTransaction(transactionRow) {
   };
 }
 
+async function selectAllRows(buildQuery, pageSize = SUPABASE_PAGE_SIZE) {
+  const rows = [];
+  let from = 0;
+
+  while (true) {
+    const to = from + pageSize - 1;
+    const { data, error } = await buildQuery().range(from, to);
+    if (error) throw new Error(error.message);
+
+    const batch = data || [];
+    rows.push(...batch);
+    if (batch.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return rows;
+}
+
 export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
-  const [{ data: leadRows, error: leadError }, { data: sentRows, error: sentError }] = await Promise.all([
-    supabase.from("leads").select("*").eq("user_id", userId).order("id"),
-    supabase.from("sent_leads").select("lead_id, sent_at").eq("user_id", userId),
+  const [leadRows, sentLeadRows] = await Promise.all([
+    selectAllRows(() => supabase.from("leads").select("*").eq("user_id", userId).order("id")),
+    selectAllRows(() => supabase.from("sent_leads").select("lead_id, sent_at").eq("user_id", userId).order("lead_id")),
   ]);
 
-  if (leadError) throw new Error(leadError.message);
-  if (sentError) throw new Error(sentError.message);
-
   const sentMap = {};
-  for (const row of sentRows || []) sentMap[row.lead_id] = new Date(row.sent_at).getTime();
+  for (const row of leadRows || []) {
+    if (!row.sent_at) continue;
+    sentMap[row.id] = new Date(row.sent_at).getTime();
+  }
+  for (const row of sentLeadRows || []) {
+    const sentAt = new Date(row.sent_at).getTime();
+    if (!sentMap[row.lead_id] || sentAt > sentMap[row.lead_id]) {
+      sentMap[row.lead_id] = sentAt;
+    }
+  }
 
   const leads = sortLeadsByPriority(
     (leadRows || [])
       .map((row, index) => mapStoredLeadRow(row, index, today))
       .filter((lead) => lead.name || lead.building || lead.phone),
   );
+
+  // --- DEBUG: track done leads ---
+  const doneCount = Object.keys(sentMap).length;
+  const doneIds = Object.keys(sentMap).sort();
+  const prevDoneIds = JSON.parse(sessionStorage.getItem("debug:doneIds") || "[]");
+  const missing = prevDoneIds.filter((id) => !sentMap[id]);
+  if (missing.length > 0) {
+    const now = new Date().toLocaleTimeString();
+    console.error(`[DONE-TRACKER ${now}] LEADS DISAPPEARED FROM DONE:`, missing);
+    const names = missing.map((id) => {
+      const lead = leads.find((l) => String(l.id) === String(id));
+      return lead ? `${lead.name} (${lead.building})` : `id=${id} (NOT IN LEADS)`;
+    });
+    console.error(`[DONE-TRACKER ${now}] Missing lead names:`, names);
+    console.error(`[DONE-TRACKER ${now}] Previous done count: ${prevDoneIds.length}, Current: ${doneCount}`);
+  } else if (prevDoneIds.length > 0) {
+    console.log(`[DONE-TRACKER ${new Date().toLocaleTimeString()}] Done leads OK — count: ${doneCount}`);
+  }
+  sessionStorage.setItem("debug:doneIds", JSON.stringify(doneIds));
+  // --- END DEBUG ---
 
   return { leads, sentMap };
 }
@@ -242,18 +128,203 @@ function emptyToNull(value) {
   return trimmed || null;
 }
 
+function containsImportTruncation(value) {
+  const raw = String(value || "").trim();
+  return Boolean(raw) && IMPORT_TRUNCATION_PATTERN.test(raw);
+}
+
+function summarizeImportValue(value, limit = 44) {
+  const raw = String(value || "").replace(/\s+/g, " ").trim();
+  if (raw.length <= limit) return raw;
+  return `${raw.slice(0, limit - 3).trim()}...`;
+}
+
+function collectSuspiciousImportRows(records, mapping, options = {}) {
+  const {
+    defaultBuilding = null,
+    overrideBuilding = false,
+    maxExamples = 5,
+  } = options;
+
+  let count = 0;
+  const examples = [];
+
+  for (const record of records || []) {
+    const values = {
+      name: mapping.name ? record[mapping.name] : "",
+      building: overrideBuilding ? (defaultBuilding || "") : (mapping.building ? record[mapping.building] : (defaultBuilding || "")),
+      unit: mapping.unit ? record[mapping.unit] : "",
+    };
+
+    const flaggedFields = IMPORT_TRUNCATION_FIELDS
+      .map((field) => {
+        const value = values[field.key];
+        if (!containsImportTruncation(value)) return null;
+        return {
+          label: field.label,
+          value: summarizeImportValue(value),
+        };
+      })
+      .filter(Boolean);
+
+    if (!flaggedFields.length) continue;
+
+    count += 1;
+    if (examples.length < maxExamples) {
+      examples.push({
+        rowNumber: record.__row || "?",
+        flaggedFields,
+      });
+    }
+  }
+
+  return { count, examples };
+}
+
+function buildSuspiciousImportError(summary) {
+  if (!summary?.count) return null;
+
+  const exampleText = summary.examples
+    .map((example) => {
+      const fields = example.flaggedFields
+        .map((field) => `${field.label} "${field.value}"`)
+        .join(", ");
+      return `row ${example.rowNumber}: ${fields}`;
+    })
+    .join("; ");
+
+  const remaining = summary.count - summary.examples.length;
+  const remainingText = remaining > 0 ? ` (+${remaining} more)` : "";
+
+  return `Import blocked: ${summary.count} row(s) contain possible truncation markers.${remainingText} ${exampleText} Fix the sheet values and re-import.`;
+}
+
+function normalizePhoneKey(value) {
+  return String(value || "").replace(/[^0-9]/g, "");
+}
+
+function buildLeadStateKey(lead, sourceId = null) {
+  return [
+    sourceId ?? lead?.source_id ?? "legacy",
+    normalizeToken(lead?.name),
+    normalizeToken(cleanBuildingName(lead?.building)),
+    normalizeToken(lead?.unit),
+    normalizeToken(lead?.bedroom),
+    normalizePhoneKey(lead?.phone),
+  ].join(":");
+}
+
+function buildExistingLeadStateMap(rows, sourceId = null) {
+  const map = new Map();
+
+  for (const row of rows || []) {
+    const key = buildLeadStateKey(row, sourceId);
+    if (!key) continue;
+    if (!map.has(key)) map.set(key, row);
+  }
+
+  return map;
+}
+
+function dedupeIncomingLeads(leads, sourceId = null) {
+  const seen = new Set();
+  const result = [];
+
+  for (const lead of leads || []) {
+    const key = buildLeadStateKey(lead, sourceId);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(lead);
+  }
+
+  return result;
+}
+
+function filterNewLeads(leads, existingRows, sourceId = null) {
+  const existingState = buildExistingLeadStateMap(existingRows, sourceId);
+  return dedupeIncomingLeads(leads, sourceId).filter((lead) => !existingState.has(buildLeadStateKey(lead, sourceId)));
+}
+
+function buildImportResult(allLeads, newLeads) {
+  const totalRows = allLeads.length;
+  const count = newLeads.length;
+  return {
+    count,
+    totalRows,
+    skippedCount: Math.max(totalRows - count, 0),
+  };
+}
+
+function hasExplicitSourceBuilding(source) {
+  return Boolean(String(source?.building_name || "").trim());
+}
+
+function isPlaceholderSourceLabel(source) {
+  const label = String(source?.label || "").trim();
+  return Boolean(label) && /^Spreadsheet\s+\d+$/i.test(label);
+}
+
+function shouldReplacePlaceholderSourceLeads(source, existingRows) {
+  if (!isPlaceholderSourceLabel(source) || hasExplicitSourceBuilding(source) || !existingRows?.length) {
+    return false;
+  }
+
+  const placeholderLabel = String(source?.label || "").trim();
+  return existingRows.every((row) => String(row?.building || "").trim() === placeholderLabel);
+}
+
+function getRepairCandidateSourceLabels(source) {
+  const candidates = new Set();
+  const buildingName = String(source?.building_name || "").trim();
+  const label = String(source?.label || "").trim();
+  if (buildingName) candidates.add(buildingName);
+  if (label && !isPlaceholderSourceLabel(source)) candidates.add(label);
+  return [...candidates];
+}
+
+function shouldReplaceNamedSourceLeads(source, existingRows, incomingLeads) {
+  if (!existingRows?.length || !incomingLeads?.length) return false;
+
+  for (const candidate of getRepairCandidateSourceLabels(source)) {
+    const existingAllUseCandidate = existingRows.every((row) => String(row?.building || "").trim() === candidate);
+    if (!existingAllUseCandidate) continue;
+
+    const incomingHasDifferentBuilding = incomingLeads.some((lead) => {
+      const building = String(lead?.building || "").trim();
+      return Boolean(building) && building !== candidate;
+    });
+    if (incomingHasDifferentBuilding) return true;
+  }
+
+  return false;
+}
+
+async function fetchExistingLeadsForSource(userId, sourceId) {
+  return selectAllRows(() => {
+    const query = supabase
+      .from("leads")
+      .select("id, source_id, name, building, bedroom, unit, phone, status, last_contact, sent_at, notes")
+      .eq("user_id", userId)
+      .order("id");
+
+    return sourceId ? query.eq("source_id", sourceId) : query.is("source_id", null);
+  });
+}
+
 export async function updateLead({ userId, leadId, updates }) {
   if (!userId || !leadId) return;
 
-  const payload = {
-    name: emptyToNull(updates?.name),
-    building: emptyToNull(updates?.building),
-    bedroom: emptyToNull(updates?.bedroom),
-    unit: emptyToNull(updates?.unit),
-    phone: emptyToNull(updates?.phone),
-    status: emptyToNull(updates?.status),
-    last_contact: updates?.lastContact ? updates.lastContact : null,
-  };
+  const payload = {};
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "name")) payload.name = emptyToNull(updates?.name);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "building")) payload.building = emptyToNull(updates?.building);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "bedroom")) payload.bedroom = emptyToNull(updates?.bedroom);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "unit")) payload.unit = emptyToNull(updates?.unit);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "phone")) payload.phone = emptyToNull(updates?.phone);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "status")) payload.status = emptyToNull(updates?.status);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "lastContact")) payload.last_contact = updates?.lastContact || null;
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "notes")) payload.notes = updates?.notes?.trim() || null;
+
+  if (!Object.keys(payload).length) return;
 
   const { error } = await supabase
     .from("leads")
@@ -299,6 +370,26 @@ export async function createDefaultLeadSources(userId, count = 10, startSortOrde
   if (error) throw new Error(error.message);
 }
 
+export async function createLeadSource(userId, fields = {}) {
+  const payload = {
+    user_id: userId,
+    label: fields.label || "",
+    type: "building",
+    building_name: fields.building_name || null,
+    sheet_url: fields.sheet_url || null,
+    sort_order: fields.sort_order ?? 0,
+  };
+
+  const { data, error } = await supabase
+    .from("lead_sources")
+    .insert(payload)
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 export async function upsertLeadSource(source) {
   const payload = {
     id: source.id,
@@ -317,17 +408,19 @@ export async function upsertLeadSource(source) {
   if (error) throw new Error(error.message);
 }
 
-async function clearLeadsForSource(userId, sourceId) {
+export async function clearLeadsForSource(userId, sourceId) {
   if (!sourceId) return;
 
-  const { data: leadRows, error: leadError } = await supabase
-    .from("leads")
-    .select("id")
-    .eq("user_id", userId)
-    .eq("source_id", sourceId);
-  if (leadError) throw new Error(leadError.message);
+  const leadRows = await selectAllRows(() => (
+    supabase
+      .from("leads")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("source_id", sourceId)
+      .order("id")
+  ));
 
-  const leadIds = (leadRows || []).map((row) => row.id);
+  const leadIds = leadRows.map((row) => row.id);
   if (leadIds.length) {
     const { error: sentDeleteError } = await supabase.from("sent_leads").delete().in("lead_id", leadIds);
     if (sentDeleteError) throw new Error(sentDeleteError.message);
@@ -341,15 +434,29 @@ async function clearLeadsForSource(userId, sourceId) {
   if (leadDeleteError) throw new Error(leadDeleteError.message);
 }
 
-async function clearLegacyLeads(userId) {
-  const { data: legacyRows, error: selectError } = await supabase
-    .from("leads")
-    .select("id")
-    .eq("user_id", userId)
-    .is("source_id", null);
-  if (selectError) throw new Error(selectError.message);
+export async function deleteLeadSource(userId, sourceId) {
+  if (!sourceId) return;
 
-  const legacyIds = (legacyRows || []).map((row) => row.id);
+  const { error } = await supabase
+    .from("lead_sources")
+    .delete()
+    .eq("user_id", userId)
+    .eq("id", sourceId);
+
+  if (error) throw new Error(error.message);
+}
+
+async function _clearLegacyLeads(userId) {
+  const legacyRows = await selectAllRows(() => (
+    supabase
+      .from("leads")
+      .select("id")
+      .eq("user_id", userId)
+      .is("source_id", null)
+      .order("id")
+  ));
+
+  const legacyIds = legacyRows.map((row) => row.id);
   if (legacyIds.length) {
     const { error: sentDeleteError } = await supabase.from("sent_leads").delete().in("lead_id", legacyIds);
     if (sentDeleteError) throw new Error(sentDeleteError.message);
@@ -395,6 +502,10 @@ export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
     throw new Error("Could not map any columns. Make sure the sheet has seller names, buildings, or phone numbers.");
   }
 
+  const suspiciousRows = collectSuspiciousImportRows(records, mapping);
+  const suspiciousImportError = buildSuspiciousImportError(suspiciousRows);
+  if (suspiciousImportError) throw new Error(suspiciousImportError);
+
   const leadsToInsert = records
     .map((record) => createLeadInsertRecord(record, mapping, userId, {
       sourceId: null,
@@ -404,18 +515,19 @@ export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
 
   if (!leadsToInsert.length) throw new Error("No valid leads found in sheet.");
 
-  await clearLegacyLeads(userId);
+  const existingLegacyLeads = await fetchExistingLeadsForSource(userId, null);
+  const newLeadsToInsert = filterNewLeads(leadsToInsert, existingLegacyLeads, null);
 
-  for (let index = 0; index < leadsToInsert.length; index += IMPORT_BATCH_SIZE) {
-    const batch = leadsToInsert.slice(index, index + IMPORT_BATCH_SIZE);
+  for (let index = 0; index < newLeadsToInsert.length; index += IMPORT_BATCH_SIZE) {
+    const batch = newLeadsToInsert.slice(index, index + IMPORT_BATCH_SIZE);
     const { error } = await supabase.from("leads").insert(batch);
     if (error) throw new Error(error.message);
   }
 
-  return { count: leadsToInsert.length };
+  return buildImportResult(leadsToInsert, newLeadsToInsert);
 }
 
-export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }) {
+export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl, replaceExisting = false }) {
   const sheetUrl = String(rawSheetUrl || source?.sheet_url || "").trim();
   if (!sheetUrl) throw new Error("Paste a Google Sheet URL first.");
 
@@ -448,8 +560,15 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
   }
 
   const defaultStatus = "Prospect";
-  const defaultBuilding = source?.building_name || source?.label || null;
-  const overrideBuilding = Boolean(source);
+  const defaultBuilding = null;
+  const overrideBuilding = false;
+
+  const suspiciousRows = collectSuspiciousImportRows(records, mapping, {
+    defaultBuilding,
+    overrideBuilding,
+  });
+  const suspiciousImportError = buildSuspiciousImportError(suspiciousRows);
+  if (suspiciousImportError) throw new Error(suspiciousImportError);
 
   const leadsToInsert = records
     .map((record) => createLeadInsertRecord(record, mapping, userId, {
@@ -462,23 +581,26 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
 
   if (!leadsToInsert.length) throw new Error("No valid leads found in sheet.");
 
-  if (source?.id) {
-    await clearLeadsForSource(userId, source.id);
-  } else {
-    const { error: sentDeleteError } = await supabase.from("sent_leads").delete().eq("user_id", userId);
-    if (sentDeleteError) throw new Error(sentDeleteError.message);
+  const sourceId = source?.id || null;
+  const existingSourceLeads = await fetchExistingLeadsForSource(userId, sourceId);
+  const shouldRepairPlaceholderImport = shouldReplacePlaceholderSourceLeads(source, existingSourceLeads);
+  const shouldRepairNamedSourceImport = shouldReplaceNamedSourceLeads(source, existingSourceLeads, leadsToInsert);
 
-    const { error: leadDeleteError } = await supabase.from("leads").delete().eq("user_id", userId);
-    if (leadDeleteError) throw new Error(leadDeleteError.message);
+  if ((replaceExisting || shouldRepairPlaceholderImport || shouldRepairNamedSourceImport) && sourceId) {
+    await clearLeadsForSource(userId, sourceId);
   }
 
-  for (let index = 0; index < leadsToInsert.length; index += IMPORT_BATCH_SIZE) {
-    const batch = leadsToInsert.slice(index, index + IMPORT_BATCH_SIZE);
+  const newLeadsToInsert = (replaceExisting || shouldRepairPlaceholderImport || shouldRepairNamedSourceImport)
+    ? dedupeIncomingLeads(leadsToInsert, sourceId)
+    : filterNewLeads(leadsToInsert, existingSourceLeads, sourceId);
+
+  for (let index = 0; index < newLeadsToInsert.length; index += IMPORT_BATCH_SIZE) {
+    const batch = newLeadsToInsert.slice(index, index + IMPORT_BATCH_SIZE);
     const { error } = await supabase.from("leads").insert(batch);
     if (error) throw new Error(error.message);
   }
 
-  return { count: leadsToInsert.length };
+  return buildImportResult(leadsToInsert, newLeadsToInsert);
 }
 
 export async function fetchLeadInsights(leads) {
@@ -519,41 +641,6 @@ export async function fetchLeadInsights(leads) {
     transactionsByBuilding[transaction.building_key].push(mapStoredTransaction(transaction));
   }
 
-  const fallbackCandidates = new Map();
-  for (const lead of targets) {
-    const cleaned = cleanBuildingName(lead.building);
-    const keys = getBuildingKeyVariants(lead.building);
-    if (!keys.length) continue;
-    const baseTransactions = keys.flatMap((key) => transactionsByBuilding[key] || []);
-    if (!baseTransactions.length || isTransactionsStale(baseTransactions)) {
-      fallbackCandidates.set(normalizeToken(cleaned), cleaned);
-    }
-  }
-
-  const fallbackTransactionsByName = {};
-  const fallbackEntries = [...fallbackCandidates.entries()];
-  if (fallbackCandidates.size) {
-    try {
-      Object.assign(fallbackTransactionsByName, await fetchDldFallbackTransactions([...fallbackCandidates.values()]));
-    } catch {
-      // DLD is primary, but the browser path can fail on upstream CORS/preflight.
-    }
-
-    const bayutFallbackEntries = fallbackEntries.filter(
-      ([normalized]) => !fallbackTransactionsByName[normalized]?.transactions?.length,
-    );
-
-    await populateFallbackTransactions(bayutFallbackEntries, fallbackTransactionsByName, fetchBayutFallbackTransactions);
-  }
-
-  if (!Object.keys(fallbackTransactionsByName).length && fallbackEntries.length) {
-    await populateFallbackTransactions(
-      fallbackEntries.filter(([normalized]) => !fallbackTransactionsByName[normalized]?.transactions?.length),
-      fallbackTransactionsByName,
-      fetchBayutFallbackTransactions,
-    );
-  }
-
   const updates = {};
   let matched = 0;
 
@@ -562,13 +649,8 @@ export async function fetchLeadInsights(leads) {
     const keys = getBuildingKeyVariants(lead.building);
     const matchedKey = keys.find((key) => buildingLookup[key]) || keys[0];
     const building = matchedKey ? buildingLookup[matchedKey] : null;
-    let allTransactions = matchedKey ? (transactionsByBuilding[matchedKey] || []) : [];
-    let locationName = building?.location_name || cleaned;
-    const fallback = fallbackTransactionsByName[normalizeToken(cleaned)];
-    if ((!allTransactions.length || isTransactionsStale(allTransactions)) && fallback?.transactions?.length) {
-      allTransactions = fallback.transactions;
-      locationName = fallback.locationName || locationName;
-    }
+    const allTransactions = matchedKey ? (transactionsByBuilding[matchedKey] || []) : [];
+    const locationName = building?.location_name || cleaned;
 
     if (!allTransactions.length) {
       updates[lead.id] = {
@@ -579,7 +661,14 @@ export async function fetchLeadInsights(leads) {
       continue;
     }
 
-    const filteredTransactions = allTransactions;
+    let filteredTransactions = allTransactions;
+    if (Array.isArray(lead.bedFilterValues) && lead.bedFilterValues.length) {
+      const bedroomMatches = allTransactions.filter((transaction) => {
+        const beds = extractBeds(transaction);
+        return beds !== null && lead.bedFilterValues.includes(beds);
+      });
+      if (bedroomMatches.length) filteredTransactions = bedroomMatches;
+    }
 
     const metrics = summarizeTransactions(filteredTransactions);
     const recentTransactions = buildRecentTransactions(filteredTransactions, locationName);
@@ -603,12 +692,30 @@ export async function fetchLeadInsights(leads) {
 }
 
 export async function persistLeadSentState(userId, leadId, isSent) {
-  if (isSent) {
-    const { error } = await supabase.from("sent_leads").upsert({ user_id: userId, lead_id: leadId });
-    if (error) throw new Error(error.message);
-    return;
+  console.log(`[DONE-TRACKER ${new Date().toLocaleTimeString()}] ${isSent ? "MARKING DONE" : "UNMARKING DONE"} lead=${leadId}`);
+  const sentAt = isSent ? new Date().toISOString() : null;
+  const { error } = await supabase
+    .from("leads")
+    .update({ sent_at: sentAt })
+    .eq("user_id", userId)
+    .eq("id", leadId);
+  if (error) throw new Error(error.message);
+
+  try {
+    if (isSent) {
+      const { error: legacyError } = await supabase.from("sent_leads").insert({ user_id: userId, lead_id: leadId, sent_at: sentAt });
+      if (legacyError && legacyError.code !== "23505") {
+        console.warn("Could not sync legacy sent_leads row", legacyError.message);
+      }
+    } else {
+      const { error: legacyError } = await supabase.from("sent_leads").delete().eq("user_id", userId).eq("lead_id", leadId);
+      if (legacyError) {
+        console.warn("Could not clear legacy sent_leads row", legacyError.message);
+      }
+    }
+  } catch (legacySyncError) {
+    console.warn("Legacy sent state sync failed", legacySyncError);
   }
 
-  const { error } = await supabase.from("sent_leads").delete().eq("user_id", userId).eq("lead_id", leadId);
-  if (error) throw new Error(error.message);
+  return sentAt;
 }

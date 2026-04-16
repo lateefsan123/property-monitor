@@ -2,6 +2,7 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { createClient } from "@supabase/supabase-js";
 
+const DEFAULT_BUILDINGS_FILE = "public/data/downtown-dubai-building-registry.json";
 const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1-DgZjG5T93t5zmrHmyekKkOLwCRIYEMMOK4AbOrYOVU/export?format=csv&gid=865690319";
 const BASE_URL = "https://uae-real-estate2.p.rapidapi.com";
 const API_HOST = "uae-real-estate2.p.rapidapi.com";
@@ -25,6 +26,10 @@ function toInt(raw, fallback) {
   return Number.isFinite(value) ? Math.floor(value) : fallback;
 }
 
+function formatDate(value) {
+  return `${value.getFullYear()}-${String(value.getMonth() + 1).padStart(2, "0")}-${String(value.getDate()).padStart(2, "0")}`;
+}
+
 async function readApiKeyFromDotEnv() {
   try {
     const raw = await fs.readFile(".env", "utf8");
@@ -35,6 +40,23 @@ async function readApiKeyFromDotEnv() {
     }
   } catch { /* ignore */ }
   return null;
+}
+
+async function readDotEnv() {
+  try {
+    const raw = await fs.readFile(".env", "utf8");
+    const entries = raw
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter((line) => line && !line.startsWith("#") && line.includes("="))
+      .map((line) => {
+        const separatorIndex = line.indexOf("=");
+        return [line.slice(0, separatorIndex).trim(), line.slice(separatorIndex + 1).trim()];
+      });
+    return Object.fromEntries(entries);
+  } catch {
+    return {};
+  }
 }
 
 function parseCsvText(text) {
@@ -137,6 +159,36 @@ function cleanBuildingName(raw) {
   return name || String(raw || "").trim();
 }
 
+function expandBoulevard(value) {
+  return String(value || "").replace(/\bblvd\b\.?/gi, "Boulevard");
+}
+
+function replaceNumberWords(value) {
+  const numberMap = {
+    one: "1", two: "2", three: "3", four: "4", five: "5",
+    six: "6", seven: "7", eight: "8", nine: "9", ten: "10",
+  };
+  let next = String(value || "");
+  for (const [word, digit] of Object.entries(numberMap)) {
+    next = next.replace(new RegExp(`\\b${word}\\b`, "gi"), digit);
+  }
+  return next;
+}
+
+function buildSearchVariants(name) {
+  const cleaned = cleanBuildingName(name);
+  const variants = new Set();
+  const add = (value) => {
+    const trimmed = String(value || "").trim();
+    if (trimmed) variants.add(trimmed);
+  };
+  add(cleaned);
+  add(expandBoulevard(cleaned));
+  add(replaceNumberWords(cleaned));
+  add(replaceNumberWords(expandBoulevard(cleaned)));
+  return [...variants];
+}
+
 function extractLocationId(loc) {
   return loc?.id || loc?.externalID || loc?.location_id || null;
 }
@@ -186,28 +238,38 @@ async function fetchWithRetry(url, options, retries) {
   }
 }
 
-async function main() {
-  const apiKey = process.env.RAPIDAPI_KEY || process.env.VITE_RAPIDAPI_KEY || await readApiKeyFromDotEnv();
-  if (!apiKey) throw new Error("Missing RAPIDAPI_KEY");
+async function loadRegistryBuildings(buildingsFile) {
+  const raw = await fs.readFile(buildingsFile, "utf8");
+  const payload = JSON.parse(raw);
+  const sourceBuildings = Array.isArray(payload?.buildings) ? payload.buildings : [];
 
-  const sheetUrl = process.env.SHEET_URL || DEFAULT_SHEET_URL;
-  const requestDelayMs = Math.max(0, toInt(process.env.REQUEST_DELAY_MS, 1200));
-  const retries = Math.max(0, toInt(process.env.REQUEST_RETRIES, 4));
+  const buildings = new Map();
+  for (const building of sourceBuildings) {
+    const canonicalName = cleanBuildingName(building?.canonical_name);
+    const buildingKey = normalizeToken(canonicalName);
+    if (!buildingKey || !canonicalName) continue;
 
-  const apiHeaders = {
-    "x-rapidapi-key": apiKey,
-    "x-rapidapi-host": API_HOST,
-    "Content-Type": "application/json",
-  };
+    const searchCandidates = new Set();
+    for (const candidate of [building?.canonical_name, ...(Array.isArray(building?.aliases) ? building.aliases : [])]) {
+      for (const variant of buildSearchVariants(candidate)) {
+        searchCandidates.add(variant);
+      }
+    }
 
-  // Date range: this month
-  const now = new Date();
-  // Fetch last 3 months of transactions so data doesn't reset on the 1st
-  const threeMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-  const startDate = `${threeMonthsAgo.getFullYear()}-${String(threeMonthsAgo.getMonth() + 1).padStart(2, "0")}-${String(threeMonthsAgo.getDate()).padStart(2, "0")}`;
-  const endDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    buildings.set(buildingKey, {
+      buildingKey,
+      searchName: canonicalName,
+      searchCandidates: [...searchCandidates],
+      project: building?.project || null,
+      buildingType: building?.building_type || null,
+      status: building?.status || null,
+    });
+  }
 
-  console.log(`Fetching sheet...`);
+  return [...buildings.values()];
+}
+
+async function loadSheetBuildings(sheetUrl) {
   const sheetRes = await fetch(sheetUrl);
   if (!sheetRes.ok) throw new Error(`Sheet fetch failed (${sheetRes.status})`);
   const csvText = await sheetRes.text();
@@ -217,40 +279,102 @@ async function main() {
   const buildingCol = inferColumn(headers, COLUMN_ALIASES.building);
   if (!buildingCol) throw new Error("No building column found in sheet");
 
-  // Get unique buildings
-  const buildingMap = new Map(); // normalizedKey -> cleanedName
+  const buildings = new Map();
   for (const record of records) {
     const raw = record[buildingCol];
     if (!raw) continue;
     const cleaned = cleanBuildingName(raw);
-    const key = normalizeToken(cleaned);
-    if (key && !buildingMap.has(key)) buildingMap.set(key, cleaned);
+    const buildingKey = normalizeToken(cleaned);
+    if (!buildingKey || buildings.has(buildingKey)) continue;
+    buildings.set(buildingKey, {
+      buildingKey,
+      searchName: cleaned,
+      searchCandidates: buildSearchVariants(cleaned),
+      project: null,
+      buildingType: null,
+      status: null,
+    });
   }
 
-  console.log(`Found ${buildingMap.size} unique buildings`);
+  return [...buildings.values()];
+}
+
+async function loadBuildingTargets(buildingsFile, sheetUrl) {
+  if (buildingsFile) {
+    try {
+      const entries = await loadRegistryBuildings(buildingsFile);
+      if (entries.length) {
+        return {
+          sourceLabel: `registry file ${buildingsFile}`,
+          entries,
+        };
+      }
+    } catch (error) {
+      if (!sheetUrl) throw error;
+      console.warn(`Could not load building registry ${buildingsFile}: ${error.message}`);
+    }
+  }
+
+  if (!sheetUrl) {
+    throw new Error("No building source configured. Set BUILDINGS_FILE or SHEET_URL.");
+  }
+
+  return {
+    sourceLabel: `sheet ${sheetUrl}`,
+    entries: await loadSheetBuildings(sheetUrl),
+  };
+}
+
+async function main() {
+  const dotEnv = await readDotEnv();
+  const apiKey = process.env.RAPIDAPI_KEY || process.env.VITE_RAPIDAPI_KEY || dotEnv.RAPIDAPI_KEY || dotEnv.VITE_RAPIDAPI_KEY || await readApiKeyFromDotEnv();
+  if (!apiKey) throw new Error("Missing RAPIDAPI_KEY");
+
+  const buildingsFile = process.env.BUILDINGS_FILE || dotEnv.BUILDINGS_FILE || DEFAULT_BUILDINGS_FILE;
+  const sheetUrl = process.env.SHEET_URL || dotEnv.SHEET_URL || DEFAULT_SHEET_URL;
+  const monthWindow = Math.max(1, toInt(process.env.BAYUT_MONTH_WINDOW, 6));
+  const requestDelayMs = Math.max(0, toInt(process.env.REQUEST_DELAY_MS, 1200));
+  const retries = Math.max(0, toInt(process.env.REQUEST_RETRIES, 4));
+
+  const apiHeaders = {
+    "x-rapidapi-key": apiKey,
+    "x-rapidapi-host": API_HOST,
+    "Content-Type": "application/json",
+  };
+
+  const now = new Date();
+  const startWindow = new Date(now.getFullYear(), now.getMonth() - monthWindow, now.getDate());
+  const startDate = formatDate(startWindow);
+  const endDate = formatDate(now);
+
+  const targetSource = await loadBuildingTargets(buildingsFile, sheetUrl);
+  const entries = targetSource.entries;
+  console.log(`Loading ${entries.length} buildings from ${targetSource.sourceLabel} for a rolling ${monthWindow}-month Bayut window (${startDate} -> ${endDate})...`);
 
   const buildings = {};
   let succeeded = 0;
   let failed = 0;
   const errors = [];
-  const entries = [...buildingMap.entries()];
 
   for (let i = 0; i < entries.length; i++) {
-    const [buildingKey, searchName] = entries[i];
+    const { buildingKey, searchName, searchCandidates, project, buildingType, status } = entries[i];
     console.log(`[${i + 1}/${entries.length}] ${searchName}`);
 
     if (i > 0 && requestDelayMs > 0) await sleep(requestDelayMs);
 
     try {
-      // Search location
-      const locPayload = await fetchWithRetry(
-        `${BASE_URL}/locations_search?query=${encodeURIComponent(searchName)}`,
-        { method: "GET", headers: apiHeaders },
-        retries,
-      );
-      const locs = toList(locPayload);
-      const best = pickBestLocation(locs, searchName);
-      if (!best) throw new Error(`No location match`);
+      let best = null;
+      for (const candidate of searchCandidates) {
+        const locPayload = await fetchWithRetry(
+          `${BASE_URL}/locations_search?query=${encodeURIComponent(candidate)}`,
+          { method: "GET", headers: apiHeaders },
+          retries,
+        );
+        const locs = toList(locPayload);
+        best = pickBestLocation(locs, candidate);
+        if (best) break;
+      }
+      if (!best) throw new Error("No location match");
 
       const locationId = extractLocationId(best);
       if (!locationId) throw new Error("Location has no ID");
@@ -291,6 +415,9 @@ async function main() {
         searchName,
         locationName,
         locationId,
+        project,
+        buildingType,
+        status,
         transactions: allTxs,
       };
       console.log(`  -> ${allTxs.length} transactions (${page + 1} pages)`);
@@ -305,8 +432,8 @@ async function main() {
   const totalTransactions = Object.values(buildings).reduce((sum, b) => sum + b.transactions.length, 0);
 
   // --- Sync to Supabase ---
-  const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL;
-  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY;
+  const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || dotEnv.SUPABASE_URL || dotEnv.VITE_SUPABASE_URL;
+  const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || dotEnv.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_ANON_KEY || dotEnv.VITE_SUPABASE_ANON_KEY;
 
   if (supabaseUrl && supabaseKey) {
     console.log(`\nSyncing to Supabase...`);
@@ -373,7 +500,7 @@ async function main() {
   const output = {
     generatedAt: new Date().toISOString(),
     period: { startDate, endDate },
-    summary: { totalBuildings: buildingMap.size, succeeded, failed, totalTransactions },
+    summary: { totalBuildings: entries.length, succeeded, failed, totalTransactions },
     buildings,
     errors,
   };
@@ -382,7 +509,7 @@ async function main() {
   await fs.writeFile(OUTPUT_FILE, JSON.stringify(output, null, 2), "utf8");
 
   console.log(`\nDone! Also written to ${OUTPUT_FILE}`);
-  console.log(`Buildings: ${succeeded}/${buildingMap.size} succeeded`);
+  console.log(`Buildings: ${succeeded}/${entries.length} succeeded`);
   console.log(`Total transactions: ${totalTransactions}`);
   if (errors.length) console.log(`Errors: ${errors.length}`);
 
@@ -390,7 +517,7 @@ async function main() {
     const summary = [
       "## Bayut Batch Fetch",
       `- Date window: ${startDate} to ${endDate}`,
-      `- Buildings: ${succeeded}/${buildingMap.size} succeeded`,
+      `- Buildings: ${succeeded}/${entries.length} succeeded`,
       `- Total transactions: ${totalTransactions}`,
       `- Errors: ${errors.length}`,
     ].join("\n");

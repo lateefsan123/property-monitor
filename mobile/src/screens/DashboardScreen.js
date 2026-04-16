@@ -11,7 +11,6 @@ import { DATA_FILTER_OPTIONS, STATUS_FILTER_OPTIONS } from "../features/seller-s
 import { getBuildingKeyVariants } from "../features/seller-signal/lead-utils";
 import { useSellerSignalPage } from "../features/seller-signal/useSellerSignalPage";
 import buildingImages from "../data/building-images.json";
-import { supabase } from "../supabase";
 import { getTheme } from "../theme";
 
 export default function DashboardScreen({ onBack, theme, userId }) {
@@ -68,7 +67,6 @@ export default function DashboardScreen({ onBack, theme, userId }) {
           importing={d.importing}
           onImport={d.actions.importFromSheet}
           onSheetUrlChange={d.actions.updateSheetUrl}
-          onSignOut={() => supabase.auth.signOut()}
           sheetUrl={d.sheetUrl}
           colors={colors}
         />
@@ -185,17 +183,6 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         </Svg>
       </Pressable>
 
-      <Pressable
-        style={({ pressed }) => [s.fabSmall, pressed && { opacity: 0.85 }]}
-        onPress={() => supabase.auth.signOut()}
-      >
-        <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={colors.errorText} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-          <Path d="M16 17l5-5-5-5" />
-          <Line x1="21" y1="12" x2="9" y2="12" />
-        </Svg>
-      </Pressable>
-
       <LeadDetailSheet
         visible={Boolean(selectedLeadId && selectedLead)}
         onClose={() => setSelectedLeadId(null)}
@@ -212,6 +199,7 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         onDelete={d.actions.deleteLead}
         onEditFieldChange={d.actions.updateLeadDraftField}
         onSaveEdit={d.actions.saveLeadEdits}
+        onSaveNotes={d.actions.saveNotes}
         onStartEditing={d.actions.startEditingLead}
         onToggleSent={d.actions.toggleSent}
         onUpdateStatus={d.actions.updateLeadStatus}
@@ -391,23 +379,6 @@ const styles = (c) =>
       shadowOpacity: 0.25,
       shadowRadius: 12,
       elevation: 8,
-    },
-    fabSmall: {
-      position: "absolute",
-      bottom: 116,
-      right: 26,
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-      zIndex: 10,
-      backgroundColor: c.errorBg,
-      alignItems: "center",
-      justifyContent: "center",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 2 },
-      shadowOpacity: 0.15,
-      shadowRadius: 8,
-      elevation: 6,
     },
     sheetScroll: { maxHeight: 500 },
     sheetContent: { paddingHorizontal: 24, paddingBottom: 32, gap: 14 },

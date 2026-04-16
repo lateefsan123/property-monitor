@@ -5,6 +5,28 @@ import { Svg, Path } from "react-native-svg";
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
 import { formatBuildingLabel } from "../lead-utils";
 
+function formatLeadBedroom(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  if (/studio/i.test(raw)) return "Studio";
+  if (/^\d+$/.test(raw)) return `${raw}BR`;
+  return raw;
+}
+
+function extractUnitFromBuilding(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  const match = raw.match(/^(?:\[.*?\]\s*)?(?:Apartment|Unit|Villa)\s+([A-Za-z0-9-]+)/i);
+  return match?.[1] || null;
+}
+
+function formatLeadUnit(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  if (/^unit\b/i.test(raw)) return raw;
+  return `Unit ${raw}`;
+}
+
 function PhoneIcon({ size = 14, color }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -104,6 +126,8 @@ export default function LeadCard({ buildingImageUrl, isSent, isDone, lead, insig
   const message = insight?.message || buildMessage(lead, insight);
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
   const [previewVisible, setPreviewVisible] = useState(false);
+  const bedroomLabel = formatLeadBedroom(lead.bedroom);
+  const unitLabel = formatLeadUnit(lead.unit || extractUnitFromBuilding(lead.building));
 
   function handleWhatsApp(e) {
     e.stopPropagation();
@@ -130,6 +154,13 @@ export default function LeadCard({ buildingImageUrl, isSent, isDone, lead, insig
             <HomeIcon size={14} color={c.textMuted} />
             <Text style={{ fontSize: 15, color: c.textMuted }} numberOfLines={1}>{formatBuildingLabel(lead.building) || "-"}</Text>
           </View>
+          {(bedroomLabel || unitLabel) && (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 }}>
+              {bedroomLabel && <Text style={{ fontSize: 13, color: c.textFaint, fontWeight: "500" }}>{bedroomLabel}</Text>}
+              {bedroomLabel && unitLabel && <Text style={{ fontSize: 13, color: c.textFainter }}>·</Text>}
+              {unitLabel && <Text style={{ fontSize: 13, color: c.textFaint }}>{unitLabel}</Text>}
+            </View>
+          )}
           {lead.phone && (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
               <PhoneIcon size={13} color={c.textFaint} />

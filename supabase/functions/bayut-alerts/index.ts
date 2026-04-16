@@ -1,4 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getCachedListings, setCachedListings } from "../_shared/listing-cache.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -8,8 +10,8 @@ const corsHeaders = {
 const API_HOST = "uae-real-estate2.p.rapidapi.com";
 const BASE_URL = `https://${API_HOST}`;
 const PAGE_SIZE = 25;
-const MAX_PAGES = 20;
-const MAX_LISTINGS_PER_BUILDING = 500;
+const MAX_PAGES = 7;
+const MAX_LISTINGS_PER_BUILDING = 175;
 const MAX_SEARCH_RESULTS = 8;
 const MAX_WATCHED_BUILDINGS = 1000;
 
@@ -230,6 +232,12 @@ Deno.serve(async (req) => {
     if (mode === "watchlist") {
       if (!Array.isArray(locations) || !locations.length) return jsonResponse({ buildings: [] });
 
+      const supabaseUrl = Deno.env.get("SUPABASE_URL") || Deno.env.get("VITE_SUPABASE_URL");
+      const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+      const supabaseAdmin = supabaseUrl && serviceRoleKey
+        ? createClient(supabaseUrl, serviceRoleKey)
+        : null;
+
       const sanitized = locations
         .slice(0, MAX_WATCHED_BUILDINGS)
         .map((location) => ({
@@ -243,7 +251,18 @@ Deno.serve(async (req) => {
       const buildings = [];
       for (const location of sanitized) {
         try {
-          buildings.push(await fetchListingsForLocation(location, apiKey));
+          if (supabaseAdmin) {
+            const cached = await getCachedListings(supabaseAdmin, location.locationId);
+            if (cached) {
+              buildings.push(cached);
+              continue;
+            }
+          }
+          const building = await fetchListingsForLocation(location, apiKey);
+          if (supabaseAdmin) {
+            await setCachedListings(supabaseAdmin, building);
+          }
+          buildings.push(building);
         } catch (error) {
           buildings.push(buildEmptyBuilding(location, (error as Error).message));
         }

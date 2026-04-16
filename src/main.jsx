@@ -14,7 +14,7 @@ import ResetPassword from "./ResetPassword.jsx";
 import { queryClient } from "./queryClient";
 import { supabase, supabaseConfigError } from "./supabase";
 
-const ONBOARDING_STORAGE_KEY = "seller_signal_onboarding_completed_v2";
+const ONBOARDING_STORAGE_KEY = "seller_signal_onboarding_completed_v3";
 
 function readStoredGateFlag(key) {
   try {

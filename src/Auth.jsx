@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useThemePreference } from "./hooks/useThemePreference";
 import { supabase } from "./supabase";
 
 export default function Auth() {
@@ -11,7 +10,6 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
-  useThemePreference();
   const logoSrc = `${import.meta.env.BASE_URL}logo.png`;
 
   function clearFeedback() {
