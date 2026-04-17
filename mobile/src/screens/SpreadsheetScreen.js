@@ -159,7 +159,7 @@ function LegacySourceCard({ colors, count, importing, legacySheetUrl, onImport, 
       </View>
 
       <Text style={[s.cardHelper, { color: colors.textMuted }]}>
-        Importing legacy replaces only leads that are not attached to a named source.
+        Import replaces the sellers owned by this spreadsheet.
       </Text>
 
       <Pressable

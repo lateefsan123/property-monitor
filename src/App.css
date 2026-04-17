@@ -1450,6 +1450,97 @@ button.btn-wa:disabled {
   color: var(--text-faint);
 }
 
+/* Screenshot -> sheet panel */
+.screenshot-panel {
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.screenshot-panel-header h3 {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.screenshot-panel-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.screenshot-panel-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.screenshot-panel-controls input[type="file"] {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.screenshot-panel-filename {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.8rem;
+  min-width: 140px;
+}
+
+.screenshot-preview {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.screenshot-preview-title {
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.screenshot-preview-scroll {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.screenshot-preview-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.74rem;
+}
+
+.screenshot-preview-scroll th,
+.screenshot-preview-scroll td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.screenshot-preview-scroll th {
+  background: var(--bg-card);
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+}
+
 /* Sheet instructions */
 .sheet-instructions {
   padding: 16px 20px;

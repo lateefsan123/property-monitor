@@ -214,18 +214,6 @@ function buildLeadStateKey(lead, sourceId = null) {
   ].join(":");
 }
 
-function buildExistingLeadStateMap(rows, sourceId = null) {
-  const map = new Map();
-
-  for (const row of rows || []) {
-    const key = buildLeadStateKey(row, sourceId);
-    if (!key) continue;
-    if (!map.has(key)) map.set(key, row);
-  }
-
-  return map;
-}
-
 function dedupeIncomingLeads(leads, sourceId = null) {
   const seen = new Set();
   const result = [];
@@ -240,11 +228,6 @@ function dedupeIncomingLeads(leads, sourceId = null) {
   return result;
 }
 
-function filterNewLeads(leads, existingRows, sourceId = null) {
-  const existingState = buildExistingLeadStateMap(existingRows, sourceId);
-  return dedupeIncomingLeads(leads, sourceId).filter((lead) => !existingState.has(buildLeadStateKey(lead, sourceId)));
-}
-
 function buildImportResult(allLeads, newLeads) {
   const totalRows = allLeads.length;
   const count = newLeads.length;
@@ -253,62 +236,6 @@ function buildImportResult(allLeads, newLeads) {
     totalRows,
     skippedCount: Math.max(totalRows - count, 0),
   };
-}
-
-function hasExplicitSourceBuilding(source) {
-  return Boolean(String(source?.building_name || "").trim());
-}
-
-function isPlaceholderSourceLabel(source) {
-  const label = String(source?.label || "").trim();
-  return Boolean(label) && /^Spreadsheet\s+\d+$/i.test(label);
-}
-
-function shouldReplacePlaceholderSourceLeads(source, existingRows) {
-  if (!isPlaceholderSourceLabel(source) || hasExplicitSourceBuilding(source) || !existingRows?.length) {
-    return false;
-  }
-
-  const placeholderLabel = String(source?.label || "").trim();
-  return existingRows.every((row) => String(row?.building || "").trim() === placeholderLabel);
-}
-
-function getRepairCandidateSourceLabels(source) {
-  const candidates = new Set();
-  const buildingName = String(source?.building_name || "").trim();
-  const label = String(source?.label || "").trim();
-  if (buildingName) candidates.add(buildingName);
-  if (label && !isPlaceholderSourceLabel(source)) candidates.add(label);
-  return [...candidates];
-}
-
-function shouldReplaceNamedSourceLeads(source, existingRows, incomingLeads) {
-  if (!existingRows?.length || !incomingLeads?.length) return false;
-
-  for (const candidate of getRepairCandidateSourceLabels(source)) {
-    const existingAllUseCandidate = existingRows.every((row) => String(row?.building || "").trim() === candidate);
-    if (!existingAllUseCandidate) continue;
-
-    const incomingHasDifferentBuilding = incomingLeads.some((lead) => {
-      const building = String(lead?.building || "").trim();
-      return Boolean(building) && building !== candidate;
-    });
-    if (incomingHasDifferentBuilding) return true;
-  }
-
-  return false;
-}
-
-async function fetchExistingLeadsForSource(userId, sourceId) {
-  return selectAllRows(() => {
-    const query = supabase
-      .from("leads")
-      .select("id, source_id, name, building, bedroom, unit, phone, status, last_contact, sent_at, notes")
-      .eq("user_id", userId)
-      .order("id");
-
-    return sourceId ? query.eq("source_id", sourceId) : query.is("source_id", null);
-  });
 }
 
 export async function updateLead({ userId, leadId, updates }) {
@@ -411,21 +338,6 @@ export async function upsertLeadSource(source) {
 export async function clearLeadsForSource(userId, sourceId) {
   if (!sourceId) return;
 
-  const leadRows = await selectAllRows(() => (
-    supabase
-      .from("leads")
-      .select("id")
-      .eq("user_id", userId)
-      .eq("source_id", sourceId)
-      .order("id")
-  ));
-
-  const leadIds = leadRows.map((row) => row.id);
-  if (leadIds.length) {
-    const { error: sentDeleteError } = await supabase.from("sent_leads").delete().in("lead_id", leadIds);
-    if (sentDeleteError) throw new Error(sentDeleteError.message);
-  }
-
   const { error: leadDeleteError } = await supabase
     .from("leads")
     .delete()
@@ -447,21 +359,6 @@ export async function deleteLeadSource(userId, sourceId) {
 }
 
 async function _clearLegacyLeads(userId) {
-  const legacyRows = await selectAllRows(() => (
-    supabase
-      .from("leads")
-      .select("id")
-      .eq("user_id", userId)
-      .is("source_id", null)
-      .order("id")
-  ));
-
-  const legacyIds = legacyRows.map((row) => row.id);
-  if (legacyIds.length) {
-    const { error: sentDeleteError } = await supabase.from("sent_leads").delete().in("lead_id", legacyIds);
-    if (sentDeleteError) throw new Error(sentDeleteError.message);
-  }
-
   const { error: leadDeleteError } = await supabase
     .from("leads")
     .delete()
@@ -515,19 +412,20 @@ export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
 
   if (!leadsToInsert.length) throw new Error("No valid leads found in sheet.");
 
-  const existingLegacyLeads = await fetchExistingLeadsForSource(userId, null);
-  const newLeadsToInsert = filterNewLeads(leadsToInsert, existingLegacyLeads, null);
+  const nextLeads = dedupeIncomingLeads(leadsToInsert, null);
 
-  for (let index = 0; index < newLeadsToInsert.length; index += IMPORT_BATCH_SIZE) {
-    const batch = newLeadsToInsert.slice(index, index + IMPORT_BATCH_SIZE);
+  await _clearLegacyLeads(userId);
+
+  for (let index = 0; index < nextLeads.length; index += IMPORT_BATCH_SIZE) {
+    const batch = nextLeads.slice(index, index + IMPORT_BATCH_SIZE);
     const { error } = await supabase.from("leads").insert(batch);
     if (error) throw new Error(error.message);
   }
 
-  return buildImportResult(leadsToInsert, newLeadsToInsert);
+  return buildImportResult(leadsToInsert, nextLeads);
 }
 
-export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl, replaceExisting = false }) {
+export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }) {
   const sheetUrl = String(rawSheetUrl || source?.sheet_url || "").trim();
   if (!sheetUrl) throw new Error("Paste a Google Sheet URL first.");
 
@@ -582,25 +480,18 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl, r
   if (!leadsToInsert.length) throw new Error("No valid leads found in sheet.");
 
   const sourceId = source?.id || null;
-  const existingSourceLeads = await fetchExistingLeadsForSource(userId, sourceId);
-  const shouldRepairPlaceholderImport = shouldReplacePlaceholderSourceLeads(source, existingSourceLeads);
-  const shouldRepairNamedSourceImport = shouldReplaceNamedSourceLeads(source, existingSourceLeads, leadsToInsert);
+  if (!sourceId) throw new Error("Choose a spreadsheet source first.");
 
-  if ((replaceExisting || shouldRepairPlaceholderImport || shouldRepairNamedSourceImport) && sourceId) {
-    await clearLeadsForSource(userId, sourceId);
-  }
+  const nextLeads = dedupeIncomingLeads(leadsToInsert, sourceId);
+  await clearLeadsForSource(userId, sourceId);
 
-  const newLeadsToInsert = (replaceExisting || shouldRepairPlaceholderImport || shouldRepairNamedSourceImport)
-    ? dedupeIncomingLeads(leadsToInsert, sourceId)
-    : filterNewLeads(leadsToInsert, existingSourceLeads, sourceId);
-
-  for (let index = 0; index < newLeadsToInsert.length; index += IMPORT_BATCH_SIZE) {
-    const batch = newLeadsToInsert.slice(index, index + IMPORT_BATCH_SIZE);
+  for (let index = 0; index < nextLeads.length; index += IMPORT_BATCH_SIZE) {
+    const batch = nextLeads.slice(index, index + IMPORT_BATCH_SIZE);
     const { error } = await supabase.from("leads").insert(batch);
     if (error) throw new Error(error.message);
   }
 
-  return buildImportResult(leadsToInsert, newLeadsToInsert);
+  return buildImportResult(leadsToInsert, nextLeads);
 }
 
 export async function fetchLeadInsights(leads) {

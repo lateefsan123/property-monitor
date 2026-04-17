@@ -141,21 +141,14 @@ function formatSourceLabel(source) {
 
 function formatImportSuccessMessage(label, result) {
   const count = Number(result?.count || 0);
-  const totalRows = Number(result?.totalRows ?? count);
   const skippedCount = Number(result?.skippedCount || 0);
   const countText = `${count} lead${count === 1 ? "" : "s"}`;
-  const skippedText = `${skippedCount} existing lead${skippedCount === 1 ? "" : "s"}`;
-
-  if (count === 0 && totalRows > 0) {
-    return label
-      ? `No new leads imported from ${label}. ${skippedText} already exist for this source.`
-      : `No new leads imported. ${skippedText} already exist for this source.`;
-  }
+  const skippedText = `${skippedCount} duplicate row${skippedCount === 1 ? "" : "s"}`;
 
   if (skippedCount > 0) {
     return label
-      ? `Imported ${countText} from ${label}. Skipped ${skippedText}.`
-      : `Imported ${countText}. Skipped ${skippedText}.`;
+      ? `Imported ${countText} from ${label}. Skipped ${skippedText} from the sheet.`
+      : `Imported ${countText}. Skipped ${skippedText} from the sheet.`;
   }
 
   return label ? `Imported ${countText} from ${label}.` : `Imported ${countText}.`;
@@ -275,8 +268,8 @@ export function useSellerSignalPage(userId) {
     mutationFn: (source) => upsertLeadSource(source),
   });
   const importLeadsMutation = useMutation({
-    mutationFn: ({ source, rawSheetUrl, replaceExisting }) =>
-      replaceUserLeadsFromSheet({ userId, source, rawSheetUrl, replaceExisting }),
+    mutationFn: ({ source, rawSheetUrl }) =>
+      replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }),
   });
   const importLegacyLeadsMutation = useMutation({
     mutationFn: ({ rawSheetUrl }) => replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }),
@@ -521,27 +514,13 @@ export function useSellerSignalPage(userId) {
     try {
       const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
       const sourceLabel = formatSourceLabel(source);
-      const sourceCountBeforeImport = sourceId ? Number(sourceCounts[sourceId] || 0) : 0;
       if (sourceId && source) {
         await persistLeadSourceMutation.mutateAsync(normalizeSourceDraft(source));
       }
-      let result = await importLeadsMutation.mutateAsync({
+      const result = await importLeadsMutation.mutateAsync({
         source: normalizeSourceDraft(source),
         rawSheetUrl: sourceId ? source?.sheet_url : sheetUrl,
       });
-
-      if (
-        sourceId &&
-        sourceCountBeforeImport === 0 &&
-        Number(result?.count || 0) === 0 &&
-        Number(result?.totalRows || 0) > 0
-      ) {
-        result = await importLeadsMutation.mutateAsync({
-          source: normalizeSourceDraft(source),
-          rawSheetUrl: sourceId ? source?.sheet_url : sheetUrl,
-          replaceExisting: true,
-        });
-      }
 
       setShowImport(false);
       setSheetUrl("");

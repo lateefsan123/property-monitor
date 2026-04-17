@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useSpreadsheetsPage } from "../useSpreadsheetsPage";
+import { downloadAsXlsx, extractTableFromImages } from "../image-to-sheet";
 
 function isPlaceholderSourceLabel(source) {
   const label = String(source?.label || "").trim();
@@ -78,6 +79,138 @@ function SourceRow({ source, index, count, importing, clearing, onSave, onImport
   );
 }
 
+function ScreenshotToSheetPanel() {
+  const inputRef = useRef(null);
+  const [files, setFiles] = useState([]);
+  const [filename, setFilename] = useState("extracted");
+  const [preview, setPreview] = useState(null);
+  const [status, setStatus] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  function handleFilesSelected(list) {
+    const picked = Array.from(list || []).filter((f) => f.type.startsWith("image/"));
+    setFiles(picked);
+    setPreview(null);
+    setError("");
+    setStatus(picked.length ? `${picked.length} screenshot${picked.length === 1 ? "" : "s"} ready.` : "");
+  }
+
+  async function handleExtract() {
+    if (!files.length) return;
+    setBusy(true);
+    setError("");
+    setStatus("Reading screenshots with AI. This can take 20-60 seconds...");
+    try {
+      const result = await extractTableFromImages(files);
+      setPreview(result);
+      setStatus(`Detected ${result.rows.length} row${result.rows.length === 1 ? "" : "s"} across ${result.headers.length} columns.`);
+    } catch (err) {
+      setError(err.message || "Could not extract table.");
+      setStatus("");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleDownload() {
+    if (!preview) return;
+    try {
+      await downloadAsXlsx(preview, { filename: filename || "extracted", sheetName: filename || "Sheet1" });
+    } catch (err) {
+      setError(err.message || "Could not build .xlsx file.");
+    }
+  }
+
+  function handleReset() {
+    setFiles([]);
+    setPreview(null);
+    setStatus("");
+    setError("");
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  const previewHeaders = preview?.headers || [];
+  const previewRows = preview?.rows || [];
+  const truncatedRows = previewRows.slice(0, 10);
+
+  return (
+    <div className="screenshot-panel">
+      <div className="screenshot-panel-header">
+        <h3>Screenshot &rarr; Excel</h3>
+        <p className="screenshot-panel-hint">
+          Upload one or more screenshots of a spreadsheet. We OCR the tables and give you a downloadable .xlsx file.
+        </p>
+      </div>
+
+      <div className="screenshot-panel-controls">
+        <input
+          ref={inputRef}
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={(e) => handleFilesSelected(e.target.files)}
+          disabled={busy}
+        />
+        <input
+          type="text"
+          className="screenshot-panel-filename"
+          value={filename}
+          onChange={(e) => setFilename(e.target.value)}
+          placeholder="Filename"
+          disabled={busy}
+        />
+        <button
+          type="button"
+          className="sheet-add-btn"
+          disabled={!files.length || busy}
+          onClick={handleExtract}
+        >
+          {busy ? "Extracting..." : "Extract"}
+        </button>
+        <button
+          type="button"
+          className="sheet-add-btn"
+          disabled={!preview || busy}
+          onClick={handleDownload}
+        >
+          Download .xlsx
+        </button>
+        {(files.length > 0 || preview) && !busy && (
+          <button type="button" className="source-row-clear" onClick={handleReset}>
+            Reset
+          </button>
+        )}
+      </div>
+
+      {status && <div className="source-row-feedback source-row-feedback-notice" role="status">{status}</div>}
+      {error && <div className="source-row-feedback source-row-feedback-error" role="alert">{error}</div>}
+
+      {preview && previewHeaders.length > 0 && (
+        <div className="screenshot-preview">
+          <div className="screenshot-preview-title">
+            Preview ({truncatedRows.length} of {previewRows.length} rows)
+          </div>
+          <div className="screenshot-preview-scroll">
+            <table>
+              <thead>
+                <tr>{previewHeaders.map((h, i) => <th key={i}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {truncatedRows.map((row, ri) => (
+                  <tr key={ri}>
+                    {previewHeaders.map((_, ci) => <td key={ci}>{row[ci] ?? ""}</td>)}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function SpreadsheetsPage({ userId }) {
   const page = useSpreadsheetsPage(userId);
 
@@ -108,13 +241,6 @@ export default function SpreadsheetsPage({ userId }) {
   const showLegacyRow = legacyCount > 0 || Boolean(page.legacySheetUrl);
   const hasNamedSources = page.leadSources.length > 0;
 
-  const lastSync = typeof window !== "undefined"
-    ? Number(localStorage.getItem("seller-signal:last-sheet-sync") || 0)
-    : 0;
-  const lastSyncLabel = lastSync
-    ? `Last synced ${new Date(lastSync).toLocaleString()}`
-    : "Not synced yet";
-
   return (
     <div className="page">
       <div className="sheet-header">
@@ -122,10 +248,12 @@ export default function SpreadsheetsPage({ userId }) {
           {page.leadSources.length} source{page.leadSources.length !== 1 && "s"} &middot; {totalLeads} leads
         </p>
         <div className="sheet-sync-info">
-          <span className="sheet-sync-label">{lastSyncLabel}</span>
-          <span className="sheet-sync-note">Auto-syncs every hour</span>
+          <span className="sheet-sync-label">Imports are manual</span>
+          <span className="sheet-sync-note">Import replaces the sellers owned by that spreadsheet.</span>
         </div>
       </div>
+
+      <ScreenshotToSheetPanel />
 
       <div className="sheet-instructions">
         <h3>How to get your Google Sheets URL</h3>
