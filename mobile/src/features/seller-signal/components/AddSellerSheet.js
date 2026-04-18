@@ -16,6 +16,7 @@ const EMPTY_DRAFT = {
   unit: "",
   phone: "",
   status: "",
+  lastContact: "",
 };
 
 export default function AddSellerSheet({ visible, onClose, onSubmit, submitting, sourceLabel, colors }) {
@@ -127,6 +128,18 @@ export default function AddSellerSheet({ visible, onClose, onSubmit, submitting,
               );
             })}
           </View>
+        </Field>
+
+        <Field label="Last contact" colors={colors}>
+          <TextInput
+            style={[s.input, { backgroundColor: colors.bg, borderColor: colors.border, color: colors.text }]}
+            placeholder="YYYY-MM-DD"
+            placeholderTextColor={colors.textFaint}
+            value={draft.lastContact}
+            onChangeText={(value) => updateField("lastContact", value)}
+            editable={!submitting}
+            autoCapitalize="none"
+          />
         </Field>
 
         <View style={s.actions}>

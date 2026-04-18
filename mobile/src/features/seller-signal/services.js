@@ -228,7 +228,7 @@ export async function insertLead({ userId, sourceId, fields }) {
     unit: emptyToNull(fields?.unit),
     phone,
     status: emptyToNull(fields?.status),
-    last_contact: null,
+    last_contact: emptyToNull(fields?.lastContact),
   };
 
   const { data, error } = await supabase

@@ -15,6 +15,7 @@ const EMPTY_DRAFT = {
   unit: "",
   phone: "",
   status: "",
+  lastContact: "",
 };
 
 function CloseIcon() {
@@ -140,6 +141,16 @@ export default function AddSellerModal({ onClose, onSubmit, submitting, sourceLa
                     </option>
                   ))}
                 </select>
+              </label>
+
+              <label className="lead-edit-field">
+                <span>Last contact</span>
+                <input
+                  type="date"
+                  value={draft.lastContact}
+                  onChange={(event) => updateField("lastContact", event.target.value)}
+                  disabled={submitting}
+                />
               </label>
             </div>
 
