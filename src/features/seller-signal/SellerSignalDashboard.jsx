@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import AddSellerModal from "./components/AddSellerModal";
 import FiltersToolbar from "./components/FiltersToolbar";
 import LeadCard from "./components/LeadCard";
 import LeadModal from "./components/LeadModal";
@@ -16,12 +18,20 @@ async function fetchBuildingImages({ signal }) {
 
 export default function SellerSignalDashboard({ userId }) {
   const dashboard = useSellerSignalPage(userId);
+  const [addSellerOpen, setAddSellerOpen] = useState(false);
   const buildingImagesQuery = useQuery({
     queryKey: ["seller-signal", "building-images"],
     queryFn: fetchBuildingImages,
     staleTime: 10 * 60 * 1000,
   });
   const buildingImages = buildingImagesQuery.data || {};
+
+  const canAddSeller = dashboard.sourceFilter
+    && dashboard.sourceFilter !== "all"
+    && dashboard.sourceFilter !== "legacy";
+  const activeSourceLabel = canAddSeller
+    ? (dashboard.sourceOptions?.find((option) => option.id === dashboard.sourceFilter)?.label || "")
+    : "";
 
   if (dashboard.loading) {
     return (
@@ -56,25 +66,45 @@ export default function SellerSignalDashboard({ userId }) {
       {dashboard.error && <div className="error">{dashboard.error}</div>}
 
       {dashboard.sourceOptions?.length > 0 && (
-        <div className="source-tabs">
+        <div className="source-tabs-row">
+          <div className="source-tabs">
+            <button
+              type="button"
+              className={`source-tab${dashboard.sourceFilter === "all" ? " active" : ""}`}
+              onClick={() => dashboard.actions.selectSourceFilter("all")}
+            >
+              All
+            </button>
+            {dashboard.sourceOptions.map((option) => (
+              <button
+                key={option.id}
+                type="button"
+                className={`source-tab${dashboard.sourceFilter === option.id ? " active" : ""}`}
+                onClick={() => dashboard.actions.selectSourceFilter(option.id)}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
           <button
             type="button"
-            className={`source-tab${dashboard.sourceFilter === "all" ? " active" : ""}`}
-            onClick={() => dashboard.actions.selectSourceFilter("all")}
+            className="add-seller-btn"
+            onClick={() => setAddSellerOpen(true)}
+            disabled={!canAddSeller}
+            title={canAddSeller ? "" : "Pick a spreadsheet first"}
           >
-            All
+            + Add seller
           </button>
-          {dashboard.sourceOptions.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              className={`source-tab${dashboard.sourceFilter === option.id ? " active" : ""}`}
-              onClick={() => dashboard.actions.selectSourceFilter(option.id)}
-            >
-              {option.label}
-            </button>
-          ))}
         </div>
+      )}
+
+      {addSellerOpen && (
+        <AddSellerModal
+          onClose={() => setAddSellerOpen(false)}
+          onSubmit={dashboard.actions.addLead}
+          submitting={dashboard.addingLead}
+          sourceLabel={activeSourceLabel}
+        />
       )}
 
       <FiltersToolbar

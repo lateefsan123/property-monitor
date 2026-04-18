@@ -5,6 +5,7 @@ import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
 import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
 import {
   deleteLead,
+  insertLead,
   fetchLeadInsights,
   fetchLeadSources,
   fetchUserLeads,
@@ -188,6 +189,7 @@ export function useSellerSignalPage(userId) {
   const [editingLeadDraft, setEditingLeadDraft] = useState(null);
   const [savingLeadId, setSavingLeadId] = useState(null);
   const [deletingLeadId, setDeletingLeadId] = useState(null);
+  const [addingLead, setAddingLead] = useState(false);
   const deferredSearchTerm = useDeferredValue(searchTerm);
 
   function createLeadEditDraft(lead) {
@@ -541,6 +543,30 @@ export function useSellerSignalPage(userId) {
     }
   }
 
+  async function addLead(draft) {
+    const sourceId = effectiveSourceFilter;
+    if (!sourceId || sourceId === "all" || sourceId === LEGACY_SOURCE_ID) {
+      setActionError("Pick a spreadsheet first.");
+      setActionNotice(null);
+      return false;
+    }
+
+    setAddingLead(true);
+    setActionError(null);
+    setActionNotice(null);
+    try {
+      await insertLead({ userId, sourceId, fields: draft });
+      await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
+      setActionNotice("Seller added.");
+      return true;
+    } catch (addError) {
+      setActionError(getErrorMessage(addError));
+      return false;
+    } finally {
+      setAddingLead(false);
+    }
+  }
+
   async function toggleSent(leadId) {
     const previousData = queryClient.getQueryData(sellerLeadsQueryKey(userId));
     const previousSentAt = sentLeads[leadId] || null;
@@ -764,6 +790,7 @@ export function useSellerSignalPage(userId) {
 
   return {
     activeLeads,
+    addingLead,
     copiedLeadId,
     dataFilter,
     deletingLeadId,
@@ -799,6 +826,7 @@ export function useSellerSignalPage(userId) {
     totalPages,
     viewTab,
     actions: {
+      addLead,
       bulkWhatsApp,
       cancelEditingLead,
       copyMessage,

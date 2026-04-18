@@ -207,6 +207,40 @@ function buildImportResult(allLeads, newLeads) {
   };
 }
 
+export async function insertLead({ userId, sourceId, fields }) {
+  if (!userId) throw new Error("Sign in required.");
+  if (!sourceId) throw new Error("Pick a spreadsheet first.");
+
+  const name = emptyToNull(fields?.name);
+  const building = emptyToNull(fields?.building);
+  const phone = emptyToNull(fields?.phone);
+
+  if (!name && !building && !phone) {
+    throw new Error("Enter a name, building, or phone at minimum.");
+  }
+
+  const payload = {
+    user_id: userId,
+    source_id: sourceId,
+    name,
+    building,
+    bedroom: emptyToNull(fields?.bedroom),
+    unit: emptyToNull(fields?.unit),
+    phone,
+    status: emptyToNull(fields?.status),
+    last_contact: null,
+  };
+
+  const { data, error } = await supabase
+    .from("leads")
+    .insert(payload)
+    .select("*")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return data;
+}
+
 export async function updateLead({ userId, leadId, updates }) {
   if (!userId || !leadId) return;
 

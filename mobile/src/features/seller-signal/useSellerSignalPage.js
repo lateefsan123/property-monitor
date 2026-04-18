@@ -14,6 +14,7 @@ import {
   createLeadSource,
   deleteLeadSource,
   deleteLead,
+  insertLead,
   fetchLeadInsights,
   fetchLeadSources,
   fetchUserLeads,
@@ -151,6 +152,7 @@ export function useSellerSignalPage(userId) {
   const [savingLeadId, setSavingLeadId] = useState(null);
   const [deletingLeadId, setDeletingLeadId] = useState(null);
   const [clearingSourceId, setClearingSourceId] = useState(null);
+  const [addingLead, setAddingLead] = useState(false);
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const hasAutoEnriched = useRef(false);
 
@@ -604,6 +606,30 @@ export function useSellerSignalPage(userId) {
     }
   }
 
+  async function addLead(draft) {
+    const sourceId = effectiveSourceFilter;
+    if (!sourceId || sourceId === "all" || sourceId === LEGACY_SOURCE_ID) {
+      setError("Pick a spreadsheet first.");
+      setNotice(null);
+      return false;
+    }
+
+    setAddingLead(true);
+    setError(null);
+    setNotice(null);
+    try {
+      await insertLead({ userId, sourceId, fields: draft });
+      await reloadLeads();
+      setNotice("Seller added.");
+      return true;
+    } catch (addError) {
+      setError(getErrorMessage(addError));
+      return false;
+    } finally {
+      setAddingLead(false);
+    }
+  }
+
   async function toggleSent(leadId) {
     const previousSentAt = sentLeads[leadId] || null;
     const shouldMarkSent = !previousSentAt;
@@ -828,6 +854,7 @@ export function useSellerSignalPage(userId) {
 
   return {
     activeLeads,
+    addingLead,
     copiedLeadId,
     dataFilter,
     addingSource,
@@ -868,6 +895,7 @@ export function useSellerSignalPage(userId) {
     totalPages,
     viewTab,
     actions: {
+      addLead,
       addSource,
       bulkWhatsApp,
       cancelEditingLead,

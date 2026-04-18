@@ -3,6 +3,7 @@ import { ActivityIndicator, FlatList, PanResponder, Pressable, ScrollView, Style
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Svg, Line, Path } from "react-native-svg";
 import BottomSheet from "../components/BottomSheet";
+import AddSellerSheet from "../features/seller-signal/components/AddSellerSheet";
 import LeadImportEmptyState from "../features/seller-signal/components/LeadImportEmptyState";
 import LeadCard from "../features/seller-signal/components/LeadCard";
 import LeadDetailSheet from "../features/seller-signal/components/LeadDetailSheet";
@@ -19,7 +20,13 @@ export default function DashboardScreen({ onBack, theme, userId }) {
   const s = styles(colors);
 
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [addSellerOpen, setAddSellerOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState(null);
+
+  const canAddSeller = d.sourceFilter && d.sourceFilter !== "all" && d.sourceFilter !== "legacy";
+  const activeSourceLabel = canAddSeller
+    ? (d.sourceOptions.find((option) => option.id === d.sourceFilter)?.label || "")
+    : "";
   const selectedLead = useMemo(
     () => d.leads.find((lead) => lead.id === selectedLeadId) || null,
     [d.leads, selectedLeadId],
@@ -104,7 +111,20 @@ export default function DashboardScreen({ onBack, theme, userId }) {
           })}
         </View>
 
-        <Text style={s.leadCount}>{d.filteredLeads.length} leads</Text>
+        <Pressable
+          style={({ pressed }) => [
+            s.addBtn,
+            { opacity: !canAddSeller ? 0.35 : pressed ? 0.7 : 1 },
+          ]}
+          onPress={() => setAddSellerOpen(true)}
+          disabled={!canAddSeller}
+          hitSlop={10}
+        >
+          <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={colors.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
+            <Line x1="12" y1="5" x2="12" y2="19" />
+            <Line x1="5" y1="12" x2="19" y2="12" />
+          </Svg>
+        </Pressable>
       </View>
 
       <View style={s.searchBar}>
@@ -116,6 +136,8 @@ export default function DashboardScreen({ onBack, theme, userId }) {
           onChangeText={d.actions.updateSearchTerm}
         />
       </View>
+
+      <Text style={s.leadCountRow}>{d.filteredLeads.length} leads</Text>
 
       {d.notice && (
         <View style={s.successBox}>
@@ -203,6 +225,15 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         onStartEditing={d.actions.startEditingLead}
         onToggleSent={d.actions.toggleSent}
         onUpdateStatus={d.actions.updateLeadStatus}
+        colors={colors}
+      />
+
+      <AddSellerSheet
+        visible={addSellerOpen}
+        onClose={() => setAddSellerOpen(false)}
+        onSubmit={d.actions.addLead}
+        submitting={d.addingLead}
+        sourceLabel={activeSourceLabel}
         colors={colors}
       />
 
@@ -322,9 +353,18 @@ const styles = (c) =>
     pillTabActive: { backgroundColor: c.tabActiveBg },
     pillTabLabel: { fontSize: 14, fontWeight: "600", color: c.textMuted },
     pillTabLabelActive: { color: c.tabActiveText },
-    leadCount: {
+    addBtn: {
       position: "absolute",
-      right: 16,
+      right: 10,
+      top: 10,
+      width: 40,
+      height: 40,
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    leadCountRow: {
+      paddingHorizontal: 16,
+      paddingBottom: 6,
       fontSize: 12,
       color: c.textFaint,
     },

@@ -1382,6 +1382,44 @@ button.btn-wa:disabled {
 }
 
 /* Source tabs (underline style) */
+.source-tabs-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--text-faint);
+}
+
+.source-tabs-row .source-tabs {
+  border-bottom: none;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.add-seller-btn {
+  padding: 8px 14px;
+  margin-bottom: 4px;
+  border: 1px solid var(--btn-primary-bg);
+  border-radius: 8px;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.add-seller-btn:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
+}
+
+.add-seller-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .source-tabs {
   display: flex;
   gap: 0;

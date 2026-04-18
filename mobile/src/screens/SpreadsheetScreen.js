@@ -1,10 +1,12 @@
 import * as FileSystem from "expo-file-system";
+import * as ImagePicker from "expo-image-picker";
 import * as Sharing from "expo-sharing";
 import { useState } from "react";
-import { ActivityIndicator, Alert, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Svg, Line, Path } from "react-native-svg";
 import { TEMPLATE_CSV_HEADERS } from "../features/seller-signal/constants";
+import { extractTableFromImageUris, shareAsXlsx } from "../features/seller-signal/image-to-sheet";
 import { useSellerSignalPage } from "../features/seller-signal/useSellerSignalPage";
 import { getTheme } from "../theme";
 
@@ -257,6 +259,193 @@ const HELP_STEPS = [
   "Saved sheets auto-sync every 5 minutes while the app is open. New rows in Sheets become leads automatically.",
 ];
 
+function ScreenshotToSheetCard({ colors }) {
+  const [uris, setUris] = useState([]);
+  const [filename, setFilename] = useState("extracted");
+  const [preview, setPreview] = useState(null);
+  const [status, setStatus] = useState("");
+  const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function pickImages() {
+    setError("");
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      setError("Photo library permission is required to pick screenshots.");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: "images",
+      allowsMultipleSelection: true,
+      selectionLimit: 6,
+      quality: 0.85,
+    });
+    if (result.canceled) return;
+    const picked = result.assets.map((a) => a.uri);
+    setUris(picked);
+    setPreview(null);
+    setStatus(`${picked.length} screenshot${picked.length === 1 ? "" : "s"} ready.`);
+  }
+
+  async function runExtract() {
+    if (!uris.length) return;
+    setBusy(true);
+    setError("");
+    setStatus("Reading screenshots with AI (20-60 seconds)...");
+    try {
+      const result = await extractTableFromImageUris(uris);
+      setPreview(result);
+      setStatus(`Detected ${result.rows.length} row${result.rows.length === 1 ? "" : "s"} across ${result.headers.length} columns.`);
+    } catch (err) {
+      setError(err.message || "Could not extract table.");
+      setStatus("");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function runShare() {
+    if (!preview) return;
+    try {
+      await shareAsXlsx(preview, { filename: filename || "extracted", sheetName: filename || "Sheet1" });
+    } catch (err) {
+      setError(err.message || "Could not share .xlsx file.");
+    }
+  }
+
+  function reset() {
+    setUris([]);
+    setPreview(null);
+    setStatus("");
+    setError("");
+  }
+
+  const previewHeaders = preview?.headers || [];
+  const previewRows = preview?.rows || [];
+  const truncatedRows = previewRows.slice(0, 6);
+
+  return (
+    <View style={[s.sourceCard, { backgroundColor: colors.bgCard, borderColor: colors.border, marginBottom: 12 }]}>
+      <View style={s.sourceHeader}>
+        <Text style={[s.sourceTitle, { color: colors.textName }]}>Screenshot → Excel</Text>
+      </View>
+      <Text style={[s.cardHelper, { color: colors.textMuted }]}>
+        Upload screenshots of a spreadsheet. We OCR the tables and give you a shareable .xlsx file.
+      </Text>
+
+      {uris.length > 0 && (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ flexGrow: 0 }}>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {uris.map((uri) => (
+              <Image
+                key={uri}
+                source={{ uri }}
+                style={{ width: 72, height: 72, borderRadius: 8, borderWidth: 1, borderColor: colors.border }}
+              />
+            ))}
+          </View>
+        </ScrollView>
+      )}
+
+      <View style={s.fieldGroup}>
+        <Text style={[s.fieldLabel, { color: colors.textMuted }]}>Filename</Text>
+        <TextInput
+          style={[s.input, { backgroundColor: colors.bgInput, borderColor: colors.border, color: colors.text }]}
+          value={filename}
+          onChangeText={setFilename}
+          placeholder="extracted"
+          placeholderTextColor={colors.textFaint}
+          editable={!busy}
+        />
+      </View>
+
+      <View style={s.cardActions}>
+        <Pressable
+          style={({ pressed }) => [
+            s.secondaryBtn,
+            { borderColor: colors.border, opacity: busy ? 0.5 : pressed ? 0.8 : 1 },
+          ]}
+          disabled={busy}
+          onPress={pickImages}
+        >
+          <Text style={[s.secondaryBtnText, { color: colors.text }]}>
+            {uris.length ? "Change screenshots" : "Pick screenshots"}
+          </Text>
+        </Pressable>
+
+        <Pressable
+          style={({ pressed }) => [
+            s.primaryBtn,
+            { backgroundColor: colors.btnPrimaryBg, opacity: !uris.length || busy ? 0.4 : pressed ? 0.8 : 1 },
+          ]}
+          disabled={!uris.length || busy}
+          onPress={runExtract}
+        >
+          {busy ? (
+            <ActivityIndicator size="small" color={colors.btnPrimaryText} />
+          ) : (
+            <Text style={[s.primaryBtnText, { color: colors.btnPrimaryText }]}>Extract</Text>
+          )}
+        </Pressable>
+      </View>
+
+      {preview && (
+        <View style={s.cardActions}>
+          <Pressable
+            style={({ pressed }) => [
+              s.secondaryBtn,
+              { borderColor: colors.border, opacity: pressed ? 0.8 : 1 },
+            ]}
+            onPress={reset}
+          >
+            <Text style={[s.secondaryBtnText, { color: colors.text }]}>Reset</Text>
+          </Pressable>
+          <Pressable
+            style={({ pressed }) => [
+              s.primaryBtn,
+              { backgroundColor: colors.btnPrimaryBg, opacity: pressed ? 0.8 : 1 },
+            ]}
+            onPress={runShare}
+          >
+            <Text style={[s.primaryBtnText, { color: colors.btnPrimaryText }]}>Share .xlsx</Text>
+          </Pressable>
+        </View>
+      )}
+
+      {status ? <Text style={[s.cardHelper, { color: colors.textMuted }]}>{status}</Text> : null}
+      {error ? <Text style={[s.cardHelper, { color: colors.errorText || "#d00" }]}>{error}</Text> : null}
+
+      {preview && previewHeaders.length > 0 && (
+        <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8 }}>
+          <Text style={[s.cardHelper, { color: colors.textMuted, padding: 8, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }]}>
+            Preview ({truncatedRows.length} of {previewRows.length} rows)
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator>
+            <View>
+              <View style={{ flexDirection: "row", backgroundColor: colors.bg }}>
+                {previewHeaders.map((h, i) => (
+                  <Text key={i} style={{ minWidth: 90, padding: 6, fontSize: 11, fontWeight: "700", color: colors.textName, borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: colors.border }}>
+                    {h}
+                  </Text>
+                ))}
+              </View>
+              {truncatedRows.map((row, ri) => (
+                <View key={ri} style={{ flexDirection: "row", borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border }}>
+                  {previewHeaders.map((_, ci) => (
+                    <Text key={ci} style={{ minWidth: 90, padding: 6, fontSize: 11, color: colors.text, borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: colors.border }} numberOfLines={1}>
+                      {row[ci] ?? ""}
+                    </Text>
+                  ))}
+                </View>
+              ))}
+            </View>
+          </ScrollView>
+        </View>
+      )}
+    </View>
+  );
+}
+
 async function downloadTemplate() {
   const path = `${FileSystem.cacheDirectory}seller-signal-template.csv`;
   await FileSystem.writeAsStringAsync(path, TEMPLATE_CSV_HEADERS);
@@ -333,6 +522,8 @@ export default function SpreadsheetScreen({ onBack, theme, userId }) {
             <Text style={styles.errorText}>{d.error}</Text>
           </View>
         )}
+
+        <ScreenshotToSheetCard colors={colors} />
 
         <View style={styles.sourceActions}>
           <Pressable
