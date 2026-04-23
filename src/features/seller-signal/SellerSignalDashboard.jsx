@@ -8,7 +8,6 @@ import Pagination from "./components/Pagination";
 import StickyActionBar from "./components/StickyActionBar";
 import ViewTabs from "./components/ViewTabs";
 import { useSellerSignalPage } from "./useSellerSignalPage";
-import { getBuildingKeyVariants } from "./lead-utils";
 
 async function fetchBuildingImages({ signal }) {
   const response = await fetch("/data/building-images.json", { signal });

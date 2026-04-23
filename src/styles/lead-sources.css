@@ -1,0 +1,252 @@
+/* Lead Sources Panel */
+.source-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.source-panel-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.source-panel-toggle:hover .source-panel-title {
+  opacity: 0.7;
+}
+
+.source-panel-toggle-icon {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  width: 12px;
+  flex-shrink: 0;
+}
+
+.source-panel-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-name);
+}
+
+.source-panel-subtitle {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.75rem;
+}
+
+.source-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.source-row-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.source-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.source-row-name {
+  width: 160px;
+  min-width: 100px;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.source-row-name:hover,
+.source-row-name:focus {
+  border-color: var(--border);
+  background: var(--bg);
+  outline: none;
+}
+
+.source-row-url {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  text-overflow: ellipsis;
+}
+
+.source-row-url:hover,
+.source-row-url:focus {
+  border-color: var(--border);
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+}
+
+.source-row-count {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+  min-width: 50px;
+  text-align: right;
+}
+
+.source-row-import {
+  padding: 5px 14px;
+  border: none;
+  border-radius: 6px;
+  background: var(--btn-primary-bg, #111);
+  color: var(--btn-primary-text, #fff);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.source-row-import:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.source-row-import:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.source-row-clear {
+  padding: 5px 14px;
+  border: 1px solid var(--error-border, #d00);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--error-text, #d00);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.source-row-clear:hover:not(:disabled) {
+  background: var(--error-bg, #fff0f0);
+}
+
+.source-row-clear:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.source-row-feedback {
+  padding: 8px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  line-height: 1.45;
+}
+
+.source-row-feedback-notice {
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
+  color: var(--success-text);
+}
+
+.source-row-feedback-error {
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
+  color: var(--error-text);
+}
+
+.import-dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  background: var(--bg-hover);
+  border: 2px dashed var(--border);
+  border-radius: 16px;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.import-dropzone:hover {
+  border-color: var(--text-faint);
+  background: var(--bg-card);
+}
+
+.import-icon-container {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.import-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.import-title {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.import-subtitle {
+  margin: 0 0 24px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  max-width: 400px;
+}
+
+.import-input-group {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  max-width: 500px;
+}
+
+.import-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: var(--bg-input);
+  color: var(--text);
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.import-input:focus {
+  outline: none;
+  border-color: var(--text-muted);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+}
+
+.import-btn {
+  padding: 12px 24px;
+  white-space: nowrap;
+}
+

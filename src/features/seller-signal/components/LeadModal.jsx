@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { formatBedsLabel, formatDate, formatPrice, formatPsf, formatRange } from "../formatters";
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
-import { formatBuildingLabel } from "../lead-utils";
+import { formatBuildingLabel } from "../building-utils";
 import { formatLeadBedroom, extractUnitFromBuilding, formatLeadUnit, WhatsAppIcon } from "./LeadCard";
 
 const EDIT_STATUS_OPTIONS = [

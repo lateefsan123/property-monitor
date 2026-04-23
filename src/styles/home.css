@@ -1,0 +1,330 @@
+/* ============================================================
+   Collapsible sidebar
+   ============================================================ */
+.sidenav-collapsed {
+  display: none;
+}
+
+/* ============================================================
+   Home page
+   ============================================================ */
+.home-page {
+  flex: 1;
+  width: 100%;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 24px 32px 64px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.home-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--text-name);
+  line-height: 1.2;
+}
+
+.home-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.home-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  padding: 0;
+  overflow: hidden;
+  background: #F5F5F5;
+  border: 1px solid #d1d5db;
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.home-tile-visual {
+  position: relative;
+  height: 230px;
+  padding: 14px;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  overflow: hidden;
+}
+
+.home-tile-icon {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-name);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.home-tile-icon svg {
+  width: 22px;
+  height: 22px;
+}
+
+.tile-accent-indigo .home-tile-visual,
+.tile-accent-rose .home-tile-visual,
+.tile-accent-emerald .home-tile-visual { background: transparent; }
+
+.home-tile-body {
+  padding: 8px 20px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.home-tile-title {
+  margin: 0;
+  font-size: 1.02rem;
+  font-weight: 600;
+  color: var(--text-name);
+}
+
+.home-tile-desc {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.home-tile-cta {
+  margin-top: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-name);
+}
+
+/* Tile previews â€” layered floating cards with name-tag overlays */
+.tile-preview {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 6px;
+  box-sizing: border-box;
+  background: #FAFAFA;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.float-card {
+  position: absolute;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 8px;
+  padding: 10px;
+  box-shadow: 0 10px 24px -16px rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.card-label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  color: #475569;
+  letter-spacing: 0.02em;
+}
+
+.preview-line {
+  height: 5px;
+  border-radius: 3px;
+  background: #e5e7eb;
+}
+
+.preview-line.long { width: 100%; }
+.preview-line.short { width: 60%; background: #eef2f6; }
+.preview-line.highlight-blue { background: #bfdbfe; }
+.preview-line.highlight-green { background: #bbf7d0; }
+
+.name-tag {
+  position: absolute;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px -6px rgba(15, 23, 42, 0.4);
+}
+
+.tag-indigo { background: #4f46e5; }
+.tag-green { background: #16a34a; }
+.tag-amber { background: #ea580c; }
+.tag-rose { background: #e11d48; }
+.tag-slate { background: #334155; }
+.tag-violet { background: #7c3aed; }
+.tag-emerald { background: #059669; }
+
+/* --- Sellers layout --- */
+.seller-card-a {
+  width: 50%;
+  top: 18px;
+  left: 10%;
+  transform: rotate(-4deg);
+}
+.seller-card-b {
+  width: 46%;
+  top: 46px;
+  right: 8%;
+  transform: rotate(3deg);
+}
+.preview-sellers .tag-indigo {
+  top: 88px;
+  left: 32%;
+  transform: rotate(-2deg);
+}
+.preview-sellers .tag-green {
+  top: 24px;
+  right: 6%;
+  transform: rotate(4deg);
+}
+.preview-sellers .tag-amber {
+  bottom: 14px;
+  left: 14%;
+  transform: rotate(-3deg);
+}
+
+/* --- Listings layout --- */
+.preview-photo {
+  height: 30px;
+  border-radius: 4px;
+  background: linear-gradient(135deg, #fecdd3, #fda4af);
+}
+.preview-photo.alt { background: linear-gradient(135deg, #fed7aa, #fdba74); }
+
+.listing-card-a {
+  width: 46%;
+  top: 16px;
+  left: 8%;
+  transform: rotate(-3deg);
+}
+.listing-card-b {
+  width: 46%;
+  top: 36px;
+  right: 8%;
+  transform: rotate(3deg);
+}
+.preview-listings .tag-rose {
+  top: 12px;
+  right: 12%;
+  transform: rotate(5deg);
+}
+.preview-listings .tag-slate {
+  bottom: 22px;
+  left: 18%;
+  transform: rotate(-3deg);
+}
+.preview-listings .tag-violet {
+  bottom: 12px;
+  right: 22%;
+  transform: rotate(2deg);
+}
+
+/* --- Spreadsheets layout --- */
+.sheet-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+}
+.sheet-grid.small {
+  grid-template-columns: repeat(3, 1fr);
+}
+.sheet-cell {
+  aspect-ratio: 1.8 / 1;
+  border-radius: 2px;
+  background: #e5e7eb;
+}
+.sheet-cell.cell-0 { background: #a7f3d0; }
+.sheet-cell.cell-1 { background: #e5e7eb; }
+.sheet-cell.cell-2 { background: #f1f5f9; }
+.sheet-cell.cell-3 { background: #d1fae5; }
+
+.sheet-card-a {
+  width: 52%;
+  top: 18px;
+  left: 8%;
+  transform: rotate(-3deg);
+}
+.sheet-card-b {
+  width: 42%;
+  top: 48px;
+  right: 6%;
+  transform: rotate(4deg);
+}
+.preview-spreadsheets,
+.preview-listings,
+.preview-sellers {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.preview-listings {
+  background: #ffffff;
+}
+.preview-spreadsheets-img,
+.preview-listings-img,
+.preview-sellers-img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  border-radius: 10px;
+}
+.preview-listings-img,
+.preview-sellers-img {
+  object-fit: cover;
+}
+.preview-spreadsheets-img {
+  object-fit: contain;
+}
+
+@media (max-width: 900px) {
+  .home-tiles {
+    grid-template-columns: 1fr;
+  }
+
+  .home-page {
+    padding: 28px 20px 48px;
+  }
+
+  .home-title {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 820px) {
+  .sidenav-top {
+    padding: 0;
+    min-height: 0;
+  }
+
+  .sidenav-collapsed {
+    width: 100%;
+  }
+
+  .sidenav-toggle {
+    display: none;
+  }
+}
+

@@ -1,5 +1,5 @@
 import { formatPhoneForWhatsApp } from "../insight-utils";
-import { formatBuildingLabel } from "../lead-utils";
+import { formatBuildingLabel } from "../building-utils";
 
 function WhatsAppIcon() {
   return (

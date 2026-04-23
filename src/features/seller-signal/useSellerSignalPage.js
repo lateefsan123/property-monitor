@@ -1,13 +1,10 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { WHATSAPP_OPEN_DELAY_MS } from "./constants";
-import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
+import { formatPhoneForWhatsApp } from "./insight-utils";
 import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
 import {
   deleteLead,
-  insertLead,
   fetchLeadInsights,
-  fetchLeadSources,
   fetchUserLeads,
   persistLeadSentState,
   replaceLegacyLeadsFromSheet,
@@ -16,148 +13,26 @@ import {
   updateLeadStatus,
   upsertLeadSource,
 } from "./services";
-import { applyLeadEdits, applyLeadStatus, formatDateInputValue, sortLeadsByPriority } from "./lead-utils";
-
-const MAX_LEAD_SOURCES = 10;
-const LEGACY_SOURCE_ID = "legacy";
-const LEGACY_SOURCE_LABEL = "Legacy spreadsheet";
-const EMPTY_LEADS_DATA = { leads: [], sentMap: {} };
-const EMPTY_LEADS = [];
-const EMPTY_SOURCES = [];
-const EMPTY_SENT_MAP = {};
-
-function getErrorMessage(error) {
-  if (!error) return null;
-  if (typeof error === "string") return error;
-  if (error instanceof Error) return error.message || "Unexpected error";
-  if (typeof error?.message === "string") return error.message;
-  return "Unexpected error";
-}
-
-export function sellerLeadsQueryKey(userId) {
-  return ["seller-signal", "leads", userId];
-}
-
-export function sellerSourcesQueryKey(userId) {
-  return ["seller-signal", "sources", userId];
-}
-
-function sellerInsightsQueryKey(userId, targetKeys) {
-  return ["seller-signal", "insights", userId, targetKeys];
-}
-
-function sellerInsightsQueryPrefix(userId) {
-  return ["seller-signal", "insights", userId];
-}
-
-function normalizeSources(sources) {
-  if (!Array.isArray(sources)) return [];
-  return sources.map((source) => ({
-    ...source,
-    type: "building",
-  }));
-}
-
-function isVisibleSource(source) {
-  return Boolean(String(source?.building_name || source?.label || source?.sheet_url || "").trim());
-}
-
-function limitLeadSources(sources) {
-  if (!Array.isArray(sources)) return [];
-  const normalized = normalizeSources(sources);
-  return normalized
-    .filter(isVisibleSource)
-    .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
-    .slice(0, MAX_LEAD_SOURCES);
-}
-
-async function fetchSellerSources(userId) {
-  const sources = await fetchLeadSources(userId);
-  return limitLeadSources(sources);
-}
-
-function buildInsightTarget(lead) {
-  return {
-    id: lead.id,
-    name: lead.name || "",
-    building: lead.building || "",
-  };
-}
-
-function buildLoadingInsights(targets) {
-  const updates = {};
-  for (const lead of targets) {
-    updates[lead.id] = {
-      status: "loading",
-      error: null,
-      message: buildMessage(lead, null),
-    };
-  }
-  return updates;
-}
-
-function buildErroredInsights(targets, message) {
-  const updates = {};
-  for (const lead of targets) {
-    updates[lead.id] = {
-      status: "error",
-      error: message,
-      message: buildMessage(lead, null),
-    };
-  }
-  return updates;
-}
-
-function updateLeadsCache(queryClient, userId, updater) {
-  queryClient.setQueryData(sellerLeadsQueryKey(userId), (current) => updater(current || EMPTY_LEADS_DATA));
-}
-
-function isPlaceholderSourceLabel(source) {
-  const label = String(source?.label || "").trim();
-  return Boolean(label) && /^Spreadsheet\s+\d+$/i.test(label);
-}
-
-function getSourceName(source) {
-  if (!source) return "";
-  const buildingName = String(source.building_name || "").trim();
-  const label = String(source.label || "").trim();
-  if (buildingName && (!label || isPlaceholderSourceLabel(source))) return buildingName;
-  return label || buildingName || "";
-}
-
-function normalizeSourceDraft(source) {
-  if (!source) return source;
-  return {
-    ...source,
-    label: getSourceName(source),
-    building_name: null,
-  };
-}
-
-function formatSourceLabel(source) {
-  if (!source) return "";
-  const label = getSourceName(source);
-  return label || `Spreadsheet ${Number(source.sort_order ?? 0) + 1}`;
-}
-
-function formatImportSuccessMessage(label, result) {
-  const count = Number(result?.count || 0);
-  const skippedCount = Number(result?.skippedCount || 0);
-  const countText = `${count} lead${count === 1 ? "" : "s"}`;
-  const skippedText = `${skippedCount} duplicate row${skippedCount === 1 ? "" : "s"}`;
-
-  if (skippedCount > 0) {
-    return label
-      ? `Imported ${countText} from ${label}. Skipped ${skippedText} from the sheet.`
-      : `Imported ${countText}. Skipped ${skippedText} from the sheet.`;
-  }
-
-  return label ? `Imported ${countText} from ${label}.` : `Imported ${countText}.`;
-}
-
-function formatImportErrorMessage(label, message) {
-  return label ? `Import failed for ${label}: ${message}` : `Import failed: ${message}`;
-}
+import {
+  buildErroredInsights,
+  buildInsightTarget,
+  buildLoadingInsights,
+  EMPTY_LEADS,
+  EMPTY_LEADS_DATA,
+  EMPTY_SENT_MAP,
+  EMPTY_SOURCES,
+  fetchSellerSources,
+  getErrorMessage,
+  LEGACY_SOURCE_ID,
+  LEGACY_SOURCE_LABEL,
+  formatSourceLabel,
+} from "./page-helpers";
+import {
+  sellerInsightsQueryKey,
+  sellerLeadsQueryKey,
+  sellerSourcesQueryKey,
+} from "./queryKeys";
+import { createSellerSignalActions } from "./useSellerSignalActions";
 
 export function useSellerSignalPage(userId) {
   const queryClient = useQueryClient();
@@ -191,19 +66,6 @@ export function useSellerSignalPage(userId) {
   const [deletingLeadId, setDeletingLeadId] = useState(null);
   const [addingLead, setAddingLead] = useState(false);
   const deferredSearchTerm = useDeferredValue(searchTerm);
-
-  function createLeadEditDraft(lead) {
-    if (!lead) return null;
-    return {
-      name: lead.name || "",
-      building: lead.building || "",
-      bedroom: lead.bedroom || "",
-      unit: lead.unit || "",
-      phone: lead.phone || "",
-      status: lead.status || "",
-      lastContact: formatDateInputValue(lead.lastContactRaw || lead.lastContactDate),
-    };
-  }
 
   const leadsQuery = useQuery({
     queryKey: sellerLeadsQueryKey(userId),
@@ -383,410 +245,58 @@ export function useSellerSignalPage(userId) {
   const refreshing =
     (leadsQuery.isFetching && !leadsQuery.isPending)
     || (insightsQuery.isFetching && leads.length > 0);
-
-  function resetPaging() {
-    setCurrentPage(1);
-  }
-
-  function updateSearchTerm(value) {
-    setSearchTerm(value);
-    resetPaging();
-  }
-
-  function selectStatusFilter(value) {
-    setStatusFilter(value);
-    resetPaging();
-  }
-
-  function selectDataFilter(value) {
-    setDataFilter(value);
-    resetPaging();
-  }
-
-  function selectSourceFilter(value) {
-    setSourceFilter(value);
-    resetPaging();
-  }
-
-
-  function selectViewTab(value) {
-    setViewTab(value);
-    resetPaging();
-  }
-
-  function toggleLeadExpanded(leadId) {
-    setExpandedLeads((previous) => ({ ...previous, [leadId]: !previous[leadId] }));
-  }
-
-  function goToNextPage() {
-    setCurrentPage((page) => Math.min(page + 1, totalPages));
-  }
-
-  function goToPreviousPage() {
-    setCurrentPage((page) => Math.max(1, page - 1));
-  }
-
-  function toggleAllExpanded() {
-    setExpandedLeads((previous) => {
-      const next = { ...previous };
-      for (const lead of filteredLeads) next[lead.id] = !isAllExpanded;
-      return next;
-    });
-  }
-
-  function toggleImportPanel() {
-    setShowImport((previous) => !previous);
-  }
-
-  function updateSheetUrl(value) {
-    setActionNotice(null);
-    setSheetUrl(value);
-  }
-
-  function updateLeadSourceField(sourceId, field, value) {
-    setActionNotice(null);
-    queryClient.setQueryData(sellerSourcesQueryKey(userId), (current) =>
-      (current || EMPTY_SOURCES).map((source) =>
-        source.id === sourceId
-          ? field === "building_name"
-            ? { ...source, label: value, building_name: null }
-            : { ...source, [field]: value }
-          : source,
-      ));
-  }
-
-  async function persistLeadSource(sourceId) {
-    const source = leadSources.find((item) => item.id === sourceId);
-    if (!source) return;
-
-    setActionError(null);
-    setActionNotice(null);
-    try {
-      await persistLeadSourceMutation.mutateAsync(normalizeSourceDraft(source));
-      await queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) });
-    } catch (persistError) {
-      setActionError(getErrorMessage(persistError));
-    }
-  }
-
-  function updateLegacySheetUrl(value) {
-    const next = String(value || "");
-    setActionNotice(null);
-    setLegacySheetUrlState(next);
-    if (typeof window !== "undefined" && legacySheetStorageKey) {
-      if (next) window.localStorage.setItem(legacySheetStorageKey, next);
-      else window.localStorage.removeItem(legacySheetStorageKey);
-    }
-  }
-
-  async function importLegacySheet() {
-    const trimmed = legacySheetUrl.trim();
-    if (!trimmed) {
-      setActionError("Paste a Google Sheet URL first.");
-      setActionNotice(null);
-      return;
-    }
-    setImportingLegacy(true);
-    setActionError(null);
-    setActionNotice(null);
-
-    try {
-      const result = await importLegacyLeadsMutation.mutateAsync({ rawSheetUrl: trimmed });
-      setExpandedLeads({});
-      setEditingLeadId(null);
-      setEditingLeadDraft(null);
-      setCopiedLeadId(null);
-      setCurrentPage(1);
-      await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
-      queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
-      setActionNotice(formatImportSuccessMessage(LEGACY_SOURCE_LABEL, result));
-    } catch (importError) {
-      setActionError(formatImportErrorMessage(LEGACY_SOURCE_LABEL, getErrorMessage(importError)));
-    } finally {
-      setImportingLegacy(false);
-    }
-  }
-
-  async function importFromSheet(sourceId = null) {
-    setImporting(true);
-    setImportingSourceId(sourceId);
-    setActionError(null);
-    setActionNotice(null);
-
-    try {
-      const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
-      const sourceLabel = formatSourceLabel(source);
-      if (sourceId && source) {
-        await persistLeadSourceMutation.mutateAsync(normalizeSourceDraft(source));
-      }
-      const result = await importLeadsMutation.mutateAsync({
-        source: normalizeSourceDraft(source),
-        rawSheetUrl: sourceId ? source?.sheet_url : sheetUrl,
-      });
-
-      setShowImport(false);
-      setSheetUrl("");
-      setExpandedLeads({});
-      setEditingLeadId(null);
-      setEditingLeadDraft(null);
-      setCopiedLeadId(null);
-      setCurrentPage(1);
-      await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
-      queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
-      setActionNotice(formatImportSuccessMessage(sourceLabel, result));
-    } catch (importError) {
-      const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
-      setActionError(formatImportErrorMessage(formatSourceLabel(source), getErrorMessage(importError)));
-    } finally {
-      setImporting(false);
-      setImportingSourceId(null);
-    }
-  }
-
-  async function addLead(draft) {
-    const sourceId = effectiveSourceFilter;
-    if (!sourceId || sourceId === "all" || sourceId === LEGACY_SOURCE_ID) {
-      setActionError("Pick a spreadsheet first.");
-      setActionNotice(null);
-      return false;
-    }
-
-    setAddingLead(true);
-    setActionError(null);
-    setActionNotice(null);
-    try {
-      await insertLead({ userId, sourceId, fields: draft });
-      await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
-      setActionNotice("Seller added.");
-      return true;
-    } catch (addError) {
-      setActionError(getErrorMessage(addError));
-      return false;
-    } finally {
-      setAddingLead(false);
-    }
-  }
-
-  async function toggleSent(leadId) {
-    const previousData = queryClient.getQueryData(sellerLeadsQueryKey(userId));
-    const previousSentAt = sentLeads[leadId] || null;
-    const shouldMarkSent = !previousSentAt;
-
-    setActionError(null);
-    updateLeadsCache(queryClient, userId, (current) => {
-      const nextSentMap = { ...current.sentMap };
-      if (shouldMarkSent) {
-        nextSentMap[leadId] = Date.now();
-      } else {
-        delete nextSentMap[leadId];
-      }
-      return { ...current, sentMap: nextSentMap };
-    });
-
-    try {
-      const persistedSentAt = await toggleSentMutation.mutateAsync({ leadId, shouldMarkSent });
-      updateLeadsCache(queryClient, userId, (current) => {
-        const nextSentMap = { ...current.sentMap };
-        if (persistedSentAt) {
-          nextSentMap[leadId] = new Date(persistedSentAt).getTime();
-        } else {
-          delete nextSentMap[leadId];
-        }
-        return { ...current, sentMap: nextSentMap };
-      });
-      setViewTab(shouldMarkSent ? "done" : "active");
-      setCurrentPage(1);
-      if (shouldMarkSent) {
-        const today = new Date().toISOString().slice(0, 10);
-        try {
-          await updateLeadMutation.mutateAsync({ leadId, updates: { lastContact: today } });
-        } catch (updateError) {
-          setActionError(`Marked as sent, but could not update last contact: ${getErrorMessage(updateError)}`);
-        }
-      }
-      await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
-    } catch (persistError) {
-      setActionError(getErrorMessage(persistError));
-      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
-    }
-  }
-
-  async function changeLeadStatus(leadId, status) {
-    if (!leadId) return;
-
-    const previousData = queryClient.getQueryData(sellerLeadsQueryKey(userId));
-    setActionError(null);
-    updateLeadsCache(queryClient, userId, (current) => ({
-      ...current,
-      leads: sortLeadsByPriority(
-        current.leads.map((lead) =>
-          lead.id === leadId ? applyLeadStatus(lead, status) : lead,
-        ),
-      ),
-    }));
-
-    try {
-      await updateLeadStatusMutation.mutateAsync({ leadId, status });
-    } catch (statusError) {
-      setActionError(getErrorMessage(statusError));
-      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
-    }
-  }
-
-  function startEditingLead(leadId) {
-    const lead = leads.find((item) => item.id === leadId);
-    if (!lead) return;
-    setEditingLeadId(leadId);
-    setEditingLeadDraft(createLeadEditDraft(lead));
-  }
-
-  function cancelEditingLead() {
-    setEditingLeadId(null);
-    setEditingLeadDraft(null);
-  }
-
-  function updateLeadDraftField(field, value) {
-    setEditingLeadDraft((current) => (current ? { ...current, [field]: value } : current));
-  }
-
-  async function saveLeadEdits(leadId) {
-    if (!leadId || editingLeadId !== leadId || !editingLeadDraft) return;
-
-    const hasVisibleValue = [editingLeadDraft.name, editingLeadDraft.building, editingLeadDraft.phone]
-      .some((value) => String(value || "").trim());
-    if (!hasVisibleValue) {
-      setActionError("Seller needs at least a name, building, or phone number.");
-      return;
-    }
-
-    const currentLead = leads.find((item) => item.id === leadId);
-    if (!currentLead) return;
-
-    const previousData = queryClient.getQueryData(sellerLeadsQueryKey(userId));
-    const nextLead = applyLeadEdits(currentLead, editingLeadDraft);
-
-    setSavingLeadId(leadId);
-    setActionError(null);
-    updateLeadsCache(queryClient, userId, (current) => ({
-      ...current,
-      leads: sortLeadsByPriority(
-        current.leads.map((lead) => (lead.id === leadId ? nextLead : lead)),
-      ),
-    }));
-
-    try {
-      await updateLeadMutation.mutateAsync({ leadId, updates: editingLeadDraft });
-      setEditingLeadId(null);
-      setEditingLeadDraft(null);
-    } catch (saveError) {
-      setActionError(getErrorMessage(saveError));
-      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
-    } finally {
-      setSavingLeadId(null);
-    }
-  }
-
-  async function saveNotes(leadId, notes) {
-    if (!leadId) return;
-    try {
-      await updateLeadMutation.mutateAsync({ leadId, updates: { notes } });
-      queryClient.setQueryData(sellerLeadsQueryKey(userId), (current) => {
-        if (!current?.leads) return current;
-        return {
-          ...current,
-          leads: current.leads.map((l) => (l.id === leadId ? { ...l, notes: notes.trim() || "" } : l)),
-        };
-      });
-    } catch (saveError) {
-      setActionError(getErrorMessage(saveError));
-    }
-  }
-
-  async function removeLead(leadId) {
-    if (!leadId) return;
-
-    const targetLead = leads.find((item) => item.id === leadId);
-    if (!targetLead) return;
-
-    const targetLabel = targetLead.name || targetLead.building || "this seller";
-    const shouldDelete = typeof window === "undefined"
-      ? true
-      : window.confirm(`Delete ${targetLabel}? This action cannot be undone.`);
-    if (!shouldDelete) return;
-
-    const previousData = queryClient.getQueryData(sellerLeadsQueryKey(userId));
-    const previousExpandedLeads = expandedLeads;
-    const previousEditingLeadId = editingLeadId;
-    const previousEditingLeadDraft = editingLeadDraft;
-
-    setDeletingLeadId(leadId);
-    setActionError(null);
-    updateLeadsCache(queryClient, userId, (current) => {
-      const nextSentMap = { ...current.sentMap };
-      delete nextSentMap[leadId];
-      return {
-        ...current,
-        leads: current.leads.filter((lead) => lead.id !== leadId),
-        sentMap: nextSentMap,
-      };
-    });
-    setExpandedLeads((current) => {
-      const next = { ...current };
-      delete next[leadId];
-      return next;
-    });
-    if (copiedLeadId === leadId) setCopiedLeadId(null);
-    if (editingLeadId === leadId) {
-      setEditingLeadId(null);
-      setEditingLeadDraft(null);
-    }
-
-    try {
-      await deleteLeadMutation.mutateAsync({ leadId });
-    } catch (deleteError) {
-      setActionError(getErrorMessage(deleteError));
-      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
-      setExpandedLeads(previousExpandedLeads);
-      setEditingLeadId(previousEditingLeadId);
-      setEditingLeadDraft(previousEditingLeadDraft);
-    } finally {
-      setDeletingLeadId(null);
-    }
-  }
-
-  function bulkWhatsApp(markAsSent = true) {
-    const targets = pagedLeads.filter((lead) => {
-      const phone = formatPhoneForWhatsApp(lead.phone);
-      return phone && insights[lead.id]?.status === "ready";
-    });
-
-    targets.forEach((lead, index) => {
-      const insight = insights[lead.id];
-      const message = insight?.message || buildMessage(lead, insight);
-      const phone = formatPhoneForWhatsApp(lead.phone);
-      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-
-      window.setTimeout(() => {
-        window.open(url, "_blank", "noopener,noreferrer");
-      }, index * WHATSAPP_OPEN_DELAY_MS);
-
-      if (markAsSent && !sentLeads[lead.id]) {
-        void toggleSent(lead.id);
-      }
-    });
-  }
-
-  async function copyMessage(leadId, message) {
-    try {
-      await navigator.clipboard.writeText(message);
-      setCopiedLeadId(leadId);
-      window.setTimeout(() => {
-        setCopiedLeadId((currentValue) => (currentValue === leadId ? null : currentValue));
-      }, 1200);
-    } catch {
-      setActionError("Clipboard copy failed.");
-    }
-  }
+  const actions = createSellerSignalActions({
+    addingLead,
+    copiedLeadId,
+    deleteLeadMutation,
+    editingLeadDraft,
+    editingLeadId,
+    effectiveSourceFilter,
+    expandedLeads,
+    filteredLeads,
+    importLeadsMutation,
+    importLegacyLeadsMutation,
+    importing,
+    insights,
+    isAllExpanded,
+    leadSources,
+    legacySheetStorageKey,
+    legacySheetUrl,
+    leads,
+    pagedLeads,
+    persistLeadSourceMutation,
+    queryClient,
+    sentLeads,
+    sheetUrl,
+    toggleSentMutation,
+    totalPages,
+    updateLeadMutation,
+    updateLeadStatusMutation,
+    userId,
+    setters: {
+      setActionError,
+      setActionNotice,
+      setAddingLead,
+      setCopiedLeadId,
+      setCurrentPage,
+      setDataFilter,
+      setDeletingLeadId,
+      setEditingLeadDraft,
+      setEditingLeadId,
+      setExpandedLeads,
+      setImporting,
+      setImportingLegacy,
+      setImportingSourceId,
+      setLegacySheetUrlState,
+      setSavingLeadId,
+      setSearchTerm,
+      setSheetUrl,
+      setShowImport,
+      setSourceFilter,
+      setStatusFilter,
+      setViewTab,
+    },
+  });
 
   return {
     activeLeads,
@@ -825,34 +335,6 @@ export function useSellerSignalPage(userId) {
     statusFilter,
     totalPages,
     viewTab,
-    actions: {
-      addLead,
-      bulkWhatsApp,
-      cancelEditingLead,
-      copyMessage,
-      deleteLead: removeLead,
-      goToNextPage,
-      goToPreviousPage,
-      importFromSheet,
-      importLegacySheet,
-      persistLeadSource,
-      saveLeadEdits,
-      saveNotes,
-      selectDataFilter,
-      selectSourceFilter,
-      selectStatusFilter,
-      selectViewTab,
-      startEditingLead,
-      toggleAllExpanded,
-      toggleImportPanel,
-      toggleLeadExpanded,
-      toggleSent,
-      updateLeadDraftField,
-      updateLegacySheetUrl,
-      updateLeadSourceField,
-      updateLeadStatus: changeLeadStatus,
-      updateSearchTerm,
-      updateSheetUrl,
-    },
+    actions,
   };
 }

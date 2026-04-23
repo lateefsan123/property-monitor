@@ -1,6 +1,7 @@
 import { RECENT_TRANSACTIONS_LIMIT } from "./constants";
 import { formatDate, formatPriceShort } from "./formatters";
-import { cleanBuildingName, formatBuildingLabel, parseDateValue, startOfDay } from "./lead-utils";
+import { cleanBuildingName, formatBuildingLabel } from "./building-utils";
+import { parseDateValue, startOfDay } from "./lead-utils";
 
 function parseNumber(value) {
   if (typeof value === "number" && Number.isFinite(value)) return value;

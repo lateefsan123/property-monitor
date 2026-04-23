@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
-import { sellerLeadsQueryKey, sellerSourcesQueryKey } from "./useSellerSignalPage";
+import { sellerLeadsQueryKey, sellerSourcesQueryKey } from "./queryKeys";
 
 export function useSellerSignalRealtime(userId) {
   const queryClient = useQueryClient();

@@ -1,0 +1,355 @@
+/* Floating Action Button */
+.floating-action-container {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 50;
+}
+
+.btn-floating-wa {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #e6f4ea;
+  border: none;
+  color: #0b8a5b;
+  padding: 14px 20px;
+  border-radius: 16px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s, background 0.2s;
+}
+
+.btn-floating-wa:hover:not(:disabled) {
+  background: #dcfce7;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+}
+
+.btn-floating-wa:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-floating-wa .icon-lg {
+  width: 24px;
+  height: 24px;
+}
+
+.btn-floating-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+}
+
+.btn-floating-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.btn-floating-subtitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  opacity: 0.8;
+  line-height: 1.2;
+}
+
+/* Empty */
+.empty {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-faintest);
+  font-size: 0.9rem;
+}
+
+.user-email {
+  font-size: 0.76rem;
+  color: var(--text-faint);
+}
+
+/* Import Panel Dropzone */
+.import-panel-container {
+  margin-bottom: 24px;
+}
+
+/* Source tabs (underline style) */
+.source-tabs-row {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--text-faint);
+}
+
+.source-tabs-row .source-tabs {
+  border-bottom: none;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.add-seller-btn {
+  padding: 8px 14px;
+  margin-bottom: 4px;
+  border: 1px solid var(--btn-primary-bg);
+  border-radius: 8px;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, opacity 0.15s;
+}
+
+.add-seller-btn:hover:not(:disabled) {
+  background: var(--btn-primary-hover);
+}
+
+.add-seller-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.source-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--text-faint);
+}
+
+.source-tab {
+  padding: 10px 18px;
+  border: 1px solid var(--text-faint);
+  border-bottom: none;
+  border-radius: 0;
+  background: var(--bg-card);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+
+.source-tab:hover {
+  color: var(--text);
+}
+
+.source-tab.active,
+.source-tab.active:hover {
+  color: var(--tab-active-text);
+  background: var(--tab-active-bg);
+  border-color: var(--tab-active-bg);
+}
+
+/* Page title */
+.page-title {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.page-subtitle {
+  margin: 0 0 20px;
+  font-size: 0.85rem;
+  color: var(--text-faint);
+}
+
+.sheet-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sheet-sync-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.sheet-sync-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.sheet-sync-note {
+  font-size: 0.72rem;
+  color: var(--text-faint);
+}
+
+/* Screenshot -> sheet panel */
+.screenshot-panel {
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.screenshot-panel-header h3 {
+  margin: 0 0 4px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.screenshot-panel-hint {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.screenshot-panel-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.screenshot-panel-controls input[type="file"] {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  flex: 1 1 220px;
+  min-width: 0;
+}
+
+.screenshot-panel-filename {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.8rem;
+  min-width: 140px;
+}
+
+.screenshot-preview {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.screenshot-preview-title {
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.screenshot-preview-scroll {
+  max-height: 320px;
+  overflow: auto;
+}
+
+.screenshot-preview-scroll table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.74rem;
+}
+
+.screenshot-preview-scroll th,
+.screenshot-preview-scroll td {
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+  color: var(--text);
+}
+
+.screenshot-preview-scroll th {
+  background: var(--bg-card);
+  font-weight: 700;
+  position: sticky;
+  top: 0;
+}
+
+/* Sheet instructions */
+.sheet-instructions {
+  padding: 16px 20px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  margin-bottom: 20px;
+}
+
+.sheet-instructions h3 {
+  margin: 0 0 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.sheet-instructions ol {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.sheet-instructions li {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+}
+
+.sheet-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sheet-add-btn {
+  padding: 9px 16px;
+  border: none;
+  border-radius: 8px;
+  background: var(--btn-primary-bg, #111);
+  color: var(--btn-primary-text, #fff);
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sheet-add-btn:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.sheet-add-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.sheet-limit-note {
+  font-size: 0.76rem;
+  color: var(--text-faint);
+}
+
+.sheet-empty-state {
+  padding: 24px;
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: var(--bg-card);
+  margin-bottom: 12px;
+}
+
+.sheet-empty-state h3 {
+  margin: 0 0 8px;
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.sheet-empty-state p {
+  margin: 0;
+  font-size: 0.84rem;
+  line-height: 1.7;
+  color: var(--text-muted);
+}
+

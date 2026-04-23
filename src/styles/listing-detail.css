@@ -1,0 +1,372 @@
+/* ========================================================================
+   Listing Detail page
+   ======================================================================== */
+
+.ld-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+  position: relative;
+  min-width: 0;
+}
+
+.ld-scroll {
+  flex: 1;
+  padding-top: 12px;
+  padding-bottom: 40px;
+}
+
+.ld-eyebrow {
+  font-size: 0.625rem;
+  font-weight: 800;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.13em;
+}
+
+/* Hero */
+.ld-hero {
+  position: relative;
+  background: var(--bg-card);
+  overflow: hidden;
+}
+
+.ld-hero-img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.ld-hero-fade-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 110px;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0), var(--bg));
+}
+
+.ld-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: transparent;
+  border: none;
+  padding: 6px 8px;
+  margin: 0 16px 8px;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ld-back-link:hover {
+  color: var(--text);
+  background: transparent;
+}
+
+.ld-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.ld-actions .btn-sm {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ld-auto-track {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--bg-badge);
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+/* Heading */
+.ld-heading {
+  padding: 24px 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ld-heading.overlap {
+  margin-top: -24px;
+  position: relative;
+  z-index: 1;
+}
+
+.ld-title {
+  margin: 0;
+  font-size: 2.125rem;
+  line-height: 1.12;
+  font-weight: 900;
+  color: var(--text-name);
+  letter-spacing: -0.038em;
+}
+
+.ld-subtitle {
+  font-size: 0.94rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+  letter-spacing: -0.005em;
+}
+
+.ld-area {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  letter-spacing: 0.012em;
+}
+
+/* Price hero */
+.ld-price-hero {
+  padding: 28px 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ld-price-row {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.ld-price-value {
+  font-size: 2.75rem;
+  line-height: 1.05;
+  font-weight: 900;
+  color: var(--text-name);
+  letter-spacing: -0.05em;
+}
+
+.ld-price-prev {
+  font-size: 0.75rem;
+  color: var(--text-faint);
+}
+
+.ld-delta-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 0.81rem;
+  font-weight: 800;
+  letter-spacing: 0.012em;
+}
+
+.ld-delta-drop {
+  background: var(--badge-ok-bg);
+  color: var(--badge-ok-text);
+}
+
+.ld-delta-rise {
+  background: var(--badge-due-bg);
+  color: var(--badge-due-text);
+}
+
+/* Sections */
+.ld-section {
+  margin-top: 32px;
+}
+
+.ld-section-eyebrow {
+  padding: 0 16px 12px;
+}
+
+.ld-section-eyebrow.padded {
+  padding-left: 24px;
+}
+
+.ld-chart-section {
+  padding: 0 16px;
+}
+
+/* Chart */
+.ld-chart {
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.ld-chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 16px 18px 4px;
+}
+
+.ld-chart-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.ld-chart-stat.center {
+  align-items: center;
+}
+
+.ld-chart-stat.end {
+  align-items: flex-end;
+}
+
+.ld-chart-stat-value {
+  font-size: 0.81rem;
+  font-weight: 800;
+  color: var(--text-name);
+}
+
+.ld-chart-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.ld-chart-grid {
+  stroke: var(--bg-card-border);
+  stroke-width: 1;
+}
+
+.ld-chart-area {
+  fill: var(--stat-value);
+  fill-opacity: 0.14;
+}
+
+.ld-chart-line {
+  stroke: var(--stat-value);
+  stroke-width: 2.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ld-chart-dot {
+  fill: var(--stat-value);
+  stroke: var(--bg-card);
+  stroke-width: 2;
+}
+
+.ld-chart-dot.drop {
+  fill: var(--badge-ok-text);
+}
+
+.ld-chart-dot.rise {
+  fill: var(--badge-due-text);
+}
+
+.ld-chart-axis {
+  font-size: 10px;
+  font-weight: 700;
+  fill: var(--text-faint);
+  letter-spacing: 0.05em;
+}
+
+.ld-chart-empty {
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 20px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.ld-chart-empty-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  background: var(--bg-badge);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ld-chart-empty-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-name);
+  margin-top: 4px;
+}
+
+.ld-chart-empty-text {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* Stat strip */
+.ld-stat-strip {
+  display: flex;
+  border-top: 1px solid var(--bg-card-border);
+  border-bottom: 1px solid var(--bg-card-border);
+}
+
+.ld-stat-strip-cell {
+  flex: 1;
+  border-left: 1px solid var(--bg-card-border);
+}
+
+.ld-stat-strip-cell.first {
+  border-left: none;
+}
+
+.ld-stat-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 18px 8px;
+}
+
+.ld-stat-value {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-name);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.ld-stat-value.drop {
+  color: var(--badge-ok-text);
+}
+
+.ld-stat-value.rise {
+  color: var(--badge-due-text);
+}
+
+.ld-stat-eyebrow {
+  font-size: 0.625rem;
+}
+
+.ld-stat-footnote {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 24px 0;
+  font-size: 0.7rem;
+  color: var(--text-faint);
+}
+
