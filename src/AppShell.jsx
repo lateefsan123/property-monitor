@@ -7,10 +7,12 @@ import ListingAlertsPage from "./features/listing-alerts/components/ListingAlert
 import SpreadsheetsPage from "./features/seller-signal/components/SpreadsheetsPage";
 import HomePage from "./features/home/HomePage";
 import CreateNewModal from "./features/home/CreateNewModal";
+import ThemeToggleButton from "./components/ThemeToggleButton";
 import { fetchUserLeads, fetchLeadInsights } from "./features/seller-signal/services";
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 
 const VALID_PAGES = new Set(["home", "sellers", "listing-alerts", "spreadsheets"]);
+const THEME_STORAGE_KEY = "property:theme";
 
 const PAGE_LABELS = {
   home: "Home",
@@ -60,12 +62,26 @@ function readPageFromHash() {
   return VALID_PAGES.has(hash) ? hash : "home";
 }
 
+function readInitialTheme() {
+  if (typeof window === "undefined") return "light";
+
+  try {
+    const storedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+    if (storedTheme === "dark" || storedTheme === "light") return storedTheme;
+  } catch {
+    // Ignore storage issues and continue with a runtime fallback.
+  }
+
+  return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+}
+
 export default function AppShell({ displayName, userId }) {
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(readPageFromHash);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [theme, setTheme] = useState(readInitialTheme);
 
   useEffect(() => {
     function onHashChange() {
@@ -83,6 +99,20 @@ export default function AppShell({ displayName, userId }) {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    const root = document.documentElement;
+    if (theme === "dark") root.setAttribute("data-theme", "dark");
+    else root.removeAttribute("data-theme");
+
+    root.style.colorScheme = theme;
+
+    try {
+      window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+    } catch {
+      // Ignore storage failures and keep the theme in memory.
+    }
+  }, [theme]);
 
   useEffect(() => {
     if (!userId) return;
@@ -144,11 +174,16 @@ export default function AppShell({ displayName, userId }) {
     }
   }
 
+  function handleToggleTheme() {
+    setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
+  }
+
   return (
     <div className="app-shell">
       <AppSidebar
         currentPage={currentPage}
         displayName={displayName}
+        userId={userId}
         onNavigate={handleNavigate}
         onAction={handleSidebarAction}
         onSignOut={() => supabase.auth.signOut()}
@@ -163,82 +198,76 @@ export default function AppShell({ displayName, userId }) {
         />
       )}
 
-      <div className={`app-main${!sidebarCollapsed ? " app-main-dimmed" : ""}`}>
-        {sidebarCollapsed && (
-          <header className={`app-topbar${scrolled ? " app-topbar-scrolled" : ""}`}>
+      <div className="app-main">
+        <header className={`app-topbar${scrolled ? " app-topbar-scrolled" : ""}`}>
+          <button
+            type="button"
+            className="app-topbar-toggle"
+            aria-label={sidebarCollapsed ? "Open navigation" : "Close navigation"}
+            onClick={() => setSidebarCollapsed((v) => !v)}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="4" y1="7" x2="20" y2="7" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="17" x2="20" y2="17" />
+            </svg>
+          </button>
+
+          <nav className="app-topbar-crumbs" aria-label="Breadcrumb">
             <button
               type="button"
-              className="app-topbar-toggle"
-              aria-label="Open navigation"
-              onClick={() => setSidebarCollapsed(false)}
+              className="app-crumb-home"
+              aria-label="Home"
+              onClick={() => handleNavigate("home")}
             >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="4" y1="7" x2="20" y2="7" />
-                <line x1="4" y1="12" x2="20" y2="12" />
-                <line x1="4" y1="17" x2="20" y2="17" />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 10.5 12 3l9 7.5" />
+                <path d="M5 9.5V21h14V9.5" />
+                <path d="M10 21v-6h4v6" />
               </svg>
             </button>
 
-            <nav className="app-topbar-crumbs" aria-label="Breadcrumb">
-              <button
-                type="button"
-                className="app-crumb-home"
-                aria-label="Home"
-                onClick={() => handleNavigate("home")}
-              >
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 10.5 12 3l9 7.5" />
-                  <path d="M5 9.5V21h14V9.5" />
-                  <path d="M10 21v-6h4v6" />
-                </svg>
-              </button>
-
-              {currentPage === "home" ? (
-                <span className="app-crumb-label">Home</span>
-              ) : (
-                <>
-                  <span className="app-crumb-sep">/</span>
-                  <span className={`app-crumb-page accent-${PAGE_ACCENTS[currentPage]}`}>
-                    <span className="app-crumb-chip">
-                      <PageIcon page={currentPage} />
-                    </span>
-                    <span className="app-crumb-label">{PAGE_LABELS[currentPage]}</span>
+            {currentPage === "home" ? (
+              <span className="app-crumb-label">Home</span>
+            ) : (
+              <>
+                <span className="app-crumb-sep">/</span>
+                <button
+                  type="button"
+                  className={`app-crumb-page app-crumb-btn accent-${PAGE_ACCENTS[currentPage]}`}
+                  onClick={() => {
+                    window.dispatchEvent(new CustomEvent("app-crumb-click", { detail: currentPage }));
+                  }}
+                >
+                  <span className="app-crumb-chip">
+                    <PageIcon page={currentPage} />
                   </span>
-                </>
-              )}
-            </nav>
+                  <span className="app-crumb-label">{PAGE_LABELS[currentPage]}</span>
+                </button>
+                <div id="app-topbar-crumb-extra" className="app-topbar-crumb-extra" />
+              </>
+            )}
+          </nav>
 
-            <button
-              type="button"
-              className="app-topbar-more"
-              aria-label="More options"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                <circle cx="12" cy="5" r="2" />
-                <circle cx="12" cy="12" r="2" />
-                <circle cx="12" cy="19" r="2" />
-              </svg>
-            </button>
-          </header>
-        )}
+          <div className="app-topbar-actions">
+            <div id="app-topbar-actions" className="app-topbar-actions-slot" />
+            <ThemeToggleButton theme={theme} onToggle={handleToggleTheme} />
+          </div>
+        </header>
 
         {currentPage === "home" ? (
-          <HomePage displayName={displayName} onNavigate={handleNavigate} />
+          <HomePage
+            displayName={displayName}
+            onNavigate={handleNavigate}
+            userId={userId}
+            onOpenCreate={() => setCreateOpen(true)}
+          />
         ) : currentPage === "sellers" ? (
           <SellerSignalDashboard userId={userId} />
         ) : currentPage === "spreadsheets" ? (
           <SpreadsheetsPage userId={userId} />
         ) : (
           <ListingAlertsPage />
-        )}
-
-        {!sidebarCollapsed && (
-          <button
-            type="button"
-            className="app-main-scrim"
-            aria-label="Close navigation"
-            onClick={() => setSidebarCollapsed(true)}
-          />
         )}
       </div>
     </div>

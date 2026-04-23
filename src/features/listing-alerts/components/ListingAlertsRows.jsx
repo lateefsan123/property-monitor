@@ -25,12 +25,65 @@ function ArrowIcon({ direction = "down", size = 11 }) {
   );
 }
 
-function BellDotIcon({ size = 14, withAccent }) {
+function FavoriteIcon({ filled }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-      {withAccent ? <circle cx="19" cy="5" r="3" fill="currentColor" stroke="none" /> : null}
+    <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
+function PinIcon({ filled }) {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 17v5" />
+      <path d="M9 3h6l-1 6 4 4H6l4-4-1-6z" />
+    </svg>
+  );
+}
+
+function RowHoverActions({ favorited, pinned, onToggleFavorite, onTogglePin }) {
+  function handle(fn) {
+    return (event) => {
+      event.stopPropagation();
+      fn?.();
+    };
+  }
+  return (
+    <span className="sheet-row-actions" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        className={`sheet-card-action${favorited ? " is-active" : ""}`}
+        onClick={handle(onToggleFavorite)}
+        aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
+        title={favorited ? "Remove from favorites" : "Favorite"}
+      >
+        <FavoriteIcon filled={favorited} />
+      </button>
+      <button
+        type="button"
+        className={`sheet-card-action${pinned ? " is-active" : ""}`}
+        onClick={handle(onTogglePin)}
+        aria-label={pinned ? "Unpin" : "Pin"}
+        title={pinned ? "Unpin" : "Pin"}
+      >
+        <PinIcon filled={pinned} />
+      </button>
+    </span>
+  );
+}
+
+function BuildingIcon({ size = 20 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 21h18" />
+      <path d="M5 21V7l7-4 7 4v14" />
+      <path d="M9 9h.01" />
+      <path d="M14 9h.01" />
+      <path d="M9 13h.01" />
+      <path d="M14 13h.01" />
+      <path d="M9 17h.01" />
+      <path d="M14 17h.01" />
     </svg>
   );
 }
@@ -59,23 +112,6 @@ function TrackingPill() {
   return <span className="la-tracking-pill">Tracking</span>;
 }
 
-function WatchButton({ active, disabled, onClick }) {
-  return (
-    <button
-      type="button"
-      className={`btn-sm la-watch-btn${active ? " active" : ""}`}
-      disabled={disabled}
-      onClick={(event) => {
-        event.stopPropagation();
-        onClick();
-      }}
-    >
-      <BellDotIcon withAccent={active} size={13} />
-      {active ? "Watching" : "Watch"}
-    </button>
-  );
-}
-
 export function getSearchOptionLabel(option) {
   return option?.buildingName || option?.searchName || "Unknown";
 }
@@ -91,7 +127,7 @@ export function getSearchOptionMeta(option) {
   return (remaining.length ? remaining : parts).join(", ");
 }
 
-export function BuildingRow({ building, isWatched, watchDisabled, onToggleWatch, onPress, priceDropCount }) {
+export function BuildingRow({ building, isWatched, onPress, priceDropCount, favorited, pinned, onToggleFavorite, onTogglePin }) {
   const loadedCount = building?.listings?.length || 0;
   const countLine = isWatched
     ? loadedCount
@@ -103,43 +139,241 @@ export function BuildingRow({ building, isWatched, watchDisabled, onToggleWatch,
     : building.lowestPrice != null || building.highestPrice != null
       ? formatPriceRange(building.lowestPrice, building.highestPrice)
       : "Watch to load listings";
+  const newListingCount = building?.changeSummary?.newListingCount || 0;
+
+  function handleKey(event) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onPress();
+    }
+  }
 
   return (
-    <tr
-      className="lead-row"
-      onClick={onPress}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onPress();
-        }
-      }}
+    <div
+      className={`sheet-row la-row la-row-building${pinned ? " is-pinned" : ""}`}
       role="button"
       tabIndex={0}
+      onClick={onPress}
+      onKeyDown={handleKey}
     >
-      <td className="lead-cell-name">
-        <span className="lead-name">{building.buildingName}</span>
-      </td>
-      <td className="lead-cell-building">
-        <span className="lead-building-label">{countLine}</span>
-      </td>
-      <td className="la-cell-price">
-        {priceLine}
+      <span className="sheet-row-icon la-row-building-icon" aria-hidden>
+        <BuildingIcon />
+      </span>
+      <div className="la-row-primary">
+        <span className="la-row-title">
+          {building.buildingName}
+          {newListingCount > 0 ? (
+            <span className="la-new-pill" title={`${newListingCount} new since last check`}>
+              {newListingCount} new
+            </span>
+          ) : null}
+        </span>
+        <span className="la-row-sub">{countLine}</span>
+      </div>
+      <div className="la-row-price">
+        <span className="la-cell-price-value">{priceLine}</span>
         {priceDropCount > 0 ? (
           <span className="la-drop-indicator">
             <ArrowIcon direction="down" size={10} />
             {priceDropCount} {priceDropCount === 1 ? "drop" : "drops"}
           </span>
         ) : null}
-      </td>
-      <td className="lead-cell-action" onClick={(event) => event.stopPropagation()}>
-        <WatchButton active={isWatched} disabled={watchDisabled} onClick={onToggleWatch} />
-      </td>
-    </tr>
+      </div>
+      <RowHoverActions
+        favorited={favorited}
+        pinned={pinned}
+        onToggleFavorite={onToggleFavorite}
+        onTogglePin={onTogglePin}
+      />
+    </div>
   );
 }
 
-export function ListingHistoryRow({ listing, onPress, onOpenExternal }) {
+function hashSeed(value) {
+  const str = String(value ?? "");
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i += 1) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0) || 1;
+}
+
+const BUILDING_PALETTE = ["#dbeafe", "#ede9fe", "#fce7f3", "#fef3c7", "#ccfbf1", "#ffe4e6", "#e0f2fe"];
+
+function buildingThumbColor(seed) {
+  return BUILDING_PALETTE[hashSeed(seed) % BUILDING_PALETTE.length];
+}
+
+function CardHoverActions({ favorited, pinned, onToggleFavorite, onTogglePin }) {
+  function handle(fn) {
+    return (event) => {
+      event.stopPropagation();
+      fn?.();
+    };
+  }
+  return (
+    <div className="sheet-card-actions" onClick={(e) => e.stopPropagation()}>
+      <button
+        type="button"
+        className={`sheet-card-action${favorited ? " is-active" : ""}`}
+        onClick={handle(onToggleFavorite)}
+        aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
+        title={favorited ? "Remove from favorites" : "Favorite"}
+      >
+        <FavoriteIcon filled={favorited} />
+      </button>
+      <button
+        type="button"
+        className={`sheet-card-action${pinned ? " is-active" : ""}`}
+        onClick={handle(onTogglePin)}
+        aria-label={pinned ? "Unpin" : "Pin"}
+        title={pinned ? "Unpin" : "Pin"}
+      >
+        <PinIcon filled={pinned} />
+      </button>
+    </div>
+  );
+}
+
+export function BuildingCard({ building, isWatched, onPress, priceDropCount, favorited, pinned, onToggleFavorite, onTogglePin }) {
+  const loadedCount = building?.listings?.length || 0;
+  const countLine = isWatched
+    ? loadedCount
+      ? `${loadedCount} ${loadedCount === 1 ? "listing" : "listings"}`
+      : "No live listings"
+    : building.fullPath || "Bayut location";
+  const priceLine = building.fetchError
+    ? "Live pricing unavailable"
+    : building.lowestPrice != null || building.highestPrice != null
+      ? formatPriceRange(building.lowestPrice, building.highestPrice)
+      : "Watch to load listings";
+  const newListingCount = building?.changeSummary?.newListingCount || 0;
+
+  function handleKey(event) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onPress();
+    }
+  }
+
+  return (
+    <div
+      className={`sheet-card la-card la-card-building${pinned ? " is-pinned" : ""}`}
+      role="button"
+      tabIndex={0}
+      onClick={onPress}
+      onKeyDown={handleKey}
+    >
+      <CardHoverActions
+        favorited={favorited}
+        pinned={pinned}
+        onToggleFavorite={onToggleFavorite}
+        onTogglePin={onTogglePin}
+      />
+      <div
+        className="sheet-card-preview la-card-preview"
+        style={{ background: buildingThumbColor(building.locationId || building.buildingName) }}
+        aria-hidden
+      >
+        <BuildingIcon size={48} />
+      </div>
+      <div className="sheet-card-body">
+        <div className="sheet-card-title">
+          {building.buildingName}
+          {newListingCount > 0 ? (
+            <span className="la-new-pill" title={`${newListingCount} new since last check`}>
+              {newListingCount} new
+            </span>
+          ) : null}
+        </div>
+        <div className="sheet-card-meta">
+          <span>{countLine}</span>
+        </div>
+        <div className="la-card-footer">
+          <span className="la-card-price">{priceLine}</span>
+          {priceDropCount > 0 ? (
+            <span className="la-drop-indicator">
+              <ArrowIcon direction="down" size={10} />
+              {priceDropCount}
+            </span>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function ListingCard({ listing, hideBuildingName, onPress, onOpenExternal, favorited, pinned, onToggleFavorite, onTogglePin }) {
+  const isTracked = Boolean(listing.isTracked);
+  const isRemoved = listing.currentStatus === "removed";
+  const currentPrice = isRemoved ? listing.lastKnownPrice : listing.price ?? listing.currentPrice ?? listing.lastKnownPrice;
+
+  function handleKey(event) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onPress();
+    }
+  }
+
+  return (
+    <div
+      className={`sheet-card la-card la-card-listing${pinned ? " is-pinned" : ""}`}
+      role="button"
+      tabIndex={0}
+      onClick={onPress}
+      onKeyDown={handleKey}
+    >
+      <CardHoverActions
+        favorited={favorited}
+        pinned={pinned}
+        onToggleFavorite={onToggleFavorite}
+        onTogglePin={onTogglePin}
+      />
+      <div className="sheet-card-preview la-card-listing-preview" aria-hidden>
+        {listing.coverPhoto ? (
+          <img src={listing.coverPhoto} alt="" className="la-card-listing-img" />
+        ) : (
+          <div className="la-card-listing-img la-card-listing-img-placeholder" />
+        )}
+      </div>
+      <div className="sheet-card-body">
+        <div className="sheet-card-title">{listing.title || "Untitled listing"}</div>
+        {!hideBuildingName ? (
+          <div className="sheet-card-meta">
+            <span title={listing.buildingName}>{listing.buildingName}</span>
+          </div>
+        ) : null}
+        <div className="la-card-specs">
+          <span>{formatBedsAndBaths(listing.beds, listing.baths)}</span>
+          <span className="la-cell-area">{formatArea(listing.areaSqft)}</span>
+        </div>
+        <div className="la-card-footer">
+          <span className="la-card-price">
+            {isRemoved ? formatPrice(listing.lastKnownPrice) : formatPriceRange(currentPrice, currentPrice)}
+          </span>
+          <div className="la-card-pills">
+            {isTracked && listing.currentStatus ? <StatusPill listing={listing} /> : null}
+            {isTracked ? <TrackingPill /> : null}
+          </div>
+        </div>
+        <button
+          type="button"
+          className="btn-sm la-row-external-btn la-card-bayut"
+          onClick={(event) => {
+            event.stopPropagation();
+            onOpenExternal();
+          }}
+        >
+          Bayut
+          <ExternalLinkIcon size={12} />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export function ListingHistoryRow({ listing, hideBuildingName, onPress, onOpenExternal, favorited, pinned, onToggleFavorite, onTogglePin }) {
   const isTracked = Boolean(listing.isTracked);
   const isRemoved = listing.currentStatus === "removed";
   const currentPrice = isRemoved ? listing.lastKnownPrice : listing.price ?? listing.currentPrice ?? listing.lastKnownPrice;
@@ -151,38 +385,42 @@ export function ListingHistoryRow({ listing, onPress, onOpenExternal }) {
         ? `${listing.totalChanges} tracked ${listing.totalChanges === 1 ? "change" : "changes"}`
         : `Tracking since ${formatListingTimestamp(listing.firstSeenAt || listing.verifiedAt)}`;
 
+  function handleKey(event) {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      onPress();
+    }
+  }
+
   return (
-    <tr
-      className="lead-row"
-      onClick={onPress}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onPress();
-        }
-      }}
+    <div
+      className={`sheet-row la-row la-row-listing${pinned ? " is-pinned" : ""}`}
       role="button"
       tabIndex={0}
+      onClick={onPress}
+      onKeyDown={handleKey}
     >
-      <td className="la-cell-thumb">
+      <span className="la-row-thumb-wrap" aria-hidden>
         {listing.coverPhoto ? (
           <img className="la-row-thumb" src={listing.coverPhoto} alt="" />
         ) : (
           <div className="la-row-thumb la-row-thumb-placeholder" />
         )}
-      </td>
-      <td className="lead-cell-name">
-        <span className="lead-name">{listing.title || "Untitled listing"}</span>
-        {statusLine ? <span className="la-cell-sub">{statusLine}</span> : null}
-      </td>
-      <td className="lead-cell-building">
-        <span className="lead-building-label" title={listing.buildingName}>{listing.buildingName}</span>
-      </td>
-      <td className="la-cell-details">
-        {formatBedsAndBaths(listing.beds, listing.baths)}
+      </span>
+      <div className="la-row-primary">
+        <span className="la-row-title">{listing.title || "Untitled listing"}</span>
+        {statusLine ? <span className="la-row-sub">{statusLine}</span> : null}
+      </div>
+      {!hideBuildingName ? (
+        <div className="la-row-building-name" title={listing.buildingName}>
+          {listing.buildingName}
+        </div>
+      ) : null}
+      <div className="la-row-details">
+        <span>{formatBedsAndBaths(listing.beds, listing.baths)}</span>
         <span className="la-cell-area">{formatArea(listing.areaSqft)}</span>
-      </td>
-      <td className="la-cell-price">
+      </div>
+      <div className="la-row-price">
         <span className="la-cell-price-value">
           {isRemoved ? formatPrice(listing.lastKnownPrice) : formatPriceRange(currentPrice, currentPrice)}
         </span>
@@ -190,12 +428,12 @@ export function ListingHistoryRow({ listing, onPress, onOpenExternal }) {
         {isTracked && Number.isFinite(listing.previousPrice) && listing.previousPrice !== currentPrice && !isRemoved ? (
           <span className="la-cell-was">Was {formatPrice(listing.previousPrice)}</span>
         ) : null}
-      </td>
-      <td className="lead-cell-status">
+      </div>
+      <div className="la-row-status">
         {isTracked && listing.currentStatus ? <StatusPill listing={listing} /> : null}
         {isTracked ? <TrackingPill /> : null}
-      </td>
-      <td className="lead-cell-action" onClick={(event) => event.stopPropagation()}>
+      </div>
+      <div className="la-row-action" onClick={(event) => event.stopPropagation()}>
         <button
           type="button"
           className="btn-sm la-row-external-btn"
@@ -207,7 +445,13 @@ export function ListingHistoryRow({ listing, onPress, onOpenExternal }) {
           Bayut
           <ExternalLinkIcon size={12} />
         </button>
-      </td>
-    </tr>
+      </div>
+      <RowHoverActions
+        favorited={favorited}
+        pinned={pinned}
+        onToggleFavorite={onToggleFavorite}
+        onTogglePin={onTogglePin}
+      />
+    </div>
   );
 }

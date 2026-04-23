@@ -183,9 +183,18 @@
   color: var(--badge-due-text);
 }
 
+/* Tabs */
+.ld-tabs-wrap {
+  margin: 28px 16px 8px;
+}
+
+.ld-tabs {
+  width: fit-content;
+}
+
 /* Sections */
 .ld-section {
-  margin-top: 32px;
+  margin-top: 24px;
 }
 
 .ld-section-eyebrow {

@@ -7,6 +7,7 @@ import LeadModal from "./components/LeadModal";
 import Pagination from "./components/Pagination";
 import StickyActionBar from "./components/StickyActionBar";
 import ViewTabs from "./components/ViewTabs";
+import { useSellerFavorites } from "./useSellerFavorites";
 import { useSellerSignalPage } from "./useSellerSignalPage";
 
 async function fetchBuildingImages({ signal }) {
@@ -18,6 +19,7 @@ async function fetchBuildingImages({ signal }) {
 export default function SellerSignalDashboard({ userId }) {
   const dashboard = useSellerSignalPage(userId);
   const [addSellerOpen, setAddSellerOpen] = useState(false);
+  const { favoriteIds, toggleFavorite, pinnedIds, togglePin } = useSellerFavorites();
   const buildingImagesQuery = useQuery({
     queryKey: ["seller-signal", "building-images"],
     queryFn: fetchBuildingImages,
@@ -118,13 +120,6 @@ export default function SellerSignalDashboard({ userId }) {
         viewTab={dashboard.viewTab}
       />
 
-      {dashboard.refreshing && dashboard.hasLeads ? (
-        <div className="refreshing-strip" role="status" aria-live="polite">
-          <span className="refreshing-dot" />
-          Refreshing seller data...
-        </div>
-      ) : null}
-
       {dashboard.hasLeads ? (
         <>
           <p className="count-text">{dashboard.filteredLeads.length} leads</p>
@@ -147,13 +142,17 @@ export default function SellerSignalDashboard({ userId }) {
                   <LeadCard
                     key={lead.id}
                     copiedLeadId={dashboard.copiedLeadId}
+                    favorited={favoriteIds.has(String(lead.id))}
                     insight={dashboard.insights[lead.id]}
                     isSent={Boolean(dashboard.sentLeads[lead.id])}
                     lead={lead}
                     onCopyMessage={dashboard.actions.copyMessage}
                     onDelete={dashboard.actions.deleteLead}
                     onToggleExpanded={dashboard.actions.toggleLeadExpanded}
+                    onToggleFavorite={toggleFavorite}
+                    onTogglePin={togglePin}
                     onToggleSent={dashboard.actions.toggleSent}
+                    pinned={pinnedIds.has(String(lead.id))}
                   />
                 ))}
               </tbody>

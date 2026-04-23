@@ -4,6 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import "./index.css";
 import App from "./App.jsx";
 import Auth from "./Auth.jsx";
+import LandingPage from "./LandingPage.jsx";
 import {
   createCheckoutSession,
   fetchBillingSubscription,
@@ -56,6 +57,7 @@ function clearCheckoutRedirect() {
 export function Root() {
   const [session, setSession] = useState(undefined);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
+  const [showAuth, setShowAuth] = useState(false);
   const [gateState, setGateState] = useState(() => ({
     hydrated: true,
     onboardingCompleted: readStoredGateFlag(ONBOARDING_STORAGE_KEY),
@@ -285,8 +287,13 @@ export function Root() {
       session={session}
       subscriptionAccessGranted={hasActiveSubscription(billingState.subscription)}
     />
-  ) : (
+  ) : showAuth ? (
     <Auth />
+  ) : (
+    <LandingPage
+      onSignIn={() => setShowAuth(true)}
+      onGetStarted={() => setShowAuth(true)}
+    />
   );
 }
 

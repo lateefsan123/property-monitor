@@ -1,5 +1,11 @@
 import Pagination from "../../seller-signal/components/Pagination";
-import { BuildingRow, ListingHistoryRow } from "./ListingAlertsRows";
+import { useListingFavorites } from "../useListingFavorites";
+import {
+  BuildingCard,
+  BuildingRow,
+  ListingCard,
+  ListingHistoryRow,
+} from "./ListingAlertsRows";
 
 export default function ListingAlertsResults({
   alerts,
@@ -7,6 +13,7 @@ export default function ListingAlertsResults({
   countLabel,
   hasTrackedUnits,
   items,
+  layout = "list",
   listingSafePage,
   listingTotalPages,
   listingVisibleEnd,
@@ -22,23 +29,26 @@ export default function ListingAlertsResults({
   showRefreshingStrip,
   showSkeletonList,
   totalLiveListings,
-  totalLiveListingsLabel,
   viewTab,
 }) {
+  const hideBuildingName = Boolean(selectedBuildingId);
+  const { favorites, pinned, toggleFavorite, togglePin } = useListingFavorites();
+
   return (
     <>
-      <div className="la-results-bar">
-        <span className="la-results-count">
-          {viewTab === "listings" && totalLiveListings > count ? `${countLabel} loaded` : countLabel}
-        </span>
-        {viewTab === "listings" ? (
-          <span className="la-results-meta">
-            {totalLiveListings > 0 ? `${totalLiveListings} total live in ${totalLiveListingsLabel} - ` : ""}
-            {count ? `Showing ${listingVisibleStart}-${listingVisibleEnd}` : "Showing 0"}
-            {` - Page ${listingSafePage}/${listingTotalPages}`}
+      {viewTab === "listings" ? (
+        <div className="la-results-bar">
+          <span className="la-results-count">
+            {count < totalLiveListings ? `${countLabel} of ${totalLiveListings}` : countLabel}
           </span>
-        ) : null}
-      </div>
+          {listingTotalPages > 1 ? (
+            <span className="la-results-meta">
+              {count ? `Showing ${listingVisibleStart}-${listingVisibleEnd}` : "Showing 0"}
+              {` - Page ${listingSafePage}/${listingTotalPages}`}
+            </span>
+          ) : null}
+        </div>
+      ) : null}
 
       {showRefreshingStrip ? (
         <div className="la-refreshing-strip" role="status" aria-live="polite">
@@ -78,58 +88,47 @@ export default function ListingAlertsResults({
           </div>
         </div>
       ) : (
-        <div className="lead-table-wrap">
-          <table className="lead-table">
-            <thead>
-              <tr>
-                {viewTab === "buildings" ? (
-                  <>
-                    <th>Building</th>
-                    <th>Listings</th>
-                    <th>Price</th>
-                    <th>Action</th>
-                  </>
-                ) : (
-                  <>
-                    <th style={{ width: 52 }}></th>
-                    <th>Title</th>
-                    <th>Building</th>
-                    <th>Details</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th>Link</th>
-                  </>
-                )}
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, index) => {
-                if (viewTab === "buildings") {
-                  const priceDropCount = priceDropsByBuilding.get(item.locationId) || 0;
-                  return (
-                    <BuildingRow
-                      key={String(item.locationId || item.key || index)}
-                      building={item}
-                      isWatched={alerts.watchedSet?.has(item.locationId)}
-                      watchDisabled={!alerts.watchedSet?.has(item.locationId) && alerts.stats.watchedBuildingCount >= alerts.watchLimit}
-                      onToggleWatch={() => alerts.actions.toggleWatch(item)}
-                      onPress={() => onOpenBuilding(item)}
-                      priceDropCount={priceDropCount}
-                    />
-                  );
-                }
+        <div className={layout === "grid" ? "sheet-grid la-grid" : "sheet-list la-list-rows"}>
+          {items.map((item, index) => {
+            if (viewTab === "buildings") {
+              const priceDropCount = priceDropsByBuilding.get(item.locationId) || 0;
+              const favKey = `b:${item.locationId}`;
+              const commonProps = {
+                building: item,
+                isWatched: alerts.watchedSet?.has(item.locationId),
+                onPress: () => onOpenBuilding(item),
+                priceDropCount,
+                favorited: favorites.has(favKey),
+                pinned: pinned.has(favKey),
+                onToggleFavorite: () => toggleFavorite(favKey),
+                onTogglePin: () => togglePin(favKey),
+              };
+              const key = String(item.locationId || item.key || index);
+              return layout === "grid" ? (
+                <BuildingCard key={key} {...commonProps} />
+              ) : (
+                <BuildingRow key={key} {...commonProps} />
+              );
+            }
 
-                return (
-                  <ListingHistoryRow
-                    key={String(item.key || `${item.buildingKey || ""}-${item.id || index}`)}
-                    listing={item}
-                    onPress={() => onOpenListing(item)}
-                    onOpenExternal={() => onOpenListingExternal(item.bayutUrl)}
-                  />
-                );
-              })}
-            </tbody>
-          </table>
+            const favKey = `l:${item.id || item.key}`;
+            const commonProps = {
+              listing: item,
+              hideBuildingName,
+              onPress: () => onOpenListing(item),
+              onOpenExternal: () => onOpenListingExternal(item.bayutUrl),
+              favorited: favorites.has(favKey),
+              pinned: pinned.has(favKey),
+              onToggleFavorite: () => toggleFavorite(favKey),
+              onTogglePin: () => togglePin(favKey),
+            };
+            const key = String(item.key || `${item.buildingKey || ""}-${item.id || index}`);
+            return layout === "grid" ? (
+              <ListingCard key={key} {...commonProps} />
+            ) : (
+              <ListingHistoryRow key={key} {...commonProps} />
+            );
+          })}
         </div>
       )}
 

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   formatArea,
   formatBedsAndBaths,
@@ -6,7 +7,6 @@ import {
 } from "../formatters";
 import {
   ActivityTimeline,
-  BackIcon,
   daysBetween,
   ExternalLinkIcon,
   Eyebrow,
@@ -17,13 +17,19 @@ import {
 
 const HERO_HEIGHT = 320;
 
+const DETAIL_TABS = [
+  { id: "overview", label: "Overview" },
+  { id: "activity", label: "Activity" },
+];
+
 export default function ListingDetailPage({
   listing,
-  onBack,
   onOpenExternal,
   onToggleTracking,
   autoTracking = false,
 }) {
+  const [activeTab, setActiveTab] = useState("overview");
+
   if (!listing) return null;
 
   const isTracked = Boolean(listing.isTracked);
@@ -49,11 +55,6 @@ export default function ListingDetailPage({
   return (
     <div className="ld-page">
       <div className="ld-scroll">
-        <button type="button" className="ld-back-link" onClick={onBack}>
-          <BackIcon size={14} />
-          Back to Listings
-        </button>
-
         {hasCover ? (
           <div className="ld-hero" style={{ height: HERO_HEIGHT }}>
             <img className="ld-hero-img" src={listing.coverPhoto} alt="" />
@@ -64,7 +65,6 @@ export default function ListingDetailPage({
         <div className={`ld-heading${hasCover ? " overlap" : ""}`}>
           <Eyebrow>{eyebrowBits.join("  ·  ")}</Eyebrow>
           <h1 className="ld-title">{listing.buildingName || "Untitled building"}</h1>
-          <div className="ld-subtitle">{listing.title || "Untitled listing"}</div>
           <div className="ld-area">{area}</div>
 
           <div className="ld-actions">
@@ -76,9 +76,7 @@ export default function ListingDetailPage({
               >
                 {isTracked ? "Stop tracking" : "Track unit"}
               </button>
-            ) : (
-              <span className="ld-auto-track">Tracking all units in this building</span>
-            )}
+            ) : null}
             {listing.bayutUrl ? (
               <button type="button" className="btn-sm" onClick={onOpenExternal}>
                 Open on Bayut
@@ -101,49 +99,61 @@ export default function ListingDetailPage({
           ) : null}
         </div>
 
-        <div className="ld-section ld-chart-section">
-          <div className="ld-section-eyebrow">
-            <Eyebrow>Price trajectory</Eyebrow>
-          </div>
-          <PriceChart priceHistory={listing.priceHistory} />
-        </div>
-
-        <div className="ld-section">
-          <div className="ld-section-eyebrow padded">
-            <Eyebrow>By the numbers</Eyebrow>
-          </div>
-          <StatStrip
-            items={[
-              {
-                label: "Drops",
-                value: String(listing.dropsCount || 0),
-                accentClass: listing.dropsCount ? "drop" : "",
-              },
-              {
-                label: "Rises",
-                value: String(listing.increasesCount || 0),
-                accentClass: listing.increasesCount ? "rise" : "",
-              },
-              {
-                label: "Changes",
-                value: String(listing.totalChanges || 0),
-              },
-              {
-                label: "Days",
-                value: daysTracked == null ? "-" : String(daysTracked),
-              },
-            ]}
-          />
-          <div className="ld-stat-footnote">
-            <span>First seen {formatSyncTimestamp(firstSeenAt)}</span>
-            <span>Last seen {formatSyncTimestamp(lastSeenAt)}</span>
+        <div className="ld-tabs-wrap">
+          <div className="tabs ld-tabs">
+            {DETAIL_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                className={`tab${activeTab === tab.id ? " active" : ""}`}
+                onClick={() => setActiveTab(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="ld-section ld-activity">
-          <Eyebrow>Activity</Eyebrow>
-          <ActivityTimeline events={reversedHistory} isTracked={isTracked} />
-        </div>
+        {activeTab === "overview" ? (
+          <>
+            <div className="ld-section ld-chart-section">
+              <PriceChart priceHistory={listing.priceHistory} />
+            </div>
+
+            <div className="ld-section">
+              <StatStrip
+                items={[
+                  {
+                    label: "Drops",
+                    value: String(listing.dropsCount || 0),
+                    accentClass: listing.dropsCount ? "drop" : "",
+                  },
+                  {
+                    label: "Rises",
+                    value: String(listing.increasesCount || 0),
+                    accentClass: listing.increasesCount ? "rise" : "",
+                  },
+                  {
+                    label: "Changes",
+                    value: String(listing.totalChanges || 0),
+                  },
+                  {
+                    label: "Days",
+                    value: daysTracked == null ? "-" : String(daysTracked),
+                  },
+                ]}
+              />
+              <div className="ld-stat-footnote">
+                <span>First seen {formatSyncTimestamp(firstSeenAt)}</span>
+                <span>Last seen {formatSyncTimestamp(lastSeenAt)}</span>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="ld-section ld-activity">
+            <ActivityTimeline events={reversedHistory} isTracked={isTracked} />
+          </div>
+        )}
       </div>
     </div>
   );

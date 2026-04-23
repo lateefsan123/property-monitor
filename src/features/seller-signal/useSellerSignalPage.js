@@ -59,6 +59,18 @@ export function useSellerSignalPage(userId) {
   const [showImport, setShowImport] = useState(false);
   const [viewTab, setViewTab] = useState("active");
   const [dataFilter, setDataFilter] = useState("with_data");
+  const [sortOption, setSortOption] = useState(() => {
+    if (typeof window === "undefined") return { field: "added", direction: "desc" };
+    try {
+      const raw = window.localStorage.getItem("seller-signal:lead-sort");
+      const parsed = raw ? JSON.parse(raw) : null;
+      const field = parsed?.field === "alpha" ? "alpha" : "added";
+      const direction = parsed?.direction === "asc" ? "asc" : "desc";
+      return { field, direction };
+    } catch {
+      return { field: "added", direction: "desc" };
+    }
+  });
   const [expandedLeads, setExpandedLeads] = useState({});
   const [editingLeadId, setEditingLeadId] = useState(null);
   const [editingLeadDraft, setEditingLeadDraft] = useState(null);
@@ -191,9 +203,30 @@ export function useSellerSignalPage(userId) {
     [activeLeads, dataFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, statusFilter, viewTab],
   );
 
+  const sortedLeads = useMemo(() => {
+    const list = [...filteredLeads];
+    list.sort((a, b) => {
+      if (sortOption.field === "alpha") {
+        return String(a.name || "").toLowerCase().localeCompare(String(b.name || "").toLowerCase());
+      }
+      return String(a.id || "").localeCompare(String(b.id || ""), undefined, { numeric: true });
+    });
+    if (sortOption.direction === "desc") list.reverse();
+    return list;
+  }, [filteredLeads, sortOption.field, sortOption.direction]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem("seller-signal:lead-sort", JSON.stringify(sortOption));
+    } catch {
+      /* ignore */
+    }
+  }, [sortOption]);
+
   const { totalPages, safePage, pagedLeads } = useMemo(
-    () => paginateLeads(filteredLeads, currentPage),
-    [currentPage, filteredLeads],
+    () => paginateLeads(sortedLeads, currentPage),
+    [currentPage, sortedLeads],
   );
 
   const sourceCounts = useMemo(() => {
@@ -335,6 +368,8 @@ export function useSellerSignalPage(userId) {
     statusFilter,
     totalPages,
     viewTab,
+    sortOption,
+    setSortOption,
     actions,
   };
 }

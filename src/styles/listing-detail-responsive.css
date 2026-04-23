@@ -206,6 +206,9 @@
   .lead-table thead th { padding: 10px 12px; }
   .lead-row td { padding: 10px 12px; }
   .lead-cell-building { max-width: 140px; }
+  .seller-row { padding: 10px 12px; gap: 10px; }
+  .seller-row-specs { display: none; }
+  .seller-row-phone { display: none; }
   .lead-modal-backdrop { padding: 24px 8px; }
   .lead-modal { border-radius: 12px; }
   .lead-modal-header { padding: 16px 16px 0; }

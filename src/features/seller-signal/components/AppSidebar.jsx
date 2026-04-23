@@ -1,3 +1,17 @@
+import { useSpreadsheetFavorites, requestOpenSpreadsheet } from "../useSpreadsheetFavorites";
+
+function isPlaceholderSourceLabel(source) {
+  const label = String(source?.label || "").trim();
+  return Boolean(label) && /^Spreadsheet\s+\d+$/i.test(label);
+}
+
+function getSourceNameValue(source) {
+  const buildingName = String(source?.building_name || "").trim();
+  const label = String(source?.label || "").trim();
+  if (buildingName && (!label || isPlaceholderSourceLabel(source))) return buildingName;
+  return label || buildingName || "";
+}
+
 function HomeIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
@@ -107,13 +121,38 @@ function SidenavItem({ item, currentPage, onNavigate, onAction }) {
   );
 }
 
+function FavoriteItem({ source, onOpen }) {
+  const name = getSourceNameValue(source) || `Spreadsheet ${Number(source.sort_order ?? 0) + 1}`;
+  return (
+    <button
+      type="button"
+      className="sidenav-link sidenav-favorite accent-emerald"
+      onClick={() => onOpen(source.id)}
+      title={name}
+    >
+      <span className="sidenav-link-icon">
+        <SpreadsheetsIcon />
+      </span>
+      <span className="sidenav-favorite-label">{name}</span>
+    </button>
+  );
+}
+
 export default function AppSidebar({
   currentPage,
   onNavigate,
   onAction,
   onSignOut,
   collapsed,
+  userId,
 }) {
+  const { favoritedSources } = useSpreadsheetFavorites(userId);
+
+  function handleOpenFavorite(id) {
+    requestOpenSpreadsheet(id);
+    onNavigate("spreadsheets");
+  }
+
   return (
     <aside className={`sidenav${collapsed ? " sidenav-collapsed" : ""}`}>
       <div className="sidenav-group sidenav-group-top">
@@ -127,6 +166,18 @@ export default function AppSidebar({
           />
         ))}
       </div>
+
+      {favoritedSources.length > 0 && (
+        <div className="sidenav-group sidenav-group-favorites">
+          {favoritedSources.map((source) => (
+            <FavoriteItem
+              key={source.id}
+              source={source}
+              onOpen={handleOpenFavorite}
+            />
+          ))}
+        </div>
+      )}
 
       <div className="sidenav-group">
         {MAIN_GROUP.map((item) => (

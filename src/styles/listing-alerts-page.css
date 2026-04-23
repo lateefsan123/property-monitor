@@ -174,6 +174,19 @@
 
 /* la-view-tabs removed â€” building click navigates to listings */
 
+.la-search-pill-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  max-width: 320px;
+  display: inline-flex;
+}
+
+.la-search-pill-wrap .search-pill {
+  width: 100%;
+  max-width: none;
+}
+
 .la-search-dropdown {
   position: absolute;
   top: calc(100% + 4px);
@@ -318,10 +331,96 @@
   /* skeleton items only */
 }
 
-/* Table cell styles for listing alerts */
-.la-cell-thumb {
-  width: 52px;
-  padding: 8px 0 8px 16px !important;
+/* Listing alerts list (uses .sheet-row base) */
+.la-list-rows {
+  margin: 10px 0 12px;
+}
+
+.la-row {
+  gap: 12px;
+  padding: 10px 14px;
+}
+
+.la-row-primary {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1.4;
+  gap: 2px;
+}
+
+.la-row-title {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-name);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.la-row-sub {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.la-row-building-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.84rem;
+  color: var(--text-building, var(--text-muted));
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.la-row-details {
+  flex-shrink: 0;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.82rem;
+  color: var(--text-secondary, var(--text-muted));
+  font-variant-numeric: tabular-nums;
+}
+
+.la-row-price {
+  flex-shrink: 0;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  align-items: flex-end;
+  font-weight: 700;
+  font-size: 0.86rem;
+  color: var(--text-name);
+  white-space: nowrap;
+}
+
+.la-row-status {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.la-row-action {
+  flex-shrink: 0;
+}
+
+.la-row-building-icon {
+  background: var(--bg-badge);
+  color: var(--text-muted);
+}
+
+.la-row-thumb-wrap {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .la-row-thumb {
@@ -335,6 +434,98 @@
 
 .la-row-thumb-placeholder {
   display: block;
+}
+
+.la-new-pill {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--badge-due-bg);
+  color: var(--badge-due-text);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Listing alerts grid cards */
+.la-grid {
+  margin: 10px 0 12px;
+}
+
+.la-card {
+  min-height: 220px;
+}
+
+.la-card-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #334155;
+}
+
+.la-card-listing-preview {
+  padding: 0;
+  height: 140px;
+  background: var(--bg-badge);
+}
+
+.la-card-listing-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.la-card-listing-img-placeholder {
+  background: var(--bg-card-border);
+}
+
+.la-card-specs {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: var(--text-secondary, var(--text-muted));
+}
+
+.la-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.la-card-price {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--text-name);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.la-card-pills {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.la-card-bayut {
+  align-self: flex-start;
+  margin-top: 6px;
+}
+
+/* Legacy table cell (kept for any remaining table usage) */
+.la-cell-thumb {
+  width: 52px;
+  padding: 8px 0 8px 16px !important;
 }
 
 .la-cell-sub {

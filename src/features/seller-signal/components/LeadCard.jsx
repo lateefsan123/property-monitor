@@ -9,6 +9,23 @@ function WhatsAppIcon() {
   );
 }
 
+function FavoriteIcon({ filled }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+    </svg>
+  );
+}
+
+function PinIcon({ filled }) {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M12 17v5" />
+      <path d="M9 3h6l-1 6 4 4H6l4-4-1-6z" />
+    </svg>
+  );
+}
+
 function formatLeadBedroom(value) {
   const raw = String(value || "").trim();
   if (!raw) return null;
@@ -35,13 +52,17 @@ export { formatLeadBedroom, extractUnitFromBuilding, formatLeadUnit, WhatsAppIco
 
 export default function LeadCard({
   copiedLeadId,
+  favorited,
   insight,
   isSent,
   lead,
   onCopyMessage,
   onDelete,
   onToggleExpanded,
+  onToggleFavorite,
+  onTogglePin,
   onToggleSent,
+  pinned,
 }) {
   const message = insight?.message || null;
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
@@ -81,9 +102,16 @@ export default function LeadCard({
     </button>
   );
 
+  const rowClasses = [
+    "lead-row",
+    isSent ? "lead-sent" : "",
+    pinned ? "is-pinned" : "",
+    favorited ? "is-favorited" : "",
+  ].filter(Boolean).join(" ");
+
   return (
     <tr
-      className={`lead-row${isSent ? " lead-sent" : ""}`}
+      className={rowClasses}
       onClick={() => onToggleExpanded(lead.id)}
       onContextMenu={(event) => {
         event.preventDefault();
@@ -101,7 +129,33 @@ export default function LeadCard({
       role="button"
     >
       <td className="lead-cell-name">
-        <span className="lead-name">{lead.name || "Unnamed"}</span>
+        <div className="lead-name-wrap">
+          <span className="lead-name">{lead.name || "Unnamed"}</span>
+          <span className="lead-row-marks" onClick={(e) => e.stopPropagation()}>
+            {onTogglePin && (
+              <button
+                type="button"
+                className={`lead-row-mark${pinned ? " is-active" : ""}`}
+                onClick={() => onTogglePin(lead.id)}
+                aria-label={pinned ? "Unpin seller" : "Pin seller"}
+                title={pinned ? "Unpin" : "Pin"}
+              >
+                <PinIcon filled={pinned} />
+              </button>
+            )}
+            {onToggleFavorite && (
+              <button
+                type="button"
+                className={`lead-row-mark${favorited ? " is-active is-favorite" : ""}`}
+                onClick={() => onToggleFavorite(lead.id)}
+                aria-label={favorited ? "Unfavorite seller" : "Favorite seller"}
+                title={favorited ? "Unfavorite" : "Favorite"}
+              >
+                <FavoriteIcon filled={favorited} />
+              </button>
+            )}
+          </span>
+        </div>
       </td>
       <td className="lead-cell-building">
         <span className="lead-building-label" title={displayBuildingLabel}>{displayBuildingLabel}</span>

@@ -1,0 +1,9 @@
+.app-topbar-actions-slot {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.app-topbar-actions-slot:empty {
+  display: none;
+}

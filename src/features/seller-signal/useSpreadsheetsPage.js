@@ -196,23 +196,51 @@ export function useSpreadsheetsPage(userId) {
     setLegacyFeedback({ notice: null, error: null });
   }
 
-  async function addSource() {
+  async function addSource(options = {}) {
+    const sheetUrl = typeof options === "object" && options.sheetUrl ? String(options.sheetUrl).trim() : "";
+
     if (!canAddSource) {
       setActionError(`You can add up to ${MAX_LEAD_SOURCES} spreadsheets.`);
-      return;
+      return null;
     }
 
     setAddingSource(true);
     setActionError(null);
     setActionNotice(null);
     try {
-      await createLeadSource(userId, {
-        label: `Spreadsheet ${getNextLeadSourceSortOrder(leadSources) + 1}`,
-        sort_order: getNextLeadSourceSortOrder(leadSources),
+      const nextOrder = getNextLeadSourceSortOrder(leadSources);
+      const created = await createLeadSource(userId, {
+        label: `Spreadsheet ${nextOrder + 1}`,
+        sort_order: nextOrder,
+        sheet_url: sheetUrl || null,
       });
       await queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) });
+
+      if (sheetUrl && created?.id) {
+        setImportingSourceId(created.id);
+        try {
+          const draftSource = normalizeSourceDraft(created);
+          const result = await importLeadsMutation.mutateAsync({
+            source: draftSource,
+            rawSheetUrl: sheetUrl,
+          });
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) }),
+            queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) }),
+          ]);
+          queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
+          setActionNotice(formatImportNotice(draftSource, result));
+        } catch (importError) {
+          setActionError(getErrorMessage(importError));
+        } finally {
+          setImportingSourceId(null);
+        }
+      }
+
+      return created;
     } catch (createError) {
       setActionError(getErrorMessage(createError));
+      return null;
     } finally {
       setAddingSource(false);
     }
@@ -323,7 +351,6 @@ export function useSpreadsheetsPage(userId) {
         queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) }),
       ]);
       queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
-      setActionNotice("Spreadsheet removed.");
     } catch (clearError) {
       setActionError(getErrorMessage(clearError));
     } finally {

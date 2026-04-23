@@ -74,7 +74,7 @@ const OPTIONS = [
     accent: "indigo",
     title: "Add a seller",
     description: "Track a new lead with call notes, contact details, and pipeline status.",
-    previewKind: "seller",
+    previewKind: "preview-sellers",
   },
   {
     id: "listing-search",
@@ -83,7 +83,7 @@ const OPTIONS = [
     accent: "rose",
     title: "Search listings",
     description: "Browse live Dubai listings and watch for units that match your criteria.",
-    previewKind: "listing",
+    previewKind: "preview-listings",
   },
   {
     id: "spreadsheet",
@@ -92,7 +92,7 @@ const OPTIONS = [
     accent: "emerald",
     title: "Connect a spreadsheet",
     description: "Link a Google Sheet to sync your pipeline in both directions.",
-    previewKind: "spreadsheet",
+    previewKind: "preview-spreadsheets",
   },
   {
     id: "import",
@@ -101,7 +101,7 @@ const OPTIONS = [
     accent: "amber",
     title: "Import existing data",
     description: "Bring in leads from a CSV or Google Sheet you already have.",
-    previewKind: "import",
+    previewKind: "preview-spreadsheets",
   },
 ];
 
@@ -109,67 +109,9 @@ function PreviewPanel({ option }) {
   if (!option) return null;
 
   return (
-    <div className={`create-modal-preview preview-${option.previewKind}`}>
-      <div className="create-modal-preview-art" aria-hidden>
-        {option.previewKind === "seller" && (
-          <>
-            <div className="art-card art-card-a">
-              <span className="art-label">Lead</span>
-              <span className="art-line long highlight-indigo" />
-              <span className="art-line short" />
-            </div>
-            <div className="art-card art-card-b">
-              <span className="art-label">Call notes</span>
-              <span className="art-line long" />
-              <span className="art-line mid" />
-            </div>
-            <span className="art-chip chip-indigo">Alex M.</span>
-            <span className="art-chip chip-green">Priya R.</span>
-          </>
-        )}
-        {option.previewKind === "listing" && (
-          <>
-            <div className="art-card art-card-wide">
-              <span className="art-thumb" />
-              <span className="art-line long highlight-rose" />
-              <span className="art-line mid" />
-              <span className="art-line short" />
-            </div>
-            <span className="art-chip chip-rose">Marina</span>
-            <span className="art-chip chip-amber">2 BR</span>
-          </>
-        )}
-        {option.previewKind === "spreadsheet" && (
-          <div className="art-sheet">
-            <div className="art-sheet-row art-sheet-head">
-              <span /><span /><span /><span />
-            </div>
-            <div className="art-sheet-row"><span /><span /><span /><span /></div>
-            <div className="art-sheet-row"><span /><span className="filled" /><span /><span /></div>
-            <div className="art-sheet-row"><span /><span /><span className="filled" /><span /></div>
-            <div className="art-sheet-row"><span /><span /><span /><span /></div>
-          </div>
-        )}
-        {option.previewKind === "import" && (
-          <>
-            <div className="art-card art-card-a">
-              <span className="art-label">contacts.csv</span>
-              <span className="art-line long" />
-              <span className="art-line mid" />
-            </div>
-            <div className="art-arrow" aria-hidden>
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="5" y1="12" x2="19" y2="12" />
-                <polyline points="13 6 19 12 13 18" />
-              </svg>
-            </div>
-            <div className="art-card art-card-b">
-              <span className="art-label">Your pipeline</span>
-              <span className="art-line long highlight-amber" />
-              <span className="art-line short" />
-            </div>
-          </>
-        )}
+    <div className="create-modal-preview">
+      <div className="create-modal-preview-art">
+        <TilePreview kind={option.previewKind} />
       </div>
       <div className="create-modal-preview-body">
         <h3 className="create-modal-preview-title">{option.title}</h3>

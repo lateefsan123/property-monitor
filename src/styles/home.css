@@ -35,6 +35,27 @@
   gap: 20px;
 }
 
+.home-pinned {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home-pinned-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-name);
+}
+
+.home-seller-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-bayut);
+  color: var(--text-secondary);
+}
+
 .home-tile {
   position: relative;
   display: flex;
@@ -42,8 +63,8 @@
   text-align: left;
   padding: 0;
   overflow: hidden;
-  background: #F5F5F5;
-  border: 1px solid #d1d5db;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
   border-radius: 16px;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
   cursor: pointer;
@@ -71,7 +92,7 @@
   width: 40px;
   height: 40px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--bg-card);
   color: var(--text-name);
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
 }
@@ -123,7 +144,7 @@
   height: 100%;
   padding: 6px;
   box-sizing: border-box;
-  background: #FAFAFA;
+  background: var(--bg-bayut);
   border-radius: 10px;
   overflow: hidden;
 }
@@ -242,37 +263,6 @@
   transform: rotate(2deg);
 }
 
-/* --- Spreadsheets layout --- */
-.sheet-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2px;
-}
-.sheet-grid.small {
-  grid-template-columns: repeat(3, 1fr);
-}
-.sheet-cell {
-  aspect-ratio: 1.8 / 1;
-  border-radius: 2px;
-  background: #e5e7eb;
-}
-.sheet-cell.cell-0 { background: #a7f3d0; }
-.sheet-cell.cell-1 { background: #e5e7eb; }
-.sheet-cell.cell-2 { background: #f1f5f9; }
-.sheet-cell.cell-3 { background: #d1fae5; }
-
-.sheet-card-a {
-  width: 52%;
-  top: 18px;
-  left: 8%;
-  transform: rotate(-3deg);
-}
-.sheet-card-b {
-  width: 42%;
-  top: 48px;
-  right: 6%;
-  transform: rotate(4deg);
-}
 .preview-spreadsheets,
 .preview-listings,
 .preview-sellers {
@@ -281,7 +271,7 @@
   justify-content: center;
 }
 .preview-listings {
-  background: #ffffff;
+  background: var(--bg-card);
 }
 .preview-spreadsheets-img,
 .preview-listings-img,

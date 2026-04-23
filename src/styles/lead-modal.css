@@ -60,7 +60,7 @@
   border-radius: 8px;
   border: none;
   background: transparent;
-  color: #000;
+  color: var(--text-name);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -397,4 +397,3 @@
   gap: 8px;
   flex-wrap: wrap;
 }
-

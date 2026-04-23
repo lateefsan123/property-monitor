@@ -10,6 +10,7 @@ export default function ListingAlertsSearchBox({
   onSearchTermChange,
   onSelectOption,
   visible = true,
+  inputRef,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -105,25 +106,32 @@ export default function ListingAlertsSearchBox({
   if (!visible) return null;
 
   return (
-    <div className="toolbar" ref={boxRef} style={{ position: "relative" }}>
-      <input
-        type="text"
-        placeholder="Search..."
-        value={searchTerm}
-        onChange={handleInputChange}
-        onFocus={() => {
-          if (searchTerm.trim().length >= 2) {
-            setMenuOpen(true);
-          }
-        }}
-        onKeyDown={handleKeyDown}
-        autoCapitalize="none"
-        autoCorrect="off"
-        autoComplete="off"
-        aria-autocomplete="list"
-        aria-expanded={showDropdown}
-        aria-label="Search buildings"
-      />
+    <div className="la-search-pill-wrap" ref={boxRef}>
+      <label className="search-pill">
+        <svg className="search-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <circle cx="11" cy="11" r="7" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          ref={inputRef}
+          type="text"
+          placeholder="Search buildings"
+          value={searchTerm}
+          onChange={handleInputChange}
+          onFocus={() => {
+            if (searchTerm.trim().length >= 2) {
+              setMenuOpen(true);
+            }
+          }}
+          onKeyDown={handleKeyDown}
+          autoCapitalize="none"
+          autoCorrect="off"
+          autoComplete="off"
+          aria-autocomplete="list"
+          aria-expanded={showDropdown}
+          aria-label="Search buildings"
+        />
+      </label>
 
       {showDropdown ? (
         <div className="la-search-dropdown" role="listbox" aria-label="Available building options">

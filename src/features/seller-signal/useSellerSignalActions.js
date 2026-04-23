@@ -206,14 +206,14 @@ export function createSellerSignalActions(context) {
     }
   }
 
-  async function deleteLeadAction(leadId) {
+  async function deleteLeadAction(leadId, options = {}) {
     if (!leadId) return;
 
     const targetLead = leads.find((item) => item.id === leadId);
     if (!targetLead) return;
 
     const targetLabel = targetLead.name || targetLead.building || "this seller";
-    const shouldDelete = typeof window === "undefined"
+    const shouldDelete = options.skipConfirm || typeof window === "undefined"
       ? true
       : window.confirm(`Delete ${targetLabel}? This action cannot be undone.`);
     if (!shouldDelete) return;
