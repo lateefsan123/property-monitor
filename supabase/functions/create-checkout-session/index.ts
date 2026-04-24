@@ -87,6 +87,22 @@ async function stripeRequest(path: string, body: URLSearchParams) {
   return payload;
 }
 
+async function userHasPriorSubscription(adminClient: any, userId: string) {
+  const { data, error } = await adminClient
+    .from("billing_subscriptions")
+    .select("id")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new HttpError(500, error.message);
+  return Boolean(data);
+}
+
+function resolveTrialPeriodDays(input: unknown) {
+  if (typeof input !== "number" || !Number.isInteger(input)) return null;
+  if (input <= 0 || input > 30) return null;
+  return input;
+}
+
 async function ensureStripeCustomer(adminClient: any, user: any) {
   const { data: existing, error } = await adminClient
     .from("stripe_customers")
@@ -130,12 +146,16 @@ Deno.serve(async (req) => {
 
   try {
     const { adminClient, user } = await getAuthenticatedUser(req.headers.get("Authorization"));
-    const { successUrl, cancelUrl } = await req.json().catch(() => ({}));
+    const { successUrl, cancelUrl, trialPeriodDays } = await req.json().catch(() => ({}));
     const stripePriceId = requireEnv("STRIPE_MONTHLY_PRICE_ID");
 
     const checkoutSuccessUrl = assertRedirectUrl(successUrl, "STRIPE_SUCCESS_URL");
     const checkoutCancelUrl = assertRedirectUrl(cancelUrl, "STRIPE_CANCEL_URL");
     const stripeCustomerId = await ensureStripeCustomer(adminClient, user);
+
+    const requestedTrialDays = resolveTrialPeriodDays(trialPeriodDays);
+    const eligibleForTrial = requestedTrialDays !== null
+      && !(await userHasPriorSubscription(adminClient, user.id));
 
     const body = new URLSearchParams();
     body.set("mode", "subscription");
@@ -149,6 +169,9 @@ Deno.serve(async (req) => {
     body.set("line_items[0][quantity]", "1");
     body.set("metadata[supabase_user_id]", user.id);
     body.set("subscription_data[metadata][supabase_user_id]", user.id);
+    if (eligibleForTrial) {
+      body.set("subscription_data[trial_period_days]", String(requestedTrialDays));
+    }
 
     const checkoutSession = await stripeRequest("/v1/checkout/sessions", body);
 

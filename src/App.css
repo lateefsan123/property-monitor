@@ -6,12 +6,12 @@
 @import "./styles/seller-panels.css";
 @import "./styles/lead-sources.css";
 @import "./styles/auth.css";
-@import "./styles/onboarding.css";
-@import "./styles/subscription.css";
 @import "./styles/listing-alerts-page.css";
 @import "./styles/listing-alerts-filters.css";
+@import "./styles/listing-alerts-map.css";
 @import "./styles/listing-detail.css";
 @import "./styles/listing-detail-responsive.css";
 @import "./styles/home.css";
 @import "./styles/create-modal.css";
 @import "./styles/theme-toggle.css";
+@import "./styles/welcome.css";

@@ -253,7 +253,7 @@
 .toggle input { width: auto; margin: 0; }
 
 /* Buttons */
-.app-shell button {
+.app-shell button:not([class]) {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--bg-card);
@@ -264,8 +264,8 @@
   cursor: pointer;
 }
 
-.app-shell button:hover:not(:disabled) { background: var(--bg-hover); }
-.app-shell button:disabled { opacity: 0.35; cursor: not-allowed; }
+.app-shell button:not([class]):hover:not(:disabled) { background: var(--bg-hover); }
+.app-shell button:not([class]):disabled { opacity: 0.35; cursor: not-allowed; }
 
 .btn-primary {
   background: var(--btn-primary-bg);

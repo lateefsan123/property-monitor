@@ -1,0 +1,21 @@
+{
+  "name": "seller-signal-video",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts SellerSignal out/seller-signal.mp4",
+    "build": "remotion bundle"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.230",
+    "@remotion/google-fonts": "4.0.230",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "remotion": "4.0.230"
+  },
+  "devDependencies": {
+    "@types/react": "19.0.0",
+    "typescript": "5.5.4"
+  }
+}

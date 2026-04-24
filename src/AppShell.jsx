@@ -239,9 +239,7 @@ export default function AppShell({ displayName, userId }) {
                     window.dispatchEvent(new CustomEvent("app-crumb-click", { detail: currentPage }));
                   }}
                 >
-                  <span className="app-crumb-chip">
-                    <PageIcon page={currentPage} />
-                  </span>
+                  <PageIcon page={currentPage} />
                   <span className="app-crumb-label">{PAGE_LABELS[currentPage]}</span>
                 </button>
                 <div id="app-topbar-crumb-extra" className="app-topbar-crumb-extra" />

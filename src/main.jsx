@@ -10,24 +10,35 @@ import {
   fetchBillingSubscription,
   hasActiveSubscription,
   syncCheckoutSession,
+  TRIAL_PERIOD_DAYS,
 } from "./billing";
 import ResetPassword from "./ResetPassword.jsx";
+import WelcomeScreen from "./WelcomeScreen.jsx";
+import HowDidYouHearScreen from "./HowDidYouHearScreen.jsx";
+import TrialOfferScreen from "./TrialOfferScreen.jsx";
+import UsernameSetup from "./features/seller-signal/components/UsernameSetup.jsx";
 import { queryClient } from "./queryClient";
 import { supabase, supabaseConfigError } from "./supabase";
 
-const ONBOARDING_STORAGE_KEY = "seller_signal_onboarding_completed_v3";
+const POST_AUTH_ACTION_STORAGE_KEY = "seller_signal_post_auth_action_v1";
 
-function readStoredGateFlag(key) {
+function readStoredPostAuthAction() {
   try {
-    return window.localStorage.getItem(key) === "true";
+    const value = window.localStorage.getItem(POST_AUTH_ACTION_STORAGE_KEY);
+    return value === "checkout" ? value : null;
   } catch {
-    return false;
+    return null;
   }
 }
 
-function writeStoredGateFlag(key, value = "true") {
+function writeStoredPostAuthAction(value) {
   try {
-    window.localStorage.setItem(key, value);
+    if (value) {
+      window.localStorage.setItem(POST_AUTH_ACTION_STORAGE_KEY, value);
+      return;
+    }
+
+    window.localStorage.removeItem(POST_AUTH_ACTION_STORAGE_KEY);
   } catch {
     // Ignore storage failures and continue with in-memory state.
   }
@@ -57,11 +68,12 @@ function clearCheckoutRedirect() {
 export function Root() {
   const [session, setSession] = useState(undefined);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
-  const [showAuth, setShowAuth] = useState(false);
-  const [gateState, setGateState] = useState(() => ({
-    hydrated: true,
-    onboardingCompleted: readStoredGateFlag(ONBOARDING_STORAGE_KEY),
-  }));
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  const [profileOverride, setProfileOverride] = useState({ userId: null, completed: false, username: "", avatarUrl: "" });
+  const [referralAskedLocally, setReferralAskedLocally] = useState({ userId: null, asked: false });
+  const [trialOfferedLocally, setTrialOfferedLocally] = useState({ userId: null, offered: false });
+  const [showAuth, setShowAuth] = useState(() => Boolean(readStoredPostAuthAction()));
+  const [postAuthAction, setPostAuthAction] = useState(() => readStoredPostAuthAction());
   const [billingState, setBillingState] = useState({
     checkoutPending: false,
     error: null,
@@ -214,16 +226,44 @@ export function Root() {
     };
   }, [pendingCheckoutSessionId, sessionUserId]);
 
+  useEffect(() => {
+    if (!sessionUserId) return;
+    setShowAuth(false);
+  }, [sessionUserId]);
+
+  useEffect(() => {
+    if (!sessionUserId || postAuthAction !== "checkout") return;
+    if (!billingState.initialized || billingState.subscriptionLoading || billingState.checkoutPending) return;
+    if (pendingCheckoutSessionId) return;
+
+    updatePostAuthAction(null);
+    if (hasActiveSubscription(billingState.subscription)) return;
+    void handleStartCheckout();
+  }, [
+    billingState.checkoutPending,
+    billingState.initialized,
+    billingState.subscription,
+    billingState.subscriptionLoading,
+    pendingCheckoutSessionId,
+    postAuthAction,
+    sessionUserId,
+  ]);
+
   function handlePasswordResetComplete() {
     setIsRecoveringPassword(false);
   }
 
-  function handleOnboardingComplete() {
-    writeStoredGateFlag(ONBOARDING_STORAGE_KEY);
-    setGateState((currentState) => ({ ...currentState, onboardingCompleted: true }));
+  function updatePostAuthAction(action) {
+    setPostAuthAction(action);
+    writeStoredPostAuthAction(action);
   }
 
-  async function handleStartCheckout() {
+  function openAuth(action = null) {
+    updatePostAuthAction(action);
+    setShowAuth(true);
+  }
+
+  async function handleStartCheckout(options = {}) {
     setBillingState((currentState) => ({
       ...currentState,
       checkoutPending: true,
@@ -243,6 +283,7 @@ export function Root() {
       const { checkoutUrl } = await createCheckoutSession({
         successUrl: successUrl.toString(),
         cancelUrl: cancelUrl.toString(),
+        trialPeriodDays: options.withTrial ? TRIAL_PERIOD_DAYS : undefined,
       });
 
       window.location.assign(checkoutUrl);
@@ -253,6 +294,21 @@ export function Root() {
         error: error instanceof Error ? error.message : "Could not start Stripe checkout",
       }));
     }
+  }
+
+  function handleSubscribeFromLanding() {
+    if (sessionUserId) {
+      void handleStartCheckout();
+      return;
+    }
+
+    openAuth("checkout");
+  }
+
+  function handleSignOutFromLanding() {
+    updatePostAuthAction(null);
+    setShowAuth(false);
+    void supabase.auth.signOut();
   }
 
   if (supabaseConfigError) {
@@ -267,7 +323,7 @@ export function Root() {
     );
   }
 
-  if (session === undefined || !gateState.hydrated) {
+  if (session === undefined) {
     return <div className="page"><div className="empty">Loading...</div></div>;
   }
 
@@ -275,24 +331,92 @@ export function Root() {
     return <ResetPassword onComplete={handlePasswordResetComplete} />;
   }
 
+  if (session && !welcomeDismissed && !session.user.user_metadata?.welcomed) {
+    const displayName = session.user.user_metadata?.username?.trim() || "";
+    return (
+      <WelcomeScreen
+        displayName={displayName}
+        onContinue={() => setWelcomeDismissed(true)}
+      />
+    );
+  }
+
+  if (session) {
+    const overrideMatches = profileOverride.userId === session.user.id;
+    const profileCompleted = (overrideMatches && profileOverride.completed)
+      || Boolean(session.user.user_metadata?.profile_completed);
+
+    if (!profileCompleted) {
+      const initialName = session.user.user_metadata?.username?.trim() || "";
+      const initialAvatar = session.user.user_metadata?.avatar_url || "";
+      return (
+        <UsernameSetup
+          initialName={initialName}
+          initialAvatar={initialAvatar}
+          onComplete={({ username, avatarDataUrl }) =>
+            setProfileOverride({
+              userId: session.user.id,
+              completed: true,
+              username,
+              avatarUrl: avatarDataUrl,
+            })
+          }
+        />
+      );
+    }
+
+    const referralAskedOverride = referralAskedLocally.userId === session.user.id && referralAskedLocally.asked;
+    const referralAsked = referralAskedOverride || Boolean(session.user.user_metadata?.referral_asked);
+    if (!referralAsked) {
+      return (
+        <HowDidYouHearScreen
+          onContinue={() => setReferralAskedLocally({ userId: session.user.id, asked: true })}
+        />
+      );
+    }
+
+    const trialOfferedOverride = trialOfferedLocally.userId === session.user.id && trialOfferedLocally.offered;
+    const trialOffered = trialOfferedOverride || Boolean(session.user.user_metadata?.trial_offered);
+    const alreadySubscribed = hasActiveSubscription(billingState.subscription);
+    if (!trialOffered && !alreadySubscribed) {
+      return (
+        <TrialOfferScreen
+          checkoutPending={billingState.checkoutPending || billingState.subscriptionLoading}
+          onStartTrial={() => {
+            setTrialOfferedLocally({ userId: session.user.id, offered: true });
+            void handleStartCheckout({ withTrial: true });
+          }}
+          onSkip={() => setTrialOfferedLocally({ userId: session.user.id, offered: true })}
+        />
+      );
+    }
+  }
+
+  if (session && !billingState.initialized && !pendingCheckoutSessionId) {
+    return <div className="page"><div className="empty">Loading...</div></div>;
+  }
+
+  if (session && hasActiveSubscription(billingState.subscription)) {
+    return <App session={session} />;
+  }
+
   return session ? (
-    <App
+    <LandingPage
       billingError={billingState.error}
-      billingLoading={!billingState.initialized || billingState.subscriptionLoading}
       billingMessage={billingState.message}
-      checkoutPending={billingState.checkoutPending}
-      onboardingCompleted={gateState.onboardingCompleted}
-      onCompleteOnboarding={handleOnboardingComplete}
-      onStartCheckout={handleStartCheckout}
-      session={session}
-      subscriptionAccessGranted={hasActiveSubscription(billingState.subscription)}
+      checkoutPending={billingState.checkoutPending || billingState.subscriptionLoading}
+      isAuthenticated
+      onGetStarted={handleSubscribeFromLanding}
+      onSignOut={handleSignOutFromLanding}
+      onSubscribe={handleSubscribeFromLanding}
     />
   ) : showAuth ? (
     <Auth />
   ) : (
     <LandingPage
-      onSignIn={() => setShowAuth(true)}
-      onGetStarted={() => setShowAuth(true)}
+      onGetStarted={() => openAuth()}
+      onSignIn={() => openAuth()}
+      onSubscribe={handleSubscribeFromLanding}
     />
   );
 }

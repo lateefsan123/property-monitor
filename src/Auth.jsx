@@ -1,5 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
+
+const RESEND_COOLDOWN_SECONDS = 30;
 
 export default function Auth() {
   const [email, setEmail] = useState("");
@@ -11,12 +13,23 @@ export default function Auth() {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [pendingEmail, setPendingEmail] = useState("");
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendNotice, setResendNotice] = useState(null);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return undefined;
+    const timer = setTimeout(() => setResendCooldown((value) => value - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
   const artSrc = `${import.meta.env.BASE_URL}khalifa.png`;
 
   function clearFeedback() {
     setError(null);
     setMessage(null);
     setResetEmailSent(false);
+    setResendNotice(null);
   }
 
   async function handleEmailAuth(event) {
@@ -32,14 +45,21 @@ export default function Auth() {
       if (resetError) setError(resetError.message);
       else setResetEmailSent(true);
     } else if (isSignUp) {
+      const emailRedirectTo = new URL(import.meta.env.BASE_URL, window.location.origin).toString();
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { username: username.trim() } },
+        options: {
+          data: { username: username.trim() },
+          emailRedirectTo,
+        },
       });
 
       if (signUpError) setError(signUpError.message);
-      else setMessage("Check your email for a confirmation link.");
+      else {
+        setPendingEmail(email);
+        setPassword("");
+      }
     } else {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
       if (signInError) setError(signInError.message);
@@ -58,6 +78,33 @@ export default function Auth() {
     if (oauthError) setError(oauthError.message);
   }
 
+  async function handleResendVerification() {
+    if (!pendingEmail || resendCooldown > 0) return;
+    setResendLoading(true);
+    setError(null);
+    setResendNotice(null);
+    const { error: resendError } = await supabase.auth.resend({
+      type: "signup",
+      email: pendingEmail,
+    });
+    setResendLoading(false);
+    if (resendError) {
+      setError(resendError.message);
+    } else {
+      setResendNotice("Verification email sent again.");
+      setResendCooldown(RESEND_COOLDOWN_SECONDS);
+    }
+  }
+
+  function handleChangeAccount() {
+    setPendingEmail("");
+    setEmail("");
+    setPassword("");
+    setUsername("");
+    setResendCooldown(0);
+    clearFeedback();
+  }
+
   const heading = isForgotPassword
     ? "Reset Password"
     : isSignUp
@@ -69,6 +116,60 @@ export default function Auth() {
     : isSignUp
     ? "Start tracking leads in under a minute."
     : "Welcome back. Enter your details to continue.";
+
+  if (pendingEmail) {
+    return (
+      <div className="auth-split-page">
+        <div className="auth-pane auth-pane--form">
+          <div className="auth-form-container">
+            <div className="auth-heading-group">
+              <h1 className="auth-heading">Check your email</h1>
+              <p className="auth-helper">
+                To start using Seller Signal we need you to confirm your account.
+              </p>
+            </div>
+
+            {error && <div className="auth-error">{error}</div>}
+            {resendNotice && <div className="auth-message">{resendNotice}</div>}
+
+            <div className="auth-verify-box">
+              <p className="auth-verify-text">
+                Please click the link we sent to the following email:{" "}
+                <strong>{pendingEmail}</strong>
+              </p>
+              <p className="auth-verify-change">
+                Not the right email?{" "}
+                <button
+                  type="button"
+                  className="auth-link"
+                  onClick={handleChangeAccount}
+                >
+                  Change account
+                </button>
+              </p>
+            </div>
+
+            <button
+              type="button"
+              className="auth-submit"
+              onClick={handleResendVerification}
+              disabled={resendLoading || resendCooldown > 0}
+            >
+              {resendLoading
+                ? "Sending..."
+                : resendCooldown > 0
+                ? `Resend email (${resendCooldown}s)`
+                : "Resend email"}
+            </button>
+          </div>
+        </div>
+
+        <div className="auth-pane auth-pane--art" aria-hidden="true">
+          <img src={artSrc} alt="" className="auth-art-image" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="auth-split-page">

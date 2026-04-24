@@ -500,6 +500,11 @@
   align-items: stretch;
 }
 
+.landing-pricing-grid--single {
+  grid-template-columns: minmax(0, 560px);
+  justify-content: center;
+}
+
 .landing-plan {
   display: flex;
   flex-direction: column;
@@ -651,6 +656,11 @@
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
+.landing-plan-cta:disabled {
+  cursor: wait;
+  opacity: 0.7;
+}
+
 .landing-plan-cta:hover {
   background: var(--cta);
   color: var(--cta-ink);
@@ -666,6 +676,23 @@
 .landing-plan-cta-primary:hover {
   background: #fff;
   border-color: #fff;
+}
+
+.landing-plan-note,
+.landing-plan-status,
+.landing-plan-error {
+  margin: 14px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.landing-plan-note,
+.landing-plan-status {
+  color: var(--ink-soft);
+}
+
+.landing-plan-error {
+  color: #ffb4ab;
 }
 
 /* FAQ */

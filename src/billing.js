@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
 
 export const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
+export const TRIAL_PERIOD_DAYS = 14;
 
 export function hasActiveSubscription(subscription) {
   if (!subscription || !ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status)) {
@@ -25,9 +26,9 @@ export async function fetchBillingSubscription() {
   return data;
 }
 
-export async function createCheckoutSession({ successUrl, cancelUrl }) {
+export async function createCheckoutSession({ successUrl, cancelUrl, trialPeriodDays } = {}) {
   const { data, error } = await supabase.functions.invoke("create-checkout-session", {
-    body: { successUrl, cancelUrl },
+    body: { successUrl, cancelUrl, trialPeriodDays },
   });
 
   if (error) throw error;

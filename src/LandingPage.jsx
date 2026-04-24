@@ -13,27 +13,27 @@ const HERO_ROTATE_MS = 4500;
 const FAQS = [
   {
     q: "What is Seller Signal, and how does it work?",
-    a: "Seller Signal is a focused workspace for Dubai real estate brokers to track sellers, monitor building activity, and run follow-ups. You import or add your sellers, we keep their pipeline and the buildings you watch in one place — no more juggling spreadsheets.",
+    a: "Seller Signal is a focused workspace for Dubai real estate brokers to track sellers, monitor building activity, and run follow-ups. You import or add your sellers, and the app keeps your pipeline and watched buildings in one place instead of scattered spreadsheets.",
   },
   {
-    q: "Can I try it before paying?",
-    a: "Yes. The Beta plan is free and lets you import one spreadsheet and track one building. Upgrade to Professional (€20/month) only when you need more.",
+    q: "How does billing work?",
+    a: "Seller Signal runs on a single Professional plan at EUR 20/month, billed through Stripe on the web. One subscription unlocks the full workspace and mobile access.",
   },
   {
     q: "How does importing spreadsheets work?",
-    a: "Drop your existing Google Sheet or Excel file in and we'll map columns to seller fields. Your data lives in Seller Signal after import — Sheets stays as your export if you need it.",
+    a: "Drop your existing Google Sheet or Excel file in and we'll map columns to seller fields. Your data lives in Seller Signal after import, while Sheets stays available as your export if you need it.",
   },
   {
     q: "What happens if I cancel?",
-    a: "Your data stays accessible on the Beta tier. You keep access to the single spreadsheet and building limits and can export anything out at any time.",
+    a: "Access stays active through the end of your paid period. After that, signing in takes you back to the pricing page until you start a new monthly subscription.",
   },
   {
     q: "Is there a mobile app?",
-    a: "Yes — the mobile app is included with Professional. It's designed for the parts of the job that happen away from your desk: checking listing alerts, logging calls, pulling up a seller on the way to a viewing.",
+    a: "Yes - the mobile app is included with Professional. It's built for the parts of the job that happen away from your desk: checking listing alerts, logging calls, and pulling up a seller on the way to a viewing.",
   },
   {
     q: "How is this different from a CRM?",
-    a: "A generic CRM tries to fit any business. Seller Signal is built around how Dubai brokers actually work — towers, seller statuses, listing portals. You get less to configure and more that just fits.",
+    a: "A generic CRM tries to fit any business. Seller Signal is built around how Dubai brokers actually work - towers, seller statuses, and listing portals - so there is less to configure and more that fits immediately.",
   },
   {
     q: "Is my seller data private?",
@@ -45,7 +45,7 @@ const TESTIMONIALS = [
   {
     title: "Finally an app built for us",
     body:
-      "Stopped juggling a dozen spreadsheets. My pipeline actually makes sense now — first real estate tool I've opened twice in a week.",
+      "Stopped juggling a dozen spreadsheets. My pipeline actually makes sense now - first real estate tool I've opened twice in a week.",
     author: "Agent, Marina",
   },
   {
@@ -61,7 +61,7 @@ const TESTIMONIALS = [
     author: "Independent agent",
   },
   {
-    title: "Worth the €20, easily",
+    title: "Worth the EUR 20, easily",
     body:
       "The price drop alerts paid for it in my first month. Closed a 2BR because I was the first to call.",
     author: "Downtown specialist",
@@ -80,9 +80,31 @@ const TESTIMONIALS = [
   },
 ];
 
-export default function LandingPage({ onSignIn, onGetStarted }) {
+export default function LandingPage({
+  billingError = null,
+  billingMessage = null,
+  checkoutPending = false,
+  isAuthenticated = false,
+  onGetStarted,
+  onSignIn,
+  onSignOut,
+  onSubscribe,
+}) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [openFaq, setOpenFaq] = useState(null);
+  const accountActionLabel = isAuthenticated ? "Sign out" : "Sign in";
+  const accountAction = isAuthenticated ? onSignOut : onSignIn;
+  const heroCtaLabel = isAuthenticated
+    ? checkoutPending
+      ? "Redirecting..."
+      : "Continue to Stripe"
+    : "Get started";
+  const heroCtaAction = isAuthenticated ? onSubscribe : onGetStarted;
+  const pricingCtaLabel = checkoutPending
+    ? "Redirecting to Stripe..."
+    : isAuthenticated
+    ? "Continue to Stripe"
+    : "Start subscription";
 
   useEffect(() => {
     const id = window.setInterval(() => {
@@ -98,11 +120,11 @@ export default function LandingPage({ onSignIn, onGetStarted }) {
         <nav className="landing-nav">
           <a href="#features">Product</a>
           <a href="#pricing">Pricing</a>
-          <button type="button" className="landing-nav-link" onClick={onSignIn}>
-            Sign in
+          <button type="button" className="landing-nav-link" onClick={accountAction}>
+            {accountActionLabel}
           </button>
-          <button type="button" className="landing-cta landing-cta-sm" onClick={onGetStarted}>
-            Get started
+          <button type="button" className="landing-cta landing-cta-sm" onClick={heroCtaAction}>
+            {heroCtaLabel}
           </button>
         </nav>
       </header>
@@ -116,8 +138,8 @@ export default function LandingPage({ onSignIn, onGetStarted }) {
             workspace.
           </p>
           <div className="landing-hero-actions">
-            <button type="button" className="landing-cta" onClick={onGetStarted}>
-              Get started
+            <button type="button" className="landing-cta" onClick={heroCtaAction}>
+              {heroCtaLabel}
             </button>
             <a href="#features" className="landing-cta-ghost">
               See how it works
@@ -144,7 +166,7 @@ export default function LandingPage({ onSignIn, onGetStarted }) {
         <div className="landing-store-badges">
           <a href="#download" className="landing-badge" aria-label="Download on the App Store">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
+              <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701" />
             </svg>
             <span className="landing-badge-text">
               <span className="landing-badge-top">Download on the</span>
@@ -154,7 +176,7 @@ export default function LandingPage({ onSignIn, onGetStarted }) {
 
           <a href="#download" className="landing-badge" aria-label="Get it on Google Play">
             <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.6l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.45.195a1.466 1.466 0 0 0-.946-.179l11.04 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.54-3.23-3.21z"/>
+              <path d="M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.6l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.45.195a1.466 1.466 0 0 0-.946-.179l11.04 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.54-3.23-3.21z" />
             </svg>
             <span className="landing-badge-text">
               <span className="landing-badge-top">Get it on</span>
@@ -212,7 +234,7 @@ export default function LandingPage({ onSignIn, onGetStarted }) {
             <h3>Spreadsheets without the mess</h3>
             <p>
               Import seller data once and let Seller Signal organize it.
-              Your pipeline lives in a real workspace — not 40 Google Sheets
+              Your pipeline lives in a real workspace - not 40 Google Sheets
               tabs you can't find anymore.
             </p>
           </article>
@@ -245,60 +267,51 @@ export default function LandingPage({ onSignIn, onGetStarted }) {
         <div className="landing-pricing-header">
           <h2 className="landing-pricing-title">Simple pricing.</h2>
           <p className="landing-pricing-sub">
-            Start free during beta. Upgrade when you're ready to scale.
+            One monthly plan for full Seller Signal access.
           </p>
         </div>
 
-        <div className="landing-pricing-grid">
-          <article className="landing-plan">
-            <div className="landing-plan-label">Beta</div>
-            <div className="landing-plan-price">
-              <span className="landing-plan-amount">€0</span>
-              <span className="landing-plan-unit">free while in beta</span>
-            </div>
-            <p className="landing-plan-desc">
-              Try Seller Signal with a single pipeline and one building to watch.
-            </p>
-
-            <ul className="landing-plan-features">
-              <li>Import 1 spreadsheet</li>
-              <li>Track 1 building</li>
-              <li>Seller pipeline &amp; follow-ups</li>
-              <li>Listing activity feed</li>
-            </ul>
-
-            <button type="button" className="landing-plan-cta" onClick={onGetStarted}>
-              Get started
-            </button>
-          </article>
-
+        <div className="landing-pricing-grid landing-pricing-grid--single">
           <article className="landing-plan landing-plan-featured">
             <div className="landing-plan-label">Professional</div>
             <div className="landing-plan-price">
-              <span className="landing-plan-amount">€20</span>
+              <span className="landing-plan-amount">EUR 20</span>
               <span className="landing-plan-unit">/ month</span>
             </div>
             <p className="landing-plan-desc">
-              Everything you need to run seller follow-up at full scale.
+              One subscription per account with the full web workspace, listing alerts, and mobile access.
             </p>
 
             <ul className="landing-plan-features">
-              <li className="landing-plan-carry">Everything in Beta</li>
-              <li>Up to 4 spreadsheets included</li>
-              <li>Track up to 5 buildings</li>
-              <li>Price drop alerts</li>
+              <li>Seller pipeline and follow-up workspace</li>
+              <li>Spreadsheet imports and smart mapping</li>
+              <li>Listing alerts and price-drop tracking</li>
               <li>Mobile app access</li>
-              <li>All future features included</li>
+              <li>Monthly billing through Stripe Checkout</li>
             </ul>
 
-            <div className="landing-plan-addon">
-              <span>+ €5</span>
-              <p>per additional spreadsheet beyond 4</p>
-            </div>
-
-            <button type="button" className="landing-plan-cta landing-plan-cta-primary" onClick={onGetStarted}>
-              Get started
+            <button
+              type="button"
+              className="landing-plan-cta landing-plan-cta-primary"
+              disabled={checkoutPending}
+              onClick={onSubscribe}
+            >
+              {pricingCtaLabel}
             </button>
+
+            {!isAuthenticated ? (
+              <p className="landing-plan-note">
+                Create your account first, then we'll send you to Stripe.
+              </p>
+            ) : null}
+
+            {billingMessage ? (
+              <p className="landing-plan-status">{billingMessage}</p>
+            ) : null}
+
+            {billingError ? (
+              <p className="landing-plan-error" role="alert">{billingError}</p>
+            ) : null}
           </article>
         </div>
       </section>
@@ -344,8 +357,8 @@ export default function LandingPage({ onSignIn, onGetStarted }) {
       <section className="landing-final-cta">
         <h2>Built for brokers who want a cleaner workflow.</h2>
         <p>Manage sellers, listings, and spreadsheets from one focused workspace.</p>
-        <button type="button" className="landing-cta" onClick={onGetStarted}>
-          Get started
+        <button type="button" className="landing-cta" onClick={heroCtaAction}>
+          {heroCtaLabel}
         </button>
       </section>
 
@@ -355,8 +368,8 @@ export default function LandingPage({ onSignIn, onGetStarted }) {
           <nav className="landing-footer-nav">
             <a href="#features">Product</a>
             <a href="#pricing">Pricing</a>
-            <button type="button" className="landing-nav-link" onClick={onSignIn}>
-              Sign in
+            <button type="button" className="landing-nav-link" onClick={accountAction}>
+              {accountActionLabel}
             </button>
             <a href="#privacy">Privacy</a>
             <a href="#terms">Terms</a>

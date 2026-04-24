@@ -14,6 +14,7 @@ const EMPTY_OPTIONS = [];
 const LAYOUTS = [
   { id: "grid", label: "Grid" },
   { id: "list", label: "List" },
+  { id: "map", label: "Map" },
 ];
 const LAYOUT_STORAGE_KEY = "listing-alerts:layout";
 
@@ -442,12 +443,12 @@ export default function ListingAlertsPage() {
           }}
           title={`Back to ${crumbBuilding.name}`}
         >
-          <span className="app-crumb-chip"><BuildingCrumbIcon /></span>
+          <BuildingCrumbIcon />
           <span className="app-crumb-label">{crumbBuilding.name}</span>
         </button>
       ) : (
         <span className="app-crumb-sub">
-          <span className="app-crumb-chip"><BuildingCrumbIcon /></span>
+          <BuildingCrumbIcon />
           <span className="app-crumb-label" title={crumbBuilding.name}>{crumbBuilding.name}</span>
         </span>
       )}

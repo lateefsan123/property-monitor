@@ -113,9 +113,7 @@ function SidenavItem({ item, currentPage, onNavigate, onAction }) {
       onClick={isInteractive ? handleClick : undefined}
       disabled={!isInteractive}
     >
-      <span className="sidenav-link-icon">
-        <Icon />
-      </span>
+      <Icon />
       <span>{item.label}</span>
     </button>
   );
@@ -130,9 +128,7 @@ function FavoriteItem({ source, onOpen }) {
       onClick={() => onOpen(source.id)}
       title={name}
     >
-      <span className="sidenav-link-icon">
-        <SpreadsheetsIcon />
-      </span>
+      <SpreadsheetsIcon />
       <span className="sidenav-favorite-label">{name}</span>
     </button>
   );
@@ -195,9 +191,7 @@ export default function AppSidebar({
 
       <div className="sidenav-footer">
         <button type="button" className="sidenav-link sidenav-signout accent-rose" onClick={onSignOut}>
-          <span className="sidenav-link-icon">
-            <SignOutIcon />
-          </span>
+          <SignOutIcon />
           <span>Sign out</span>
         </button>
       </div>

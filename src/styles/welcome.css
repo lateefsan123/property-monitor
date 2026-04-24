@@ -1,0 +1,70 @@
+.welcome-container {
+  gap: 24px;
+}
+
+.welcome-card {
+  padding: 22px 24px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-input);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.welcome-card-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.welcome-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.welcome-step {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.welcome-step.is-done .welcome-step-label {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+.welcome-step-bullet {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  border: 1.5px solid var(--border);
+  background: var(--bg-card);
+  color: transparent;
+  flex-shrink: 0;
+}
+
+.welcome-step-bullet.is-done {
+  background: #16a34a;
+  border-color: #16a34a;
+  color: #fff;
+}
+
+.welcome-step-label {
+  flex: 1;
+  min-width: 0;
+}
+
+.welcome-step-sparkle {
+  margin-left: 2px;
+}
