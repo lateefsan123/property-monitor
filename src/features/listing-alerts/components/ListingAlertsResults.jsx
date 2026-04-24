@@ -1,6 +1,5 @@
 import Pagination from "../../seller-signal/components/Pagination";
 import { useListingFavorites } from "../useListingFavorites";
-import ListingAlertsMap from "./ListingAlertsMap";
 import {
   BuildingCard,
   BuildingRow,
@@ -88,13 +87,6 @@ export default function ListingAlertsResults({
                 : "No listings found for this building."}
           </div>
         </div>
-      ) : layout === "map" && viewTab === "buildings" ? (
-        <ListingAlertsMap
-          buildings={items}
-          priceDropsByBuilding={priceDropsByBuilding}
-          onOpenBuilding={onOpenBuilding}
-          alerts={alerts}
-        />
       ) : (
         <div className={layout === "grid" ? "sheet-grid la-grid" : "sheet-list la-list-rows"}>
           {items.map((item, index) => {

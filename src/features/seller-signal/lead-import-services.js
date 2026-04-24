@@ -1,7 +1,7 @@
 import { aiMapColumns } from "../../ai-mapper";
 import { supabase } from "../../supabase";
 import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
-import { cleanBuildingName } from "./building-utils";
+import { canonicalizeBuildingName, cleanBuildingName } from "./building-utils";
 import { createLeadInsertRecord } from "./lead-utils";
 import { clearLeadsForSource } from "./lead-source-services";
 import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToObjects } from "./spreadsheet";
@@ -16,6 +16,11 @@ const IMPORT_TRUNCATION_FIELDS = [
 function emptyToNull(value) {
   const trimmed = String(value ?? "").trim();
   return trimmed || null;
+}
+
+function emptyBuildingToNull(value) {
+  const canonical = canonicalizeBuildingName(value);
+  return canonical || null;
 }
 
 function containsImportTruncation(value) {
@@ -97,7 +102,7 @@ function buildLeadStateKey(lead, sourceId = null) {
   return [
     sourceId ?? lead?.source_id ?? "legacy",
     normalizeToken(lead?.name),
-    normalizeToken(cleanBuildingName(lead?.building)),
+    normalizeToken(canonicalizeBuildingName(lead?.building) || cleanBuildingName(lead?.building)),
     normalizeToken(lead?.unit),
     normalizeToken(lead?.bedroom),
     normalizePhoneKey(lead?.phone),
@@ -176,7 +181,7 @@ export async function insertLead({ userId, sourceId, fields }) {
   if (!sourceId) throw new Error("Pick a spreadsheet first.");
 
   const name = emptyToNull(fields?.name);
-  const building = emptyToNull(fields?.building);
+  const building = emptyBuildingToNull(fields?.building);
   const phone = emptyToNull(fields?.phone);
 
   if (!name && !building && !phone) {
@@ -210,7 +215,7 @@ export async function updateLead({ userId, leadId, updates }) {
 
   const payload = {};
   if (Object.prototype.hasOwnProperty.call(updates || {}, "name")) payload.name = emptyToNull(updates?.name);
-  if (Object.prototype.hasOwnProperty.call(updates || {}, "building")) payload.building = emptyToNull(updates?.building);
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "building")) payload.building = emptyBuildingToNull(updates?.building);
   if (Object.prototype.hasOwnProperty.call(updates || {}, "bedroom")) payload.bedroom = emptyToNull(updates?.bedroom);
   if (Object.prototype.hasOwnProperty.call(updates || {}, "unit")) payload.unit = emptyToNull(updates?.unit);
   if (Object.prototype.hasOwnProperty.call(updates || {}, "phone")) payload.phone = emptyToNull(updates?.phone);

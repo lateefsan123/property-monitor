@@ -1,6 +1,6 @@
 import { MILLISECONDS_PER_DAY, STATUS_RULES } from "./constants";
 import { normalizeToken } from "./spreadsheet";
-import { cleanBuildingName, formatBuildingLabel, getBuildingKeyVariants } from "./building-utils";
+import { canonicalizeBuildingName } from "./building-utils";
 
 export function startOfDay(dateValue) {
   const date = new Date(dateValue);
@@ -255,7 +255,8 @@ export function createLeadInsertRecord(record, mapping, userId, options = {}) {
   const phone = mapping.phone ? record[mapping.phone] : "";
   const unit = mapping.unit ? record[mapping.unit] : "";
 
-  const resolvedBuilding = overrideBuilding ? (defaultBuilding || "") : (building || defaultBuilding || "");
+  const rawResolvedBuilding = overrideBuilding ? (defaultBuilding || "") : (building || defaultBuilding || "");
+  const resolvedBuilding = canonicalizeBuildingName(rawResolvedBuilding);
   const resolvedStatus = status || defaultStatus || "";
 
   if (!name && !resolvedBuilding && !phone) return null;

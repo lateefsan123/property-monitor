@@ -14,7 +14,6 @@ const EMPTY_OPTIONS = [];
 const LAYOUTS = [
   { id: "grid", label: "Grid" },
   { id: "list", label: "List" },
-  { id: "map", label: "Map" },
 ];
 const LAYOUT_STORAGE_KEY = "listing-alerts:layout";
 
