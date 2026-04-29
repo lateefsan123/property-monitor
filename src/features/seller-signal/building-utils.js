@@ -42,6 +42,10 @@ export function cleanBuildingName(raw) {
   return name || String(raw || "").trim();
 }
 
+export function normalizeBuildingAliasKey(raw) {
+  return normalizeToken(cleanBuildingName(raw));
+}
+
 function expandBoulevard(value) {
   return String(value || "").replace(/\bblvd\b\.?/gi, "Boulevard");
 }
@@ -257,6 +261,54 @@ export function resolveKnownBuildingName(raw) {
   }
 
   return "";
+}
+
+export function getKnownBuildingMatch(raw) {
+  const cleaned = cleanBuildingName(raw);
+  if (!cleaned) {
+    return {
+      status: "missing",
+      confidence: "none",
+      method: "missing",
+      inputName: "",
+      canonicalName: "",
+    };
+  }
+
+  const variants = getRawBuildingNameVariants(cleaned);
+  for (const variant of variants) {
+    const strictMatch = KNOWN_BUILDING_INDEX.exact.get(normalizeStrictBuildingKey(variant));
+    if (strictMatch) {
+      return {
+        status: "matched",
+        confidence: "high",
+        method: normalizeStrictBuildingKey(cleaned) === normalizeStrictBuildingKey(strictMatch) ? "exact" : "alias",
+        inputName: cleaned,
+        canonicalName: strictMatch,
+      };
+    }
+  }
+
+  for (const variant of variants) {
+    const looseMatch = KNOWN_BUILDING_INDEX.loose.get(normalizeLooseBuildingKey(variant));
+    if (looseMatch) {
+      return {
+        status: "matched",
+        confidence: "medium",
+        method: "loose",
+        inputName: cleaned,
+        canonicalName: looseMatch,
+      };
+    }
+  }
+
+  return {
+    status: "unmatched",
+    confidence: "low",
+    method: "unmatched",
+    inputName: cleaned,
+    canonicalName: "",
+  };
 }
 
 export function canonicalizeBuildingName(raw) {

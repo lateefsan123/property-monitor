@@ -9,7 +9,11 @@ import {
   LEGACY_SOURCE_ID,
   updateLeadsCache,
 } from "./page-helpers";
-import { sellerLeadsQueryKey } from "./queryKeys";
+import {
+  sellerBuildingAliasesQueryKey,
+  sellerInsightsQueryPrefix,
+  sellerLeadsQueryKey,
+} from "./queryKeys";
 import { createSellerSignalImportActions } from "./useSellerSignalImportActions";
 
 export function createSellerSignalActions(context) {
@@ -29,6 +33,7 @@ export function createSellerSignalActions(context) {
     toggleSentMutation,
     updateLeadMutation,
     updateLeadStatusMutation,
+    upsertBuildingAliasMutation,
     userId,
     setters,
   } = context;
@@ -260,6 +265,42 @@ export function createSellerSignalActions(context) {
     }
   }
 
+  async function saveBuildingAlias(aliasName, canonicalName) {
+    const cleanAlias = String(aliasName || "").trim();
+    const cleanCanonical = String(canonicalName || "").trim();
+
+    if (!cleanAlias || !cleanCanonical) {
+      setActionError("Pick a building match first.");
+      setActionNotice(null);
+      return false;
+    }
+
+    setActionError(null);
+    setActionNotice(null);
+
+    try {
+      const savedAlias = await upsertBuildingAliasMutation.mutateAsync({
+        aliasName: cleanAlias,
+        canonicalName: cleanCanonical,
+      });
+
+      queryClient.setQueryData(sellerBuildingAliasesQueryKey(userId), (current) => {
+        const aliases = current || [];
+        const next = aliases.filter((alias) => alias.aliasKey !== savedAlias.aliasKey);
+        next.push(savedAlias);
+        return next.sort((left, right) => left.aliasName.localeCompare(right.aliasName));
+      });
+      await queryClient.invalidateQueries({ queryKey: sellerBuildingAliasesQueryKey(userId) });
+      queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
+      setters.setCurrentPage(1);
+      setActionNotice(`Mapped "${cleanAlias}" to ${cleanCanonical}.`);
+      return true;
+    } catch (aliasError) {
+      setActionError(getErrorMessage(aliasError));
+      return false;
+    }
+  }
+
   function bulkWhatsApp(markAsSent = true) {
     const targets = pagedLeads.filter((lead) => {
       const phone = formatPhoneForWhatsApp(lead.phone);
@@ -301,6 +342,7 @@ export function createSellerSignalActions(context) {
     copyMessage,
     deleteLead: deleteLeadAction,
     ...importActions,
+    saveBuildingAlias,
     saveLeadEdits,
     saveNotes,
     startEditingLead,

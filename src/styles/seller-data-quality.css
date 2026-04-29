@@ -1,0 +1,61 @@
+.data-quality-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 5px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.data-quality-trusted {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.data-quality-partial {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.data-quality-review {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.lead-detail-section.accent-teal .lead-detail-section-icon {
+  background: #ccfbf1;
+  color: #0f766e;
+}
+
+.data-quality-issues {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.data-quality-issue-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.data-quality-issue {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 7px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  background: var(--bg-badge);
+  color: var(--text-badge);
+}
+
+.data-quality-issue-error {
+  background: #fee2e2;
+  color: #991b1b;
+}

@@ -37,6 +37,7 @@ export function createSellerSignalImportActions(context) {
     setCopiedLeadId,
     setCurrentPage,
     setDataFilter,
+    setDataQualityFilter,
     setEditingLeadDraft,
     setEditingLeadId,
     setExpandedLeads,
@@ -76,6 +77,11 @@ export function createSellerSignalImportActions(context) {
 
   function selectDataFilter(value) {
     setDataFilter(value);
+    resetPaging();
+  }
+
+  function selectDataQualityFilter(value) {
+    setDataQualityFilter(value);
     resetPaging();
   }
 
@@ -221,6 +227,7 @@ export function createSellerSignalImportActions(context) {
     importLegacySheet,
     persistLeadSource,
     selectDataFilter,
+    selectDataQualityFilter,
     selectSourceFilter,
     selectStatusFilter,
     selectViewTab,

@@ -4,6 +4,7 @@ import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
 import { canonicalizeBuildingName, cleanBuildingName } from "./building-utils";
 import { createLeadInsertRecord } from "./lead-utils";
 import { clearLeadsForSource } from "./lead-source-services";
+import { buildImportQualityReport } from "./import-quality-report";
 import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToObjects } from "./spreadsheet";
 
 const IMPORT_TRUNCATION_PATTERN = /\u2026|\.{3,}/;
@@ -130,6 +131,7 @@ function buildImportResult(allLeads, newLeads) {
     count,
     totalRows,
     skippedCount: Math.max(totalRows - count, 0),
+    quality: buildImportQualityReport(allLeads, newLeads),
   };
 }
 

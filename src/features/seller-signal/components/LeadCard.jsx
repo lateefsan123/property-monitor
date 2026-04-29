@@ -1,5 +1,6 @@
 import { formatPhoneForWhatsApp } from "../insight-utils";
 import { formatBuildingLabel } from "../building-utils";
+import { extractUnitFromBuilding, formatLeadBedroom, formatLeadUnit } from "./lead-display-utils";
 
 function WhatsAppIcon() {
   return (
@@ -26,29 +27,17 @@ function PinIcon({ filled }) {
   );
 }
 
-function formatLeadBedroom(value) {
-  const raw = String(value || "").trim();
-  if (!raw) return null;
-  if (/studio/i.test(raw)) return "Studio";
-  if (/^\d+$/.test(raw)) return `${raw}BR`;
-  return raw;
+function DataQualityBadge({ quality }) {
+  if (!quality?.label) return null;
+  return (
+    <span
+      className={`data-quality-badge data-quality-${quality.level}`}
+      title={quality.issues?.map((issue) => issue.label).join(", ") || quality.label}
+    >
+      {quality.label}
+    </span>
+  );
 }
-
-function extractUnitFromBuilding(value) {
-  const raw = String(value || "").trim();
-  if (!raw) return null;
-  const match = raw.match(/^(?:\[.*?\]\s*)?(?:Apartment|Unit|Villa)\s+([A-Za-z0-9-]+)/i);
-  return match?.[1] || null;
-}
-
-function formatLeadUnit(value) {
-  const raw = String(value || "").trim();
-  if (!raw) return null;
-  if (/^unit\b/i.test(raw)) return raw;
-  return `Unit ${raw}`;
-}
-
-export { formatLeadBedroom, extractUnitFromBuilding, formatLeadUnit, WhatsAppIcon };
 
 export default function LeadCard({
   copiedLeadId,
@@ -66,7 +55,14 @@ export default function LeadCard({
 }) {
   const message = insight?.message || null;
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
-  const displayBuildingLabel = insight?.locationName || formatBuildingLabel(lead.building) || lead.building || "-";
+  const displayBuildingLabel = insight?.locationName
+    || formatBuildingLabel(lead.resolvedBuilding || lead.building)
+    || lead.resolvedBuilding
+    || lead.building
+    || "-";
+  const buildingTitle = lead.resolvedBuilding && lead.resolvedBuilding !== lead.building
+    ? `${displayBuildingLabel} (from ${lead.building})`
+    : displayBuildingLabel;
   const bedroomLabel = formatLeadBedroom(lead.bedroom);
   const unitLabel = formatLeadUnit(lead.unit || extractUnitFromBuilding(lead.building));
   const whatsappUrl = whatsappPhone
@@ -158,7 +154,8 @@ export default function LeadCard({
         </div>
       </td>
       <td className="lead-cell-building">
-        <span className="lead-building-label" title={displayBuildingLabel}>{displayBuildingLabel}</span>
+        <span className="lead-building-label" title={buildingTitle}>{displayBuildingLabel}</span>
+        <DataQualityBadge quality={lead.dataQuality} />
       </td>
       <td className="lead-cell-bed">
         {bedroomLabel || <span className="text-muted">—</span>}

@@ -36,6 +36,13 @@ export const DATA_FILTER_OPTIONS = [
   { id: "no_data", label: "No Market Data" },
 ];
 
+export const DATA_QUALITY_FILTER_OPTIONS = [
+  { id: "all", label: "All Data Quality" },
+  { id: "trusted", label: "Trusted" },
+  { id: "partial", label: "Partial" },
+  { id: "review", label: "Needs Review" },
+];
+
 export const VIEW_TAB_OPTIONS = [
   { id: "active", label: "Active" },
   { id: "done", label: "Done" },

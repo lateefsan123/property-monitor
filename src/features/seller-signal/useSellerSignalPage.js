@@ -1,6 +1,7 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatPhoneForWhatsApp } from "./insight-utils";
+import { enrichLeadsWithDataQuality, summarizeLeadDataQuality } from "./lead-data-quality";
 import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
 import {
   deleteLead,
@@ -33,6 +34,7 @@ import {
   sellerSourcesQueryKey,
 } from "./queryKeys";
 import { createSellerSignalActions } from "./useSellerSignalActions";
+import { useSellerSignalBuildingAliases } from "./useSellerSignalBuildingAliases";
 
 export function useSellerSignalPage(userId) {
   const queryClient = useQueryClient();
@@ -59,6 +61,7 @@ export function useSellerSignalPage(userId) {
   const [showImport, setShowImport] = useState(false);
   const [viewTab, setViewTab] = useState("active");
   const [dataFilter, setDataFilter] = useState("with_data");
+  const [dataQualityFilter, setDataQualityFilter] = useState("all");
   const [sortOption, setSortOption] = useState(() => {
     if (typeof window === "undefined") return { field: "added", direction: "desc" };
     try {
@@ -92,9 +95,18 @@ export function useSellerSignalPage(userId) {
     queryFn: () => fetchSellerSources(userId),
     staleTime: 60 * 1000,
   });
+  const {
+    buildingAliases,
+    buildingAliasesQuery,
+    upsertBuildingAliasMutation,
+  } = useSellerSignalBuildingAliases(userId);
 
   const leadsData = leadsQuery.data || EMPTY_LEADS_DATA;
-  const leads = leadsData.leads || EMPTY_LEADS;
+  const leads = useMemo(
+    () => enrichLeadsWithDataQuality(leadsData.leads || EMPTY_LEADS, buildingAliases),
+    [buildingAliases, leadsData.leads],
+  );
+  const dataQualitySummary = useMemo(() => summarizeLeadDataQuality(leads), [leads]);
   const sentLeads = leadsData.sentMap || EMPTY_SENT_MAP;
   const leadSources = leadSourcesQuery.data || EMPTY_SOURCES;
   const hasLegacyLeads = useMemo(() => leads.some((lead) => !lead.sourceId), [leads]);
@@ -109,11 +121,11 @@ export function useSellerSignalPage(userId) {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!sourceFilterStorageKey) {
-      setSourceFilter("all");
-      return;
-    }
-    setSourceFilter(window.localStorage.getItem(sourceFilterStorageKey) || "all");
+    const nextFilter = sourceFilterStorageKey
+      ? window.localStorage.getItem(sourceFilterStorageKey) || "all"
+      : "all";
+    const timer = window.setTimeout(() => setSourceFilter(nextFilter), 0);
+    return () => window.clearTimeout(timer);
   }, [sourceFilterStorageKey]);
 
   useEffect(() => {
@@ -172,8 +184,8 @@ export function useSellerSignalPage(userId) {
   }, [insightTargets, insightsQuery.data, insightsQuery.error, insightsQuery.isFetching]);
 
   const { activeLeads: allActiveLeads, doneLeads: allDoneLeads } = useMemo(
-    () => splitLeadsBySentStatus(leads, sentLeads, insights),
-    [insights, leads, sentLeads],
+    () => splitLeadsBySentStatus(leads, sentLeads),
+    [leads, sentLeads],
   );
 
   const activeLeads = useMemo(() => {
@@ -192,6 +204,7 @@ export function useSellerSignalPage(userId) {
     () =>
       filterLeads({
         activeLeads,
+        dataQualityFilter,
         doneLeads,
         dataFilter,
         insights,
@@ -200,7 +213,7 @@ export function useSellerSignalPage(userId) {
         statusFilter,
         viewTab,
       }),
-    [activeLeads, dataFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, statusFilter, viewTab],
+    [activeLeads, dataFilter, dataQualityFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, statusFilter, viewTab],
   );
 
   const sortedLeads = useMemo(() => {
@@ -262,6 +275,8 @@ export function useSellerSignalPage(userId) {
     ? getErrorMessage(leadsQuery.error)
     : leadSourcesQuery.error
       ? getErrorMessage(leadSourcesQuery.error)
+      : buildingAliasesQuery.error
+        ? getErrorMessage(buildingAliasesQuery.error)
       : null;
   const insightNotice = insightTargets.length
     ? insightsQuery.error
@@ -274,7 +289,9 @@ export function useSellerSignalPage(userId) {
       : null;
   const error = actionError || fetchError || insightNotice;
   const notice = actionNotice;
-  const loading = (leadsQuery.isPending && !leadsQuery.data) || (leadSourcesQuery.isPending && !leadSourcesQuery.data);
+  const loading = (leadsQuery.isPending && !leadsQuery.data)
+    || (leadSourcesQuery.isPending && !leadSourcesQuery.data)
+    || (buildingAliasesQuery.isPending && !buildingAliasesQuery.data);
   const refreshing =
     (leadsQuery.isFetching && !leadsQuery.isPending)
     || (insightsQuery.isFetching && leads.length > 0);
@@ -305,6 +322,7 @@ export function useSellerSignalPage(userId) {
     totalPages,
     updateLeadMutation,
     updateLeadStatusMutation,
+    upsertBuildingAliasMutation,
     userId,
     setters: {
       setActionError,
@@ -313,6 +331,7 @@ export function useSellerSignalPage(userId) {
       setCopiedLeadId,
       setCurrentPage,
       setDataFilter,
+      setDataQualityFilter,
       setDeletingLeadId,
       setEditingLeadDraft,
       setEditingLeadId,
@@ -334,8 +353,11 @@ export function useSellerSignalPage(userId) {
   return {
     activeLeads,
     addingLead,
+    buildingAliases,
     copiedLeadId,
     dataFilter,
+    dataQualityFilter,
+    dataQualitySummary,
     deletingLeadId,
     doneLeads,
     editingLeadDraft,
@@ -360,6 +382,9 @@ export function useSellerSignalPage(userId) {
     searchTerm,
     sendAllCount,
     sentLeads,
+    savingBuildingAliasName: upsertBuildingAliasMutation.isPending
+      ? upsertBuildingAliasMutation.variables?.aliasName
+      : null,
     sheetUrl,
     showImport,
     sourceCounts,

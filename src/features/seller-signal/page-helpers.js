@@ -50,7 +50,7 @@ export function buildInsightTarget(lead) {
   return {
     id: lead.id,
     name: lead.name || "",
-    building: lead.building || "",
+    building: lead.resolvedBuilding || lead.building || "",
   };
 }
 
@@ -113,16 +113,34 @@ export function formatSourceLabel(source) {
 export function formatImportSuccessMessage(label, result) {
   const count = Number(result?.count || 0);
   const skippedCount = Number(result?.skippedCount || 0);
+  const quality = result?.quality || null;
+  const building = quality?.building || null;
+  const missing = quality?.missing || null;
   const countText = `${count} lead${count === 1 ? "" : "s"}`;
   const skippedText = `${skippedCount} duplicate row${skippedCount === 1 ? "" : "s"}`;
+  const qualityParts = [];
+
+  if (building) {
+    qualityParts.push(`${building.matched} matched building${building.matched === 1 ? "" : "s"}`);
+    const buildingReviewCount = Number(building.unmatched || 0) + Number(building.missing || 0);
+    if (buildingReviewCount > 0) qualityParts.push(`${buildingReviewCount} building${buildingReviewCount === 1 ? "" : "s"} need review`);
+  }
+  if (missing?.phone > 0) qualityParts.push(`${missing.phone} missing phone`);
+  if (missing?.unit > 0) qualityParts.push(`${missing.unit} missing unit`);
+  if (building?.unmatchedExamples?.length) {
+    const examples = building.unmatchedExamples.slice(0, 3).map((item) => item.name).join(", ");
+    qualityParts.push(`unmatched: ${examples}`);
+  }
+
+  const qualityText = qualityParts.length ? ` Data quality: ${qualityParts.join("; ")}.` : "";
 
   if (skippedCount > 0) {
     return label
-      ? `Imported ${countText} from ${label}. Skipped ${skippedText} from the sheet.`
-      : `Imported ${countText}. Skipped ${skippedText} from the sheet.`;
+      ? `Imported ${countText} from ${label}. Skipped ${skippedText} from the sheet.${qualityText}`
+      : `Imported ${countText}. Skipped ${skippedText} from the sheet.${qualityText}`;
   }
 
-  return label ? `Imported ${countText} from ${label}.` : `Imported ${countText}.`;
+  return label ? `Imported ${countText} from ${label}.${qualityText}` : `Imported ${countText}.${qualityText}`;
 }
 
 export function formatImportErrorMessage(label, message) {

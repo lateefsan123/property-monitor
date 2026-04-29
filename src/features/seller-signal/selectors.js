@@ -1,6 +1,6 @@
 import { PAGE_SIZE } from "./constants";
 
-export function splitLeadsBySentStatus(leads, sentLeads, insights) {
+export function splitLeadsBySentStatus(leads, sentLeads) {
   const activeLeads = [];
   const doneLeads = [];
 
@@ -19,6 +19,7 @@ export function splitLeadsBySentStatus(leads, sentLeads, insights) {
 
 export function filterLeads({
   activeLeads,
+  dataQualityFilter,
   doneLeads,
   dataFilter,
   insights,
@@ -49,10 +50,15 @@ export function filterLeads({
     result = result.filter((lead) => insights[lead.id]?.status !== "ready");
   }
 
+  if (!isDoneView && dataQualityFilter && dataQualityFilter !== "all") {
+    result = result.filter((lead) => lead.dataQuality?.level === dataQualityFilter);
+  }
+
   if (searchTerm.trim()) {
     const term = searchTerm.toLowerCase();
     result = result.filter((lead) =>
-      [lead.name, lead.building, lead.phone].some((value) => String(value || "").toLowerCase().includes(term)),
+      [lead.name, lead.building, lead.resolvedBuilding, lead.phone]
+        .some((value) => String(value || "").toLowerCase().includes(term)),
     );
   }
 

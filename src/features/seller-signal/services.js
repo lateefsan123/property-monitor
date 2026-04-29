@@ -19,3 +19,7 @@ export {
   updateLead,
 } from "./lead-import-services";
 export { fetchLeadInsights } from "./lead-insight-services";
+export {
+  fetchBuildingAliases,
+  upsertBuildingAlias,
+} from "./building-alias-services";

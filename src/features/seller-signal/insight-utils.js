@@ -138,7 +138,8 @@ export function formatPhoneForWhatsApp(rawValue) {
 
 export function buildMessage(lead, insight) {
   const name = lead.name || "";
-  const cleanedBuilding = formatBuildingLabel(lead.building) || cleanBuildingName(lead.building) || "your building";
+  const buildingName = lead.resolvedBuilding || lead.building;
+  const cleanedBuilding = formatBuildingLabel(buildingName) || cleanBuildingName(buildingName) || "your building";
   const lines = [
     `Hi ${name}, quick update on recent transactions in ${cleanedBuilding}.`,
     "",

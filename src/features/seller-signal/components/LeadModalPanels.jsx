@@ -194,6 +194,63 @@ export function OverviewPanel({ lead, bedroomLabel, unitLabel }) {
   );
 }
 
+export function DataQualityPanel({ lead }) {
+  const match = lead.buildingMatch;
+  const quality = lead.dataQuality;
+  const issues = quality?.issues || [];
+  const matchLabel = match?.status === "matched"
+    ? `${match.canonicalName} (${match.confidence} confidence)`
+    : match?.status === "missing"
+      ? "No building supplied"
+      : `Not matched: ${match?.inputName || "Unknown"}`;
+
+  return (
+    <div className="lead-detail-panel">
+      <div className="lead-detail-panel-head">
+        <h3 className="lead-detail-panel-title">Data quality</h3>
+        <p className="lead-detail-panel-subtitle">Source, match, and duplicate checks for this lead.</p>
+        <span className={`data-quality-badge data-quality-${quality?.level || "review"}`}>
+          {quality?.label || "Needs review"}
+        </span>
+      </div>
+
+      <div className="lead-detail-grid">
+        <div className="lead-detail-cell">
+          <span className="lead-detail-cell-label">Building match</span>
+          <span className="lead-detail-cell-value">{matchLabel}</span>
+        </div>
+        <div className="lead-detail-cell">
+          <span className="lead-detail-cell-label">Match method</span>
+          <span className="lead-detail-cell-value">{match?.method || "-"}</span>
+        </div>
+        <div className="lead-detail-cell">
+          <span className="lead-detail-cell-label">Source</span>
+          <span className="lead-detail-cell-value">{lead.sourceId ? "Spreadsheet source" : "Legacy source"}</span>
+        </div>
+        <div className="lead-detail-cell">
+          <span className="lead-detail-cell-label">Duplicate group</span>
+          <span className="lead-detail-cell-value">{quality?.duplicate ? `${quality.duplicate.count} matching leads` : "None detected"}</span>
+        </div>
+      </div>
+
+      <div className="data-quality-issues">
+        <span className="lead-detail-cell-label">Issues</span>
+        {issues.length ? (
+          <div className="data-quality-issue-list">
+            {issues.map((issue) => (
+              <span key={issue.id} className={`data-quality-issue data-quality-issue-${issue.severity}`}>
+                {issue.label}
+              </span>
+            ))}
+          </div>
+        ) : (
+          <p className="muted">No obvious data issues detected.</p>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function MarketPanel({ insight, lead }) {
   return (
     <div className="lead-detail-panel">

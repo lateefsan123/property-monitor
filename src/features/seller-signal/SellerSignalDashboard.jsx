@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import AddSellerModal from "./components/AddSellerModal";
+import BuildingCleanupPanel from "./components/BuildingCleanupPanel";
 import FiltersToolbar from "./components/FiltersToolbar";
 import LeadCard from "./components/LeadCard";
 import LeadModal from "./components/LeadModal";
@@ -10,26 +10,15 @@ import ViewTabs from "./components/ViewTabs";
 import { useSellerFavorites } from "./useSellerFavorites";
 import { useSellerSignalPage } from "./useSellerSignalPage";
 
-async function fetchBuildingImages({ signal }) {
-  const response = await fetch("/data/building-images.json", { signal });
-  if (!response.ok) return {};
-  return response.json();
-}
-
 export default function SellerSignalDashboard({ userId }) {
   const dashboard = useSellerSignalPage(userId);
   const [addSellerOpen, setAddSellerOpen] = useState(false);
   const { favoriteIds, toggleFavorite, pinnedIds, togglePin } = useSellerFavorites();
-  const buildingImagesQuery = useQuery({
-    queryKey: ["seller-signal", "building-images"],
-    queryFn: fetchBuildingImages,
-    staleTime: 10 * 60 * 1000,
-  });
-  const buildingImages = buildingImagesQuery.data || {};
 
   const canAddSeller = dashboard.sourceFilter
     && dashboard.sourceFilter !== "all"
     && dashboard.sourceFilter !== "legacy";
+  const cleanupLeads = [...dashboard.activeLeads, ...dashboard.doneLeads];
   const activeSourceLabel = canAddSeller
     ? (dashboard.sourceOptions?.find((option) => option.id === dashboard.sourceFilter)?.label || "")
     : "";
@@ -110,8 +99,10 @@ export default function SellerSignalDashboard({ userId }) {
 
       <FiltersToolbar
         dataFilter={dashboard.dataFilter}
+        dataQualityFilter={dashboard.dataQualityFilter}
         isAllExpanded={dashboard.isAllExpanded}
         onDataFilterChange={dashboard.actions.selectDataFilter}
+        onDataQualityFilterChange={dashboard.actions.selectDataQualityFilter}
         onSearchTermChange={dashboard.actions.updateSearchTerm}
         onStatusFilterChange={dashboard.actions.selectStatusFilter}
         onToggleAllExpanded={dashboard.actions.toggleAllExpanded}
@@ -120,9 +111,20 @@ export default function SellerSignalDashboard({ userId }) {
         viewTab={dashboard.viewTab}
       />
 
+      <BuildingCleanupPanel
+        aliases={dashboard.buildingAliases}
+        leads={cleanupLeads}
+        onSaveAlias={dashboard.actions.saveBuildingAlias}
+        savingAliasName={dashboard.savingBuildingAliasName}
+      />
+
       {dashboard.hasLeads ? (
         <>
-          <p className="count-text">{dashboard.filteredLeads.length} leads</p>
+          <p className="count-text">
+            {dashboard.filteredLeads.length} leads
+            {dashboard.dataQualitySummary?.review > 0 && ` - ${dashboard.dataQualitySummary.review} need review`}
+            {dashboard.dataQualitySummary?.partial > 0 && ` - ${dashboard.dataQualitySummary.partial} partial`}
+          </p>
 
           <div className="lead-table-wrap">
             <table className="lead-table">

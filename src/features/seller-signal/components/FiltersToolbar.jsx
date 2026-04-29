@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { DATA_FILTER_OPTIONS, STATUS_FILTER_OPTIONS } from "../constants";
+import { DATA_FILTER_OPTIONS, DATA_QUALITY_FILTER_OPTIONS, STATUS_FILTER_OPTIONS } from "../constants";
 
 const DEFAULT_STATUS = "prospect";
 const DEFAULT_DATA = "with_data";
@@ -14,7 +14,9 @@ function CheckIcon() {
 
 export default function FiltersToolbar({
   dataFilter,
+  dataQualityFilter,
   onDataFilterChange,
+  onDataQualityFilterChange,
   onSearchTermChange,
   onStatusFilterChange,
   searchTerm,
@@ -26,7 +28,8 @@ export default function FiltersToolbar({
 
   const activeFilterCount =
     (statusFilter !== DEFAULT_STATUS ? 1 : 0) +
-    (dataFilter !== DEFAULT_DATA ? 1 : 0);
+    (dataFilter !== DEFAULT_DATA ? 1 : 0) +
+    (dataQualityFilter !== "all" ? 1 : 0);
 
   useEffect(() => {
     if (!filtersOpen) return undefined;
@@ -115,6 +118,24 @@ export default function FiltersToolbar({
                   >
                     <span>{option.label}</span>
                     {dataFilter === option.id && <CheckIcon />}
+                  </button>
+                ))}
+                <div className="sheet-sort-divider" />
+                <div className="sheet-sort-menu-label">Data quality</div>
+                {DATA_QUALITY_FILTER_OPTIONS.map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={dataQualityFilter === option.id}
+                    className={`sheet-sort-item${dataQualityFilter === option.id ? " is-selected" : ""}`}
+                    onClick={() => {
+                      onDataQualityFilterChange(option.id);
+                      setFiltersOpen(false);
+                    }}
+                  >
+                    <span>{option.label}</span>
+                    {dataQualityFilter === option.id && <CheckIcon />}
                   </button>
                 ))}
               </div>
