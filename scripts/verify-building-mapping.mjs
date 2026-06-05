@@ -312,6 +312,9 @@ async function verifyAddressBuildingParsing(vite) {
   const projectLevelBoulevardCentral = resolveBuilding("Apartment 1108, Boulevard Centr...");
   const projectLevelBlvdHeights = resolveBuilding("Apartment 1706, BLVD Heights To...");
   const projectLevelForteTruncated = resolveBuilding("Apartment 1608 (NOT LIVE), Forte...");
+  const projectLevelAykon = resolveBuilding("Apartment 1702, Aykon City Towe...");
+  const terracesMarasi = resolveBuilding("Apartment 1705, Terraces Marasi...");
+  const shortUniquePrefix = resolveBuilding("Apartment 1404 (NOT LIVE), Aha...");
   const ambiguousStaticPrefix = resolveBuilding("Apartment 1203, Damac Maiso...");
   const ambiguousCachePrefix = resolveWithConflictingCachedPrefixBuildings("Apartment 1203, Damac Maiso...");
   const projectLevelForte = resolveBuilding("Forte 3 bed");
@@ -399,6 +402,29 @@ async function verifyAddressBuildingParsing(vite) {
       passed: projectLevelForteTruncated.status === "matched"
         && projectLevelForteTruncated.method === "truncated_project"
         && projectLevelForteTruncated.canonicalName === "Forte, Downtown Dubai",
+    },
+    projectLevelAykon: {
+      status: projectLevelAykon.status,
+      method: projectLevelAykon.method,
+      canonicalName: projectLevelAykon.canonicalName,
+      passed: projectLevelAykon.status === "matched"
+        && ["truncated_project", "truncated_prefix"].includes(projectLevelAykon.method)
+        && projectLevelAykon.canonicalName === "Aykon City, Business Bay",
+    },
+    terracesMarasi: {
+      status: terracesMarasi.status,
+      method: terracesMarasi.method,
+      canonicalName: terracesMarasi.canonicalName,
+      passed: terracesMarasi.status === "matched"
+        && terracesMarasi.canonicalName === "Terraces Marasi Drive, Business Bay",
+    },
+    shortUniquePrefix: {
+      status: shortUniquePrefix.status,
+      method: shortUniquePrefix.method,
+      canonicalName: shortUniquePrefix.canonicalName,
+      passed: shortUniquePrefix.status === "matched"
+        && shortUniquePrefix.method === "truncated_short_prefix"
+        && shortUniquePrefix.canonicalName === "Ahad Residences, Business Bay",
     },
     ambiguousStaticPrefix: {
       status: ambiguousStaticPrefix.status,
@@ -669,6 +695,18 @@ function assertVerifierResult(result) {
     failures.push("Project-level Forte truncated prefix did not resolve.");
   }
 
+  if (!result.addressBuildingParsing.projectLevelAykon.passed) {
+    failures.push("Project-level Aykon City truncated prefix did not resolve.");
+  }
+
+  if (!result.addressBuildingParsing.terracesMarasi.passed) {
+    failures.push("Terraces Marasi truncated prefix did not resolve.");
+  }
+
+  if (!result.addressBuildingParsing.shortUniquePrefix.passed) {
+    failures.push("Short unique truncated prefix did not resolve.");
+  }
+
   if (!result.addressBuildingParsing.ambiguousStaticPrefix.passed) {
     failures.push("Ambiguous static truncated prefix was not blocked.");
   }
@@ -718,7 +756,7 @@ function assertVerifierResult(result) {
 
 async function main() {
   const env = await loadDotEnv();
-  const vite = await createServer({ server: { middlewareMode: true }, appType: "custom", logLevel: "error" });
+  const vite = await createServer({ server: { middlewareMode: true, hmr: false }, appType: "custom", logLevel: "error" });
   const client = await openDatabase(env);
 
   try {
