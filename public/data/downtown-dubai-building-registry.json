@@ -767,6 +767,27 @@
       "project": "Elegance Tower",
       "building_type": "residential_tower",
       "status": "off_plan"
+    },
+    {
+      "canonical_name": "Ahad Residences",
+      "aliases": ["Ahad Residence"],
+      "project": "Ahad Residences",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Aykon City",
+      "aliases": ["Aykon City Tower", "Aykon City Towers"],
+      "project": "Aykon City",
+      "building_type": "residential_complex",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Terraces Marasi Drive",
+      "aliases": ["The Terraces Marasi Drive", "Terraces Marasi"],
+      "project": "Terraces Marasi Drive",
+      "building_type": "residential_tower",
+      "status": "ready"
     }
   ]
 }
