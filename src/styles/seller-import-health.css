@@ -1,0 +1,128 @@
+.import-health-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--bg-card-border);
+  border-radius: 8px;
+  background: var(--bg-card);
+}
+
+.import-health-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.import-health-title {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.import-health-meta {
+  margin: 3px 0 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.import-health-status {
+  flex-shrink: 0;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.import-health-status.is-clean {
+  color: #047857;
+  background: #d1fae5;
+}
+
+.import-health-status.is-review {
+  color: #b45309;
+  background: #fef3c7;
+}
+
+.import-health-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.import-health-stat {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 7px;
+}
+
+.import-health-stat-value {
+  display: block;
+  color: var(--text-name);
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.import-health-stat-label {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.import-health-examples {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.import-health-example {
+  min-width: 0;
+  max-width: 220px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.import-health-example-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.import-health-example-meta {
+  flex-shrink: 0;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.import-health-review {
+  align-self: flex-start;
+  height: 34px;
+}
+
+@media (max-width: 720px) {
+  .import-health-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .import-health-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .import-health-review {
+    width: 100%;
+  }
+}

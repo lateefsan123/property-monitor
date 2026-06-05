@@ -9,6 +9,7 @@ import {
 import AddSellerModal from "./components/AddSellerModal";
 import BuildingCleanupPanel from "./components/BuildingCleanupPanel";
 import FiltersToolbar from "./components/FiltersToolbar";
+import ImportHealthPanel from "./components/ImportHealthPanel";
 import LeadCard from "./components/LeadCard";
 import LeadModal from "./components/LeadModal";
 import Pagination from "./components/Pagination";
@@ -58,7 +59,6 @@ export default function SellerSignalDashboard({ userId }) {
   const canAddSeller = dashboard.sourceFilter
     && dashboard.sourceFilter !== "all"
     && dashboard.sourceFilter !== "legacy";
-  const cleanupLeads = [...dashboard.activeLeads, ...dashboard.doneLeads];
   const activeSourceLabel = canAddSeller
     ? (dashboard.sourceOptions?.find((option) => option.id === dashboard.sourceFilter)?.label || "")
     : "";
@@ -118,6 +118,10 @@ export default function SellerSignalDashboard({ userId }) {
     <div className="page">
       {dashboard.notice && <div className="notice">{dashboard.notice}</div>}
       {dashboard.error && <div className="error">{dashboard.error}</div>}
+      <ImportHealthPanel
+        report={dashboard.lastImportReport}
+        onReviewRows={(filter) => dashboard.actions.selectDataQualityFilter(filter)}
+      />
 
       {dashboard.sourceOptions?.length > 0 && (
         <div className="source-tabs-row">
@@ -168,7 +172,8 @@ export default function SellerSignalDashboard({ userId }) {
 
       <BuildingCleanupPanel
         aliases={dashboard.buildingAliases}
-        leads={cleanupLeads}
+        cachedBuildings={dashboard.cachedBuildings}
+        leads={dashboard.cleanupLeads}
         onSaveAlias={dashboard.actions.saveBuildingAlias}
         savingAliasName={dashboard.savingBuildingAliasName}
       />

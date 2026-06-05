@@ -8,6 +8,7 @@ import {
   normalizeSourceDraft,
 } from "./page-helpers";
 import {
+  sellerBuildingCleanupQueryPrefix,
   sellerInsightsQueryPrefix,
   sellerLeadsQueryKey,
   sellerSourcesQueryKey,
@@ -44,6 +45,7 @@ export function createSellerSignalImportActions(context) {
     setImporting,
     setImportingLegacy,
     setImportingSourceId,
+    setLastImportReport,
     setLegacySheetUrlState,
     setSearchTerm,
     setSheetUrl,
@@ -121,11 +123,13 @@ export function createSellerSignalImportActions(context) {
 
   function updateSheetUrl(value) {
     setActionNotice(null);
+    setLastImportReport(null);
     setSheetUrl(value);
   }
 
   function updateLeadSourceField(sourceId, field, value) {
     setActionNotice(null);
+    setLastImportReport(null);
     queryClient.setQueryData(sellerSourcesQueryKey(userId), (current) =>
       (current || EMPTY_SOURCES).map((source) =>
         source.id === sourceId
@@ -142,6 +146,7 @@ export function createSellerSignalImportActions(context) {
 
     setActionError(null);
     setActionNotice(null);
+    setLastImportReport(null);
     try {
       await persistLeadSourceMutation.mutateAsync(normalizeSourceDraft(source));
       await queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) });
@@ -153,6 +158,7 @@ export function createSellerSignalImportActions(context) {
   function updateLegacySheetUrl(value) {
     const next = String(value || "");
     setActionNotice(null);
+    setLastImportReport(null);
     setLegacySheetUrlState(next);
     if (typeof window !== "undefined" && legacySheetStorageKey) {
       if (next) window.localStorage.setItem(legacySheetStorageKey, next);
@@ -171,13 +177,20 @@ export function createSellerSignalImportActions(context) {
     setImportingLegacy(true);
     setActionError(null);
     setActionNotice(null);
+    setLastImportReport(null);
 
     try {
       const result = await importLegacyLeadsMutation.mutateAsync({ rawSheetUrl: trimmed });
       clearEditingState();
       await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
+      await queryClient.invalidateQueries({ queryKey: sellerBuildingCleanupQueryPrefix(userId) });
       queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
       setActionNotice(formatImportSuccessMessage(LEGACY_SOURCE_LABEL, result));
+      setLastImportReport({
+        importedAt: Date.now(),
+        result,
+        sourceLabel: LEGACY_SOURCE_LABEL,
+      });
     } catch (importError) {
       setActionError(formatImportErrorMessage(LEGACY_SOURCE_LABEL, getErrorMessage(importError)));
     } finally {
@@ -192,6 +205,7 @@ export function createSellerSignalImportActions(context) {
     setImportingSourceId(sourceId);
     setActionError(null);
     setActionNotice(null);
+    setLastImportReport(null);
 
     try {
       const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
@@ -209,8 +223,14 @@ export function createSellerSignalImportActions(context) {
       setSheetUrl("");
       clearEditingState();
       await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
+      await queryClient.invalidateQueries({ queryKey: sellerBuildingCleanupQueryPrefix(userId) });
       queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
       setActionNotice(formatImportSuccessMessage(sourceLabel, result));
+      setLastImportReport({
+        importedAt: Date.now(),
+        result,
+        sourceLabel,
+      });
     } catch (importError) {
       const source = sourceId ? leadSources.find((item) => item.id === sourceId) : null;
       setActionError(formatImportErrorMessage(formatSourceLabel(source), getErrorMessage(importError)));

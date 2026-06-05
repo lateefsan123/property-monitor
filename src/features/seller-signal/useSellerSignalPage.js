@@ -9,6 +9,7 @@ import {
   fetchCachedBuildings,
   fetchLeadInsights,
   fetchLeadMarketAvailability,
+  fetchSellerBuildingCleanupLeads,
   fetchSellerLeadPage,
   persistLeadSentState,
   replaceLegacyLeadsFromSheet,
@@ -32,6 +33,7 @@ import {
 } from "./page-helpers";
 import {
   sellerInsightsQueryKey,
+  sellerBuildingCleanupQueryKey,
   sellerLeadsQueryKey,
   sellerMarketAvailabilityQueryKey,
   sellerSourcesQueryKey,
@@ -49,6 +51,7 @@ export function useSellerSignalPage(userId) {
   const sourceFilterStorageKey = userId ? `seller-signal:source-filter:${userId}` : null;
   const [actionError, setActionError] = useState(null);
   const [actionNotice, setActionNotice] = useState(null);
+  const [lastImportReport, setLastImportReport] = useState(null);
   const [importing, setImporting] = useState(false);
   const [importingSourceId, setImportingSourceId] = useState(null);
   const [importingLegacy, setImportingLegacy] = useState(false);
@@ -149,6 +152,19 @@ export function useSellerSignalPage(userId) {
   const leads = useMemo(
     () => enrichLeadsWithDataQuality(leadsData.leads || EMPTY_LEADS, buildingAliases, cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS),
     [buildingAliases, cachedBuildingsQuery.data, leadsData.leads],
+  );
+  const cleanupLeadsQuery = useQuery({
+    queryKey: sellerBuildingCleanupQueryKey(userId, effectiveSourceFilter),
+    enabled: Boolean(userId),
+    queryFn: () => fetchSellerBuildingCleanupLeads({
+      userId,
+      sourceFilter: effectiveSourceFilter,
+    }),
+    staleTime: 5 * 60 * 1000,
+  });
+  const cleanupLeads = useMemo(
+    () => enrichLeadsWithDataQuality(cleanupLeadsQuery.data || EMPTY_LEADS, buildingAliases, cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS),
+    [buildingAliases, cachedBuildingsQuery.data, cleanupLeadsQuery.data],
   );
   const dataQualitySummary = useMemo(() => summarizeLeadDataQuality(leads), [leads]);
   const sentLeads = leadsData.sentMap || EMPTY_SENT_MAP;
@@ -313,15 +329,13 @@ export function useSellerSignalPage(userId) {
     return phone && insights[lead.id]?.status === "ready";
   }).length;
 
-  const fetchError = leadsQuery.error
-    ? getErrorMessage(leadsQuery.error)
-    : leadSourcesQuery.error
-      ? getErrorMessage(leadSourcesQuery.error)
-      : buildingAliasesQuery.error
-        ? getErrorMessage(buildingAliasesQuery.error)
-        : cachedBuildingsQuery.error
-          ? getErrorMessage(cachedBuildingsQuery.error)
-      : null;
+  const fetchError = getErrorMessage(
+    leadsQuery.error
+    || leadSourcesQuery.error
+    || buildingAliasesQuery.error
+    || cleanupLeadsQuery.error
+    || cachedBuildingsQuery.error,
+  );
   const insightNotice = insightTargets.length
     ? insightsQuery.error
       ? getErrorMessage(insightsQuery.error)
@@ -381,6 +395,7 @@ export function useSellerSignalPage(userId) {
       setImporting,
       setImportingLegacy,
       setImportingSourceId,
+      setLastImportReport,
       setLegacySheetUrlState,
       setSavingLeadId,
       setSearchTerm,
@@ -396,7 +411,9 @@ export function useSellerSignalPage(userId) {
     activeLeads,
     addingLead,
     buildingAliases,
+    cachedBuildings: cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS,
     copiedLeadId,
+    cleanupLeads,
     dataFilter,
     dataQualityFilter,
     dataQualitySummary,
@@ -413,6 +430,7 @@ export function useSellerSignalPage(userId) {
     importingLegacy,
     importingSourceId,
     insights,
+    lastImportReport,
     legacySheetUrl,
     isAllExpanded,
     leadSources,

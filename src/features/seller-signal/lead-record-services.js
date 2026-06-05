@@ -194,6 +194,42 @@ export async function fetchSellerLeadPage(options = {}) {
   };
 }
 
+export async function fetchSellerBuildingCleanupLeads(options = {}) {
+  const {
+    sourceFilter = "all",
+    userId,
+  } = options;
+
+  if (!userId) return [];
+
+  const rows = await selectAllRows(() => {
+    let query = supabase
+      .from("leads")
+      .select("id, name, building, bedroom, unit, source_id")
+      .eq("user_id", userId)
+      .not("building", "is", null)
+      .neq("building", "")
+      .order("id");
+
+    if (sourceFilter === "legacy") {
+      query = query.is("source_id", null);
+    } else if (sourceFilter && sourceFilter !== "all") {
+      query = query.eq("source_id", sourceFilter);
+    }
+
+    return query;
+  });
+
+  return (rows || []).map((row) => ({
+    id: row.id,
+    name: row.name || "",
+    building: row.building || "",
+    bedroom: row.bedroom || "",
+    unit: row.unit || "",
+    sourceId: row.source_id || null,
+  }));
+}
+
 export async function updateLeadStatus({ userId, leadId, status }) {
   if (!userId || !leadId) return;
   const { error } = await supabase

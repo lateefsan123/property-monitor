@@ -11,6 +11,7 @@ import {
 } from "./page-helpers";
 import {
   sellerBuildingAliasesQueryKey,
+  sellerBuildingCleanupQueryPrefix,
   sellerInsightsQueryPrefix,
   sellerLeadsQueryKey,
 } from "./queryKeys";
@@ -69,6 +70,7 @@ export function createSellerSignalActions(context) {
     try {
       await insertLead({ userId, sourceId, fields: draft });
       await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
+      await queryClient.invalidateQueries({ queryKey: sellerBuildingCleanupQueryPrefix(userId) });
       setActionNotice("Seller added.");
       return true;
     } catch (addError) {
@@ -185,6 +187,7 @@ export function createSellerSignalActions(context) {
       await updateLeadMutation.mutateAsync({ leadId, updates: editingLeadDraft });
       setEditingLeadId(null);
       setEditingLeadDraft(null);
+      await queryClient.invalidateQueries({ queryKey: sellerBuildingCleanupQueryPrefix(userId) });
     } catch (saveError) {
       setActionError(getErrorMessage(saveError));
       queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
@@ -254,6 +257,7 @@ export function createSellerSignalActions(context) {
 
     try {
       await deleteLeadMutation.mutateAsync({ leadId });
+      await queryClient.invalidateQueries({ queryKey: sellerBuildingCleanupQueryPrefix(userId) });
     } catch (deleteError) {
       setActionError(getErrorMessage(deleteError));
       queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
@@ -291,6 +295,7 @@ export function createSellerSignalActions(context) {
         return next.sort((left, right) => left.aliasName.localeCompare(right.aliasName));
       });
       await queryClient.invalidateQueries({ queryKey: sellerBuildingAliasesQueryKey(userId) });
+      await queryClient.invalidateQueries({ queryKey: sellerBuildingCleanupQueryPrefix(userId) });
       queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
       setters.setCurrentPage(1);
       setActionNotice(`Mapped "${cleanAlias}" to ${cleanCanonical}.`);

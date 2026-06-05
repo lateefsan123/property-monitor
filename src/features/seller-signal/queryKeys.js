@@ -14,6 +14,14 @@ export function sellerCachedBuildingsQueryKey() {
   return ["seller-signal", "cached-buildings"];
 }
 
+export function sellerBuildingCleanupQueryKey(userId, sourceFilter) {
+  return ["seller-signal", "building-cleanup", userId, sourceFilter];
+}
+
+export function sellerBuildingCleanupQueryPrefix(userId) {
+  return ["seller-signal", "building-cleanup", userId];
+}
+
 export function sellerMarketAvailabilityQueryKey(userId, targetKeys) {
   return ["seller-signal", "market-availability", userId, targetKeys];
 }
