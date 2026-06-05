@@ -42,6 +42,55 @@ function findTransactionsForKeys(keys, transactionsByBuilding) {
   return { key: keys?.[0] || null, entry: null, transactions: [] };
 }
 
+function isMissingMarketAvailabilityRpc(error) {
+  const message = String(error?.message || "");
+  return error?.code === "PGRST202"
+    || error?.code === "42883"
+    || message.includes("get_available_market_building_keys");
+}
+
+async function fetchAvailableBuildingKeysFallback(buildingKeys) {
+  const availableKeys = new Set();
+  const batchSize = 10;
+
+  for (let index = 0; index < buildingKeys.length; index += batchSize) {
+    const batch = buildingKeys.slice(index, index + batchSize);
+    const results = await Promise.all(batch.map(async (buildingKey) => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select("building_key")
+        .eq("building_key", buildingKey)
+        .limit(1);
+
+      if (error) throw new Error(error.message);
+      return data?.length ? buildingKey : null;
+    }));
+
+    for (const buildingKey of results) {
+      if (buildingKey) availableKeys.add(buildingKey);
+    }
+  }
+
+  return availableKeys;
+}
+
+async function fetchAvailableBuildingKeys(buildingKeys) {
+  const uniqueKeys = [...new Set(buildingKeys)].filter(Boolean);
+  if (!uniqueKeys.length) return new Set();
+
+  const { data, error } = await supabase.rpc(
+    "get_available_market_building_keys",
+    { target_keys: uniqueKeys },
+  );
+
+  if (!error) {
+    return new Set((data || []).map((row) => row.building_key).filter(Boolean));
+  }
+
+  if (!isMissingMarketAvailabilityRpc(error)) throw new Error(error.message);
+  return fetchAvailableBuildingKeysFallback(uniqueKeys);
+}
+
 async function fetchFallbackTransactionsForMissingTargets(targets, transactionsByBuilding) {
   const missingNames = new Map();
 
@@ -178,15 +227,7 @@ export async function fetchLeadMarketAvailability(leads) {
     return { hasTargets: false, matched: 0, updates: {} };
   }
 
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("building_key")
-    .in("building_key", [...buildingKeys])
-    .limit(10000);
-
-  if (error) throw new Error(error.message);
-
-  const availableKeys = new Set((data || []).map((row) => row.building_key).filter(Boolean));
+  const availableKeys = await fetchAvailableBuildingKeys([...buildingKeys]);
   const updates = {};
   let matched = 0;
 

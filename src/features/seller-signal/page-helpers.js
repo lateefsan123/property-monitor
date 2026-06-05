@@ -122,7 +122,9 @@ export function formatImportSuccessMessage(label, result) {
 
   if (building) {
     qualityParts.push(`${building.matched} matched building${building.matched === 1 ? "" : "s"}`);
-    const buildingReviewCount = Number(building.unmatched || 0) + Number(building.missing || 0);
+    const buildingReviewCount = Number(building.unmatched || 0)
+      + Number(building.missing || 0)
+      + Number(building.invalid || 0);
     if (buildingReviewCount > 0) qualityParts.push(`${buildingReviewCount} building${buildingReviewCount === 1 ? "" : "s"} need review`);
   }
   if (missing?.phone > 0) qualityParts.push(`${missing.phone} missing phone`);
@@ -130,6 +132,10 @@ export function formatImportSuccessMessage(label, result) {
   if (building?.unmatchedExamples?.length) {
     const examples = building.unmatchedExamples.slice(0, 3).map((item) => item.name).join(", ");
     qualityParts.push(`unmatched: ${examples}`);
+  }
+  if (building?.invalidExamples?.length) {
+    const examples = building.invalidExamples.slice(0, 3).map((item) => item.name).join(", ");
+    qualityParts.push(`invalid: ${examples}`);
   }
 
   const qualityText = qualityParts.length ? ` Data quality: ${qualityParts.join("; ")}.` : "";

@@ -13,6 +13,8 @@ function collectUnmatchedBuildings(leads, options = {}) {
   let matched = 0;
   let cached = 0;
   let customAlias = 0;
+  let invalid = 0;
+  const invalidCounts = new Map();
 
   for (const lead of leads || []) {
     const match = resolveBuilding(lead.building);
@@ -28,6 +30,15 @@ function collectUnmatchedBuildings(leads, options = {}) {
       missing += 1;
       continue;
     }
+    if (match.status === "invalid") {
+      invalid += 1;
+      const name = match.inputName || lead.building || "Unknown";
+      const key = normalizeBuildingAliasKey(name) || name.toLowerCase();
+      const existing = invalidCounts.get(key) || { name, count: 0, reason: match.issue?.label || "Invalid building value" };
+      existing.count += 1;
+      invalidCounts.set(key, existing);
+      continue;
+    }
     const name = match.inputName || lead.building || "Unknown";
     const key = normalizeBuildingAliasKey(name) || name.toLowerCase();
     const existing = counts.get(key) || { name, count: 0 };
@@ -38,6 +49,9 @@ function collectUnmatchedBuildings(leads, options = {}) {
   const unmatchedExamples = [...counts.values()]
     .sort((left, right) => right.count - left.count || left.name.localeCompare(right.name))
     .slice(0, 5);
+  const invalidExamples = [...invalidCounts.values()]
+    .sort((left, right) => right.count - left.count || left.name.localeCompare(right.name))
+    .slice(0, 5);
 
   return {
     matched,
@@ -46,6 +60,8 @@ function collectUnmatchedBuildings(leads, options = {}) {
     customAlias,
     static: Math.max(matched - cached - customAlias, 0),
     missing,
+    invalid,
+    invalidExamples,
     unmatched: [...counts.values()].reduce((sum, item) => sum + item.count, 0),
     unmatchedExamples,
   };

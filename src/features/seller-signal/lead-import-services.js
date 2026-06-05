@@ -3,7 +3,7 @@ import { supabase } from "../../supabase";
 import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
 import { canonicalizeBuildingName, cleanBuildingName, parseBuildingAddressValue } from "./building-utils";
 import { fetchCachedBuildings } from "./building-cache-services";
-import { createLeadBuildingResolver } from "./lead-data-quality";
+import { createLeadBuildingResolver, getInvalidBuildingValueIssue } from "./lead-data-quality";
 import { createLeadInsertRecord } from "./lead-utils";
 import { clearLeadsForSource } from "./lead-source-services";
 import { buildImportQualityReport } from "./import-quality-report";
@@ -21,6 +21,8 @@ function emptyToNull(value) {
 }
 
 function emptyBuildingToNull(value) {
+  const invalidIssue = getInvalidBuildingValueIssue(value);
+  if (invalidIssue) throw new Error(invalidIssue.label);
   const canonical = canonicalizeBuildingName(value);
   return canonical || null;
 }
@@ -30,12 +32,38 @@ function containsImportTruncation(value) {
   return Boolean(raw) && IMPORT_TRUNCATION_PATTERN.test(raw);
 }
 
-function isSuspiciousTruncatedImportField(field, value) {
-  if (!containsImportTruncation(value)) return false;
-  if (field.key !== "building") return true;
+function getSuspiciousImportField(field, value) {
+  if (containsImportTruncation(value)) {
+    if (field.key !== "building") {
+      return {
+        label: field.label,
+        value: summarizeImportValue(value),
+        reason: "possible truncation",
+      };
+    }
 
-  const address = parseBuildingAddressValue(value);
-  return !address.recoverableTruncation;
+    const address = parseBuildingAddressValue(value);
+    if (!address.recoverableTruncation) {
+      return {
+        label: field.label,
+        value: summarizeImportValue(value),
+        reason: "possible truncation",
+      };
+    }
+  }
+
+  if (field.key === "building") {
+    const invalidIssue = getInvalidBuildingValueIssue(value);
+    if (invalidIssue) {
+      return {
+        label: field.label,
+        value: summarizeImportValue(value),
+        reason: invalidIssue.label,
+      };
+    }
+  }
+
+  return null;
 }
 
 function summarizeImportValue(value, limit = 44) {
@@ -62,14 +90,7 @@ function collectSuspiciousImportRows(records, mapping, options = {}) {
     };
 
     const flaggedFields = IMPORT_TRUNCATION_FIELDS
-      .map((field) => {
-        const value = values[field.key];
-        if (!isSuspiciousTruncatedImportField(field, value)) return null;
-        return {
-          label: field.label,
-          value: summarizeImportValue(value),
-        };
-      })
+      .map((field) => getSuspiciousImportField(field, values[field.key]))
       .filter(Boolean);
 
     if (!flaggedFields.length) continue;
@@ -92,7 +113,7 @@ function buildSuspiciousImportError(summary) {
   const exampleText = summary.examples
     .map((example) => {
       const fields = example.flaggedFields
-        .map((field) => `${field.label} "${field.value}"`)
+        .map((field) => `${field.label} "${field.value}" (${field.reason})`)
         .join(", ");
       return `row ${example.rowNumber}: ${fields}`;
     })
@@ -101,7 +122,7 @@ function buildSuspiciousImportError(summary) {
   const remaining = summary.count - summary.examples.length;
   const remainingText = remaining > 0 ? ` (+${remaining} more)` : "";
 
-  return `Import blocked: ${summary.count} row(s) contain possible truncation markers.${remainingText} ${exampleText} Fix the sheet values and re-import.`;
+  return `Import blocked: ${summary.count} row(s) contain building or unit values that cannot be trusted.${remainingText} ${exampleText} Fix the sheet values and re-import.`;
 }
 
 function normalizePhoneKey(value) {

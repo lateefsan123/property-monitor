@@ -305,7 +305,9 @@ export function createLeadInsertRecord(record, mapping, userId, options = {}) {
   const rawResolvedBuilding = overrideBuilding ? (defaultBuilding || "") : (building || defaultBuilding || "");
   const addressParts = parseBuildingAddressValue(rawResolvedBuilding);
   const buildingMatch = typeof resolveBuilding === "function" ? resolveBuilding(rawResolvedBuilding) : null;
-  const resolvedBuilding = buildingMatch?.canonicalName || canonicalizeBuildingName(rawResolvedBuilding);
+  const resolvedBuilding = buildingMatch?.status === "invalid"
+    ? ""
+    : buildingMatch?.canonicalName || canonicalizeBuildingName(rawResolvedBuilding);
   const resolvedStatus = status || defaultStatus || "";
   const resolvedUnit = splitBedroomUnit.unit || (addressParts.unit ? normalizeImportedUnit(addressParts.unit) : "");
 

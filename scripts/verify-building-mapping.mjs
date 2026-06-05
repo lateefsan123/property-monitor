@@ -120,6 +120,51 @@ async function fetchCachedBuildings(client) {
   return rows;
 }
 
+function hasTruncationMarker(value) {
+  return /\u2026|\.{3,}/.test(String(value || ""));
+}
+
+function isUsableCachedLabel(value) {
+  const label = String(value || "").replace(/\s+/g, " ").trim();
+  return Boolean(
+    label
+    && label !== "0"
+    && /[a-z]/i.test(label)
+    && !hasTruncationMarker(label),
+  );
+}
+
+function verifyCachedBuildingCache(cachedBuildings) {
+  const invalidLocationRows = [];
+  const unusableRows = [];
+
+  for (const building of cachedBuildings || []) {
+    if (!isUsableCachedLabel(building.location_name)) {
+      invalidLocationRows.push({
+        key: building.key,
+        searchName: building.search_name,
+        locationName: building.location_name,
+      });
+    }
+
+    if (!isUsableCachedLabel(building.location_name) && !isUsableCachedLabel(building.search_name)) {
+      unusableRows.push({
+        key: building.key,
+        searchName: building.search_name,
+        locationName: building.location_name,
+      });
+    }
+  }
+
+  return {
+    checked: cachedBuildings?.length || 0,
+    invalidLocationCount: invalidLocationRows.length,
+    invalidLocationRows: invalidLocationRows.slice(0, 20),
+    unusableRowCount: unusableRows.length,
+    unusableRows: unusableRows.slice(0, 20),
+  };
+}
+
 async function verifySheet(vite, env, cachedBuildings) {
   const sheetUrl = getEnv(env, "VERIFY_SHEET_URL");
   if (!sheetUrl) return { skipped: true, reason: "Set VERIFY_SHEET_URL to check a Google Sheet import." };
@@ -157,8 +202,11 @@ async function verifySheet(vite, env, cachedBuildings) {
     matchedByMethod: quality.building.matchedByMethod,
     sourceResolution,
     sourceTruncatedBuildings: sourceResolution.byMethod.truncated || 0,
+    sourceInvalidBuildings: sourceResolution.invalid,
     sourceUnmatchedBuildings: sourceResolution.unmatched,
     missingBuildings: quality.building.missing,
+    invalidBuildings: quality.building.invalid,
+    invalidExamples: quality.building.invalidExamples,
     unmatchedBuildings: quality.building.unmatched,
     unmatchedExamples: quality.building.unmatchedExamples,
     missing: quality.missing,
@@ -174,6 +222,7 @@ function collectSourceResolutionReport(records, mapping, resolveBuilding, maxExa
   let customAlias = 0;
   let staticMatched = 0;
   let missing = 0;
+  let invalid = 0;
   let unmatched = 0;
 
   for (const record of records || []) {
@@ -190,6 +239,8 @@ function collectSourceResolutionReport(records, mapping, resolveBuilding, maxExa
       else staticMatched += 1;
     } else if (match.status === "missing") {
       missing += 1;
+    } else if (match.status === "invalid") {
+      invalid += 1;
     } else {
       unmatched += 1;
     }
@@ -212,6 +263,7 @@ function collectSourceResolutionReport(records, mapping, resolveBuilding, maxExa
     cached,
     customAlias,
     missing,
+    invalid,
     unmatched,
     byMethod,
     matchedByMethod: methodCounts,
@@ -319,10 +371,32 @@ async function verifyAddressBuildingParsing(vite) {
   const ambiguousCachePrefix = resolveWithConflictingCachedPrefixBuildings("Apartment 1203, Damac Maiso...");
   const projectLevelForte = resolveBuilding("Forte 3 bed");
   const projectLevelAddressTypo = resolveBuilding("Adress fountain views one bed");
+  const numericBuilding = resolveBuilding("553923920");
+  const statusBuilding = resolveBuilding("Prospect");
   const imported = leadUtils.createLeadInsertRecord(
     {
       Name: "Verifier",
       Building: "Apartment 702, Boulevard Point, Downtown Dubai",
+      Bedroom: "2BR",
+      Phone: "971500000000",
+    },
+    {
+      name: "Name",
+      building: "Building",
+      bedroom: "Bedroom",
+      phone: "Phone",
+    },
+    "verify-user",
+    {
+      sourceId: "verify-source",
+      defaultStatus: "Prospect",
+      resolveBuilding,
+    },
+  );
+  const invalidImported = leadUtils.createLeadInsertRecord(
+    {
+      Name: "Verifier",
+      Building: "553923920",
       Bedroom: "2BR",
       Phone: "971500000000",
     },
@@ -449,10 +523,24 @@ async function verifyAddressBuildingParsing(vite) {
       passed: projectLevelAddressTypo.status === "matched"
         && projectLevelAddressTypo.canonicalName === "Address Fountain Views, Downtown Dubai",
     },
+    numericBuilding: {
+      status: numericBuilding.status,
+      method: numericBuilding.method,
+      passed: numericBuilding.status === "invalid" && numericBuilding.method === "numeric_building",
+    },
+    statusBuilding: {
+      status: statusBuilding.status,
+      method: statusBuilding.method,
+      passed: statusBuilding.status === "invalid" && statusBuilding.method === "status_building",
+    },
     importedUnit: {
       building: imported?.building || null,
       unit: imported?.unit || null,
       passed: imported?.building === "Boulevard Point, Downtown Dubai" && imported?.unit === "Unit 702",
+    },
+    invalidImportedBuilding: {
+      building: invalidImported?.building || null,
+      passed: invalidImported?.building === null,
     },
   };
 }
@@ -535,6 +623,7 @@ async function verifyAllAccounts(vite, env, client, cachedBuildings) {
   const resolveBuilding = dataQuality.createLeadBuildingResolver([], cachedBuildings);
   const byMethod = {};
   const unmatched = new Map();
+  const invalid = new Map();
   const truncated = new Map();
   const cacheOnly = new Map();
   let missingCount = 0;
@@ -550,6 +639,16 @@ async function verifyAllAccounts(vite, env, client, cachedBuildings) {
     if (containsTruncation(row.building)) truncatedInputCount += 1;
     if (containsTruncation(match.canonicalName)) truncatedCacheMatchCount += 1;
     if (match.status === "missing") missingCount += 1;
+    if (match.status === "invalid") {
+      addGroupedExample(invalid, match.inputName || row.building || "Unknown", {
+        email: row.email,
+        name: row.name,
+        unit: row.unit,
+        building: row.building,
+        method,
+        reason: match.issue?.label || "Invalid building value",
+      });
+    }
     if (match.status === "unmatched") {
       const targetMap = method === "truncated" ? truncated : unmatched;
       addGroupedExample(targetMap, match.inputName || row.building || "Unknown", {
@@ -579,6 +678,8 @@ async function verifyAllAccounts(vite, env, client, cachedBuildings) {
     totalLeadBuildings: rows.length,
     byMethod,
     missingCount,
+    invalidCount: sumGroupCounts(invalid),
+    invalid: formatGroupedExamples(invalid),
     unmatchedCount: sumGroupCounts(unmatched),
     unmatched: formatGroupedExamples(unmatched),
     truncatedCount: sumGroupCounts(truncated),
@@ -723,12 +824,32 @@ function assertVerifierResult(result) {
     failures.push("Project-level Address Fountain Views typo did not resolve.");
   }
 
+  if (!result.addressBuildingParsing.numericBuilding.passed) {
+    failures.push("Numeric building value was not classified as invalid.");
+  }
+
+  if (!result.addressBuildingParsing.statusBuilding.passed) {
+    failures.push("Status-like building value was not classified as invalid.");
+  }
+
   if (!result.addressBuildingParsing.importedUnit.passed) {
     failures.push("Address-style building import did not extract the unit.");
   }
 
+  if (!result.addressBuildingParsing.invalidImportedBuilding.passed) {
+    failures.push("Invalid imported building value was stored.");
+  }
+
   if (!result.bayutLocationExtraction.passed) {
     failures.push("Bayut location extraction accepted a placeholder label.");
+  }
+
+  if (result.cachedBuildingCache.invalidLocationCount > 0) {
+    failures.push(`Cached building cache has ${result.cachedBuildingCache.invalidLocationCount} invalid location labels.`);
+  }
+
+  if (result.cachedBuildingCache.unusableRowCount > 0) {
+    failures.push(`Cached building cache has ${result.cachedBuildingCache.unusableRowCount} unusable canonical rows.`);
   }
 
   if (!result.sheet.skipped && result.sheet.unmatchedBuildings !== 0) {
@@ -766,6 +887,7 @@ async function main() {
       cachedImportCanonicalization: await verifyCachedImportCanonicalization(vite),
       addressBuildingParsing: await verifyAddressBuildingParsing(vite),
       bayutLocationExtraction: verifyBayutLocationExtraction(),
+      cachedBuildingCache: verifyCachedBuildingCache(cachedBuildings),
       sheet: await verifySheet(vite, env, cachedBuildings),
       live: await verifyLiveAccount(vite, env, client, cachedBuildings),
       allAccounts: await verifyAllAccounts(vite, env, client, cachedBuildings),

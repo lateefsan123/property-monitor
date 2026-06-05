@@ -14,6 +14,7 @@ import { normalizeToken } from "./spreadsheet";
 
 const REVIEW_ISSUES = new Set([
   "duplicate_lead",
+  "invalid_building",
   "missing_building",
   "unmatched_building",
 ]);
@@ -30,6 +31,15 @@ const CACHED_BUILDING_STOP_WORDS = new Set([
   "project",
 ]);
 const TRUNCATED_BUILDING_PATTERN = /\u2026|\.{3,}/;
+const MAX_UNMATCHED_BUILDING_EXAMPLES = 3;
+const NON_BUILDING_STATUS_VALUES = new Set([
+  "active",
+  "done",
+  "marketappraisal",
+  "notinterested",
+  "prospect",
+  "sent",
+]);
 
 function normalizePhone(value) {
   return String(value || "").replace(/[^0-9]/g, "");
@@ -67,6 +77,39 @@ function countTokenOverlap(leftTokens, rightTokens) {
     if (right.has(token)) count += 1;
   }
   return count;
+}
+
+export function getInvalidBuildingValueIssue(raw) {
+  const original = String(raw || "").replace(/\s+/g, " ").trim();
+  if (!original) return null;
+
+  const cleaned = cleanBuildingName(original);
+  const normalized = normalizeToken(cleaned);
+  const letters = cleaned.replace(/[^a-z]/gi, "");
+  const digits = cleaned.replace(/[^0-9]/g, "");
+
+  if (!letters && digits.length >= 7) {
+    return {
+      id: "numeric_building",
+      label: "Building value looks like a phone number or ID",
+    };
+  }
+
+  if (/@|https?:\/\/|wa\.me|whatsapp/i.test(original)) {
+    return {
+      id: "contact_building",
+      label: "Building value looks like contact info",
+    };
+  }
+
+  if (NON_BUILDING_STATUS_VALUES.has(normalized)) {
+    return {
+      id: "status_building",
+      label: "Building value looks like a lead status",
+    };
+  }
+
+  return null;
 }
 
 function toCachedBuildingCandidate(row) {
@@ -264,6 +307,18 @@ function findTruncatedPrefixMatch(raw, cachedIndex) {
 }
 
 function resolveBuildingMatch(raw, aliasLookup, cachedIndex) {
+  const invalidIssue = getInvalidBuildingValueIssue(raw);
+  if (invalidIssue) {
+    return {
+      status: "invalid",
+      confidence: "none",
+      method: invalidIssue.id,
+      inputName: cleanBuildingName(raw),
+      canonicalName: "",
+      issue: invalidIssue,
+    };
+  }
+
   const baselineMatch = getKnownBuildingMatch(raw);
   if (baselineMatch.status === "missing") return baselineMatch;
   const addressParts = parseBuildingAddressValue(raw);
@@ -386,6 +441,7 @@ export function enrichLeadsWithDataQuality(leads, buildingAliases = [], cachedBu
     if (!String(lead.phone || "").trim()) addIssue(issues, "missing_phone", "Missing phone");
     if (!String(leadUnit || "").trim()) addIssue(issues, "missing_unit", "Missing unit");
     if (buildingMatch.status === "missing") addIssue(issues, "missing_building", "Missing building", "error");
+    if (buildingMatch.status === "invalid") addIssue(issues, "invalid_building", buildingMatch.issue?.label || "Invalid building value", "error");
     if (buildingMatch.status === "unmatched") addIssue(issues, "unmatched_building", "Unmatched building", "error");
     if (duplicateLookup[lead.id]) addIssue(issues, "duplicate_lead", `${duplicateLookup[lead.id].count} duplicates`, "error");
 
@@ -428,12 +484,22 @@ export function summarizeUnmatchedBuildings(leads) {
         name,
         count: 0,
         leadIds: [],
+        examples: [],
       });
     }
 
     const group = groups.get(key);
     group.count += 1;
     group.leadIds.push(lead.id);
+    if (group.examples.length < MAX_UNMATCHED_BUILDING_EXAMPLES) {
+      group.examples.push({
+        id: lead.id,
+        name: lead.name || "",
+        unit: lead.unit || "",
+        bedroom: lead.bedroom || "",
+        building: lead.building || "",
+      });
+    }
   }
 
   return [...groups.values()].sort((left, right) =>
