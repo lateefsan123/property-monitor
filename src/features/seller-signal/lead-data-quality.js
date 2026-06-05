@@ -1,6 +1,7 @@
 import {
   cleanBuildingName,
   findKnownBuildingProjectPrefixMatch,
+  findKnownShortUniquePrefixMatch,
   findUniqueKnownBuildingPrefixMatch,
   getKnownBuildingMatch,
   getTruncatedBuildingPrefix,
@@ -231,6 +232,7 @@ function isEquivalentCanonicalName(left, right) {
 function findTruncatedPrefixMatch(raw, cachedIndex) {
   const knownMatch = findUniqueKnownBuildingPrefixMatch(raw);
   const projectMatch = findKnownBuildingProjectPrefixMatch(raw);
+  const shortKnownMatch = findKnownShortUniquePrefixMatch(raw);
   const cachedResolvedMatch = findCachedResolvedTruncatedInputMatch(raw, cachedIndex);
   const cachedResult = collectCachedBuildingPrefixMatches(raw, cachedIndex);
 
@@ -246,6 +248,13 @@ function findTruncatedPrefixMatch(raw, cachedIndex) {
     const cacheCandidates = [...cachedResult.matches.keys()];
     const hasConflict = cacheCandidates.some((candidate) => !isEquivalentCanonicalName(candidate, projectMatch.canonicalName));
     return hasConflict ? null : projectMatch;
+  }
+
+  if (shortKnownMatch) {
+    if (!cachedResult || cachedResult.matches.size === 0) return shortKnownMatch;
+    const cacheCandidates = [...cachedResult.matches.keys()];
+    const hasConflict = cacheCandidates.some((candidate) => !isEquivalentCanonicalName(candidate, shortKnownMatch.canonicalName));
+    return hasConflict ? null : shortKnownMatch;
   }
 
   if (cachedResolvedMatch) return cachedResolvedMatch;

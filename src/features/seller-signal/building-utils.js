@@ -217,14 +217,16 @@ function getTruncatedBuildingPrefixKeyVariants(raw) {
   const prefix = getTruncatedBuildingPrefix(raw);
   if (!prefix) return [];
 
-  const variants = new Set([prefix]);
+  const variants = [{ prefix, trimmedDescriptor: false }];
   const withoutDanglingDescriptor = prefix.replace(PARTIAL_TRAILING_DESCRIPTOR_PATTERN, "").trim();
-  if (withoutDanglingDescriptor && withoutDanglingDescriptor !== prefix) variants.add(withoutDanglingDescriptor);
+  if (withoutDanglingDescriptor && withoutDanglingDescriptor !== prefix) {
+    variants.push({ prefix: withoutDanglingDescriptor, trimmedDescriptor: true });
+  }
 
-  return [...variants]
+  return variants
     .map((variant) => ({
-      prefix: variant,
-      key: normalizeBuildingPrefixKey(variant),
+      ...variant,
+      key: normalizeBuildingPrefixKey(variant.prefix),
     }))
     .filter((variant) => variant.key);
 }
@@ -428,13 +430,26 @@ export function findUniqueKnownBuildingPrefixMatch(raw) {
 }
 
 export function findKnownBuildingProjectPrefixMatch(raw) {
-  for (const { prefix, key } of getTruncatedBuildingPrefixKeyVariants(raw)) {
+  for (const { prefix, key, trimmedDescriptor } of getTruncatedBuildingPrefixKeyVariants(raw)) {
     if (key.length < 5) continue;
 
     const canonicalKeys = new Map();
     for (const candidate of KNOWN_BUILDING_INDEX.prefixCandidates) {
       if (!candidate.key.startsWith(key)) continue;
       canonicalKeys.set(candidate.canonical, normalizeBuildingPrefixKey(candidate.canonical));
+    }
+
+    if (trimmedDescriptor && canonicalKeys.size === 1) {
+      const [[canonicalName, canonicalKey]] = [...canonicalKeys.entries()];
+      if (canonicalKey === key) {
+        return {
+          status: "matched",
+          confidence: "medium",
+          method: "truncated_project",
+          inputName: prefix,
+          canonicalName,
+        };
+      }
     }
 
     if (canonicalKeys.size < 2) continue;
@@ -460,6 +475,28 @@ export function findKnownBuildingProjectPrefixMatch(raw) {
   }
 
   return null;
+}
+
+export function findKnownShortUniquePrefixMatch(raw) {
+  const prefix = getTruncatedBuildingPrefix(raw);
+  const prefixKey = normalizeBuildingPrefixKey(prefix);
+  const tokens = prefix.split(/[^a-z0-9]+/i).map((token) => token.trim()).filter(Boolean);
+  if (prefixKey.length < 3 || prefixKey.length > 4 || tokens.length !== 1) return null;
+
+  const matches = new Map();
+  for (const candidate of KNOWN_BUILDING_INDEX.prefixCandidates) {
+    if (candidate.key.startsWith(prefixKey)) matches.set(candidate.canonical, candidate);
+  }
+
+  if (matches.size !== 1) return null;
+  const [canonicalName] = matches.keys();
+  return {
+    status: "matched",
+    confidence: "medium",
+    method: "truncated_short_prefix",
+    inputName: prefix,
+    canonicalName,
+  };
 }
 
 export function canonicalizeBuildingName(raw) {
