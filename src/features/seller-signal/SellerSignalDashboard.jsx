@@ -1,4 +1,11 @@
-import { useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  IconCheck,
+  IconChevronDown,
+  IconFileSpreadsheet,
+  IconListDetails,
+  IconPlus,
+} from "@tabler/icons-react";
 import AddSellerModal from "./components/AddSellerModal";
 import BuildingCleanupPanel from "./components/BuildingCleanupPanel";
 import FiltersToolbar from "./components/FiltersToolbar";
@@ -6,13 +13,46 @@ import LeadCard from "./components/LeadCard";
 import LeadModal from "./components/LeadModal";
 import Pagination from "./components/Pagination";
 import StickyActionBar from "./components/StickyActionBar";
-import ViewTabs from "./components/ViewTabs";
 import { useSellerFavorites } from "./useSellerFavorites";
 import { useSellerSignalPage } from "./useSellerSignalPage";
+
+function SourceIcon({ id }) {
+  return id === "all"
+    ? <IconListDetails size={16} stroke={1.9} aria-hidden="true" />
+    : <IconFileSpreadsheet size={16} stroke={1.8} aria-hidden="true" />;
+}
+
+function SourcePickerMenu({ activeId, options, onSelect }) {
+  return (
+    <div className="sheet-sort-menu source-picker-menu" role="menu">
+      <div className="sheet-sort-menu-label">Spreadsheet source</div>
+      {options.map((option) => (
+        <button
+          key={option.id}
+          type="button"
+          role="menuitemradio"
+          aria-checked={activeId === option.id}
+          className={`sheet-sort-item source-picker-item${activeId === option.id ? " is-selected" : ""}`}
+          onClick={() => onSelect(option.id)}
+        >
+          <span className="source-picker-item-main">
+            <span className="source-tab-icon">
+              <SourceIcon id={option.id} />
+            </span>
+            <span className="source-picker-item-label">{option.label}</span>
+          </span>
+          {activeId === option.id && <IconCheck size={14} stroke={2.5} aria-hidden="true" />}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 export default function SellerSignalDashboard({ userId }) {
   const dashboard = useSellerSignalPage(userId);
   const [addSellerOpen, setAddSellerOpen] = useState(false);
+  const [sourceMenuOpen, setSourceMenuOpen] = useState(false);
+  const sourcePickerRef = useRef(null);
   const { favoriteIds, toggleFavorite, pinnedIds, togglePin } = useSellerFavorites();
 
   const canAddSeller = dashboard.sourceFilter
@@ -22,6 +62,35 @@ export default function SellerSignalDashboard({ userId }) {
   const activeSourceLabel = canAddSeller
     ? (dashboard.sourceOptions?.find((option) => option.id === dashboard.sourceFilter)?.label || "")
     : "";
+  const sourcePickerOptions = useMemo(
+    () => [{ id: "all", label: "All spreadsheets" }, ...(dashboard.sourceOptions || [])],
+    [dashboard.sourceOptions],
+  );
+  const activeSourceOption = sourcePickerOptions.find((option) => option.id === dashboard.sourceFilter)
+    || sourcePickerOptions[0];
+
+  useEffect(() => {
+    if (!sourceMenuOpen) return undefined;
+
+    function handleDocClick(event) {
+      if (!sourcePickerRef.current?.contains(event.target)) setSourceMenuOpen(false);
+    }
+    function handleKey(event) {
+      if (event.key === "Escape") setSourceMenuOpen(false);
+    }
+
+    document.addEventListener("mousedown", handleDocClick);
+    document.addEventListener("keydown", handleKey);
+    return () => {
+      document.removeEventListener("mousedown", handleDocClick);
+      document.removeEventListener("keydown", handleKey);
+    };
+  }, [sourceMenuOpen]);
+
+  function selectSource(sourceId) {
+    dashboard.actions.selectSourceFilter(sourceId);
+    setSourceMenuOpen(false);
+  }
 
   if (dashboard.loading) {
     return (
@@ -47,34 +116,33 @@ export default function SellerSignalDashboard({ userId }) {
 
   return (
     <div className="page">
-      <ViewTabs
-        onChange={dashboard.actions.selectViewTab}
-        value={dashboard.viewTab}
-      />
-
       {dashboard.notice && <div className="notice">{dashboard.notice}</div>}
       {dashboard.error && <div className="error">{dashboard.error}</div>}
 
       {dashboard.sourceOptions?.length > 0 && (
         <div className="source-tabs-row">
-          <div className="source-tabs">
+          <div className="source-picker-wrap" ref={sourcePickerRef}>
             <button
               type="button"
-              className={`source-tab${dashboard.sourceFilter === "all" ? " active" : ""}`}
-              onClick={() => dashboard.actions.selectSourceFilter("all")}
+              className={`source-picker-btn${sourceMenuOpen ? " is-open" : ""}`}
+              aria-haspopup="menu"
+              aria-expanded={sourceMenuOpen}
+              onClick={() => setSourceMenuOpen((value) => !value)}
+              title={activeSourceOption?.label}
             >
-              All
+              <span className="source-tab-icon">
+                <SourceIcon id={activeSourceOption?.id} />
+              </span>
+              <span className="source-picker-label">{activeSourceOption?.label}</span>
+              <IconChevronDown size={16} stroke={2} aria-hidden="true" />
             </button>
-            {dashboard.sourceOptions.map((option) => (
-              <button
-                key={option.id}
-                type="button"
-                className={`source-tab${dashboard.sourceFilter === option.id ? " active" : ""}`}
-                onClick={() => dashboard.actions.selectSourceFilter(option.id)}
-              >
-                {option.label}
-              </button>
-            ))}
+            {sourceMenuOpen && (
+              <SourcePickerMenu
+                activeId={dashboard.sourceFilter}
+                options={sourcePickerOptions}
+                onSelect={selectSource}
+              />
+            )}
           </div>
           <button
             type="button"
@@ -83,7 +151,8 @@ export default function SellerSignalDashboard({ userId }) {
             disabled={!canAddSeller}
             title={canAddSeller ? "" : "Pick a spreadsheet first"}
           >
-            + Add seller
+            <IconPlus size={16} stroke={2} aria-hidden="true" />
+            <span>Add seller</span>
           </button>
         </div>
       )}
@@ -97,20 +166,6 @@ export default function SellerSignalDashboard({ userId }) {
         />
       )}
 
-      <FiltersToolbar
-        dataFilter={dashboard.dataFilter}
-        dataQualityFilter={dashboard.dataQualityFilter}
-        isAllExpanded={dashboard.isAllExpanded}
-        onDataFilterChange={dashboard.actions.selectDataFilter}
-        onDataQualityFilterChange={dashboard.actions.selectDataQualityFilter}
-        onSearchTermChange={dashboard.actions.updateSearchTerm}
-        onStatusFilterChange={dashboard.actions.selectStatusFilter}
-        onToggleAllExpanded={dashboard.actions.toggleAllExpanded}
-        searchTerm={dashboard.searchTerm}
-        statusFilter={dashboard.statusFilter}
-        viewTab={dashboard.viewTab}
-      />
-
       <BuildingCleanupPanel
         aliases={dashboard.buildingAliases}
         leads={cleanupLeads}
@@ -118,76 +173,102 @@ export default function SellerSignalDashboard({ userId }) {
         savingAliasName={dashboard.savingBuildingAliasName}
       />
 
-      {dashboard.hasLeads ? (
+      <div className="seller-record-surface">
+        <FiltersToolbar
+          dataFilter={dashboard.dataFilter}
+          dataQualityFilter={dashboard.dataQualityFilter}
+          isAllExpanded={dashboard.isAllExpanded}
+          onDataFilterChange={dashboard.actions.selectDataFilter}
+          onDataQualityFilterChange={dashboard.actions.selectDataQualityFilter}
+          onSearchTermChange={dashboard.actions.updateSearchTerm}
+          onSourceFilterChange={dashboard.actions.selectSourceFilter}
+          onStatusFilterChange={dashboard.actions.selectStatusFilter}
+          onViewTabChange={dashboard.actions.selectViewTab}
+          onToggleAllExpanded={dashboard.actions.toggleAllExpanded}
+          searchTerm={dashboard.searchTerm}
+          sourceFilter={dashboard.sourceFilter}
+          statusFilter={dashboard.statusFilter}
+          userId={userId}
+          viewTab={dashboard.viewTab}
+        />
+
+        {dashboard.hasLeads ? (
+          <>
+            <div className="seller-record-meta">
+              {dashboard.filteredLeadCount} leads
+              {dashboard.dataQualitySummary?.review > 0 && ` - ${dashboard.dataQualitySummary.review} need review`}
+              {dashboard.dataQualitySummary?.partial > 0 && ` - ${dashboard.dataQualitySummary.partial} missing info`}
+            </div>
+
+            <div className="lead-table-wrap">
+              <table className="lead-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Building</th>
+                    <th>Bed</th>
+                    <th>Unit</th>
+                    <th>Status</th>
+                    <th>Phone</th>
+                    <th>Contact</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {dashboard.pagedLeads.map((lead) => (
+                    <LeadCard
+                      key={lead.id}
+                      copiedLeadId={dashboard.copiedLeadId}
+                      favorited={favoriteIds.has(String(lead.id))}
+                      insight={dashboard.insights[lead.id]}
+                      isSent={Boolean(dashboard.sentLeads[lead.id])}
+                      lead={lead}
+                      onCopyMessage={dashboard.actions.copyMessage}
+                      onDelete={dashboard.actions.deleteLead}
+                      onToggleExpanded={dashboard.actions.toggleLeadExpanded}
+                      onToggleFavorite={toggleFavorite}
+                      onTogglePin={togglePin}
+                      onToggleSent={dashboard.actions.toggleSent}
+                      pinned={pinnedIds.has(String(lead.id))}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {(() => {
+              const modalLead = dashboard.pagedLeads.find((l) => dashboard.expandedLeads[l.id]);
+              if (!modalLead) return null;
+              return (
+                <LeadModal
+                  copiedLeadId={dashboard.copiedLeadId}
+                  editDraft={dashboard.editingLeadId === modalLead.id ? dashboard.editingLeadDraft : null}
+                  insight={dashboard.insights[modalLead.id]}
+                  isDeleting={dashboard.deletingLeadId === modalLead.id}
+                  isEditing={dashboard.editingLeadId === modalLead.id}
+                  isSaving={dashboard.savingLeadId === modalLead.id}
+                  isSent={Boolean(dashboard.sentLeads[modalLead.id])}
+                  lead={modalLead}
+                  onCancelEditing={dashboard.actions.cancelEditingLead}
+                  onClose={() => dashboard.actions.toggleLeadExpanded(modalLead.id)}
+                  onCopyMessage={dashboard.actions.copyMessage}
+                  onDelete={dashboard.actions.deleteLead}
+                  onEditFieldChange={dashboard.actions.updateLeadDraftField}
+                  onSaveEdit={dashboard.actions.saveLeadEdits}
+                  onSaveNotes={dashboard.actions.saveNotes}
+                  onStartEditing={dashboard.actions.startEditingLead}
+                  onToggleSent={dashboard.actions.toggleSent}
+                  onUpdateStatus={dashboard.actions.updateLeadStatus}
+                />
+              );
+            })()}
+          </>
+        ) : (
+          <div className="empty seller-record-empty">No sellers yet. Import a spreadsheet above to get started.</div>
+        )}
+      </div>
+
+      {dashboard.hasLeads && (
         <>
-          <p className="count-text">
-            {dashboard.filteredLeads.length} leads
-            {dashboard.dataQualitySummary?.review > 0 && ` - ${dashboard.dataQualitySummary.review} need review`}
-            {dashboard.dataQualitySummary?.partial > 0 && ` - ${dashboard.dataQualitySummary.partial} partial`}
-          </p>
-
-          <div className="lead-table-wrap">
-            <table className="lead-table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Building</th>
-                  <th>Bed</th>
-                  <th>Unit</th>
-                  <th>Status</th>
-                  <th>Phone</th>
-                  <th>Contact</th>
-                </tr>
-              </thead>
-              <tbody>
-                {dashboard.pagedLeads.map((lead) => (
-                  <LeadCard
-                    key={lead.id}
-                    copiedLeadId={dashboard.copiedLeadId}
-                    favorited={favoriteIds.has(String(lead.id))}
-                    insight={dashboard.insights[lead.id]}
-                    isSent={Boolean(dashboard.sentLeads[lead.id])}
-                    lead={lead}
-                    onCopyMessage={dashboard.actions.copyMessage}
-                    onDelete={dashboard.actions.deleteLead}
-                    onToggleExpanded={dashboard.actions.toggleLeadExpanded}
-                    onToggleFavorite={toggleFavorite}
-                    onTogglePin={togglePin}
-                    onToggleSent={dashboard.actions.toggleSent}
-                    pinned={pinnedIds.has(String(lead.id))}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {(() => {
-            const modalLead = dashboard.pagedLeads.find((l) => dashboard.expandedLeads[l.id]);
-            if (!modalLead) return null;
-            return (
-              <LeadModal
-                copiedLeadId={dashboard.copiedLeadId}
-                editDraft={dashboard.editingLeadId === modalLead.id ? dashboard.editingLeadDraft : null}
-                insight={dashboard.insights[modalLead.id]}
-                isDeleting={dashboard.deletingLeadId === modalLead.id}
-                isEditing={dashboard.editingLeadId === modalLead.id}
-                isSaving={dashboard.savingLeadId === modalLead.id}
-                isSent={Boolean(dashboard.sentLeads[modalLead.id])}
-                lead={modalLead}
-                onCancelEditing={dashboard.actions.cancelEditingLead}
-                onClose={() => dashboard.actions.toggleLeadExpanded(modalLead.id)}
-                onCopyMessage={dashboard.actions.copyMessage}
-                onDelete={dashboard.actions.deleteLead}
-                onEditFieldChange={dashboard.actions.updateLeadDraftField}
-                onSaveEdit={dashboard.actions.saveLeadEdits}
-                onSaveNotes={dashboard.actions.saveNotes}
-                onStartEditing={dashboard.actions.startEditingLead}
-                onToggleSent={dashboard.actions.toggleSent}
-                onUpdateStatus={dashboard.actions.updateLeadStatus}
-              />
-            );
-          })()}
-
           <Pagination
             currentPage={dashboard.safePage}
             onNext={dashboard.actions.goToNextPage}
@@ -201,8 +282,6 @@ export default function SellerSignalDashboard({ userId }) {
             sendAllCount={dashboard.sendAllCount}
           />
         </>
-      ) : (
-        <div className="empty">No sellers yet. Import a spreadsheet above to get started.</div>
       )}
     </div>
   );

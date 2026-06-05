@@ -318,3 +318,9 @@ button.btn-wa:disabled {
   color: var(--text-faint);
 }
 
+.pagination button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+

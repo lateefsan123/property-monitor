@@ -32,14 +32,15 @@ export const STATUS_FILTER_OPTIONS = [
 ];
 
 export const DATA_FILTER_OPTIONS = [
-  { id: "with_data", label: "Market Data" },
+  { id: "all", label: "All Data" },
+  { id: "with_data", label: "Has Market Data" },
   { id: "no_data", label: "No Market Data" },
 ];
 
 export const DATA_QUALITY_FILTER_OPTIONS = [
   { id: "all", label: "All Data Quality" },
-  { id: "trusted", label: "Trusted" },
-  { id: "partial", label: "Partial" },
+  { id: "trusted", label: "Complete" },
+  { id: "partial", label: "Missing Info" },
   { id: "review", label: "Needs Review" },
 ];
 

@@ -1,4 +1,5 @@
 import { PAGE_SIZE } from "./constants";
+import { hasStatusFilter, statusFilterMatches } from "./status-filter-utils";
 
 export function splitLeadsBySentStatus(leads, sentLeads) {
   const activeLeads = [];
@@ -40,14 +41,14 @@ export function filterLeads({
     }
   }
 
-  if (!isDoneView && statusFilter !== "all") {
-    result = result.filter((lead) => lead.statusRule?.id === statusFilter);
+  if (!isDoneView && hasStatusFilter(statusFilter)) {
+    result = result.filter((lead) => statusFilterMatches(lead.statusRule?.id, statusFilter));
   }
 
   if (!isDoneView && dataFilter === "with_data") {
     result = result.filter((lead) => insights[lead.id]?.status === "ready");
   } else if (!isDoneView && dataFilter === "no_data") {
-    result = result.filter((lead) => insights[lead.id]?.status !== "ready");
+    result = result.filter((lead) => insights[lead.id]?.status === "error");
   }
 
   if (!isDoneView && dataQualityFilter && dataQualityFilter !== "all") {
@@ -63,6 +64,18 @@ export function filterLeads({
   }
 
   return result;
+}
+
+export function sortLeads(leads, sortOption) {
+  const list = [...(leads || [])];
+  list.sort((a, b) => {
+    if (sortOption.field === "alpha") {
+      return String(a.name || "").toLowerCase().localeCompare(String(b.name || "").toLowerCase());
+    }
+    return String(a.id || "").localeCompare(String(b.id || ""), undefined, { numeric: true });
+  });
+  if (sortOption.direction === "desc") list.reverse();
+  return list;
 }
 
 export function paginateLeads(leads, currentPage, pageSize = PAGE_SIZE) {

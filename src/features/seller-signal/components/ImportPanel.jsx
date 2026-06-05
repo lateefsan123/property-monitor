@@ -1,3 +1,5 @@
+import { IconCloudUpload } from "@tabler/icons-react";
+
 export default function ImportPanel({ importing, onImport, onSheetUrlChange, sheetUrl }) {
   return (
     <div className="import-panel-container">
@@ -9,9 +11,7 @@ export default function ImportPanel({ importing, onImport, onSheetUrlChange, she
         }}
       >
         <div className="import-icon-container">
-          <svg className="import-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-          </svg>
+          <IconCloudUpload className="import-icon" size={32} stroke={2} aria-hidden="true" />
         </div>
         
         <h3 className="import-title">Import Seller Leads</h3>

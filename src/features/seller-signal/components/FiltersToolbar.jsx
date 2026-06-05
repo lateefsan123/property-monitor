@@ -1,15 +1,34 @@
-import { useEffect, useRef, useState } from "react";
-import { DATA_FILTER_OPTIONS, DATA_QUALITY_FILTER_OPTIONS, STATUS_FILTER_OPTIONS } from "../constants";
+import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  IconCheck,
+  IconChevronDown,
+  IconList,
+  IconSearch,
+  IconTable,
+  IconTrash,
+  IconX,
+} from "@tabler/icons-react";
+import { VIEW_TAB_OPTIONS } from "../constants";
+import {
+  createCustomSellerView,
+  findMatchingSellerView,
+  getSellerViewFilters,
+  readCustomSellerViews,
+  writeCustomSellerViews,
+} from "../saved-views";
+import { normalizeStatusFilter, toggleStatusFilterValue } from "../status-filter-utils";
 
-const DEFAULT_STATUS = "prospect";
-const DEFAULT_DATA = "with_data";
+const QUICK_FILTERS = [
+  { id: "prospect", label: "Prospects", kind: "status" },
+  { id: "market_appraisal", label: "Appraisals", kind: "status" },
+  { id: "review", label: "Needs review", kind: "quality" },
+  { id: "with_data", label: "Has market data", kind: "market" },
+];
 
-function CheckIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-      <polyline points="5 12 10 17 19 7" />
-    </svg>
-  );
+function ViewTabIcon({ id }) {
+  return id === "done"
+    ? <IconCheck size={16} stroke={2.1} aria-hidden="true" />
+    : <IconList size={16} stroke={1.9} aria-hidden="true" />;
 }
 
 export default function FiltersToolbar({
@@ -18,39 +37,221 @@ export default function FiltersToolbar({
   onDataFilterChange,
   onDataQualityFilterChange,
   onSearchTermChange,
+  onSourceFilterChange,
   onStatusFilterChange,
+  onViewTabChange,
   searchTerm,
+  sourceFilter,
   statusFilter,
+  userId,
   viewTab,
 }) {
-  const [filtersOpen, setFiltersOpen] = useState(false);
-  const wrapRef = useRef(null);
+  const [openMenu, setOpenMenu] = useState(null);
+  const [customViews, setCustomViews] = useState(() => readCustomSellerViews(userId));
+  const viewWrapRef = useRef(null);
 
-  const activeFilterCount =
-    (statusFilter !== DEFAULT_STATUS ? 1 : 0) +
-    (dataFilter !== DEFAULT_DATA ? 1 : 0) +
-    (dataQualityFilter !== "all" ? 1 : 0);
+  const currentFilters = useMemo(
+    () => getSellerViewFilters({ dataFilter, dataQualityFilter, searchTerm, sourceFilter, statusFilter, viewTab }),
+    [dataFilter, dataQualityFilter, searchTerm, sourceFilter, statusFilter, viewTab],
+  );
+
+  const activeView = findMatchingSellerView(customViews, currentFilters);
+  const activeStatusIds = useMemo(() => normalizeStatusFilter(statusFilter), [statusFilter]);
+  const hasQuickFilters = activeStatusIds.length > 0 || dataFilter !== "all" || dataQualityFilter !== "all";
 
   useEffect(() => {
-    if (!filtersOpen) return undefined;
+    setCustomViews(readCustomSellerViews(userId));
+  }, [userId]);
+
+  useEffect(() => {
+    if (!openMenu) return undefined;
+
     function handleDocClick(event) {
-      if (!wrapRef.current) return;
-      if (!wrapRef.current.contains(event.target)) setFiltersOpen(false);
+      const inViewMenu = viewWrapRef.current?.contains(event.target);
+      if (!inViewMenu) setOpenMenu(null);
     }
     function handleKey(event) {
-      if (event.key === "Escape") setFiltersOpen(false);
+      if (event.key === "Escape") setOpenMenu(null);
     }
+
     document.addEventListener("mousedown", handleDocClick);
     document.addEventListener("keydown", handleKey);
     return () => {
       document.removeEventListener("mousedown", handleDocClick);
       document.removeEventListener("keydown", handleKey);
     };
-  }, [filtersOpen]);
+  }, [openMenu]);
+
+  function applyView(view) {
+    onSourceFilterChange(view.filters.sourceFilter || "all");
+    onViewTabChange(view.filters.viewTab);
+    onStatusFilterChange(view.filters.statusFilter);
+    onDataFilterChange(view.filters.dataFilter);
+    onDataQualityFilterChange(view.filters.dataQualityFilter);
+    onSearchTermChange(view.filters.searchTerm);
+    setOpenMenu(null);
+  }
+
+  function ensureActiveTab() {
+    if (viewTab !== "active") onViewTabChange("active");
+  }
+
+  function toggleQuickFilter(filter) {
+    ensureActiveTab();
+    if (filter.kind === "status") {
+      onStatusFilterChange(toggleStatusFilterValue(statusFilter, filter.id));
+      return;
+    }
+    if (filter.kind === "quality") {
+      onDataQualityFilterChange(dataQualityFilter === filter.id ? "all" : filter.id);
+      return;
+    }
+    if (filter.kind === "market") {
+      onDataFilterChange(dataFilter === filter.id ? "all" : filter.id);
+    }
+  }
+
+  function isQuickFilterActive(filter) {
+    if (filter.kind === "status") return activeStatusIds.includes(filter.id);
+    if (filter.kind === "quality") return dataQualityFilter === filter.id;
+    if (filter.kind === "market") return dataFilter === filter.id;
+    return false;
+  }
+
+  function clearQuickFilters() {
+    ensureActiveTab();
+    onStatusFilterChange([]);
+    onDataFilterChange("all");
+    onDataQualityFilterChange("all");
+  }
+
+  function saveCurrentView() {
+    const label = window.prompt("Name this view");
+    if (!label?.trim()) return;
+
+    setCustomViews((current) => {
+      const next = [createCustomSellerView(label, currentFilters), ...current].slice(0, 12);
+      writeCustomSellerViews(userId, next);
+      return next;
+    });
+    setOpenMenu(null);
+  }
+
+  function deleteCustomView(viewId) {
+    setCustomViews((current) => {
+      const next = current.filter((view) => view.id !== viewId);
+      writeCustomSellerViews(userId, next);
+      return next;
+    });
+  }
 
   return (
-    <div className="toolbar">
-      <div className="toolbar-row">
+    <div className="toolbar seller-viewbar">
+      <div className="toolbar-row seller-viewbar-row">
+        <div className="seller-view-menu-wrap" ref={viewWrapRef}>
+          <button
+            type="button"
+            className={`seller-view-picker${openMenu === "views" ? " is-open" : ""}`}
+            aria-haspopup="menu"
+            aria-expanded={openMenu === "views"}
+            onClick={() => setOpenMenu((value) => (value === "views" ? null : "views"))}
+          >
+            <IconTable size={18} stroke={1.9} aria-hidden="true" />
+            <span>{activeView?.label || "Saved views"}</span>
+            <IconChevronDown size={16} stroke={2} aria-hidden="true" />
+          </button>
+
+          {openMenu === "views" && (
+            <div className="sheet-sort-menu seller-view-menu" role="menu">
+              {customViews.length > 0 && (
+                <>
+                  <div className="sheet-sort-menu-label">Saved views</div>
+                  {customViews.map((view) => (
+                    <div key={view.id} className="seller-view-menu-row">
+                      <button
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked={activeView?.id === view.id}
+                        className={`sheet-sort-item seller-view-menu-item${activeView?.id === view.id ? " is-selected" : ""}`}
+                        onClick={() => applyView(view)}
+                      >
+                        <span>{view.label}</span>
+                        {activeView?.id === view.id && <IconCheck size={14} stroke={2.5} aria-hidden="true" />}
+                      </button>
+                      <button
+                        type="button"
+                        className="seller-view-delete"
+                        aria-label={`Delete ${view.label}`}
+                        title="Delete view"
+                        onClick={() => deleteCustomView(view.id)}
+                      >
+                        <IconTrash size={16} stroke={1.9} aria-hidden="true" />
+                      </button>
+                    </div>
+                  ))}
+                </>
+              )}
+              {!customViews.length && (
+                <div className="seller-view-empty">No saved views yet</div>
+              )}
+
+              <div className="sheet-sort-divider" />
+              <button type="button" className="sheet-sort-item" onClick={saveCurrentView}>
+                <span>Save current view</span>
+              </button>
+            </div>
+          )}
+        </div>
+
+        <div className="seller-view-tabs" role="tablist" aria-label="Seller status">
+          {VIEW_TAB_OPTIONS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              aria-selected={viewTab === tab.id}
+              className={`seller-view-tab${viewTab === tab.id ? " is-active" : ""}`}
+              onClick={() => onViewTabChange(tab.id)}
+            >
+              <span className="seller-view-tab-icon">
+                <ViewTabIcon id={tab.id} />
+              </span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {viewTab === "active" && (
+          <div className="seller-filter-chips" aria-label="Seller filters">
+            {QUICK_FILTERS.map((filter) => {
+              const active = isQuickFilterActive(filter);
+              return (
+                <button
+                  key={`${filter.kind}-${filter.id}`}
+                  type="button"
+                  className={`seller-filter-chip${active ? " is-active" : ""}`}
+                  aria-pressed={active}
+                  onClick={() => toggleQuickFilter(filter)}
+                >
+                  {active && <IconCheck size={13} stroke={2.5} aria-hidden="true" />}
+                  <span>{filter.label}</span>
+                </button>
+              );
+            })}
+            {hasQuickFilters && (
+              <button
+                type="button"
+                className="seller-filter-clear"
+                onClick={clearQuickFilters}
+                aria-label="Clear seller filters"
+              >
+                <IconX size={13} stroke={2.2} aria-hidden="true" />
+                <span>Clear</span>
+              </button>
+            )}
+          </div>
+        )}
+
         <label className="search-pill">
           <input
             type="text"
@@ -58,90 +259,8 @@ export default function FiltersToolbar({
             value={searchTerm}
             onChange={(event) => onSearchTermChange(event.target.value)}
           />
-          <svg className="search-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-            <circle cx="11" cy="11" r="7" />
-            <line x1="21" y1="21" x2="16.65" y2="16.65" />
-          </svg>
+          <IconSearch className="search-pill-icon" size={17} stroke={2} aria-hidden="true" />
         </label>
-
-        {viewTab !== "done" && (
-          <div className="filter-menu-wrap" ref={wrapRef}>
-            <button
-              type="button"
-              className={`toolbar-pill-btn${filtersOpen ? " active" : ""}`}
-              aria-haspopup="menu"
-              aria-expanded={filtersOpen}
-              onClick={() => setFiltersOpen((v) => !v)}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                <line x1="4" y1="6" x2="20" y2="6" />
-                <line x1="7" y1="12" x2="17" y2="12" />
-                <line x1="10" y1="18" x2="14" y2="18" />
-              </svg>
-              <span className="toolbar-pill-label">Filters</span>
-              {activeFilterCount > 0 && (
-                <span className="toolbar-pill-badge">{activeFilterCount}</span>
-              )}
-            </button>
-            {filtersOpen && (
-              <div className="sheet-sort-menu" role="menu">
-                <div className="sheet-sort-menu-label">Status</div>
-                {STATUS_FILTER_OPTIONS.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={statusFilter === option.id}
-                    className={`sheet-sort-item${statusFilter === option.id ? " is-selected" : ""}`}
-                    onClick={() => {
-                      onStatusFilterChange(option.id);
-                      setFiltersOpen(false);
-                    }}
-                  >
-                    <span>{option.label}</span>
-                    {statusFilter === option.id && <CheckIcon />}
-                  </button>
-                ))}
-                <div className="sheet-sort-divider" />
-                <div className="sheet-sort-menu-label">Data</div>
-                {DATA_FILTER_OPTIONS.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={dataFilter === option.id}
-                    className={`sheet-sort-item${dataFilter === option.id ? " is-selected" : ""}`}
-                    onClick={() => {
-                      onDataFilterChange(option.id);
-                      setFiltersOpen(false);
-                    }}
-                  >
-                    <span>{option.label}</span>
-                    {dataFilter === option.id && <CheckIcon />}
-                  </button>
-                ))}
-                <div className="sheet-sort-divider" />
-                <div className="sheet-sort-menu-label">Data quality</div>
-                {DATA_QUALITY_FILTER_OPTIONS.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    role="menuitemradio"
-                    aria-checked={dataQualityFilter === option.id}
-                    className={`sheet-sort-item${dataQualityFilter === option.id ? " is-selected" : ""}`}
-                    onClick={() => {
-                      onDataQualityFilterChange(option.id);
-                      setFiltersOpen(false);
-                    }}
-                  >
-                    <span>{option.label}</span>
-                    {dataQualityFilter === option.id && <CheckIcon />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
       </div>
 
       {viewTab === "done" && (

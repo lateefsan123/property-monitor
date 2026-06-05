@@ -1,76 +1,19 @@
 import { useEffect, useState } from "react";
+import {
+  IconBuildingEstate,
+  IconDownload,
+  IconSparkles,
+  IconTable,
+  IconUsers,
+  IconX,
+} from "@tabler/icons-react";
 import { TilePreview } from "./HomePage";
-
-function CloseIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
-
-function SparkleIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 3v4" />
-      <path d="M12 17v4" />
-      <path d="M3 12h4" />
-      <path d="M17 12h4" />
-      <path d="M5.6 5.6l2.8 2.8" />
-      <path d="M15.6 15.6l2.8 2.8" />
-      <path d="M5.6 18.4l2.8-2.8" />
-      <path d="M15.6 8.4l2.8-2.8" />
-    </svg>
-  );
-}
-
-function SellersIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <circle cx="9" cy="7" r="4" />
-      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-
-function ListingsIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z" />
-    </svg>
-  );
-}
-
-function SpreadsheetsIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <line x1="3" y1="9" x2="21" y2="9" />
-      <line x1="3" y1="15" x2="21" y2="15" />
-      <line x1="9" y1="3" x2="9" y2="21" />
-      <line x1="15" y1="3" x2="15" y2="21" />
-    </svg>
-  );
-}
-
-function ImportIcon() {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="7 10 12 15 17 10" />
-      <line x1="12" y1="15" x2="12" y2="3" />
-    </svg>
-  );
-}
 
 const OPTIONS = [
   {
     id: "seller",
     label: "Seller",
-    Icon: SellersIcon,
+    Icon: IconUsers,
     accent: "indigo",
     title: "Add a seller",
     description: "Track a new lead with call notes, contact details, and pipeline status.",
@@ -79,7 +22,7 @@ const OPTIONS = [
   {
     id: "listing-search",
     label: "Listing search",
-    Icon: ListingsIcon,
+    Icon: IconBuildingEstate,
     accent: "rose",
     title: "Search listings",
     description: "Browse live Dubai listings and watch for units that match your criteria.",
@@ -88,7 +31,7 @@ const OPTIONS = [
   {
     id: "spreadsheet",
     label: "Spreadsheet",
-    Icon: SpreadsheetsIcon,
+    Icon: IconTable,
     accent: "emerald",
     title: "Connect a spreadsheet",
     description: "Link a Google Sheet to sync your pipeline in both directions.",
@@ -97,7 +40,7 @@ const OPTIONS = [
   {
     id: "import",
     label: "Import existing data",
-    Icon: ImportIcon,
+    Icon: IconDownload,
     accent: "amber",
     title: "Import existing data",
     description: "Bring in leads from a CSV or Google Sheet you already have.",
@@ -149,7 +92,7 @@ export default function CreateNewModal({ onClose, onSelect }) {
       >
         <div className="create-modal-header">
           <span className="create-modal-header-icon" aria-hidden>
-            <SparkleIcon />
+            <IconSparkles size={18} stroke={1.8} aria-hidden="true" />
           </span>
           <span className="create-modal-header-prompt">What do you want to create?</span>
           <button
@@ -158,7 +101,7 @@ export default function CreateNewModal({ onClose, onSelect }) {
             onClick={onClose}
             aria-label="Close"
           >
-            <CloseIcon />
+            <IconX size={16} stroke={2} aria-hidden="true" />
           </button>
         </div>
 
@@ -177,7 +120,7 @@ export default function CreateNewModal({ onClose, onSelect }) {
                     onFocus={() => setHoveredId(option.id)}
                   >
                     <span className="create-modal-option-icon">
-                      <Icon />
+                      <Icon size={20} stroke={1.8} aria-hidden="true" />
                     </span>
                     <span className="create-modal-option-label">{option.label}</span>
                   </button>

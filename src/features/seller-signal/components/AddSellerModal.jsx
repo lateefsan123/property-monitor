@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { IconX } from "@tabler/icons-react";
 
 const STATUS_OPTIONS = [
   { value: "", label: "No status" },
@@ -17,15 +18,6 @@ const EMPTY_DRAFT = {
   status: "",
   lastContact: "",
 };
-
-function CloseIcon() {
-  return (
-    <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
 
 export default function AddSellerModal({ onClose, onSubmit, submitting, sourceLabel }) {
   const [draft, setDraft] = useState(EMPTY_DRAFT);
@@ -65,7 +57,7 @@ export default function AddSellerModal({ onClose, onSubmit, submitting, sourceLa
           </div>
           <div className="lead-modal-header-actions">
             <button type="button" className="lead-modal-close" onClick={onClose} aria-label="Close">
-              <CloseIcon />
+              <IconX className="icon" size={16} stroke={2} aria-hidden="true" />
             </button>
           </div>
         </div>

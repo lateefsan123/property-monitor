@@ -1,7 +1,10 @@
 import { supabase } from "../../supabase";
+import { PAGE_SIZE, STATUS_RULES } from "./constants";
 import { mapStoredLeadRow, startOfDay, sortLeadsByPriority } from "./lead-utils";
+import { normalizeStatusFilter } from "./status-filter-utils";
 
 const SUPABASE_PAGE_SIZE = 1000;
+const EMPTY_PAGE = { leads: [], sentMap: {}, totalCount: 0, sourceCounts: {} };
 
 async function selectAllRows(buildQuery, pageSize = SUPABASE_PAGE_SIZE) {
   const rows = [];
@@ -64,6 +67,131 @@ export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
   sessionStorage.setItem("debug:doneIds", JSON.stringify(doneIds));
 
   return { leads, sentMap };
+}
+
+function sanitizeIlikeTerm(value) {
+  return String(value || "").trim().replace(/[%_,]/g, " ");
+}
+
+function getStatusKeywords(statusFilter) {
+  const activeStatusIds = normalizeStatusFilter(statusFilter);
+  const keywords = [];
+  for (const statusId of activeStatusIds) {
+    const rule = STATUS_RULES.find((item) => item.id === statusId);
+    if (rule?.keywords?.length) keywords.push(...rule.keywords);
+  }
+  return [...new Set(keywords)];
+}
+
+function applySellerLeadFilters(query, filters = {}) {
+  const {
+    searchTerm = "",
+    sourceFilter = "all",
+    statusFilter = "all",
+    userId,
+    viewTab = "active",
+  } = filters;
+
+  let next = query
+    .eq("user_id", userId)
+    .or("name.not.is.null,building.not.is.null,phone.not.is.null");
+
+  if (viewTab === "done") next = next.not("sent_at", "is", null);
+  else next = next.is("sent_at", null);
+
+  if (sourceFilter === "legacy") {
+    next = next.is("source_id", null);
+  } else if (sourceFilter && sourceFilter !== "all") {
+    next = next.eq("source_id", sourceFilter);
+  }
+
+  const keywords = getStatusKeywords(statusFilter);
+  if (keywords.length) {
+    next = next.or(keywords.map((keyword) => `status.ilike.%${keyword}%`).join(","));
+  }
+
+  const term = sanitizeIlikeTerm(searchTerm);
+  if (term) {
+    next = next.or([
+      `name.ilike.%${term}%`,
+      `building.ilike.%${term}%`,
+      `phone.ilike.%${term}%`,
+      `unit.ilike.%${term}%`,
+    ].join(","));
+  }
+
+  return next;
+}
+
+function applySellerLeadSort(query, sortOption = {}) {
+  const ascending = sortOption.direction === "asc";
+  if (sortOption.field === "alpha") {
+    return query
+      .order("name", { ascending, nullsFirst: false })
+      .order("id", { ascending: true });
+  }
+  return query.order("id", { ascending });
+}
+
+async function countLegacyLeads(userId) {
+  const { count, error } = await supabase
+    .from("leads")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", userId)
+    .is("source_id", null)
+    .or("name.not.is.null,building.not.is.null,phone.not.is.null");
+
+  if (error) throw new Error(error.message);
+  return count || 0;
+}
+
+export async function fetchSellerLeadPage(options = {}) {
+  const {
+    currentPage = 1,
+    pageSize = PAGE_SIZE,
+    sortOption,
+    userId,
+  } = options;
+
+  if (!userId) return EMPTY_PAGE;
+
+  const safePage = Math.max(1, Number(currentPage) || 1);
+  const from = (safePage - 1) * pageSize;
+  const to = from + pageSize - 1;
+  const today = startOfDay(new Date());
+
+  const leadQuery = applySellerLeadSort(
+    applySellerLeadFilters(
+      supabase.from("leads").select("*", { count: "exact" }),
+      options,
+    ),
+    sortOption,
+  ).range(from, to);
+
+  const [{ data, error, count }, legacyCount] = await Promise.all([
+    leadQuery,
+    countLegacyLeads(userId),
+  ]);
+
+  if (error) throw new Error(error.message);
+
+  const sentMap = {};
+  const leads = (data || [])
+    .map((row, index) => mapStoredLeadRow(row, from + index, today))
+    .filter((lead) => lead.name || lead.building || lead.phone);
+
+  for (const row of data || []) {
+    if (row.sent_at) sentMap[row.id] = new Date(row.sent_at).getTime();
+  }
+
+  return {
+    leads,
+    sentMap,
+    totalCount: count || 0,
+    sourceCounts: {
+      legacy: legacyCount,
+    },
+  };
 }
 
 export async function updateLeadStatus({ userId, leadId, status }) {

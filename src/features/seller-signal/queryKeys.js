@@ -10,6 +10,14 @@ export function sellerBuildingAliasesQueryKey(userId) {
   return ["seller-signal", "building-aliases", userId];
 }
 
+export function sellerCachedBuildingsQueryKey() {
+  return ["seller-signal", "cached-buildings"];
+}
+
+export function sellerMarketAvailabilityQueryKey(userId, targetKeys) {
+  return ["seller-signal", "market-availability", userId, targetKeys];
+}
+
 export function sellerInsightsQueryKey(userId, targetKeys) {
   return ["seller-signal", "insights", userId, targetKeys];
 }

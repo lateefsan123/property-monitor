@@ -1,23 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import {
+  IconArrowLeft,
+  IconLink,
+  IconPhoto,
+  IconPlus,
+  IconX,
+} from "@tabler/icons-react";
 import { downloadAsXlsx, extractTableFromImages } from "../image-to-sheet";
-
-function CloseIcon() {
-  return (
-    <svg className="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
-
-function PlusIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" y1="5" x2="12" y2="19" />
-      <line x1="5" y1="12" x2="19" y2="12" />
-    </svg>
-  );
-}
 
 function UrlTab({ onSubmit, submitting, onClose }) {
   const [url, setUrl] = useState("");
@@ -54,7 +43,7 @@ function UrlTab({ onSubmit, submitting, onClose }) {
           {submitting ? (
             <span className="new-sheet-spinner" aria-hidden />
           ) : (
-            <PlusIcon />
+            <IconPlus size={18} stroke={2} aria-hidden="true" />
           )}
         </button>
       </div>
@@ -215,34 +204,6 @@ function PictureTab() {
   );
 }
 
-function LinkIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M10 13a5 5 0 0 0 7.07 0l3-3a5 5 0 1 0-7.07-7.07l-1.5 1.5" />
-      <path d="M14 11a5 5 0 0 0-7.07 0l-3 3a5 5 0 1 0 7.07 7.07l1.5-1.5" />
-    </svg>
-  );
-}
-
-function ImageIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <circle cx="8.5" cy="9" r="1.5" />
-      <path d="M21 15l-5-5L5 21" />
-    </svg>
-  );
-}
-
-function BackIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <line x1="19" y1="12" x2="5" y2="12" />
-      <polyline points="12 19 5 12 12 5" />
-    </svg>
-  );
-}
-
 export default function NewSpreadsheetModal({ onClose, onSubmit, submitting }) {
   const [mode, setMode] = useState(null);
 
@@ -279,13 +240,13 @@ export default function NewSpreadsheetModal({ onClose, onSubmit, submitting }) {
                 onClick={() => setMode(null)}
                 aria-label="Back"
               >
-                <BackIcon />
+                <IconArrowLeft size={18} stroke={2} aria-hidden="true" />
               </button>
             )}
             <h2 className="lead-modal-name">{title}</h2>
           </div>
           <button type="button" className="lead-modal-close" onClick={onClose} aria-label="Close">
-            <CloseIcon />
+            <IconX className="icon" size={16} stroke={2} aria-hidden="true" />
           </button>
         </div>
 
@@ -298,7 +259,7 @@ export default function NewSpreadsheetModal({ onClose, onSubmit, submitting }) {
                 onClick={() => setMode("url")}
               >
                 <span className="new-sheet-choice-icon" aria-hidden>
-                  <LinkIcon />
+                  <IconLink size={22} stroke={1.8} aria-hidden="true" />
                 </span>
                 <span className="new-sheet-choice-text">
                   <span className="new-sheet-choice-title">URL to spreadsheet</span>
@@ -311,7 +272,7 @@ export default function NewSpreadsheetModal({ onClose, onSubmit, submitting }) {
                 onClick={() => setMode("picture")}
               >
                 <span className="new-sheet-choice-icon" aria-hidden>
-                  <ImageIcon />
+                  <IconPhoto size={22} stroke={1.8} aria-hidden="true" />
                 </span>
                 <span className="new-sheet-choice-text">
                   <span className="new-sheet-choice-title">Picture to spreadsheet</span>

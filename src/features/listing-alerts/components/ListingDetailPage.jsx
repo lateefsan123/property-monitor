@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { daysBetween } from "../date-utils";
 import {
   formatArea,
   formatBedsAndBaths,
@@ -7,7 +8,6 @@ import {
 } from "../formatters";
 import {
   ActivityTimeline,
-  daysBetween,
   ExternalLinkIcon,
   Eyebrow,
   PriceChart,

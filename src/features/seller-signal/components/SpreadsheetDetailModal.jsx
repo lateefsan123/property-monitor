@@ -1,59 +1,11 @@
 import { useEffect, useState } from "react";
-
-function CloseIcon() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="6" x2="6" y2="18" />
-      <line x1="6" y1="6" x2="18" y2="18" />
-    </svg>
-  );
-}
-
-function SettingsIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h.09a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </svg>
-  );
-}
-
-function SyncIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="21 15 21 21 15 21" />
-      <polyline points="3 9 3 3 9 3" />
-      <path d="M21 3l-7 7" />
-      <path d="M3 21l7-7" />
-      <path d="M21 9a9 9 0 0 0-15-6.7L3 5" />
-      <path d="M3 15a9 9 0 0 0 15 6.7L21 19" />
-    </svg>
-  );
-}
-
-function TrashIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="3 6 5 6 21 6" />
-      <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-      <path d="M10 11v6" />
-      <path d="M14 11v6" />
-      <path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2" />
-    </svg>
-  );
-}
-
-function SheetIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <line x1="3" y1="9" x2="21" y2="9" />
-      <line x1="3" y1="15" x2="21" y2="15" />
-      <line x1="9" y1="3" x2="9" y2="21" />
-      <line x1="15" y1="3" x2="15" y2="21" />
-    </svg>
-  );
-}
+import {
+  IconRefresh,
+  IconSettings,
+  IconTable,
+  IconTrash,
+  IconX,
+} from "@tabler/icons-react";
 
 function DetailsPanel({ name, url, placeholderName, isLegacy, onNameChange, onUrlChange, onBlurSave }) {
   return (
@@ -218,9 +170,9 @@ export default function SpreadsheetDetailModal({
   const subtitle = `${count} lead${count === 1 ? "" : "s"}`;
 
   const sections = [
-    { id: "details", label: "Details", accent: "indigo", Icon: SettingsIcon },
-    { id: "sync", label: "Sync", accent: "emerald", Icon: SyncIcon },
-    ...(isLegacy ? [] : [{ id: "danger", label: "Danger zone", accent: "rose", Icon: TrashIcon }]),
+    { id: "details", label: "Details", accent: "indigo", Icon: IconSettings },
+    { id: "sync", label: "Sync", accent: "emerald", Icon: IconRefresh },
+    ...(isLegacy ? [] : [{ id: "danger", label: "Danger zone", accent: "rose", Icon: IconTrash }]),
   ];
 
   return (
@@ -234,7 +186,7 @@ export default function SpreadsheetDetailModal({
       >
         <div className="lead-detail-header">
           <span className="lead-detail-header-icon" aria-hidden>
-            <SheetIcon />
+            <IconTable size={18} stroke={1.8} aria-hidden="true" />
           </span>
           <div className="lead-detail-header-title">
             <h2 className="lead-detail-name">{title}</h2>
@@ -247,7 +199,7 @@ export default function SpreadsheetDetailModal({
               onClick={onClose}
               aria-label="Close"
             >
-              <CloseIcon />
+              <IconX size={16} stroke={2} aria-hidden="true" />
             </button>
           </div>
         </div>
@@ -267,7 +219,7 @@ export default function SpreadsheetDetailModal({
                     onClick={() => setActiveSection(section.id)}
                   >
                     <span className="lead-detail-section-icon">
-                      <Icon />
+                      <Icon size={18} stroke={1.8} aria-hidden="true" />
                     </span>
                     <span className="lead-detail-section-label">{section.label}</span>
                   </button>

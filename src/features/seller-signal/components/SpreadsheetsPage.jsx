@@ -1,5 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import {
+  IconArrowsSort,
+  IconCheck,
+  IconDots,
+  IconPinned,
+  IconPinnedFilled,
+  IconPlus,
+  IconStar,
+  IconStarFilled,
+  IconTable,
+  IconX,
+} from "@tabler/icons-react";
 import { SheetPreviewThumb } from "../../../components/SeededPreviewThumb";
 import { useSpreadsheetsPage } from "../useSpreadsheetsPage";
 import {
@@ -22,6 +34,20 @@ function getSourceNameValue(source) {
   return label || buildingName || "";
 }
 
+function FavoriteIcon({ filled }) {
+  const Icon = filled ? IconStarFilled : IconStar;
+  return <Icon size={16} stroke={1.8} aria-hidden="true" />;
+}
+
+function PinIcon({ filled }) {
+  const Icon = filled ? IconPinnedFilled : IconPinned;
+  return <Icon size={16} stroke={1.8} aria-hidden="true" />;
+}
+
+function SheetMetaIcon({ size = 14, className = "sheet-card-meta-icon" }) {
+  return <IconTable className={className || undefined} size={size} stroke={1.8} aria-hidden="true" />;
+}
+
 function NewSpreadsheetCard({ onClick, disabled, label }) {
   return (
     <button
@@ -32,10 +58,7 @@ function NewSpreadsheetCard({ onClick, disabled, label }) {
     >
       <div className="sheet-card-new-inner">
         <span className="sheet-card-plus" aria-hidden>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+          <IconPlus size={24} stroke={2} aria-hidden="true" />
         </span>
         <span className="sheet-card-new-label">{label}</span>
       </div>
@@ -72,9 +95,7 @@ function SpreadsheetCard({ name, count, seed, favorited, pinned, onClick, onTogg
           aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
           title={favorited ? "Remove from favorites" : "Favorite"}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={favorited ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-          </svg>
+          <FavoriteIcon filled={favorited} />
         </button>
         <button
           type="button"
@@ -83,32 +104,14 @@ function SpreadsheetCard({ name, count, seed, favorited, pinned, onClick, onTogg
           aria-label={pinned ? "Unpin" : "Pin"}
           title={pinned ? "Unpin" : "Pin"}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={pinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M12 17v5" />
-            <path d="M9 3h6l-1 6 4 4H6l4-4-1-6z" />
-          </svg>
+          <PinIcon filled={pinned} />
         </button>
       </div>
       <SheetPreviewThumb seed={seed ?? name} />
       <div className="sheet-card-body">
         <div className="sheet-card-title">{name}</div>
         <div className="sheet-card-meta">
-          <svg
-            className="sheet-card-meta-icon"
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.8"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            aria-hidden
-          >
-            <rect x="3" y="3" width="18" height="18" rx="2" />
-            <line x1="3" y1="9" x2="21" y2="9" />
-            <line x1="9" y1="3" x2="9" y2="21" />
-          </svg>
+          <SheetMetaIcon />
           <span>{count} lead{count === 1 ? "" : "s"}</span>
         </div>
       </div>
@@ -249,13 +252,7 @@ function SortMenu({ field, direction, onChange }) {
         aria-expanded={open}
         title="Sort"
       >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <path d="M3 6h10" />
-          <path d="M3 12h7" />
-          <path d="M3 18h4" />
-          <path d="M19 4v16" />
-          <path d="M16 17l3 3 3-3" />
-        </svg>
+        <IconArrowsSort size={18} stroke={1.8} aria-hidden="true" />
       </button>
       {open && (
         <div className="sheet-sort-menu" role="menu">
@@ -274,9 +271,7 @@ function SortMenu({ field, direction, onChange }) {
             >
               <span>{option.label}</span>
               {field === option.id && (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <polyline points="5 12 10 17 19 7" />
-                </svg>
+                <IconCheck size={14} stroke={2.5} aria-hidden="true" />
               )}
             </button>
           ))}
@@ -295,9 +290,7 @@ function SortMenu({ field, direction, onChange }) {
             >
               <span>{option.label}</span>
               {direction === option.id && (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <polyline points="5 12 10 17 19 7" />
-                </svg>
+                <IconCheck size={14} stroke={2.5} aria-hidden="true" />
               )}
             </button>
           ))}
@@ -338,11 +331,7 @@ function LayoutMenu({ value, onChange }) {
         aria-expanded={open}
         title="Change layout"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-          <circle cx="5" cy="12" r="2" />
-          <circle cx="12" cy="12" r="2" />
-          <circle cx="19" cy="12" r="2" />
-        </svg>
+        <IconDots size={20} stroke={2} aria-hidden="true" />
       </button>
       {open && (
         <div className="sheet-sort-menu" role="menu">
@@ -361,9 +350,7 @@ function LayoutMenu({ value, onChange }) {
             >
               <span>{option.label}</span>
               {value === option.id && (
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <polyline points="5 12 10 17 19 7" />
-                </svg>
+                <IconCheck size={14} stroke={2.5} aria-hidden="true" />
               )}
             </button>
           ))}
@@ -415,11 +402,7 @@ function SpreadsheetRow({
         />
       </span>
       <span className="sheet-row-icon" aria-hidden>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2" />
-          <line x1="3" y1="9" x2="21" y2="9" />
-          <line x1="9" y1="3" x2="9" y2="21" />
-        </svg>
+        <SheetMetaIcon size={20} className="" />
       </span>
       <span className="sheet-row-name">{name}</span>
       <span className="sheet-row-count">{count} lead{count === 1 ? "" : "s"}</span>
@@ -431,9 +414,7 @@ function SpreadsheetRow({
           aria-label={favorited ? "Remove from favorites" : "Add to favorites"}
           title={favorited ? "Remove from favorites" : "Favorite"}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={favorited ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-          </svg>
+          <FavoriteIcon filled={favorited} />
         </button>
         <button
           type="button"
@@ -442,10 +423,7 @@ function SpreadsheetRow({
           aria-label={pinned ? "Unpin" : "Pin"}
           title={pinned ? "Unpin" : "Pin"}
         >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill={pinned ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <path d="M12 17v5" />
-            <path d="M9 3h6l-1 6 4 4H6l4-4-1-6z" />
-          </svg>
+          <PinIcon filled={pinned} />
         </button>
       </span>
     </div>
@@ -461,10 +439,7 @@ function SelectionBar({ count, total, onSelectAll, onClear, onCopyLink, onPin, o
         onClick={onClear}
         aria-label="Clear selection"
       >
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <line x1="18" y1="6" x2="6" y2="18" />
-          <line x1="6" y1="6" x2="18" y2="18" />
-        </svg>
+        <IconX size={16} stroke={2} aria-hidden="true" />
       </button>
       <span className="selection-bar-count">{count} selected</span>
       <span className="selection-bar-divider" />
@@ -544,6 +519,11 @@ export default function SpreadsheetsPage({ userId }) {
     });
   }
 
+  function handleLayoutChange(nextLayout) {
+    setLayout(nextLayout);
+    if (nextLayout !== "list") setSelected(new Set());
+  }
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     try {
@@ -563,15 +543,14 @@ export default function SpreadsheetsPage({ userId }) {
   }, [layout]);
 
   useEffect(() => {
-    if (layout !== "list") clearSelection();
-  }, [layout]);
-
-  useEffect(() => {
     if (page.loading) return;
     const pendingId = consumePendingOpenSpreadsheet();
     if (!pendingId) return;
     const exists = page.leadSources.some((s) => String(s.id) === pendingId) || pendingId === "legacy";
-    if (exists) setOpenSourceId(pendingId);
+    if (!exists) return;
+
+    const timeoutId = window.setTimeout(() => setOpenSourceId(pendingId), 0);
+    return () => window.clearTimeout(timeoutId);
   }, [page.loading, page.leadSources]);
 
   useOpenSpreadsheetRequests((id) => {
@@ -638,13 +617,10 @@ export default function SpreadsheetsPage({ userId }) {
           aria-label="New spreadsheet"
           title="New spreadsheet"
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+          <IconPlus size={18} stroke={2} aria-hidden="true" />
         </button>
         <SortMenu field={sort.field} direction={sort.direction} onChange={setSort} />
-        <LayoutMenu value={layout} onChange={setLayout} />
+        <LayoutMenu value={layout} onChange={handleLayoutChange} />
       </TopbarSortPortal>
 
       <div className="sheet-header">

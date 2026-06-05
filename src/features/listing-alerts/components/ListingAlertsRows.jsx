@@ -1,4 +1,14 @@
 import {
+  IconArrowDown,
+  IconArrowUp,
+  IconBuildingSkyscraper,
+  IconExternalLink,
+  IconPinned,
+  IconPinnedFilled,
+  IconStar,
+  IconStarFilled,
+} from "@tabler/icons-react";
+import {
   formatArea,
   formatBedsAndBaths,
   formatListingTimestamp,
@@ -7,39 +17,22 @@ import {
 } from "../formatters";
 
 function ExternalLinkIcon({ size = 16 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 3h7v7" />
-      <path d="M10 14L21 3" />
-      <path d="M21 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    </svg>
-  );
+  return <IconExternalLink size={size} stroke={2} aria-hidden="true" />;
 }
 
 function ArrowIcon({ direction = "down", size = 11 }) {
-  const d = direction === "down" ? "M12 5v14M5 12l7 7 7-7" : "M12 19V5M5 12l7-7 7 7";
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-      <path d={d} />
-    </svg>
-  );
+  const Icon = direction === "down" ? IconArrowDown : IconArrowUp;
+  return <Icon size={size} stroke={3} aria-hidden="true" />;
 }
 
 function FavoriteIcon({ filled }) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-    </svg>
-  );
+  const Icon = filled ? IconStarFilled : IconStar;
+  return <Icon size={16} stroke={1.8} aria-hidden="true" />;
 }
 
 function PinIcon({ filled }) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill={filled ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M12 17v5" />
-      <path d="M9 3h6l-1 6 4 4H6l4-4-1-6z" />
-    </svg>
-  );
+  const Icon = filled ? IconPinnedFilled : IconPinned;
+  return <Icon size={16} stroke={1.8} aria-hidden="true" />;
 }
 
 function RowHoverActions({ favorited, pinned, onToggleFavorite, onTogglePin }) {
@@ -74,18 +67,7 @@ function RowHoverActions({ favorited, pinned, onToggleFavorite, onTogglePin }) {
 }
 
 function BuildingIcon({ size = 20 }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M3 21h18" />
-      <path d="M5 21V7l7-4 7 4v14" />
-      <path d="M9 9h.01" />
-      <path d="M14 9h.01" />
-      <path d="M9 13h.01" />
-      <path d="M14 13h.01" />
-      <path d="M9 17h.01" />
-      <path d="M14 17h.01" />
-    </svg>
-  );
+  return <IconBuildingSkyscraper size={size} stroke={1.8} aria-hidden="true" />;
 }
 
 function PriceDeltaChip({ priceDelta }) {
@@ -110,21 +92,6 @@ function StatusPill({ listing }) {
 
 function TrackingPill() {
   return <span className="la-tracking-pill">Tracking</span>;
-}
-
-export function getSearchOptionLabel(option) {
-  return option?.buildingName || option?.searchName || "Unknown";
-}
-
-export function getSearchOptionMeta(option) {
-  const fullPath = String(option?.fullPath || "").trim();
-  if (!fullPath) return null;
-
-  const label = getSearchOptionLabel(option).toLowerCase();
-  const parts = fullPath.split("|").map((part) => part.trim()).filter(Boolean);
-  const remaining = parts.filter((part, index) => index !== 0 || part.toLowerCase() !== label);
-
-  return (remaining.length ? remaining : parts).join(", ");
 }
 
 export function BuildingRow({ building, isWatched, onPress, priceDropCount, favorited, pinned, onToggleFavorite, onTogglePin }) {

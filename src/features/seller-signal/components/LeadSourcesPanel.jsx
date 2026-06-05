@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { IconChevronDown, IconChevronRight } from "@tabler/icons-react";
 
 export default function LeadSourcesPanel({
   sources,
@@ -39,7 +40,13 @@ export default function LeadSourcesPanel({
         className="source-panel-toggle"
         onClick={() => setOpen((v) => !v)}
       >
-        <span className="source-panel-toggle-icon">{open ? "\u25BE" : "\u25B8"}</span>
+        <span className="source-panel-toggle-icon">
+          {open ? (
+            <IconChevronDown size={16} stroke={2} aria-hidden="true" />
+          ) : (
+            <IconChevronRight size={16} stroke={2} aria-hidden="true" />
+          )}
+        </span>
         <h3 className="source-panel-title">Spreadsheets</h3>
         <span className="source-panel-subtitle">
           {sources.length} source{sources.length !== 1 && "s"} · {totalLeads} leads

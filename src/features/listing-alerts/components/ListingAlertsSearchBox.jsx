@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { getSearchOptionLabel, getSearchOptionMeta } from "./ListingAlertsRows";
+import { IconSearch } from "@tabler/icons-react";
+import { getSearchOptionLabel, getSearchOptionMeta } from "../search-option-utils";
 
 export default function ListingAlertsSearchBox({
   searchTerm,
@@ -108,10 +109,7 @@ export default function ListingAlertsSearchBox({
   return (
     <div className="la-search-pill-wrap" ref={boxRef}>
       <label className="search-pill">
-        <svg className="search-pill-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-          <circle cx="11" cy="11" r="7" />
-          <line x1="21" y1="21" x2="16.65" y2="16.65" />
-        </svg>
+        <IconSearch className="search-pill-icon" size={17} stroke={2} aria-hidden="true" />
         <input
           ref={inputRef}
           type="text"

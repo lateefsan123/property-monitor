@@ -1,12 +1,15 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { PAGE_SIZE } from "./constants";
 import { formatPhoneForWhatsApp } from "./insight-utils";
 import { enrichLeadsWithDataQuality, summarizeLeadDataQuality } from "./lead-data-quality";
-import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
+import { filterLeads } from "./selectors";
 import {
   deleteLead,
+  fetchCachedBuildings,
   fetchLeadInsights,
-  fetchUserLeads,
+  fetchLeadMarketAvailability,
+  fetchSellerLeadPage,
   persistLeadSentState,
   replaceLegacyLeadsFromSheet,
   replaceUserLeadsFromSheet,
@@ -19,7 +22,6 @@ import {
   buildInsightTarget,
   buildLoadingInsights,
   EMPTY_LEADS,
-  EMPTY_LEADS_DATA,
   EMPTY_SENT_MAP,
   EMPTY_SOURCES,
   fetchSellerSources,
@@ -31,10 +33,15 @@ import {
 import {
   sellerInsightsQueryKey,
   sellerLeadsQueryKey,
+  sellerMarketAvailabilityQueryKey,
   sellerSourcesQueryKey,
+  sellerCachedBuildingsQueryKey,
 } from "./queryKeys";
 import { createSellerSignalActions } from "./useSellerSignalActions";
 import { useSellerSignalBuildingAliases } from "./useSellerSignalBuildingAliases";
+
+const EMPTY_SOURCE_COUNTS = {};
+const EMPTY_CACHED_BUILDINGS = [];
 
 export function useSellerSignalPage(userId) {
   const queryClient = useQueryClient();
@@ -51,7 +58,7 @@ export function useSellerSignalPage(userId) {
   });
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("prospect");
+  const [statusFilter, setStatusFilter] = useState(["prospect"]);
   const [sourceFilter, setSourceFilter] = useState(() => {
     if (typeof window === "undefined" || !sourceFilterStorageKey) return "all";
     return window.localStorage.getItem(sourceFilterStorageKey) || "all";
@@ -60,7 +67,7 @@ export function useSellerSignalPage(userId) {
   const [sheetUrl, setSheetUrl] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [viewTab, setViewTab] = useState("active");
-  const [dataFilter, setDataFilter] = useState("with_data");
+  const [dataFilter, setDataFilter] = useState("all");
   const [dataQualityFilter, setDataQualityFilter] = useState("all");
   const [sortOption, setSortOption] = useState(() => {
     if (typeof window === "undefined") return { field: "added", direction: "desc" };
@@ -82,13 +89,6 @@ export function useSellerSignalPage(userId) {
   const [addingLead, setAddingLead] = useState(false);
   const deferredSearchTerm = useDeferredValue(searchTerm);
 
-  const leadsQuery = useQuery({
-    queryKey: sellerLeadsQueryKey(userId),
-    enabled: Boolean(userId),
-    queryFn: () => fetchUserLeads(userId),
-    staleTime: 30 * 1000,
-  });
-
   const leadSourcesQuery = useQuery({
     queryKey: sellerSourcesQueryKey(userId),
     enabled: Boolean(userId),
@@ -100,24 +100,58 @@ export function useSellerSignalPage(userId) {
     buildingAliasesQuery,
     upsertBuildingAliasMutation,
   } = useSellerSignalBuildingAliases(userId);
+  const cachedBuildingsQuery = useQuery({
+    queryKey: sellerCachedBuildingsQueryKey(),
+    enabled: Boolean(userId),
+    queryFn: fetchCachedBuildings,
+    staleTime: 30 * 60 * 1000,
+  });
 
-  const leadsData = leadsQuery.data || EMPTY_LEADS_DATA;
-  const leads = useMemo(
-    () => enrichLeadsWithDataQuality(leadsData.leads || EMPTY_LEADS, buildingAliases),
-    [buildingAliases, leadsData.leads],
-  );
-  const dataQualitySummary = useMemo(() => summarizeLeadDataQuality(leads), [leads]);
-  const sentLeads = leadsData.sentMap || EMPTY_SENT_MAP;
   const leadSources = leadSourcesQuery.data || EMPTY_SOURCES;
-  const hasLegacyLeads = useMemo(() => leads.some((lead) => !lead.sourceId), [leads]);
+  const leadSourcesReady = Boolean(leadSourcesQuery.data);
   const effectiveSourceFilter = useMemo(
     () => {
       if (sourceFilter === "all") return "all";
-      if (sourceFilter === LEGACY_SOURCE_ID) return hasLegacyLeads ? LEGACY_SOURCE_ID : "all";
+      if (sourceFilter === LEGACY_SOURCE_ID) return LEGACY_SOURCE_ID;
+      if (!leadSourcesReady) return sourceFilter;
       return leadSources.some((source) => source.id === sourceFilter) ? sourceFilter : "all";
     },
-    [hasLegacyLeads, leadSources, sourceFilter],
+    [leadSources, leadSourcesReady, sourceFilter],
   );
+
+  const leadsQuery = useQuery({
+    queryKey: [
+      ...sellerLeadsQueryKey(userId),
+      "page",
+      currentPage,
+      effectiveSourceFilter,
+      statusFilter,
+      deferredSearchTerm,
+      viewTab,
+      sortOption.field,
+      sortOption.direction,
+    ],
+    enabled: Boolean(userId),
+    queryFn: () => fetchSellerLeadPage({
+      currentPage,
+      searchTerm: deferredSearchTerm,
+      sortOption,
+      sourceFilter: effectiveSourceFilter,
+      statusFilter,
+      userId,
+      viewTab,
+    }),
+    placeholderData: (previousData) => previousData,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const leadsData = leadsQuery.data || { leads: EMPTY_LEADS, sentMap: EMPTY_SENT_MAP, totalCount: 0, sourceCounts: {} };
+  const leads = useMemo(
+    () => enrichLeadsWithDataQuality(leadsData.leads || EMPTY_LEADS, buildingAliases, cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS),
+    [buildingAliases, cachedBuildingsQuery.data, leadsData.leads],
+  );
+  const dataQualitySummary = useMemo(() => summarizeLeadDataQuality(leads), [leads]);
+  const sentLeads = leadsData.sentMap || EMPTY_SENT_MAP;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -137,21 +171,6 @@ export function useSellerSignalPage(userId) {
     window.localStorage.setItem(sourceFilterStorageKey, effectiveSourceFilter);
   }, [effectiveSourceFilter, sourceFilterStorageKey]);
 
-  const insightTargets = useMemo(
-    () => leads.filter((lead) => lead.building).map(buildInsightTarget),
-    [leads],
-  );
-  const insightTargetKeys = useMemo(
-    () => insightTargets.map((lead) => `${lead.id}:${lead.name}:${lead.building}`),
-    [insightTargets],
-  );
-
-  const insightsQuery = useQuery({
-    queryKey: sellerInsightsQueryKey(userId, insightTargetKeys),
-    enabled: Boolean(userId) && insightTargets.length > 0,
-    queryFn: () => fetchLeadInsights(insightTargets),
-    staleTime: 10 * 60 * 1000,
-  });
   const persistLeadSourceMutation = useMutation({
     mutationFn: (source) => upsertLeadSource(source),
   });
@@ -175,6 +194,49 @@ export function useSellerSignalPage(userId) {
     mutationFn: ({ leadId }) => deleteLead({ userId, leadId }),
   });
 
+  const activeLeads = viewTab === "done" ? EMPTY_LEADS : leads;
+  const doneLeads = viewTab === "done" ? leads : EMPTY_LEADS;
+
+  const baseFilteredLeads = useMemo(
+    () =>
+      filterLeads({
+        activeLeads,
+        dataQualityFilter,
+        doneLeads,
+        dataFilter: "all",
+        insights: {},
+        searchTerm: deferredSearchTerm,
+        sourceFilter: effectiveSourceFilter,
+        statusFilter,
+        viewTab,
+      }),
+    [activeLeads, dataQualityFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, statusFilter, viewTab],
+  );
+
+  const insightTargets = useMemo(
+    () => baseFilteredLeads.filter((lead) => lead.building).map(buildInsightTarget),
+    [baseFilteredLeads],
+  );
+  const insightTargetKeys = useMemo(
+    () => insightTargets.map((lead) => `${lead.id}:${lead.name}:${lead.building}`),
+    [insightTargets],
+  );
+
+  const marketAvailabilityQuery = useQuery({
+    queryKey: sellerMarketAvailabilityQueryKey(userId, insightTargetKeys),
+    enabled: Boolean(userId) && insightTargets.length > 0,
+    queryFn: () => fetchLeadMarketAvailability(insightTargets),
+    placeholderData: (previousData) => previousData,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const insightsQuery = useQuery({
+    queryKey: sellerInsightsQueryKey(userId, insightTargetKeys),
+    enabled: Boolean(userId) && insightTargets.length > 0,
+    queryFn: () => fetchLeadInsights(insightTargets),
+    staleTime: 10 * 60 * 1000,
+  });
+
   const insights = useMemo(() => {
     if (!insightTargets.length) return {};
     if (insightsQuery.data?.updates) return insightsQuery.data.updates;
@@ -183,50 +245,34 @@ export function useSellerSignalPage(userId) {
     return {};
   }, [insightTargets, insightsQuery.data, insightsQuery.error, insightsQuery.isFetching]);
 
-  const { activeLeads: allActiveLeads, doneLeads: allDoneLeads } = useMemo(
-    () => splitLeadsBySentStatus(leads, sentLeads),
-    [leads, sentLeads],
-  );
-
-  const activeLeads = useMemo(() => {
-    if (!effectiveSourceFilter || effectiveSourceFilter === "all") return allActiveLeads;
-    if (effectiveSourceFilter === LEGACY_SOURCE_ID) return allActiveLeads.filter((lead) => !lead.sourceId);
-    return allActiveLeads.filter((lead) => lead.sourceId === effectiveSourceFilter);
-  }, [allActiveLeads, effectiveSourceFilter]);
-
-  const doneLeads = useMemo(() => {
-    if (!effectiveSourceFilter || effectiveSourceFilter === "all") return allDoneLeads;
-    if (effectiveSourceFilter === LEGACY_SOURCE_ID) return allDoneLeads.filter((lead) => !lead.sourceId);
-    return allDoneLeads.filter((lead) => lead.sourceId === effectiveSourceFilter);
-  }, [allDoneLeads, effectiveSourceFilter]);
+  const marketAvailability = useMemo(() => {
+    const availabilityUpdates = marketAvailabilityQuery.data?.updates || {};
+    const result = { ...availabilityUpdates };
+    for (const [leadId, insight] of Object.entries(insights)) {
+      if (insight?.status === "ready") {
+        result[leadId] = { status: "ready", source: "insights" };
+      }
+    }
+    return result;
+  }, [insights, marketAvailabilityQuery.data]);
 
   const filteredLeads = useMemo(
-    () =>
-      filterLeads({
+    () => {
+      if (dataFilter === "all") return baseFilteredLeads;
+      return filterLeads({
         activeLeads,
         dataQualityFilter,
         doneLeads,
         dataFilter,
-        insights,
+        insights: marketAvailability,
         searchTerm: deferredSearchTerm,
         sourceFilter: effectiveSourceFilter,
         statusFilter,
         viewTab,
-      }),
-    [activeLeads, dataFilter, dataQualityFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, statusFilter, viewTab],
+      });
+    },
+    [activeLeads, baseFilteredLeads, dataFilter, dataQualityFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, marketAvailability, statusFilter, viewTab],
   );
-
-  const sortedLeads = useMemo(() => {
-    const list = [...filteredLeads];
-    list.sort((a, b) => {
-      if (sortOption.field === "alpha") {
-        return String(a.name || "").toLowerCase().localeCompare(String(b.name || "").toLowerCase());
-      }
-      return String(a.id || "").localeCompare(String(b.id || ""), undefined, { numeric: true });
-    });
-    if (sortOption.direction === "desc") list.reverse();
-    return list;
-  }, [filteredLeads, sortOption.field, sortOption.direction]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -237,19 +283,15 @@ export function useSellerSignalPage(userId) {
     }
   }, [sortOption]);
 
-  const { totalPages, safePage, pagedLeads } = useMemo(
-    () => paginateLeads(sortedLeads, currentPage),
-    [currentPage, sortedLeads],
-  );
+  const totalCount = Number(leadsData.totalCount || 0);
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedLeads = filteredLeads;
+  const visibleLeadCount = dataFilter === "all" && dataQualityFilter === "all"
+    ? totalCount
+    : filteredLeads.length;
 
-  const sourceCounts = useMemo(() => {
-    const counts = {};
-    for (const lead of leads) {
-      const key = lead.sourceId || LEGACY_SOURCE_ID;
-      counts[key] = (counts[key] || 0) + 1;
-    }
-    return counts;
-  }, [leads]);
+  const sourceCounts = leadsData.sourceCounts || EMPTY_SOURCE_COUNTS;
 
   const sourceOptions = useMemo(
     () => {
@@ -277,6 +319,8 @@ export function useSellerSignalPage(userId) {
       ? getErrorMessage(leadSourcesQuery.error)
       : buildingAliasesQuery.error
         ? getErrorMessage(buildingAliasesQuery.error)
+        : cachedBuildingsQuery.error
+          ? getErrorMessage(cachedBuildingsQuery.error)
       : null;
   const insightNotice = insightTargets.length
     ? insightsQuery.error
@@ -289,12 +333,10 @@ export function useSellerSignalPage(userId) {
       : null;
   const error = actionError || fetchError || insightNotice;
   const notice = actionNotice;
-  const loading = (leadsQuery.isPending && !leadsQuery.data)
-    || (leadSourcesQuery.isPending && !leadSourcesQuery.data)
-    || (buildingAliasesQuery.isPending && !buildingAliasesQuery.data);
+  const loading = leadsQuery.isPending && !leadsQuery.data;
   const refreshing =
     (leadsQuery.isFetching && !leadsQuery.isPending)
-    || (insightsQuery.isFetching && leads.length > 0);
+    || (insightsQuery.isFetching && insightTargets.length > 0);
   const actions = createSellerSignalActions({
     addingLead,
     copiedLeadId,
@@ -365,7 +407,8 @@ export function useSellerSignalPage(userId) {
     error,
     expandedLeads,
     filteredLeads,
-    hasLeads: leads.length > 0,
+    filteredLeadCount: visibleLeadCount,
+    hasLeads: totalCount > 0 || leads.length > 0,
     importing,
     importingLegacy,
     importingSourceId,

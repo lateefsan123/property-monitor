@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
+import {
+  IconBuildingEstate,
+  IconHome,
+  IconMenu2,
+  IconTable,
+  IconUsers,
+} from "@tabler/icons-react";
 import { supabase } from "./supabase";
 import AppSidebar from "./features/seller-signal/components/AppSidebar";
 import SellerSignalDashboard from "./features/seller-signal/SellerSignalDashboard";
@@ -8,7 +14,6 @@ import SpreadsheetsPage from "./features/seller-signal/components/SpreadsheetsPa
 import HomePage from "./features/home/HomePage";
 import CreateNewModal from "./features/home/CreateNewModal";
 import ThemeToggleButton from "./components/ThemeToggleButton";
-import { fetchUserLeads, fetchLeadInsights } from "./features/seller-signal/services";
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 
 const VALID_PAGES = new Set(["home", "sellers", "listing-alerts", "spreadsheets"]);
@@ -29,31 +34,12 @@ const PAGE_ACCENTS = {
 
 function PageIcon({ page }) {
   if (page === "sellers") {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-    );
+    return <IconUsers size={14} stroke={2} aria-hidden="true" />;
   }
   if (page === "listing-alerts") {
-    return (
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M3 9.5 12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-7h-6v7H4a1 1 0 0 1-1-1z" />
-      </svg>
-    );
+    return <IconBuildingEstate size={14} stroke={2} aria-hidden="true" />;
   }
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="3" width="18" height="18" rx="2" />
-      <line x1="3" y1="9" x2="21" y2="9" />
-      <line x1="3" y1="15" x2="21" y2="15" />
-      <line x1="9" y1="3" x2="9" y2="21" />
-      <line x1="15" y1="3" x2="15" y2="21" />
-    </svg>
-  );
+  return <IconTable size={14} stroke={2} aria-hidden="true" />;
 }
 
 function readPageFromHash() {
@@ -76,7 +62,6 @@ function readInitialTheme() {
 }
 
 export default function AppShell({ displayName, userId }) {
-  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(readPageFromHash);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
@@ -113,37 +98,6 @@ export default function AppShell({ displayName, userId }) {
       // Ignore storage failures and keep the theme in memory.
     }
   }, [theme]);
-
-  useEffect(() => {
-    if (!userId) return;
-
-    async function prefetchSellerData() {
-      await queryClient.prefetchQuery({
-        queryKey: ["seller-signal", "leads", userId],
-        queryFn: () => fetchUserLeads(userId),
-        staleTime: 30 * 1000,
-      });
-
-      const data = queryClient.getQueryData(["seller-signal", "leads", userId]);
-      const leads = data?.leads || [];
-      const targets = leads.filter((lead) => lead.building).map((lead) => ({
-        id: lead.id,
-        name: lead.name || "",
-        building: lead.building || "",
-      }));
-
-      if (!targets.length) return;
-
-      const targetKeys = targets.map((lead) => `${lead.id}:${lead.name}:${lead.building}`);
-      queryClient.prefetchQuery({
-        queryKey: ["seller-signal", "insights", userId, targetKeys],
-        queryFn: () => fetchLeadInsights(targets),
-        staleTime: 10 * 60 * 1000,
-      });
-    }
-
-    void prefetchSellerData();
-  }, [queryClient, userId]);
 
   useAutoSheetSync(userId);
 
@@ -206,11 +160,7 @@ export default function AppShell({ displayName, userId }) {
             aria-label={sidebarCollapsed ? "Open navigation" : "Close navigation"}
             onClick={() => setSidebarCollapsed((v) => !v)}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="4" y1="7" x2="20" y2="7" />
-              <line x1="4" y1="12" x2="20" y2="12" />
-              <line x1="4" y1="17" x2="20" y2="17" />
-            </svg>
+            <IconMenu2 size={20} stroke={2} aria-hidden="true" />
           </button>
 
           <nav className="app-topbar-crumbs" aria-label="Breadcrumb">
@@ -220,11 +170,7 @@ export default function AppShell({ displayName, userId }) {
               aria-label="Home"
               onClick={() => handleNavigate("home")}
             >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 10.5 12 3l9 7.5" />
-                <path d="M5 9.5V21h14V9.5" />
-                <path d="M10 21v-6h4v6" />
-              </svg>
+              <IconHome size={18} stroke={1.8} aria-hidden="true" />
             </button>
 
             {currentPage === "home" ? (

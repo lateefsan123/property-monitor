@@ -1,11 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { formatSyncTimestamp } from "../formatters";
-import { useListingAlerts } from "../useListingAlerts";
-import ListingAlertsFilters, {
+import {
+  IconBuildingSkyscraper,
+  IconCheck,
+  IconDots,
+  IconPlus,
+} from "@tabler/icons-react";
+import {
   LISTINGS_PAGE_SIZE,
   getPricePreset,
-} from "./ListingAlertsFilters";
+} from "../filter-options";
+import { formatSyncTimestamp } from "../formatters";
+import { useListingAlerts } from "../useListingAlerts";
+import ListingAlertsFilters from "./ListingAlertsFilters";
 import ListingAlertsResults from "./ListingAlertsResults";
 import ListingAlertsSearchBox from "./ListingAlertsSearchBox";
 import ListingDetailPage from "./ListingDetailPage";
@@ -63,29 +70,6 @@ function TopbarCrumbExtraPortal({ children }) {
   return createPortal(children, host);
 }
 
-function BuildingCrumbIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M3 21h18" />
-      <path d="M5 21V7l7-4 7 4v14" />
-      <path d="M9 9h.01" />
-      <path d="M14 9h.01" />
-      <path d="M9 13h.01" />
-      <path d="M14 13h.01" />
-      <path d="M9 17h.01" />
-      <path d="M14 17h.01" />
-    </svg>
-  );
-}
-
-function CheckIcon() {
-  return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <polyline points="5 12 10 17 19 7" />
-    </svg>
-  );
-}
-
 function LayoutMenu({ value, onChange }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
@@ -118,11 +102,7 @@ function LayoutMenu({ value, onChange }) {
         aria-label="Change layout"
         title="Change layout"
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-          <circle cx="5" cy="12" r="2" />
-          <circle cx="12" cy="12" r="2" />
-          <circle cx="19" cy="12" r="2" />
-        </svg>
+        <IconDots size={20} stroke={2} aria-hidden="true" />
       </button>
       {open && (
         <div className="sheet-sort-menu" role="menu">
@@ -140,7 +120,7 @@ function LayoutMenu({ value, onChange }) {
               }}
             >
               <span>{option.label}</span>
-              {value === option.id && <CheckIcon />}
+              {value === option.id && <IconCheck size={14} stroke={2.5} aria-hidden="true" />}
             </button>
           ))}
         </div>
@@ -442,12 +422,12 @@ export default function ListingAlertsPage() {
           }}
           title={`Back to ${crumbBuilding.name}`}
         >
-          <BuildingCrumbIcon />
+          <IconBuildingSkyscraper size={16} stroke={1.8} aria-hidden="true" />
           <span className="app-crumb-label">{crumbBuilding.name}</span>
         </button>
       ) : (
         <span className="app-crumb-sub">
-          <BuildingCrumbIcon />
+          <IconBuildingSkyscraper size={16} stroke={1.8} aria-hidden="true" />
           <span className="app-crumb-label" title={crumbBuilding.name}>{crumbBuilding.name}</span>
         </span>
       )}
@@ -505,10 +485,7 @@ export default function ListingAlertsPage() {
           aria-label="Add building"
           title={selectedBuildingId ? "Back to buildings to add" : "Add building"}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
+          <IconPlus size={18} stroke={2} aria-hidden="true" />
         </button>
         <LayoutMenu value={layout} onChange={setLayout} />
       </TopbarActionsPortal>
