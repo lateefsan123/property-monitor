@@ -81,9 +81,17 @@ export function Root() {
     message: null,
     subscription: null,
     subscriptionLoading: false,
+    userId: null,
   });
   const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState(null);
   const sessionUserId = session?.user.id ?? null;
+  const billingReadyForSession = !sessionUserId
+    || (billingState.userId === sessionUserId && billingState.initialized);
+  const hasActiveBillingSubscription = Boolean(
+    sessionUserId
+      && billingState.userId === sessionUserId
+      && hasActiveSubscription(billingState.subscription),
+  );
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -133,6 +141,7 @@ export function Root() {
         message: null,
         subscription: null,
         subscriptionLoading: false,
+        userId: null,
       });
       return undefined;
     }
@@ -143,7 +152,10 @@ export function Root() {
       setBillingState((currentState) => ({
         ...currentState,
         error: null,
+        initialized: false,
+        subscription: currentState.userId === sessionUserId ? currentState.subscription : null,
         subscriptionLoading: true,
+        userId: sessionUserId,
       }));
 
       try {
@@ -155,6 +167,7 @@ export function Root() {
           initialized: true,
           subscription,
           subscriptionLoading: false,
+          userId: sessionUserId,
         }));
       } catch (error) {
         if (ignore) return;
@@ -165,6 +178,7 @@ export function Root() {
           initialized: true,
           subscription: null,
           subscriptionLoading: false,
+          userId: sessionUserId,
         }));
       }
     }
@@ -185,7 +199,9 @@ export function Root() {
       setBillingState((currentState) => ({
         ...currentState,
         error: null,
+        initialized: false,
         subscriptionLoading: true,
+        userId: sessionUserId,
       }));
 
       try {
@@ -201,6 +217,7 @@ export function Root() {
             : "Subscription updated.",
           subscription,
           subscriptionLoading: false,
+          userId: sessionUserId,
         }));
       } catch (error) {
         if (ignore) return;
@@ -211,6 +228,7 @@ export function Root() {
           error: error instanceof Error ? error.message : "Could not finalize checkout",
           initialized: true,
           subscriptionLoading: false,
+          userId: sessionUserId,
         }));
       } finally {
         if (!ignore) {
@@ -233,17 +251,17 @@ export function Root() {
 
   useEffect(() => {
     if (!sessionUserId || postAuthAction !== "checkout") return;
-    if (!billingState.initialized || billingState.subscriptionLoading || billingState.checkoutPending) return;
+    if (!billingReadyForSession || billingState.subscriptionLoading || billingState.checkoutPending) return;
     if (pendingCheckoutSessionId) return;
 
     updatePostAuthAction(null);
-    if (hasActiveSubscription(billingState.subscription)) return;
+    if (hasActiveBillingSubscription) return;
     void handleStartCheckout();
   }, [
+    billingReadyForSession,
     billingState.checkoutPending,
-    billingState.initialized,
-    billingState.subscription,
     billingState.subscriptionLoading,
+    hasActiveBillingSubscription,
     pendingCheckoutSessionId,
     postAuthAction,
     sessionUserId,
@@ -331,6 +349,10 @@ export function Root() {
     return <ResetPassword onComplete={handlePasswordResetComplete} />;
   }
 
+  if (session && !billingReadyForSession) {
+    return <div className="page"><div className="empty">Loading...</div></div>;
+  }
+
   if (session && !welcomeDismissed && !session.user.user_metadata?.welcomed) {
     const displayName = session.user.user_metadata?.username?.trim() || "";
     return (
@@ -377,8 +399,7 @@ export function Root() {
 
     const trialOfferedOverride = trialOfferedLocally.userId === session.user.id && trialOfferedLocally.offered;
     const trialOffered = trialOfferedOverride || Boolean(session.user.user_metadata?.trial_offered);
-    const alreadySubscribed = hasActiveSubscription(billingState.subscription);
-    if (!trialOffered && !alreadySubscribed) {
+    if (!trialOffered && !hasActiveBillingSubscription) {
       return (
         <TrialOfferScreen
           checkoutPending={billingState.checkoutPending || billingState.subscriptionLoading}
@@ -392,11 +413,7 @@ export function Root() {
     }
   }
 
-  if (session && !billingState.initialized && !pendingCheckoutSessionId) {
-    return <div className="page"><div className="empty">Loading...</div></div>;
-  }
-
-  if (session && hasActiveSubscription(billingState.subscription)) {
+  if (session && hasActiveBillingSubscription) {
     return <App session={session} />;
   }
 
