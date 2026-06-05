@@ -346,6 +346,22 @@
   flex-wrap: wrap;
 }
 
+.seller-filter-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.seller-filter-separator {
+  width: 1px;
+  height: 20px;
+  margin: 0 3px;
+  background: var(--bg-card-border);
+  flex: 0 0 auto;
+}
+
 .seller-filter-chip,
 .seller-filter-clear {
   display: inline-flex;
@@ -400,6 +416,16 @@
   .seller-filter-chips,
   .seller-viewbar .search-pill {
     width: 100%;
+  }
+
+  .seller-filter-group {
+    width: 100%;
+  }
+
+  .seller-filter-separator {
+    width: 100%;
+    height: 1px;
+    margin: 2px 0;
   }
 
   .seller-filter-chip,

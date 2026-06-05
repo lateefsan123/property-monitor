@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   IconCheck,
   IconChevronDown,
@@ -18,12 +18,27 @@ import {
 } from "../saved-views";
 import { normalizeStatusFilter, toggleStatusFilterValue } from "../status-filter-utils";
 
-const QUICK_FILTERS = [
-  { id: "prospect", label: "Prospects", kind: "status" },
-  { id: "market_appraisal", label: "Appraisals", kind: "status" },
-  { id: "review", label: "Needs review", kind: "quality" },
-  { id: "with_data", label: "Has market data", kind: "market" },
+const QUICK_FILTER_GROUPS = [
+  {
+    id: "pipeline",
+    label: "Pipeline filters",
+    filters: [
+      { id: "prospect", label: "Prospects", kind: "status" },
+      { id: "market_appraisal", label: "Appraisals", kind: "status" },
+      { id: "for_sale_available", label: "For sale", kind: "status" },
+    ],
+  },
+  {
+    id: "data",
+    label: "Data filters",
+    filters: [
+      { id: "review", label: "Needs review", kind: "quality" },
+      { id: "with_data", label: "Has market data", kind: "market" },
+    ],
+  },
 ];
+
+const QUICK_FILTERS = QUICK_FILTER_GROUPS.flatMap((group) => group.filters);
 
 function ViewTabIcon({ id }) {
   return id === "done"
@@ -223,21 +238,28 @@ export default function FiltersToolbar({
 
         {viewTab === "active" && (
           <div className="seller-filter-chips" aria-label="Seller filters">
-            {QUICK_FILTERS.map((filter) => {
-              const active = isQuickFilterActive(filter);
-              return (
-                <button
-                  key={`${filter.kind}-${filter.id}`}
-                  type="button"
-                  className={`seller-filter-chip${active ? " is-active" : ""}`}
-                  aria-pressed={active}
-                  onClick={() => toggleQuickFilter(filter)}
-                >
-                  {active && <IconCheck size={13} stroke={2.5} aria-hidden="true" />}
-                  <span>{filter.label}</span>
-                </button>
-              );
-            })}
+            {QUICK_FILTER_GROUPS.map((group, groupIndex) => (
+              <Fragment key={group.id}>
+                {groupIndex > 0 && <span className="seller-filter-separator" aria-hidden="true" />}
+                <div className="seller-filter-group" role="group" aria-label={group.label}>
+                  {group.filters.map((filter) => {
+                    const active = isQuickFilterActive(filter);
+                    return (
+                      <button
+                        key={`${filter.kind}-${filter.id}`}
+                        type="button"
+                        className={`seller-filter-chip${active ? " is-active" : ""}`}
+                        aria-pressed={active}
+                        onClick={() => toggleQuickFilter(filter)}
+                      >
+                        {active && <IconCheck size={13} stroke={2.5} aria-hidden="true" />}
+                        <span>{filter.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </Fragment>
+            ))}
             {hasQuickFilters && (
               <button
                 type="button"
