@@ -1,4 +1,14 @@
-import { getKnownBuildingMatch, normalizeBuildingAliasKey } from "./building-utils";
+import {
+  cleanBuildingName,
+  findKnownBuildingProjectPrefixMatch,
+  findUniqueKnownBuildingPrefixMatch,
+  getKnownBuildingMatch,
+  getTruncatedBuildingPrefix,
+  hasSafeTruncatedBuildingPrefix,
+  normalizeBuildingAliasKey,
+  normalizeBuildingPrefixKey,
+  parseBuildingAddressValue,
+} from "./building-utils";
 import { normalizeToken } from "./spreadsheet";
 
 const REVIEW_ISSUES = new Set([
@@ -6,6 +16,19 @@ const REVIEW_ISSUES = new Set([
   "missing_building",
   "unmatched_building",
 ]);
+const CACHED_BUILDING_STOP_WORDS = new Set([
+  "the",
+  "tower",
+  "towers",
+  "residence",
+  "residences",
+  "building",
+  "buildings",
+  "apartment",
+  "apartments",
+  "project",
+]);
+const TRUNCATED_BUILDING_PATTERN = /\u2026|\.{3,}/;
 
 function normalizePhone(value) {
   return String(value || "").replace(/[^0-9]/g, "");
@@ -24,28 +47,275 @@ function buildAliasLookup(buildingAliases) {
   return lookup;
 }
 
-function resolveBuildingMatch(raw, aliasLookup) {
+function tokenizeBuildingName(value) {
+  return cleanBuildingName(value)
+    .toLowerCase()
+    .replace(/\b(t)(\d+)\b/g, " tower $2")
+    .replace(/\btower(\d+)\b/g, " tower $1")
+    .replace(/\bii\b/g, "2")
+    .replace(/\biii\b/g, "3")
+    .split(/[^a-z0-9]+/)
+    .map((token) => token.trim())
+    .filter((token) => token && !CACHED_BUILDING_STOP_WORDS.has(token));
+}
+
+function countTokenOverlap(leftTokens, rightTokens) {
+  const right = new Set(rightTokens);
+  let count = 0;
+  for (const token of leftTokens) {
+    if (right.has(token)) count += 1;
+  }
+  return count;
+}
+
+function toCachedBuildingCandidate(row) {
+  const rawKey = String(row?.key || "").trim();
+  const rawSearchName = String(row?.search_name || "").trim();
+  const displayNames = [
+    rawSearchName,
+    row?.location_name,
+  ]
+    .map((value) => String(value || "").trim())
+    .filter((value) => value && value !== "0" && !TRUNCATED_BUILDING_PATTERN.test(value));
+  const names = [
+    ...displayNames,
+    rawKey,
+  ].filter((value) => value && value !== "0");
+
+  const canonicalName = displayNames.find((value) => /[a-z]/i.test(value)) || "";
+  const tokens = [...new Set(names.flatMap(tokenizeBuildingName))];
+  if (!canonicalName || !tokens.length) return null;
+
+  const truncatedInputKeys = TRUNCATED_BUILDING_PATTERN.test(rawSearchName)
+    ? [
+      rawKey,
+      getTruncatedBuildingPrefix(rawSearchName),
+    ].map(normalizeBuildingPrefixKey).filter(Boolean)
+    : [];
+
+  return {
+    canonicalName,
+    normalizedNames: names.map(normalizeBuildingAliasKey).filter(Boolean),
+    prefixKeys: names.map(normalizeBuildingPrefixKey).filter(Boolean),
+    truncatedInputKeys,
+    tokens,
+  };
+}
+
+function buildCachedBuildingIndex(cachedBuildings) {
+  const exact = new Map();
+  const truncatedExact = new Map();
+  const candidates = [];
+
+  for (const row of cachedBuildings || []) {
+    const candidate = toCachedBuildingCandidate(row);
+    if (!candidate) continue;
+    candidates.push(candidate);
+    for (const key of candidate.normalizedNames) {
+      if (!exact.has(key)) exact.set(key, candidate.canonicalName);
+    }
+    for (const key of candidate.truncatedInputKeys) {
+      if (!truncatedExact.has(key)) truncatedExact.set(key, new Map());
+      truncatedExact.get(key).set(candidate.canonicalName, candidate);
+    }
+  }
+
+  return { exact, truncatedExact, candidates };
+}
+
+function findCachedBuildingMatch(raw, cachedIndex) {
+  const cleaned = cleanBuildingName(raw);
+  const exactMatch = cachedIndex.exact.get(normalizeBuildingAliasKey(cleaned));
+  if (exactMatch) {
+    return {
+      status: "matched",
+      confidence: "high",
+      method: "cached_exact",
+      inputName: cleaned,
+      canonicalName: exactMatch,
+    };
+  }
+
+  const inputTokens = [...new Set(tokenizeBuildingName(cleaned))];
+  if (!inputTokens.length) return null;
+
+  let best = null;
+  for (const candidate of cachedIndex.candidates) {
+    const overlap = countTokenOverlap(inputTokens, candidate.tokens);
+    if (!overlap) continue;
+
+    const inputCoverage = overlap / inputTokens.length;
+    const candidateCoverage = overlap / candidate.tokens.length;
+    const isSingleTokenMatch = inputTokens.length === 1 && inputTokens[0].length >= 4 && candidate.tokens.includes(inputTokens[0]);
+    const isDistinctCachedNameContained = candidate.tokens.length === 1
+      && candidate.tokens[0].length >= 4
+      && inputTokens.includes(candidate.tokens[0]);
+    const isStrongMatch = overlap >= 2 && inputCoverage >= 0.67 && candidateCoverage >= 0.5;
+    if (!isSingleTokenMatch && !isDistinctCachedNameContained && !isStrongMatch) continue;
+
+    const score = overlap * 100
+      + inputCoverage * 20
+      + candidateCoverage * 10
+      - Math.abs(candidate.tokens.length - inputTokens.length);
+    if (!best || score > best.score) best = { candidate, score };
+  }
+
+  if (!best) return null;
+
+  return {
+    status: "matched",
+    confidence: best.candidate.tokens.length === inputTokens.length ? "high" : "medium",
+    method: "cached_fuzzy",
+    inputName: cleaned,
+    canonicalName: best.candidate.canonicalName,
+  };
+}
+
+function collectCachedBuildingPrefixMatches(raw, cachedIndex) {
+  if (!hasSafeTruncatedBuildingPrefix(raw)) return null;
+
+  const prefix = getTruncatedBuildingPrefix(raw);
+  const prefixKey = normalizeBuildingPrefixKey(prefix);
+  if (!prefixKey) return null;
+
+  const matches = new Map();
+  for (const candidate of cachedIndex.candidates) {
+    if (candidate.prefixKeys.some((key) => key.startsWith(prefixKey))) {
+      matches.set(candidate.canonicalName, candidate);
+    }
+  }
+
+  return { prefix, matches };
+}
+
+function findCachedBuildingPrefixMatch(raw, cachedIndex) {
+  const result = collectCachedBuildingPrefixMatches(raw, cachedIndex);
+  if (!result || result.matches.size !== 1) return null;
+
+  const { prefix, matches } = result;
+  const [canonicalName] = matches.keys();
+  return {
+    status: "matched",
+    confidence: "medium",
+    method: "truncated_prefix_cached",
+    inputName: prefix,
+    canonicalName,
+  };
+}
+
+function findCachedResolvedTruncatedInputMatch(raw, cachedIndex) {
+  const prefix = getTruncatedBuildingPrefix(raw);
+  const prefixKey = normalizeBuildingPrefixKey(prefix);
+  if (!prefixKey) return null;
+
+  const matches = cachedIndex.truncatedExact.get(prefixKey);
+  if (!matches || matches.size !== 1) return null;
+
+  const [canonicalName] = matches.keys();
+  return {
+    status: "matched",
+    confidence: "medium",
+    method: "truncated_cache_resolved",
+    inputName: prefix,
+    canonicalName,
+  };
+}
+
+function isEquivalentCanonicalName(left, right) {
+  const leftKey = normalizeBuildingPrefixKey(left);
+  const rightKey = normalizeBuildingPrefixKey(right);
+  return Boolean(leftKey && rightKey)
+    && (leftKey === rightKey || leftKey.startsWith(rightKey) || rightKey.startsWith(leftKey));
+}
+
+function findTruncatedPrefixMatch(raw, cachedIndex) {
+  const knownMatch = findUniqueKnownBuildingPrefixMatch(raw);
+  const projectMatch = findKnownBuildingProjectPrefixMatch(raw);
+  const cachedResolvedMatch = findCachedResolvedTruncatedInputMatch(raw, cachedIndex);
+  const cachedResult = collectCachedBuildingPrefixMatches(raw, cachedIndex);
+
+  if (knownMatch) {
+    if (!cachedResult || cachedResult.matches.size === 0) return knownMatch;
+    const cacheCandidates = [...cachedResult.matches.keys()];
+    const hasConflict = cacheCandidates.some((candidate) => !isEquivalentCanonicalName(candidate, knownMatch.canonicalName));
+    return hasConflict ? null : knownMatch;
+  }
+
+  if (projectMatch) {
+    if (!cachedResult || cachedResult.matches.size === 0) return projectMatch;
+    const cacheCandidates = [...cachedResult.matches.keys()];
+    const hasConflict = cacheCandidates.some((candidate) => !isEquivalentCanonicalName(candidate, projectMatch.canonicalName));
+    return hasConflict ? null : projectMatch;
+  }
+
+  if (cachedResolvedMatch) return cachedResolvedMatch;
+
+  if (!cachedResult || cachedResult.matches.size !== 1) return null;
+  return findCachedBuildingPrefixMatch(raw, cachedIndex);
+}
+
+function resolveBuildingMatch(raw, aliasLookup, cachedIndex) {
   const baselineMatch = getKnownBuildingMatch(raw);
   if (baselineMatch.status === "missing") return baselineMatch;
+  const addressParts = parseBuildingAddressValue(raw);
+  const hasTruncation = TRUNCATED_BUILDING_PATTERN.test(String(raw || "")) || TRUNCATED_BUILDING_PATTERN.test(baselineMatch.inputName || "");
+  const canRecoverTruncatedAddress = hasTruncation
+    && addressParts.recoverableTruncation
+    && !TRUNCATED_BUILDING_PATTERN.test(baselineMatch.inputName || "");
+  if (hasTruncation && !canRecoverTruncatedAddress) {
+    const prefixMatch = findTruncatedPrefixMatch(raw, cachedIndex);
+    if (prefixMatch) return prefixMatch;
+
+    return {
+      status: "unmatched",
+      confidence: "low",
+      method: "truncated",
+      inputName: baselineMatch.inputName || cleanBuildingName(raw),
+      canonicalName: "",
+    };
+  }
 
   const aliasCanonical = aliasLookup.get(normalizeBuildingAliasKey(baselineMatch.inputName || raw));
   if (aliasCanonical) {
     return {
       status: "matched",
       confidence: "high",
-      method: "custom_alias",
+      method: canRecoverTruncatedAddress ? "truncated_address_alias" : "custom_alias",
       inputName: baselineMatch.inputName || String(raw || "").trim(),
       canonicalName: aliasCanonical,
+    };
+  }
+
+  if (baselineMatch.status !== "matched") {
+    const cachedMatch = findCachedBuildingMatch(baselineMatch.inputName || raw, cachedIndex);
+    if (cachedMatch) {
+      return canRecoverTruncatedAddress
+        ? { ...cachedMatch, method: "truncated_address_cached" }
+        : cachedMatch;
+    }
+  }
+
+  if (canRecoverTruncatedAddress && baselineMatch.status === "matched") {
+    return {
+      ...baselineMatch,
+      method: "truncated_address",
     };
   }
 
   return baselineMatch;
 }
 
-function buildDuplicateKey(lead, aliasLookup) {
-  const buildingMatch = resolveBuildingMatch(lead.building, aliasLookup);
+export function createLeadBuildingResolver(buildingAliases = [], cachedBuildings = []) {
+  const aliasLookup = buildAliasLookup(buildingAliases);
+  const cachedIndex = buildCachedBuildingIndex(cachedBuildings);
+  return (raw) => resolveBuildingMatch(raw, aliasLookup, cachedIndex);
+}
+
+function buildDuplicateKey(lead, aliasLookup, cachedIndex) {
+  const buildingMatch = resolveBuildingMatch(lead.building, aliasLookup, cachedIndex);
   const building = normalizeToken(buildingMatch.canonicalName || lead.building);
-  const unit = normalizeToken(lead.unit);
+  const addressParts = parseBuildingAddressValue(lead.building);
+  const unit = normalizeToken(lead.unit || (addressParts.unit ? `Unit ${addressParts.unit}` : ""));
   const phone = normalizePhone(lead.phone);
   const name = normalizeToken(lead.name);
   const bedroom = normalizeToken(lead.bedroom);
@@ -56,11 +326,11 @@ function buildDuplicateKey(lead, aliasLookup) {
   return "";
 }
 
-function buildDuplicateLookup(leads, aliasLookup) {
+function buildDuplicateLookup(leads, aliasLookup, cachedIndex) {
   const groups = new Map();
 
   for (const lead of leads || []) {
-    const key = buildDuplicateKey(lead, aliasLookup);
+    const key = buildDuplicateKey(lead, aliasLookup, cachedIndex);
     if (!key) continue;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(lead.id);
@@ -81,28 +351,31 @@ function addIssue(issues, id, label, severity = "warning") {
 
 function buildQualityLabel(issues) {
   if (issues.some((issue) => REVIEW_ISSUES.has(issue.id))) return "Needs review";
-  if (issues.length) return "Partial";
-  return "Trusted";
+  if (issues.length) return "Missing info";
+  return "Complete";
 }
 
 function buildQualityLevel(label) {
-  if (label === "Trusted") return "trusted";
-  if (label === "Partial") return "partial";
+  if (label === "Complete" || label === "Trusted") return "trusted";
+  if (label === "Missing info" || label === "Partial") return "partial";
   return "review";
 }
 
-export function enrichLeadsWithDataQuality(leads, buildingAliases = []) {
+export function enrichLeadsWithDataQuality(leads, buildingAliases = [], cachedBuildings = []) {
   const aliasLookup = buildAliasLookup(buildingAliases);
-  const duplicateLookup = buildDuplicateLookup(leads, aliasLookup);
+  const cachedIndex = buildCachedBuildingIndex(cachedBuildings);
+  const duplicateLookup = buildDuplicateLookup(leads, aliasLookup, cachedIndex);
 
   return (leads || []).map((lead) => {
-    const buildingMatch = resolveBuildingMatch(lead.building, aliasLookup);
+    const buildingMatch = resolveBuildingMatch(lead.building, aliasLookup, cachedIndex);
+    const addressParts = parseBuildingAddressValue(lead.building);
+    const leadUnit = lead.unit || (addressParts.unit ? `Unit ${addressParts.unit}` : "");
     const issues = [];
 
     if (!lead.sourceId) addIssue(issues, "legacy_source", "Legacy source");
     if (!String(lead.name || "").trim()) addIssue(issues, "missing_name", "Missing name");
     if (!String(lead.phone || "").trim()) addIssue(issues, "missing_phone", "Missing phone");
-    if (!String(lead.unit || "").trim()) addIssue(issues, "missing_unit", "Missing unit");
+    if (!String(leadUnit || "").trim()) addIssue(issues, "missing_unit", "Missing unit");
     if (buildingMatch.status === "missing") addIssue(issues, "missing_building", "Missing building", "error");
     if (buildingMatch.status === "unmatched") addIssue(issues, "unmatched_building", "Unmatched building", "error");
     if (duplicateLookup[lead.id]) addIssue(issues, "duplicate_lead", `${duplicateLookup[lead.id].count} duplicates`, "error");

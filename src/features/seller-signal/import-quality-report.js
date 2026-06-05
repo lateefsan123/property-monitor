@@ -1,18 +1,27 @@
-import { getKnownBuildingMatch } from "./building-utils";
+import { normalizeBuildingAliasKey } from "./building-utils";
+import { createLeadBuildingResolver } from "./lead-data-quality";
 
 function countMissing(leads, field) {
   return (leads || []).filter((lead) => !String(lead?.[field] || "").trim()).length;
 }
 
-function collectUnmatchedBuildings(leads) {
+function collectUnmatchedBuildings(leads, options = {}) {
+  const resolveBuilding = createLeadBuildingResolver(options.buildingAliases, options.cachedBuildings);
   const counts = new Map();
+  const methodCounts = {};
   let missing = 0;
   let matched = 0;
+  let cached = 0;
+  let customAlias = 0;
 
   for (const lead of leads || []) {
-    const match = getKnownBuildingMatch(lead.building);
+    const match = resolveBuilding(lead.building);
     if (match.status === "matched") {
       matched += 1;
+      const method = match.method || "matched";
+      methodCounts[method] = (methodCounts[method] || 0) + 1;
+      if (method.startsWith("cached_")) cached += 1;
+      if (method === "custom_alias") customAlias += 1;
       continue;
     }
     if (match.status === "missing") {
@@ -20,24 +29,30 @@ function collectUnmatchedBuildings(leads) {
       continue;
     }
     const name = match.inputName || lead.building || "Unknown";
-    counts.set(name, (counts.get(name) || 0) + 1);
+    const key = normalizeBuildingAliasKey(name) || name.toLowerCase();
+    const existing = counts.get(key) || { name, count: 0 };
+    existing.count += 1;
+    counts.set(key, existing);
   }
 
-  const unmatchedExamples = [...counts.entries()]
-    .map(([name, count]) => ({ name, count }))
+  const unmatchedExamples = [...counts.values()]
     .sort((left, right) => right.count - left.count || left.name.localeCompare(right.name))
     .slice(0, 5);
 
   return {
     matched,
+    matchedByMethod: methodCounts,
+    cached,
+    customAlias,
+    static: Math.max(matched - cached - customAlias, 0),
     missing,
-    unmatched: [...counts.values()].reduce((sum, count) => sum + count, 0),
+    unmatched: [...counts.values()].reduce((sum, item) => sum + item.count, 0),
     unmatchedExamples,
   };
 }
 
-export function buildImportQualityReport(allLeads, importedLeads) {
-  const building = collectUnmatchedBuildings(importedLeads);
+export function buildImportQualityReport(allLeads, importedLeads, options = {}) {
+  const building = collectUnmatchedBuildings(importedLeads, options);
   return {
     importedRows: importedLeads.length,
     duplicateRows: Math.max((allLeads?.length || 0) - importedLeads.length, 0),

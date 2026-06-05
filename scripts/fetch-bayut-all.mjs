@@ -182,9 +182,7 @@ async function main() {
     || dotEnv.SUPABASE_URL
     || dotEnv.VITE_SUPABASE_URL;
   const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY
-    || dotEnv.SUPABASE_SERVICE_ROLE_KEY
-    || process.env.VITE_SUPABASE_ANON_KEY
-    || dotEnv.VITE_SUPABASE_ANON_KEY;
+    || dotEnv.SUPABASE_SERVICE_ROLE_KEY;
 
   await syncBayutToSupabase({
     supabaseUrl,

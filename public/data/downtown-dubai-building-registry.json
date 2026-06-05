@@ -111,6 +111,13 @@
       "status": "ready"
     },
     {
+      "canonical_name": "BLVD Heights",
+      "aliases": ["Boulevard Heights", "BLVD Heights Towers", "Boulevard Heights Towers"],
+      "project": "BLVD Heights",
+      "building_type": "residential_complex",
+      "status": "ready"
+    },
+    {
       "canonical_name": "Bellevue Tower 1",
       "aliases": ["Bellevue 1"],
       "project": "Bellevue Towers",
@@ -293,6 +300,13 @@
       "status": "ready"
     },
     {
+      "canonical_name": "Address Fountain Views",
+      "aliases": ["The Address Fountain Views", "Address Residence Fountain Views", "Adress Fountain Views"],
+      "project": "Address Fountain Views",
+      "building_type": "hotel_residences",
+      "status": "ready"
+    },
+    {
       "canonical_name": "The Address Sky View Tower 1",
       "aliases": ["Address Sky View Tower 1", "Sky View Tower 1"],
       "project": "The Address Sky View",
@@ -437,6 +451,13 @@
       "aliases": ["Forte Tower 2"],
       "project": "Forte",
       "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Forte",
+      "aliases": ["Forte Towers"],
+      "project": "Forte",
+      "building_type": "residential_complex",
       "status": "ready"
     },
     {

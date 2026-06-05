@@ -13,15 +13,62 @@ const NUMBER_WORDS = {
   nine: "9",
   ten: "10",
 };
+const TRUNCATION_PATTERN = /\u2026|\.{3,}/;
+const PARTIAL_TRAILING_DESCRIPTOR_PATTERN = /\s+(?:to|tow|towe)$/i;
+
+function cleanAddressBuildingPart(value) {
+  return String(value || "")
+    .replace(/[,\-/]+$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function stripTruncationMarker(value) {
+  return String(value || "").replace(TRUNCATION_PATTERN, " ");
+}
+
+export function parseBuildingAddressValue(raw) {
+  const value = String(raw || "").replace(/\s+/g, " ").trim();
+  const match = value.match(/^(?:\[[^\]]+\]\s*)?(?:Apartment|Apt|Flat|Unit|Villa)\s+([\w-]+)(?:\s*\([^)]*\))?\s*,\s*(.+)$/i);
+
+  if (!match) {
+    return {
+      hasAddress: false,
+      unit: "",
+      buildingName: "",
+      hasTruncation: TRUNCATION_PATTERN.test(value),
+      buildingHasTruncation: false,
+      recoverableTruncation: false,
+    };
+  }
+
+  const trailingParts = match[2].split(",").map((part) => part.trim()).filter(Boolean);
+  const buildingName = cleanAddressBuildingPart(trailingParts[0] || "");
+  const buildingHasTruncation = TRUNCATION_PATTERN.test(buildingName);
+  const hasTruncation = TRUNCATION_PATTERN.test(value);
+
+  return {
+    hasAddress: true,
+    unit: match[1] || "",
+    buildingName,
+    hasTruncation,
+    buildingHasTruncation,
+    recoverableTruncation: hasTruncation && Boolean(buildingName) && !buildingHasTruncation,
+  };
+}
+
+export function getTruncatedBuildingPrefix(raw) {
+  const rawValue = String(raw || "");
+  const cleaned = cleanBuildingName(raw);
+  if (!TRUNCATION_PATTERN.test(rawValue) && !TRUNCATION_PATTERN.test(cleaned)) return "";
+  return cleanAddressBuildingPart(stripTruncationMarker(cleaned));
+}
 
 export function cleanBuildingName(raw) {
   let name = String(raw || "").trim();
 
-  const apartmentMatch = name.match(/^(?:\[.*?\]\s*)?Apartment\s+[\w-]+(?:\s*\(.*?\))?\s*,\s*(.+)/i);
-  if (apartmentMatch) {
-    const parts = apartmentMatch[1].split(",").map((part) => part.trim());
-    name = parts[0] || name;
-  }
+  const address = parseBuildingAddressValue(name);
+  if (address.hasAddress) name = address.buildingName || name;
 
   name = name
     .replace(/\b(one|two|three|four|five|1|2|3|4|5)\s*[-\s]?\s*bed(room)?s?\b/gi, "")
@@ -120,8 +167,8 @@ function toggleTowerLetterNumber(value) {
 
 function stripLocationSuffix(value) {
   return String(value || "")
-    .replace(/,\s*(Downtown Dubai|Old Town Dubai|Old Town|Sheikh Zayed Road)\s*$/i, "")
-    .replace(/\b(Downtown Dubai|Old Town Dubai|Old Town)\s*$/i, "")
+    .replace(/,\s*(Downtown Dubai|Downtown|Old Town Dubai|Old Town|Business Bay|City Walk|DIFC|Sheikh Zayed Road)\s*$/i, "")
+    .replace(/\b(Downtown Dubai|Downtown|Old Town Dubai|Old Town|Business Bay|City Walk|DIFC)\s*$/i, "")
     .replace(/\bDubai\s*$/i, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -154,6 +201,39 @@ function removeDescriptorWords(value) {
     .replace(/\s+/g, " ")
     .trim();
   return next && next !== value ? [next] : [];
+}
+
+export function normalizeBuildingPrefixKey(raw) {
+  return normalizeToken(
+    stripLocationSuffix(replaceNumberWords(expandCommonAbbreviations(cleanAddressBuildingPart(stripTruncationMarker(raw)))))
+      .replace(/^the\s+/i, "the ")
+      .replace(/\bresidences\b/gi, "Residence")
+      .replace(/\btowers\b/gi, "Tower")
+      .replace(/\s+/g, " "),
+  );
+}
+
+function getTruncatedBuildingPrefixKeyVariants(raw) {
+  const prefix = getTruncatedBuildingPrefix(raw);
+  if (!prefix) return [];
+
+  const variants = new Set([prefix]);
+  const withoutDanglingDescriptor = prefix.replace(PARTIAL_TRAILING_DESCRIPTOR_PATTERN, "").trim();
+  if (withoutDanglingDescriptor && withoutDanglingDescriptor !== prefix) variants.add(withoutDanglingDescriptor);
+
+  return [...variants]
+    .map((variant) => ({
+      prefix: variant,
+      key: normalizeBuildingPrefixKey(variant),
+    }))
+    .filter((variant) => variant.key);
+}
+
+export function hasSafeTruncatedBuildingPrefix(raw) {
+  const prefix = getTruncatedBuildingPrefix(raw);
+  const key = normalizeBuildingPrefixKey(prefix);
+  const tokens = prefix.split(/[^a-z0-9]+/i).map((token) => token.trim()).filter(Boolean);
+  return key.length >= 8 && (tokens.length >= 2 || key.length >= 14);
 }
 
 function getRawBuildingNameVariants(raw) {
@@ -209,6 +289,8 @@ function buildKnownBuildingIndex() {
   const exact = new Map();
   const loose = new Map();
   const ambiguousLoose = new Set();
+  const prefixCandidates = [];
+  const seenPrefixCandidates = new Set();
 
   const addLoose = (key, canonical) => {
     if (!key) return;
@@ -218,6 +300,14 @@ function buildKnownBuildingIndex() {
       return;
     }
     loose.set(key, canonical);
+  };
+  const addPrefixCandidate = (value, canonical) => {
+    const key = normalizeBuildingPrefixKey(value);
+    if (!key) return;
+    const candidateKey = `${key}:${canonical}`;
+    if (seenPrefixCandidates.has(candidateKey)) return;
+    seenPrefixCandidates.add(candidateKey);
+    prefixCandidates.push({ key, canonical });
   };
 
   for (const canonical of DOWNTOWN_DUBAI_BUILDINGS) {
@@ -236,11 +326,12 @@ function buildKnownBuildingIndex() {
 
     for (const variant of variants) {
       addLoose(normalizeLooseBuildingKey(variant), cleanedCanonical);
+      addPrefixCandidate(variant, cleanedCanonical);
     }
   }
 
   for (const key of ambiguousLoose) loose.delete(key);
-  return { exact, loose };
+  return { exact, loose, prefixCandidates };
 }
 
 const KNOWN_BUILDING_INDEX = buildKnownBuildingIndex();
@@ -309,6 +400,66 @@ export function getKnownBuildingMatch(raw) {
     inputName: cleaned,
     canonicalName: "",
   };
+}
+
+export function findUniqueKnownBuildingPrefixMatch(raw) {
+  if (!hasSafeTruncatedBuildingPrefix(raw)) return null;
+
+  const prefix = getTruncatedBuildingPrefix(raw);
+  const prefixKey = normalizeBuildingPrefixKey(prefix);
+  if (!prefixKey) return null;
+
+  const matches = new Map();
+  for (const candidate of KNOWN_BUILDING_INDEX.prefixCandidates) {
+    if (candidate.key.startsWith(prefixKey)) {
+      matches.set(candidate.canonical, candidate);
+    }
+  }
+
+  if (matches.size !== 1) return null;
+  const [canonicalName] = matches.keys();
+  return {
+    status: "matched",
+    confidence: "medium",
+    method: "truncated_prefix",
+    inputName: prefix,
+    canonicalName,
+  };
+}
+
+export function findKnownBuildingProjectPrefixMatch(raw) {
+  for (const { prefix, key } of getTruncatedBuildingPrefixKeyVariants(raw)) {
+    if (key.length < 5) continue;
+
+    const canonicalKeys = new Map();
+    for (const candidate of KNOWN_BUILDING_INDEX.prefixCandidates) {
+      if (!candidate.key.startsWith(key)) continue;
+      canonicalKeys.set(candidate.canonical, normalizeBuildingPrefixKey(candidate.canonical));
+    }
+
+    if (canonicalKeys.size < 2) continue;
+
+    const parentMatches = [...canonicalKeys.entries()]
+      .map(([canonical, canonicalKey]) => ({ canonical, canonicalKey }))
+      .filter(({ canonicalKey }) =>
+        canonicalKey
+        && canonicalKey.startsWith(key)
+        && [...canonicalKeys.values()].every((otherKey) => otherKey.startsWith(canonicalKey)),
+      )
+      .sort((left, right) => left.canonicalKey.length - right.canonicalKey.length);
+
+    if (parentMatches.length !== 1) continue;
+
+    return {
+      status: "matched",
+      confidence: "medium",
+      method: "truncated_project",
+      inputName: prefix,
+      canonicalName: parentMatches[0].canonical,
+    };
+  }
+
+  return null;
 }
 
 export function canonicalizeBuildingName(raw) {

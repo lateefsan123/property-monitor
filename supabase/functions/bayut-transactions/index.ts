@@ -7,6 +7,9 @@ const corsHeaders = {
 
 const API_HOST = "uae-real-estate2.p.rapidapi.com";
 const BASE_URL = `https://${API_HOST}`;
+const DLD_EXPORT_URL = "https://gateway.dubailand.gov.ae/open-data/transactions/export/csv";
+const DLD_SALES_GROUP_ID = "1";
+const DLD_RESIDENTIAL_USAGE_ID = "1";
 const MAX_PAGES = 2;
 const MAX_TRANSACTIONS = 120;
 const MAX_BUILDINGS = 20;
@@ -24,6 +27,42 @@ function buildHeaders(apiKey: string) {
     "x-rapidapi-host": API_HOST,
     "Content-Type": "application/json",
   };
+}
+
+function buildDldExportPayload(fromDate: string, toDate: string) {
+  return {
+    parameters: {
+      P_FROM_DATE: fromDate,
+      P_TO_DATE: toDate,
+      P_GROUP_ID: DLD_SALES_GROUP_ID,
+      P_IS_OFFPLAN: "",
+      P_IS_FREE_HOLD: "",
+      P_AREA_ID: "",
+      P_USAGE_ID: DLD_RESIDENTIAL_USAGE_ID,
+      P_PROP_TYPE_ID: "",
+      P_TAKE: "-1",
+      P_SKIP: "",
+      P_SORT: "INSTANCE_DATE_DESC",
+    },
+    labels: {},
+  };
+}
+
+async function fetchDldExportCsv(fromDate: string, toDate: string) {
+  const response = await fetch(DLD_EXPORT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(buildDldExportPayload(fromDate, toDate)),
+  });
+
+  const text = await response.text();
+  if (!response.ok) throw new Error(`DLD export ${response.status}: ${text.slice(0, 240)}`);
+  if (!text || text.trim().startsWith("<!DOCTYPE html")) {
+    throw new Error("DLD export returned an unexpected response");
+  }
+  return text;
 }
 
 async function fetchJson(url: string, options: RequestInit, retries = 3): Promise<any> {
@@ -52,15 +91,40 @@ function normalizeToken(value: unknown) {
     .trim();
 }
 
-function extractLocationName(location: any) {
-  return location?.name || location?.title || location?.name_l1 || "Unknown";
-}
-
 function extractFullPath(location: any) {
   return location?.full_name
     || location?.path
     || (Array.isArray(location?.location) ? location.location.join(" | ") : "")
     || "";
+}
+
+function isUsableLocationLabel(value: unknown) {
+  const label = String(value || "").replace(/\s+/g, " ").trim();
+  return Boolean(label && label !== "0" && label.toLowerCase() !== "unknown");
+}
+
+function extractLocationPathParts(location: any) {
+  const rawParts = Array.isArray(location?.location)
+    ? location.location
+    : extractFullPath(location).split(/\s*(?:\||>|,|\/)\s*/);
+
+  return rawParts
+    .map((part: unknown) => String(part || "").replace(/\s+/g, " ").trim())
+    .filter(isUsableLocationLabel);
+}
+
+function extractLocationName(location: any) {
+  const direct = [
+    location?.name,
+    location?.title,
+    location?.name_l1,
+    location?.name_l2,
+    location?.location_name,
+  ].find(isUsableLocationLabel);
+  if (direct) return String(direct).replace(/\s+/g, " ").trim();
+
+  const pathParts = extractLocationPathParts(location);
+  return pathParts.at(-1) || "Unknown";
 }
 
 function scoreLocation(location: any, query: string) {
@@ -200,10 +264,21 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
   try {
+    const body = await req.json();
+
+    if (body?.mode === "dld-export") {
+      const fromDate = String(body.fromDate || "").trim();
+      const toDate = String(body.toDate || "").trim();
+      if (!fromDate || !toDate) return jsonResponse({ error: "fromDate and toDate are required" }, 400);
+
+      const csvText = await fetchDldExportCsv(fromDate, toDate);
+      return jsonResponse({ csvText });
+    }
+
     const apiKey = Deno.env.get("RAPIDAPI_KEY") || Deno.env.get("VITE_RAPIDAPI_KEY");
     if (!apiKey) return jsonResponse({ error: "RAPIDAPI_KEY not configured" }, 500);
 
-    const { buildings } = await req.json();
+    const { buildings } = body;
 
     if (!Array.isArray(buildings) || !buildings.length) {
       return jsonResponse({ results: {} });

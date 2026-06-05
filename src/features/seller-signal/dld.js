@@ -9,6 +9,10 @@ const DLD_SECONDARY_WINDOW_DAYS = 60;
 const DLD_SALES_GROUP_ID = "1";
 const DLD_RESIDENTIAL_USAGE_ID = "1";
 const SQM_TO_SQFT = 10.7639;
+const SUPABASE_FUNCTIONS_URL = import.meta.env?.VITE_SUPABASE_URL
+  ? `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`
+  : "";
+const SUPABASE_ANON_KEY = import.meta.env?.VITE_SUPABASE_ANON_KEY || "";
 const dldSalesExportCache = new Map();
 
 function normalizeToken(value) {
@@ -102,6 +106,49 @@ function buildExportPayload(fromDate, toDate) {
   };
 }
 
+function shouldUseDldProxy() {
+  return typeof window !== "undefined" && SUPABASE_FUNCTIONS_URL && SUPABASE_ANON_KEY;
+}
+
+async function fetchDldSalesExportViaProxy(fromDate, toDate) {
+  const response = await fetch(`${SUPABASE_FUNCTIONS_URL}/bayut-transactions`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${SUPABASE_ANON_KEY}`,
+    },
+    body: JSON.stringify({
+      mode: "dld-export",
+      fromDate: formatDateParam(fromDate),
+      toDate: formatDateParam(toDate),
+    }),
+  });
+
+  const payload = await response.json().catch(() => null);
+  if (!response.ok || payload?.error) {
+    throw new Error(payload?.error || `DLD proxy ${response.status}`);
+  }
+
+  if (!payload?.csvText) throw new Error("DLD proxy returned no data");
+  return payload.csvText;
+}
+
+async function fetchDldSalesExportDirect(fromDate, toDate) {
+  const response = await fetch(DLD_EXPORT_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(buildExportPayload(fromDate, toDate)),
+  });
+
+  if (!response.ok) {
+    throw new Error(`DLD export ${response.status}`);
+  }
+
+  return response.text();
+}
+
 async function fetchDldSalesExport(daysBack) {
   const toDate = startOfDay(new Date());
   const fromDate = startOfDay(new Date());
@@ -111,19 +158,10 @@ async function fetchDldSalesExport(daysBack) {
   if (dldSalesExportCache.has(cacheKey)) return dldSalesExportCache.get(cacheKey);
 
   const task = (async () => {
-    const response = await fetch(DLD_EXPORT_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(buildExportPayload(fromDate, toDate)),
-    });
+    const csvText = shouldUseDldProxy()
+      ? await fetchDldSalesExportViaProxy(fromDate, toDate)
+      : await fetchDldSalesExportDirect(fromDate, toDate);
 
-    if (!response.ok) {
-      throw new Error(`DLD export ${response.status}`);
-    }
-
-    const csvText = await response.text();
     if (!csvText || csvText.trim().startsWith("<!DOCTYPE html")) {
       throw new Error("DLD export returned an unexpected response");
     }

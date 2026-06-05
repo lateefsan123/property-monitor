@@ -1,6 +1,6 @@
 import { MILLISECONDS_PER_DAY, STATUS_RULES } from "./constants";
 import { normalizeToken } from "./spreadsheet";
-import { canonicalizeBuildingName } from "./building-utils";
+import { canonicalizeBuildingName, parseBuildingAddressValue } from "./building-utils";
 
 export function startOfDay(dateValue) {
   const date = new Date(dateValue);
@@ -16,6 +16,11 @@ export function formatDateInputValue(dateValue) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function hasReasonableYear(date) {
+  const year = date?.getFullYear?.();
+  return Number.isFinite(year) && year >= 1900 && year <= 2100;
 }
 
 function addDays(dateValue, days) {
@@ -37,7 +42,7 @@ export function parseDateValue(rawValue) {
     if (serial > 20000 && serial < 90000) {
       const unixDays = Math.floor(serial - 25569);
       const fromSerial = new Date(unixDays * MILLISECONDS_PER_DAY);
-      if (!Number.isNaN(fromSerial.getTime())) return startOfDay(fromSerial);
+      if (!Number.isNaN(fromSerial.getTime()) && hasReasonableYear(fromSerial)) return startOfDay(fromSerial);
     }
     return null;
   }
@@ -49,7 +54,12 @@ export function parseDateValue(rawValue) {
     let year = Number(match[3]);
     if (year < 100) year += 2000;
     const parsed = new Date(year, month - 1, day);
-    if (parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day) {
+    if (
+      parsed.getFullYear() === year
+      && parsed.getMonth() === month - 1
+      && parsed.getDate() === day
+      && hasReasonableYear(parsed)
+    ) {
       return startOfDay(parsed);
     }
   }
@@ -60,13 +70,18 @@ export function parseDateValue(rawValue) {
     const month = Number(match[2]);
     const day = Number(match[3]);
     const parsed = new Date(year, month - 1, day);
-    if (parsed.getFullYear() === year && parsed.getMonth() === month - 1 && parsed.getDate() === day) {
+    if (
+      parsed.getFullYear() === year
+      && parsed.getMonth() === month - 1
+      && parsed.getDate() === day
+      && hasReasonableYear(parsed)
+    ) {
       return startOfDay(parsed);
     }
   }
 
   const direct = new Date(raw);
-  if (!Number.isNaN(direct.getTime())) return startOfDay(direct);
+  if (!Number.isNaN(direct.getTime()) && hasReasonableYear(direct)) return startOfDay(direct);
 
   return null;
 }
@@ -87,6 +102,36 @@ function parseBedroom(rawValue) {
   }
 
   return { label: raw, beds: null };
+}
+
+function normalizeImportedUnit(value) {
+  const raw = String(value || "").replace(/\s+/g, " ").trim();
+  if (!raw) return "";
+  if (/^unit\s+/i.test(raw)) return raw;
+  return `Unit ${raw}`;
+}
+
+function splitImportedBedroomUnit(rawBedroom, rawUnit) {
+  const bedroom = String(rawBedroom || "").trim();
+  const explicitUnit = normalizeImportedUnit(rawUnit);
+
+  if (explicitUnit || !bedroom) {
+    return { bedroom, unit: explicitUnit };
+  }
+
+  const combinedMatch = bedroom.match(/^\s*(studio|\d+)\s*[/-]\s*([a-z0-9-]+)\s*$/i);
+  if (!combinedMatch) {
+    return { bedroom, unit: "" };
+  }
+
+  const bedPart = combinedMatch[1].toLowerCase() === "studio"
+    ? "Studio"
+    : `${Number(combinedMatch[1])}BR`;
+
+  return {
+    bedroom: bedPart,
+    unit: normalizeImportedUnit(combinedMatch[2]),
+  };
 }
 
 function resolveStatusRule(rawStatus) {
@@ -246,6 +291,7 @@ export function createLeadInsertRecord(record, mapping, userId, options = {}) {
     defaultStatus = null,
     defaultBuilding = null,
     overrideBuilding = false,
+    resolveBuilding = null,
   } = options;
   const name = mapping.name ? record[mapping.name] : "";
   const building = mapping.building ? record[mapping.building] : "";
@@ -254,10 +300,14 @@ export function createLeadInsertRecord(record, mapping, userId, options = {}) {
   const lastContactRaw = mapping.lastContact ? record[mapping.lastContact] : "";
   const phone = mapping.phone ? record[mapping.phone] : "";
   const unit = mapping.unit ? record[mapping.unit] : "";
+  const splitBedroomUnit = splitImportedBedroomUnit(bedroom, unit);
 
   const rawResolvedBuilding = overrideBuilding ? (defaultBuilding || "") : (building || defaultBuilding || "");
-  const resolvedBuilding = canonicalizeBuildingName(rawResolvedBuilding);
+  const addressParts = parseBuildingAddressValue(rawResolvedBuilding);
+  const buildingMatch = typeof resolveBuilding === "function" ? resolveBuilding(rawResolvedBuilding) : null;
+  const resolvedBuilding = buildingMatch?.canonicalName || canonicalizeBuildingName(rawResolvedBuilding);
   const resolvedStatus = status || defaultStatus || "";
+  const resolvedUnit = splitBedroomUnit.unit || (addressParts.unit ? normalizeImportedUnit(addressParts.unit) : "");
 
   if (!name && !resolvedBuilding && !phone) return null;
 
@@ -267,8 +317,8 @@ export function createLeadInsertRecord(record, mapping, userId, options = {}) {
     user_id: userId,
     name: name || null,
     building: resolvedBuilding || null,
-    bedroom: bedroom || null,
-    unit: unit || null,
+    bedroom: splitBedroomUnit.bedroom || null,
+    unit: resolvedUnit || null,
     phone: phone || null,
     status: resolvedStatus || null,
     last_contact: lastContactDate ? lastContactDate.toISOString().split("T")[0] : null,

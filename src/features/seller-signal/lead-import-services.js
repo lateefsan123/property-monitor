@@ -1,7 +1,9 @@
 import { aiMapColumns } from "../../ai-mapper";
 import { supabase } from "../../supabase";
 import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
-import { canonicalizeBuildingName, cleanBuildingName } from "./building-utils";
+import { canonicalizeBuildingName, cleanBuildingName, parseBuildingAddressValue } from "./building-utils";
+import { fetchCachedBuildings } from "./building-cache-services";
+import { createLeadBuildingResolver } from "./lead-data-quality";
 import { createLeadInsertRecord } from "./lead-utils";
 import { clearLeadsForSource } from "./lead-source-services";
 import { buildImportQualityReport } from "./import-quality-report";
@@ -9,7 +11,6 @@ import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToOb
 
 const IMPORT_TRUNCATION_PATTERN = /\u2026|\.{3,}/;
 const IMPORT_TRUNCATION_FIELDS = [
-  { key: "name", label: "name" },
   { key: "building", label: "building" },
   { key: "unit", label: "unit" },
 ];
@@ -27,6 +28,14 @@ function emptyBuildingToNull(value) {
 function containsImportTruncation(value) {
   const raw = String(value || "").trim();
   return Boolean(raw) && IMPORT_TRUNCATION_PATTERN.test(raw);
+}
+
+function isSuspiciousTruncatedImportField(field, value) {
+  if (!containsImportTruncation(value)) return false;
+  if (field.key !== "building") return true;
+
+  const address = parseBuildingAddressValue(value);
+  return !address.recoverableTruncation;
 }
 
 function summarizeImportValue(value, limit = 44) {
@@ -55,7 +64,7 @@ function collectSuspiciousImportRows(records, mapping, options = {}) {
     const flaggedFields = IMPORT_TRUNCATION_FIELDS
       .map((field) => {
         const value = values[field.key];
-        if (!containsImportTruncation(value)) return null;
+        if (!isSuspiciousTruncatedImportField(field, value)) return null;
         return {
           label: field.label,
           value: summarizeImportValue(value),
@@ -124,14 +133,23 @@ function dedupeIncomingLeads(leads, sourceId = null) {
   return result;
 }
 
-function buildImportResult(allLeads, newLeads) {
+async function fetchImportCachedBuildings() {
+  try {
+    return await fetchCachedBuildings();
+  } catch {
+    return [];
+  }
+}
+
+async function buildImportResult(allLeads, newLeads, options = {}) {
   const totalRows = allLeads.length;
   const count = newLeads.length;
+  const cachedBuildings = options.cachedBuildings || [];
   return {
     count,
     totalRows,
     skippedCount: Math.max(totalRows - count, 0),
-    quality: buildImportQualityReport(allLeads, newLeads),
+    quality: buildImportQualityReport(allLeads, newLeads, { cachedBuildings }),
   };
 }
 
@@ -266,6 +284,8 @@ async function clearLegacyLeads(userId) {
 
 export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
   const { mapping, records } = await fetchSheetRows(rawSheetUrl);
+  const cachedBuildings = await fetchImportCachedBuildings();
+  const resolveBuilding = createLeadBuildingResolver([], cachedBuildings);
 
   const suspiciousRows = collectSuspiciousImportRows(records, mapping);
   const suspiciousImportError = buildSuspiciousImportError(suspiciousRows);
@@ -275,6 +295,7 @@ export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
     .map((record) => createLeadInsertRecord(record, mapping, userId, {
       sourceId: null,
       defaultStatus: "Prospect",
+      resolveBuilding,
     }))
     .filter(Boolean);
 
@@ -284,11 +305,13 @@ export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
   await clearLegacyLeads(userId);
   await insertLeadBatches(nextLeads);
 
-  return buildImportResult(leadsToInsert, nextLeads);
+  return buildImportResult(leadsToInsert, nextLeads, { cachedBuildings });
 }
 
 export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }) {
   const { mapping, records } = await fetchSheetRows(rawSheetUrl || source?.sheet_url);
+  const cachedBuildings = await fetchImportCachedBuildings();
+  const resolveBuilding = createLeadBuildingResolver([], cachedBuildings);
 
   const defaultStatus = "Prospect";
   const defaultBuilding = null;
@@ -306,6 +329,7 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
       defaultStatus,
       defaultBuilding,
       overrideBuilding,
+      resolveBuilding,
     }))
     .filter(Boolean);
 
@@ -318,5 +342,5 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
   await clearLeadsForSource(userId, sourceId);
   await insertLeadBatches(nextLeads);
 
-  return buildImportResult(leadsToInsert, nextLeads);
+  return buildImportResult(leadsToInsert, nextLeads, { cachedBuildings });
 }

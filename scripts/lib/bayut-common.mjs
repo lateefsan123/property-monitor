@@ -190,8 +190,34 @@ export function extractLocationId(location) {
   return location?.id || location?.externalID || location?.location_id || null;
 }
 
+function isUsableLocationLabel(value) {
+  const label = String(value || "").replace(/\s+/g, " ").trim();
+  return Boolean(label && label !== "0" && label.toLowerCase() !== "unknown");
+}
+
+function extractLocationPathParts(location) {
+  const rawParts = Array.isArray(location?.location)
+    ? location.location
+    : String(location?.full_name || location?.path || "")
+      .split(/\s*(?:\||>|,|\/)\s*/);
+
+  return rawParts
+    .map((part) => String(part || "").replace(/\s+/g, " ").trim())
+    .filter(isUsableLocationLabel);
+}
+
 export function extractLocationName(location) {
-  return location?.name || location?.title || location?.name_l1 || "Unknown";
+  const direct = [
+    location?.name,
+    location?.title,
+    location?.name_l1,
+    location?.name_l2,
+    location?.location_name,
+  ].find(isUsableLocationLabel);
+  if (direct) return String(direct).replace(/\s+/g, " ").trim();
+
+  const pathParts = extractLocationPathParts(location);
+  return pathParts.at(-1) || "Unknown";
 }
 
 export function pickBestLocation(locations, buildingName) {
