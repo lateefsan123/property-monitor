@@ -18,9 +18,12 @@ import {
   fetchLeadInsights,
   fetchLeadSources,
   fetchUserLeads,
+  fetchWhatsAppAccounts,
+  getConnectedWhatsAppAccount,
   persistLeadSentState,
   replaceLegacyLeadsFromSheet,
   replaceUserLeadsFromSheet,
+  sendLeadWhatsAppMessage,
   updateLead,
   updateLeadStatus,
   upsertLeadSource,
@@ -28,6 +31,10 @@ import {
 
 export function leadSourcesQueryKey(userId) {
   return ["seller-signal", "lead-sources", userId];
+}
+
+export function whatsappAccountsQueryKey(userId) {
+  return ["seller-signal", "whatsapp-accounts", userId];
 }
 
 const MAX_LEAD_SOURCES = 10;
@@ -180,6 +187,18 @@ export function useSellerSignalPage(userId) {
     queryFn: () => fetchSellerSources(userId),
     enabled: Boolean(userId),
   });
+
+  const whatsappAccountsQuery = useQuery({
+    queryKey: whatsappAccountsQueryKey(userId),
+    queryFn: () => fetchWhatsAppAccounts(userId),
+    enabled: Boolean(userId),
+    staleTime: 60 * 1000,
+  });
+
+  const connectedWhatsAppAccount = useMemo(
+    () => getConnectedWhatsAppAccount(whatsappAccountsQuery.data || []),
+    [whatsappAccountsQuery.data],
+  );
 
   const reloadLeads = useCallback(async () => {
     await Promise.all([
@@ -671,6 +690,59 @@ export function useSellerSignalPage(userId) {
     }
   }
 
+  function getLeadWhatsAppPayload(lead) {
+    const insight = insights[lead.id];
+    return {
+      insight,
+      message: insight?.message || buildMessage(lead, insight),
+      phone: formatPhoneForWhatsApp(lead.phone),
+    };
+  }
+
+  async function sendWhatsAppLead(leadId, options = {}) {
+    const lead = leads.find((item) => item.id === leadId) || pagedLeads.find((item) => item.id === leadId);
+    if (!lead) return false;
+
+    const { message, phone } = getLeadWhatsAppPayload(lead);
+    if (!phone) {
+      if (message) await copyMessage(lead.id, message);
+      if (!sentLeads[lead.id]) await toggleSent(lead.id);
+      return false;
+    }
+
+    if (!connectedWhatsAppAccount) {
+      await Linking.openURL(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
+      if (!sentLeads[lead.id]) await toggleSent(lead.id);
+      return true;
+    }
+
+    setError(null);
+    if (!options.quiet) setNotice(null);
+
+    try {
+      const result = await sendLeadWhatsAppMessage({
+        accountId: connectedWhatsAppAccount.id,
+        leadId: lead.id,
+        message,
+        phone: lead.phone,
+      });
+      const sentAt = result?.sentAt || new Date().toISOString();
+      setSentLeads((previous) => ({ ...previous, [lead.id]: new Date(sentAt).getTime() }));
+      setViewTab("done");
+      setCurrentPage(1);
+      await reloadLeads();
+
+      if (!options.quiet) {
+        const accountLabel = connectedWhatsAppAccount.display_phone_number || "connected WhatsApp account";
+        setNotice(`WhatsApp sent from ${accountLabel}.`);
+      }
+      return true;
+    } catch (sendError) {
+      setError(`WhatsApp send failed: ${getErrorMessage(sendError)}`);
+      return false;
+    }
+  }
+
   async function changeLeadStatus(leadId, status) {
     const previousLeads = leads;
     setError(null);
@@ -818,16 +890,30 @@ export function useSellerSignalPage(userId) {
     }
   }
 
-  function bulkWhatsApp(markAsSent = true) {
+  async function bulkWhatsApp(markAsSent = true) {
     const targets = pagedLeads.filter((lead) => {
       const phone = formatPhoneForWhatsApp(lead.phone);
       return phone && insights[lead.id]?.status === "ready";
     });
 
+    if (!targets.length) return;
+
+    if (connectedWhatsAppAccount) {
+      setError(null);
+      setNotice(`Sending ${targets.length} WhatsApp ${targets.length === 1 ? "message" : "messages"}...`);
+
+      let sentCount = 0;
+      for (const lead of targets) {
+        const sent = await sendWhatsAppLead(lead.id, { quiet: true });
+        if (sent) sentCount += 1;
+      }
+
+      setNotice(`Sent ${sentCount} WhatsApp ${sentCount === 1 ? "message" : "messages"}.`);
+      return;
+    }
+
     targets.forEach((lead, index) => {
-      const insight = insights[lead.id];
-      const message = insight?.message || buildMessage(lead, insight);
-      const phone = formatPhoneForWhatsApp(lead.phone);
+      const { message, phone } = getLeadWhatsAppPayload(lead);
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
       setTimeout(() => {
@@ -855,6 +941,7 @@ export function useSellerSignalPage(userId) {
   return {
     activeLeads,
     addingLead,
+    connectedWhatsAppAccount,
     copiedLeadId,
     dataFilter,
     addingSource,
@@ -914,6 +1001,7 @@ export function useSellerSignalPage(userId) {
       selectStatusFilter,
       selectViewTab,
       setDueOnly,
+      sendWhatsAppLead,
       startEditingLead,
       toggleAllExpanded,
       toggleImportPanel,

@@ -14,6 +14,7 @@ import LeadCard from "./components/LeadCard";
 import LeadModal from "./components/LeadModal";
 import Pagination from "./components/Pagination";
 import StickyActionBar from "./components/StickyActionBar";
+import WhatsAppConnectionPanel from "./components/WhatsAppConnectionPanel";
 import { useSellerFavorites } from "./useSellerFavorites";
 import { useSellerSignalPage } from "./useSellerSignalPage";
 
@@ -122,6 +123,11 @@ export default function SellerSignalDashboard({ userId }) {
         report={dashboard.lastImportReport}
         onReviewRows={(filter) => dashboard.actions.selectDataQualityFilter(filter)}
       />
+      <WhatsAppConnectionPanel
+        account={dashboard.connectedWhatsAppAccount}
+        connecting={dashboard.connectingWhatsAppAccount}
+        onConnect={dashboard.actions.connectWhatsAppAccount}
+      />
 
       {dashboard.sourceOptions?.length > 0 && (
         <div className="source-tabs-row">
@@ -229,11 +235,13 @@ export default function SellerSignalDashboard({ userId }) {
                       lead={lead}
                       onCopyMessage={dashboard.actions.copyMessage}
                       onDelete={dashboard.actions.deleteLead}
+                      onSendWhatsApp={dashboard.actions.sendWhatsAppLead}
                       onToggleExpanded={dashboard.actions.toggleLeadExpanded}
                       onToggleFavorite={toggleFavorite}
                       onTogglePin={togglePin}
                       onToggleSent={dashboard.actions.toggleSent}
                       pinned={pinnedIds.has(String(lead.id))}
+                      whatsappConnected={Boolean(dashboard.connectedWhatsAppAccount)}
                     />
                   ))}
                 </tbody>
@@ -260,9 +268,11 @@ export default function SellerSignalDashboard({ userId }) {
                   onEditFieldChange={dashboard.actions.updateLeadDraftField}
                   onSaveEdit={dashboard.actions.saveLeadEdits}
                   onSaveNotes={dashboard.actions.saveNotes}
+                  onSendWhatsApp={dashboard.actions.sendWhatsAppLead}
                   onStartEditing={dashboard.actions.startEditingLead}
                   onToggleSent={dashboard.actions.toggleSent}
                   onUpdateStatus={dashboard.actions.updateLeadStatus}
+                  whatsappConnected={Boolean(dashboard.connectedWhatsAppAccount)}
                 />
               );
             })()}

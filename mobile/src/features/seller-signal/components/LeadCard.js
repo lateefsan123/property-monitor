@@ -121,7 +121,20 @@ export function Badge({ label, type, statusId, colors }) {
   );
 }
 
-export default function LeadCard({ buildingImageUrl, isSent, isDone, lead, insight, onPress, copiedLeadId, onCopyMessage, onToggleSent, colors }) {
+export default function LeadCard({
+  buildingImageUrl,
+  colors,
+  copiedLeadId,
+  insight,
+  isDone,
+  isSent,
+  lead,
+  onCopyMessage,
+  onPress,
+  onSendWhatsApp,
+  onToggleSent,
+  whatsappConnected,
+}) {
   const c = colors;
   const message = insight?.message || buildMessage(lead, insight);
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
@@ -132,6 +145,10 @@ export default function LeadCard({ buildingImageUrl, isSent, isDone, lead, insig
   function handleWhatsApp(e) {
     e.stopPropagation();
     if (!whatsappPhone) return;
+    if (whatsappConnected) {
+      void onSendWhatsApp?.(lead.id);
+      return;
+    }
     Linking.openURL(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`);
     if (!isSent) void onToggleSent(lead.id);
   }

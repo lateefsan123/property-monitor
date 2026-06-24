@@ -5,15 +5,19 @@ import { formatPhoneForWhatsApp } from "./insight-utils";
 import { enrichLeadsWithDataQuality, summarizeLeadDataQuality } from "./lead-data-quality";
 import { filterLeads } from "./selectors";
 import {
+  connectWhatsAppAccount,
   deleteLead,
   fetchCachedBuildings,
   fetchLeadInsights,
   fetchLeadMarketAvailability,
   fetchSellerBuildingCleanupLeads,
   fetchSellerLeadPage,
+  fetchWhatsAppAccounts,
+  getConnectedWhatsAppAccount,
   persistLeadSentState,
   replaceLegacyLeadsFromSheet,
   replaceUserLeadsFromSheet,
+  sendLeadWhatsAppMessage,
   updateLead,
   updateLeadStatus,
   upsertLeadSource,
@@ -38,6 +42,7 @@ import {
   sellerMarketAvailabilityQueryKey,
   sellerSourcesQueryKey,
   sellerCachedBuildingsQueryKey,
+  sellerWhatsAppAccountsQueryKey,
 } from "./queryKeys";
 import { createSellerSignalActions } from "./useSellerSignalActions";
 import { useSellerSignalBuildingAliases } from "./useSellerSignalBuildingAliases";
@@ -109,6 +114,12 @@ export function useSellerSignalPage(userId) {
     queryFn: fetchCachedBuildings,
     staleTime: 30 * 60 * 1000,
   });
+  const whatsappAccountsQuery = useQuery({
+    queryKey: sellerWhatsAppAccountsQueryKey(userId),
+    enabled: Boolean(userId),
+    queryFn: () => fetchWhatsAppAccounts(userId),
+    staleTime: 60 * 1000,
+  });
 
   const leadSources = leadSourcesQuery.data || EMPTY_SOURCES;
   const leadSourcesReady = Boolean(leadSourcesQuery.data);
@@ -168,6 +179,10 @@ export function useSellerSignalPage(userId) {
   );
   const dataQualitySummary = useMemo(() => summarizeLeadDataQuality(leads), [leads]);
   const sentLeads = leadsData.sentMap || EMPTY_SENT_MAP;
+  const connectedWhatsAppAccount = useMemo(
+    () => getConnectedWhatsAppAccount(whatsappAccountsQuery.data || []),
+    [whatsappAccountsQuery.data],
+  );
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -199,6 +214,18 @@ export function useSellerSignalPage(userId) {
   });
   const toggleSentMutation = useMutation({
     mutationFn: ({ leadId, shouldMarkSent }) => persistLeadSentState(userId, leadId, shouldMarkSent),
+  });
+  const sendWhatsAppMessageMutation = useMutation({
+    mutationFn: ({ lead, message }) =>
+      sendLeadWhatsAppMessage({
+        accountId: connectedWhatsAppAccount?.id,
+        leadId: lead.id,
+        message,
+        phone: lead.phone,
+      }),
+  });
+  const connectWhatsAppAccountMutation = useMutation({
+    mutationFn: (payload) => connectWhatsAppAccount(payload),
   });
   const updateLeadStatusMutation = useMutation({
     mutationFn: ({ leadId, status }) => updateLeadStatus({ userId, leadId, status }),
@@ -334,7 +361,8 @@ export function useSellerSignalPage(userId) {
     || leadSourcesQuery.error
     || buildingAliasesQuery.error
     || cleanupLeadsQuery.error
-    || cachedBuildingsQuery.error,
+    || cachedBuildingsQuery.error
+    || whatsappAccountsQuery.error,
   );
   const insightNotice = insightTargets.length
     ? insightsQuery.error
@@ -373,6 +401,9 @@ export function useSellerSignalPage(userId) {
     persistLeadSourceMutation,
     queryClient,
     sentLeads,
+    connectWhatsAppAccountMutation,
+    connectedWhatsAppAccount,
+    sendWhatsAppMessageMutation,
     sheetUrl,
     toggleSentMutation,
     totalPages,
@@ -414,6 +445,8 @@ export function useSellerSignalPage(userId) {
     cachedBuildings: cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS,
     copiedLeadId,
     cleanupLeads,
+    connectedWhatsAppAccount,
+    connectingWhatsAppAccount: connectWhatsAppAccountMutation.isPending,
     dataFilter,
     dataQualityFilter,
     dataQualitySummary,

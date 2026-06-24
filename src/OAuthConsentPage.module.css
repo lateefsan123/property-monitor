@@ -1,0 +1,272 @@
+.root {
+  align-items: center;
+  background: #f8f5f2;
+  color: #202020;
+  display: flex;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans", system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-size: 13px;
+  justify-content: center;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 24px 24px 120px;
+}
+
+.permissionShell {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 660px);
+}
+
+.appConnection {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.connectionIcon {
+  align-items: center;
+  background: #ffffff;
+  border-radius: 26px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1), 0 8px 18px 4px rgba(0, 0, 0, 0.05);
+  color: #666666;
+  display: flex;
+  height: 90px;
+  justify-content: center;
+  overflow: hidden;
+  width: 90px;
+}
+
+.connectionIconImage {
+  height: 64px;
+  object-fit: contain;
+  width: 64px;
+}
+
+.sellerSignalIcon .connectionIconImage {
+  height: 64px;
+  width: 64px;
+}
+
+.connectionArrow {
+  color: #999999;
+  flex: 0 0 auto;
+}
+
+.permissionPanel {
+  background: #ffffff;
+  border: 1px solid #eeeeee;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1), 0 8px 18px 4px rgba(0, 0, 0, 0.05);
+  padding: 24px;
+  width: min(100%, 660px);
+}
+
+.permissionIntro {
+  color: #202020;
+  font-size: 14px;
+  line-height: 19px;
+  margin: 0;
+}
+
+.permissionIntro strong {
+  font-weight: 700;
+}
+
+.permissionList {
+  display: grid;
+  gap: 0;
+  margin-top: 16px;
+}
+
+.permissionRow {
+  align-items: center;
+  border: 1px solid #dddddd;
+  border-radius: 6px;
+  color: #999999;
+  display: flex;
+  gap: 12px;
+  min-height: 85px;
+  padding: 17px;
+}
+
+.permissionIcon {
+  color: #999999;
+  flex: 0 0 auto;
+}
+
+.permissionText {
+  min-width: 0;
+}
+
+.permissionTitle {
+  color: #202020;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.permissionDescription {
+  color: #777777;
+  font-size: 13px;
+  line-height: 19.5px;
+}
+
+.actions {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-top: 16px;
+}
+
+.decisionActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.button {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  display: inline-flex;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  height: 32px;
+  justify-content: center;
+  line-height: 32px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+.changeAccountButton {
+  background: transparent;
+  color: #666666;
+  min-width: 121px;
+}
+
+.changeAccountButton:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.04);
+  color: #444444;
+}
+
+.cancelButton {
+  background: rgba(0, 0, 0, 0.04);
+  color: #444444;
+  min-width: 68px;
+}
+
+.cancelButton:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.08);
+}
+
+.allowButton {
+  background: #3551F3;
+  color: #ffffff;
+  min-width: 100px;
+}
+
+.allowButton:hover:not(:disabled) {
+  background: #273bc9;
+}
+
+.inlineError {
+  color: #b42318;
+  font-size: 13px;
+  line-height: 18px;
+  margin-top: 16px;
+}
+
+.errorPanel {
+  background: #fcfaf8;
+  border: 1px solid #e6e6e6;
+  border-radius: 10px;
+  color: #202020;
+  display: flex;
+  font-size: 13px;
+  min-height: 64px;
+  transform: translateY(-48px);
+  width: min(100%, 660px);
+}
+
+.errorContent {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  padding: 16px;
+}
+
+.errorContent p {
+  font-size: 13px;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.errorIcon {
+  color: #f4a51c;
+  flex: 0 0 auto;
+}
+
+@media (max-width: 720px) {
+  .root {
+    align-items: flex-start;
+    padding: 24px 16px 80px;
+  }
+
+  .appConnection {
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .connectionIcon {
+    border-radius: 15px;
+    height: 68px;
+    width: 68px;
+  }
+
+  .connectionIconImage {
+    height: 54px;
+    width: 54px;
+  }
+
+  .sellerSignalIcon .connectionIconImage {
+    height: 64px;
+    width: 64px;
+  }
+
+  .permissionPanel {
+    padding: 18px;
+  }
+
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .changeAccountButton,
+  .decisionActions {
+    width: 100%;
+  }
+
+  .decisionActions {
+    justify-content: stretch;
+  }
+
+  .cancelButton,
+  .allowButton {
+    flex: 1;
+  }
+
+  .errorPanel {
+    transform: none;
+  }
+}

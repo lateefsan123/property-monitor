@@ -53,6 +53,87 @@ Optional repository secrets:
 
 - `VITE_RAPIDAPI_KEY`
 
+WhatsApp Embedded Signup also needs client build secrets once Meta onboarding is available:
+
+- `VITE_WHATSAPP_PROVIDER` optional, defaults to `baileys`. Set to `meta` to use Meta Embedded Signup.
+- `VITE_META_APP_ID`
+- `VITE_WHATSAPP_EMBEDDED_SIGNUP_CONFIG_ID`
+- `VITE_WHATSAPP_GRAPH_API_VERSION` optional, defaults to `v25.0`
+
+## WhatsApp setup
+
+Seller Signal supports two WhatsApp providers:
+
+- `baileys` (default): low-cost WhatsApp Web linked-device beta.
+- `meta`: official WhatsApp Business Platform via Meta Embedded Signup.
+
+### Baileys WhatsApp Web beta
+
+Baileys requires a long-running Node service because it maintains a WhatsApp Web linked-device socket. It cannot run inside Supabase Edge Functions.
+
+Run locally:
+
+```bash
+cd services/whatsapp-baileys
+cp .env.example .env
+npm install
+npm run dev
+```
+
+Required service env vars:
+
+- `BAILEYS_SERVICE_TOKEN`: shared private token for Supabase Edge Functions.
+- `BAILEYS_AUTH_DIR`: local/private session storage path, defaults to `.data/auth`.
+- `SUPABASE_URL`: optional, lets the service sync account status and inbound messages.
+- `SUPABASE_SERVICE_ROLE_KEY`: optional, required with `SUPABASE_URL`.
+
+Required Supabase Edge Function secrets:
+
+- `BAILEYS_SERVICE_URL`: URL for the long-running service, for example `http://localhost:8787`.
+- `BAILEYS_SERVICE_TOKEN`: same token as the service.
+
+Deploy/update these Edge Functions:
+
+```bash
+supabase functions deploy whatsapp-connect-account
+supabase functions deploy whatsapp-send-message
+```
+
+Baileys is not affiliated with WhatsApp or Meta and should be exposed as a beta connector. Users may need to re-pair sessions if WhatsApp Web changes or logs the linked device out.
+
+### Meta WhatsApp Business setup
+
+The Meta provider uses Meta WhatsApp Embedded Signup so each agent can connect their own WhatsApp Business account.
+
+Required Supabase Edge Function secrets:
+
+- `WHATSAPP_APP_ID`
+- `WHATSAPP_APP_SECRET`
+- `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
+- `WHATSAPP_GRAPH_API_VERSION` optional, defaults to `v25.0`
+- `WHATSAPP_DEFAULT_TEMPLATE_NAME` optional but recommended for outbound messages
+- `WHATSAPP_DEFAULT_TEMPLATE_LANGUAGE` optional, defaults to `en_US`
+
+Database setup:
+
+```bash
+supabase db push
+```
+
+Edge functions to deploy:
+
+```bash
+supabase functions deploy whatsapp-connect-account
+supabase functions deploy whatsapp-send-message
+supabase functions deploy whatsapp-webhook --no-verify-jwt
+```
+
+Meta webhook endpoint:
+
+```text
+https://<your-project-ref>.supabase.co/functions/v1/whatsapp-webhook
+```
+
 ## Stripe billing setup
 
 This repo now uses:

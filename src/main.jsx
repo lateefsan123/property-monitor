@@ -5,6 +5,8 @@ import "./index.css";
 import App from "./App.jsx";
 import Auth from "./Auth.jsx";
 import LandingPage from "./LandingPage.jsx";
+import OAuthConsentPage from "./OAuthConsentPage.jsx";
+import PolicyPage from "./PolicyPage.jsx";
 import {
   createCheckoutSession,
   fetchBillingSubscription,
@@ -66,6 +68,10 @@ function clearCheckoutRedirect() {
 }
 
 export function Root() {
+  const publicPolicyPath = ["/privacy", "/terms", "/data-deletion"].includes(window.location.pathname)
+    ? window.location.pathname
+    : null;
+  const isOAuthConsentPath = window.location.pathname === "/oauth/consent";
   const [session, setSession] = useState(undefined);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
@@ -329,6 +335,10 @@ export function Root() {
     void supabase.auth.signOut();
   }
 
+  if (publicPolicyPath) {
+    return <PolicyPage path={publicPolicyPath} />;
+  }
+
   if (supabaseConfigError) {
     console.error(supabaseConfigError);
 
@@ -343,6 +353,10 @@ export function Root() {
 
   if (session === undefined) {
     return <div className="page"><div className="empty">Loading...</div></div>;
+  }
+
+  if (isOAuthConsentPath) {
+    return session ? <OAuthConsentPage session={session} /> : <Auth redirectToUrl={window.location.href} />;
   }
 
   if (isRecoveringPassword && session) {

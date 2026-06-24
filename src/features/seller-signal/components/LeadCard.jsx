@@ -43,11 +43,13 @@ export default function LeadCard({
   lead,
   onCopyMessage,
   onDelete,
+  onSendWhatsApp,
   onToggleExpanded,
   onToggleFavorite,
   onTogglePin,
   onToggleSent,
   pinned,
+  whatsappConnected,
 }) {
   const message = insight?.message || null;
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
@@ -65,7 +67,19 @@ export default function LeadCard({
     ? `https://web.whatsapp.com/send?phone=${whatsappPhone}&text=${encodeURIComponent(message || "")}`
     : null;
 
-  const sendButton = whatsappUrl ? (
+  const sendButton = whatsappPhone && whatsappConnected ? (
+    <button
+      type="button"
+      className="btn-sm btn-wa"
+      onClick={(event) => {
+        event.stopPropagation();
+        void onSendWhatsApp?.(lead.id);
+      }}
+    >
+      <WhatsAppIcon />
+      {isSent ? "Sent" : "Send"}
+    </button>
+  ) : whatsappUrl ? (
     <a
       className="btn-sm btn-wa"
       href={whatsappUrl}

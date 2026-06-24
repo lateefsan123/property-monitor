@@ -33,3 +33,7 @@ export function sellerInsightsQueryKey(userId, targetKeys) {
 export function sellerInsightsQueryPrefix(userId) {
   return ["seller-signal", "insights", userId];
 }
+
+export function sellerWhatsAppAccountsQueryKey(userId) {
+  return ["seller-signal", "whatsapp-accounts", userId];
+}

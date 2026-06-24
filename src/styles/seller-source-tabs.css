@@ -112,6 +112,118 @@
   cursor: not-allowed;
 }
 
+.whatsapp-connect-panel {
+  min-width: 0;
+  margin: 0 0 12px;
+}
+
+.whatsapp-connect-line {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.85rem;
+  width: 100%;
+  min-height: 3.5rem;
+  padding: 0.65rem 0;
+  border: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--bg-card-border) 72%, transparent);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.whatsapp-connect-line:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--bg-hover) 42%, transparent);
+}
+
+.whatsapp-connect-line:focus-visible {
+  border-radius: 10px;
+  outline: 2px solid color-mix(in srgb, var(--text-muted) 42%, transparent);
+  outline-offset: -2px;
+}
+
+.whatsapp-connect-line:disabled {
+  cursor: wait;
+  opacity: 0.74;
+}
+
+.whatsapp-connect-line-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted) 8%, transparent);
+  color: var(--text-muted);
+}
+
+.whatsapp-connect-line-main {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.whatsapp-connect-line-label {
+  overflow: hidden;
+  color: var(--text-name);
+  font-size: 0.93rem;
+  font-weight: 780;
+  line-height: 1.15;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.whatsapp-connect-line-value {
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 520;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.whatsapp-connect-line-chevron {
+  color: var(--text-muted);
+  opacity: 0.58;
+}
+
+.whatsapp-connect-error {
+  margin-top: 0.5rem;
+  color: var(--error-text);
+  font-size: 0.78rem;
+  line-height: 1.25;
+}
+
+.whatsapp-connect-qr {
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--bg-card-border) 72%, transparent);
+  border-radius: 8px;
+  display: flex;
+  gap: 0.85rem;
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+}
+
+.whatsapp-connect-qr img {
+  background: #fff;
+  border-radius: 6px;
+  height: 112px;
+  width: 112px;
+}
+
+.whatsapp-connect-qr span {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
 @media (max-width: 760px) {
   .source-tabs-row {
     align-items: stretch;
@@ -123,5 +235,9 @@
   .add-seller-btn {
     width: 100%;
     max-width: none;
+  }
+
+  .whatsapp-connect-line {
+    grid-template-columns: 2rem minmax(0, 1fr) auto;
   }
 }

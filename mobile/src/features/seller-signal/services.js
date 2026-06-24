@@ -1,7 +1,7 @@
 import { aiMapColumns } from "../../ai-mapper";
 import { supabase } from "../../supabase";
 import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
-import { buildMessage, buildRecentTransactions, extractBeds, extractTransactionDate, summarizeTransactions } from "./insight-utils";
+import { buildMessage, buildRecentTransactions, extractBeds, extractTransactionDate, formatPhoneForWhatsApp, summarizeTransactions } from "./insight-utils";
 import { cleanBuildingName, createLeadInsertRecord, getBuildingKeyVariants, mapStoredLeadRow, sortLeadsByPriority, startOfDay } from "./lead-utils";
 import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToObjects } from "./spreadsheet";
 
@@ -610,4 +610,44 @@ export async function persistLeadSentState(userId, leadId, isSent) {
   }
 
   return sentAt;
+}
+
+export async function fetchWhatsAppAccounts(userId) {
+  if (!userId) return [];
+
+  const { data, error } = await supabase
+    .from("whatsapp_accounts")
+    .select("id, display_phone_number, business_name, connection_status, connected_at, last_error")
+    .eq("user_id", userId)
+    .order("connected_at", { ascending: false });
+
+  if (error) {
+    if (error.code === "42P01") return [];
+    throw new Error(error.message);
+  }
+
+  return data || [];
+}
+
+export function getConnectedWhatsAppAccount(accounts = []) {
+  return accounts.find((account) => account.connection_status === "connected") || null;
+}
+
+export async function sendLeadWhatsAppMessage({ accountId, leadId, message, phone }) {
+  const to = formatPhoneForWhatsApp(phone);
+  if (!to) throw new Error("Lead does not have a valid WhatsApp phone number");
+
+  const { data, error } = await supabase.functions.invoke("whatsapp-send-message", {
+    body: {
+      accountId,
+      leadId,
+      to,
+      body: message,
+    },
+  });
+
+  if (error) throw new Error(error.message);
+  if (data?.error) throw new Error(data.error);
+
+  return data;
 }

@@ -371,8 +371,8 @@ export default function LandingPage({
             <button type="button" className="landing-nav-link" onClick={accountAction}>
               {accountActionLabel}
             </button>
-            <a href="#privacy">Privacy</a>
-            <a href="#terms">Terms</a>
+            <a href="/privacy">Privacy</a>
+            <a href="/terms">Terms</a>
           </nav>
         </div>
         <p className="landing-footer-tag">seller follow-up, reimagined</p>

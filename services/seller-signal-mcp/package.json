@@ -1,0 +1,21 @@
+{
+  "name": "@seller-signal/mcp-service",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/http.js",
+    "dev": "node --watch src/http.js",
+    "check": "node --check src/http.js && node --check src/server.js && node --check src/seller-signal.js && node --check src/supabase-oauth.js && node --check src/oauth.js && node --check src/dev-oauth-policy.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.29.0",
+    "@supabase/supabase-js": "^2.99.2",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "zod": "^4.2.0"
+  }
+}

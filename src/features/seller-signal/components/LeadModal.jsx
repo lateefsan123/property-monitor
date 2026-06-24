@@ -44,8 +44,10 @@ export default function LeadModal({
   onEditFieldChange,
   onSaveEdit,
   onSaveNotes,
+  onSendWhatsApp,
   onStartEditing,
   onToggleSent,
+  whatsappConnected,
 }) {
   const [activeSection, setActiveSection] = useState("overview");
   const [notesValue, setNotesValue] = useState(lead.notes || "");
@@ -193,7 +195,16 @@ export default function LeadModal({
             </div>
 
             <div className="lead-detail-footer">
-              {whatsappUrl ? (
+              {whatsappPhone && whatsappConnected ? (
+                <button
+                  type="button"
+                  className="lead-modal-wa-btn"
+                  onClick={() => void onSendWhatsApp?.(lead.id)}
+                >
+                  <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
+                  {isSent ? "Sent" : "Send via WhatsApp"}
+                </button>
+              ) : whatsappUrl ? (
                 <a
                   className="lead-modal-wa-btn"
                   href={whatsappUrl}

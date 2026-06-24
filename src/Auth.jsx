@@ -3,7 +3,12 @@ import { supabase } from "./supabase";
 
 const RESEND_COOLDOWN_SECONDS = 30;
 
-export default function Auth() {
+function getRedirectUrl(redirectToUrl) {
+  if (redirectToUrl) return redirectToUrl;
+  return new URL(import.meta.env.BASE_URL, window.location.origin).toString();
+}
+
+export default function Auth({ redirectToUrl } = {}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -38,14 +43,14 @@ export default function Auth() {
     clearFeedback();
 
     if (isForgotPassword) {
-      const redirectTo = new URL(import.meta.env.BASE_URL, window.location.origin).toString();
+      const redirectTo = getRedirectUrl(redirectToUrl);
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
       });
       if (resetError) setError(resetError.message);
       else setResetEmailSent(true);
     } else if (isSignUp) {
-      const emailRedirectTo = new URL(import.meta.env.BASE_URL, window.location.origin).toString();
+      const emailRedirectTo = getRedirectUrl(redirectToUrl);
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -70,7 +75,7 @@ export default function Auth() {
 
   async function handleGoogleAuth() {
     setError(null);
-    const redirectTo = new URL(import.meta.env.BASE_URL, window.location.origin).toString();
+    const redirectTo = getRedirectUrl(redirectToUrl);
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo },

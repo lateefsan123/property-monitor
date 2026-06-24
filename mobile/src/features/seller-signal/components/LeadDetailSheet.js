@@ -241,21 +241,20 @@ export default function LeadDetailSheet({
   onEditFieldChange,
   onSaveEdit,
   onSaveNotes,
+  onSendWhatsApp,
   onStartEditing,
   onToggleSent,
   onUpdateStatus,
+  whatsappConnected,
   colors,
 }) {
   const insets = useSafeAreaInsets();
   const c = colors;
   const leadId = lead?.id ?? null;
   const leadNotes = lead?.notes || "";
-  const [notesValue, setNotesValue] = useState(leadNotes);
+  const [notesDraft, setNotesDraft] = useState({ leadId: null, value: "" });
   const notesTimerRef = useRef(null);
-
-  useEffect(() => {
-    setNotesValue(leadNotes);
-  }, [leadId, leadNotes]);
+  const notesValue = notesDraft.leadId === leadId ? notesDraft.value : leadNotes;
 
   useEffect(() => () => {
     if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
@@ -266,7 +265,7 @@ export default function LeadDetailSheet({
   const message = insight?.message || buildMessage(lead, insight);
 
   function handleNotesChange(text) {
-    setNotesValue(text);
+    setNotesDraft({ leadId, value: text });
     if (notesTimerRef.current) clearTimeout(notesTimerRef.current);
     notesTimerRef.current = setTimeout(() => {
       onSaveNotes?.(lead.id, text);
@@ -283,6 +282,10 @@ export default function LeadDetailSheet({
 
   function handleWhatsApp() {
     if (!whatsappPhone) return;
+    if (whatsappConnected) {
+      void onSendWhatsApp?.(lead.id);
+      return;
+    }
     Linking.openURL(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`);
     if (!isSent) void onToggleSent(lead.id);
   }

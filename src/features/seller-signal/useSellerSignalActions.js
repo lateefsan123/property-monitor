@@ -14,6 +14,7 @@ import {
   sellerBuildingCleanupQueryPrefix,
   sellerInsightsQueryPrefix,
   sellerLeadsQueryKey,
+  sellerWhatsAppAccountsQueryKey,
 } from "./queryKeys";
 import { createSellerSignalImportActions } from "./useSellerSignalImportActions";
 
@@ -21,6 +22,8 @@ export function createSellerSignalActions(context) {
   const {
     addingLead,
     copiedLeadId,
+    connectWhatsAppAccountMutation,
+    connectedWhatsAppAccount,
     deleteLeadMutation,
     editingLeadDraft,
     editingLeadId,
@@ -30,6 +33,7 @@ export function createSellerSignalActions(context) {
     leads,
     pagedLeads,
     queryClient,
+    sendWhatsAppMessageMutation,
     sentLeads,
     toggleSentMutation,
     updateLeadMutation,
@@ -269,6 +273,63 @@ export function createSellerSignalActions(context) {
     }
   }
 
+  function getLeadWhatsAppPayload(lead) {
+    const insight = insights[lead.id];
+    return {
+      insight,
+      message: insight?.message || buildMessage(lead, insight),
+      phone: formatPhoneForWhatsApp(lead.phone),
+    };
+  }
+
+  function markLeadSentLocally(leadId, sentAt) {
+    updateLeadsCache(queryClient, userId, (current) => {
+      const nextSentMap = { ...current.sentMap };
+      nextSentMap[leadId] = new Date(sentAt).getTime();
+      return { ...current, sentMap: nextSentMap };
+    });
+  }
+
+  async function sendWhatsAppLead(leadId, options = {}) {
+    const lead = leads.find((item) => item.id === leadId) || pagedLeads.find((item) => item.id === leadId);
+    if (!lead) return false;
+
+    const { message, phone } = getLeadWhatsAppPayload(lead);
+    if (!phone) {
+      if (message) await copyMessage(lead.id, message);
+      if (!sentLeads[lead.id]) await toggleSent(lead.id);
+      return false;
+    }
+
+    if (!connectedWhatsAppAccount) {
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+      if (!sentLeads[lead.id]) await toggleSent(lead.id);
+      return true;
+    }
+
+    setActionError(null);
+    if (!options.quiet) setActionNotice(null);
+
+    try {
+      const result = await sendWhatsAppMessageMutation.mutateAsync({ lead, message });
+      const sentAt = result?.sentAt || new Date().toISOString();
+      markLeadSentLocally(lead.id, sentAt);
+      setViewTab("done");
+      setters.setCurrentPage(1);
+      await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
+
+      if (!options.quiet) {
+        const accountLabel = connectedWhatsAppAccount.display_phone_number || "connected WhatsApp account";
+        setActionNotice(`WhatsApp sent from ${accountLabel}.`);
+      }
+      return true;
+    } catch (sendError) {
+      setActionError(`WhatsApp send failed: ${getErrorMessage(sendError)}`);
+      return false;
+    }
+  }
+
   async function saveBuildingAlias(aliasName, canonicalName) {
     const cleanAlias = String(aliasName || "").trim();
     const cleanCanonical = String(canonicalName || "").trim();
@@ -306,16 +367,58 @@ export function createSellerSignalActions(context) {
     }
   }
 
-  function bulkWhatsApp(markAsSent = true) {
+  async function connectWhatsAppAccountAction(payload) {
+    setActionError(null);
+    if (!payload?.quiet) setActionNotice(null);
+
+    try {
+      const result = await connectWhatsAppAccountMutation.mutateAsync(payload);
+      const account = result?.account || result;
+      if (!account?.id) throw new Error("WhatsApp account was not returned");
+
+      queryClient.setQueryData(sellerWhatsAppAccountsQueryKey(userId), (current) => {
+        const accounts = Array.isArray(current) ? current : [];
+        const next = accounts.filter((item) => item.id !== account.id);
+        return [account, ...next];
+      });
+      await queryClient.invalidateQueries({ queryKey: sellerWhatsAppAccountsQueryKey(userId) });
+
+      if (!payload?.quiet) {
+        const accountLabel = account.display_phone_number || account.business_name || "WhatsApp";
+        const suffix = account.connection_status === "connected" ? "connected" : "ready to pair";
+        setActionNotice(`${accountLabel} ${suffix}.`);
+      }
+      return result?.account ? result : { account };
+    } catch (connectError) {
+      setActionError(`WhatsApp connection failed: ${getErrorMessage(connectError)}`);
+      throw connectError;
+    }
+  }
+
+  async function bulkWhatsApp(markAsSent = true) {
     const targets = pagedLeads.filter((lead) => {
       const phone = formatPhoneForWhatsApp(lead.phone);
       return phone && insights[lead.id]?.status === "ready";
     });
 
+    if (!targets.length) return;
+
+    if (connectedWhatsAppAccount) {
+      setActionError(null);
+      setActionNotice(`Sending ${targets.length} WhatsApp ${targets.length === 1 ? "message" : "messages"}...`);
+
+      let sentCount = 0;
+      for (const lead of targets) {
+        const sent = await sendWhatsAppLead(lead.id, { quiet: true });
+        if (sent) sentCount += 1;
+      }
+
+      setActionNotice(`Sent ${sentCount} WhatsApp ${sentCount === 1 ? "message" : "messages"}.`);
+      return;
+    }
+
     targets.forEach((lead, index) => {
-      const insight = insights[lead.id];
-      const message = insight?.message || buildMessage(lead, insight);
-      const phone = formatPhoneForWhatsApp(lead.phone);
+      const { message, phone } = getLeadWhatsAppPayload(lead);
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
       window.setTimeout(() => {
@@ -344,12 +447,14 @@ export function createSellerSignalActions(context) {
     addLead,
     bulkWhatsApp,
     cancelEditingLead,
+    connectWhatsAppAccount: connectWhatsAppAccountAction,
     copyMessage,
     deleteLead: deleteLeadAction,
     ...importActions,
     saveBuildingAlias,
     saveLeadEdits,
     saveNotes,
+    sendWhatsAppLead,
     startEditingLead,
     toggleSent,
     updateLeadDraftField,

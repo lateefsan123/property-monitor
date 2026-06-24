@@ -169,7 +169,9 @@ export default function DashboardScreen({ onBack, theme, userId }) {
               onPress={(lead) => setSelectedLeadId(lead.id)}
               copiedLeadId={d.copiedLeadId}
               onCopyMessage={d.actions.copyMessage}
+              onSendWhatsApp={d.actions.sendWhatsAppLead}
               onToggleSent={d.actions.toggleSent}
+              whatsappConnected={Boolean(d.connectedWhatsAppAccount)}
               colors={colors}
             />
           )}
@@ -222,9 +224,11 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         onEditFieldChange={d.actions.updateLeadDraftField}
         onSaveEdit={d.actions.saveLeadEdits}
         onSaveNotes={d.actions.saveNotes}
+        onSendWhatsApp={d.actions.sendWhatsAppLead}
         onStartEditing={d.actions.startEditingLead}
         onToggleSent={d.actions.toggleSent}
         onUpdateStatus={d.actions.updateLeadStatus}
+        whatsappConnected={Boolean(d.connectedWhatsAppAccount)}
         colors={colors}
       />
 

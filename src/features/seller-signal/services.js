@@ -29,3 +29,9 @@ export {
   upsertBuildingAlias,
 } from "./building-alias-services";
 export { fetchCachedBuildings } from "./building-cache-services";
+export {
+  connectWhatsAppAccount,
+  fetchWhatsAppAccounts,
+  getConnectedWhatsAppAccount,
+  sendLeadWhatsAppMessage,
+} from "./whatsapp-services";
