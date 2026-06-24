@@ -9,6 +9,7 @@ consent page at `/oauth/consent`.
 - `get_my_seller_signal_account`
 - `list_my_seller_leads`
 - `get_my_seller_lead`
+- `add_my_seller_lead`
 - `update_my_seller_lead`
 - `list_my_whatsapp_accounts`
 - `list_my_whatsapp_messages`

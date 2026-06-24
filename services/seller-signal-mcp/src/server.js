@@ -1,6 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
 import {
+  addLead,
   getAccountSummary,
   getLead,
   listLeads,
@@ -82,6 +83,24 @@ export function createSellerSignalMcpServer(options = {}) {
       leadId: leadIdSchema,
     },
     async (input) => getLead(options.authInfo, input.leadId),
+  );
+
+  registerTool(
+    "add_my_seller_lead",
+    "Add My Seller Lead",
+    "Create a new Seller Signal lead in the connected account. At least one of name, building, or phone is required.",
+    {
+      bedroom: z.string().optional(),
+      building: z.string().optional(),
+      lastContact: z.string().optional(),
+      name: z.string().optional(),
+      notes: z.string().optional(),
+      phone: z.string().optional(),
+      sourceId: z.string().uuid().optional(),
+      status: z.string().optional(),
+      unit: z.string().optional(),
+    },
+    async (input) => addLead(options.authInfo, input),
   );
 
   registerTool(

@@ -108,6 +108,34 @@ function compactLead(row) {
   };
 }
 
+function normalizeDateInput(value) {
+  const text = cleanString(value);
+  if (!text) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
+
+  const parsed = new Date(text);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error("lastContact must be a valid date, preferably YYYY-MM-DD.");
+  }
+  return parsed.toISOString().slice(0, 10);
+}
+
+async function validateLeadSource(userId, sourceId) {
+  const id = cleanString(sourceId);
+  if (!id) return null;
+
+  const { data, error } = await getSupabaseAdminClient()
+    .from("lead_sources")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("id", id)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) throw new Error(`Lead source not found: ${id}`);
+  return data.id;
+}
+
 export async function getAccountSummary(authInfo) {
   const userId = getAuthenticatedUserId(authInfo);
   await assertUserHasSubscription(userId);
@@ -145,6 +173,37 @@ export async function getAccountSummary(authInfo) {
     },
     whatsappAccounts: whatsappAccounts.data || [],
   };
+}
+
+export async function addLead(authInfo, input = {}) {
+  const userId = getAuthenticatedUserId(authInfo);
+  await assertUserHasSubscription(userId);
+
+  const row = {
+    user_id: userId,
+    name: cleanString(input.name),
+    building: cleanString(input.building),
+    bedroom: cleanString(input.bedroom),
+    unit: cleanString(input.unit),
+    phone: cleanString(input.phone),
+    status: cleanString(input.status),
+    last_contact: normalizeDateInput(input.lastContact),
+    notes: input.notes === undefined ? null : String(input.notes || ""),
+    source_id: await validateLeadSource(userId, input.sourceId),
+  };
+
+  if (!row.name && !row.building && !row.phone) {
+    throw new Error("At least one of name, building, or phone is required to add a lead.");
+  }
+
+  const { data, error } = await getSupabaseAdminClient()
+    .from("leads")
+    .insert(row)
+    .select("id, name, building, bedroom, unit, phone, status, last_contact, notes, sent_at, source_id, created_at, updated_at")
+    .single();
+
+  if (error) throw new Error(error.message);
+  return compactLead(data);
 }
 
 export async function listLeads(authInfo, input = {}) {
