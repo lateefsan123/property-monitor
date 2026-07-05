@@ -59,6 +59,21 @@ function normalizeOwnPhone(value) {
   return normalizePhone(String(value || "").split("@")[0].split(":")[0]);
 }
 
+function delay(ms) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
+}
+
+async function waitFor(predicate, timeoutMs = 12000, intervalMs = 250) {
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    if (predicate()) return true;
+    await delay(intervalMs);
+  }
+  return Boolean(predicate());
+}
+
 function sessionPath(sessionId) {
   return path.join(AUTH_DIR, sessionId);
 }
@@ -138,18 +153,6 @@ async function maybeRequestPairingCode(session) {
     session.pairingCodeRequestInFlight = false;
     session.updatedAt = new Date().toISOString();
   }
-}
-
-function queuePairingCodeRequest(session) {
-  if (!session.pendingPairingPhoneNumber) return;
-
-  void maybeRequestPairingCode(session).catch((error) => {
-    session.lastError = error instanceof Error ? error.message : "Could not request pairing code";
-    session.status = "pairing_code_error";
-    session.pairingCodeRequestInFlight = false;
-    session.updatedAt = new Date().toISOString();
-    logger.warn({ error, sessionId: session.id }, "Could not queue Baileys pairing code request");
-  });
 }
 
 async function syncAccount(session) {
@@ -256,7 +259,7 @@ async function startSession(sessionId, options = {}) {
   if (existing?.socket && existing.status !== "logged_out") {
     if (options.phoneNumber) {
       setPendingPairing(existing, options.phoneNumber, options.customPairingCode);
-      queuePairingCodeRequest(existing);
+      if (existing.qr) await maybeRequestPairingCode(existing);
     }
     return existing;
   }
@@ -311,7 +314,7 @@ async function startSession(sessionId, options = {}) {
       session.qr = qr;
       session.qrDataUrl = await QRCode.toDataURL(qr, { margin: 1, width: 320 });
       if (session.pairingMode !== "code") session.status = "qr";
-      queuePairingCodeRequest(session);
+      await maybeRequestPairingCode(session);
     }
 
     if (connection === "open") {
@@ -331,7 +334,6 @@ async function startSession(sessionId, options = {}) {
 
     if (connection === "connecting" && !session.qr) {
       session.status = "connecting";
-      queuePairingCodeRequest(session);
     }
 
     if (connection === "close") {
@@ -360,8 +362,6 @@ async function startSession(sessionId, options = {}) {
     }
   });
 
-  queuePairingCodeRequest(session);
-
   return session;
 }
 
@@ -376,7 +376,19 @@ async function requestSessionPairingCode(session, phoneNumber, customPairingCode
   }
 
   setPendingPairing(session, phone, customPairingCode);
-  queuePairingCodeRequest(session);
+  if (session.qr) await maybeRequestPairingCode(session);
+  await waitFor(
+    () => session.pairingCode || session.status === "pairing_code_error" || session.status === "connected",
+    15000,
+  );
+
+  if (session.status === "pairing_code_error") {
+    throw new Error(session.lastError || "Could not request pairing code");
+  }
+
+  if (!session.pairingCode && session.status !== "connected") {
+    throw new Error("Timed out waiting for WhatsApp pairing code");
+  }
 
   return session;
 }
@@ -404,7 +416,18 @@ app.post("/sessions", requireToken, async (req, res) => {
         ? { phoneNumber: req.body?.phoneNumber, customPairingCode: req.body?.customPairingCode }
         : {},
     );
-    if (wantsPairingCode) queuePairingCodeRequest(session);
+    if (wantsPairingCode) {
+      await waitFor(
+        () => session.pairingCode || session.status === "pairing_code_error" || session.status === "connected",
+        15000,
+      );
+      if (session.status === "pairing_code_error") {
+        throw new Error(session.lastError || "Could not request pairing code");
+      }
+      if (!session.pairingCode && session.status !== "connected") {
+        throw new Error("Timed out waiting for WhatsApp pairing code");
+      }
+    }
     res.json(publicSession(session));
   } catch (error) {
     logger.error({ error }, "Could not create Baileys session");
