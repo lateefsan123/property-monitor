@@ -31,5 +31,6 @@ service stores linked-device auth state under `BAILEYS_AUTH_DIR`.
 All routes except `/health` require `Authorization: Bearer <BAILEYS_SERVICE_TOKEN>`.
 
 To link without a camera, call `POST /sessions/:sessionId/pairing-code` with
-`{ "phoneNumber": "353..." }` and enter the returned code in WhatsApp's
-Linked Devices phone-number flow.
+`{ "phoneNumber": "353..." }`, then poll `GET /sessions/:sessionId` until
+`pairingCodeFormatted` is present. Enter that code in WhatsApp's Linked Devices
+phone-number flow.
