@@ -219,6 +219,27 @@ async function removeSessionFiles(sessionId) {
   await fs.rm(sessionPath(sessionId), { recursive: true, force: true });
 }
 
+async function stopSessionSocket(session) {
+  if (!session?.socket) return;
+
+  try {
+    if (session.status === "connected") {
+      await session.socket.logout();
+    } else {
+      session.socket.end?.(new Boom("Session removed", { statusCode: DisconnectReason.loggedOut }));
+    }
+  } catch (error) {
+    const statusCode = error?.output?.statusCode;
+    const message = error instanceof Error ? error.message : "";
+    const connectionAlreadyClosed = statusCode === 428 || message.includes("Connection Closed");
+
+    if (session.status === "connected" && !connectionAlreadyClosed) throw error;
+    logger.warn({ error, sessionId: session.id }, "Ignoring Baileys socket close failure during session removal");
+  } finally {
+    session.socket = null;
+  }
+}
+
 async function startSession(sessionId, options = {}) {
   const existing = sessions.get(sessionId);
   if (existing?.socket && existing.status !== "logged_out") {
@@ -433,7 +454,7 @@ app.post("/sessions/:sessionId/messages", requireToken, async (req, res) => {
 app.delete("/sessions/:sessionId", requireToken, async (req, res) => {
   try {
     const session = sessions.get(req.params.sessionId);
-    if (session?.socket) await session.socket.logout();
+    await stopSessionSocket(session);
     sessions.delete(req.params.sessionId);
     await removeSessionFiles(req.params.sessionId);
     res.json({ removed: true });
