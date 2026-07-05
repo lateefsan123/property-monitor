@@ -636,16 +636,18 @@ export default function WhatsAppConnectionPanel({
                             </div>
                           )}
                         </div>
+                        <div className="whatsapp-connect-qr-card-footer">
+                          <button
+                            type="button"
+                            className="whatsapp-connect-primary-button whatsapp-connect-qr-action"
+                            onClick={startBaileysQrPairing}
+                            disabled={codeBusy}
+                          >
+                            <IconRefresh size={16} stroke={2.2} aria-hidden="true" />
+                            <span>{hasBaileysQr ? "Refresh QR" : "Generate QR"}</span>
+                          </button>
+                        </div>
                       </div>
-                      <button
-                        type="button"
-                        className="whatsapp-connect-primary-button"
-                        onClick={startBaileysQrPairing}
-                        disabled={codeBusy}
-                      >
-                        <IconRefresh size={16} stroke={2.2} aria-hidden="true" />
-                        <span>{hasBaileysQr ? "Refresh QR" : "Generate QR"}</span>
-                      </button>
                     </div>
                   )}
 
