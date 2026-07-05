@@ -137,10 +137,19 @@ export default function WhatsAppConnectionPanel({
   const pendingRef = useRef({ code: null, signup: null });
   const finalizingRef = useRef(false);
   const onConnectRef = useRef(onConnect);
+  const connected = Boolean(account) || status === "connected";
 
   useEffect(() => {
     onConnectRef.current = onConnect;
   }, [onConnect]);
+
+  useEffect(() => {
+    if (!connected) return;
+    setLocalError(null);
+    setBaileysPairingCode(null);
+    setBaileysQrDataUrl(null);
+    setBaileysSessionStatus("connected");
+  }, [connected]);
 
   const finalizeIfReady = useCallback(async () => {
     const { code, signup } = pendingRef.current;
@@ -299,6 +308,8 @@ export default function WhatsAppConnectionPanel({
   }
 
   async function startSignup() {
+    if (connected) return;
+
     if (isBaileys) {
       await startBaileysPairingCode();
       return;
@@ -345,7 +356,6 @@ export default function WhatsAppConnectionPanel({
   const accountLabel = getAccountLabel(account);
   const busy = connecting || status === "loading" || status === "saving" || (!isBaileys && status === "waiting");
   const codeBusy = connecting || status === "loading" || status === "saving";
-  const connected = Boolean(account) || status === "connected";
   const rowValue = connected
     ? "Connected"
     : isBaileys && baileysPairingCode
@@ -363,9 +373,9 @@ export default function WhatsAppConnectionPanel({
       <button
         type="button"
         className="whatsapp-connect-line"
-        data-clickable="true"
+        data-clickable={connected ? undefined : "true"}
         onClick={startSignup}
-        disabled={busy}
+        disabled={busy || connected}
         aria-busy={busy ? "true" : undefined}
       >
         <span className="whatsapp-connect-line-icon" aria-hidden="true">
@@ -428,7 +438,7 @@ export default function WhatsAppConnectionPanel({
           {baileysSessionStatus === "pairing_code" || baileysPairingCode ? "Waiting for link" : "Waiting for WhatsApp"}
         </div>
       )}
-      {localError && <div className="whatsapp-connect-error">{localError}</div>}
+      {localError && !connected && <div className="whatsapp-connect-error">{localError}</div>}
       {isBaileys && baileysQrDataUrl && !connected && (
         <div className="whatsapp-connect-qr">
           <img src={baileysQrDataUrl} alt="WhatsApp pairing QR code" />
