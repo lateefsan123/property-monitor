@@ -22,6 +22,42 @@ export function getConnectedWhatsAppAccount(accounts = []) {
   return accounts.find((account) => account.connection_status === "connected") || null;
 }
 
+function isReadableResponse(value) {
+  return (
+    value &&
+    typeof value.clone === "function" &&
+    typeof value.json === "function" &&
+    typeof value.text === "function"
+  );
+}
+
+async function getFunctionErrorMessage(error, response, fallback) {
+  const errorResponse = isReadableResponse(response)
+    ? response
+    : isReadableResponse(error?.context)
+      ? error.context
+      : null;
+
+  if (errorResponse) {
+    const clone = errorResponse.clone();
+
+    try {
+      const payload = await clone.json();
+      const message = payload?.error || payload?.message;
+      if (message) return message;
+    } catch {
+      try {
+        const text = await errorResponse.clone().text();
+        if (text) return text;
+      } catch {
+        // Fall through to the Supabase error message below.
+      }
+    }
+  }
+
+  return error?.message || fallback;
+}
+
 export async function connectWhatsAppAccount({
   accountId,
   action,
@@ -35,7 +71,7 @@ export async function connectWhatsAppAccount({
   rawSignup,
   wabaId,
 }) {
-  const { data, error } = await supabase.functions.invoke("whatsapp-connect-account", {
+  const { data, error, response } = await supabase.functions.invoke("whatsapp-connect-account", {
     body: {
       accountId,
       action,
@@ -51,7 +87,7 @@ export async function connectWhatsAppAccount({
     },
   });
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(await getFunctionErrorMessage(error, response, "WhatsApp connection failed"));
   if (data?.error) throw new Error(data.error);
   if (!data?.account) throw new Error("WhatsApp account was not returned");
 
@@ -67,7 +103,7 @@ export async function sendLeadWhatsAppMessage({
   const to = formatPhoneForWhatsApp(phone);
   if (!to) throw new Error("Lead does not have a valid WhatsApp phone number");
 
-  const { data, error } = await supabase.functions.invoke("whatsapp-send-message", {
+  const { data, error, response } = await supabase.functions.invoke("whatsapp-send-message", {
     body: {
       accountId,
       leadId,
@@ -76,7 +112,7 @@ export async function sendLeadWhatsAppMessage({
     },
   });
 
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(await getFunctionErrorMessage(error, response, "WhatsApp message failed"));
   if (data?.error) throw new Error(data.error);
 
   return data;
