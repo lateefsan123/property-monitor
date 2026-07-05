@@ -318,14 +318,27 @@ async function handleBaileysConnect(adminClient: any, userId: string, input: any
 
   const existingAccount = await findLatestBaileysAccount(adminClient, userId);
   const existingSessionId = getBaileysSessionId(existingAccount);
+  const phoneNumber = cleanString(input.phoneNumber || input.phone_number);
+  const customPairingCode = cleanString(input.customPairingCode || input.custom_pairing_code);
+  const sessionBody: Record<string, string> = {};
+  if (existingSessionId) sessionBody.sessionId = existingSessionId;
+  if (phoneNumber) {
+    sessionBody.phoneNumber = phoneNumber;
+    sessionBody.pairingMode = "code";
+  }
+  if (customPairingCode) sessionBody.customPairingCode = customPairingCode;
+
   const session = await baileysFetch("/sessions", {
     method: "POST",
-    body: JSON.stringify(existingSessionId ? { sessionId: existingSessionId } : {}),
+    body: JSON.stringify(sessionBody),
   });
   const account = await upsertBaileysAccount(adminClient, userId, session);
 
   return jsonResponse({
     account,
+    pairingCode: session?.pairingCode || null,
+    pairingCodeFormatted: session?.pairingCodeFormatted || null,
+    pairingCodeRequestedAt: session?.pairingCodeRequestedAt || null,
     provider: "baileys",
     qr: session?.qr || null,
     qrDataUrl: session?.qrDataUrl || null,

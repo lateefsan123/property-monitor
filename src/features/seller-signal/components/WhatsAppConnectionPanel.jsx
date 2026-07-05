@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   IconBrandWhatsapp,
   IconChevronRight,
+  IconCopy,
+  IconKey,
 } from "@tabler/icons-react";
 
 const FACEBOOK_SDK_ID = "facebook-jssdk";
@@ -103,6 +105,14 @@ function getAccountLabel(account) {
   return account?.display_phone_number || account?.business_name || "";
 }
 
+function getBaileysPairingCode(result) {
+  return result?.pairingCodeFormatted
+    || result?.session?.pairingCodeFormatted
+    || result?.pairingCode
+    || result?.session?.pairingCode
+    || null;
+}
+
 export default function WhatsAppConnectionPanel({
   account,
   connecting,
@@ -119,7 +129,11 @@ export default function WhatsAppConnectionPanel({
   const [status, setStatus] = useState("idle");
   const [localError, setLocalError] = useState(null);
   const [baileysAccountId, setBaileysAccountId] = useState(null);
+  const [baileysPairingCode, setBaileysPairingCode] = useState(null);
+  const [baileysPhoneNumber, setBaileysPhoneNumber] = useState("");
   const [baileysQrDataUrl, setBaileysQrDataUrl] = useState(null);
+  const [baileysSessionStatus, setBaileysSessionStatus] = useState(null);
+  const [copiedCode, setCopiedCode] = useState(false);
   const pendingRef = useRef({ code: null, signup: null });
   const finalizingRef = useRef(false);
   const onConnectRef = useRef(onConnect);
@@ -161,13 +175,24 @@ export default function WhatsAppConnectionPanel({
   const applyBaileysResult = useCallback((result) => {
     const nextAccount = result?.account || null;
     const nextStatus = result?.status || result?.session?.status || nextAccount?.connection_status || "pending";
+    const pairingCode = getBaileysPairingCode(result);
 
     if (nextAccount?.id) setBaileysAccountId(nextAccount.id);
-    if (result?.qrDataUrl) setBaileysQrDataUrl(result.qrDataUrl);
+    setBaileysSessionStatus(nextStatus);
+    if (result?.qrDataUrl || result?.session?.qrDataUrl) {
+      setBaileysQrDataUrl(result.qrDataUrl || result.session.qrDataUrl);
+    }
+    if (pairingCode) setBaileysPairingCode(pairingCode);
 
     if (nextStatus === "connected" || nextAccount?.connection_status === "connected") {
       setStatus("connected");
+      setBaileysPairingCode(null);
       setBaileysQrDataUrl(null);
+      return;
+    }
+
+    if (pairingCode || nextStatus === "pairing_code") {
+      setStatus("waiting");
       return;
     }
 
@@ -234,7 +259,51 @@ export default function WhatsAppConnectionPanel({
     };
   }, [applyBaileysResult, baileysAccountId, isBaileys, status]);
 
+  async function startBaileysPairingCode(event) {
+    event?.preventDefault?.();
+    const phoneNumber = baileysPhoneNumber.trim();
+    if (!phoneNumber) {
+      setLocalError("Enter your WhatsApp number first.");
+      return;
+    }
+
+    setBaileysPairingCode(null);
+    setBaileysQrDataUrl(null);
+    setCopiedCode(false);
+    setLocalError(null);
+    setStatus("loading");
+
+    try {
+      const result = await onConnectRef.current?.({
+        action: "start",
+        phoneNumber,
+        provider: "baileys",
+      });
+      applyBaileysResult(result);
+    } catch (error) {
+      setStatus("idle");
+      setLocalError(error instanceof Error ? error.message : "Could not request WhatsApp pairing code.");
+    }
+  }
+
+  async function copyBaileysPairingCode() {
+    if (!baileysPairingCode) return;
+
+    try {
+      await navigator.clipboard.writeText(baileysPairingCode.replace(/\D/g, ""));
+      setCopiedCode(true);
+      window.setTimeout(() => setCopiedCode(false), 1200);
+    } catch {
+      setLocalError("Could not copy pairing code.");
+    }
+  }
+
   async function startSignup() {
+    if (isBaileys) {
+      await startBaileysPairingCode();
+      return;
+    }
+
     if (missingConfig.length) {
       setLocalError(`${missingConfig.join(" and ")} missing.`);
       return;
@@ -245,15 +314,6 @@ export default function WhatsAppConnectionPanel({
     setStatus("loading");
 
     try {
-      if (isBaileys) {
-        const result = await onConnectRef.current?.({
-          action: "start",
-          provider: "baileys",
-        });
-        applyBaileysResult(result);
-        return;
-      }
-
       const fb = await loadFacebookSdk(config);
       setStatus("waiting");
       fb.login((response) => {
@@ -283,12 +343,17 @@ export default function WhatsAppConnectionPanel({
   }
 
   const accountLabel = getAccountLabel(account);
-  const busy = connecting || status === "loading" || status === "waiting" || status === "saving";
-  const connected = Boolean(account);
+  const busy = connecting || status === "loading" || status === "saving" || (!isBaileys && status === "waiting");
+  const codeBusy = connecting || status === "loading" || status === "saving";
+  const connected = Boolean(account) || status === "connected";
   const rowValue = connected
     ? "Connected"
-    : busy
-      ? status === "saving" ? "Connecting" : "Opening"
+    : isBaileys && baileysPairingCode
+      ? "Code ready"
+      : isBaileys && status === "waiting"
+        ? "Waiting for link"
+        : busy
+          ? status === "saving" ? "Connecting" : "Opening"
       : missingConfig.length
         ? "Setup pending"
         : "Not connected";
@@ -319,6 +384,50 @@ export default function WhatsAppConnectionPanel({
           aria-hidden="true"
         />
       </button>
+      {isBaileys && !connected && (
+        <form className="whatsapp-connect-code-form" onSubmit={startBaileysPairingCode}>
+          <label className="whatsapp-connect-field">
+            <span className="whatsapp-connect-field-label">WhatsApp number</span>
+            <input
+              type="tel"
+              value={baileysPhoneNumber}
+              onChange={(event) => setBaileysPhoneNumber(event.target.value)}
+              placeholder="+353 85 228 7083"
+              autoComplete="tel"
+              disabled={codeBusy}
+            />
+          </label>
+          <button
+            type="submit"
+            className="whatsapp-connect-code-button"
+            disabled={codeBusy || !baileysPhoneNumber.trim()}
+          >
+            <IconKey size={15} stroke={2} aria-hidden="true" />
+            <span>{baileysPairingCode ? "New code" : "Get code"}</span>
+          </button>
+        </form>
+      )}
+      {isBaileys && baileysPairingCode && !connected && (
+        <div className="whatsapp-connect-code" role="status">
+          <div className="whatsapp-connect-code-main">
+            <span className="whatsapp-connect-code-label">Pairing code</span>
+            <span className="whatsapp-connect-code-value">{baileysPairingCode}</span>
+          </div>
+          <button
+            type="button"
+            className="whatsapp-connect-copy-button"
+            onClick={copyBaileysPairingCode}
+          >
+            <IconCopy size={15} stroke={2} aria-hidden="true" />
+            <span>{copiedCode ? "Copied" : "Copy"}</span>
+          </button>
+        </div>
+      )}
+      {isBaileys && !connected && status === "waiting" && (
+        <div className="whatsapp-connect-status">
+          {baileysSessionStatus === "pairing_code" || baileysPairingCode ? "Waiting for link" : "Waiting for WhatsApp"}
+        </div>
+      )}
       {localError && <div className="whatsapp-connect-error">{localError}</div>}
       {isBaileys && baileysQrDataUrl && !connected && (
         <div className="whatsapp-connect-qr">
