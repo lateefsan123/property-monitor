@@ -77,6 +77,10 @@ function cleanString(value: unknown) {
   return text || null;
 }
 
+function truthyInput(value: unknown) {
+  return value === true || value === 1 || value === "1" || value === "true";
+}
+
 function requireString(value: unknown, label: string) {
   const text = cleanString(value);
   if (!text) throw new HttpError(400, `${label} is required`);
@@ -362,8 +366,11 @@ async function handleBaileysConnect(adminClient: any, userId: string, input: any
   const existingSessionId = getBaileysSessionId(existingAccount);
   const phoneNumber = cleanString(input.phoneNumber || input.phone_number);
   const customPairingCode = cleanString(input.customPairingCode || input.custom_pairing_code);
-  const sessionBody: Record<string, string> = {};
+  const wantsPairingCode = Boolean(phoneNumber);
+  const resetSession = wantsPairingCode || truthyInput(input.resetSession ?? input.reset_session);
+  const sessionBody: Record<string, string | boolean> = {};
   if (existingSessionId) sessionBody.sessionId = existingSessionId;
+  if (resetSession) sessionBody.resetSession = true;
   if (phoneNumber) {
     sessionBody.phoneNumber = phoneNumber;
     sessionBody.pairingMode = "code";

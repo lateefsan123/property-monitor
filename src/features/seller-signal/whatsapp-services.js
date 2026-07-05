@@ -1,6 +1,9 @@
 import { supabase } from "../../supabase";
 import { formatPhoneForWhatsApp } from "./insight-utils";
 
+const WHATSAPP_CONNECT_TIMEOUT_MS = 25_000;
+const WHATSAPP_SEND_TIMEOUT_MS = 30_000;
+
 export async function fetchWhatsAppAccounts(userId) {
   if (!userId) return [];
 
@@ -32,6 +35,12 @@ function isReadableResponse(value) {
 }
 
 async function getFunctionErrorMessage(error, response, fallback) {
+  const contextMessage = String(error?.context?.message || error?.message || "");
+  const contextName = String(error?.context?.name || error?.name || "");
+  if (/abort|timeout/i.test(`${contextName} ${contextMessage}`)) {
+    return "WhatsApp request timed out. Check that the WhatsApp service is running and try again.";
+  }
+
   const errorResponse = isReadableResponse(response)
     ? response
     : isReadableResponse(error?.context)
@@ -64,11 +73,13 @@ export async function connectWhatsAppAccount({
   businessId,
   code,
   customPairingCode,
+  pairingMode,
   phoneNumberId,
   phoneNumber,
   provider = "meta",
   quiet,
   rawSignup,
+  resetSession,
   wabaId,
 }) {
   const { data, error, response } = await supabase.functions.invoke("whatsapp-connect-account", {
@@ -78,13 +89,16 @@ export async function connectWhatsAppAccount({
       businessId,
       code,
       customPairingCode,
+      pairingMode,
       phoneNumberId,
       phoneNumber,
       provider,
       quiet,
       rawSignup,
+      resetSession,
       wabaId,
     },
+    timeout: WHATSAPP_CONNECT_TIMEOUT_MS,
   });
 
   if (error) throw new Error(await getFunctionErrorMessage(error, response, "WhatsApp connection failed"));
@@ -110,6 +124,7 @@ export async function sendLeadWhatsAppMessage({
       to,
       body: message,
     },
+    timeout: WHATSAPP_SEND_TIMEOUT_MS,
   });
 
   if (error) throw new Error(await getFunctionErrorMessage(error, response, "WhatsApp message failed"));

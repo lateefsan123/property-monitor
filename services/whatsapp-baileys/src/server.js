@@ -51,6 +51,10 @@ function normalizePhone(value) {
   return String(value || "").replace(/\D/g, "");
 }
 
+function truthyInput(value) {
+  return value === true || value === 1 || value === "1" || value === "true";
+}
+
 function normalizeOwnPhone(value) {
   return normalizePhone(String(value || "").split("@")[0].split(":")[0]);
 }
@@ -240,6 +244,13 @@ async function stopSessionSocket(session) {
   }
 }
 
+async function resetSession(sessionId) {
+  const existing = sessions.get(sessionId);
+  await stopSessionSocket(existing);
+  sessions.delete(sessionId);
+  await removeSessionFiles(sessionId);
+}
+
 async function startSession(sessionId, options = {}) {
   const existing = sessions.get(sessionId);
   if (existing?.socket && existing.status !== "logged_out") {
@@ -382,6 +393,10 @@ app.post("/sessions", requireToken, async (req, res) => {
   try {
     const requestedId = String(req.body?.sessionId || "").trim();
     const sessionId = requestedId || crypto.randomUUID();
+    if (requestedId && truthyInput(req.body?.resetSession ?? req.body?.reset_session)) {
+      await resetSession(sessionId);
+    }
+
     const wantsPairingCode = Boolean(req.body?.phoneNumber || req.body?.pairingMode === "code");
     const session = await startSession(
       sessionId,

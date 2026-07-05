@@ -21,6 +21,8 @@ import { QRCodeSVG } from "qrcode.react";
 
 const FACEBOOK_SDK_ID = "facebook-jssdk";
 const META_MESSAGE_ORIGINS = new Set(["https://www.facebook.com", "https://web.facebook.com"]);
+const BAILEYS_PAIRING_WAIT_TIMEOUT_MS = 45_000;
+const BAILEYS_LINK_WAIT_TIMEOUT_MS = 90_000;
 
 let facebookSdkPromise = null;
 
@@ -165,11 +167,22 @@ export default function WhatsAppConnectionPanel({
   const pendingRef = useRef({ code: null, signup: null });
   const finalizingRef = useRef(false);
   const onConnectRef = useRef(onConnect);
+  const baileysPairingVisibleRef = useRef(false);
+  const baileysLinkStartedAtRef = useRef(null);
   const connected = Boolean(account) || status === "connected";
 
   useEffect(() => {
     onConnectRef.current = onConnect;
   }, [onConnect]);
+
+  useEffect(() => {
+    baileysPairingVisibleRef.current = Boolean(baileysPairingCode || baileysQrDataUrl || baileysQrValue);
+    if (baileysPairingCode) {
+      baileysLinkStartedAtRef.current = baileysLinkStartedAtRef.current || Date.now();
+    } else {
+      baileysLinkStartedAtRef.current = null;
+    }
+  }, [baileysPairingCode, baileysQrDataUrl, baileysQrValue]);
 
   useEffect(() => {
     if (!connected) return;
@@ -250,7 +263,13 @@ export default function WhatsAppConnectionPanel({
       return;
     }
 
-    if (pairingCode || nextStatus === "pairing_code") {
+    if (nextStatus === "error" || nextStatus === "pairing_code_error" || nextAccount?.connection_status === "error") {
+      setStatus("idle");
+      setLocalError(nextAccount?.last_error || result?.session?.lastError || "Could not connect WhatsApp.");
+      return;
+    }
+
+    if (pairingCode || nextStatus === "pairing_code" || nextStatus === "pairing_code_requested") {
       setStatus("waiting");
       return;
     }
@@ -295,6 +314,7 @@ export default function WhatsAppConnectionPanel({
     if (!isBaileys || status !== "waiting" || !baileysAccountId) return undefined;
 
     let cancelled = false;
+    const startedAt = Date.now();
     const timer = window.setInterval(async () => {
       try {
         const result = await onConnectRef.current?.({
@@ -309,6 +329,23 @@ export default function WhatsAppConnectionPanel({
           setStatus("idle");
           setLocalError(error instanceof Error ? error.message : "Could not check WhatsApp connection.");
         }
+      }
+
+      if (!cancelled && !baileysPairingVisibleRef.current && Date.now() - startedAt > BAILEYS_PAIRING_WAIT_TIMEOUT_MS) {
+        setStatus("idle");
+        setLocalError("WhatsApp did not return a linking code. Check the WhatsApp service and try again.");
+        window.clearInterval(timer);
+        return;
+      }
+
+      const linkStartedAt = baileysLinkStartedAtRef.current;
+      if (!cancelled && linkStartedAt && Date.now() - linkStartedAt > BAILEYS_LINK_WAIT_TIMEOUT_MS) {
+        setStatus("idle");
+        setBaileysPairingCode(null);
+        setBaileysQrDataUrl(null);
+        setBaileysQrValue(null);
+        setLocalError("WhatsApp is still logging in. Get a fresh code and try again from Linked devices.");
+        window.clearInterval(timer);
       }
     }, 2500);
 
@@ -336,8 +373,10 @@ export default function WhatsAppConnectionPanel({
     try {
       const result = await onConnectRef.current?.({
         action: "start",
+        pairingMode: "code",
         phoneNumber,
         provider: "baileys",
+        resetSession: true,
       });
       applyBaileysResult(result);
     } catch (error) {
@@ -358,6 +397,7 @@ export default function WhatsAppConnectionPanel({
       const result = await onConnectRef.current?.({
         action: "start",
         provider: "baileys",
+        resetSession: true,
       });
       applyBaileysResult(result);
     } catch (error) {
