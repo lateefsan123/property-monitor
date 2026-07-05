@@ -12,6 +12,11 @@ import {
   IconRefresh,
   IconX,
 } from "@tabler/icons-react";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 import { QRCodeSVG } from "qrcode.react";
 
 const FACEBOOK_SDK_ID = "facebook-jssdk";
@@ -119,6 +124,10 @@ function getBaileysPairingCode(result) {
     || result?.pairingCode
     || result?.session?.pairingCode
     || null;
+}
+
+function cleanPairingCode(code) {
+  return String(code || "").replace(/[^0-9A-Za-z]/g, "").toUpperCase();
 }
 
 function getBaileysQrValue(result) {
@@ -388,7 +397,7 @@ export default function WhatsAppConnectionPanel({
     if (!baileysPairingCode) return;
 
     try {
-      await navigator.clipboard.writeText(baileysPairingCode.replace(/\D/g, ""));
+      await navigator.clipboard.writeText(cleanPairingCode(baileysPairingCode));
       setCopiedCode(true);
       window.setTimeout(() => setCopiedCode(false), 1200);
     } catch {
@@ -446,6 +455,9 @@ export default function WhatsAppConnectionPanel({
   const busy = connecting || disconnecting || status === "loading" || status === "saving" || (!isBaileys && status === "waiting");
   const codeBusy = connecting || disconnecting || status === "loading" || status === "saving";
   const hasBaileysQr = Boolean(baileysQrValue || baileysQrDataUrl);
+  const cleanBaileysPairingCode = cleanPairingCode(baileysPairingCode);
+  const pairingCodeLength = Math.max(cleanBaileysPairingCode.length, 1);
+  const pairingCodeSlotIndexes = Array.from({ length: pairingCodeLength }, (_, index) => index);
   const rowValue = connected
     ? "Connected"
     : isBaileys && baileysPairingCode
@@ -641,7 +653,24 @@ export default function WhatsAppConnectionPanel({
                     <div className="whatsapp-connect-code" role="status">
                       <div className="whatsapp-connect-code-main">
                         <span className="whatsapp-connect-code-label">Pairing code</span>
-                        <span className="whatsapp-connect-code-value">{baileysPairingCode}</span>
+                        <InputOTP
+                          aria-label="WhatsApp pairing code"
+                          className="whatsapp-connect-otp-input"
+                          containerClassName="whatsapp-connect-otp"
+                          maxLength={pairingCodeLength}
+                          readOnly
+                          value={cleanBaileysPairingCode}
+                        >
+                          <InputOTPGroup className="whatsapp-connect-otp-group">
+                            {pairingCodeSlotIndexes.map((index) => (
+                              <InputOTPSlot
+                                className="whatsapp-connect-otp-slot"
+                                index={index}
+                                key={index}
+                              />
+                            ))}
+                          </InputOTPGroup>
+                        </InputOTP>
                       </div>
                       <button
                         type="button"
