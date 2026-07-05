@@ -385,8 +385,12 @@ export function createSellerSignalActions(context) {
 
       if (!payload?.quiet) {
         const accountLabel = account.display_phone_number || account.business_name || "WhatsApp";
-        const suffix = account.connection_status === "connected" ? "connected" : "ready to pair";
-        setActionNotice(`${accountLabel} ${suffix}.`);
+        if (payload?.action === "disconnect" || account.connection_status === "disconnected") {
+          setActionNotice(`${accountLabel} disconnected.`);
+        } else {
+          const suffix = account.connection_status === "connected" ? "connected" : "ready to pair";
+          setActionNotice(`${accountLabel} ${suffix}.`);
+        }
       }
       return result?.account ? result : { account };
     } catch (connectError) {

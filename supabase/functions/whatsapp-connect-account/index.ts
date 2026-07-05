@@ -235,6 +235,7 @@ async function findLatestBaileysAccount(adminClient: any, userId: string) {
     .select("id, phone_number_id, raw_account")
     .eq("user_id", userId)
     .eq("provider", "baileys")
+    .neq("connection_status", "disconnected")
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -296,6 +297,47 @@ async function upsertBaileysAccount(adminClient: any, userId: string, session: a
 
 async function handleBaileysConnect(adminClient: any, userId: string, input: any) {
   const action = cleanString(input.action) || "start";
+
+  if (action === "disconnect") {
+    const accountId = requireString(input.accountId || input.account_id, "WhatsApp account ID");
+    const account = await findBaileysAccountById(adminClient, userId, accountId);
+    const sessionId = requireString(getBaileysSessionId(account), "Baileys session ID");
+    await baileysFetch(`/sessions/${encodeURIComponent(sessionId)}`, { method: "DELETE" });
+
+    const rawAccount = account?.raw_account && typeof account.raw_account === "object"
+      ? account.raw_account
+      : {};
+    const { data: updatedAccount, error } = await adminClient
+      .from("whatsapp_accounts")
+      .update({
+        connection_status: "disconnected",
+        connected_at: null,
+        last_error: null,
+        raw_account: {
+          ...rawAccount,
+          baileys: {
+            ...(rawAccount as any).baileys,
+            disconnected_at: new Date().toISOString(),
+            session_id: sessionId,
+            status: "disconnected",
+          },
+        },
+      })
+      .eq("id", accountId)
+      .eq("user_id", userId)
+      .eq("provider", "baileys")
+      .select("id, display_phone_number, business_name, connection_status, connected_at, last_error, provider, raw_account")
+      .single();
+
+    if (error) throw new HttpError(500, error.message);
+
+    return jsonResponse({
+      account: updatedAccount,
+      disconnected: true,
+      provider: "baileys",
+      status: "disconnected",
+    });
+  }
 
   if (action === "status") {
     const accountId = requireString(input.accountId || input.account_id, "WhatsApp account ID");

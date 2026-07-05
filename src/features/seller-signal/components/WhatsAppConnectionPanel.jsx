@@ -1,10 +1,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
+  IconAlertCircle,
   IconBrandWhatsapp,
   IconChevronRight,
+  IconCircleCheck,
   IconCopy,
+  IconDeviceMobile,
   IconKey,
+  IconLinkOff,
+  IconQrcode,
+  IconRefresh,
+  IconX,
 } from "@tabler/icons-react";
+import { QRCodeSVG } from "qrcode.react";
 
 const FACEBOOK_SDK_ID = "facebook-jssdk";
 const META_MESSAGE_ORIGINS = new Set(["https://www.facebook.com", "https://web.facebook.com"]);
@@ -113,6 +121,12 @@ function getBaileysPairingCode(result) {
     || null;
 }
 
+function getBaileysQrValue(result) {
+  return result?.qr
+    || result?.session?.qr
+    || null;
+}
+
 export default function WhatsAppConnectionPanel({
   account,
   connecting,
@@ -132,8 +146,13 @@ export default function WhatsAppConnectionPanel({
   const [baileysPairingCode, setBaileysPairingCode] = useState(null);
   const [baileysPhoneNumber, setBaileysPhoneNumber] = useState("");
   const [baileysQrDataUrl, setBaileysQrDataUrl] = useState(null);
+  const [baileysQrValue, setBaileysQrValue] = useState(null);
   const [baileysSessionStatus, setBaileysSessionStatus] = useState(null);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [confirmDisconnect, setConfirmDisconnect] = useState(false);
+  const [disconnecting, setDisconnecting] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [pairingMethod, setPairingMethod] = useState("code");
   const pendingRef = useRef({ code: null, signup: null });
   const finalizingRef = useRef(false);
   const onConnectRef = useRef(onConnect);
@@ -148,8 +167,27 @@ export default function WhatsAppConnectionPanel({
     setLocalError(null);
     setBaileysPairingCode(null);
     setBaileysQrDataUrl(null);
+    setBaileysQrValue(null);
     setBaileysSessionStatus("connected");
+    setConfirmDisconnect(false);
   }, [connected]);
+
+  useEffect(() => {
+    if (!modalOpen) return undefined;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    function handleKeyDown(event) {
+      if (event.key === "Escape") setModalOpen(false);
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [modalOpen]);
 
   const finalizeIfReady = useCallback(async () => {
     const { code, signup } = pendingRef.current;
@@ -185,18 +223,21 @@ export default function WhatsAppConnectionPanel({
     const nextAccount = result?.account || null;
     const nextStatus = result?.status || result?.session?.status || nextAccount?.connection_status || "pending";
     const pairingCode = getBaileysPairingCode(result);
+    const qrValue = getBaileysQrValue(result);
 
     if (nextAccount?.id) setBaileysAccountId(nextAccount.id);
     setBaileysSessionStatus(nextStatus);
     if (result?.qrDataUrl || result?.session?.qrDataUrl) {
       setBaileysQrDataUrl(result.qrDataUrl || result.session.qrDataUrl);
     }
+    if (qrValue) setBaileysQrValue(qrValue);
     if (pairingCode) setBaileysPairingCode(pairingCode);
 
     if (nextStatus === "connected" || nextAccount?.connection_status === "connected") {
       setStatus("connected");
       setBaileysPairingCode(null);
       setBaileysQrDataUrl(null);
+      setBaileysQrValue(null);
       return;
     }
 
@@ -278,6 +319,7 @@ export default function WhatsAppConnectionPanel({
 
     setBaileysPairingCode(null);
     setBaileysQrDataUrl(null);
+    setBaileysQrValue(null);
     setCopiedCode(false);
     setLocalError(null);
     setStatus("loading");
@@ -292,6 +334,53 @@ export default function WhatsAppConnectionPanel({
     } catch (error) {
       setStatus("idle");
       setLocalError(error instanceof Error ? error.message : "Could not request WhatsApp pairing code.");
+    }
+  }
+
+  async function startBaileysQrPairing() {
+    setBaileysPairingCode(null);
+    setBaileysQrDataUrl(null);
+    setBaileysQrValue(null);
+    setCopiedCode(false);
+    setLocalError(null);
+    setStatus("loading");
+
+    try {
+      const result = await onConnectRef.current?.({
+        action: "start",
+        provider: "baileys",
+      });
+      applyBaileysResult(result);
+    } catch (error) {
+      setStatus("idle");
+      setLocalError(error instanceof Error ? error.message : "Could not request WhatsApp QR code.");
+    }
+  }
+
+  async function disconnectBaileysAccount() {
+    if (!account?.id) return;
+
+    setDisconnecting(true);
+    setLocalError(null);
+
+    try {
+      await onConnectRef.current?.({
+        accountId: account.id,
+        action: "disconnect",
+        provider: "baileys",
+      });
+      setBaileysAccountId(null);
+      setBaileysPairingCode(null);
+      setBaileysPhoneNumber("");
+      setBaileysQrDataUrl(null);
+      setBaileysQrValue(null);
+      setBaileysSessionStatus("disconnected");
+      setConfirmDisconnect(false);
+      setStatus("idle");
+    } catch (error) {
+      setLocalError(error instanceof Error ? error.message : "Could not disconnect WhatsApp.");
+    } finally {
+      setDisconnecting(false);
     }
   }
 
@@ -354,8 +443,9 @@ export default function WhatsAppConnectionPanel({
   }
 
   const accountLabel = getAccountLabel(account);
-  const busy = connecting || status === "loading" || status === "saving" || (!isBaileys && status === "waiting");
-  const codeBusy = connecting || status === "loading" || status === "saving";
+  const busy = connecting || disconnecting || status === "loading" || status === "saving" || (!isBaileys && status === "waiting");
+  const codeBusy = connecting || disconnecting || status === "loading" || status === "saving";
+  const hasBaileysQr = Boolean(baileysQrValue || baileysQrDataUrl);
   const rowValue = connected
     ? "Connected"
     : isBaileys && baileysPairingCode
@@ -373,9 +463,9 @@ export default function WhatsAppConnectionPanel({
       <button
         type="button"
         className="whatsapp-connect-line"
-        data-clickable={connected ? undefined : "true"}
-        onClick={startSignup}
-        disabled={busy || connected}
+        data-clickable="true"
+        onClick={() => setModalOpen(true)}
+        disabled={false}
         aria-busy={busy ? "true" : undefined}
       >
         <span className="whatsapp-connect-line-icon" aria-hidden="true">
@@ -394,55 +484,229 @@ export default function WhatsAppConnectionPanel({
           aria-hidden="true"
         />
       </button>
-      {isBaileys && !connected && (
-        <form className="whatsapp-connect-code-form" onSubmit={startBaileysPairingCode}>
-          <label className="whatsapp-connect-field">
-            <span className="whatsapp-connect-field-label">WhatsApp number</span>
-            <input
-              type="tel"
-              value={baileysPhoneNumber}
-              onChange={(event) => setBaileysPhoneNumber(event.target.value)}
-              placeholder="+353 85 228 7083"
-              autoComplete="tel"
-              disabled={codeBusy}
-            />
-          </label>
-          <button
-            type="submit"
-            className="whatsapp-connect-code-button"
-            disabled={codeBusy || !baileysPhoneNumber.trim()}
+      {modalOpen && (
+        <div
+          className="whatsapp-connect-modal-overlay"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setModalOpen(false);
+          }}
+          role="presentation"
+        >
+          <div
+            className="whatsapp-connect-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="whatsapp-connect-modal-title"
+            onMouseDown={(event) => event.stopPropagation()}
           >
-            <IconKey size={15} stroke={2} aria-hidden="true" />
-            <span>{baileysPairingCode ? "New code" : "Get code"}</span>
-          </button>
-        </form>
-      )}
-      {isBaileys && baileysPairingCode && !connected && (
-        <div className="whatsapp-connect-code" role="status">
-          <div className="whatsapp-connect-code-main">
-            <span className="whatsapp-connect-code-label">Pairing code</span>
-            <span className="whatsapp-connect-code-value">{baileysPairingCode}</span>
+            <div className="whatsapp-connect-modal-header">
+              <div className="whatsapp-connect-modal-title-wrap">
+                <span className="whatsapp-connect-modal-icon" aria-hidden="true">
+                  <IconBrandWhatsapp size={20} stroke={2} />
+                </span>
+                <div>
+                  <h2 id="whatsapp-connect-modal-title">WhatsApp</h2>
+                  <span>{connected ? "Connected" : "Not connected"}</span>
+                </div>
+              </div>
+              <button
+                type="button"
+                className="whatsapp-connect-modal-close"
+                onClick={() => setModalOpen(false)}
+                aria-label="Close"
+              >
+                <IconX size={19} stroke={2} aria-hidden="true" />
+              </button>
+            </div>
+
+            <div className="whatsapp-connect-modal-body">
+              {connected ? (
+                <div className="whatsapp-connect-connected-card">
+                  <span className="whatsapp-connect-connected-icon" aria-hidden="true">
+                    <IconCircleCheck size={22} stroke={2.2} />
+                  </span>
+                  <div className="whatsapp-connect-connected-main">
+                    <span className="whatsapp-connect-connected-label">Connected number</span>
+                    <strong>{accountLabel || "WhatsApp Web"}</strong>
+                  </div>
+                </div>
+              ) : !isBaileys ? (
+                <div className="whatsapp-connect-meta-panel">
+                  <button
+                    type="button"
+                    className="whatsapp-connect-primary-button"
+                    onClick={startSignup}
+                    disabled={busy || missingConfig.length > 0}
+                  >
+                    <IconBrandWhatsapp size={16} stroke={2.2} aria-hidden="true" />
+                    <span>Connect WhatsApp</span>
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="whatsapp-connect-method-tabs" role="tablist" aria-label="Pairing method">
+                    <button
+                      type="button"
+                      className={`whatsapp-connect-method-tab${pairingMethod === "code" ? " is-active" : ""}`}
+                      onClick={() => {
+                        setPairingMethod("code");
+                        setLocalError(null);
+                      }}
+                      role="tab"
+                      aria-selected={pairingMethod === "code"}
+                    >
+                      <IconKey size={16} stroke={2.1} aria-hidden="true" />
+                      <span>Code</span>
+                    </button>
+                    <button
+                      type="button"
+                      className={`whatsapp-connect-method-tab${pairingMethod === "qr" ? " is-active" : ""}`}
+                      onClick={() => {
+                        setPairingMethod("qr");
+                        setLocalError(null);
+                      }}
+                      role="tab"
+                      aria-selected={pairingMethod === "qr"}
+                    >
+                      <IconQrcode size={16} stroke={2.1} aria-hidden="true" />
+                      <span>QR</span>
+                    </button>
+                  </div>
+
+                  {pairingMethod === "code" ? (
+                    <form className="whatsapp-connect-modal-form" onSubmit={startBaileysPairingCode}>
+                      <label className="whatsapp-connect-modal-field">
+                        <span>WhatsApp number</span>
+                        <div className="whatsapp-connect-modal-input-shell">
+                          <IconDeviceMobile size={17} stroke={2} aria-hidden="true" />
+                          <input
+                            type="tel"
+                            value={baileysPhoneNumber}
+                            onChange={(event) => setBaileysPhoneNumber(event.target.value)}
+                            placeholder="+353 85 228 7083"
+                            autoComplete="tel"
+                            disabled={codeBusy}
+                          />
+                        </div>
+                      </label>
+                      <button
+                        type="submit"
+                        className="whatsapp-connect-primary-button"
+                        disabled={codeBusy || !baileysPhoneNumber.trim()}
+                      >
+                        <IconKey size={16} stroke={2.2} aria-hidden="true" />
+                        <span>{baileysPairingCode ? "New code" : "Get code"}</span>
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="whatsapp-connect-qr-panel">
+                      <div className="whatsapp-connect-qr-card">
+                        <div className="whatsapp-connect-qr-card-header">
+                          <span>Linked devices QR</span>
+                          {hasBaileysQr && <small>Ready</small>}
+                        </div>
+                        <div className="whatsapp-connect-qr-code-frame">
+                          {baileysQrValue ? (
+                            <QRCodeSVG
+                              value={baileysQrValue}
+                              size={224}
+                              level="M"
+                              marginSize={1}
+                              bgColor="#ffffff"
+                              fgColor="#111111"
+                              title="WhatsApp pairing QR code"
+                            />
+                          ) : baileysQrDataUrl ? (
+                            <img src={baileysQrDataUrl} alt="WhatsApp pairing QR code" />
+                          ) : (
+                            <div className="whatsapp-connect-qr-placeholder" aria-hidden="true">
+                              <IconQrcode size={46} stroke={1.7} />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        className="whatsapp-connect-primary-button"
+                        onClick={startBaileysQrPairing}
+                        disabled={codeBusy}
+                      >
+                        <IconRefresh size={16} stroke={2.2} aria-hidden="true" />
+                        <span>{hasBaileysQr ? "Refresh QR" : "Generate QR"}</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {baileysPairingCode && (
+                    <div className="whatsapp-connect-code" role="status">
+                      <div className="whatsapp-connect-code-main">
+                        <span className="whatsapp-connect-code-label">Pairing code</span>
+                        <span className="whatsapp-connect-code-value">{baileysPairingCode}</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="whatsapp-connect-copy-button"
+                        onClick={copyBaileysPairingCode}
+                      >
+                        <IconCopy size={15} stroke={2} aria-hidden="true" />
+                        <span>{copiedCode ? "Copied" : "Copy"}</span>
+                      </button>
+                    </div>
+                  )}
+
+                  {status === "waiting" && (
+                    <div className="whatsapp-connect-modal-status">
+                      {baileysSessionStatus === "pairing_code" || baileysPairingCode ? "Waiting for link" : "Waiting for WhatsApp"}
+                    </div>
+                  )}
+                </>
+              )}
+
+              {localError && (
+                <div className="whatsapp-connect-modal-error">
+                  <IconAlertCircle size={16} stroke={2.1} aria-hidden="true" />
+                  <span>{localError}</span>
+                </div>
+              )}
+
+              {connected && (
+                <div className="whatsapp-connect-disconnect-zone">
+                  {confirmDisconnect ? (
+                    <div className="whatsapp-connect-disconnect-confirm">
+                      <span>Disconnect this number?</span>
+                      <div className="whatsapp-connect-disconnect-actions">
+                        <button
+                          type="button"
+                          className="whatsapp-connect-secondary-button"
+                          onClick={() => setConfirmDisconnect(false)}
+                          disabled={disconnecting}
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="button"
+                          className="whatsapp-connect-danger-button"
+                          onClick={disconnectBaileysAccount}
+                          disabled={disconnecting}
+                        >
+                          {disconnecting ? "Disconnecting" : "Disconnect"}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      className="whatsapp-connect-disconnect-button"
+                      onClick={() => setConfirmDisconnect(true)}
+                    >
+                      <IconLinkOff size={16} stroke={2.2} aria-hidden="true" />
+                      <span>Disconnect number</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
-          <button
-            type="button"
-            className="whatsapp-connect-copy-button"
-            onClick={copyBaileysPairingCode}
-          >
-            <IconCopy size={15} stroke={2} aria-hidden="true" />
-            <span>{copiedCode ? "Copied" : "Copy"}</span>
-          </button>
-        </div>
-      )}
-      {isBaileys && !connected && status === "waiting" && (
-        <div className="whatsapp-connect-status">
-          {baileysSessionStatus === "pairing_code" || baileysPairingCode ? "Waiting for link" : "Waiting for WhatsApp"}
-        </div>
-      )}
-      {localError && !connected && <div className="whatsapp-connect-error">{localError}</div>}
-      {isBaileys && baileysQrDataUrl && !connected && (
-        <div className="whatsapp-connect-qr">
-          <img src={baileysQrDataUrl} alt="WhatsApp pairing QR code" />
-          <span>Scan in WhatsApp Linked Devices</span>
         </div>
       )}
     </section>
