@@ -22,6 +22,7 @@ const DEFAULT_LIVE_DAYS = 120;
 const SQM_TO_SQFT = 10.7639;
 const INSERT_BATCH_SIZE = 200;
 const SAMPLE_LIMIT = 25;
+const ENABLE_FUZZY_MATCHING = process.env.DLD_ENABLE_FUZZY_MATCHING === "true";
 
 const SHEET_COLUMN_ALIASES = {
   building: ["building", "tower", "project", "community", "sub community", "building name", "tower name"],
@@ -227,6 +228,10 @@ function tokenizeForFuzzyMatch(value) {
   )];
 }
 
+function normalizeBuildingLookupKey(value) {
+  return normalizeToken(replaceNumberWords(value));
+}
+
 function makeHeadersUnique(headers) {
   const seen = new Map();
   return headers.map((header) => {
@@ -372,7 +377,10 @@ async function loadTargetBuildings(sheetUrl, overrides) {
   }
 
   for (const target of targets.values()) {
-    for (const alias of target.aliases) aliasLookup.set(alias, target.key);
+    for (const alias of target.aliases) {
+      const lookupKey = normalizeBuildingLookupKey(alias);
+      if (lookupKey) aliasLookup.set(lookupKey, target.key);
+    }
   }
 
   return { targets, aliasLookup };
@@ -438,14 +446,17 @@ function resolveBuildingMatch(record, columns, aliasLookup, targets) {
 
   for (const candidate of candidates) {
     for (const variant of buildBuildingKeyVariants(candidate)) {
-      if (aliasLookup.has(variant)) {
+      const lookupKey = normalizeBuildingLookupKey(variant);
+      if (aliasLookup.has(lookupKey)) {
         return {
-          matchedKey: aliasLookup.get(variant),
+          matchedKey: aliasLookup.get(lookupKey),
           matchedName: candidate,
         };
       }
     }
   }
+
+  if (!ENABLE_FUZZY_MATCHING) return null;
 
   const candidateTokens = [...new Set(candidates.flatMap((candidate) => tokenizeForFuzzyMatch(candidate)))];
   if (candidateTokens.length) {
@@ -478,7 +489,37 @@ function convertSqmToSqft(value) {
   return Math.round(value * SQM_TO_SQFT * 100) / 100;
 }
 
-async function syncIntoSupabase({ buildingsByKey, envMap, dryRun }) {
+function summarizeMatchedBuildings(buildingsByKey) {
+  return Object.values(buildingsByKey)
+    .map((building) => {
+      const locationCounts = new Map();
+      let latestDate = null;
+      for (const transaction of building.transactions) {
+        const transactionDate = formatLocalIsoDate(transaction.date);
+        if (!latestDate || transactionDate > latestDate) latestDate = transactionDate;
+        const locationName = transaction.location_name || transaction.full_location || "Unknown";
+        locationCounts.set(locationName, (locationCounts.get(locationName) || 0) + 1);
+      }
+
+      return {
+        building: building.searchName || building.key,
+        buildingKey: building.key,
+        transactionCount: building.transactions.length,
+        latestDate,
+        sampleLocations: [...locationCounts.entries()]
+          .sort((left, right) => right[1] - left[1])
+          .slice(0, 3)
+          .map(([name, count]) => ({ name, count })),
+      };
+    })
+    .sort((left, right) =>
+      String(right.latestDate || "").localeCompare(String(left.latestDate || ""))
+      || right.transactionCount - left.transactionCount
+      || String(left.building).localeCompare(String(right.building)),
+    );
+}
+
+async function syncIntoSupabase({ buildingsByKey, envMap, dryRun, refreshBuildingKeys = [] }) {
   const supabaseUrl = getEnvValue(envMap, ["SUPABASE_URL", "VITE_SUPABASE_URL"]);
   const serviceRoleKey = getEnvValue(envMap, ["SUPABASE_SERVICE_ROLE_KEY"]);
 
@@ -491,28 +532,34 @@ async function syncIntoSupabase({ buildingsByKey, envMap, dryRun }) {
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
   const buildingKeys = Object.keys(buildingsByKey);
-  if (!buildingKeys.length) return { synced: true, buildingsUpserted: 0, transactionsInserted: 0 };
+  const buildingKeysToRefresh = [...new Set((refreshBuildingKeys.length ? refreshBuildingKeys : buildingKeys).filter(Boolean))];
+  if (!buildingKeysToRefresh.length) return { synced: true, buildingsRefreshed: 0, buildingsUpserted: 0, transactionsInserted: 0 };
 
-  const { data: existingBuildingRows, error: existingBuildingsError } = await supabase
-    .from("buildings")
-    .select("key, location_id")
-    .in("key", buildingKeys);
+  let buildingRows = [];
+  if (buildingKeys.length) {
+    const { data: existingBuildingRows, error: existingBuildingsError } = await supabase
+      .from("buildings")
+      .select("key, location_id")
+      .in("key", buildingKeys);
 
-  if (existingBuildingsError) throw new Error(existingBuildingsError.message);
+    if (existingBuildingsError) throw new Error(existingBuildingsError.message);
 
-  const existingLocationIds = new Map((existingBuildingRows || []).map((row) => [row.key, row.location_id || null]));
+    const existingLocationIds = new Map((existingBuildingRows || []).map((row) => [row.key, row.location_id || null]));
 
-  const buildingRows = Object.values(buildingsByKey).map((building) => ({
-    key: building.key,
-    search_name: building.searchName || building.key,
-    location_name: building.locationName || building.searchName || null,
-    location_id: existingLocationIds.get(building.key) || null,
-  }));
+    buildingRows = Object.values(buildingsByKey).map((building) => ({
+      key: building.key,
+      search_name: building.searchName || building.key,
+      location_name: building.locationName || building.searchName || null,
+      location_id: existingLocationIds.get(building.key) || null,
+    }));
+  }
 
-  const { error: buildingsError } = await supabase.from("buildings").upsert(buildingRows, { onConflict: "key" });
-  if (buildingsError) throw new Error(buildingsError.message);
+  if (buildingRows.length) {
+    const { error: buildingsError } = await supabase.from("buildings").upsert(buildingRows, { onConflict: "key" });
+    if (buildingsError) throw new Error(buildingsError.message);
+  }
 
-  const { error: deleteError } = await supabase.from("transactions").delete().in("building_key", buildingKeys);
+  const { error: deleteError } = await supabase.from("transactions").delete().in("building_key", buildingKeysToRefresh);
   if (deleteError) throw new Error(deleteError.message);
 
   let insertedTransactions = 0;
@@ -538,6 +585,7 @@ async function syncIntoSupabase({ buildingsByKey, envMap, dryRun }) {
 
   return {
     synced: true,
+    buildingsRefreshed: buildingKeysToRefresh.length,
     buildingsUpserted: buildingRows.length,
     transactionsInserted: insertedTransactions,
   };
@@ -677,13 +725,19 @@ async function main() {
   }
 
   const totalTransactions = Object.values(buildingsByKey).reduce((sum, building) => sum + building.transactions.length, 0);
+  const matchedBuildings = summarizeMatchedBuildings(buildingsByKey);
 
   console.log(`DLD rows scanned: ${records.length}`);
   console.log(`Sale rows considered: ${saleRows}`);
   console.log(`Matched transactions: ${matchedRows}`);
   console.log(`Imported buildings: ${Object.keys(buildingsByKey).length}`);
 
-  const syncSummary = await syncIntoSupabase({ buildingsByKey, envMap, dryRun: options.dryRun });
+  const syncSummary = await syncIntoSupabase({
+    buildingsByKey,
+    envMap,
+    dryRun: options.dryRun,
+    refreshBuildingKeys: [...targets.keys()],
+  });
 
   const summary = {
     generatedAt: new Date().toISOString(),
@@ -693,6 +747,7 @@ async function main() {
     livePeriod,
     sheetUrl: options.sheetUrl,
     dryRun: options.dryRun,
+    fuzzyMatching: ENABLE_FUZZY_MATCHING,
     summary: {
       targetBuildings: targets.size,
       dldRows: records.length,
@@ -700,6 +755,7 @@ async function main() {
       matchedTransactions: matchedRows,
       importedBuildings: Object.keys(buildingsByKey).length,
       insertedTransactions: totalTransactions,
+      matchedBuildings,
       skippedNonSaleRows,
       skippedInvalidRows,
       unmatchedExamples: [...unmatchedExamples],
@@ -712,7 +768,7 @@ async function main() {
 
   console.log(`Summary written to ${SUMMARY_FILE}`);
   if (syncSummary.synced) {
-    console.log(`Supabase synced: ${syncSummary.buildingsUpserted} buildings, ${syncSummary.transactionsInserted} transactions.`);
+    console.log(`Supabase synced: ${syncSummary.buildingsUpserted} buildings, ${syncSummary.transactionsInserted} transactions. Refreshed ${syncSummary.buildingsRefreshed} seller buildings.`);
   } else {
     console.log(`Supabase sync skipped: ${syncSummary.reason}`);
   }
