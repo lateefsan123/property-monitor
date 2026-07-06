@@ -16,6 +16,7 @@ import {
 } from "./lib/dld-import-utils.mjs";
 
 const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1-DgZjG5T93t5zmrHmyekKkOLwCRIYEMMOK4AbOrYOVU/export?format=csv&gid=865690319";
+const DEFAULT_BUILDING_REGISTRY_FILE = "public/data/downtown-dubai-building-registry.json";
 const SUMMARY_FILE = "reports/dld-import-summary.json";
 const DLD_EXPORT_URL = "https://gateway.dubailand.gov.ae/open-data/transactions/export/csv";
 const DEFAULT_LIVE_DAYS = 120;
@@ -58,6 +59,7 @@ Usage:
 Environment:
   SHEET_URL or --sheet-url       Google Sheet CSV used to decide which buildings to import
   DLD_BUILDING_OVERRIDES_FILE    Optional JSON file mapping seller buildings to DLD aliases
+  DLD_BUILDING_REGISTRY_FILE     Optional building registry JSON with canonical names and aliases
   DLD_LIVE_DAYS                  Default live DLD export window in days
   SUPABASE_URL / VITE_SUPABASE_URL
   SUPABASE_SERVICE_ROLE_KEY
@@ -72,6 +74,7 @@ function parseArgs(argv) {
     live: false,
     liveDays: Number(process.env.DLD_LIVE_DAYS || DEFAULT_LIVE_DAYS),
     sheetUrl: process.env.SHEET_URL || DEFAULT_SHEET_URL,
+    registryFile: process.env.DLD_BUILDING_REGISTRY_FILE || DEFAULT_BUILDING_REGISTRY_FILE,
     overridesFile: process.env.DLD_BUILDING_OVERRIDES_FILE || null,
   };
 
@@ -96,6 +99,10 @@ function parseArgs(argv) {
     }
     if (argument.startsWith("--sheet-url=")) {
       options.sheetUrl = argument.slice("--sheet-url=".length).trim();
+      continue;
+    }
+    if (argument.startsWith("--registry=")) {
+      options.registryFile = argument.slice("--registry=".length).trim();
       continue;
     }
     if (argument.startsWith("--overrides=")) {
@@ -336,7 +343,54 @@ async function loadBuildingOverrides(filePath) {
   return overrides;
 }
 
-async function loadTargetBuildings(sheetUrl, overrides) {
+async function loadRegistryAliases(filePath) {
+  if (!filePath) return new Map();
+
+  try {
+    const absolutePath = path.resolve(filePath);
+    const raw = await fs.readFile(absolutePath, "utf8");
+    const parsed = JSON.parse(raw);
+    const buildings = Array.isArray(parsed?.buildings) ? parsed.buildings : [];
+    const lookup = new Map();
+
+    for (const building of buildings) {
+      const names = [
+        building?.canonical_name,
+        building?.canonicalName,
+        building?.name,
+        ...(Array.isArray(building?.aliases) ? building.aliases : []),
+      ]
+        .map((value) => cleanBuildingName(value))
+        .filter(Boolean);
+
+      const aliasSet = new Set();
+      for (const name of names) {
+        for (const variant of buildBuildingKeyVariants(name)) aliasSet.add(variant);
+      }
+      if (!aliasSet.size) continue;
+
+      for (const key of aliasSet) lookup.set(key, aliasSet);
+    }
+
+    return lookup;
+  } catch (error) {
+    if (process.env.DLD_BUILDING_REGISTRY_FILE) throw error;
+    console.warn(`Could not load building registry ${filePath}: ${error.message}`);
+    return new Map();
+  }
+}
+
+function addAliasSetForVariants(targetAliases, variants, aliasMaps) {
+  for (const variant of variants) {
+    for (const aliasMap of aliasMaps) {
+      const aliases = aliasMap.get(variant);
+      if (!aliases) continue;
+      for (const alias of aliases) targetAliases.add(alias);
+    }
+  }
+}
+
+async function loadTargetBuildings(sheetUrl, overrides, registryAliases = new Map()) {
   const csvText = await readTextFromSource(sheetUrl);
   const rows = parseCsvText(csvText);
   const { headers, records } = rowsToObjectsUsingBestHeader(rows, (candidateHeaders) =>
@@ -368,12 +422,9 @@ async function loadTargetBuildings(sheetUrl, overrides) {
     }
 
     const target = targets.get(canonicalKey);
-    for (const variant of buildBuildingKeyVariants(buildingName)) target.aliases.add(variant);
-
-    const overrideAliases = overrides.get(canonicalKey);
-    if (overrideAliases) {
-      for (const alias of overrideAliases) target.aliases.add(alias);
-    }
+    const variants = buildBuildingKeyVariants(buildingName);
+    for (const variant of variants) target.aliases.add(variant);
+    addAliasSetForVariants(target.aliases, variants, [registryAliases, overrides]);
   }
 
   for (const target of targets.values()) {
@@ -611,9 +662,10 @@ async function main() {
 
   const envMap = await readEnvMap();
   const overrides = await loadBuildingOverrides(options.overridesFile);
+  const registryAliases = await loadRegistryAliases(options.registryFile);
 
   console.log("Loading seller sheet...");
-  const { targets, aliasLookup } = await loadTargetBuildings(options.sheetUrl, overrides);
+  const { targets, aliasLookup } = await loadTargetBuildings(options.sheetUrl, overrides, registryAliases);
   console.log(`Loaded ${targets.size} target buildings from seller sheet.`);
 
   console.log("Loading DLD CSV...");

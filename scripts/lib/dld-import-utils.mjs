@@ -10,6 +10,37 @@ function compressBoulevard(value) {
   return String(value || "").replace(/\bboulevard\b/gi, "Blvd");
 }
 
+function stripLocationSuffix(value) {
+  return String(value || "")
+    .replace(/,\s*(Downtown Dubai|Downtown|Old Town Dubai|Old Town|Business Bay|City Walk|DIFC|Sheikh Zayed Road|Port de La Mer|Za'abeel|Zaabeel)\s*$/i, "")
+    .replace(/\b(Downtown Dubai|Downtown|Old Town Dubai|Old Town|Business Bay|City Walk|DIFC|Port de La Mer|Za'abeel|Zaabeel)\s*$/i, "")
+    .replace(/\bDubai\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function expandCommonBuildingAbbreviations(value) {
+  return String(value || "")
+    .replace(/&/g, " and ")
+    .replace(/\bblvd\.?\b/gi, "Boulevard")
+    .replace(/\bbldg\.?\b/gi, "Building")
+    .replace(/\btwr\.?\b/gi, "Tower")
+    .replace(/\bresid\.?\b/gi, "Residence")
+    .replace(/\bres\.?\b/gi, "Residence")
+    .replace(/\bapts?\.?\b/gi, "Apartments")
+    .replace(/\bapt\.?\b/gi, "Apartment");
+}
+
+function compressCommonBuildingAbbreviations(value) {
+  return String(value || "")
+    .replace(/&/g, " and ")
+    .replace(/\bboulevard\b/gi, "Blvd")
+    .replace(/\bbuilding\b/gi, "Bldg")
+    .replace(/\btower\b/gi, "Twr")
+    .replace(/\bresidence\b/gi, "Res")
+    .replace(/\bapartments?\b/gi, "Apt");
+}
+
 function replaceNumberWords(value) {
   const words = {
     one: "1",
@@ -30,6 +61,103 @@ function replaceNumberWords(value) {
   return result;
 }
 
+function replaceRomanNumerals(value) {
+  return String(value || "")
+    .replace(/\bii\b/gi, "2")
+    .replace(/\biii\b/gi, "3")
+    .replace(/\biv\b/gi, "4");
+}
+
+function toggleLeadingArticle(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed) return [];
+  if (/^the\s+/i.test(trimmed)) return [trimmed.replace(/^the\s+/i, "").trim()];
+  return [`The ${trimmed}`];
+}
+
+function expandTowerVariant(value) {
+  const trimmed = String(value || "").trim();
+  const match = trimmed.match(/^(.*?)(?:\s+Tower|\s+T)\s*([A-Z]|\d+)$/i)
+    || trimmed.match(/^(.*?)[\s-]+([A-Z]|\d+)$/i);
+  if (!match) return [];
+
+  const base = match[1].trim();
+  const suffix = match[2].trim();
+  if (!base || !suffix) return [];
+  return [`${base} ${suffix}`, `${base} T${suffix}`, `${base} Tower ${suffix}`];
+}
+
+function toggleResidencePlurality(value) {
+  const trimmed = String(value || "").trim();
+  const variants = [];
+  if (/\bresidences\b/i.test(trimmed)) variants.push(trimmed.replace(/\bresidences\b/gi, "Residence"));
+  if (/\bresidence\b/i.test(trimmed)) variants.push(trimmed.replace(/\bresidence\b/gi, "Residences"));
+  return variants;
+}
+
+function toggleTowerLetterNumber(value) {
+  const trimmed = String(value || "").trim();
+  const variants = [];
+  if (/\bTower\s+A\b/i.test(trimmed)) variants.push(trimmed.replace(/\bTower\s+A\b/gi, "Tower 1"));
+  if (/\bTower\s+B\b/i.test(trimmed)) variants.push(trimmed.replace(/\bTower\s+B\b/gi, "Tower 2"));
+  if (/\bTower\s+1\b/i.test(trimmed)) variants.push(trimmed.replace(/\bTower\s+1\b/gi, "Tower A"));
+  if (/\bTower\s+2\b/i.test(trimmed)) variants.push(trimmed.replace(/\bTower\s+2\b/gi, "Tower B"));
+  return variants;
+}
+
+function extractParentheticalVariants(value) {
+  const trimmed = String(value || "").trim();
+  const variants = [];
+  for (const match of trimmed.matchAll(/\(([^)]+)\)/g)) {
+    if (match[1]) variants.push(match[1].trim());
+  }
+
+  const withoutParentheses = trimmed.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim();
+  if (withoutParentheses && withoutParentheses !== trimmed) variants.push(withoutParentheses);
+  return variants;
+}
+
+function removeDescriptorWords(value) {
+  const next = String(value || "")
+    .replace(/\b(towers?|buildings?|blocks?|offices?|hotels?|apartments?)\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  return next && next !== value ? [next] : [];
+}
+
+function getRawBuildingNameVariants(rawValue) {
+  const cleaned = cleanBuildingName(rawValue);
+  const preferred = stripLocationSuffix(cleaned) || cleaned;
+  const variants = new Set([preferred, cleaned]);
+  const queue = [...variants];
+
+  while (queue.length && variants.size < 180) {
+    const current = queue.shift();
+    for (const next of [
+      stripLocationSuffix(current),
+      replaceNumberWords(current),
+      replaceRomanNumerals(current),
+      expandBoulevard(current),
+      compressBoulevard(current),
+      expandCommonBuildingAbbreviations(current),
+      compressCommonBuildingAbbreviations(current),
+      ...toggleLeadingArticle(current),
+      ...expandTowerVariant(current),
+      ...toggleResidencePlurality(current),
+      ...toggleTowerLetterNumber(current),
+      ...extractParentheticalVariants(current),
+      ...removeDescriptorWords(current),
+    ]) {
+      const trimmed = String(next || "").replace(/\s+/g, " ").trim();
+      if (!trimmed || variants.has(trimmed)) continue;
+      variants.add(trimmed);
+      queue.push(trimmed);
+    }
+  }
+
+  return [...variants].filter(Boolean);
+}
+
 const DLD_FUZZY_STOP_WORDS = new Set([
   "the",
   "tower",
@@ -43,7 +171,7 @@ const DLD_FUZZY_STOP_WORDS = new Set([
 ]);
 
 function tokenizeForFuzzyMatch(value) {
-  return String(value || "")
+  return replaceRomanNumerals(replaceNumberWords(expandCommonBuildingAbbreviations(cleanBuildingName(value))))
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, " ")
     .split(/\s+/)
@@ -98,19 +226,28 @@ export function buildBuildingKeyVariants(rawValue) {
   const cleaned = cleanBuildingName(rawValue);
   if (!cleaned) return [];
 
-  const variants = new Set([
-    cleaned,
-    expandBoulevard(cleaned),
-    compressBoulevard(cleaned),
-    replaceNumberWords(cleaned),
-  ]);
-  for (const variant of [...variants]) {
-    variants.add(expandBoulevard(replaceNumberWords(variant)));
-    variants.add(compressBoulevard(replaceNumberWords(variant)));
+  const keys = new Set();
+  for (const variant of getRawBuildingNameVariants(cleaned)) {
+    for (const form of [
+      variant,
+      stripLocationSuffix(variant),
+      replaceNumberWords(variant),
+      replaceRomanNumerals(variant),
+      expandCommonBuildingAbbreviations(variant),
+      compressCommonBuildingAbbreviations(variant),
+      replaceNumberWords(expandCommonBuildingAbbreviations(variant)),
+      replaceNumberWords(compressCommonBuildingAbbreviations(variant)),
+    ]) {
+      const normalized = normalizeToken(
+        String(form || "")
+          .replace(/\bresidences\b/gi, "Residence")
+          .replace(/\btowers\b/gi, "Tower"),
+      );
+      if (normalized) keys.add(normalized);
+    }
   }
 
-  return [...new Set([...variants].map((value) => normalizeToken(value)))]
-    .filter(Boolean);
+  return [...keys];
 }
 
 export function parseNumber(rawValue) {
