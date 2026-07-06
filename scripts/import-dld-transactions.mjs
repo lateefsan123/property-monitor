@@ -489,6 +489,12 @@ function convertSqmToSqft(value) {
   return Math.round(value * SQM_TO_SQFT * 100) / 100;
 }
 
+function isDateWithinLivePeriod(date, livePeriod) {
+  if (!livePeriod) return true;
+  const dateKey = formatLocalIsoDate(date);
+  return dateKey >= livePeriod.fromDate && dateKey <= livePeriod.toDate;
+}
+
 function summarizeMatchedBuildings(buildingsByKey) {
   return Object.values(buildingsByKey)
     .map((building) => {
@@ -647,6 +653,15 @@ async function main() {
     }
     saleRows += 1;
 
+    const date = parseDateValue(record[columns.transactionDate]);
+    if (!date) {
+      skippedInvalidRows += 1;
+      continue;
+    }
+    if (!isDateWithinLivePeriod(date, livePeriod)) {
+      continue;
+    }
+
     const match = resolveBuildingMatch(record, columns, aliasLookup, targets);
     if (!match) {
       if (unmatchedExamples.size < SAMPLE_LIMIT) {
@@ -660,12 +675,12 @@ async function main() {
       continue;
     }
 
-    const date = parseDateValue(record[columns.transactionDate]);
     const amount = parseNumber(record[columns.amount]);
-    if (!date || amount === null) {
+    if (amount === null) {
       skippedInvalidRows += 1;
       continue;
     }
+    const dateKey = formatLocalIsoDate(date);
 
     const propertySizeSqm = parseNumber(record[columns.propertySizeSqm]) ?? parseNumber(record[columns.transactionSizeSqm]);
     const beds = parseRoomCount(record[columns.rooms]);
@@ -686,7 +701,7 @@ async function main() {
 
     const dedupeKey = [
       match.matchedKey,
-      date,
+      dateKey,
       amount,
       normalizeToken(projectName || masterProjectName),
       normalizeToken(category),
@@ -710,7 +725,7 @@ async function main() {
       building_key: match.matchedKey,
       amount,
       category,
-      date,
+      date: dateKey,
       floor: null,
       beds,
       property_type: propertyType,
