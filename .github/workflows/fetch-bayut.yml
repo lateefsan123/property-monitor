@@ -2,7 +2,8 @@ name: Fetch DLD Transactions
 
 on:
   schedule:
-    - cron: "0 3 * * *"
+    # 12:00 and 18:00 Dubai time. The DLD export can lag early-morning data.
+    - cron: "0 8,14 * * *"
   workflow_dispatch:
 
 jobs:

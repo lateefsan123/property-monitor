@@ -63,9 +63,8 @@ function countTokenOverlap(leftTokens, rightTokens) {
 export function isLikelyBuildingMatch(targetTokens, candidateTokens) {
   if (!targetTokens.length || !candidateTokens.length) return false;
   const overlap = countTokenOverlap(targetTokens, candidateTokens);
-  const longest = Math.max(targetTokens.length, candidateTokens.length);
-  return overlap >= Math.min(2, targetTokens.length, candidateTokens.length)
-    || (longest > 0 && overlap / longest >= 0.67);
+  if (overlap < 2) return false;
+  return overlap === Math.min(targetTokens.length, candidateTokens.length);
 }
 
 export function cleanBuildingName(rawValue) {
@@ -110,8 +109,7 @@ export function buildBuildingKeyVariants(rawValue) {
     variants.add(compressBoulevard(replaceNumberWords(variant)));
   }
 
-  return [...variants]
-    .map((value) => value.trim())
+  return [...new Set([...variants].map((value) => normalizeToken(value)))]
     .filter(Boolean);
 }
 
