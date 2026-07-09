@@ -1,13 +1,14 @@
 import { aiMapColumns } from "../../ai-mapper";
 import { supabase } from "../../supabase";
 import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
-import { canonicalizeBuildingName, cleanBuildingName, parseBuildingAddressValue } from "./building-utils";
+import { canonicalizeBuildingName, parseBuildingAddressValue } from "./building-utils";
 import { fetchCachedBuildings } from "./building-cache-services";
 import { createLeadBuildingResolver, getInvalidBuildingValueIssue } from "./lead-data-quality";
 import { createLeadInsertRecord } from "./lead-utils";
-import { clearLeadsForSource } from "./lead-source-services";
+import { selectAllRows } from "./lead-record-services";
+import { buildLeadSyncPlan } from "./lead-sync-plan";
 import { buildImportQualityReport } from "./import-quality-report";
-import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToObjects } from "./spreadsheet";
+import { buildGoogleCsvUrl, inferMapping, parseCsvText, rowsToObjects } from "./spreadsheet";
 
 const IMPORT_TRUNCATION_PATTERN = /\u2026|\.{3,}/;
 const IMPORT_TRUNCATION_FIELDS = [
@@ -125,35 +126,6 @@ function buildSuspiciousImportError(summary) {
   return `Import blocked: ${summary.count} row(s) contain building or unit values that cannot be trusted.${remainingText} ${exampleText} Fix the sheet values and re-import.`;
 }
 
-function normalizePhoneKey(value) {
-  return String(value || "").replace(/[^0-9]/g, "");
-}
-
-function buildLeadStateKey(lead, sourceId = null) {
-  return [
-    sourceId ?? lead?.source_id ?? "legacy",
-    normalizeToken(lead?.name),
-    normalizeToken(canonicalizeBuildingName(lead?.building) || cleanBuildingName(lead?.building)),
-    normalizeToken(lead?.unit),
-    normalizeToken(lead?.bedroom),
-    normalizePhoneKey(lead?.phone),
-  ].join(":");
-}
-
-function dedupeIncomingLeads(leads, sourceId = null) {
-  const seen = new Set();
-  const result = [];
-
-  for (const lead of leads || []) {
-    const key = buildLeadStateKey(lead, sourceId);
-    if (!key || seen.has(key)) continue;
-    seen.add(key);
-    result.push(lead);
-  }
-
-  return result;
-}
-
 async function fetchImportCachedBuildings() {
   try {
     return await fetchCachedBuildings();
@@ -162,16 +134,46 @@ async function fetchImportCachedBuildings() {
   }
 }
 
-async function buildImportResult(allLeads, newLeads, options = {}) {
+async function buildImportResult(allLeads, plan, options = {}) {
   const totalRows = allLeads.length;
-  const count = newLeads.length;
   const cachedBuildings = options.cachedBuildings || [];
   return {
-    count,
+    count: plan.toInsert.length,
+    matchedCount: plan.matchedCount,
+    updatedCount: plan.updates.length,
     totalRows,
-    skippedCount: Math.max(totalRows - count, 0),
-    quality: buildImportQualityReport(allLeads, newLeads, { cachedBuildings }),
+    skippedCount: plan.skippedDuplicateCount,
+    quality: buildImportQualityReport(allLeads, plan.toInsert, { cachedBuildings }),
   };
+}
+
+async function fetchExistingLeadRows(userId, sourceId) {
+  return selectAllRows(() => {
+    let query = supabase
+      .from("leads")
+      .select("id, name, building, bedroom, unit, phone, status, last_contact")
+      .eq("user_id", userId)
+      .order("id");
+    if (sourceId) query = query.eq("source_id", sourceId);
+    else query = query.is("source_id", null);
+    return query;
+  });
+}
+
+const SYNC_UPDATE_CONCURRENCY = 10;
+
+async function applyLeadFieldFills(userId, updates) {
+  for (let index = 0; index < updates.length; index += SYNC_UPDATE_CONCURRENCY) {
+    const batch = updates.slice(index, index + SYNC_UPDATE_CONCURRENCY);
+    await Promise.all(batch.map(async ({ id, fields }) => {
+      const { error } = await supabase
+        .from("leads")
+        .update(fields)
+        .eq("user_id", userId)
+        .eq("id", id);
+      if (error) throw new Error(error.message);
+    }));
+  }
 }
 
 async function fetchSheetRows(rawSheetUrl) {
@@ -294,15 +296,10 @@ export async function deleteLead({ userId, leadId }) {
   if (error) throw new Error(error.message);
 }
 
-async function clearLegacyLeads(userId) {
-  const { error: leadDeleteError } = await supabase
-    .from("leads")
-    .delete()
-    .eq("user_id", userId)
-    .is("source_id", null);
-  if (leadDeleteError) throw new Error(leadDeleteError.message);
-}
-
+// Imports MERGE into the app instead of replacing it: new sheet rows are
+// inserted, rows matching an existing lead keep every piece of app state
+// (status, notes, sent_at, follow-up cadence) and only fill empty fields,
+// and nothing is ever deleted. The app DB is the master; sheets are seeds.
 export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
   const { mapping, records } = await fetchSheetRows(rawSheetUrl);
   const cachedBuildings = await fetchImportCachedBuildings();
@@ -312,7 +309,7 @@ export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
   const suspiciousImportError = buildSuspiciousImportError(suspiciousRows);
   if (suspiciousImportError) throw new Error(suspiciousImportError);
 
-  const leadsToInsert = records
+  const incomingLeads = records
     .map((record) => createLeadInsertRecord(record, mapping, userId, {
       sourceId: null,
       defaultStatus: "Prospect",
@@ -320,13 +317,14 @@ export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
     }))
     .filter(Boolean);
 
-  if (!leadsToInsert.length) throw new Error("No valid leads found in sheet.");
+  if (!incomingLeads.length) throw new Error("No valid leads found in sheet.");
 
-  const nextLeads = dedupeIncomingLeads(leadsToInsert, null);
-  await clearLegacyLeads(userId);
-  await insertLeadBatches(nextLeads);
+  const existingRows = await fetchExistingLeadRows(userId, null);
+  const plan = buildLeadSyncPlan(existingRows, incomingLeads);
+  await applyLeadFieldFills(userId, plan.updates);
+  await insertLeadBatches(plan.toInsert);
 
-  return buildImportResult(leadsToInsert, nextLeads, { cachedBuildings });
+  return buildImportResult(incomingLeads, plan, { cachedBuildings });
 }
 
 export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }) {
@@ -344,9 +342,12 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
   const suspiciousImportError = buildSuspiciousImportError(suspiciousRows);
   if (suspiciousImportError) throw new Error(suspiciousImportError);
 
-  const leadsToInsert = records
+  const sourceId = source?.id || null;
+  if (!sourceId) throw new Error("Choose a spreadsheet source first.");
+
+  const incomingLeads = records
     .map((record) => createLeadInsertRecord(record, mapping, userId, {
-      sourceId: source?.id || null,
+      sourceId,
       defaultStatus,
       defaultBuilding,
       overrideBuilding,
@@ -354,14 +355,12 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
     }))
     .filter(Boolean);
 
-  if (!leadsToInsert.length) throw new Error("No valid leads found in sheet.");
+  if (!incomingLeads.length) throw new Error("No valid leads found in sheet.");
 
-  const sourceId = source?.id || null;
-  if (!sourceId) throw new Error("Choose a spreadsheet source first.");
+  const existingRows = await fetchExistingLeadRows(userId, sourceId);
+  const plan = buildLeadSyncPlan(existingRows, incomingLeads);
+  await applyLeadFieldFills(userId, plan.updates);
+  await insertLeadBatches(plan.toInsert);
 
-  const nextLeads = dedupeIncomingLeads(leadsToInsert, sourceId);
-  await clearLeadsForSource(userId, sourceId);
-  await insertLeadBatches(nextLeads);
-
-  return buildImportResult(leadsToInsert, nextLeads, { cachedBuildings });
+  return buildImportResult(incomingLeads, plan, { cachedBuildings });
 }

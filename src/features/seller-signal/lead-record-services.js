@@ -6,7 +6,7 @@ import { normalizeStatusFilter } from "./status-filter-utils";
 const SUPABASE_PAGE_SIZE = 1000;
 const EMPTY_PAGE = { leads: [], sentMap: {}, totalCount: 0, sourceCounts: {} };
 
-async function selectAllRows(buildQuery, pageSize = SUPABASE_PAGE_SIZE) {
+export async function selectAllRows(buildQuery, pageSize = SUPABASE_PAGE_SIZE) {
   const rows = [];
   let from = 0;
 

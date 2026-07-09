@@ -116,7 +116,6 @@ export function formatImportSuccessMessage(label, result) {
   const quality = result?.quality || null;
   const building = quality?.building || null;
   const missing = quality?.missing || null;
-  const countText = `${count} lead${count === 1 ? "" : "s"}`;
   const skippedText = `${skippedCount} duplicate row${skippedCount === 1 ? "" : "s"}`;
   const qualityParts = [];
 
@@ -140,13 +139,16 @@ export function formatImportSuccessMessage(label, result) {
 
   const qualityText = qualityParts.length ? ` Data quality: ${qualityParts.join("; ")}.` : "";
 
-  if (skippedCount > 0) {
-    return label
-      ? `Imported ${countText} from ${label}. Skipped ${skippedText} from the sheet.${qualityText}`
-      : `Imported ${countText}. Skipped ${skippedText} from the sheet.${qualityText}`;
+  const matchedCount = Number(result?.matchedCount || 0);
+  const sentenceParts = [
+    label ? `Imported ${count} new lead${count === 1 ? "" : "s"} from ${label}` : `Imported ${count} new lead${count === 1 ? "" : "s"}`,
+  ];
+  if (matchedCount > 0) {
+    sentenceParts.push(`matched ${matchedCount} already in the app (statuses and follow-ups kept)`);
   }
+  if (skippedCount > 0) sentenceParts.push(`skipped ${skippedText}`);
 
-  return label ? `Imported ${countText} from ${label}.${qualityText}` : `Imported ${countText}.${qualityText}`;
+  return `${sentenceParts.join("; ")}.${qualityText}`;
 }
 
 export function formatImportErrorMessage(label, message) {
