@@ -7,6 +7,9 @@ export const RECENT_TRANSACTIONS_LIMIT = 2;
 export const WHATSAPP_OPEN_DELAY_MS = 600;
 // Follow-up interval for leads whose status has no cadence rule of its own.
 export const DEFAULT_CADENCE_DAYS = 75;
+// Past this, "Overdue Nd" counts are noise (stale imported dates) — show "Due"
+// and treat leads as equally overdue when ordering the queue.
+export const MAX_MEANINGFUL_OVERDUE_DAYS = 90;
 
 export const STATUS_RULES = [
   { id: "not_interested", label: "Not Interested", days: 0, keywords: ["not interested", "ni", "cold"] },

@@ -106,14 +106,8 @@ export function createSellerSignalActions(context) {
         return { ...current, sentMap: nextSentMap };
       });
 
-      if (shouldMarkSent) {
-        const today = new Date().toISOString().slice(0, 10);
-        try {
-          await updateLeadMutation.mutateAsync({ leadId, updates: { lastContact: today } });
-        } catch (updateError) {
-          setActionError(`Marked as sent, but could not update last contact: ${getErrorMessage(updateError)}`);
-        }
-      }
+      // Cadence reads sent_at directly, and leaving last_contact untouched
+      // makes un-ticking a clean undo (the lead returns to its prior state).
 
       await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
     } catch (persistError) {

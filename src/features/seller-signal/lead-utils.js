@@ -1,4 +1,4 @@
-import { DEFAULT_CADENCE_DAYS, MILLISECONDS_PER_DAY, STATUS_RULES } from "./constants";
+import { DEFAULT_CADENCE_DAYS, MAX_MEANINGFUL_OVERDUE_DAYS, MILLISECONDS_PER_DAY, STATUS_RULES } from "./constants";
 import { normalizeToken } from "./spreadsheet";
 import { canonicalizeBuildingName, parseBuildingAddressValue } from "./building-utils";
 
@@ -180,7 +180,13 @@ export function mapLeadRow(record, index, mapping, today) {
       if (daysUntilDue <= 0) {
         isDue = true;
         overdueDays = Math.abs(daysUntilDue);
-        dueLabel = overdueDays ? `Overdue ${overdueDays}d` : "Due today";
+        // Beyond ~3 months the day count is noise (usually a stale imported
+        // date from before the app existed), so just say it's due.
+        dueLabel = !overdueDays
+          ? "Due today"
+          : overdueDays > MAX_MEANINGFUL_OVERDUE_DAYS
+            ? "Due"
+            : `Overdue ${overdueDays}d`;
       } else {
         dueLabel = `In ${daysUntilDue}d`;
       }

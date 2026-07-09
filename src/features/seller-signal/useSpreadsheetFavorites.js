@@ -97,7 +97,9 @@ export function consumePendingOpenSpreadsheet() {
 
 export function useOpenSpreadsheetRequests(handler) {
   const handlerRef = useRef(handler);
-  handlerRef.current = handler;
+  useEffect(() => {
+    handlerRef.current = handler;
+  }, [handler]);
   useEffect(() => {
     function onRequest(event) {
       const id = event?.detail;

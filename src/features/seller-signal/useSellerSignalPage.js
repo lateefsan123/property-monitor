@@ -1,5 +1,6 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { MAX_MEANINGFUL_OVERDUE_DAYS } from "./constants";
 import { formatPhoneForWhatsApp, getTodayTransactionDateKey } from "./insight-utils";
 import { enrichLeadsWithDataQuality, summarizeLeadDataQuality } from "./lead-data-quality";
 import { filterLeads, paginateLeads, sortLeads } from "./selectors";
@@ -277,7 +278,9 @@ export function useSellerSignalPage(userId) {
     return ids;
   }, [cadence.due, hotBuildingsQuery.data]);
 
-  // Due queue order: buildings that sold today, then never-contacted, then most overdue.
+  // Due queue order: buildings that sold today, then never-contacted, then most
+  // overdue — with ancient overdue counts capped so stale imported dates don't
+  // outrank genuinely fresh lapses.
   const dueLeadsOrdered = useMemo(
     () => [...cadence.due].sort((left, right) => {
       const leftHot = hotLeadIds.has(left.id);
@@ -286,7 +289,9 @@ export function useSellerSignalPage(userId) {
       const leftNever = !left.lastContactDate;
       const rightNever = !right.lastContactDate;
       if (leftNever !== rightNever) return leftNever ? -1 : 1;
-      return (right.overdueDays || 0) - (left.overdueDays || 0);
+      const leftOverdue = Math.min(left.overdueDays || 0, MAX_MEANINGFUL_OVERDUE_DAYS);
+      const rightOverdue = Math.min(right.overdueDays || 0, MAX_MEANINGFUL_OVERDUE_DAYS);
+      return rightOverdue - leftOverdue;
     }),
     [cadence.due, hotLeadIds],
   );
