@@ -212,13 +212,13 @@ export function useSellerSignalPage(userId) {
     mutationFn: ({ leadId, shouldMarkSent }) => persistLeadSentState(userId, leadId, shouldMarkSent),
   });
   const sendWhatsAppMessageMutation = useMutation({
-    mutationFn: ({ lead, message, sendSource = "manual" }) =>
+    mutationFn: ({ lead, message, sendSource = "manual", requireTodaysTransaction = true }) =>
       sendLeadWhatsAppMessage({
         accountId: connectedWhatsAppAccount?.id,
         leadId: lead.id,
         message,
         phone: lead.phone,
-        requireTodaysTransaction: true,
+        requireTodaysTransaction,
         sendSource,
       }),
   });

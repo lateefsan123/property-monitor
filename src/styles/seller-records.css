@@ -165,6 +165,11 @@
   white-space: nowrap;
 }
 
+.btn-wa[disabled] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 .lead-hot-chip {
   display: inline-flex;
   align-items: center;

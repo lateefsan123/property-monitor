@@ -292,9 +292,14 @@ export function createSellerSignalActions(context) {
     const lead = leads.find((item) => item.id === leadId) || pagedLeads.find((item) => item.id === leadId);
     if (!lead) return false;
 
-    const { message, phone } = getLeadWhatsAppPayload(lead);
-    if (!hasTodaysTransactionUpdate(lead.id)) {
-      setActionError("WhatsApp send skipped: this seller has no transaction dated today.");
+    const { insight, message, phone } = getLeadWhatsAppPayload(lead);
+    // Hot leads send the today's-transaction message; other due leads send a
+    // recent-market follow-up. With no market data there is nothing worth
+    // sending automatically.
+    const isHot = hasTodaysTransactionUpdate(lead.id);
+    const canFollowUp = insight?.status === "ready" && (insight.recentTransactions?.length || 0) > 0;
+    if (!isHot && !canFollowUp) {
+      setActionError("No market data for this building yet - copy the message and personalize it instead.");
       setActionNotice(null);
       return false;
     }
@@ -320,6 +325,7 @@ export function createSellerSignalActions(context) {
         lead,
         message,
         sendSource: options.sendSource || "manual",
+        requireTodaysTransaction: isHot,
       });
       const sentAt = result?.sentAt || new Date().toISOString();
       markLeadSentLocally(lead.id, sentAt);
@@ -327,7 +333,7 @@ export function createSellerSignalActions(context) {
 
       if (!options.quiet) {
         const accountLabel = connectedWhatsAppAccount.display_phone_number || "connected WhatsApp account";
-        setActionNotice(`WhatsApp sent from ${accountLabel}.`);
+        setActionNotice(`${isHot ? "WhatsApp" : "Follow-up"} sent from ${accountLabel}.`);
       }
       return true;
     } catch (sendError) {

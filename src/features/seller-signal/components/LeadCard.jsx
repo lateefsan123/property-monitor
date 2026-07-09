@@ -68,17 +68,33 @@ export default function LeadCard({
     ? `https://web.whatsapp.com/send?phone=${whatsappPhone}&text=${encodeURIComponent(message || "")}`
     : null;
 
+  // Hot leads blast today's transaction; other leads with market data send a
+  // recent-market follow-up; without data there is nothing to send one-click.
+  const hasTodaySale = insight?.status === "ready"
+    && (insight.hasTodaysTransactions || insight.todaysRecentTransactions?.length > 0);
+  const canFollowUp = insight?.status === "ready" && (insight.recentTransactions?.length || 0) > 0;
+  const insightPending = !insight || insight.status === "loading";
+  const sendLabel = isSent
+    ? "Sent"
+    : insightPending || hasTodaySale
+      ? "Send"
+      : canFollowUp
+        ? "Follow up"
+        : "No data";
+
   const sendButton = whatsappPhone && whatsappConnected ? (
     <button
       type="button"
       className="btn-sm btn-wa"
+      disabled={!isSent && (insightPending || (!hasTodaySale && !canFollowUp))}
+      title={sendLabel === "No data" ? "No market data for this building yet" : ""}
       onClick={(event) => {
         event.stopPropagation();
         void onSendWhatsApp?.(lead.id);
       }}
     >
       <WhatsAppIcon />
-      {isSent ? "Sent" : "Send"}
+      {sendLabel}
     </button>
   ) : whatsappUrl ? (
     <a
@@ -92,7 +108,7 @@ export default function LeadCard({
       }}
     >
       <WhatsAppIcon />
-      {isSent ? "Sent" : "Send"}
+      {isSent ? "Sent" : hasTodaySale || insightPending ? "Send" : "Follow up"}
     </a>
   ) : (
     <button
