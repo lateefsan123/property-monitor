@@ -188,6 +188,7 @@ export default function SellerSignalDashboard({ userId }) {
         <FiltersToolbar
           dataFilter={dashboard.dataFilter}
           dataQualityFilter={dashboard.dataQualityFilter}
+          dueCount={dashboard.dueCount}
           isAllExpanded={dashboard.isAllExpanded}
           onDataFilterChange={dashboard.actions.selectDataFilter}
           onDataQualityFilterChange={dashboard.actions.selectDataQualityFilter}
@@ -196,6 +197,7 @@ export default function SellerSignalDashboard({ userId }) {
           onStatusFilterChange={dashboard.actions.selectStatusFilter}
           onViewTabChange={dashboard.actions.selectViewTab}
           onToggleAllExpanded={dashboard.actions.toggleAllExpanded}
+          scheduledCount={dashboard.scheduledCount}
           searchTerm={dashboard.searchTerm}
           sourceFilter={dashboard.sourceFilter}
           statusFilter={dashboard.statusFilter}
@@ -210,6 +212,14 @@ export default function SellerSignalDashboard({ userId }) {
               {dashboard.dataQualitySummary?.review > 0 && ` - ${dashboard.dataQualitySummary.review} need review`}
               {dashboard.dataQualitySummary?.partial > 0 && ` - ${dashboard.dataQualitySummary.partial} missing info`}
             </div>
+
+            {dashboard.pagedLeads.length === 0 && (
+              <div className="empty seller-record-empty">
+                {dashboard.viewTab === "done"
+                  ? "Nothing scheduled - every seller is either due or opted out."
+                  : "You're all caught up - no sellers due today."}
+              </div>
+            )}
 
             <div className="lead-table-wrap">
               <table className="lead-table">
@@ -230,6 +240,7 @@ export default function SellerSignalDashboard({ userId }) {
                       key={lead.id}
                       copiedLeadId={dashboard.copiedLeadId}
                       favorited={favoriteIds.has(String(lead.id))}
+                      hot={dashboard.hotLeadIds?.has(lead.id)}
                       insight={dashboard.insights[lead.id]}
                       isSent={Boolean(dashboard.sentLeads[lead.id])}
                       lead={lead}

@@ -1,19 +1,23 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { PAGE_SIZE } from "./constants";
-import { formatPhoneForWhatsApp } from "./insight-utils";
+import { formatPhoneForWhatsApp, getTodayTransactionDateKey } from "./insight-utils";
 import { enrichLeadsWithDataQuality, summarizeLeadDataQuality } from "./lead-data-quality";
-import { filterLeads } from "./selectors";
+import { filterLeads, paginateLeads, sortLeads } from "./selectors";
+import { normalizeStatusFilter } from "./status-filter-utils";
 import {
+  computeLeadInsights,
   connectWhatsAppAccount,
   deleteLead,
+  fetchAvailableMarketBuildingKeys,
+  fetchBuildingKeysWithTransactionsOn,
+  fetchBuildingMarketData,
   fetchCachedBuildings,
-  fetchLeadInsights,
-  fetchLeadMarketAvailability,
+  fetchDldFallbackTransactions,
   fetchSellerBuildingCleanupLeads,
-  fetchSellerLeadPage,
+  fetchUserLeads,
   fetchWhatsAppAccounts,
   getConnectedWhatsAppAccount,
+  getMissingFallbackBuildingNames,
   persistLeadSentState,
   replaceLegacyLeadsFromSheet,
   replaceUserLeadsFromSheet,
@@ -22,6 +26,7 @@ import {
   updateLeadStatus,
   upsertLeadSource,
 } from "./services";
+import { getBuildingKeyVariants } from "./building-utils";
 import {
   buildErroredInsights,
   buildInsightTarget,
@@ -36,10 +41,12 @@ import {
   formatSourceLabel,
 } from "./page-helpers";
 import {
-  sellerInsightsQueryKey,
   sellerBuildingCleanupQueryKey,
+  sellerDldFallbackQueryKey,
+  sellerHotBuildingsQueryKey,
   sellerLeadsQueryKey,
   sellerMarketAvailabilityQueryKey,
+  sellerMarketDataQueryKey,
   sellerSourcesQueryKey,
   sellerCachedBuildingsQueryKey,
   sellerWhatsAppAccountsQueryKey,
@@ -47,8 +54,13 @@ import {
 import { createSellerSignalActions } from "./useSellerSignalActions";
 import { useSellerSignalBuildingAliases } from "./useSellerSignalBuildingAliases";
 
-const EMPTY_SOURCE_COUNTS = {};
 const EMPTY_CACHED_BUILDINGS = [];
+const EMPTY_KEYS = [];
+const EMPTY_INSIGHTS_RESULT = { hasTargets: false, matched: 0, pending: 0, updates: {} };
+
+function leadBuildingKeys(lead) {
+  return getBuildingKeyVariants(lead.resolvedBuilding || lead.building);
+}
 
 export function useSellerSignalPage(userId) {
   const queryClient = useQueryClient();
@@ -66,7 +78,7 @@ export function useSellerSignalPage(userId) {
   });
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState(["prospect"]);
+  const [statusFilter, setStatusFilter] = useState([]);
   const [sourceFilter, setSourceFilter] = useState(() => {
     if (typeof window === "undefined" || !sourceFilterStorageKey) return "all";
     return window.localStorage.getItem(sourceFilterStorageKey) || "all";
@@ -134,44 +146,27 @@ export function useSellerSignalPage(userId) {
   );
 
   const leadsQuery = useQuery({
-    queryKey: [
-      ...sellerLeadsQueryKey(userId),
-      "page",
-      currentPage,
-      effectiveSourceFilter,
-      statusFilter,
-      deferredSearchTerm,
-      viewTab,
-      sortOption.field,
-      sortOption.direction,
-    ],
+    queryKey: sellerLeadsQueryKey(userId),
     enabled: Boolean(userId),
-    queryFn: () => fetchSellerLeadPage({
-      currentPage,
-      searchTerm: deferredSearchTerm,
-      sortOption,
-      sourceFilter: effectiveSourceFilter,
-      statusFilter,
-      userId,
-      viewTab,
-    }),
-    placeholderData: (previousData) => previousData,
-    staleTime: 5 * 60 * 1000,
+    queryFn: () => fetchUserLeads(userId),
+    staleTime: 2 * 60 * 1000,
   });
 
-  const leadsData = leadsQuery.data || { leads: EMPTY_LEADS, sentMap: EMPTY_SENT_MAP, totalCount: 0, sourceCounts: {} };
+  const leadsData = leadsQuery.data || { leads: EMPTY_LEADS, sentMap: EMPTY_SENT_MAP };
   const leads = useMemo(
     () => enrichLeadsWithDataQuality(leadsData.leads || EMPTY_LEADS, buildingAliases, cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS),
     [buildingAliases, cachedBuildingsQuery.data, leadsData.leads],
   );
   const cleanupLeadsQuery = useQuery({
     queryKey: sellerBuildingCleanupQueryKey(userId, effectiveSourceFilter),
-    enabled: Boolean(userId),
+    // Deferred until the visible lead list has loaded so it never competes
+    // with first paint; it only powers the building-cleanup panel.
+    enabled: Boolean(userId) && !leadsQuery.isPending,
     queryFn: () => fetchSellerBuildingCleanupLeads({
       userId,
       sourceFilter: effectiveSourceFilter,
     }),
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
   });
   const cleanupLeads = useMemo(
     () => enrichLeadsWithDataQuality(cleanupLeadsQuery.data || EMPTY_LEADS, buildingAliases, cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS),
@@ -216,12 +211,14 @@ export function useSellerSignalPage(userId) {
     mutationFn: ({ leadId, shouldMarkSent }) => persistLeadSentState(userId, leadId, shouldMarkSent),
   });
   const sendWhatsAppMessageMutation = useMutation({
-    mutationFn: ({ lead, message }) =>
+    mutationFn: ({ lead, message, sendSource = "manual" }) =>
       sendLeadWhatsAppMessage({
         accountId: connectedWhatsAppAccount?.id,
         leadId: lead.id,
         message,
         phone: lead.phone,
+        requireTodaysTransaction: true,
+        sendSource,
       }),
   });
   const connectWhatsAppAccountMutation = useMutation({
@@ -237,75 +234,110 @@ export function useSellerSignalPage(userId) {
     mutationFn: ({ leadId }) => deleteLead({ userId, leadId }),
   });
 
-  const activeLeads = viewTab === "done" ? EMPTY_LEADS : leads;
-  const doneLeads = viewTab === "done" ? leads : EMPTY_LEADS;
+  // ---- Cadence partition: every lead is either due, scheduled, or opted out.
+  const cadence = useMemo(() => {
+    const due = [];
+    const scheduled = [];
+    const notInterested = [];
+    for (const lead of leads) {
+      if (lead.statusRule?.id === "not_interested") notInterested.push(lead);
+      else if (lead.isDue) due.push(lead);
+      else scheduled.push(lead);
+    }
+    scheduled.sort((left, right) => (left.nextDueDate?.getTime() || 0) - (right.nextDueDate?.getTime() || 0));
+    return { due, scheduled, notInterested };
+  }, [leads]);
 
-  const baseFilteredLeads = useMemo(
-    () =>
-      filterLeads({
-        activeLeads,
-        dataQualityFilter,
-        doneLeads,
-        dataFilter: "all",
-        insights: {},
-        searchTerm: deferredSearchTerm,
-        sourceFilter: effectiveSourceFilter,
-        statusFilter,
-        viewTab,
-      }),
-    [activeLeads, dataQualityFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, statusFilter, viewTab],
+  const todayDateKey = getTodayTransactionDateKey();
+  const dueBuildingKeys = useMemo(
+    () => {
+      const keys = new Set();
+      for (const lead of cadence.due) {
+        for (const key of leadBuildingKeys(lead)) keys.add(key);
+      }
+      return [...keys].sort();
+    },
+    [cadence.due],
   );
 
-  const insightTargets = useMemo(
-    () => baseFilteredLeads.filter((lead) => lead.building).map(buildInsightTarget),
-    [baseFilteredLeads],
+  const hotBuildingsQuery = useQuery({
+    queryKey: sellerHotBuildingsQueryKey(userId, todayDateKey, dueBuildingKeys),
+    enabled: Boolean(userId) && dueBuildingKeys.length > 0,
+    queryFn: () => fetchBuildingKeysWithTransactionsOn(dueBuildingKeys, todayDateKey),
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const hotLeadIds = useMemo(() => {
+    const ids = new Set();
+    const hotKeys = new Set(hotBuildingsQuery.data || []);
+    if (!hotKeys.size) return ids;
+    for (const lead of cadence.due) {
+      if (leadBuildingKeys(lead).some((key) => hotKeys.has(key))) ids.add(lead.id);
+    }
+    return ids;
+  }, [cadence.due, hotBuildingsQuery.data]);
+
+  // Due queue order: buildings that sold today, then never-contacted, then most overdue.
+  const dueLeadsOrdered = useMemo(
+    () => [...cadence.due].sort((left, right) => {
+      const leftHot = hotLeadIds.has(left.id);
+      const rightHot = hotLeadIds.has(right.id);
+      if (leftHot !== rightHot) return leftHot ? -1 : 1;
+      const leftNever = !left.lastContactDate;
+      const rightNever = !right.lastContactDate;
+      if (leftNever !== rightNever) return leftNever ? -1 : 1;
+      return (right.overdueDays || 0) - (left.overdueDays || 0);
+    }),
+    [cadence.due, hotLeadIds],
   );
-  const insightTargetKeys = useMemo(
-    () => insightTargets.map((lead) => `${lead.id}:${lead.name}:${lead.building}`),
-    [insightTargets],
+
+  const activeStatusIds = useMemo(() => normalizeStatusFilter(statusFilter), [statusFilter]);
+  const tabLeads = useMemo(() => {
+    if (viewTab === "done") return cadence.scheduled;
+    // Not-interested leads live outside the cadence; surface them only when
+    // that status filter is explicitly selected.
+    if (activeStatusIds.includes("not_interested")) return [...dueLeadsOrdered, ...cadence.notInterested];
+    return dueLeadsOrdered;
+  }, [activeStatusIds, cadence.notInterested, cadence.scheduled, dueLeadsOrdered, viewTab]);
+
+  // "Has market data" filtering needs availability across the whole tab, not
+  // just the visible page — one cheap RPC, only when that filter is active.
+  const tabBuildingKeys = useMemo(
+    () => {
+      if (dataFilter === "all") return EMPTY_KEYS;
+      const keys = new Set();
+      for (const lead of tabLeads) {
+        for (const key of leadBuildingKeys(lead)) keys.add(key);
+      }
+      return [...keys].sort();
+    },
+    [dataFilter, tabLeads],
   );
 
   const marketAvailabilityQuery = useQuery({
-    queryKey: sellerMarketAvailabilityQueryKey(userId, insightTargetKeys),
-    enabled: Boolean(userId) && insightTargets.length > 0,
-    queryFn: () => fetchLeadMarketAvailability(insightTargets),
-    placeholderData: (previousData) => previousData,
+    queryKey: sellerMarketAvailabilityQueryKey(userId, tabBuildingKeys),
+    enabled: Boolean(userId) && dataFilter !== "all" && tabBuildingKeys.length > 0,
+    queryFn: () => fetchAvailableMarketBuildingKeys(tabBuildingKeys),
     staleTime: 10 * 60 * 1000,
   });
-
-  const insightsQuery = useQuery({
-    queryKey: sellerInsightsQueryKey(userId, insightTargetKeys),
-    enabled: Boolean(userId) && insightTargets.length > 0,
-    queryFn: () => fetchLeadInsights(insightTargets),
-    staleTime: 10 * 60 * 1000,
-  });
-
-  const insights = useMemo(() => {
-    if (!insightTargets.length) return {};
-    if (insightsQuery.data?.updates) return insightsQuery.data.updates;
-    if (insightsQuery.isFetching) return buildLoadingInsights(insightTargets);
-    if (insightsQuery.error) return buildErroredInsights(insightTargets, getErrorMessage(insightsQuery.error));
-    return {};
-  }, [insightTargets, insightsQuery.data, insightsQuery.error, insightsQuery.isFetching]);
 
   const marketAvailability = useMemo(() => {
-    const availabilityUpdates = marketAvailabilityQuery.data?.updates || {};
-    const result = { ...availabilityUpdates };
-    for (const [leadId, insight] of Object.entries(insights)) {
-      if (insight?.status === "ready") {
-        result[leadId] = { status: "ready", source: "insights" };
-      }
+    if (dataFilter === "all") return {};
+    const availableKeys = new Set(marketAvailabilityQuery.data || []);
+    const updates = {};
+    for (const lead of tabLeads) {
+      const hasData = Boolean(lead.building) && leadBuildingKeys(lead).some((key) => availableKeys.has(key));
+      updates[lead.id] = { status: hasData ? "ready" : "error" };
     }
-    return result;
-  }, [insights, marketAvailabilityQuery.data]);
+    return updates;
+  }, [dataFilter, marketAvailabilityQuery.data, tabLeads]);
 
   const filteredLeads = useMemo(
     () => {
-      if (dataFilter === "all") return baseFilteredLeads;
-      return filterLeads({
-        activeLeads,
+      const base = filterLeads({
+        activeLeads: viewTab === "done" ? EMPTY_LEADS : tabLeads,
+        doneLeads: viewTab === "done" ? tabLeads : EMPTY_LEADS,
         dataQualityFilter,
-        doneLeads,
         dataFilter,
         insights: marketAvailability,
         searchTerm: deferredSearchTerm,
@@ -313,9 +345,86 @@ export function useSellerSignalPage(userId) {
         statusFilter,
         viewTab,
       });
+      return sortOption.field === "alpha" ? sortLeads(base, sortOption) : base;
     },
-    [activeLeads, baseFilteredLeads, dataFilter, dataQualityFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, marketAvailability, statusFilter, viewTab],
+    [dataFilter, dataQualityFilter, deferredSearchTerm, effectiveSourceFilter, marketAvailability, sortOption, statusFilter, tabLeads, viewTab],
   );
+
+  const { totalPages, safePage, pagedLeads } = useMemo(
+    () => paginateLeads(filteredLeads, currentPage),
+    [currentPage, filteredLeads],
+  );
+
+  const insightTargets = useMemo(
+    () => pagedLeads.filter((lead) => lead.building).map(buildInsightTarget),
+    [pagedLeads],
+  );
+  const insightBuildingKeys = useMemo(
+    () => {
+      const keys = new Set();
+      for (const target of insightTargets) {
+        for (const key of getBuildingKeyVariants(target.building)) keys.add(key);
+      }
+      return [...keys].sort();
+    },
+    [insightTargets],
+  );
+
+  const marketDataQuery = useQuery({
+    queryKey: sellerMarketDataQueryKey(userId, insightBuildingKeys),
+    enabled: Boolean(userId) && insightBuildingKeys.length > 0,
+    queryFn: () => fetchBuildingMarketData(insightBuildingKeys),
+    placeholderData: (previousData) => previousData,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const missingFallbackNames = useMemo(
+    () => {
+      if (!marketDataQuery.data || marketDataQuery.isPlaceholderData) return EMPTY_KEYS;
+      const names = getMissingFallbackBuildingNames(insightTargets, marketDataQuery.data.transactionsByBuilding);
+      return names.length ? names : EMPTY_KEYS;
+    },
+    [insightTargets, marketDataQuery.data, marketDataQuery.isPlaceholderData],
+  );
+
+  const dldFallbackQuery = useQuery({
+    queryKey: sellerDldFallbackQueryKey(userId, missingFallbackNames),
+    enabled: Boolean(userId) && missingFallbackNames.length > 0,
+    queryFn: () => fetchDldFallbackTransactions(missingFallbackNames),
+    staleTime: 30 * 60 * 1000,
+    retry: false,
+  });
+
+  const insightsResult = useMemo(() => {
+    if (!insightTargets.length) return EMPTY_INSIGHTS_RESULT;
+    if (!marketDataQuery.data) {
+      if (marketDataQuery.error) {
+        return {
+          hasTargets: true,
+          matched: 0,
+          pending: 0,
+          updates: buildErroredInsights(insightTargets, getErrorMessage(marketDataQuery.error)),
+        };
+      }
+      if (insightBuildingKeys.length) {
+        return {
+          hasTargets: true,
+          matched: 0,
+          pending: insightTargets.length,
+          updates: buildLoadingInsights(insightTargets),
+        };
+      }
+      // No resolvable building keys — the query never runs, so settle as unavailable.
+      return computeLeadInsights(insightTargets, null, {});
+    }
+    return computeLeadInsights(insightTargets, marketDataQuery.data, {
+      data: dldFallbackQuery.data,
+      pending: marketDataQuery.isPlaceholderData
+        || (missingFallbackNames.length > 0 && !dldFallbackQuery.data && !dldFallbackQuery.error),
+    });
+  }, [dldFallbackQuery.data, dldFallbackQuery.error, insightBuildingKeys, insightTargets, marketDataQuery.data, marketDataQuery.error, marketDataQuery.isPlaceholderData, missingFallbackNames]);
+
+  const insights = insightsResult.updates;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -326,15 +435,10 @@ export function useSellerSignalPage(userId) {
     }
   }, [sortOption]);
 
-  const totalCount = Number(leadsData.totalCount || 0);
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
-  const safePage = Math.min(currentPage, totalPages);
-  const pagedLeads = filteredLeads;
-  const visibleLeadCount = dataFilter === "all" && dataQualityFilter === "all"
-    ? totalCount
-    : filteredLeads.length;
-
-  const sourceCounts = leadsData.sourceCounts || EMPTY_SOURCE_COUNTS;
+  const sourceCounts = useMemo(
+    () => ({ legacy: leads.filter((lead) => !lead.sourceId).length }),
+    [leads],
+  );
 
   const sourceOptions = useMemo(
     () => {
@@ -351,10 +455,18 @@ export function useSellerSignalPage(userId) {
   );
 
   const isAllExpanded = filteredLeads.length > 0 && filteredLeads.every((lead) => expandedLeads[lead.id]);
-  const sendAllCount = pagedLeads.filter((lead) => {
-    const phone = formatPhoneForWhatsApp(lead.phone);
-    return phone && insights[lead.id]?.status === "ready";
-  }).length;
+  const sendAllCount = useMemo(
+    () => pagedLeads.filter((lead) => {
+      const phone = formatPhoneForWhatsApp(lead.phone);
+      const insight = insights[lead.id];
+      return Boolean(
+        phone
+        && insight?.status === "ready"
+        && (insight.hasTodaysTransactions || insight.todaysRecentTransactions?.length > 0),
+      );
+    }).length,
+    [insights, pagedLeads],
+  );
 
   const fetchError = getErrorMessage(
     leadsQuery.error
@@ -365,12 +477,12 @@ export function useSellerSignalPage(userId) {
     || whatsappAccountsQuery.error,
   );
   const insightNotice = insightTargets.length
-    ? insightsQuery.error
-      ? getErrorMessage(insightsQuery.error)
-      : insightsQuery.data?.hasTargets && insightsQuery.data.matched === 0
+    ? marketDataQuery.error
+      ? getErrorMessage(marketDataQuery.error)
+      : insightsResult.hasTargets && insightsResult.matched === 0 && insightsResult.pending === 0
         ? "Property market data is not available for these buildings yet."
         : null
-    : leads.length
+    : pagedLeads.length
       ? "No leads with a building name."
       : null;
   const error = actionError || fetchError || insightNotice;
@@ -378,7 +490,7 @@ export function useSellerSignalPage(userId) {
   const loading = leadsQuery.isPending && !leadsQuery.data;
   const refreshing =
     (leadsQuery.isFetching && !leadsQuery.isPending)
-    || (insightsQuery.isFetching && insightTargets.length > 0);
+    || (insightTargets.length > 0 && (marketDataQuery.isFetching || dldFallbackQuery.isFetching));
   const actions = createSellerSignalActions({
     addingLead,
     copiedLeadId,
@@ -439,7 +551,6 @@ export function useSellerSignalPage(userId) {
   });
 
   return {
-    activeLeads,
     addingLead,
     buildingAliases,
     cachedBuildings: cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS,
@@ -451,14 +562,15 @@ export function useSellerSignalPage(userId) {
     dataQualityFilter,
     dataQualitySummary,
     deletingLeadId,
-    doneLeads,
+    dueCount: cadence.due.length,
     editingLeadDraft,
     editingLeadId,
     error,
     expandedLeads,
     filteredLeads,
-    filteredLeadCount: visibleLeadCount,
-    hasLeads: totalCount > 0 || leads.length > 0,
+    filteredLeadCount: filteredLeads.length,
+    hasLeads: leads.length > 0,
+    hotLeadIds,
     importing,
     importingLegacy,
     importingSourceId,
@@ -473,6 +585,7 @@ export function useSellerSignalPage(userId) {
     refreshing,
     safePage,
     savingLeadId,
+    scheduledCount: cadence.scheduled.length,
     searchTerm,
     sendAllCount,
     sentLeads,

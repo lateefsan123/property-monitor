@@ -2,7 +2,8 @@ import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import {
   IconCheck,
   IconChevronDown,
-  IconList,
+  IconClockHour4,
+  IconFlame,
   IconSearch,
   IconTable,
   IconTrash,
@@ -26,6 +27,7 @@ const QUICK_FILTER_GROUPS = [
       { id: "prospect", label: "Prospects", kind: "status" },
       { id: "market_appraisal", label: "Appraisals", kind: "status" },
       { id: "for_sale_available", label: "For sale", kind: "status" },
+      { id: "not_interested", label: "Not interested", kind: "status" },
     ],
   },
   {
@@ -42,25 +44,28 @@ const QUICK_FILTERS = QUICK_FILTER_GROUPS.flatMap((group) => group.filters);
 
 function ViewTabIcon({ id }) {
   return id === "done"
-    ? <IconCheck size={16} stroke={2.1} aria-hidden="true" />
-    : <IconList size={16} stroke={1.9} aria-hidden="true" />;
+    ? <IconClockHour4 size={16} stroke={1.9} aria-hidden="true" />
+    : <IconFlame size={16} stroke={1.9} aria-hidden="true" />;
 }
 
 export default function FiltersToolbar({
   dataFilter,
   dataQualityFilter,
+  dueCount,
   onDataFilterChange,
   onDataQualityFilterChange,
   onSearchTermChange,
   onSourceFilterChange,
   onStatusFilterChange,
   onViewTabChange,
+  scheduledCount,
   searchTerm,
   sourceFilter,
   statusFilter,
   userId,
   viewTab,
 }) {
+  const tabCounts = { active: dueCount, done: scheduledCount };
   const [openMenu, setOpenMenu] = useState(null);
   const [customViews, setCustomViews] = useState(() => readCustomSellerViews(userId));
   const viewWrapRef = useRef(null);
@@ -232,6 +237,9 @@ export default function FiltersToolbar({
                 <ViewTabIcon id={tab.id} />
               </span>
               <span>{tab.label}</span>
+              {Number.isFinite(tabCounts[tab.id]) && (
+                <span className="seller-view-tab-count">{tabCounts[tab.id]}</span>
+              )}
             </button>
           ))}
         </div>
@@ -286,7 +294,9 @@ export default function FiltersToolbar({
       </div>
 
       {viewTab === "done" && (
-        <div className="toolbar-note">Done shows every sent seller in this source.</div>
+        <div className="toolbar-note">
+          Scheduled sellers move back to Due today when their follow-up date arrives.
+        </div>
       )}
     </div>
   );

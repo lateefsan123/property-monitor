@@ -48,24 +48,6 @@ export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
       .filter((lead) => lead.name || lead.building || lead.phone),
   );
 
-  const doneCount = Object.keys(sentMap).length;
-  const doneIds = Object.keys(sentMap).sort();
-  const prevDoneIds = JSON.parse(sessionStorage.getItem("debug:doneIds") || "[]");
-  const missing = prevDoneIds.filter((id) => !sentMap[id]);
-  if (missing.length > 0) {
-    const now = new Date().toLocaleTimeString();
-    console.error(`[DONE-TRACKER ${now}] LEADS DISAPPEARED FROM DONE:`, missing);
-    const names = missing.map((id) => {
-      const lead = leads.find((item) => String(item.id) === String(id));
-      return lead ? `${lead.name} (${lead.building})` : `id=${id} (NOT IN LEADS)`;
-    });
-    console.error(`[DONE-TRACKER ${now}] Missing lead names:`, names);
-    console.error(`[DONE-TRACKER ${now}] Previous done count: ${prevDoneIds.length}, Current: ${doneCount}`);
-  } else if (prevDoneIds.length > 0) {
-    console.log(`[DONE-TRACKER ${new Date().toLocaleTimeString()}] Done leads OK - count: ${doneCount}`);
-  }
-  sessionStorage.setItem("debug:doneIds", JSON.stringify(doneIds));
-
   return { leads, sentMap };
 }
 
@@ -241,7 +223,6 @@ export async function updateLeadStatus({ userId, leadId, status }) {
 }
 
 export async function persistLeadSentState(userId, leadId, isSent) {
-  console.log(`[DONE-TRACKER ${new Date().toLocaleTimeString()}] ${isSent ? "MARKING DONE" : "UNMARKING DONE"} lead=${leadId}`);
   const sentAt = isSent ? new Date().toISOString() : null;
   const { error } = await supabase
     .from("leads")

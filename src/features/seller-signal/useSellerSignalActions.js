@@ -53,7 +53,6 @@ export function createSellerSignalActions(context) {
     setEditingLeadId,
     setExpandedLeads,
     setSavingLeadId,
-    setViewTab,
   } = setters;
   const importActions = createSellerSignalImportActions(context);
 
@@ -106,9 +105,6 @@ export function createSellerSignalActions(context) {
         else delete nextSentMap[leadId];
         return { ...current, sentMap: nextSentMap };
       });
-
-      setViewTab(shouldMarkSent ? "done" : "active");
-      setters.setCurrentPage(1);
 
       if (shouldMarkSent) {
         const today = new Date().toISOString().slice(0, 10);
@@ -282,6 +278,14 @@ export function createSellerSignalActions(context) {
     };
   }
 
+  function hasTodaysTransactionUpdate(leadId) {
+    const insight = insights[leadId];
+    return Boolean(
+      insight?.status === "ready"
+      && (insight.hasTodaysTransactions || insight.todaysRecentTransactions?.length > 0),
+    );
+  }
+
   function markLeadSentLocally(leadId, sentAt) {
     updateLeadsCache(queryClient, userId, (current) => {
       const nextSentMap = { ...current.sentMap };
@@ -295,6 +299,12 @@ export function createSellerSignalActions(context) {
     if (!lead) return false;
 
     const { message, phone } = getLeadWhatsAppPayload(lead);
+    if (!hasTodaysTransactionUpdate(lead.id)) {
+      setActionError("WhatsApp send skipped: this seller has no transaction dated today.");
+      setActionNotice(null);
+      return false;
+    }
+
     if (!phone) {
       if (message) await copyMessage(lead.id, message);
       if (!sentLeads[lead.id]) await toggleSent(lead.id);
@@ -312,11 +322,13 @@ export function createSellerSignalActions(context) {
     if (!options.quiet) setActionNotice(null);
 
     try {
-      const result = await sendWhatsAppMessageMutation.mutateAsync({ lead, message });
+      const result = await sendWhatsAppMessageMutation.mutateAsync({
+        lead,
+        message,
+        sendSource: options.sendSource || "manual",
+      });
       const sentAt = result?.sentAt || new Date().toISOString();
       markLeadSentLocally(lead.id, sentAt);
-      setViewTab("done");
-      setters.setCurrentPage(1);
       await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
 
       if (!options.quiet) {
@@ -402,7 +414,7 @@ export function createSellerSignalActions(context) {
   async function bulkWhatsApp(markAsSent = true) {
     const targets = pagedLeads.filter((lead) => {
       const phone = formatPhoneForWhatsApp(lead.phone);
-      return phone && insights[lead.id]?.status === "ready";
+      return phone && hasTodaysTransactionUpdate(lead.id);
     });
 
     if (!targets.length) return;
@@ -413,7 +425,7 @@ export function createSellerSignalActions(context) {
 
       let sentCount = 0;
       for (const lead of targets) {
-        const sent = await sendWhatsAppLead(lead.id, { quiet: true });
+        const sent = await sendWhatsAppLead(lead.id, { quiet: true, sendSource: "bulk" });
         if (sent) sentCount += 1;
       }
 

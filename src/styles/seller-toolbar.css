@@ -323,6 +323,23 @@
   height: 15px;
 }
 
+.seller-view-tab-count {
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: var(--bg-badge);
+  color: var(--text-badge);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.seller-view-tab.is-active .seller-view-tab-count {
+  background: rgba(255, 255, 255, 0.22);
+  color: inherit;
+}
+
 .seller-view-tab:hover {
   background: var(--bg-hover);
   color: var(--text-name);

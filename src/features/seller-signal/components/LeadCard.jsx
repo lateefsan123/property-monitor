@@ -38,6 +38,7 @@ function DataQualityBadge({ quality }) {
 export default function LeadCard({
   copiedLeadId,
   favorited,
+  hot,
   insight,
   isSent,
   lead,
@@ -175,6 +176,10 @@ export default function LeadCard({
       </td>
       <td className="lead-cell-status">
         <span className={`badge ${lead.isDue ? "due" : ""}`}>{lead.statusLabel}</span>
+        {hot && <span className="lead-hot-chip">Sold today</span>}
+        {!hot && lead.dueLabel && lead.dueLabel !== "Due today" && (
+          <span className="lead-due-note">{lead.dueLabel}</span>
+        )}
       </td>
       <td className="lead-cell-phone">
         {lead.phone || <span className="text-muted">—</span>}

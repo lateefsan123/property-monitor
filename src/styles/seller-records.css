@@ -165,6 +165,27 @@
   white-space: nowrap;
 }
 
+.lead-hot-chip {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--badge-ok-bg);
+  color: var(--badge-ok-text);
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.lead-due-note {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.72rem;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
 .lead-cell-action {
   width: 1%;
   white-space: nowrap;

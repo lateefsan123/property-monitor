@@ -1,4 +1,4 @@
-import { MILLISECONDS_PER_DAY, STATUS_RULES } from "./constants";
+import { DEFAULT_CADENCE_DAYS, MILLISECONDS_PER_DAY, STATUS_RULES } from "./constants";
 import { normalizeToken } from "./spreadsheet";
 import { canonicalizeBuildingName, parseBuildingAddressValue } from "./building-utils";
 
@@ -159,18 +159,22 @@ export function mapLeadRow(record, index, mapping, today) {
   const statusRule = resolveStatusRule(status);
   const bedroomInfo = parseBedroom(bedroom);
   const lastContactDate = parseDateValue(lastContactRaw);
+  const isNotInterested = statusRule?.id === "not_interested";
+  // Leads with no recognized status still cycle on the default cadence so
+  // nothing silently falls out of the follow-up queue.
+  const cadenceDays = statusRule && !isNotInterested ? statusRule.days : DEFAULT_CADENCE_DAYS;
 
   let isDue = false;
-  let dueLabel = "No cadence rule";
+  let dueLabel = "Not interested";
   let nextDueDate = null;
   let overdueDays = 0;
 
-  if (statusRule) {
+  if (!isNotInterested) {
     if (!lastContactDate) {
       isDue = true;
-      dueLabel = "Due now (no last contact)";
+      dueLabel = "Never contacted";
     } else {
-      nextDueDate = addDays(lastContactDate, statusRule.days);
+      nextDueDate = addDays(lastContactDate, cadenceDays);
       const daysUntilDue = dayDelta(today, nextDueDate);
 
       if (daysUntilDue <= 0) {
@@ -206,13 +210,22 @@ export function mapLeadRow(record, index, mapping, today) {
 }
 
 export function mapStoredLeadRow(row, index, today) {
+  // Cadence runs off the most recent touch: the editable last_contact date or
+  // the sent_at stamp written by manual/auto WhatsApp sends, whichever is later.
+  const importedLastContact = parseDateValue(row.last_contact || "");
+  const sentAtParsed = row.sent_at ? new Date(row.sent_at) : null;
+  const sentAtDate = sentAtParsed && !Number.isNaN(sentAtParsed.getTime()) ? startOfDay(sentAtParsed) : null;
+  const effectiveLastContact = sentAtDate && (!importedLastContact || sentAtDate > importedLastContact)
+    ? sentAtDate
+    : importedLastContact;
+
   const record = {
     __row: row.id,
     _name: row.name || "",
     _building: row.building || "",
     _bedroom: row.bedroom || "",
     _status: row.status || "",
-    _lastContact: row.last_contact || "",
+    _lastContact: effectiveLastContact ? formatDateInputValue(effectiveLastContact) : "",
     _phone: row.phone || "",
     _unit: row.unit || "",
   };
@@ -231,7 +244,18 @@ export function mapStoredLeadRow(row, index, today) {
   lead.id = row.id;
   lead.sourceId = row.source_id || null;
   lead.notes = row.notes || "";
+  lead.sentAt = row.sent_at || null;
   return lead;
+}
+
+export function summarizeLeadCadence(leads) {
+  const summary = { due: 0, scheduled: 0, notInterested: 0 };
+  for (const lead of leads || []) {
+    if (lead.statusRule?.id === "not_interested") summary.notInterested += 1;
+    else if (lead.isDue) summary.due += 1;
+    else summary.scheduled += 1;
+  }
+  return summary;
 }
 
 export function sortLeadsByPriority(leads) {

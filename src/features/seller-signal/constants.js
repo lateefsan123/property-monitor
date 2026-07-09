@@ -5,7 +5,8 @@ export const IMPORT_SAMPLE_ROW_LIMIT = 6;
 export const IMPORT_BATCH_SIZE = 200;
 export const RECENT_TRANSACTIONS_LIMIT = 2;
 export const WHATSAPP_OPEN_DELAY_MS = 600;
-export const MIN_NEW_TRANSACTIONS_TO_REACTIVATE = 2;
+// Follow-up interval for leads whose status has no cadence rule of its own.
+export const DEFAULT_CADENCE_DAYS = 75;
 
 export const STATUS_RULES = [
   { id: "not_interested", label: "Not Interested", days: 0, keywords: ["not interested", "ni", "cold"] },
@@ -44,7 +45,9 @@ export const DATA_QUALITY_FILTER_OPTIONS = [
   { id: "review", label: "Needs Review" },
 ];
 
+// Tab ids keep their historical names ("active"/"done") so saved views and
+// stored filters keep working; the semantics are cadence-based now.
 export const VIEW_TAB_OPTIONS = [
-  { id: "active", label: "Active" },
-  { id: "done", label: "Done" },
+  { id: "active", label: "Due today" },
+  { id: "done", label: "Scheduled" },
 ];
