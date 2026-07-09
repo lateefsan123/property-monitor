@@ -11,6 +11,7 @@ import {
   IconUser,
 } from "@tabler/icons-react";
 import { SellerPreviewThumb, SheetPreviewThumb } from "../../components/SeededPreviewThumb";
+import HomeInsights from "./HomeInsights";
 import { fetchUserLeads } from "../seller-signal/services";
 import { fetchSellerSources, formatSourceLabel } from "../seller-signal/page-helpers";
 import { sellerLeadsQueryKey, sellerSourcesQueryKey } from "../seller-signal/queryKeys";
@@ -96,14 +97,14 @@ export function TilePreview({ kind }) {
   if (kind === "preview-sellers") {
     return (
       <div className="tile-preview preview-sellers">
-        <img className="preview-sellers-img" src="/sellers.png" alt="" loading="lazy" />
+        <img className="preview-sellers-img" src="/home-sellers.png" alt="" loading="lazy" />
       </div>
     );
   }
   if (kind === "preview-listings") {
     return (
       <div className="tile-preview preview-listings">
-        <img className="preview-listings-img" src="/listings.png" alt="" loading="lazy" />
+        <img className="preview-listings-img" src="/home-listings.png" alt="" loading="lazy" />
       </div>
     );
   }
@@ -111,7 +112,7 @@ export function TilePreview({ kind }) {
     <div className="tile-preview preview-spreadsheets">
       <img
         className="preview-spreadsheets-img"
-        src="https://png.pngtree.com/png-clipart/20250429/original/pngtree-spreadsheet-data-icon-for-finance-or-business-illustration-vector-png-image_20894047.png"
+        src="/home-spreadsheets.png"
         alt=""
         loading="lazy"
       />
@@ -439,6 +440,8 @@ export default function HomePage({ displayName, onNavigate, userId, onOpenCreate
       </TopbarActionsPortal>
 
       <h1 className="home-title">Welcome back, {firstName}.</h1>
+
+      <HomeInsights userId={userId} onNavigate={onNavigate} />
 
       <div className="home-tiles">
         {TILES.map((tile) => (

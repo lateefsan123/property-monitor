@@ -35,6 +35,171 @@
   gap: 20px;
 }
 
+/* ============================================================
+   Home insights (messages chart + price drops)
+   ============================================================ */
+.home-insights {
+  display: grid;
+  grid-template-columns: 3fr 2fr;
+  gap: 20px;
+  align-items: stretch;
+}
+
+.home-insight-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+  padding: 18px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+}
+
+.home-insight-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-pipeline-card {
+  grid-column: 1 / -1;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+}
+
+.home-pipeline-stats {
+  display: flex;
+  align-items: center;
+  gap: 40px;
+}
+
+.home-insight-link {
+  border: none;
+  background: none;
+  padding: 4px 0;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.home-insight-link:hover {
+  color: var(--text-name);
+}
+
+.home-insight-chart {
+  margin: 0 -4px -6px;
+}
+
+.home-insight-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 120px;
+  padding: 12px;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+  text-align: center;
+  background: var(--bg-bayut);
+  border-radius: 10px;
+}
+
+.home-drop-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.home-drop-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  margin: 0 -8px;
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+a.home-drop-row:hover {
+  background: var(--bg-hover);
+}
+
+.home-drop-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg-badge);
+  color: var(--text-muted);
+}
+
+.home-drop-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-drop-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.home-drop-building {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-name);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-drop-meta {
+  font-size: 0.76rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.home-drop-pricing {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.home-drop-price {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-name);
+}
+
+.home-drop-pricing .ld-delta-chip {
+  padding: 2px 8px;
+  font-size: 0.72rem;
+}
+
+.home-drop-more {
+  padding: 4px 0 0;
+  font-size: 0.76rem;
+  color: var(--text-faint);
+}
+
 .home-pinned {
   display: flex;
   flex-direction: column;
@@ -269,9 +434,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.preview-listings {
-  background: var(--bg-card);
+  background: transparent;
 }
 .preview-spreadsheets-img,
 .preview-listings-img,
@@ -279,18 +442,22 @@
   width: 100%;
   height: 100%;
   display: block;
-  border-radius: 10px;
-}
-.preview-listings-img,
-.preview-sellers-img {
-  object-fit: cover;
-}
-.preview-spreadsheets-img {
+  border-radius: 0;
   object-fit: contain;
+}
+
+[data-theme="dark"] .preview-spreadsheets-img,
+[data-theme="dark"] .preview-listings-img,
+[data-theme="dark"] .preview-sellers-img {
+  filter: invert(1) opacity(0.82);
 }
 
 @media (max-width: 900px) {
   .home-tiles {
+    grid-template-columns: 1fr;
+  }
+
+  .home-insights {
     grid-template-columns: 1fr;
   }
 
