@@ -22,12 +22,20 @@ export function sellerBuildingCleanupQueryPrefix(userId) {
   return ["seller-signal", "building-cleanup", userId];
 }
 
-export function sellerMarketAvailabilityQueryKey(userId, targetKeys) {
-  return ["seller-signal", "market-availability", userId, targetKeys];
+export function sellerMarketDataQueryKey(userId, buildingKeys) {
+  return ["seller-signal", "insights", userId, "market-data", buildingKeys];
 }
 
-export function sellerInsightsQueryKey(userId, targetKeys) {
-  return ["seller-signal", "insights", userId, targetKeys];
+export function sellerHotBuildingsQueryKey(userId, dateKey, buildingKeys) {
+  return ["seller-signal", "insights", userId, "hot-buildings", dateKey, buildingKeys];
+}
+
+export function sellerMarketAvailabilityQueryKey(userId, buildingKeys) {
+  return ["seller-signal", "insights", userId, "market-availability", buildingKeys];
+}
+
+export function sellerDldFallbackQueryKey(userId, buildingNames) {
+  return ["seller-signal", "insights", userId, "dld-fallback", buildingNames];
 }
 
 export function sellerInsightsQueryPrefix(userId) {

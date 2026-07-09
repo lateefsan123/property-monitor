@@ -1,7 +1,18 @@
 import { supabase } from "../../supabase";
-import { buildMessage, buildRecentTransactions, extractBeds, extractTransactionDate, summarizeTransactions } from "./insight-utils";
+import {
+  buildMessage,
+  buildRecentTransactions,
+  extractBeds,
+  extractTransactionDate,
+  filterTransactionsForDate,
+  getTodayTransactionDateKey,
+  summarizeTransactions,
+} from "./insight-utils";
 import { cleanBuildingName, getBuildingKeyVariants } from "./building-utils";
-import { fetchDldFallbackTransactions } from "./dld";
+
+const TRANSACTION_COLUMNS = "building_key, amount, category, date, floor, beds, property_type, builtup_area_sqft, location_name, full_location, latitude, longitude";
+const PER_BUILDING_TRANSACTION_LIMIT = 200;
+const TRANSACTION_FETCH_BATCH_SIZE = 8;
 
 function mapStoredTransaction(transactionRow) {
   return {
@@ -91,72 +102,112 @@ async function fetchAvailableBuildingKeys(buildingKeys) {
   return fetchAvailableBuildingKeysFallback(uniqueKeys);
 }
 
-async function fetchFallbackTransactionsForMissingTargets(targets, transactionsByBuilding) {
-  const missingNames = new Map();
-
-  for (const lead of targets) {
-    const keys = getBuildingKeyVariants(lead.building);
-    if (!keys.length) continue;
-    const { transactions } = findTransactionsForKeys(keys, transactionsByBuilding);
-    if (transactions.length) continue;
-
-    const cleaned = cleanBuildingName(lead.building);
-    if (cleaned) missingNames.set(cleaned, cleaned);
-  }
-
-  if (!missingNames.size) return {};
-
-  try {
-    return await fetchDldFallbackTransactions([...missingNames.values()]);
-  } catch {
-    return {};
-  }
+export async function fetchAvailableMarketBuildingKeys(buildingKeys) {
+  const availableKeys = await fetchAvailableBuildingKeys(buildingKeys);
+  return [...availableKeys];
 }
 
-export async function fetchLeadInsights(leads) {
-  const targets = leads.filter((lead) => lead.building);
-  if (!targets.length) {
-    return { hasTargets: false, matched: 0, updates: {} };
+function isMissingHotBuildingsRpc(error) {
+  const message = String(error?.message || "");
+  return error?.code === "PGRST202"
+    || error?.code === "42883"
+    || message.includes("get_market_building_keys_with_transactions_on");
+}
+
+export async function fetchBuildingKeysWithTransactionsOn(buildingKeys, dateKey) {
+  const uniqueKeys = [...new Set(buildingKeys)].filter(Boolean);
+  if (!uniqueKeys.length || !dateKey) return [];
+
+  const { data, error } = await supabase.rpc(
+    "get_market_building_keys_with_transactions_on",
+    { target_keys: uniqueKeys, target_date: dateKey },
+  );
+
+  if (error) {
+    // A missing RPC (migration not applied yet) should degrade to "nothing is
+    // hot" rather than break the sellers page.
+    if (isMissingHotBuildingsRpc(error)) return [];
+    throw new Error(error.message);
   }
 
-  const cleanedBuildings = {};
-  for (const lead of targets) {
-    const cleaned = cleanBuildingName(lead.building);
-    const keys = getBuildingKeyVariants(lead.building);
-    if (!keys.length) continue;
-    for (const key of keys) {
-      if (!cleanedBuildings[key]) cleanedBuildings[key] = cleaned;
+  return (data || []).map((row) => row.building_key).filter(Boolean);
+}
+
+async function fetchTransactionsForKeys(buildingKeys) {
+  const transactionsByBuilding = {};
+
+  for (let index = 0; index < buildingKeys.length; index += TRANSACTION_FETCH_BATCH_SIZE) {
+    const batch = buildingKeys.slice(index, index + TRANSACTION_FETCH_BATCH_SIZE);
+    const results = await Promise.all(batch.map(async (buildingKey) => {
+      const { data, error } = await supabase
+        .from("transactions")
+        .select(TRANSACTION_COLUMNS)
+        .eq("building_key", buildingKey)
+        .order("date", { ascending: false })
+        .limit(PER_BUILDING_TRANSACTION_LIMIT);
+
+      if (error) throw new Error(error.message);
+      return { buildingKey, rows: data || [] };
+    }));
+
+    for (const { buildingKey, rows } of results) {
+      if (!rows.length) continue;
+      transactionsByBuilding[buildingKey] = rows.map(mapStoredTransaction);
     }
   }
 
-  const buildingKeys = Object.keys(cleanedBuildings);
-  if (!buildingKeys.length) {
-    return { hasTargets: false, matched: 0, updates: {} };
+  return transactionsByBuilding;
+}
+
+export async function fetchBuildingMarketData(buildingKeys) {
+  const uniqueKeys = [...new Set(buildingKeys)].filter(Boolean);
+  if (!uniqueKeys.length) {
+    return { buildingLookup: {}, transactionsByBuilding: {} };
   }
 
-  const [{ data: buildingRows, error: buildingError }, { data: transactionRows, error: transactionError }] = await Promise.all([
-    supabase.from("buildings").select("key, location_name").in("key", buildingKeys),
-    supabase.from("transactions").select("*").in("building_key", buildingKeys),
+  const [{ data: buildingRows, error: buildingError }, availableKeySet] = await Promise.all([
+    supabase.from("buildings").select("key, location_name").in("key", uniqueKeys),
+    fetchAvailableBuildingKeys(uniqueKeys),
   ]);
 
   if (buildingError) throw new Error(buildingError.message);
-  if (transactionError) throw new Error(transactionError.message);
+
+  const transactionsByBuilding = await fetchTransactionsForKeys([...availableKeySet]);
 
   const buildingLookup = {};
   for (const building of buildingRows || []) buildingLookup[building.key] = building;
 
-  const transactionsByBuilding = {};
-  for (const transaction of transactionRows || []) {
-    if (!transactionsByBuilding[transaction.building_key]) transactionsByBuilding[transaction.building_key] = [];
-    transactionsByBuilding[transaction.building_key].push(mapStoredTransaction(transaction));
+  return { buildingLookup, transactionsByBuilding };
+}
+
+export function getMissingFallbackBuildingNames(targets, transactionsByBuilding) {
+  const missingNames = new Set();
+
+  for (const lead of targets || []) {
+    const keys = getBuildingKeyVariants(lead.building);
+    if (!keys.length) continue;
+    const { transactions } = findTransactionsForKeys(keys, transactionsByBuilding || {});
+    if (transactions.length) continue;
+
+    const cleaned = cleanBuildingName(lead.building);
+    if (cleaned) missingNames.add(cleaned);
   }
 
-  const fallbackTransactionsByBuilding = await fetchFallbackTransactionsForMissingTargets(targets, transactionsByBuilding);
+  return [...missingNames].sort();
+}
+
+export function computeLeadInsights(targets, marketData, fallbackState = {}) {
+  const buildingLookup = marketData?.buildingLookup || {};
+  const transactionsByBuilding = marketData?.transactionsByBuilding || {};
+  const fallbackTransactionsByBuilding = fallbackState.data || {};
+  const fallbackPending = Boolean(fallbackState.pending);
 
   const updates = {};
   let matched = 0;
+  let pending = 0;
+  const todayDateKey = getTodayTransactionDateKey();
 
-  for (const lead of targets) {
+  for (const lead of targets || []) {
     const cleaned = cleanBuildingName(lead.building);
     const keys = getBuildingKeyVariants(lead.building);
     const cachedMatch = findTransactionsForKeys(keys, transactionsByBuilding);
@@ -169,11 +220,20 @@ export async function fetchLeadInsights(leads) {
       || cleaned;
 
     if (!allTransactions.length) {
-      updates[lead.id] = {
-        status: "error",
-        error: "Property market data is not available yet.",
-        message: buildMessage(lead, null),
-      };
+      if (fallbackPending) {
+        pending += 1;
+        updates[lead.id] = {
+          status: "loading",
+          error: null,
+          message: buildMessage(lead, null),
+        };
+      } else {
+        updates[lead.id] = {
+          status: "error",
+          error: "Property market data is not available yet.",
+          message: buildMessage(lead, null),
+        };
+      }
       continue;
     }
 
@@ -188,58 +248,31 @@ export async function fetchLeadInsights(leads) {
 
     const metrics = summarizeTransactions(filteredTransactions);
     const recentTransactions = buildRecentTransactions(filteredTransactions, locationName);
+    const todaysRecentTransactions = buildRecentTransactions(
+      filterTransactionsForDate(filteredTransactions, todayDateKey),
+      locationName,
+    );
     const allTransactionDates = filteredTransactions.map((transaction) => extractTransactionDate(transaction)).filter(Boolean);
     const insight = {
       status: "ready",
       ...metrics,
       locationName,
       recentTransactions,
+      todayTransactionDateKey: todayDateKey,
+      todaysRecentTransactions,
+      hasTodaysTransactions: todaysRecentTransactions.length > 0,
       allTransactionDates,
     };
+    const messageInsight = todaysRecentTransactions.length
+      ? { ...insight, recentTransactions: todaysRecentTransactions }
+      : insight;
 
     updates[lead.id] = {
       ...insight,
-      message: buildMessage(lead, insight),
+      message: buildMessage(lead, messageInsight),
     };
     matched += 1;
   }
 
-  return { hasTargets: true, matched, updates };
-}
-
-export async function fetchLeadMarketAvailability(leads) {
-  const targets = leads.filter((lead) => lead.building);
-  if (!targets.length) {
-    return { hasTargets: false, matched: 0, updates: {} };
-  }
-
-  const keysByLeadId = new Map();
-  const buildingKeys = new Set();
-
-  for (const lead of targets) {
-    const keys = getBuildingKeyVariants(lead.building);
-    if (!keys.length) continue;
-    keysByLeadId.set(lead.id, keys);
-    for (const key of keys) buildingKeys.add(key);
-  }
-
-  if (!buildingKeys.size) {
-    return { hasTargets: false, matched: 0, updates: {} };
-  }
-
-  const availableKeys = await fetchAvailableBuildingKeys([...buildingKeys]);
-  const updates = {};
-  let matched = 0;
-
-  for (const lead of targets) {
-    const keys = keysByLeadId.get(lead.id) || [];
-    const hasMarketData = keys.some((key) => availableKeys.has(key));
-    updates[lead.id] = {
-      status: hasMarketData ? "ready" : "error",
-      source: hasMarketData ? "cached_transactions" : "none",
-    };
-    if (hasMarketData) matched += 1;
-  }
-
-  return { hasTargets: true, matched, updates };
+  return { hasTargets: (targets || []).length > 0, matched, pending, updates };
 }

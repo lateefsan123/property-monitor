@@ -47,8 +47,13 @@ function normalizePhone(value) {
 
 function buildAliasLookup(buildingAliases) {
   const lookup = new Map();
+  const sortedAliases = [...(buildingAliases || [])].sort((left, right) => {
+    const leftGlobal = Boolean(left?.isGlobal ?? left?.is_global);
+    const rightGlobal = Boolean(right?.isGlobal ?? right?.is_global);
+    return Number(rightGlobal) - Number(leftGlobal);
+  });
 
-  for (const alias of buildingAliases || []) {
+  for (const alias of sortedAliases) {
     const aliasName = alias.aliasName ?? alias.alias_name;
     const canonicalName = String(alias.canonicalName ?? alias.canonical_name ?? "").trim();
     const key = normalizeBuildingAliasKey(aliasName);
@@ -369,14 +374,29 @@ function resolveBuildingMatch(raw, aliasLookup, cachedIndex) {
   return baselineMatch;
 }
 
+function createCachedBuildingMatchResolver(aliasLookup, cachedIndex) {
+  // Building resolution does fuzzy matching against every cached building, so
+  // memoize per raw value — leads frequently share the same building string.
+  const cache = new Map();
+  return (raw) => {
+    const cacheKey = String(raw || "");
+    let match = cache.get(cacheKey);
+    if (!match) {
+      match = resolveBuildingMatch(raw, aliasLookup, cachedIndex);
+      cache.set(cacheKey, match);
+    }
+    return match;
+  };
+}
+
 export function createLeadBuildingResolver(buildingAliases = [], cachedBuildings = []) {
   const aliasLookup = buildAliasLookup(buildingAliases);
   const cachedIndex = buildCachedBuildingIndex(cachedBuildings);
-  return (raw) => resolveBuildingMatch(raw, aliasLookup, cachedIndex);
+  return createCachedBuildingMatchResolver(aliasLookup, cachedIndex);
 }
 
-function buildDuplicateKey(lead, aliasLookup, cachedIndex) {
-  const buildingMatch = resolveBuildingMatch(lead.building, aliasLookup, cachedIndex);
+function buildDuplicateKey(lead, resolveBuilding) {
+  const buildingMatch = resolveBuilding(lead.building);
   const building = normalizeToken(buildingMatch.canonicalName || lead.building);
   const addressParts = parseBuildingAddressValue(lead.building);
   const unit = normalizeToken(lead.unit || (addressParts.unit ? `Unit ${addressParts.unit}` : ""));
@@ -390,11 +410,11 @@ function buildDuplicateKey(lead, aliasLookup, cachedIndex) {
   return "";
 }
 
-function buildDuplicateLookup(leads, aliasLookup, cachedIndex) {
+function buildDuplicateLookup(leads, resolveBuilding) {
   const groups = new Map();
 
   for (const lead of leads || []) {
-    const key = buildDuplicateKey(lead, aliasLookup, cachedIndex);
+    const key = buildDuplicateKey(lead, resolveBuilding);
     if (!key) continue;
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(lead.id);
@@ -426,12 +446,11 @@ function buildQualityLevel(label) {
 }
 
 export function enrichLeadsWithDataQuality(leads, buildingAliases = [], cachedBuildings = []) {
-  const aliasLookup = buildAliasLookup(buildingAliases);
-  const cachedIndex = buildCachedBuildingIndex(cachedBuildings);
-  const duplicateLookup = buildDuplicateLookup(leads, aliasLookup, cachedIndex);
+  const resolveBuilding = createLeadBuildingResolver(buildingAliases, cachedBuildings);
+  const duplicateLookup = buildDuplicateLookup(leads, resolveBuilding);
 
   return (leads || []).map((lead) => {
-    const buildingMatch = resolveBuildingMatch(lead.building, aliasLookup, cachedIndex);
+    const buildingMatch = resolveBuilding(lead.building);
     const addressParts = parseBuildingAddressValue(lead.building);
     const leadUnit = lead.unit || (addressParts.unit ? `Unit ${addressParts.unit}` : "");
     const issues = [];

@@ -21,9 +21,13 @@ export {
   updateLead,
 } from "./lead-import-services";
 export {
-  fetchLeadInsights,
-  fetchLeadMarketAvailability,
+  computeLeadInsights,
+  fetchAvailableMarketBuildingKeys,
+  fetchBuildingKeysWithTransactionsOn,
+  fetchBuildingMarketData,
+  getMissingFallbackBuildingNames,
 } from "./lead-insight-services";
+export { fetchDldFallbackTransactions } from "./dld";
 export {
   fetchBuildingAliases,
   upsertBuildingAlias,

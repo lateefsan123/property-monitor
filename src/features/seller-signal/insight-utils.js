@@ -3,11 +3,44 @@ import { formatDate, formatPriceShort } from "./formatters";
 import { cleanBuildingName, formatBuildingLabel } from "./building-utils";
 import { parseDateValue, startOfDay } from "./lead-utils";
 
+const TRANSACTION_TIME_ZONE = "Asia/Dubai";
+// Intl.DateTimeFormat construction is expensive (~0.5ms) and this runs per
+// transaction, so cache one formatter per time zone.
+const dateKeyFormatters = new Map();
+
+function getDateKeyFormatter(timeZone) {
+  let formatter = dateKeyFormatters.get(timeZone);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      timeZone,
+      year: "numeric",
+    });
+    dateKeyFormatters.set(timeZone, formatter);
+  }
+  return formatter;
+}
+
 function parseNumber(value) {
   if (typeof value === "number" && Number.isFinite(value)) return value;
   if (typeof value !== "string") return null;
   const parsed = Number(value.replace(/[,\s]/g, ""));
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function getTransactionDateKey(dateValue = new Date(), timeZone = TRANSACTION_TIME_ZONE) {
+  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const parts = getDateKeyFormatter(timeZone).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  if (!values.year || !values.month || !values.day) return null;
+  return `${values.year}-${values.month}-${values.day}`;
+}
+
+export function getTodayTransactionDateKey() {
+  return getTransactionDateKey(new Date());
 }
 
 export function extractPrice(transaction) {
@@ -28,7 +61,9 @@ function extractArea(transaction) {
   return null;
 }
 
-export function extractBeds(transaction) {
+const transactionBedsCache = new WeakMap();
+
+function computeBeds(transaction) {
   for (const value of [transaction?.beds, transaction?.bedrooms, transaction?.rooms, transaction?.property?.beds]) {
     const numeric = parseNumber(value);
     if (numeric !== null && numeric >= 0) return Math.round(numeric);
@@ -40,7 +75,22 @@ export function extractBeds(transaction) {
   return null;
 }
 
-export function extractTransactionDate(transaction) {
+export function extractBeds(transaction) {
+  if (!transaction || typeof transaction !== "object") return computeBeds(transaction);
+  let beds = transactionBedsCache.get(transaction);
+  if (beds === undefined) {
+    beds = computeBeds(transaction);
+    transactionBedsCache.set(transaction, beds);
+  }
+  return beds;
+}
+
+// Date parsing runs per transaction on every insights recompute and the same
+// transaction objects are stable in the query cache, so memoize per object.
+const transactionDateCache = new WeakMap();
+const transactionDateKeyCache = new WeakMap();
+
+function computeTransactionDate(transaction) {
   for (const value of [transaction?.date, transaction?.transaction_date, transaction?.created_at, transaction?.createdAt, transaction?.transfer_date]) {
     const parsed = parseDateValue(value);
     if (parsed) return parsed;
@@ -50,6 +100,39 @@ export function extractTransactionDate(transaction) {
   }
 
   return null;
+}
+
+export function extractTransactionDate(transaction) {
+  if (!transaction || typeof transaction !== "object") return computeTransactionDate(transaction);
+  let date = transactionDateCache.get(transaction);
+  if (date === undefined) {
+    date = computeTransactionDate(transaction);
+    transactionDateCache.set(transaction, date);
+  }
+  return date;
+}
+
+function getCachedTransactionDateKey(transaction) {
+  if (!transaction || typeof transaction !== "object") {
+    const date = computeTransactionDate(transaction);
+    return date ? getTransactionDateKey(date) : null;
+  }
+  let key = transactionDateKeyCache.get(transaction);
+  if (key === undefined) {
+    const date = extractTransactionDate(transaction);
+    key = date ? getTransactionDateKey(date) : null;
+    transactionDateKeyCache.set(transaction, key);
+  }
+  return key;
+}
+
+export function filterTransactionsForDate(transactions, dateKey = getTodayTransactionDateKey()) {
+  if (!dateKey) return [];
+  return (transactions || []).filter((transaction) => getCachedTransactionDateKey(transaction) === dateKey);
+}
+
+export function hasTransactionsForDate(transactions, dateKey = getTodayTransactionDateKey()) {
+  return filterTransactionsForDate(transactions, dateKey).length > 0;
 }
 
 function extractTransactionLocationLabel(transaction, fallback = null) {

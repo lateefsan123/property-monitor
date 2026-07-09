@@ -64,7 +64,20 @@ export function getTruncatedBuildingPrefix(raw) {
   return cleanAddressBuildingPart(stripTruncationMarker(cleaned));
 }
 
+// Called per lead on every render pass and pure on its input, so memoize.
+const cleanBuildingNameCache = new Map();
+
 export function cleanBuildingName(raw) {
+  const cacheKey = String(raw || "");
+  const cached = cleanBuildingNameCache.get(cacheKey);
+  if (cached !== undefined) return cached;
+
+  const cleaned = computeCleanBuildingName(raw);
+  cleanBuildingNameCache.set(cacheKey, cleaned);
+  return cleaned;
+}
+
+function computeCleanBuildingName(raw) {
   let name = String(raw || "").trim();
 
   const address = parseBuildingAddressValue(name);
@@ -512,7 +525,21 @@ export function formatBuildingLabel(raw) {
   return expandBoulevard(cleaned);
 }
 
+// Variant generation is regex-heavy and runs per lead on every render pass,
+// so memoize per raw name. Callers only iterate the result, never mutate it.
+const buildingKeyVariantsCache = new Map();
+
 export function getBuildingKeyVariants(raw) {
+  const cacheKey = String(raw || "");
+  const cached = buildingKeyVariantsCache.get(cacheKey);
+  if (cached) return cached;
+
+  const variants = computeBuildingKeyVariants(raw);
+  buildingKeyVariantsCache.set(cacheKey, variants);
+  return variants;
+}
+
+function computeBuildingKeyVariants(raw) {
   const cleaned = cleanBuildingName(raw);
   if (!cleaned) return [];
 
