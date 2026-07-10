@@ -10,6 +10,10 @@ export const EMPTY_ALERT_SUMMARY = Object.freeze({
   priceIncreaseCount: 0,
   removedListingCount: 0,
   lastCheckedAt: null as string | null,
+  lastAttemptedAt: null as string | null,
+  fetchErrorCount: 0,
+  lastFetchErrorAt: null as string | null,
+  lastFetchErrorMessage: null as string | null,
   hasSnapshot: false,
 });
 
@@ -255,6 +259,10 @@ function sanitizeStoredState(state: any) {
     priceIncreaseCount: Number.isFinite(state?.summary?.priceIncreaseCount) ? state.summary.priceIncreaseCount : 0,
     removedListingCount: Number.isFinite(state?.summary?.removedListingCount) ? state.summary.removedListingCount : 0,
     lastCheckedAt: toText(state?.summary?.lastCheckedAt),
+    lastAttemptedAt: toText(state?.summary?.lastAttemptedAt),
+    fetchErrorCount: Number.isFinite(state?.summary?.fetchErrorCount) ? state.summary.fetchErrorCount : 0,
+    lastFetchErrorAt: toText(state?.summary?.lastFetchErrorAt),
+    lastFetchErrorMessage: toText(state?.summary?.lastFetchErrorMessage),
     hasSnapshot: Boolean(state?.summary?.hasSnapshot),
   };
 
@@ -262,10 +270,13 @@ function sanitizeStoredState(state: any) {
   for (const [locationId, building] of Object.entries(state?.snapshot || {})) {
     const normalizedLocationId = toLocationId(locationId);
     if (!normalizedLocationId) continue;
+    const buildingRecord = building && typeof building === "object"
+      ? building as Record<string, any>
+      : {};
 
     snapshot[normalizedLocationId] = sanitizeSnapshotBuilding(
-      { ...building, locationId: normalizedLocationId, listings: Object.values((building as any)?.listings || {}) },
-      toText((building as any)?.checkedAt),
+      { ...buildingRecord, locationId: normalizedLocationId, listings: Object.values(buildingRecord.listings || {}) },
+      toText(buildingRecord.checkedAt),
     );
   }
 
@@ -299,8 +310,11 @@ function sanitizeStoredState(state: any) {
 
   const listingHistory: Record<string, any> = {};
   for (const [key, entry] of Object.entries(state?.listingHistory || {})) {
-    const sanitized = sanitizeListingHistoryEntry({ ...entry, key });
-    if (!sanitized) continue;
+    const entryRecord = entry && typeof entry === "object"
+      ? entry as Record<string, any>
+      : {};
+    const sanitized = sanitizeListingHistoryEntry({ ...entryRecord, key });
+    if (!sanitized?.key) continue;
     listingHistory[sanitized.key] = sanitized;
   }
 
@@ -494,14 +508,18 @@ export function buildListingAlertsState({
   trackAllListings?: boolean;
 }) {
   const previous = parseListingAlertsState(previousState);
-  const previousSnapshot = previous.snapshot || {};
-  const previousListingHistory = previous.listingHistory || {};
+  const previousSnapshot = (previous.snapshot || {}) as Record<string, any>;
+  const previousListingHistory = (previous.listingHistory || {}) as Record<string, any>;
   const isInitialSnapshot = !previous.summary?.hasSnapshot;
-  const activeLocationIds = [...new Set((watchedItems || []).map((item) => toLocationId(item?.locationId)).filter(Boolean))];
-  const activeLocationSet = new Set(activeLocationIds);
-  const selectedKeySet = trackAllListings
-    ? new Set()
-    : new Set(
+  const activeLocationIds = [...new Set(
+    (watchedItems || [])
+      .map((item) => toLocationId(item?.locationId))
+      .filter((locationId): locationId is string => Boolean(locationId)),
+  )];
+  const activeLocationSet = new Set<string>(activeLocationIds);
+  const selectedKeySet: Set<string> = trackAllListings
+    ? new Set<string>()
+    : new Set<string>(
       parseSelectedListingKeys(selectedListingKeys).filter((key) => activeLocationSet.has(key.split(":")[0])),
     );
   const selectedIdsByLocation: Record<string, Set<string>> = {};
@@ -530,8 +548,11 @@ export function buildListingAlertsState({
   const nextListingHistory: Record<string, any> = {};
 
   for (const [key, entry] of Object.entries(previousListingHistory)) {
-    const sanitized = sanitizeListingHistoryEntry({ ...entry, key });
-    if (!sanitized) continue;
+    const entryRecord = entry && typeof entry === "object"
+      ? entry as Record<string, any>
+      : {};
+    const sanitized = sanitizeListingHistoryEntry({ ...entryRecord, key });
+    if (!sanitized?.key) continue;
     if (trackAllListings) {
       if (!activeLocationSet.has(sanitized.locationId)) continue;
     } else if (!selectedKeySet.has(sanitized.key)) {

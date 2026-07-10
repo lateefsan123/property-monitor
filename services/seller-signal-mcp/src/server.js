@@ -140,11 +140,13 @@ export function createSellerSignalMcpServer(options = {}) {
   registerTool(
     "send_seller_signal_whatsapp_message",
     "Send Seller Signal WhatsApp Message",
-    "Send a WhatsApp text message through the connected Seller Signal WhatsApp account. Provide leadId to use the lead phone, or provide to for a direct recipient number.",
+    "Send a WhatsApp text message through the connected Seller Signal WhatsApp account. Lead-based sends require a transaction dated today for that seller's building by default.",
     {
       accountId: z.string().uuid().optional(),
       body: z.string().min(1),
       leadId: leadIdSchema.optional(),
+      requireTodaysTransaction: z.boolean().optional(),
+      sendSource: z.enum(["manual", "bulk", "mcp", "auto"]).optional(),
       to: z.string().optional(),
     },
     async (input) => sendWhatsAppMessage(options.authInfo, input),

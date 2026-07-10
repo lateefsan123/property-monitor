@@ -34,6 +34,22 @@ import {
 } from "./alert-utils";
 import { useListingAlertsState } from "./useListingAlertsState";
 
+function getSyncFetchErrorMessage(payload) {
+  const results = payload?.result ? [payload.result] : payload?.results;
+  if (!Array.isArray(results)) return null;
+
+  const details = results.flatMap((result) => result?.fetchErrorDetails || []);
+  const fetchErrorCount = results.reduce((sum, result) => sum + (result?.fetchErrors || 0), 0);
+  if (!fetchErrorCount) return null;
+
+  const firstError = details[0]?.error || "Bayut live listing fetch failed.";
+  if (firstError.toLowerCase().includes("not subscribed")) {
+    return "Bayut live listing sync is blocked: the RapidAPI key is not subscribed to uae-real-estate2.";
+  }
+
+  return `Bayut live listing sync failed for ${fetchErrorCount} ${fetchErrorCount === 1 ? "building" : "buildings"}: ${firstError}`;
+}
+
 export function useListingAlerts() {
   const [searchTerm, setSearchTerm] = useState("");
   const deferredSearchTerm = useDeferredValue(searchTerm);
@@ -348,9 +364,13 @@ export function useListingAlerts() {
 
     setWatchError(null);
     try {
-      const { error } = await supabase.functions.invoke("listing-alerts-sync");
+      const { data, error } = await supabase.functions.invoke("listing-alerts-sync", {
+        body: { forceFresh: true, source: "web-refresh" },
+      });
       if (error) throw error;
       await loadRemoteState({ showLoading: false });
+      const syncError = getSyncFetchErrorMessage(data);
+      if (syncError) setWatchError(syncError);
     } catch (error) {
       setWatchError(getErrorMessage(error));
     }

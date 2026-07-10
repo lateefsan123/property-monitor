@@ -171,6 +171,10 @@ function sanitizeStoredState(state) {
     priceIncreaseCount: Number.isFinite(state?.summary?.priceIncreaseCount) ? state.summary.priceIncreaseCount : 0,
     removedListingCount: Number.isFinite(state?.summary?.removedListingCount) ? state.summary.removedListingCount : 0,
     lastCheckedAt: toText(state?.summary?.lastCheckedAt),
+    lastAttemptedAt: toText(state?.summary?.lastAttemptedAt),
+    fetchErrorCount: Number.isFinite(state?.summary?.fetchErrorCount) ? state.summary.fetchErrorCount : 0,
+    lastFetchErrorAt: toText(state?.summary?.lastFetchErrorAt),
+    lastFetchErrorMessage: toText(state?.summary?.lastFetchErrorMessage),
     hasSnapshot: Boolean(state?.summary?.hasSnapshot),
   };
 

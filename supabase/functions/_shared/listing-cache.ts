@@ -53,7 +53,7 @@ export async function setCachedListings(
   supabaseAdmin: any,
   building: CachedBuilding,
 ): Promise<void> {
-  await supabaseAdmin.from("listing_cache").upsert(
+  const { error } = await supabaseAdmin.from("listing_cache").upsert(
     {
       location_id: building.locationId,
       building_name: building.buildingName,
@@ -70,4 +70,5 @@ export async function setCachedListings(
     },
     { onConflict: "location_id" },
   );
+  if (error) throw error;
 }

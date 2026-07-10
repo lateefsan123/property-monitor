@@ -2,6 +2,10 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCachedListings, setCachedListings } from "../_shared/listing-cache.ts";
 import {
+  buildEmptyBuilding,
+  fetchListingsForLocation,
+} from "../_shared/bayut-listings-provider.ts";
+import {
   buildListingAlertsState,
   createEmptyListingAlertsState,
   parseSelectedListingKeys,
@@ -9,21 +13,164 @@ import {
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-listing-alerts-sync-token",
 };
 
-const API_HOST = "uae-real-estate2.p.rapidapi.com";
-const BASE_URL = `https://${API_HOST}`;
-const PAGE_SIZE = 25;
-const MAX_PAGES = 7;
-const MAX_LISTINGS_PER_BUILDING = 175;
 const MAX_WATCHED_BUILDINGS = 1000;
 const TRACK_ALL_LISTINGS = true;
 
 const EXPO_PUSH_URL = "https://exp.host/--/api/v2/push/send";
+const ADMIN_SYNC_TOKEN_HEADER = "x-listing-alerts-sync-token";
+
+type SyncUserOptions = {
+  forceFresh?: boolean;
+  sendNotifications?: boolean;
+};
+
+type SyncRunResult = {
+  userId: string;
+  watched?: number;
+  tracked?: number;
+  changes?: number;
+  priceDrops?: number;
+  fetchErrors?: number;
+  fetchErrorDetails?: { locationId: string; buildingName: string; error: string }[];
+  error?: string;
+};
+
+type WatchedItem = {
+  locationId: string;
+  buildingName: string;
+  searchName: string;
+  fullPath: string | null;
+};
+
+type SyncUserPrefetch = {
+  buildingsByLocation?: Map<string, any>;
+};
+
+function toBoolean(value: unknown, fallback = false) {
+  if (typeof value === "boolean") return value;
+  if (typeof value === "string") {
+    const normalized = value.trim().toLowerCase();
+    if (["1", "true", "yes", "y"].includes(normalized)) return true;
+    if (["0", "false", "no", "n"].includes(normalized)) return false;
+  }
+  return fallback;
+}
+
+async function parseRequestBody(req: Request) {
+  const contentType = req.headers.get("content-type") || "";
+  if (!contentType.toLowerCase().includes("application/json")) return {};
+
+  try {
+    const parsed = await req.json();
+    return parsed && typeof parsed === "object" ? parsed : {};
+  } catch {
+    return {};
+  }
+}
+
+function getBearerToken(authHeader: string) {
+  const [scheme, ...tokenParts] = authHeader.trim().split(/\s+/);
+  if (scheme?.toLowerCase() !== "bearer") return null;
+  return tokenParts.join(" ").trim() || null;
+}
+
+async function sha256Hex(value: string) {
+  const bytes = new TextEncoder().encode(value);
+  const hash = await crypto.subtle.digest("SHA-256", bytes);
+  return [...new Uint8Array(hash)]
+    .map((byte) => byte.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+function constantTimeEqual(left: string | null | undefined, right: string | null | undefined) {
+  if (!left || !right || left.length !== right.length) return false;
+
+  let mismatch = 0;
+  for (let index = 0; index < left.length; index += 1) {
+    mismatch |= left.charCodeAt(index) ^ right.charCodeAt(index);
+  }
+  return mismatch === 0;
+}
+
+async function isAdminSyncRequest(
+  supabaseAdmin: any,
+  req: Request,
+  serviceRoleKey: string,
+) {
+  const authHeader = req.headers.get("authorization") || "";
+  const bearerToken = getBearerToken(authHeader);
+  if (serviceRoleKey && constantTimeEqual(bearerToken, serviceRoleKey)) return true;
+
+  const syncToken = req.headers.get(ADMIN_SYNC_TOKEN_HEADER)?.trim();
+  if (!syncToken) return false;
+
+  const tokenHash = await sha256Hex(syncToken);
+  const { data, error } = await supabaseAdmin
+    .from("listing_alerts_sync_tokens")
+    .select("token_hash")
+    .eq("id", "cron")
+    .eq("active", true)
+    .maybeSingle();
+
+  if (error) throw error;
+  return constantTimeEqual(tokenHash, data?.token_hash);
+}
+
+async function recordSyncRun(
+  supabaseAdmin: any,
+  {
+    mode,
+    source,
+    forceFresh,
+    sendNotifications,
+    startedAt,
+    results,
+    errorMessage = null,
+  }: {
+    mode: string;
+    source: string;
+    forceFresh: boolean;
+    sendNotifications: boolean;
+    startedAt: string;
+    results: SyncRunResult[];
+    errorMessage?: string | null;
+  },
+) {
+  const fetchErrorCount = results.reduce((sum, result) => sum + (result.fetchErrors || 0), 0);
+  const errorCount = results.filter((result) => result.error).length + fetchErrorCount + (errorMessage ? 1 : 0);
+  const watchedBuildingCount = results.reduce((sum, result) => sum + (result.watched || 0), 0);
+  const trackedListingCount = results.reduce((sum, result) => sum + (result.tracked || 0), 0);
+  const changeCount = results.reduce((sum, result) => sum + (result.changes || 0), 0);
+  const priceDropCount = results.reduce((sum, result) => sum + (result.priceDrops || 0), 0);
+
+  try {
+    await supabaseAdmin.from("listing_alerts_sync_runs").insert({
+      mode,
+      source,
+      force_fresh: forceFresh,
+      send_notifications: sendNotifications,
+      started_at: startedAt,
+      finished_at: new Date().toISOString(),
+      status: errorMessage ? "error" : errorCount ? "partial" : "ok",
+      user_count: results.length,
+      watched_building_count: watchedBuildingCount,
+      tracked_listing_count: trackedListingCount,
+      change_count: changeCount,
+      price_drop_count: priceDropCount,
+      error_count: errorCount,
+      results,
+      error: errorMessage,
+    });
+  } catch {
+    // Sync run auditing is useful for diagnostics, but should never block alerts.
+  }
+}
 
 async function sendPushNotifications(
-  supabaseAdmin: ReturnType<typeof createClient>,
+  supabaseAdmin: any,
   userId: string,
   priceDropItems: any[],
 ) {
@@ -34,7 +181,7 @@ async function sendPushNotifications(
     .select("expo_push_token")
     .eq("user_id", userId);
 
-  const tokens = (tokenRows || []).map((row) => row.expo_push_token).filter(Boolean);
+  const tokens = (tokenRows || []).map((row: any) => row.expo_push_token).filter(Boolean);
   if (!tokens.length) return;
 
   const dropCount = priceDropItems.length;
@@ -46,7 +193,7 @@ async function sendPushNotifications(
     ? `${first.title} dropped by AED ${Math.abs(first.priceDelta).toLocaleString()}`
     : `${priceDropItems.map((item: any) => item.buildingName).filter((name: string, index: number, arr: string[]) => arr.indexOf(name) === index).slice(0, 3).join(", ")}`;
 
-  const messages = tokens.map((token) => ({
+  const messages = tokens.map((token: string) => ({
     to: token,
     sound: "default",
     title,
@@ -73,119 +220,20 @@ function jsonResponse(body: unknown, status = 200) {
   });
 }
 
-function buildHeaders(apiKey: string) {
-  return {
-    "x-rapidapi-key": apiKey,
-    "x-rapidapi-host": API_HOST,
-    "Content-Type": "application/json",
-  };
-}
-
-async function fetchJson(url: string, options: RequestInit, retries = 3): Promise<any> {
-  for (let attempt = 0; attempt <= retries; attempt += 1) {
-    const response = await fetch(url, options);
-
-    if (response.ok) return response.json();
-
-    if ((response.status === 429 || response.status >= 500) && attempt < retries) {
-      const delay = 1200 * Math.pow(2, attempt);
-      await new Promise((resolve) => setTimeout(resolve, delay));
-      continue;
-    }
-
-    const text = await response.text();
-    throw new Error(`Bayut API ${response.status}: ${text.slice(0, 240)}`);
-  }
-
-  throw new Error("Bayut request failed");
-}
-
 function parseVerifiedAt(value: unknown) {
   if (!value) return 0;
   const parsed = new Date(String(value).replace(" ", "T"));
   return Number.isNaN(parsed.getTime()) ? 0 : parsed.getTime();
 }
 
-function simplifyListing(listing: any) {
-  return {
-    id: listing?.id ?? null,
-    title: listing?.title || "",
-    price: listing?.price ?? null,
-    beds: listing?.details?.bedrooms ?? null,
-    baths: listing?.details?.bathrooms ?? null,
-    areaSqft: listing?.area?.built_up ?? null,
-    bayutUrl: listing?.meta?.url || null,
-    coverPhoto: listing?.media?.cover_photo || listing?.media?.photos?.[0] || null,
-    verifiedAt: listing?.verification?.verified_at || null,
-    isVerified: Boolean(listing?.verification?.is_verified),
-    referenceNumber: listing?.reference_number || null,
-    cluster: listing?.location?.cluster?.name || null,
-    community: listing?.location?.community?.name || null,
-  };
-}
-
-function buildEmptyBuilding(location: any, fetchError: string | null = null) {
-  return {
-    locationId: String(location.locationId),
-    buildingName: location.buildingName || location.searchName || "Unknown",
-    searchName: location.searchName || location.buildingName || "Unknown",
-    fullPath: location.fullPath || null,
-    imageUrl: null,
-    listingCount: 0,
-    latestVerifiedAt: null,
-    lowestPrice: null,
-    highestPrice: null,
-    listings: [],
-    fetchError,
-  };
-}
-
-async function fetchListingsForLocation(location: any, apiKey: string) {
-  const deduped = new Map<number, any>();
-
-  for (let page = 0; page < MAX_PAGES; page += 1) {
-    const payload = await fetchJson(
-      `${BASE_URL}/properties_search?page=${page}`,
-      {
-        method: "POST",
-        headers: buildHeaders(apiKey),
-        body: JSON.stringify({
-          purpose: "for-sale",
-          categories: ["apartments"],
-          locations_ids: [location.locationId],
-          index: "popular",
-          is_completed: true,
-        }),
-      },
-    );
-
-    const results = Array.isArray(payload?.results) ? payload.results : [];
-    let addedThisPage = 0;
-
-    for (const listing of results) {
-      if (listing?.id == null || deduped.has(listing.id)) continue;
-      deduped.set(listing.id, simplifyListing(listing));
-      addedThisPage += 1;
-    }
-
-    if (!results.length || addedThisPage === 0 || deduped.size >= MAX_LISTINGS_PER_BUILDING) break;
+function getLatestSnapshotCheckedAt(snapshot: any) {
+  let latest: string | null = null;
+  for (const building of Object.values(snapshot || {}) as any[]) {
+    const checkedAt = typeof building?.checkedAt === "string" ? building.checkedAt : null;
+    if (!checkedAt) continue;
+    if (!latest || parseVerifiedAt(checkedAt) > parseVerifiedAt(latest)) latest = checkedAt;
   }
-
-  const listings = [...deduped.values()]
-    .sort((left, right) => parseVerifiedAt(right.verifiedAt) - parseVerifiedAt(left.verifiedAt))
-    .slice(0, MAX_LISTINGS_PER_BUILDING);
-
-  const prices = listings.map((listing) => listing.price).filter((value) => Number.isFinite(value));
-
-  return {
-    ...buildEmptyBuilding(location),
-    imageUrl: listings[0]?.coverPhoto || null,
-    listingCount: deduped.size,
-    latestVerifiedAt: listings[0]?.verifiedAt || null,
-    lowestPrice: prices.length ? Math.min(...prices) : null,
-    highestPrice: prices.length ? Math.max(...prices) : null,
-    listings,
-  };
+  return latest;
 }
 
 function toLocationId(value: unknown) {
@@ -198,15 +246,87 @@ function toTrackedKey(locationId: string, listingId: string) {
   return `${locationId}:${listingId}`;
 }
 
+function normalizeWatchlistRows(rows: any[] = [], maxRows: number | null = MAX_WATCHED_BUILDINGS): WatchedItem[] {
+  const rowsToNormalize = maxRows == null ? rows : rows.slice(0, maxRows);
+  return rowsToNormalize
+    .map((row: any) => ({
+      locationId: String(row.location_id),
+      buildingName: row.building_name || row.search_name || "Unknown",
+      searchName: row.search_name || row.building_name || "Unknown",
+      fullPath: row.full_path || null,
+    }))
+    .filter((row: WatchedItem) => row.locationId);
+}
+
+async function fetchBuildingSnapshot({
+  supabaseAdmin,
+  location,
+  apiKey,
+  forceFresh,
+}: {
+  supabaseAdmin: any;
+  location: WatchedItem;
+  apiKey: string;
+  forceFresh: boolean;
+}) {
+  try {
+    if (!forceFresh) {
+      const cached = await getCachedListings(supabaseAdmin, location.locationId);
+      if (cached) return cached;
+    }
+
+    const building = await fetchListingsForLocation(location, apiKey);
+    await setCachedListings(supabaseAdmin, building);
+    return building;
+  } catch (error) {
+    return buildEmptyBuilding(location, (error as Error).message);
+  }
+}
+
+async function fetchUniqueBuildingSnapshots({
+  supabaseAdmin,
+  watchedItems,
+  apiKey,
+  forceFresh,
+}: {
+  supabaseAdmin: any;
+  watchedItems: WatchedItem[];
+  apiKey: string;
+  forceFresh: boolean;
+}) {
+  const uniqueLocations = new Map<string, WatchedItem>();
+  for (const location of watchedItems) {
+    if (!uniqueLocations.has(location.locationId)) {
+      uniqueLocations.set(location.locationId, location);
+    }
+  }
+
+  const buildingsByLocation = new Map<string, any>();
+  for (const location of uniqueLocations.values()) {
+    const building = await fetchBuildingSnapshot({
+      supabaseAdmin,
+      location,
+      apiKey,
+      forceFresh,
+    });
+    buildingsByLocation.set(location.locationId, building);
+  }
+
+  return buildingsByLocation;
+}
+
 async function syncUser({
   supabaseAdmin,
   userId,
   apiKey,
+  forceFresh = false,
+  sendNotifications = true,
+  buildingsByLocation,
 }: {
-  supabaseAdmin: ReturnType<typeof createClient>;
+  supabaseAdmin: any;
   userId: string;
   apiKey: string;
-}) {
+} & SyncUserOptions & SyncUserPrefetch) {
   const { data: watchlistRows, error: watchlistError } = await supabaseAdmin
     .from("listing_alerts_watchlists")
     .select("location_id, building_name, search_name, full_path")
@@ -214,15 +334,7 @@ async function syncUser({
 
   if (watchlistError) throw watchlistError;
 
-  const watchedItems = (watchlistRows || [])
-    .slice(0, MAX_WATCHED_BUILDINGS)
-    .map((row) => ({
-      locationId: String(row.location_id),
-      buildingName: row.building_name || row.search_name || "Unknown",
-      searchName: row.search_name || row.building_name || "Unknown",
-      fullPath: row.full_path || null,
-    }))
-    .filter((row) => row.locationId);
+  const watchedItems = normalizeWatchlistRows(watchlistRows || []);
 
   if (!watchedItems.length) {
     const emptyState = createEmptyListingAlertsState({ watchedBuildingCount: 0, trackedListingCount: 0 });
@@ -249,24 +361,30 @@ async function syncUser({
     if (trackedError) throw trackedError;
 
     selectedListingKeys = parseSelectedListingKeys(
-      (trackedRows || []).map((row) => toTrackedKey(String(row.location_id), String(row.listing_id))).filter(Boolean),
+      (trackedRows || []).map((row: any) => toTrackedKey(String(row.location_id), String(row.listing_id))).filter(Boolean),
     );
   }
 
   const currentBuildings = [];
+  const fetchErrorDetails: { locationId: string; buildingName: string; error: string }[] = [];
   for (const location of watchedItems) {
-    try {
-      const cached = await getCachedListings(supabaseAdmin, location.locationId);
-      if (cached) {
-        currentBuildings.push(cached);
-        continue;
-      }
-      const building = await fetchListingsForLocation(location, apiKey);
-      await setCachedListings(supabaseAdmin, building);
-      currentBuildings.push(building);
-    } catch (error) {
-      currentBuildings.push(buildEmptyBuilding(location, (error as Error).message));
+    const building = buildingsByLocation?.get(location.locationId)
+      || await fetchBuildingSnapshot({
+        supabaseAdmin,
+        location,
+        apiKey,
+        forceFresh,
+      });
+
+    if (building?.fetchError) {
+      fetchErrorDetails.push({
+        locationId: String(location.locationId),
+        buildingName: location.buildingName || location.searchName || "Unknown",
+        error: building.fetchError,
+      });
     }
+
+    currentBuildings.push(building);
   }
 
   const { data: previousStateRow } = await supabaseAdmin
@@ -284,7 +402,13 @@ async function syncUser({
       }
     : null;
 
-  const checkedAt = new Date().toISOString();
+  const attemptedAt = new Date().toISOString();
+  const hasFreshBuilding = currentBuildings.some((building: any) => !building.fetchError);
+  const latestPreviousSnapshotAt = getLatestSnapshotCheckedAt(previousState?.snapshot);
+  const previousHadFetchErrors = Number(previousState?.summary?.fetchErrorCount || 0) > 0;
+  const previousSuccessfulCheckedAt = latestPreviousSnapshotAt
+    || (previousHadFetchErrors ? null : previousState?.summary?.lastCheckedAt || null);
+  const checkedAt = hasFreshBuilding ? attemptedAt : previousSuccessfulCheckedAt || attemptedAt;
   const nextState = buildListingAlertsState({
     currentBuildings,
     previousState: previousState || undefined,
@@ -293,12 +417,20 @@ async function syncUser({
     checkedAt,
     trackAllListings: TRACK_ALL_LISTINGS,
   });
+  const nextSummary = {
+    ...nextState.summary,
+    lastCheckedAt: hasFreshBuilding ? nextState.summary.lastCheckedAt : previousSuccessfulCheckedAt,
+    lastAttemptedAt: attemptedAt,
+    fetchErrorCount: fetchErrorDetails.length,
+    lastFetchErrorAt: fetchErrorDetails.length ? attemptedAt : null,
+    lastFetchErrorMessage: fetchErrorDetails[0]?.error || null,
+  };
 
   const { error: upsertError } = await supabaseAdmin
     .from("listing_alerts_state")
     .upsert({
       user_id: userId,
-      summary: nextState.summary,
+      summary: nextSummary,
       snapshot: nextState.snapshot,
       change_items: nextState.changeItems,
       listing_history: nextState.listingHistory,
@@ -307,7 +439,7 @@ async function syncUser({
   if (upsertError) throw upsertError;
 
   const priceDropItems = (nextState.changeItems || []).filter((item: any) => item.type === "price_drop");
-  await sendPushNotifications(supabaseAdmin, userId, priceDropItems);
+  if (sendNotifications) await sendPushNotifications(supabaseAdmin, userId, priceDropItems);
 
   return {
     userId,
@@ -315,13 +447,27 @@ async function syncUser({
     tracked: TRACK_ALL_LISTINGS ? nextState.summary?.trackedListingCount || 0 : selectedListingKeys.length,
     changes: nextState.summary?.totalChanges || 0,
     priceDrops: priceDropItems.length,
+    fetchErrors: fetchErrorDetails.length,
+    fetchErrorDetails: fetchErrorDetails.slice(0, 10),
   };
 }
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
 
+  const startedAt = new Date().toISOString();
+  let syncResults: SyncRunResult[] = [];
+
   try {
+    const body = await parseRequestBody(req);
+    const forceFresh = toBoolean((body as any).forceFresh ?? (body as any).ignoreCache, false);
+    const sendNotifications = (body as any).sendNotifications === false || (body as any).notify === false
+      ? false
+      : true;
+    const source = typeof (body as any).source === "string" && (body as any).source.trim()
+      ? (body as any).source.trim().slice(0, 80)
+      : "manual";
+
     const apiKey = Deno.env.get("RAPIDAPI_KEY") || Deno.env.get("VITE_RAPIDAPI_KEY");
     if (!apiKey) return jsonResponse({ error: "RAPIDAPI_KEY not configured" }, 500);
 
@@ -335,36 +481,93 @@ Deno.serve(async (req) => {
     const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
 
     const authHeader = req.headers.get("authorization") || "";
-    if (authHeader && anonKey) {
+    const isAdminRequest = await isAdminSyncRequest(supabaseAdmin, req, serviceRoleKey);
+
+    if (authHeader && !isAdminRequest && anonKey) {
       const supabaseUser = createClient(supabaseUrl, anonKey, {
         global: { headers: { Authorization: authHeader } },
       });
       const { data: { user } } = await supabaseUser.auth.getUser();
       if (!user) return jsonResponse({ error: "Unauthorized" }, 401);
 
-      const result = await syncUser({ supabaseAdmin, userId: user.id, apiKey });
-      return jsonResponse({ mode: "user", result });
+      const result = await syncUser({
+        supabaseAdmin,
+        userId: user.id,
+        apiKey,
+        forceFresh,
+        sendNotifications,
+      });
+      syncResults = [result];
+      await recordSyncRun(supabaseAdmin, {
+        mode: "user",
+        source,
+        forceFresh,
+        sendNotifications,
+        startedAt,
+        results: syncResults,
+      });
+      return jsonResponse({ mode: "user", forceFresh, notify: sendNotifications, result });
     }
 
-    const { data: userRows, error: usersError } = await supabaseAdmin
+    if (!isAdminRequest) return jsonResponse({ error: "Unauthorized" }, 401);
+
+    const { data: watchlistRows, error: usersError } = await supabaseAdmin
       .from("listing_alerts_watchlists")
-      .select("user_id");
+      .select("user_id, location_id, building_name, search_name, full_path");
 
     if (usersError) throw usersError;
 
-    const userIds = [...new Set((userRows || []).map((row) => row.user_id).filter(Boolean))];
+    const userIds = [...new Set((watchlistRows || []).map((row) => row.user_id).filter(Boolean))];
+    const allWatchedItems = normalizeWatchlistRows(watchlistRows || [], null);
+    const buildingsByLocation = await fetchUniqueBuildingSnapshots({
+      supabaseAdmin,
+      watchedItems: allWatchedItems,
+      apiKey,
+      forceFresh,
+    });
+    const uniqueWatchedBuildings = buildingsByLocation.size;
     const results = [];
 
     for (const userId of userIds) {
       try {
-        results.push(await syncUser({ supabaseAdmin, userId, apiKey }));
+        results.push(await syncUser({
+          supabaseAdmin,
+          userId,
+          apiKey,
+          forceFresh,
+          sendNotifications,
+          buildingsByLocation,
+        }));
       } catch (error) {
         results.push({ userId, error: (error as Error).message });
       }
     }
 
-    return jsonResponse({ mode: "admin", results });
+    syncResults = results;
+    await recordSyncRun(supabaseAdmin, {
+      mode: "admin",
+      source,
+      forceFresh,
+      sendNotifications,
+      startedAt,
+      results: syncResults,
+    });
+    return jsonResponse({ mode: "admin", forceFresh, notify: sendNotifications, uniqueWatchedBuildings, results });
   } catch (error) {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL") || Deno.env.get("VITE_SUPABASE_URL");
+    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (supabaseUrl && serviceRoleKey) {
+      const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey);
+      await recordSyncRun(supabaseAdmin, {
+        mode: "unknown",
+        source: "manual",
+        forceFresh: false,
+        sendNotifications: false,
+        startedAt,
+        results: syncResults,
+        errorMessage: (error as Error).message,
+      });
+    }
     return jsonResponse({ error: (error as Error).message }, 500);
   }
 });

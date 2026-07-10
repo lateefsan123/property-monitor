@@ -113,6 +113,8 @@ export async function sendLeadWhatsAppMessage({
   leadId,
   message,
   phone,
+  requireTodaysTransaction = true,
+  sendSource = "manual",
 }) {
   const to = formatPhoneForWhatsApp(phone);
   if (!to) throw new Error("Lead does not have a valid WhatsApp phone number");
@@ -123,6 +125,8 @@ export async function sendLeadWhatsAppMessage({
       leadId,
       to,
       body: message,
+      requireTodaysTransaction,
+      sendSource,
     },
     timeout: WHATSAPP_SEND_TIMEOUT_MS,
   });

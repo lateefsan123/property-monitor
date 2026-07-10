@@ -1,6 +1,8 @@
 import { getSupabaseAdminClient } from "./config.js";
 
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
+const ACTIVE_MARKET_MESSAGE_STATUSES = ["queued", "sending", "sent", "delivered", "read"];
+const SEND_SOURCES = new Set(["manual", "bulk", "mcp", "auto"]);
 
 export class SubscriptionRequiredError extends Error {
   constructor(message = "Seller Signal subscription is required to use the ChatGPT app.") {
@@ -21,6 +23,207 @@ export function normalizeWhatsAppPhone(value) {
   if (digits.startsWith("9710")) return `971${digits.slice(4)}`;
   if (digits.startsWith("0")) return `971${digits.slice(1)}`;
   return digits || null;
+}
+
+function normalizeToken(value) {
+  return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function cleanBuildingName(raw) {
+  let name = String(raw || "").trim();
+  const addressMatch = name.match(/^(?:\[[^\]]+\]\s*)?(?:Apartment|Apt|Flat|Unit|Villa)\s+([\w-]+)(?:\s*\([^)]*\))?\s*,\s*(.+)$/i);
+  if (addressMatch) {
+    name = addressMatch[2].split(",").map((part) => part.trim()).filter(Boolean)[0] || name;
+  }
+
+  name = name
+    .replace(/\b(one|two|three|four|five|1|2|3|4|5)\s*[-\s]?\s*bed(room)?s?\b/gi, "")
+    .replace(/\bstudio\b/gi, "")
+    .replace(/\b\d+\s*bhk\b/gi, "")
+    .replace(/\b\d+\s*br\b/gi, "")
+    .replace(/\((?:NOT\s+)?LIVE\)/gi, "")
+    .replace(/\(FSA[^)]*\)/gi, "")
+    .replace(/\[OFFLINE\]/gi, "")
+    .replace(/\[NOT\s+LIVE\]/gi, "")
+    .replace(/^(?:Villa|Unit)\s+[\w-]+\s*,?\s*/i, "")
+    .replace(/[,\-/]+$/, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  return name || String(raw || "").trim();
+}
+
+function stripLocationSuffix(value) {
+  return String(value || "")
+    .replace(/,\s*(Downtown Dubai|Downtown|Old Town Dubai|Old Town|Business Bay|City Walk|DIFC|Sheikh Zayed Road)\s*$/i, "")
+    .replace(/\b(Downtown Dubai|Downtown|Old Town Dubai|Old Town|Business Bay|City Walk|DIFC)\s*$/i, "")
+    .replace(/\bDubai\s*$/i, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function expandCommonBuildingAbbreviations(value) {
+  return String(value || "")
+    .replace(/&/g, " and ")
+    .replace(/\bblvd\.?\b/gi, "Boulevard")
+    .replace(/\bbldg\.?\b/gi, "Building")
+    .replace(/\btwr\.?\b/gi, "Tower")
+    .replace(/\bresid\.?\b/gi, "Residence")
+    .replace(/\bres\.?\b/gi, "Residence")
+    .replace(/\bapts?\.?\b/gi, "Apartments")
+    .replace(/\bapt\.?\b/gi, "Apartment");
+}
+
+function compressCommonBuildingAbbreviations(value) {
+  return String(value || "")
+    .replace(/&/g, " and ")
+    .replace(/\bboulevard\b/gi, "Blvd")
+    .replace(/\bbuilding\b/gi, "Bldg")
+    .replace(/\btower\b/gi, "Twr")
+    .replace(/\bresidence\b/gi, "Res")
+    .replace(/\bapartments?\b/gi, "Apt");
+}
+
+function replaceNumberWords(value) {
+  return String(value || "")
+    .replace(/\bone\b/gi, "1")
+    .replace(/\btwo\b/gi, "2")
+    .replace(/\bthree\b/gi, "3")
+    .replace(/\bfour\b/gi, "4")
+    .replace(/\bfive\b/gi, "5");
+}
+
+function getBuildingKeyVariants(raw) {
+  const cleaned = cleanBuildingName(raw);
+  const variants = new Set();
+  const addVariant = (value) => {
+    const trimmed = String(value || "").replace(/\s+/g, " ").trim();
+    if (trimmed) variants.add(trimmed);
+  };
+  const addDerivedVariants = (value) => {
+    const base = stripLocationSuffix(value);
+    addVariant(base);
+    addVariant(expandCommonBuildingAbbreviations(base));
+    addVariant(compressCommonBuildingAbbreviations(base));
+    addVariant(base.replace(/^the\s+/i, ""));
+    addVariant(`The ${base.replace(/^the\s+/i, "")}`);
+    addVariant(base.replace(/\btowers\b/gi, "Tower"));
+    addVariant(base.replace(/\bresidences\b/gi, "Residence"));
+    addVariant(base.replace(/\b(towers?|buildings?|blocks?|offices?|hotels?|apartments?)\b/gi, " "));
+    addVariant(base.replace(/\bTower\s+A\b/gi, "Tower 1"));
+    addVariant(base.replace(/\bTower\s+B\b/gi, "Tower 2"));
+    addVariant(base.replace(/\bTower\s+1\b/gi, "Tower A"));
+    addVariant(base.replace(/\bTower\s+2\b/gi, "Tower B"));
+    addVariant(base.replace(/\bTower\s+([A-Za-z0-9]+)\b/gi, "T$1"));
+    addVariant(base.replace(/\bT\s*([A-Za-z0-9]+)\b/gi, "Tower $1"));
+    addVariant(base.replace(/\b([A-Za-z])\b$/i, "Tower $1"));
+  };
+
+  addDerivedVariants(cleaned);
+  addDerivedVariants(replaceNumberWords(cleaned));
+  for (const variant of [...variants]) {
+    addDerivedVariants(variant);
+  }
+
+  const keys = new Set();
+  for (const variant of variants) {
+    for (const candidate of [variant, stripLocationSuffix(variant), variant.replace(/^the\s+/i, "")]) {
+      for (const form of [
+        candidate,
+        expandCommonBuildingAbbreviations(candidate),
+        compressCommonBuildingAbbreviations(candidate),
+        replaceNumberWords(candidate),
+        replaceNumberWords(expandCommonBuildingAbbreviations(candidate)),
+        replaceNumberWords(compressCommonBuildingAbbreviations(candidate)),
+      ]) {
+        const normalized = normalizeToken(
+          form
+            .replace(/\bresidences\b/gi, "Residence")
+            .replace(/\btowers\b/gi, "Tower"),
+        );
+        if (normalized) keys.add(normalized);
+      }
+    }
+  }
+
+  return [...keys];
+}
+
+function chunkArray(items, size) {
+  const chunks = [];
+  for (let index = 0; index < items.length; index += size) chunks.push(items.slice(index, index + size));
+  return chunks;
+}
+
+function isMissingBuildingAliasesTableError(error) {
+  const message = String(error?.message || "");
+  return error?.code === "42P01" || message.includes("building_aliases");
+}
+
+async function getBuildingKeyVariantsWithAliases(userId, raw) {
+  const baseKeys = getBuildingKeyVariants(raw);
+  const keys = new Set(baseKeys);
+  if (!userId || !baseKeys.length) return [...keys];
+
+  for (const batch of chunkArray(baseKeys, 100)) {
+    const { data, error } = await getSupabaseAdminClient()
+      .from("building_aliases")
+      .select("user_id, alias_key, canonical_name, is_global")
+      .or(`is_global.eq.true,user_id.eq.${userId}`)
+      .in("alias_key", batch);
+
+    if (error) {
+      if (isMissingBuildingAliasesTableError(error)) return [...keys];
+      throw new Error(error.message);
+    }
+
+    const globalNamesByAlias = new Map();
+    const userNamesByAlias = new Map();
+    for (const alias of data || []) {
+      const aliasKey = cleanString(alias.alias_key);
+      const canonicalName = cleanString(alias.canonical_name);
+      if (!aliasKey || !canonicalName) continue;
+
+      const target = alias.is_global === true
+        ? globalNamesByAlias
+        : cleanString(alias.user_id) === userId
+          ? userNamesByAlias
+          : null;
+      if (!target) continue;
+
+      const names = target.get(aliasKey) || new Set();
+      names.add(canonicalName);
+      target.set(aliasKey, names);
+    }
+
+    for (const aliasKey of batch) {
+      const canonicalNames = userNamesByAlias.get(aliasKey)?.size
+        ? userNamesByAlias.get(aliasKey)
+        : globalNamesByAlias.get(aliasKey);
+      if (!canonicalNames?.size) continue;
+
+      for (const canonicalName of canonicalNames) {
+        for (const key of getBuildingKeyVariants(canonicalName)) keys.add(key);
+      }
+    }
+  }
+
+  return [...keys];
+}
+
+function getDubaiDateKey(dateValue = new Date()) {
+  const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
+  if (Number.isNaN(date.getTime())) return null;
+
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone: "Asia/Dubai",
+    year: "numeric",
+  }).formatToParts(date);
+  const values = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  if (!values.year || !values.month || !values.day) return null;
+  return `${values.year}-${values.month}-${values.day}`;
 }
 
 function getBaileysSessionId(account) {
@@ -365,7 +568,7 @@ async function getLeadForMessage(userId, leadId) {
 
   const { data, error } = await getSupabaseAdminClient()
     .from("leads")
-    .select("id, user_id, name, phone")
+    .select("id, user_id, name, phone, building")
     .eq("user_id", userId)
     .eq("id", leadId)
     .maybeSingle();
@@ -373,6 +576,49 @@ async function getLeadForMessage(userId, leadId) {
   if (error) throw new Error(error.message);
   if (!data) throw new Error(`Lead not found: ${leadId}`);
   return data;
+}
+
+async function assertLeadHasTodaysTransaction(userId, lead) {
+  if (!lead) return null;
+
+  const buildingKeys = await getBuildingKeyVariantsWithAliases(userId, lead.building);
+  if (!buildingKeys.length) {
+    throw new Error("This seller has no building to match against today's transactions.");
+  }
+
+  const todayDateKey = getDubaiDateKey();
+  if (!todayDateKey) throw new Error("Could not resolve today's transaction date.");
+
+  const { data, error } = await getSupabaseAdminClient()
+    .from("transactions")
+    .select("id")
+    .in("building_key", buildingKeys)
+    .eq("date", todayDateKey)
+    .limit(1);
+
+  if (error) throw new Error(error.message);
+  if (!data?.length) {
+    throw new Error(`No transaction dated ${todayDateKey} was found for this seller's building.`);
+  }
+
+  return todayDateKey;
+}
+
+async function assertNoLeadMessageForMarketDate(userId, leadId, transactionDate) {
+  const { data, error } = await getSupabaseAdminClient()
+    .from("whatsapp_messages")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("lead_id", leadId)
+    .eq("direction", "outbound")
+    .eq("market_transaction_date", transactionDate)
+    .in("status", ACTIVE_MARKET_MESSAGE_STATUSES)
+    .limit(1);
+
+  if (error) throw new Error(error.message);
+  if (data?.length) {
+    throw new Error(`A WhatsApp message already exists for this seller's ${transactionDate} transaction update.`);
+  }
 }
 
 async function getAccountSecret(accountId) {
@@ -459,9 +705,15 @@ export async function sendWhatsAppMessage(authInfo, input = {}) {
   if (!body) throw new Error("body is required");
 
   const lead = await getLeadForMessage(userId, input.leadId || null);
+  let marketTransactionDate = null;
+  if (lead && input.requireTodaysTransaction !== false) {
+    marketTransactionDate = await assertLeadHasTodaysTransaction(userId, lead);
+    if (marketTransactionDate) await assertNoLeadMessageForMarketDate(userId, lead.id, marketTransactionDate);
+  }
   const account = await getConnectedAccount(userId, input.accountId || null);
   const to = normalizeWhatsAppPhone(input.to || lead?.phone);
   if (!to) throw new Error("Recipient phone number is required");
+  const sendSource = SEND_SOURCES.has(String(input.sendSource || "")) ? String(input.sendSource) : "mcp";
 
   const client = getSupabaseAdminClient();
   const { data: messageRow, error: insertError } = await client
@@ -480,10 +732,15 @@ export async function sendWhatsAppMessage(authInfo, input = {}) {
         type: "text",
         text: { body, preview_url: false },
       },
+      send_source: sendSource,
+      market_transaction_date: marketTransactionDate,
     })
     .select("id")
     .single();
 
+  if (insertError?.code === "23505" && marketTransactionDate) {
+    throw new Error(`A WhatsApp message already exists for this seller's ${marketTransactionDate} transaction update.`);
+  }
   if (insertError) throw new Error(insertError.message);
 
   try {

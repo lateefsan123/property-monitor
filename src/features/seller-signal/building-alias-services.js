@@ -8,6 +8,7 @@ function mapBuildingAliasRow(row) {
     aliasName: row.alias_name || "",
     aliasKey: row.alias_key || "",
     canonicalName: row.canonical_name || "",
+    isGlobal: Boolean(row.is_global),
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -23,7 +24,7 @@ export async function fetchBuildingAliases(userId) {
   const { data, error } = await supabase
     .from("building_aliases")
     .select("*")
-    .eq("user_id", userId)
+    .or(`is_global.eq.true,user_id.eq.${userId}`)
     .order("alias_name");
 
   if (isMissingAliasTableError(error)) return [];
@@ -47,6 +48,7 @@ export async function upsertBuildingAlias({ userId, aliasName, canonicalName }) 
     alias_name: cleanedAlias,
     alias_key: aliasKey,
     canonical_name: cleanedCanonical,
+    is_global: false,
   };
 
   const { data, error } = await supabase

@@ -244,28 +244,14 @@
   color: var(--text-name);
 }
 
-.ld-chart-svg {
-  display: block;
-  width: 100%;
-  height: auto;
+.ld-chart-body {
+  height: 220px;
+  padding: 0 2px 8px;
 }
 
-.ld-chart-grid {
-  stroke: var(--bg-card-border);
-  stroke-width: 1;
-}
-
-.ld-chart-area {
-  fill: var(--stat-value);
-  fill-opacity: 0.14;
-}
-
-.ld-chart-line {
-  stroke: var(--stat-value);
-  stroke-width: 2.5;
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.ld-chart .recharts-wrapper,
+.ld-chart .recharts-surface {
+  overflow: visible;
 }
 
 .ld-chart-dot {
@@ -282,11 +268,35 @@
   fill: var(--badge-due-text);
 }
 
-.ld-chart-axis {
+.ld-chart .recharts-cartesian-axis-tick-value {
   font-size: 10px;
   font-weight: 700;
   fill: var(--text-faint);
   letter-spacing: 0.05em;
+}
+
+.ld-chart-tooltip {
+  min-width: 132px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--bg-card-border);
+  background: var(--bg-card);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.14);
+}
+
+.ld-chart-tooltip-price {
+  font-size: 0.875rem;
+  font-weight: 900;
+  color: var(--text-name);
+}
+
+.ld-chart-tooltip-date {
+  margin-top: 3px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
 }
 
 .ld-chart-empty {

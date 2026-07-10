@@ -6,14 +6,17 @@ import {
   IconChartLine,
   IconExternalLink,
 } from "@tabler/icons-react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  Line,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { formatEventTimestamp, formatPrice } from "../formatters";
-
-const CHART_HEIGHT = 220;
-const CHART_PAD_LEFT = 16;
-const CHART_PAD_RIGHT = 16;
-const CHART_PAD_TOP = 24;
-const CHART_PAD_BOTTOM = 32;
-const CHART_WIDTH = 560;
 
 export function ExternalLinkIcon({ size = 16 }) {
   return <IconExternalLink size={size} stroke={2} aria-hidden="true" />;
@@ -97,18 +100,101 @@ function TimelineEvent({ event, isLast }) {
   );
 }
 
+function formatChartDate(value) {
+  return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short" }).toUpperCase();
+}
+
+function parseChartTime(value) {
+  const time = new Date(String(value || "").replace(" ", "T")).getTime();
+  return Number.isFinite(time) ? time : null;
+}
+
+function PriceChartTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  const point = payload[0]?.payload;
+  if (!point) return null;
+
+  return (
+    <div className="ld-chart-tooltip">
+      <div className="ld-chart-tooltip-price">{formatPrice(point.price)}</div>
+      <div className="ld-chart-tooltip-date">{formatEventTimestamp(point.at)}</div>
+    </div>
+  );
+}
+
+function PriceChartDot({ cx, cy, payload, index, dataLength }) {
+  if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+  const isDrop = payload?.type === "price_drop";
+  const isRise = payload?.type === "price_increase";
+  const isEnd = index === 0 || index === dataLength - 1;
+  const className = isDrop ? "ld-chart-dot drop" : isRise ? "ld-chart-dot rise" : "ld-chart-dot";
+
+  return <circle cx={cx} cy={cy} r={isEnd ? 5 : 3.5} className={className} />;
+}
+
 export function PriceChart({ priceHistory }) {
-  const points = useMemo(() => {
+  const chart = useMemo(() => {
     if (!Array.isArray(priceHistory)) return [];
-    return priceHistory
-      .filter((event) => Number.isFinite(event?.price) && event.at)
-      .map((event) => {
-        const time = new Date(String(event.at).replace(" ", "T")).getTime();
-        return Number.isFinite(time) ? { t: time, price: event.price, type: event.type } : null;
+    const points = priceHistory
+      .flatMap((event) => {
+        const currentTime = parseChartTime(event?.at);
+        const currentPrice = Number(event?.price);
+        if (!Number.isFinite(currentTime) || !Number.isFinite(currentPrice)) return [];
+
+        const eventPoints = [];
+        const previousPrice = Number(event?.previousPrice);
+        const hasPreviousPrice =
+          (event.type === "price_drop" || event.type === "price_increase") &&
+          Number.isFinite(previousPrice);
+
+        if (hasPreviousPrice) {
+          const verifiedTime = parseChartTime(event.verifiedAt);
+          const previousTime =
+            Number.isFinite(verifiedTime) && verifiedTime < currentTime
+              ? verifiedTime
+              : currentTime - 24 * 60 * 60 * 1000;
+
+          eventPoints.push({
+            t: previousTime,
+            at: event.verifiedAt || event.at,
+            price: previousPrice,
+            type: "previous_price",
+            dateLabel: formatChartDate(previousTime),
+          });
+        }
+
+        eventPoints.push({
+          t: currentTime,
+          at: event.at,
+          price: currentPrice,
+          type: event.type,
+          dateLabel: formatChartDate(currentTime),
+        });
+
+        return eventPoints;
       })
       .filter(Boolean)
       .sort((left, right) => left.t - right.t);
+
+    if (!points.length) return { points: [] };
+
+    const prices = points.map((point) => point.price);
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+    const priceSpan = maxPrice - minPrice;
+    const pricePadding = priceSpan === 0 ? Math.max(1, Math.abs(maxPrice) * 0.05) : priceSpan * 0.18;
+
+    return {
+      points,
+      minPrice,
+      maxPrice,
+      minY: minPrice - pricePadding,
+      maxY: maxPrice + pricePadding,
+      firstDate: formatChartDate(points[0].t),
+      lastDate: formatChartDate(points[points.length - 1].t),
+    };
   }, [priceHistory]);
+  const points = chart.points || [];
 
   if (points.length < 2) {
     return (
@@ -125,116 +211,83 @@ export function PriceChart({ priceHistory }) {
       </div>
     );
   }
-
-  const innerWidth = Math.max(1, CHART_WIDTH - CHART_PAD_LEFT - CHART_PAD_RIGHT);
-  const innerHeight = CHART_HEIGHT - CHART_PAD_TOP - CHART_PAD_BOTTOM;
-  const minT = points[0].t;
-  const maxT = points[points.length - 1].t;
-  const tSpan = Math.max(1, maxT - minT);
-
-  let minPrice = Infinity;
-  let maxPrice = -Infinity;
-  for (const point of points) {
-    if (point.price < minPrice) minPrice = point.price;
-    if (point.price > maxPrice) maxPrice = point.price;
-  }
-
-  const priceSpanRaw = maxPrice - minPrice;
-  const pricePadding = priceSpanRaw === 0 ? Math.max(1, Math.abs(maxPrice) * 0.05) : priceSpanRaw * 0.18;
-  const minY = minPrice - pricePadding;
-  const maxY = maxPrice + pricePadding;
-  const yRange = Math.max(1, maxY - minY);
-
-  const xFor = (time) => CHART_PAD_LEFT + ((time - minT) / tSpan) * innerWidth;
-  const yFor = (price) => CHART_PAD_TOP + (1 - (price - minY) / yRange) * innerHeight;
-
-  function buildSmoothPath(pathPoints) {
-    if (pathPoints.length < 2) return "";
-
-    let path = `M ${xFor(pathPoints[0].t).toFixed(2)} ${yFor(pathPoints[0].price).toFixed(2)}`;
-    for (let index = 0; index < pathPoints.length - 1; index += 1) {
-      const current = pathPoints[index];
-      const next = pathPoints[index + 1];
-      const x0 = xFor(current.t);
-      const y0 = yFor(current.price);
-      const x1 = xFor(next.t);
-      const y1 = yFor(next.price);
-      const midX = (x0 + x1) / 2;
-      path += ` C ${midX.toFixed(2)} ${y0.toFixed(2)}, ${midX.toFixed(2)} ${y1.toFixed(2)}, ${x1.toFixed(2)} ${y1.toFixed(2)}`;
-    }
-    return path;
-  }
-
-  const linePath = buildSmoothPath(points);
-  const baselineY = (CHART_PAD_TOP + innerHeight).toFixed(2);
-  const areaPath = `${linePath} L ${xFor(maxT).toFixed(2)} ${baselineY} L ${xFor(minT).toFixed(2)} ${baselineY} Z`;
-  const gridLines = [0, 0.33, 0.66, 1].map((fraction) => CHART_PAD_TOP + fraction * innerHeight);
-  const firstDate = new Date(minT).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
-  const lastDate = new Date(maxT).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+  const firstTime = points[0].t;
+  const lastTime = points[points.length - 1].t;
 
   return (
     <div className="ld-chart">
       <div className="ld-chart-header">
         <div className="ld-chart-stat">
           <Eyebrow>HIGH</Eyebrow>
-          <div className="ld-chart-stat-value">{formatPrice(maxPrice)}</div>
+          <div className="ld-chart-stat-value">{formatPrice(chart.maxPrice)}</div>
         </div>
         <div className="ld-chart-stat center">
           <Eyebrow>RANGE</Eyebrow>
-          <div className="ld-chart-stat-value">{formatPrice(maxPrice - minPrice)}</div>
+          <div className="ld-chart-stat-value">{formatPrice(chart.maxPrice - chart.minPrice)}</div>
         </div>
         <div className="ld-chart-stat end">
           <Eyebrow>LOW</Eyebrow>
-          <div className="ld-chart-stat-value">{formatPrice(minPrice)}</div>
+          <div className="ld-chart-stat-value">{formatPrice(chart.minPrice)}</div>
         </div>
       </div>
 
-      <svg className="ld-chart-svg" viewBox={`0 0 ${CHART_WIDTH} ${CHART_HEIGHT}`} preserveAspectRatio="xMidYMid meet">
-        {gridLines.map((y, index) => (
-          <line
-            key={`grid-${index}`}
-            x1={CHART_PAD_LEFT}
-            y1={y}
-            x2={CHART_WIDTH - CHART_PAD_RIGHT}
-            y2={y}
-            className="ld-chart-grid"
-            strokeDasharray="2,5"
-          />
-        ))}
-
-        <path d={areaPath} className="ld-chart-area" />
-        <path d={linePath} className="ld-chart-line" />
-
-        {points.map((point, index) => {
-          const cx = xFor(point.t);
-          const cy = yFor(point.price);
-          const isDrop = point.type === "price_drop";
-          const isRise = point.type === "price_increase";
-          const dotClass = isDrop ? "ld-chart-dot drop" : isRise ? "ld-chart-dot rise" : "ld-chart-dot";
-          const isEnd = index === 0 || index === points.length - 1;
-          return (
-            <circle
-              key={`dot-${index}`}
-              cx={cx}
-              cy={cy}
-              r={isEnd ? 5 : 3.5}
-              className={dotClass}
+      <div className="ld-chart-body">
+        <ResponsiveContainer width="100%" height={220}>
+          <AreaChart data={points} margin={{ top: 14, right: 18, bottom: 18, left: 18 }}>
+            <defs>
+              <linearGradient id="listing-price-gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--stat-value)" stopOpacity={0.2} />
+                <stop offset="95%" stopColor="var(--stat-value)" stopOpacity={0.02} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid
+              vertical={false}
+              stroke="var(--bg-card-border)"
+              strokeDasharray="2 5"
             />
-          );
-        })}
-
-        <text x={CHART_PAD_LEFT} y={CHART_HEIGHT - 10} className="ld-chart-axis">
-          {firstDate.toUpperCase()}
-        </text>
-        <text
-          x={CHART_WIDTH - CHART_PAD_RIGHT}
-          y={CHART_HEIGHT - 10}
-          className="ld-chart-axis"
-          textAnchor="end"
-        >
-          {lastDate.toUpperCase()}
-        </text>
-      </svg>
+            <XAxis
+              dataKey="t"
+              type="number"
+              domain={[firstTime, lastTime]}
+              ticks={[firstTime, lastTime]}
+              interval={0}
+              axisLine={false}
+              tickLine={false}
+              tickMargin={10}
+              tickFormatter={(value) => formatChartDate(value)}
+              className="ld-chart-axis"
+            />
+            <YAxis
+              dataKey="price"
+              type="number"
+              domain={[chart.minY, chart.maxY]}
+              hide
+            />
+            <Tooltip
+              content={<PriceChartTooltip />}
+              cursor={{ stroke: "var(--text-faint)", strokeWidth: 1, strokeDasharray: "3 5" }}
+              wrapperStyle={{ outline: "none" }}
+            />
+            <Area
+              type="monotone"
+              dataKey="price"
+              stroke="none"
+              fill="url(#listing-price-gradient)"
+              isAnimationActive={false}
+              activeDot={false}
+            />
+            <Line
+              type="monotone"
+              dataKey="price"
+              stroke="var(--stat-value)"
+              strokeWidth={2.5}
+              dot={(props) => <PriceChartDot {...props} dataLength={points.length} />}
+              activeDot={{ r: 6, stroke: "var(--bg-card)", strokeWidth: 2, fill: "var(--stat-value)" }}
+              isAnimationActive={false}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </div>
     </div>
   );
 }

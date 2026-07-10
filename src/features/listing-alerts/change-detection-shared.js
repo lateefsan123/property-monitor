@@ -14,6 +14,10 @@ export const EMPTY_ALERT_SUMMARY = Object.freeze({
   priceIncreaseCount: 0,
   removedListingCount: 0,
   lastCheckedAt: null,
+  lastAttemptedAt: null,
+  fetchErrorCount: 0,
+  lastFetchErrorAt: null,
+  lastFetchErrorMessage: null,
   hasSnapshot: false,
 });
 

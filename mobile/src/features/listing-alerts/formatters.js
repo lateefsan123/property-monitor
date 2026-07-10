@@ -33,8 +33,14 @@ export function formatBedsAndBaths(beds, baths) {
   return `${bedLabel} | ${bathLabel}`;
 }
 
+function normalizeDisplayAreaSqft(areaSqft) {
+  if (!Number.isFinite(areaSqft)) return null;
+  return areaSqft > 0 && areaSqft < 450 ? areaSqft * 10.7639104167 : areaSqft;
+}
+
 export function formatArea(areaSqft) {
-  return Number.isFinite(areaSqft) ? `${Math.round(areaSqft).toLocaleString()} sqft` : "Area n/a";
+  const normalizedArea = normalizeDisplayAreaSqft(areaSqft);
+  return Number.isFinite(normalizedArea) ? `${Math.round(normalizedArea).toLocaleString()} sqft` : "Area n/a";
 }
 
 export function formatListingTimestamp(value) {

@@ -16,12 +16,14 @@ import {
 } from "./lib/dld-import-utils.mjs";
 
 const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1-DgZjG5T93t5zmrHmyekKkOLwCRIYEMMOK4AbOrYOVU/export?format=csv&gid=865690319";
+const DEFAULT_BUILDING_REGISTRY_FILE = "public/data/downtown-dubai-building-registry.json";
 const SUMMARY_FILE = "reports/dld-import-summary.json";
 const DLD_EXPORT_URL = "https://gateway.dubailand.gov.ae/open-data/transactions/export/csv";
 const DEFAULT_LIVE_DAYS = 120;
 const SQM_TO_SQFT = 10.7639;
 const INSERT_BATCH_SIZE = 200;
 const SAMPLE_LIMIT = 25;
+const ENABLE_FUZZY_MATCHING = process.env.DLD_ENABLE_FUZZY_MATCHING === "true";
 
 const SHEET_COLUMN_ALIASES = {
   building: ["building", "tower", "project", "community", "sub community", "building name", "tower name"],
@@ -57,6 +59,7 @@ Usage:
 Environment:
   SHEET_URL or --sheet-url       Google Sheet CSV used to decide which buildings to import
   DLD_BUILDING_OVERRIDES_FILE    Optional JSON file mapping seller buildings to DLD aliases
+  DLD_BUILDING_REGISTRY_FILE     Optional building registry JSON with canonical names and aliases
   DLD_LIVE_DAYS                  Default live DLD export window in days
   SUPABASE_URL / VITE_SUPABASE_URL
   SUPABASE_SERVICE_ROLE_KEY
@@ -71,6 +74,7 @@ function parseArgs(argv) {
     live: false,
     liveDays: Number(process.env.DLD_LIVE_DAYS || DEFAULT_LIVE_DAYS),
     sheetUrl: process.env.SHEET_URL || DEFAULT_SHEET_URL,
+    registryFile: process.env.DLD_BUILDING_REGISTRY_FILE || DEFAULT_BUILDING_REGISTRY_FILE,
     overridesFile: process.env.DLD_BUILDING_OVERRIDES_FILE || null,
   };
 
@@ -95,6 +99,10 @@ function parseArgs(argv) {
     }
     if (argument.startsWith("--sheet-url=")) {
       options.sheetUrl = argument.slice("--sheet-url=".length).trim();
+      continue;
+    }
+    if (argument.startsWith("--registry=")) {
+      options.registryFile = argument.slice("--registry=".length).trim();
       continue;
     }
     if (argument.startsWith("--overrides=")) {
@@ -227,6 +235,10 @@ function tokenizeForFuzzyMatch(value) {
   )];
 }
 
+function normalizeBuildingLookupKey(value) {
+  return normalizeToken(replaceNumberWords(value));
+}
+
 function makeHeadersUnique(headers) {
   const seen = new Map();
   return headers.map((header) => {
@@ -331,7 +343,54 @@ async function loadBuildingOverrides(filePath) {
   return overrides;
 }
 
-async function loadTargetBuildings(sheetUrl, overrides) {
+async function loadRegistryAliases(filePath) {
+  if (!filePath) return new Map();
+
+  try {
+    const absolutePath = path.resolve(filePath);
+    const raw = await fs.readFile(absolutePath, "utf8");
+    const parsed = JSON.parse(raw);
+    const buildings = Array.isArray(parsed?.buildings) ? parsed.buildings : [];
+    const lookup = new Map();
+
+    for (const building of buildings) {
+      const names = [
+        building?.canonical_name,
+        building?.canonicalName,
+        building?.name,
+        ...(Array.isArray(building?.aliases) ? building.aliases : []),
+      ]
+        .map((value) => cleanBuildingName(value))
+        .filter(Boolean);
+
+      const aliasSet = new Set();
+      for (const name of names) {
+        for (const variant of buildBuildingKeyVariants(name)) aliasSet.add(variant);
+      }
+      if (!aliasSet.size) continue;
+
+      for (const key of aliasSet) lookup.set(key, aliasSet);
+    }
+
+    return lookup;
+  } catch (error) {
+    if (process.env.DLD_BUILDING_REGISTRY_FILE) throw error;
+    console.warn(`Could not load building registry ${filePath}: ${error.message}`);
+    return new Map();
+  }
+}
+
+function addAliasSetForVariants(targetAliases, variants, aliasMaps) {
+  for (const variant of variants) {
+    for (const aliasMap of aliasMaps) {
+      const aliases = aliasMap.get(variant);
+      if (!aliases) continue;
+      for (const alias of aliases) targetAliases.add(alias);
+    }
+  }
+}
+
+async function loadTargetBuildings(sheetUrl, overrides, registryAliases = new Map()) {
   const csvText = await readTextFromSource(sheetUrl);
   const rows = parseCsvText(csvText);
   const { headers, records } = rowsToObjectsUsingBestHeader(rows, (candidateHeaders) =>
@@ -363,16 +422,16 @@ async function loadTargetBuildings(sheetUrl, overrides) {
     }
 
     const target = targets.get(canonicalKey);
-    for (const variant of buildBuildingKeyVariants(buildingName)) target.aliases.add(variant);
-
-    const overrideAliases = overrides.get(canonicalKey);
-    if (overrideAliases) {
-      for (const alias of overrideAliases) target.aliases.add(alias);
-    }
+    const variants = buildBuildingKeyVariants(buildingName);
+    for (const variant of variants) target.aliases.add(variant);
+    addAliasSetForVariants(target.aliases, variants, [registryAliases, overrides]);
   }
 
   for (const target of targets.values()) {
-    for (const alias of target.aliases) aliasLookup.set(alias, target.key);
+    for (const alias of target.aliases) {
+      const lookupKey = normalizeBuildingLookupKey(alias);
+      if (lookupKey) aliasLookup.set(lookupKey, target.key);
+    }
   }
 
   return { targets, aliasLookup };
@@ -438,14 +497,17 @@ function resolveBuildingMatch(record, columns, aliasLookup, targets) {
 
   for (const candidate of candidates) {
     for (const variant of buildBuildingKeyVariants(candidate)) {
-      if (aliasLookup.has(variant)) {
+      const lookupKey = normalizeBuildingLookupKey(variant);
+      if (aliasLookup.has(lookupKey)) {
         return {
-          matchedKey: aliasLookup.get(variant),
+          matchedKey: aliasLookup.get(lookupKey),
           matchedName: candidate,
         };
       }
     }
   }
+
+  if (!ENABLE_FUZZY_MATCHING) return null;
 
   const candidateTokens = [...new Set(candidates.flatMap((candidate) => tokenizeForFuzzyMatch(candidate)))];
   if (candidateTokens.length) {
@@ -484,7 +546,37 @@ function isDateWithinLivePeriod(date, livePeriod) {
   return dateKey >= livePeriod.fromDate && dateKey <= livePeriod.toDate;
 }
 
-async function syncIntoSupabase({ buildingsByKey, targetKeys = [], envMap, dryRun }) {
+function summarizeMatchedBuildings(buildingsByKey) {
+  return Object.values(buildingsByKey)
+    .map((building) => {
+      const locationCounts = new Map();
+      let latestDate = null;
+      for (const transaction of building.transactions) {
+        const transactionDate = formatLocalIsoDate(transaction.date);
+        if (!latestDate || transactionDate > latestDate) latestDate = transactionDate;
+        const locationName = transaction.location_name || transaction.full_location || "Unknown";
+        locationCounts.set(locationName, (locationCounts.get(locationName) || 0) + 1);
+      }
+
+      return {
+        building: building.searchName || building.key,
+        buildingKey: building.key,
+        transactionCount: building.transactions.length,
+        latestDate,
+        sampleLocations: [...locationCounts.entries()]
+          .sort((left, right) => right[1] - left[1])
+          .slice(0, 3)
+          .map(([name, count]) => ({ name, count })),
+      };
+    })
+    .sort((left, right) =>
+      String(right.latestDate || "").localeCompare(String(left.latestDate || ""))
+      || right.transactionCount - left.transactionCount
+      || String(left.building).localeCompare(String(right.building)),
+    );
+}
+
+async function syncIntoSupabase({ buildingsByKey, envMap, dryRun, refreshBuildingKeys = [] }) {
   const supabaseUrl = getEnvValue(envMap, ["SUPABASE_URL", "VITE_SUPABASE_URL"]);
   const serviceRoleKey = getEnvValue(envMap, ["SUPABASE_SERVICE_ROLE_KEY"]);
 
@@ -496,31 +588,35 @@ async function syncIntoSupabase({ buildingsByKey, targetKeys = [], envMap, dryRu
   if (dryRun) return { synced: false, reason: "Dry run enabled." };
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
-  const buildingKeys = [...new Set([...targetKeys, ...Object.keys(buildingsByKey)])];
-  if (!buildingKeys.length) return { synced: true, buildingsUpserted: 0, transactionsInserted: 0 };
+  const buildingKeys = Object.keys(buildingsByKey);
+  const buildingKeysToRefresh = [...new Set((refreshBuildingKeys.length ? refreshBuildingKeys : buildingKeys).filter(Boolean))];
+  if (!buildingKeysToRefresh.length) return { synced: true, buildingsRefreshed: 0, buildingsUpserted: 0, transactionsInserted: 0 };
 
-  const { data: existingBuildingRows, error: existingBuildingsError } = await supabase
-    .from("buildings")
-    .select("key, location_id")
-    .in("key", buildingKeys);
+  let buildingRows = [];
+  if (buildingKeys.length) {
+    const { data: existingBuildingRows, error: existingBuildingsError } = await supabase
+      .from("buildings")
+      .select("key, location_id")
+      .in("key", buildingKeys);
 
-  if (existingBuildingsError) throw new Error(existingBuildingsError.message);
+    if (existingBuildingsError) throw new Error(existingBuildingsError.message);
 
-  const existingLocationIds = new Map((existingBuildingRows || []).map((row) => [row.key, row.location_id || null]));
+    const existingLocationIds = new Map((existingBuildingRows || []).map((row) => [row.key, row.location_id || null]));
 
-  const buildingRows = Object.values(buildingsByKey).map((building) => ({
-    key: building.key,
-    search_name: building.searchName || building.key,
-    location_name: building.locationName || building.searchName || null,
-    location_id: existingLocationIds.get(building.key) || null,
-  }));
+    buildingRows = Object.values(buildingsByKey).map((building) => ({
+      key: building.key,
+      search_name: building.searchName || building.key,
+      location_name: building.locationName || building.searchName || null,
+      location_id: existingLocationIds.get(building.key) || null,
+    }));
+  }
 
   if (buildingRows.length) {
     const { error: buildingsError } = await supabase.from("buildings").upsert(buildingRows, { onConflict: "key" });
     if (buildingsError) throw new Error(buildingsError.message);
   }
 
-  const { error: deleteError } = await supabase.from("transactions").delete().in("building_key", buildingKeys);
+  const { error: deleteError } = await supabase.from("transactions").delete().in("building_key", buildingKeysToRefresh);
   if (deleteError) throw new Error(deleteError.message);
 
   let insertedTransactions = 0;
@@ -546,6 +642,7 @@ async function syncIntoSupabase({ buildingsByKey, targetKeys = [], envMap, dryRu
 
   return {
     synced: true,
+    buildingsRefreshed: buildingKeysToRefresh.length,
     buildingsUpserted: buildingRows.length,
     transactionsInserted: insertedTransactions,
   };
@@ -565,9 +662,10 @@ async function main() {
 
   const envMap = await readEnvMap();
   const overrides = await loadBuildingOverrides(options.overridesFile);
+  const registryAliases = await loadRegistryAliases(options.registryFile);
 
   console.log("Loading seller sheet...");
-  const { targets, aliasLookup } = await loadTargetBuildings(options.sheetUrl, overrides);
+  const { targets, aliasLookup } = await loadTargetBuildings(options.sheetUrl, overrides, registryAliases);
   console.log(`Loaded ${targets.size} target buildings from seller sheet.`);
 
   console.log("Loading DLD CSV...");
@@ -694,6 +792,7 @@ async function main() {
   }
 
   const totalTransactions = Object.values(buildingsByKey).reduce((sum, building) => sum + building.transactions.length, 0);
+  const matchedBuildings = summarizeMatchedBuildings(buildingsByKey);
 
   console.log(`DLD rows scanned: ${records.length}`);
   console.log(`Sale rows considered: ${saleRows}`);
@@ -702,9 +801,9 @@ async function main() {
 
   const syncSummary = await syncIntoSupabase({
     buildingsByKey,
-    targetKeys: [...targets.keys()],
     envMap,
     dryRun: options.dryRun,
+    refreshBuildingKeys: [...targets.keys()],
   });
 
   const summary = {
@@ -715,6 +814,7 @@ async function main() {
     livePeriod,
     sheetUrl: options.sheetUrl,
     dryRun: options.dryRun,
+    fuzzyMatching: ENABLE_FUZZY_MATCHING,
     summary: {
       targetBuildings: targets.size,
       dldRows: records.length,
@@ -722,6 +822,7 @@ async function main() {
       matchedTransactions: matchedRows,
       importedBuildings: Object.keys(buildingsByKey).length,
       insertedTransactions: totalTransactions,
+      matchedBuildings,
       skippedNonSaleRows,
       skippedInvalidRows,
       unmatchedExamples: [...unmatchedExamples],
@@ -734,7 +835,7 @@ async function main() {
 
   console.log(`Summary written to ${SUMMARY_FILE}`);
   if (syncSummary.synced) {
-    console.log(`Supabase synced: ${syncSummary.buildingsUpserted} buildings, ${syncSummary.transactionsInserted} transactions.`);
+    console.log(`Supabase synced: ${syncSummary.buildingsUpserted} buildings, ${syncSummary.transactionsInserted} transactions. Refreshed ${syncSummary.buildingsRefreshed} seller buildings.`);
   } else {
     console.log(`Supabase sync skipped: ${syncSummary.reason}`);
   }

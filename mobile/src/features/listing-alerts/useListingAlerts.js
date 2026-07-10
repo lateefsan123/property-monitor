@@ -93,6 +93,34 @@ function toLocationId(value) {
   return String(value).trim() || null;
 }
 
+function getSyncFetchErrorMessage(payload) {
+  const results = payload?.result ? [payload.result] : payload?.results;
+  if (!Array.isArray(results)) return null;
+
+  const details = results.flatMap((result) => result?.fetchErrorDetails || []);
+  const fetchErrorCount = results.reduce((sum, result) => sum + (result?.fetchErrors || 0), 0);
+  if (!fetchErrorCount) return null;
+
+  const firstError = details[0]?.error || "Bayut live listing fetch failed.";
+  if (firstError.toLowerCase().includes("not subscribed")) {
+    return "Bayut live listing sync is blocked: the RapidAPI key is not subscribed to uae-real-estate2.";
+  }
+
+  return `Bayut live listing sync failed for ${fetchErrorCount} ${fetchErrorCount === 1 ? "building" : "buildings"}: ${firstError}`;
+}
+
+function getStoredSyncErrorMessage(summary) {
+  const fetchErrorCount = Number.isFinite(summary?.fetchErrorCount) ? summary.fetchErrorCount : 0;
+  if (!fetchErrorCount) return null;
+
+  const firstError = summary?.lastFetchErrorMessage || "Bayut live listing fetch failed.";
+  if (firstError.toLowerCase().includes("not subscribed")) {
+    return "Bayut live listing sync is blocked: the RapidAPI key is not subscribed to uae-real-estate2.";
+  }
+
+  return `Bayut live listing sync failed for ${fetchErrorCount} ${fetchErrorCount === 1 ? "building" : "buildings"}: ${firstError}`;
+}
+
 function snapshotToCurrentBuilding(building) {
   return {
     ...building,
@@ -305,6 +333,7 @@ export function useListingAlerts() {
       selectedListingKeysRef.current = nextSelectedKeys;
       setChangeState(nextState);
       changeStateRef.current = nextState;
+      setWatchError(getStoredSyncErrorMessage(nextState.summary));
 
       const snapshotBuildings = Object.values(nextState.snapshot || {}).map(snapshotToRemoteBuilding).sort(sortBuildings);
       setWatchedBuildingsRemote(snapshotBuildings);
@@ -772,9 +801,13 @@ export function useListingAlerts() {
     setWatchError(null);
 
     try {
-      const { error } = await supabase.functions.invoke("listing-alerts-sync");
+      const { data, error } = await supabase.functions.invoke("listing-alerts-sync", {
+        body: { forceFresh: true, source: "mobile-refresh" },
+      });
       if (error) throw error;
       await loadRemoteState({ showLoading: false });
+      const syncError = getSyncFetchErrorMessage(data);
+      if (syncError) setWatchError(syncError);
     } catch (error) {
       setWatchError(getErrorMessage(error));
     } finally {
