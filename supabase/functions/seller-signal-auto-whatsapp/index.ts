@@ -512,14 +512,14 @@ function expandLeadBuildingKeysWithAliases(lead: any, baseKeys: string[], aliasL
   return [...keys];
 }
 
-async function fetchTodayTransactions(adminClient: any, buildingKeys: string[], todayDateKey: string) {
+async function fetchRecentTransactions(adminClient: any, buildingKeys: string[], dateKeys: string[]) {
   const transactionsByKey = new Map<string, any[]>();
   for (const batch of chunkArray([...new Set(buildingKeys)].filter(Boolean), 100)) {
     const { data, error } = await adminClient
       .from("transactions")
       .select("*")
       .in("building_key", batch)
-      .eq("date", todayDateKey);
+      .in("date", dateKeys);
 
     if (error) throw new HttpError(500, error.message);
     for (const transaction of data || []) {
@@ -531,20 +531,22 @@ async function fetchTodayTransactions(adminClient: any, buildingKeys: string[], 
   return transactionsByKey;
 }
 
-async function fetchExistingMarketMessageLeadIds(adminClient: any, leadIds: number[], todayDateKey: string) {
-  const existing = new Set<number>();
+async function fetchExistingMarketMessagePairs(adminClient: any, leadIds: number[], dateKeys: string[]) {
+  const existing = new Set<string>();
   for (const batch of chunkArray(leadIds, 100)) {
     const { data, error } = await adminClient
       .from("whatsapp_messages")
-      .select("lead_id")
+      .select("lead_id, market_transaction_date")
       .eq("direction", "outbound")
-      .eq("market_transaction_date", todayDateKey)
+      .in("market_transaction_date", dateKeys)
       .in("status", ACTIVE_MESSAGE_STATUSES)
       .in("lead_id", batch);
 
     if (error) throw new HttpError(500, error.message);
     for (const row of data || []) {
-      if (row.lead_id != null) existing.add(Number(row.lead_id));
+      if (row.lead_id != null && row.market_transaction_date) {
+        existing.add(`${Number(row.lead_id)}:${row.market_transaction_date}`);
+      }
     }
   }
   return existing;
@@ -687,6 +689,15 @@ Deno.serve(async (req) => {
     const cooldownMs = cooldownHours * 60 * 60 * 1000;
     const todayDateKey = getDubaiDateKey(startedAt);
     if (!todayDateKey) throw new HttpError(500, "Could not resolve today's Dubai date.");
+    // The DLD export lands twice a day (12:00 and 18:00 Dubai); the evening
+    // batch arrives after the send window closes, so look back one day and
+    // send those transactions the next morning instead of never.
+    const lookbackDays = Math.max(0, Math.floor(getNumber(input?.lookbackDays, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_LOOKBACK_DAYS"), 1))));
+    const activeDateKeys: string[] = [];
+    for (let offset = 0; offset <= lookbackDays; offset += 1) {
+      const key = getDubaiDateKey(new Date(startedAt.getTime() - offset * 24 * 60 * 60 * 1000));
+      if (key) activeDateKeys.push(key);
+    }
     const startDubaiDateKey = getDubaiStartDateKey(input?.startDubaiDate);
 
     if (!enabled && !dryRun) {
@@ -790,11 +801,11 @@ Deno.serve(async (req) => {
       for (const key of keys) allBuildingKeys.add(key);
     }
 
-    const transactionsByKey = await fetchTodayTransactions(adminClient, [...allBuildingKeys], todayDateKey);
-    const existingMessageLeadIds = await fetchExistingMarketMessageLeadIds(
+    const transactionsByKey = await fetchRecentTransactions(adminClient, [...allBuildingKeys], activeDateKeys);
+    const existingMessagePairs = await fetchExistingMarketMessagePairs(
       adminClient,
       (leads || []).map((lead: any) => Number(lead.id)),
-      todayDateKey,
+      activeDateKeys,
     );
 
     const summary = {
@@ -819,7 +830,9 @@ Deno.serve(async (req) => {
         duplicateClaim: 0,
       },
       failures: [] as Array<{ leadId: number; error: string }>,
-      dryRunMatches: [] as Array<{ leadId: number; transactionCount: number }>,
+      dryRunMatches: [] as Array<{ leadId: number; transactionCount: number; transactionDate: string }>,
+      activeDateKeys,
+      lookbackDays,
     };
 
     for (const lead of leads || []) {
@@ -838,23 +851,30 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      if (existingMessageLeadIds.has(leadId)) {
-        summary.skipped.alreadySentForDate += 1;
-        continue;
-      }
-
       const keys = keysByLead.get(leadId) || [];
+      // Prefer the freshest transaction date that has not been messaged yet
+      // (today first, then the lookback days).
       let matchedTransactions: any[] = [];
+      let matchedDateKey: string | null = null;
       for (const key of keys) {
         const transactions = transactionsByKey.get(key) || [];
-        if (transactions.length) {
-          matchedTransactions = transactions;
-          break;
+        if (!transactions.length) continue;
+        for (const dateKey of activeDateKeys) {
+          if (existingMessagePairs.has(`${leadId}:${dateKey}`)) continue;
+          const forDate = transactions.filter((transaction: any) => transaction.date === dateKey);
+          if (forDate.length) {
+            matchedTransactions = forDate;
+            matchedDateKey = dateKey;
+            break;
+          }
         }
+        if (matchedDateKey) break;
       }
 
-      if (!matchedTransactions.length) {
-        summary.skipped.noTodayTransactions += 1;
+      if (!matchedTransactions.length || !matchedDateKey) {
+        const hadAnyTransactions = keys.some((key) => (transactionsByKey.get(key) || []).length > 0);
+        if (hadAnyTransactions) summary.skipped.alreadySentForDate += 1;
+        else summary.skipped.noTodayTransactions += 1;
         continue;
       }
 
@@ -867,7 +887,7 @@ Deno.serve(async (req) => {
       summary.eligible += 1;
 
       if (dryRun) {
-        summary.dryRunMatches.push({ leadId, transactionCount: matchedTransactions.length });
+        summary.dryRunMatches.push({ leadId, transactionCount: matchedTransactions.length, transactionDate: matchedDateKey });
         continue;
       }
 
@@ -876,7 +896,7 @@ Deno.serve(async (req) => {
         accountId: account.id,
         leadId,
         runId,
-        transactionDate: todayDateKey,
+        transactionDate: matchedDateKey,
         userId: lead.user_id,
       });
 
@@ -898,7 +918,7 @@ Deno.serve(async (req) => {
           lead,
           payload,
           to,
-          transactionDate: todayDateKey,
+          transactionDate: matchedDateKey,
         });
         messageRowId = messageRow.id;
         await markAutoEvent(adminClient, claim.id, { message_id: messageRowId });
@@ -919,7 +939,7 @@ Deno.serve(async (req) => {
         if (updateError) throw new HttpError(500, updateError.message);
         await markLeadSent(adminClient, lead.user_id, lead.id, sentAt);
         await markAutoEvent(adminClient, claim.id, { status: "sent", sent_at: sentAt });
-        existingMessageLeadIds.add(leadId);
+        existingMessagePairs.add(`${leadId}:${matchedDateKey}`);
         summary.sent += 1;
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error";
