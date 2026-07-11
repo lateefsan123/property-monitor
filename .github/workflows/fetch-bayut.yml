@@ -1,13 +1,8 @@
 name: Fetch DLD Transactions
 
 on:
-  schedule:
-    # 14:30 and 18:00 Dubai time. The afternoon fetch lands ~1h later
-    # (~15:30-16:00 Dubai), in time for same-day auto-sends before the
-    # 18:00 send-window close; the evening sweep catches the rest, which
-    # the auto-sender's one-day lookback delivers the next morning.
-    - cron: "30 10 * * *"
-    - cron: "0 14 * * *"
+  # Scheduled DLD imports run on Railway. Keep this workflow as a manual
+  # fallback so an operator can trigger a recovery scan from GitHub.
   workflow_dispatch:
 
 jobs:
