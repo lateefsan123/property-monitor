@@ -239,7 +239,7 @@ function PriceDropsCard({ userId, onNavigate }) {
     <section className="home-insight-card" aria-label="Listing price drops">
       <div className="home-insight-head">
         <div className="ld-chart-stat">
-          <Eyebrow>Watched buildings</Eyebrow>
+          <Eyebrow>Watched buildings - last 14 days</Eyebrow>
           <div className="ld-chart-stat-value">Price drops</div>
         </div>
         <button
