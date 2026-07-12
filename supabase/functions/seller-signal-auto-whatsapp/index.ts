@@ -11,10 +11,12 @@ const RECENT_TRANSACTIONS_LIMIT = 2;
 const DEFAULT_MAX_SENDS_PER_RUN = 2;
 const DEFAULT_MAX_LEADS_PER_RUN = 1000;
 const DEFAULT_COOLDOWN_HOURS = 168;
-// UAE telemarketing rules restrict outreach to 9am-6pm; the cron fires every
-// 30 minutes all day, so runs outside this Dubai-time window no-op.
-const SEND_WINDOW_START_HOUR = 9;
-const SEND_WINDOW_END_HOUR = 18;
+// Quiet-hours guard: no overnight sends. Evening sends are standard practice
+// in Dubai real estate, so the window runs to 21:00 (the ~19:00 DLD batch
+// still goes out the same evening). Override via
+// SELLER_SIGNAL_AUTO_WHATSAPP_SEND_WINDOW_START/END env vars.
+const DEFAULT_SEND_WINDOW_START_HOUR = 9;
+const DEFAULT_SEND_WINDOW_END_HOUR = 21;
 
 class HttpError extends Error {
   status: number;
@@ -715,8 +717,10 @@ Deno.serve(async (req) => {
 
     const enforceSendWindow = input?.enforceSendWindow !== false
       && Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_ENFORCE_SEND_WINDOW") !== "false";
+    const sendWindowStart = getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_SEND_WINDOW_START"), DEFAULT_SEND_WINDOW_START_HOUR);
+    const sendWindowEnd = getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_SEND_WINDOW_END"), DEFAULT_SEND_WINDOW_END_HOUR);
     const dubaiHour = getDubaiHour(startedAt);
-    if (!dryRun && enforceSendWindow && (dubaiHour === null || dubaiHour < SEND_WINDOW_START_HOUR || dubaiHour >= SEND_WINDOW_END_HOUR)) {
+    if (!dryRun && enforceSendWindow && (dubaiHour === null || dubaiHour < sendWindowStart || dubaiHour >= sendWindowEnd)) {
       return jsonResponse({
         runId,
         enabled,
@@ -725,7 +729,7 @@ Deno.serve(async (req) => {
         dubaiHour,
         sent: 0,
         skipped: { outsideSendWindow: true },
-        message: `Outside the ${SEND_WINDOW_START_HOUR}:00-${SEND_WINDOW_END_HOUR}:00 Dubai send window.`,
+        message: `Outside the ${sendWindowStart}:00-${sendWindowEnd}:00 Dubai send window.`,
       });
     }
 
