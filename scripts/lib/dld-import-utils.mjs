@@ -145,6 +145,7 @@ function getRawBuildingNameVariants(rawValue) {
       ...expandTowerVariant(current),
       ...toggleResidencePlurality(current),
       ...toggleTowerLetterNumber(current),
+      current.replace(/\s+(?:Tower\s+|T\s*)?(?:\d+|[A-Z])$/i, ""),
       ...extractParentheticalVariants(current),
       ...removeDescriptorWords(current),
     ]) {
@@ -354,13 +355,17 @@ export function inferColumn(headers, aliases) {
     tokens: tokenizeForFuzzyMatch(header),
   }));
 
+  // Prefer every exact header match before considering fuzzy matches. Otherwise
+  // a broad alias such as "community" can win before the later exact
+  // "building name" alias in seller spreadsheets.
   for (const alias of aliases) {
     const normalizedAlias = normalizeToken(alias);
-    const aliasTokens = tokenizeForFuzzyMatch(alias);
-
     const exact = normalizedHeaders.find((header) => header.normalized === normalizedAlias);
     if (exact) return exact.raw;
+  }
 
+  for (const alias of aliases) {
+    const aliasTokens = tokenizeForFuzzyMatch(alias);
     const fuzzy = normalizedHeaders.find((header) => isLikelyBuildingMatch(aliasTokens, header.tokens));
     if (fuzzy) return fuzzy.raw;
   }

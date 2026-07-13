@@ -26,7 +26,7 @@ const SAMPLE_LIMIT = 25;
 const ENABLE_FUZZY_MATCHING = process.env.DLD_ENABLE_FUZZY_MATCHING === "true";
 
 const SHEET_COLUMN_ALIASES = {
-  building: ["building", "tower", "project", "community", "sub community", "building name", "tower name"],
+  building: ["building name", "building", "tower name", "tower", "project", "sub community", "community"],
 };
 
 const DLD_COLUMN_ALIASES = {
