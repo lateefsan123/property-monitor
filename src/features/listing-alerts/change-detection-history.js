@@ -1,7 +1,6 @@
 import {
   createTrackedListingKey,
   MAX_HISTORY_EVENTS,
-  parseVerifiedAt,
   toFiniteNumber,
   toListingId,
   toLocationId,

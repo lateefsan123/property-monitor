@@ -183,7 +183,9 @@ export function consumePendingOpenPinnedListing() {
 
 export function useOpenPinnedListingRequests(handler) {
   const handlerRef = useRef(handler);
-  handlerRef.current = handler;
+  useEffect(() => {
+    handlerRef.current = handler;
+  }, [handler]);
   useEffect(() => {
     function onRequest(event) {
       if (event?.detail) handlerRef.current(event.detail);

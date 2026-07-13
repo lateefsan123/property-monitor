@@ -3,6 +3,8 @@ import {
   IconArrowUp,
   IconBuildingSkyscraper,
   IconExternalLink,
+  IconEye,
+  IconEyeFilled,
   IconPinned,
   IconPinnedFilled,
   IconStar,
@@ -35,7 +37,29 @@ function PinIcon({ filled }) {
   return <Icon size={16} stroke={1.8} aria-hidden="true" />;
 }
 
-function RowHoverActions({ favorited, pinned, onToggleFavorite, onTogglePin }) {
+function WatchIcon({ watched }) {
+  const Icon = watched ? IconEyeFilled : IconEye;
+  return <Icon size={16} stroke={1.8} aria-hidden="true" />;
+}
+
+function WatchToggleButton({ watched, onToggleWatch }) {
+  return (
+    <button
+      type="button"
+      className={`sheet-card-action la-watch-toggle${watched ? " is-active is-watching" : ""}`}
+      onClick={(event) => {
+        event.stopPropagation();
+        onToggleWatch?.();
+      }}
+      aria-label={watched ? "Stop watching this building" : "Watch this building"}
+      title={watched ? "Watching - click to stop" : "Watch this building"}
+    >
+      <WatchIcon watched={watched} />
+    </button>
+  );
+}
+
+function RowHoverActions({ favorited, pinned, onToggleFavorite, onTogglePin, watched, onToggleWatch }) {
   function handle(fn) {
     return (event) => {
       event.stopPropagation();
@@ -53,15 +77,19 @@ function RowHoverActions({ favorited, pinned, onToggleFavorite, onTogglePin }) {
       >
         <FavoriteIcon filled={favorited} />
       </button>
-      <button
-        type="button"
-        className={`sheet-card-action${pinned ? " is-active" : ""}`}
-        onClick={handle(onTogglePin)}
-        aria-label={pinned ? "Unpin" : "Pin"}
-        title={pinned ? "Unpin" : "Pin"}
-      >
-        <PinIcon filled={pinned} />
-      </button>
+      {onToggleWatch ? (
+        <WatchToggleButton watched={watched} onToggleWatch={onToggleWatch} />
+      ) : (
+        <button
+          type="button"
+          className={`sheet-card-action${pinned ? " is-active" : ""}`}
+          onClick={handle(onTogglePin)}
+          aria-label={pinned ? "Unpin" : "Pin"}
+          title={pinned ? "Unpin" : "Pin"}
+        >
+          <PinIcon filled={pinned} />
+        </button>
+      )}
     </span>
   );
 }
@@ -94,7 +122,7 @@ function TrackingPill() {
   return <span className="la-tracking-pill">Tracking</span>;
 }
 
-export function BuildingRow({ building, isWatched, onPress, priceDropCount, favorited, pinned, onToggleFavorite, onTogglePin }) {
+export function BuildingRow({ building, isWatched, onPress, onToggleWatch, priceDropCount, favorited, onToggleFavorite }) {
   const loadedCount = building?.listings?.length || 0;
   const countLine = isWatched
     ? loadedCount
@@ -117,7 +145,7 @@ export function BuildingRow({ building, isWatched, onPress, priceDropCount, favo
 
   return (
     <div
-      className={`sheet-row la-row la-row-building${pinned ? " is-pinned" : ""}`}
+      className={`sheet-row la-row la-row-building${isWatched ? " is-watched" : ""}`}
       role="button"
       tabIndex={0}
       onClick={onPress}
@@ -148,9 +176,9 @@ export function BuildingRow({ building, isWatched, onPress, priceDropCount, favo
       </div>
       <RowHoverActions
         favorited={favorited}
-        pinned={pinned}
         onToggleFavorite={onToggleFavorite}
-        onTogglePin={onTogglePin}
+        watched={isWatched}
+        onToggleWatch={onToggleWatch}
       />
     </div>
   );
@@ -172,7 +200,7 @@ function buildingThumbColor(seed) {
   return BUILDING_PALETTE[hashSeed(seed) % BUILDING_PALETTE.length];
 }
 
-function CardHoverActions({ favorited, pinned, onToggleFavorite, onTogglePin }) {
+function CardHoverActions({ favorited, pinned, onToggleFavorite, onTogglePin, watched, onToggleWatch }) {
   function handle(fn) {
     return (event) => {
       event.stopPropagation();
@@ -190,20 +218,24 @@ function CardHoverActions({ favorited, pinned, onToggleFavorite, onTogglePin }) 
       >
         <FavoriteIcon filled={favorited} />
       </button>
-      <button
-        type="button"
-        className={`sheet-card-action${pinned ? " is-active" : ""}`}
-        onClick={handle(onTogglePin)}
-        aria-label={pinned ? "Unpin" : "Pin"}
-        title={pinned ? "Unpin" : "Pin"}
-      >
-        <PinIcon filled={pinned} />
-      </button>
+      {onToggleWatch ? (
+        <WatchToggleButton watched={watched} onToggleWatch={onToggleWatch} />
+      ) : (
+        <button
+          type="button"
+          className={`sheet-card-action${pinned ? " is-active" : ""}`}
+          onClick={handle(onTogglePin)}
+          aria-label={pinned ? "Unpin" : "Pin"}
+          title={pinned ? "Unpin" : "Pin"}
+        >
+          <PinIcon filled={pinned} />
+        </button>
+      )}
     </div>
   );
 }
 
-export function BuildingCard({ building, isWatched, onPress, priceDropCount, favorited, pinned, onToggleFavorite, onTogglePin }) {
+export function BuildingCard({ building, isWatched, onPress, onToggleWatch, priceDropCount, favorited, onToggleFavorite }) {
   const loadedCount = building?.listings?.length || 0;
   const countLine = isWatched
     ? loadedCount
@@ -226,7 +258,7 @@ export function BuildingCard({ building, isWatched, onPress, priceDropCount, fav
 
   return (
     <div
-      className={`sheet-card la-card la-card-building${pinned ? " is-pinned" : ""}`}
+      className={`sheet-card la-card la-card-building${isWatched ? " is-watched" : ""}`}
       role="button"
       tabIndex={0}
       onClick={onPress}
@@ -234,9 +266,9 @@ export function BuildingCard({ building, isWatched, onPress, priceDropCount, fav
     >
       <CardHoverActions
         favorited={favorited}
-        pinned={pinned}
         onToggleFavorite={onToggleFavorite}
-        onTogglePin={onTogglePin}
+        watched={isWatched}
+        onToggleWatch={onToggleWatch}
       />
       <div
         className="sheet-card-preview la-card-preview"

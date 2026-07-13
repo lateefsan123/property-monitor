@@ -665,3 +665,36 @@
   font-weight: 700;
 }
 
+
+/* Watching is primary state on buildings - keep the toggle visible. */
+.la-row-building.is-watched .sheet-row-actions,
+.la-card-building.is-watched .sheet-card-actions {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+
+.la-watch-toggle.is-watching {
+  color: var(--stat-value);
+}
+
+.la-section-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.la-section-heading:first-child {
+  margin-top: 4px;
+}
+
+.la-section-heading .la-drop-indicator {
+  text-transform: none;
+  letter-spacing: normal;
+}

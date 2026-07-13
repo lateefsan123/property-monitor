@@ -12,6 +12,7 @@ import {
 } from "recharts";
 import { Eyebrow, PriceDeltaChip } from "../listing-alerts/components/ListingDetailParts";
 import { formatArea, formatListingTimestamp, formatPrice } from "../listing-alerts/formatters";
+import { requestOpenListing } from "../listing-alerts/open-listing-request";
 import { fetchUserLeads } from "../seller-signal/services";
 import { summarizeLeadCadence } from "../seller-signal/lead-utils";
 import { sellerLeadsQueryKey } from "../seller-signal/queryKeys";
@@ -187,15 +188,15 @@ function MessagesSentCard({ userId }) {
   );
 }
 
-function PriceDropRow({ item }) {
+function PriceDropRow({ item, onOpen }) {
   const metaParts = [
     item.beds === 0 ? "Studio" : Number.isFinite(item.beds) ? `${item.beds} bed` : null,
     Number.isFinite(item.areaSqft) ? formatArea(item.areaSqft) : null,
     item.verifiedAt ? formatListingTimestamp(item.verifiedAt) : null,
   ].filter(Boolean);
 
-  const content = (
-    <>
+  return (
+    <button type="button" className="home-drop-row" onClick={() => onOpen(item)}>
       <span className="home-drop-icon" aria-hidden="true">
         {item.coverPhoto ? (
           <img src={item.coverPhoto} alt="" loading="lazy" />
@@ -205,23 +206,17 @@ function PriceDropRow({ item }) {
       </span>
       <span className="home-drop-body">
         <span className="home-drop-building">{item.buildingName}</span>
-        <span className="home-drop-meta">{metaParts.join(" - ") || item.title}</span>
+        {item.title && item.title !== "Untitled listing" && (
+          <span className="home-drop-title" title={item.title}>{item.title}</span>
+        )}
+        <span className="home-drop-meta">{metaParts.join(" - ")}</span>
       </span>
       <span className="home-drop-pricing">
         <span className="home-drop-price">{formatPrice(item.price)}</span>
         <PriceDeltaChip priceDelta={item.priceDelta} />
       </span>
-    </>
+    </button>
   );
-
-  if (item.bayutUrl) {
-    return (
-      <a className="home-drop-row" href={item.bayutUrl} target="_blank" rel="noopener noreferrer">
-        {content}
-      </a>
-    );
-  }
-  return <div className="home-drop-row">{content}</div>;
 }
 
 function PriceDropsCard({ userId, onNavigate }) {
@@ -234,6 +229,13 @@ function PriceDropsCard({ userId, onNavigate }) {
 
   const drops = dropsQuery.data || [];
   const visibleDrops = drops.slice(0, MAX_PRICE_DROPS);
+
+  // Open the listing's in-app detail page (price trajectory, Bayut link)
+  // rather than bouncing straight out to Bayut.
+  function openDrop(item) {
+    if (item.locationId && item.id) requestOpenListing(`${item.locationId}:${item.id}`);
+    onNavigate?.("listing-alerts");
+  }
 
   return (
     <section className="home-insight-card" aria-label="Listing price drops">
@@ -262,7 +264,7 @@ function PriceDropsCard({ userId, onNavigate }) {
       ) : (
         <div className="home-drop-list">
           {visibleDrops.map((item) => (
-            <PriceDropRow key={`${item.locationId}-${item.id}`} item={item} />
+            <PriceDropRow key={`${item.locationId}-${item.id}`} item={item} onOpen={openDrop} />
           ))}
           {drops.length > visibleDrops.length && (
             <div className="home-drop-more">

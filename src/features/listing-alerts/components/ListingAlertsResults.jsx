@@ -23,7 +23,9 @@ export default function ListingAlertsResults({
   onOpenListing,
   onOpenListingExternal,
   onPreviousPage,
+  onToggleWatchBuilding,
   priceDropsByBuilding,
+  recentDropKeys,
   selectedBuildingId,
   showEmpty,
   showRefreshingStrip,
@@ -88,8 +90,10 @@ export default function ListingAlertsResults({
           </div>
         </div>
       ) : (
-        <div className={layout === "grid" ? "sheet-grid la-grid" : "sheet-list la-list-rows"}>
-          {items.map((item, index) => {
+        (() => {
+          const gridClass = layout === "grid" ? "sheet-grid la-grid" : "sheet-list la-list-rows";
+
+          function renderItem(item, index) {
             if (viewTab === "buildings") {
               const priceDropCount = priceDropsByBuilding.get(item.locationId) || 0;
               const favKey = `b:${item.locationId}`;
@@ -97,11 +101,10 @@ export default function ListingAlertsResults({
                 building: item,
                 isWatched: alerts.watchedSet?.has(item.locationId),
                 onPress: () => onOpenBuilding(item),
+                onToggleWatch: () => onToggleWatchBuilding?.(item),
                 priceDropCount,
                 favorited: favorites.has(favKey),
-                pinned: pinned.has(favKey),
                 onToggleFavorite: () => toggleFavorite(favKey),
-                onTogglePin: () => togglePin(favKey),
               };
               const key = String(item.locationId || item.key || index);
               return layout === "grid" ? (
@@ -128,8 +131,38 @@ export default function ListingAlertsResults({
             ) : (
               <ListingHistoryRow key={key} {...commonProps} />
             );
-          })}
-        </div>
+          }
+
+          // Inside a building, lead with the recently-dropped listings under
+          // their own heading; everything else keeps the same grid below.
+          if (viewTab === "listings" && selectedBuildingId && recentDropKeys?.size) {
+            const dropped = [];
+            const rest = [];
+            for (const item of items) {
+              const itemKey = item.key || `${item.locationId}:${item.id}`;
+              (recentDropKeys.has(itemKey) ? dropped : rest).push(item);
+            }
+
+            if (dropped.length) {
+              return (
+                <>
+                  <div className="la-section-heading">
+                    Dropped in price ({priceDropsByBuilding.get(selectedBuildingId) || dropped.length})
+                  </div>
+                  <div className={gridClass}>{dropped.map(renderItem)}</div>
+                  {rest.length > 0 && (
+                    <>
+                      <div className="la-section-heading">All listings</div>
+                      <div className={gridClass}>{rest.map(renderItem)}</div>
+                    </>
+                  )}
+                </>
+              );
+            }
+          }
+
+          return <div className={gridClass}>{items.map(renderItem)}</div>;
+        })()
       )}
 
       {viewTab === "listings" ? (

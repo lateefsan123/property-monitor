@@ -11,6 +11,8 @@ import {
   getPricePreset,
 } from "../filter-options";
 import { formatSyncTimestamp } from "../formatters";
+import { consumePendingOpenListing, useOpenListingRequests } from "../open-listing-request";
+import { getRecentPriceDrop } from "../price-drop-utils";
 import { useListingAlerts } from "../useListingAlerts";
 import ListingAlertsFilters from "./ListingAlertsFilters";
 import ListingAlertsResults from "./ListingAlertsResults";
@@ -161,8 +163,13 @@ export default function ListingAlertsPage() {
   const [trackedStatusFilter, setTrackedStatusFilter] = useState("all");
   const [listingsPage, setListingsPage] = useState(1);
   const [selectedSearchOption, setSelectedSearchOption] = useState(null);
-  const [selectedListingKey, setSelectedListingKey] = useState(null);
-  const [selectedBuildingId, setSelectedBuildingId] = useState(null);
+  // Deep links from other pages (e.g. the home price-drops card) may request a
+  // listing before this page mounts; consume the pending key at first render.
+  const [pendingInitialListingKey] = useState(() => consumePendingOpenListing());
+  const [selectedListingKey, setSelectedListingKey] = useState(pendingInitialListingKey);
+  const [selectedBuildingId, setSelectedBuildingId] = useState(
+    pendingInitialListingKey ? pendingInitialListingKey.split(":")[0] || null : null,
+  );
 
   useEffect(() => {
     function handleCrumbClick(event) {
@@ -174,6 +181,12 @@ export default function ListingAlertsPage() {
     window.addEventListener("app-crumb-click", handleCrumbClick);
     return () => window.removeEventListener("app-crumb-click", handleCrumbClick);
   }, []);
+
+  useOpenListingRequests((listingKey) => {
+    setSelectedBuildingId(listingKey.split(":")[0] || null);
+    setSelectedListingKey(listingKey);
+    setListingsPage(1);
+  });
 
   const hasTrackedUnits = alerts.stats.trackedListingCount > 0;
   const buildingFilterOptions = alerts.watchedBuildings ?? EMPTY_OPTIONS;
@@ -209,19 +222,26 @@ export default function ListingAlertsPage() {
     return alerts.watchedBuildings || [];
   }, [alerts.usingLiveSearch, alerts.watchedBuildings, searchOptions, selectedSearchBuilding, watchingOnly]);
 
-  const priceDropsByBuilding = useMemo(() => {
-    const map = new Map();
+  // Rolling-window drops (not just "since last sync"): which listings dropped
+  // recently, and how many per building for the cards.
+  const recentDrops = useMemo(() => {
+    const byBuilding = new Map();
+    const dropKeys = new Set();
     const seen = new Set();
     for (const listing of [...(alerts.trackedListings || []), ...(alerts.latestListings || [])]) {
-      const key = listing.key || listing.id;
+      const key = listing.key || `${listing.locationId}:${listing.id}`;
       if (seen.has(key)) continue;
       seen.add(key);
-      if (!Number.isFinite(listing.priceDelta) || listing.priceDelta >= 0) continue;
       if (!listing.locationId) continue;
-      map.set(listing.locationId, (map.get(listing.locationId) || 0) + 1);
+      if (listing.currentStatus === "removed") continue;
+      const drop = getRecentPriceDrop(listing);
+      if (!drop.hasDrop) continue;
+      dropKeys.add(key);
+      byBuilding.set(listing.locationId, (byBuilding.get(listing.locationId) || 0) + 1);
     }
-    return map;
+    return { byBuilding, dropKeys };
   }, [alerts.latestListings, alerts.trackedListings]);
+  const priceDropsByBuilding = recentDrops.byBuilding;
 
   const listings = useMemo(() => {
     let source = [];
@@ -288,6 +308,18 @@ export default function ListingAlertsPage() {
       });
     }
 
+    // Inside a building, recently-dropped listings surface first so the
+    // "Dropped in price" section leads the grid.
+    if (selectedBuildingId && recentDrops.dropKeys.size) {
+      const dropped = [];
+      const rest = [];
+      for (const listing of source) {
+        const key = listing.key || `${listing.locationId}:${listing.id}`;
+        (recentDrops.dropKeys.has(key) ? dropped : rest).push(listing);
+      }
+      source = [...dropped, ...rest];
+    }
+
     return source;
   }, [
     alerts.changeItems,
@@ -300,6 +332,8 @@ export default function ListingAlertsPage() {
     newOnly,
     pricePreset,
     priceChangedOnly,
+    recentDrops.dropKeys,
+    selectedBuildingId,
     trackedStatusFilter,
     watchingOnly,
   ]);
@@ -566,7 +600,9 @@ export default function ListingAlertsPage() {
           if (url) window.open(url, "_blank", "noopener,noreferrer");
         }}
         onPreviousPage={() => setListingsPage((page) => Math.max(1, page - 1))}
+        onToggleWatchBuilding={(building) => alerts.actions.toggleWatch(building)}
         priceDropsByBuilding={priceDropsByBuilding}
+        recentDropKeys={recentDrops.dropKeys}
         selectedBuildingId={selectedBuildingId}
         showEmpty={showEmpty}
         showRefreshingStrip={showRefreshingStrip}

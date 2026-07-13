@@ -122,13 +122,27 @@
   gap: 10px;
   padding: 7px 8px;
   margin: 0 -8px;
+  border: none;
   border-radius: 10px;
+  background: none;
+  font: inherit;
+  text-align: left;
   text-decoration: none;
   color: inherit;
+  width: calc(100% + 16px);
+  cursor: pointer;
 }
 
-a.home-drop-row:hover {
+.home-drop-row:hover {
   background: var(--bg-hover);
+}
+
+.home-drop-title {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .home-drop-icon {
