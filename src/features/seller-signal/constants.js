@@ -20,7 +20,7 @@ export const STATUS_RULES = [
 
 export const COLUMN_ALIASES = {
   name: ["name", "seller", "seller name", "owner", "owner name", "ownernameen", "client", "lead name", "full name"],
-  building: ["building", "tower", "project", "sub community", "subcommunity", "community", "building name", "tower name"],
+  building: ["building name", "tower name", "building", "tower", "project", "sub community", "subcommunity", "community"],
   bedroom: ["bedroom", "bedrooms", "beds", "bed", "rooms", "unit type", "bhk"],
   status: ["status", "stage", "category", "lead status", "pipeline", "contact status"],
   lastContact: ["last contact", "last contact date", "contact date", "last followup", "last follow up", "last message", "last contacted", "date"],
