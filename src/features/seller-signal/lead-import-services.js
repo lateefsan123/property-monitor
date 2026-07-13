@@ -211,6 +211,24 @@ async function fetchSheetRows(rawSheetUrl) {
   return { mapping, records };
 }
 
+export async function previewSheetBuildings(rawSheetUrl) {
+  const { mapping, records } = await fetchSheetRows(rawSheetUrl);
+  if (!mapping.building) throw new Error("Could not find a building column in this sheet.");
+  const groups = new Map();
+  for (const record of records) {
+    const building = String(record[mapping.building] || "").replace(/\s+/g, " ").trim();
+    if (!building) continue;
+    const current = groups.get(building) || { building, rows: 0, phones: new Set() };
+    current.rows += 1;
+    const phone = mapping.phone ? String(record[mapping.phone] || "").replace(/\D/g, "") : "";
+    if (phone) current.phones.add(phone);
+    groups.set(building, current);
+  }
+  return [...groups.values()]
+    .map((item) => ({ building: item.building, rowCount: item.rows, uniquePhoneCount: item.phones.size }))
+    .sort((left, right) => right.rowCount - left.rowCount || left.building.localeCompare(right.building));
+}
+
 async function insertLeadBatches(leads) {
   for (let index = 0; index < leads.length; index += IMPORT_BATCH_SIZE) {
     const batch = leads.slice(index, index + IMPORT_BATCH_SIZE);
@@ -329,13 +347,18 @@ export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
 
 export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }) {
   const { mapping, records } = await fetchSheetRows(rawSheetUrl || source?.sheet_url);
+  const selectedBuildings = Array.isArray(source?.selected_buildings) ? source.selected_buildings : [];
+  const selectedBuildingSet = new Set(selectedBuildings);
+  const importRecords = selectedBuildingSet.size && mapping.building
+    ? records.filter((record) => selectedBuildingSet.has(String(record[mapping.building] || "").replace(/\s+/g, " ").trim()))
+    : records;
   const cachedBuildings = await fetchImportCachedBuildings();
   const resolveBuilding = createLeadBuildingResolver([], cachedBuildings);
 
   const defaultStatus = "Prospect";
   const defaultBuilding = null;
   const overrideBuilding = false;
-  const suspiciousRows = collectSuspiciousImportRows(records, mapping, {
+  const suspiciousRows = collectSuspiciousImportRows(importRecords, mapping, {
     defaultBuilding,
     overrideBuilding,
   });
@@ -345,7 +368,7 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
   const sourceId = source?.id || null;
   if (!sourceId) throw new Error("Choose a spreadsheet source first.");
 
-  const incomingLeads = records
+  const incomingLeads = importRecords
     .map((record) => createLeadInsertRecord(record, mapping, userId, {
       sourceId,
       defaultStatus,

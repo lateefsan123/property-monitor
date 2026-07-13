@@ -198,6 +198,7 @@ export function useSpreadsheetsPage(userId) {
 
   async function addSource(options = {}) {
     const sheetUrl = typeof options === "object" && options.sheetUrl ? String(options.sheetUrl).trim() : "";
+    const selectedBuildings = Array.isArray(options?.selectedBuildings) ? options.selectedBuildings : [];
 
     if (!canAddSource) {
       setActionError(`You can add up to ${MAX_LEAD_SOURCES} spreadsheets.`);
@@ -213,6 +214,7 @@ export function useSpreadsheetsPage(userId) {
         label: `Spreadsheet ${nextOrder + 1}`,
         sort_order: nextOrder,
         sheet_url: sheetUrl || null,
+        selected_buildings: selectedBuildings,
       });
       await queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) });
 

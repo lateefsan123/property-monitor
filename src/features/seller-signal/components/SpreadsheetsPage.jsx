@@ -601,8 +601,8 @@ export default function SpreadsheetsPage({ userId }) {
     setNewSheetOpen(true);
   }
 
-  async function handleCreateFromUrl(sheetUrl) {
-    const created = await page.actions.addSource({ sheetUrl });
+  async function handleCreateFromUrl(sheetUrl, selectedBuildings) {
+    const created = await page.actions.addSource({ sheetUrl, selectedBuildings });
     return Boolean(created);
   }
 

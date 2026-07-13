@@ -854,6 +854,17 @@
   to { transform: rotate(360deg); }
 }
 
+.new-sheet-building-picker { display: grid; gap: 10px; }
+.new-sheet-building-summary { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+.new-sheet-building-summary span { color: var(--text-muted); }
+.new-sheet-building-search { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--surface); color: inherit; }
+.new-sheet-building-actions { display: flex; gap: 8px; }
+.new-sheet-building-actions button { border: 0; background: transparent; color: var(--accent); cursor: pointer; padding: 0; }
+.new-sheet-building-list { max-height: 320px; overflow: auto; border: 1px solid var(--border); border-radius: 12px; }
+.new-sheet-building-option { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); cursor: pointer; }
+.new-sheet-building-option:last-child { border-bottom: 0; }
+.new-sheet-building-option small { color: var(--text-muted); white-space: nowrap; }
+
 .new-sheet-instructions {
   margin-top: 18px;
   padding: 14px 16px;

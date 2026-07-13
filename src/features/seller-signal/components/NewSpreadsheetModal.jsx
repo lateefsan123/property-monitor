@@ -7,19 +7,42 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { downloadAsXlsx, extractTableFromImages } from "../image-to-sheet";
+import { previewSheetBuildings } from "../lead-import-services";
 
 function UrlTab({ onSubmit, submitting, onClose }) {
   const [url, setUrl] = useState("");
+  const [buildings, setBuildings] = useState([]);
+  const [selected, setSelected] = useState(() => new Set());
+  const [query, setQuery] = useState("");
+  const [scanning, setScanning] = useState(false);
+  const [error, setError] = useState("");
 
   async function handleSubmit(event) {
     event?.preventDefault?.();
     const trimmed = url.trim();
     if (!trimmed || submitting) return;
-    const ok = await onSubmit?.(trimmed);
+    if (!buildings.length) {
+      setScanning(true);
+      setError("");
+      try {
+        setBuildings(await previewSheetBuildings(trimmed));
+      } catch (scanError) {
+        setError(scanError?.message || "Could not scan this sheet.");
+      } finally {
+        setScanning(false);
+      }
+      return;
+    }
+    if (!selected.size) return;
+    const ok = await onSubmit?.(trimmed, [...selected]);
     if (ok) onClose?.();
   }
 
-  const disabled = submitting || !url.trim();
+  const filteredBuildings = buildings.filter((item) => item.building.toLowerCase().includes(query.trim().toLowerCase()));
+  const totals = buildings.reduce((result, item) => selected.has(item.building)
+    ? { rows: result.rows + item.rowCount, phones: result.phones + item.uniquePhoneCount }
+    : result, { rows: 0, phones: 0 });
+  const disabled = submitting || scanning || !url.trim() || (buildings.length > 0 && !selected.size);
 
   return (
     <form className="new-sheet-form" onSubmit={handleSubmit}>
@@ -40,7 +63,7 @@ function UrlTab({ onSubmit, submitting, onClose }) {
           aria-label="Add spreadsheet"
           title="Add spreadsheet"
         >
-          {submitting ? (
+          {submitting || scanning ? (
             <span className="new-sheet-spinner" aria-hidden />
           ) : (
             <IconPlus size={18} stroke={2} aria-hidden="true" />
@@ -48,7 +71,36 @@ function UrlTab({ onSubmit, submitting, onClose }) {
         </button>
       </div>
 
-      <div className="new-sheet-instructions">
+      {error && <div className="source-row-feedback source-row-feedback-error" role="alert">{error}</div>}
+
+      {buildings.length > 0 && (
+        <div className="new-sheet-building-picker">
+          <div className="new-sheet-building-summary">
+            <strong>Select buildings</strong>
+            <span>{selected.size} selected · {totals.rows.toLocaleString()} rows · {totals.phones.toLocaleString()} phone entries</span>
+          </div>
+          <input className="new-sheet-building-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search buildings" />
+          <div className="new-sheet-building-actions">
+            <button type="button" onClick={() => setSelected(new Set(filteredBuildings.map((item) => item.building)))}>Select visible</button>
+            <button type="button" onClick={() => setSelected(new Set())}>Clear</button>
+          </div>
+          <div className="new-sheet-building-list">
+            {filteredBuildings.map((item) => (
+              <label key={item.building} className="new-sheet-building-option">
+                <input type="checkbox" checked={selected.has(item.building)} onChange={() => setSelected((current) => {
+                  const next = new Set(current);
+                  if (next.has(item.building)) next.delete(item.building); else next.add(item.building);
+                  return next;
+                })} />
+                <span>{item.building}</span>
+                <small>{item.rowCount.toLocaleString()} rows · {item.uniquePhoneCount.toLocaleString()} phones</small>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {!buildings.length && <div className="new-sheet-instructions">
         <h3 className="new-sheet-instructions-title">How to get your spreadsheet link</h3>
         <ol className="new-sheet-steps">
           <li>
@@ -70,7 +122,7 @@ function UrlTab({ onSubmit, submitting, onClose }) {
             </span>
           </li>
         </ol>
-      </div>
+      </div>}
     </form>
   );
 }

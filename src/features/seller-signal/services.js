@@ -16,6 +16,7 @@ export {
 export {
   deleteLead,
   insertLead,
+  previewSheetBuildings,
   replaceLegacyLeadsFromSheet,
   replaceUserLeadsFromSheet,
   updateLead,
