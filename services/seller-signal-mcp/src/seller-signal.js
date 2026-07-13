@@ -117,6 +117,7 @@ function getBuildingKeyVariants(raw) {
     addVariant(base.replace(/\bTower\s+([A-Za-z0-9]+)\b/gi, "T$1"));
     addVariant(base.replace(/\bT\s*([A-Za-z0-9]+)\b/gi, "Tower $1"));
     addVariant(base.replace(/\b([A-Za-z])\b$/i, "Tower $1"));
+    addVariant(base.replace(/\s+(?:Tower\s+|T\s*)?(?:\d+|[A-Z])$/i, ""));
   };
 
   addDerivedVariants(cleaned);

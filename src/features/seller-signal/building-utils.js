@@ -267,6 +267,7 @@ function getRawBuildingNameVariants(raw) {
       ...expandTowerVariant(current),
       ...toggleResidencePlurality(current),
       ...toggleTowerLetterNumber(current),
+      current.replace(/\s+(?:Tower\s+|T\s*)?(?:\d+|[A-Z])$/i, ""),
       ...buildLocationVariants(current),
       ...extractParentheticalVariants(current),
       ...removeDescriptorWords(current),
