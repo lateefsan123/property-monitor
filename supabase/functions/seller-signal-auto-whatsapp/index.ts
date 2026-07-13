@@ -10,7 +10,6 @@ const ACTIVE_MESSAGE_STATUSES = ["queued", "sending", "sent", "delivered", "read
 const RECENT_TRANSACTIONS_LIMIT = 2;
 const DEFAULT_MAX_SENDS_PER_RUN = 2;
 const DEFAULT_MAX_LEADS_PER_RUN = 1000;
-const DEFAULT_COOLDOWN_HOURS = 168;
 // Quiet-hours guard: no overnight sends. Evening sends are standard practice
 // in Dubai real estate, so the window runs to 21:00 (the ~19:00 DLD batch
 // still goes out the same evening). Override via
@@ -687,7 +686,10 @@ Deno.serve(async (req) => {
     const enabled = Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_ENABLED") === "true";
     const maxSends = Math.max(1, Math.floor(getNumber(input?.maxSends, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_MAX_SENDS_PER_RUN"), DEFAULT_MAX_SENDS_PER_RUN))));
     const maxLeads = Math.max(1, Math.floor(getNumber(input?.maxLeads, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_MAX_LEADS_PER_RUN"), DEFAULT_MAX_LEADS_PER_RUN))));
-    const cooldownHours = getNumber(input?.cooldownHours, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_COOLDOWN_HOURS"), DEFAULT_COOLDOWN_HOURS));
+    // A new dated market transaction is itself the eligibility trigger. The
+    // lead/date dedupe below prevents duplicate sends for the same event, so a
+    // separate multi-day contact cooldown would only suppress valid matches.
+    const cooldownHours = 0;
     const cooldownMs = cooldownHours * 60 * 60 * 1000;
     const todayDateKey = getDubaiDateKey(startedAt);
     if (!todayDateKey) throw new HttpError(500, "Could not resolve today's Dubai date.");
