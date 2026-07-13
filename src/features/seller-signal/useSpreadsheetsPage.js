@@ -199,9 +199,10 @@ export function useSpreadsheetsPage(userId) {
   async function addSource(options = {}) {
     const sheetUrl = typeof options === "object" && options.sheetUrl ? String(options.sheetUrl).trim() : "";
     const selectedBuildings = Array.isArray(options?.selectedBuildings) ? options.selectedBuildings : [];
+    const sourceSelections = selectedBuildings.length ? selectedBuildings.map((building) => [building]) : [[]];
 
-    if (!canAddSource) {
-      setActionError(`You can add up to ${MAX_LEAD_SOURCES} spreadsheets.`);
+    if (!canAddSource || leadSources.length + sourceSelections.length > MAX_LEAD_SOURCES) {
+      setActionError(`You can add ${Math.max(0, MAX_LEAD_SOURCES - leadSources.length)} more spreadsheet${MAX_LEAD_SOURCES - leadSources.length === 1 ? "" : "s"}.`);
       return null;
     }
 
@@ -210,40 +211,46 @@ export function useSpreadsheetsPage(userId) {
     setActionNotice(null);
     try {
       const nextOrder = getNextLeadSourceSortOrder(leadSources);
-      const created = await createLeadSource(userId, {
-        label: `Spreadsheet ${nextOrder + 1}`,
-        sort_order: nextOrder,
-        sheet_url: sheetUrl || null,
-        selected_buildings: selectedBuildings,
-      });
-      await queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) });
-
-      if (sheetUrl && created?.id) {
-        setImportingSourceId(created.id);
-        try {
+      const createdSources = await Promise.all(sourceSelections.map((selection, index) => (
+        createLeadSource(userId, {
+          label: selection[0] || `Spreadsheet ${nextOrder + index + 1}`,
+          sort_order: nextOrder + index,
+          sheet_url: sheetUrl || null,
+          selected_buildings: selection,
+        })
+      )));
+      const importErrors = [];
+      for (let index = 0; index < createdSources.length; index += 1) {
+        const selection = sourceSelections[index];
+        const created = createdSources[index];
+        if (sheetUrl && created?.id) {
+          setImportingSourceId(created.id);
           const draftSource = normalizeSourceDraft(created);
-          const result = await importLeadsMutation.mutateAsync({
-            source: draftSource,
-            rawSheetUrl: sheetUrl,
-          });
-          await Promise.all([
-            queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) }),
-            queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) }),
-          ]);
-          queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
-          setActionNotice(formatImportNotice(draftSource, result));
-        } catch (importError) {
-          setActionError(getErrorMessage(importError));
-        } finally {
-          setImportingSourceId(null);
+          try {
+            await importLeadsMutation.mutateAsync({
+              source: draftSource,
+              rawSheetUrl: sheetUrl,
+            });
+          } catch (importError) {
+            importErrors.push(`${selection[0] || draftSource.label}: ${getErrorMessage(importError)}`);
+          }
         }
       }
+      setImportingSourceId(null);
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) }),
+        queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) }),
+      ]);
+      queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
+      setActionNotice(`${createdSources.length} building spreadsheet${createdSources.length === 1 ? "" : "s"} added.`);
+      if (importErrors.length) setActionError(`${importErrors.length} spreadsheet import${importErrors.length === 1 ? "" : "s"} failed. ${importErrors.join(" ")}`);
 
-      return created;
+      return createdSources;
     } catch (createError) {
       setActionError(getErrorMessage(createError));
       return null;
     } finally {
+      setImportingSourceId(null);
       setAddingSource(false);
     }
   }
@@ -365,6 +372,7 @@ export function useSpreadsheetsPage(userId) {
     notice,
     loading,
     canAddSource,
+    remainingSourceSlots: Math.max(0, MAX_LEAD_SOURCES - leadSources.length),
     addingSource,
     leadSources,
     sourceCounts,

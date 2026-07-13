@@ -752,6 +752,7 @@ export default function SpreadsheetsPage({ userId }) {
           onClose={() => setNewSheetOpen(false)}
           onSubmit={handleCreateFromUrl}
           submitting={page.addingSource || Boolean(page.importingSourceId)}
+          maxSelections={page.remainingSourceSlots}
         />
       )}
 

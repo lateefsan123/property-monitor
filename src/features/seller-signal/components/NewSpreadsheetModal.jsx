@@ -9,7 +9,7 @@ import {
 import { downloadAsXlsx, extractTableFromImages } from "../image-to-sheet";
 import { previewSheetBuildings } from "../lead-import-services";
 
-function UrlTab({ onSubmit, submitting, onClose }) {
+function UrlTab({ onSubmit, submitting, onClose, maxSelections }) {
   const [url, setUrl] = useState("");
   const [buildings, setBuildings] = useState([]);
   const [selected, setSelected] = useState(() => new Set());
@@ -78,18 +78,19 @@ function UrlTab({ onSubmit, submitting, onClose }) {
           <div className="new-sheet-building-summary">
             <strong>Select buildings</strong>
             <span>{selected.size} selected · {totals.rows.toLocaleString()} rows · {totals.phones.toLocaleString()} phone entries</span>
+            <small>Each building becomes its own spreadsheet card. You can add up to {maxSelections} more.</small>
           </div>
           <input className="new-sheet-building-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search buildings" />
           <div className="new-sheet-building-actions">
-            <button type="button" onClick={() => setSelected(new Set(filteredBuildings.map((item) => item.building)))}>Select visible</button>
+            <button type="button" onClick={() => setSelected(new Set(filteredBuildings.slice(0, maxSelections).map((item) => item.building)))}>Select visible</button>
             <button type="button" onClick={() => setSelected(new Set())}>Clear</button>
           </div>
           <div className="new-sheet-building-list">
             {filteredBuildings.map((item) => (
               <label key={item.building} className="new-sheet-building-option">
-                <input type="checkbox" checked={selected.has(item.building)} onChange={() => setSelected((current) => {
+                <input type="checkbox" checked={selected.has(item.building)} disabled={!selected.has(item.building) && selected.size >= maxSelections} onChange={() => setSelected((current) => {
                   const next = new Set(current);
-                  if (next.has(item.building)) next.delete(item.building); else next.add(item.building);
+                  if (next.has(item.building)) next.delete(item.building); else if (next.size < maxSelections) next.add(item.building);
                   return next;
                 })} />
                 <span>{item.building}</span>
@@ -256,7 +257,7 @@ function PictureTab() {
   );
 }
 
-export default function NewSpreadsheetModal({ onClose, onSubmit, submitting }) {
+export default function NewSpreadsheetModal({ onClose, onSubmit, submitting, maxSelections = 10 }) {
   const [mode, setMode] = useState(null);
 
   useEffect(() => {
@@ -335,7 +336,7 @@ export default function NewSpreadsheetModal({ onClose, onSubmit, submitting }) {
           )}
 
           {mode === "url" && (
-            <UrlTab onSubmit={onSubmit} submitting={submitting} onClose={onClose} />
+            <UrlTab onSubmit={onSubmit} submitting={submitting} onClose={onClose} maxSelections={maxSelections} />
           )}
 
           {mode === "picture" && <PictureTab />}
