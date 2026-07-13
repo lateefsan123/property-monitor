@@ -215,7 +215,12 @@ export async function searchLocations(query: string, apiKey: string) {
     .map(({ _score, ...location }) => location);
 }
 
-async function fetchListingsWithProviderLocation(location: LocationInput, providerLocationId: string, apiKey: string) {
+async function fetchListingsWithProviderLocation(
+  location: LocationInput,
+  providerLocationId: string,
+  apiKey: string,
+  { includeIncomplete = false } = {},
+) {
   const deduped = new Map<string, any>();
 
   for (let page = 1; page <= MAX_PAGES; page += 1) {
@@ -223,11 +228,14 @@ async function fetchListingsWithProviderLocation(location: LocationInput, provid
       purpose: "for-sale",
       location_ids: providerLocationId,
       property_type: "apartments",
-      completion_status: "completed",
       sort_order: "latest",
       page: String(page),
       langs: "en",
     });
+    // Newer towers (e.g. St. Regis Residences, Tria) have all their Bayut
+    // inventory tagged under-construction, so the completed filter is only a
+    // first pass — callers retry without it when a building comes back empty.
+    if (!includeIncomplete) params.set("completion_status", "completed");
     const payload = await fetchJson(`${BASE_URL}/search-property?${params.toString()}`, apiKey);
     const results = toPropertyList(payload);
     let addedThisPage = 0;
@@ -271,6 +279,9 @@ export async function fetchListingsForLocation(location: LocationInput, apiKey: 
   const firstAttempt = await fetchListingsWithProviderLocation(location, originalLocationId, apiKey);
   if (firstAttempt.listingCount > 0) return firstAttempt;
 
+  const withIncomplete = await fetchListingsWithProviderLocation(location, originalLocationId, apiKey, { includeIncomplete: true });
+  if (withIncomplete.listingCount > 0) return withIncomplete;
+
   const resolved = await resolveProviderLocation(location, apiKey);
   if (!resolved || resolved.locationId === originalLocationId) return firstAttempt;
 
@@ -281,5 +292,8 @@ export async function fetchListingsForLocation(location: LocationInput, apiKey: 
     fullPath: location.fullPath || resolved.fullPath,
   };
 
-  return fetchListingsWithProviderLocation(resolvedLocation, resolved.locationId, apiKey);
+  const resolvedAttempt = await fetchListingsWithProviderLocation(resolvedLocation, resolved.locationId, apiKey);
+  if (resolvedAttempt.listingCount > 0) return resolvedAttempt;
+
+  return fetchListingsWithProviderLocation(resolvedLocation, resolved.locationId, apiKey, { includeIncomplete: true });
 }
