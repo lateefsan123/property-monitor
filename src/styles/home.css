@@ -210,8 +210,73 @@
 
 .home-drop-more {
   padding: 4px 0 0;
+  border: none;
+  background: none;
+  font: inherit;
   font-size: 0.76rem;
-  color: var(--text-faint);
+  font-weight: 600;
+  text-align: left;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.home-drop-more:hover {
+  color: var(--text-name);
+}
+
+.home-drops-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.home-drops-modal {
+  width: min(560px, 100%);
+  max-height: min(80vh, 640px);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  border-radius: 16px;
+  box-shadow: 0 24px 60px -24px rgba(15, 23, 42, 0.5);
+}
+
+.home-drops-modal-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.home-drops-modal-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.home-drops-modal-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-name);
+}
+
+.home-drops-modal-body {
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .home-pinned {

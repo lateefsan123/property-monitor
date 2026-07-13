@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { IconBuildingSkyscraper } from "@tabler/icons-react";
+import { IconBuildingSkyscraper, IconX } from "@tabler/icons-react";
 import {
   Bar,
   BarChart,
@@ -219,6 +219,50 @@ function PriceDropRow({ item, onOpen }) {
   );
 }
 
+function PriceDropsModal({ drops, onClose, onOpen }) {
+  useEffect(() => {
+    function handleKey(event) {
+      if (event.key === "Escape") onClose();
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [onClose]);
+
+  return (
+    <div className="home-drops-modal-overlay" role="presentation" onClick={onClose}>
+      <div
+        className="home-drops-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="All price drops"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="home-drops-modal-head">
+          <div className="ld-chart-stat">
+            <Eyebrow>Watched buildings - last 14 days</Eyebrow>
+            <div className="ld-chart-stat-value">
+              {drops.length} price drop{drops.length === 1 ? "" : "s"}
+            </div>
+          </div>
+          <button
+            type="button"
+            className="home-drops-modal-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <IconX size={18} stroke={2} aria-hidden="true" />
+          </button>
+        </div>
+        <div className="home-drops-modal-body home-drop-list">
+          {drops.map((item) => (
+            <PriceDropRow key={`${item.locationId}-${item.id}`} item={item} onOpen={onOpen} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function PriceDropsCard({ userId, onNavigate }) {
   const dropsQuery = useQuery({
     queryKey: ["home", "price-drops", userId],
@@ -226,6 +270,7 @@ function PriceDropsCard({ userId, onNavigate }) {
     queryFn: () => fetchListingPriceDrops(userId),
     staleTime: 5 * 60 * 1000,
   });
+  const [showAll, setShowAll] = useState(false);
 
   const drops = dropsQuery.data || [];
   const visibleDrops = drops.slice(0, MAX_PRICE_DROPS);
@@ -233,6 +278,7 @@ function PriceDropsCard({ userId, onNavigate }) {
   // Open the listing's in-app detail page (price trajectory, Bayut link)
   // rather than bouncing straight out to Bayut.
   function openDrop(item) {
+    setShowAll(false);
     if (item.locationId && item.id) requestOpenListing(`${item.locationId}:${item.id}`);
     onNavigate?.("listing-alerts");
   }
@@ -247,9 +293,10 @@ function PriceDropsCard({ userId, onNavigate }) {
         <button
           type="button"
           className="home-insight-link"
-          onClick={() => onNavigate?.("listing-alerts")}
+          onClick={() => setShowAll(true)}
+          disabled={!drops.length}
         >
-          View all
+          View all{drops.length ? ` (${drops.length})` : ""}
         </button>
       </div>
 
@@ -267,11 +314,15 @@ function PriceDropsCard({ userId, onNavigate }) {
             <PriceDropRow key={`${item.locationId}-${item.id}`} item={item} onOpen={openDrop} />
           ))}
           {drops.length > visibleDrops.length && (
-            <div className="home-drop-more">
-              +{drops.length - visibleDrops.length} more in Listing Alerts
-            </div>
+            <button type="button" className="home-drop-more" onClick={() => setShowAll(true)}>
+              +{drops.length - visibleDrops.length} more
+            </button>
           )}
         </div>
+      )}
+
+      {showAll && (
+        <PriceDropsModal drops={drops} onClose={() => setShowAll(false)} onOpen={openDrop} />
       )}
     </section>
   );

@@ -24,15 +24,17 @@ const LAYOUTS = [
   { id: "grid", label: "Grid" },
   { id: "list", label: "List" },
 ];
-const LAYOUT_STORAGE_KEY = "listing-alerts:layout";
+// v2: grid became the default; the key bump resets stale "list" defaults
+// while still honoring an explicit choice made afterwards.
+const LAYOUT_STORAGE_KEY = "listing-alerts:layout-v2";
 
 function loadInitialLayout() {
-  if (typeof window === "undefined") return "list";
+  if (typeof window === "undefined") return "grid";
   try {
     const raw = window.localStorage.getItem(LAYOUT_STORAGE_KEY);
-    return LAYOUTS.some((l) => l.id === raw) ? raw : "list";
+    return LAYOUTS.some((l) => l.id === raw) ? raw : "grid";
   } catch {
-    return "list";
+    return "grid";
   }
 }
 
