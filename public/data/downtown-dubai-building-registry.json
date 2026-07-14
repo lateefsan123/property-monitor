@@ -97,6 +97,34 @@
       "status": "ready"
     },
     {
+      "canonical_name": "29 Boulevard",
+      "aliases": ["BD 29 BLVD PODIUM", "BD 29 Boulevard PODIUM", "29 Boulevard Podium"],
+      "project": "29 Boulevard",
+      "building_type": "residential_project",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "The Address Downtown Hotel",
+      "aliases": ["Burj Lake Hotel", "Burj Lake Hotel - The Address Downtown", "Address Downtown"],
+      "project": "The Address Downtown",
+      "building_type": "hotel_residence",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "City Center Residences",
+      "aliases": ["City Centre Residences", "City Center Residence", "City Centre Residence"],
+      "project": "City Center Residences",
+      "building_type": "residential_project",
+      "status": "ready"
+    },
+    {
+      "canonical_name": "Imperial Avenue",
+      "aliases": ["IMPERIAL AVENUE"],
+      "project": "Imperial Avenue",
+      "building_type": "residential_tower",
+      "status": "ready"
+    },
+    {
       "canonical_name": "BLVD Heights Tower 1",
       "aliases": ["Boulevard Heights Tower 1", "BLVD Heights 1"],
       "project": "BLVD Heights",

@@ -86,6 +86,7 @@ async function verifyRegistry(vite) {
   const buildingUtils = await vite.ssrLoadModule("/src/features/seller-signal/building-utils.js");
   const registry = JSON.parse(await fs.readFile("public/data/downtown-dubai-building-registry.json", "utf8"));
   const misses = [];
+  const regressions = [];
   let checkedNames = 0;
 
   for (const building of registry.buildings || []) {
@@ -97,11 +98,24 @@ async function verifyRegistry(vite) {
     }
   }
 
+  const expectedMappings = new Map([
+    ["City Center Residences", "City Center Residences, Downtown Dubai"],
+    ["Imperial Avenue", "Imperial Avenue, Downtown Dubai"],
+    ["Burj Lake Hotel - The Address DownTown", "The Address Downtown Hotel, Downtown Dubai"],
+    ["BD 29 BLVD PODIUM", "29 Boulevard, Downtown Dubai"],
+  ]);
+  for (const [input, expected] of expectedMappings) {
+    const actual = buildingUtils.canonicalizeBuildingName(input);
+    if (actual !== expected) regressions.push({ input, expected, actual });
+  }
+
   return {
     checkedBuildings: registry.buildings?.length || 0,
     checkedNames,
     unmatchedNameCount: misses.length,
     misses: misses.slice(0, 20),
+    regressionCount: regressions.length,
+    regressions,
   };
 }
 
@@ -715,7 +729,9 @@ function formatGroupedExamples(map, limit = 30) {
 
 async function verifyDldFallback(vite) {
   const insightServices = await vite.ssrLoadModule("/src/features/seller-signal/lead-insight-services.js");
-  const insights = await insightServices.fetchLeadInsights([
+  const buildingUtils = await vite.ssrLoadModule("/src/features/seller-signal/building-utils.js");
+  const dld = await vite.ssrLoadModule("/src/features/seller-signal/dld.js");
+  const targets = [
     {
       id: "st-regis-2",
       name: "Verifier",
@@ -728,7 +744,12 @@ async function verifyDldFallback(vite) {
       building: "Imperial Avenue, Downtown Dubai",
       bedFilterValues: [2],
     },
-  ]);
+  ];
+  const buildingKeys = [...new Set(targets.flatMap((lead) => buildingUtils.getBuildingKeyVariants(lead.building)))];
+  const marketData = await insightServices.fetchBuildingMarketData(buildingKeys);
+  const missingNames = insightServices.getMissingFallbackBuildingNames(targets, marketData.transactionsByBuilding);
+  const fallbackData = missingNames.length ? await dld.fetchDldFallbackTransactions(missingNames) : {};
+  const insights = insightServices.computeLeadInsights(targets, marketData, { data: fallbackData, pending: false });
 
   return {
     matched: insights.matched,
@@ -749,6 +770,10 @@ async function verifyDldFallback(vite) {
 
 function assertVerifierResult(result) {
   const failures = [];
+
+  if (result.registry.regressionCount > 0) {
+    failures.push(`Building registry has ${result.registry.regressionCount} named mapping regressions.`);
+  }
 
   if (result.registry.unmatchedNameCount !== 0) {
     failures.push(`Registry has ${result.registry.unmatchedNameCount} unmatched names.`);

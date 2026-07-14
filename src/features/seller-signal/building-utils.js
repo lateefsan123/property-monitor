@@ -145,7 +145,8 @@ function toggleLeadingArticle(value) {
 
 function expandTowerVariant(value) {
   const trimmed = String(value || "").trim();
-  const match = trimmed.match(/^(.*?)(?:\s+Tower|\s*T)?\s*([A-Z]|\d+)$/i);
+  const match = trimmed.match(/^(.*?)(?:\s+Tower|\s+T)\s*([A-Z]|\d+)$/i)
+    || trimmed.match(/^(.*?)[\s-]+([A-Z]|\d+)$/i);
   if (!match) return [];
   const base = match[1].trim();
   const suffix = match[2].trim();

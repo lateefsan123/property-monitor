@@ -166,7 +166,7 @@ export async function fetchBuildingMarketData(buildingKeys) {
   }
 
   const [{ data: buildingRows, error: buildingError }, availableKeySet] = await Promise.all([
-    supabase.from("buildings").select("key, location_name").in("key", uniqueKeys),
+    supabase.from("buildings").select("key, search_name, location_name").in("key", uniqueKeys),
     fetchAvailableBuildingKeys(uniqueKeys),
   ]);
 
@@ -215,7 +215,8 @@ export function computeLeadInsights(targets, marketData, fallbackState = {}) {
     const matchedKey = cachedMatch.key || fallbackMatch.key || keys.find((key) => buildingLookup[key]) || keys[0];
     const building = matchedKey ? buildingLookup[matchedKey] : null;
     const allTransactions = cachedMatch.transactions.length ? cachedMatch.transactions : fallbackMatch.transactions;
-    const locationName = building?.location_name
+    const locationName = building?.search_name
+      || building?.location_name
       || fallbackMatch.entry?.locationName
       || cleaned;
 

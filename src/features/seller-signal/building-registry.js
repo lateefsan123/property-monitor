@@ -174,6 +174,7 @@ export const DOWNTOWN_DUBAI_BUILDINGS = [
   "Dorchester Collection, Business Bay",
   "DIFC Central Park, DIFC",
   "Erin, City Walk",
+  "City Center Residences, Downtown Dubai",
   "Imperial Avenue, Downtown Dubai",
   "La Rive Building 4, Port de La Mer",
   "Le Pont Building 3, Port de La Mer",
@@ -193,6 +194,7 @@ export const DOWNTOWN_DUBAI_BUILDINGS = [
 ];
 
 export const DOWNTOWN_DUBAI_BUILDING_ALIASES = {
+  "Bellevue Towers, Downtown Dubai": ["Bellevue"],
   "Saaha Offices B, Old Town": ["Saaha Offices Block B", "Saaha Block B"],
   "Boulevard Crescent Tower 1, Downtown Dubai": ["Boulevard Crescent 1", "BLVD Crescent 1", "BLVD Crescent Tower 1"],
   "Boulevard Crescent 2, Downtown Dubai": ["Boulevard Crescent Tower 2", "BLVD Crescent 2", "BLVD Crescent Tower 2"],
@@ -204,7 +206,13 @@ export const DOWNTOWN_DUBAI_BUILDING_ALIASES = {
   "Standpoint Tower A, Downtown Dubai": ["Standpoint A", "Standpoint Tower 1"],
   "Standpoint Tower 2, Downtown Dubai": ["Standpoint B", "Standpoint Tower B"],
   "The Lofts Central Tower, Downtown Dubai": ["Lofts Central", "The Lofts Central"],
-  "The Address Downtown Hotel, Downtown Dubai": ["Address Downtown", "The Address Downtown"],
+  "The Address Downtown Hotel, Downtown Dubai": [
+    "Address Downtown",
+    "The Address Downtown",
+    "Burj Lake Hotel",
+    "Burj Lake Hotel - The Address Downtown",
+    "Burj Lake Hotel The Address Downtown",
+  ],
   "The Address BLVD Sky Collection, Downtown Dubai": ["Address BLVD Sky Collection", "Address Boulevard Sky Collection", "The Address Boulevard Sky Collection"],
   "Kempinski The Boulevard (The Address The Blvd)": ["The Address The Blvd", "Address The Blvd", "The Address Boulevard", "Address Boulevard", "Kempinski Boulevard", "Kempinski BLVD"],
   "Downtown Al Bahar Apartments Dubai": ["Al Bahar Apartments", "Downtown Al Bahar"],
@@ -213,6 +221,7 @@ export const DOWNTOWN_DUBAI_BUILDING_ALIASES = {
   "BLVD Heights Tower 2": ["Boulevard Heights Tower 2", "BLVD Heights 2", "Boulevard Heights 2"],
   "29 Boulevard Tower 1, Downtown Dubai": ["29 Burj Boulevard Tower 1", "29 Boulevard 1", "29 Burj Boulevard 1"],
   "29 Boulevard Tower 2, Downtown Dubai": ["29 Burj Boulevard Tower 2", "29 Boulevard 2", "29 Burj Boulevard 2", "29 Boulevard T2"],
+  "29 Boulevard, Downtown Dubai": ["BD 29 BLVD PODIUM", "29 BLVD Podium", "29 Boulevard Podium"],
   "Act One, Downtown Dubai": ["Act One Tower", "Act Tower 1", "Act Towers 1", "Act 1", "Act One | Act Two Tower 1"],
   "Act One | Act Two Towers, Downtown Dubai": ["Act Towers", "Act Tower"],
   "Act Two, Downtown Dubai": ["Act Two Tower", "Act Tower 2", "Act Towers 2", "Act 2", "Act One | Act Two Tower 2"],
@@ -260,6 +269,7 @@ export const DOWNTOWN_DUBAI_BUILDING_ALIASES = {
   "Dorchester Collection, Business Bay": ["DORCHESTER COLLECTION", "Dorchester Collection"],
   "DIFC Central Park, DIFC": ["DIFC CENTRAL PARK", "Central Park DIFC"],
   "Erin, City Walk": ["City walk, Erin", "City Walk, Erin", "Erin City Walk"],
+  "City Center Residences, Downtown Dubai": ["City Centre Residences", "City Center Residence", "City Centre Residence"],
   "Imperial Avenue, Downtown Dubai": ["IMPERIAL AVENUE"],
   "La Rive Building 4, Port de La Mer": ["LA RIVE BUILDING 4", "La Rive 4"],
   "Le Pont Building 3, Port de La Mer": ["LE PONT BUILDING 3", "Le Pont 3"],

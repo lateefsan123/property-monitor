@@ -380,6 +380,40 @@ async function loadRegistryAliases(filePath) {
   }
 }
 
+function addTargetBuilding(targets, buildingName, overrides, registryAliases) {
+  const cleanedName = cleanBuildingName(buildingName);
+  if (!cleanedName) return false;
+
+  const canonicalKey = buildBuildingKeyVariants(cleanedName)[0];
+  if (!canonicalKey) return false;
+
+  if (!targets.has(canonicalKey)) {
+    targets.set(canonicalKey, {
+      key: canonicalKey,
+      name: cleanedName,
+      aliases: new Set(),
+      fuzzyTokens: tokenizeForFuzzyMatch(cleanedName),
+    });
+  }
+
+  const target = targets.get(canonicalKey);
+  const variants = buildBuildingKeyVariants(cleanedName);
+  for (const variant of variants) target.aliases.add(variant);
+  addAliasSetForVariants(target.aliases, variants, [registryAliases, overrides]);
+  return true;
+}
+
+function buildTargetAliasLookup(targets) {
+  const aliasLookup = new Map();
+  for (const target of targets.values()) {
+    for (const alias of target.aliases) {
+      const lookupKey = normalizeBuildingLookupKey(alias);
+      if (lookupKey) aliasLookup.set(lookupKey, target.key);
+    }
+  }
+  return aliasLookup;
+}
+
 function addAliasSetForVariants(targetAliases, variants, aliasMaps) {
   for (const variant of variants) {
     for (const aliasMap of aliasMaps) {
@@ -403,38 +437,42 @@ async function loadTargetBuildings(sheetUrl, overrides, registryAliases = new Ma
   }
 
   const targets = new Map();
-  const aliasLookup = new Map();
 
   for (const record of records) {
-    const buildingName = cleanBuildingName(record[buildingColumn]);
-    if (!buildingName) continue;
-
-    const canonicalKey = buildBuildingKeyVariants(buildingName)[0];
-    if (!canonicalKey) continue;
-
-    if (!targets.has(canonicalKey)) {
-      targets.set(canonicalKey, {
-        key: canonicalKey,
-        name: buildingName,
-        aliases: new Set(),
-        fuzzyTokens: tokenizeForFuzzyMatch(buildingName),
-      });
-    }
-
-    const target = targets.get(canonicalKey);
-    const variants = buildBuildingKeyVariants(buildingName);
-    for (const variant of variants) target.aliases.add(variant);
-    addAliasSetForVariants(target.aliases, variants, [registryAliases, overrides]);
+    addTargetBuilding(targets, record[buildingColumn], overrides, registryAliases);
   }
 
-  for (const target of targets.values()) {
-    for (const alias of target.aliases) {
-      const lookupKey = normalizeBuildingLookupKey(alias);
-      if (lookupKey) aliasLookup.set(lookupKey, target.key);
+  return { targets, aliasLookup: buildTargetAliasLookup(targets) };
+}
+
+async function addSupabaseLeadTargets(targets, envMap, overrides, registryAliases) {
+  const supabaseUrl = getEnvValue(envMap, ["SUPABASE_URL", "VITE_SUPABASE_URL"]);
+  const serviceRoleKey = getEnvValue(envMap, ["SUPABASE_SERVICE_ROLE_KEY"]);
+  if (!supabaseUrl || !serviceRoleKey) return 0;
+
+  const supabase = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const pageSize = 1000;
+  const names = new Set();
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from("leads")
+      .select("building")
+      .not("building", "is", null)
+      .range(from, from + pageSize - 1);
+    if (error) throw new Error(`Could not load live seller buildings: ${error.message}`);
+    for (const row of data || []) {
+      const buildingName = cleanBuildingName(row?.building);
+      if (buildingName) names.add(buildingName);
     }
+    if ((data || []).length < pageSize) break;
   }
 
-  return { targets, aliasLookup };
+  const before = targets.size;
+  for (const buildingName of names) addTargetBuilding(targets, buildingName, overrides, registryAliases);
+  return targets.size - before;
 }
 
 function resolveDldColumns(headers) {
@@ -665,8 +703,11 @@ async function main() {
   const registryAliases = await loadRegistryAliases(options.registryFile);
 
   console.log("Loading seller sheet...");
-  const { targets, aliasLookup } = await loadTargetBuildings(options.sheetUrl, overrides, registryAliases);
+  const { targets } = await loadTargetBuildings(options.sheetUrl, overrides, registryAliases);
   console.log(`Loaded ${targets.size} target buildings from seller sheet.`);
+  const addedLiveTargets = await addSupabaseLeadTargets(targets, envMap, overrides, registryAliases);
+  console.log(`Added ${addedLiveTargets} target buildings from live Seller Signal leads.`);
+  const aliasLookup = buildTargetAliasLookup(targets);
 
   console.log("Loading DLD CSV...");
   let dldCsvText = "";
