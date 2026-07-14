@@ -306,6 +306,7 @@ export default function SellerSignalDashboard({ userId }) {
             onSendAll={dashboard.actions.bulkWhatsApp}
             canSendAll={dashboard.sendAllCount > 0}
             sendAllCount={dashboard.sendAllCount}
+            whatsappConnected={Boolean(dashboard.connectedWhatsAppAccount)}
           />
         </>
       )}
