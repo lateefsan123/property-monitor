@@ -75,15 +75,6 @@ function tokenizeBuildingName(value) {
     .filter((token) => token && !CACHED_BUILDING_STOP_WORDS.has(token));
 }
 
-function countTokenOverlap(leftTokens, rightTokens) {
-  const right = new Set(rightTokens);
-  let count = 0;
-  for (const token of leftTokens) {
-    if (right.has(token)) count += 1;
-  }
-  return count;
-}
-
 export function getInvalidBuildingValueIssue(raw) {
   const original = String(raw || "").replace(/\s+/g, " ").trim();
   if (!original) return null;
@@ -184,40 +175,7 @@ function findCachedBuildingMatch(raw, cachedIndex) {
       canonicalName: exactMatch,
     };
   }
-
-  const inputTokens = [...new Set(tokenizeBuildingName(cleaned))];
-  if (!inputTokens.length) return null;
-
-  let best = null;
-  for (const candidate of cachedIndex.candidates) {
-    const overlap = countTokenOverlap(inputTokens, candidate.tokens);
-    if (!overlap) continue;
-
-    const inputCoverage = overlap / inputTokens.length;
-    const candidateCoverage = overlap / candidate.tokens.length;
-    const isSingleTokenMatch = inputTokens.length === 1 && inputTokens[0].length >= 4 && candidate.tokens.includes(inputTokens[0]);
-    const isDistinctCachedNameContained = candidate.tokens.length === 1
-      && candidate.tokens[0].length >= 4
-      && inputTokens.includes(candidate.tokens[0]);
-    const isStrongMatch = overlap >= 2 && inputCoverage >= 0.67 && candidateCoverage >= 0.5;
-    if (!isSingleTokenMatch && !isDistinctCachedNameContained && !isStrongMatch) continue;
-
-    const score = overlap * 100
-      + inputCoverage * 20
-      + candidateCoverage * 10
-      - Math.abs(candidate.tokens.length - inputTokens.length);
-    if (!best || score > best.score) best = { candidate, score };
-  }
-
-  if (!best) return null;
-
-  return {
-    status: "matched",
-    confidence: best.candidate.tokens.length === inputTokens.length ? "high" : "medium",
-    method: "cached_fuzzy",
-    inputName: cleaned,
-    canonicalName: best.candidate.canonicalName,
-  };
+  return null;
 }
 
 function collectCachedBuildingPrefixMatches(raw, cachedIndex) {
@@ -324,7 +282,7 @@ function resolveBuildingMatch(raw, aliasLookup, cachedIndex) {
     };
   }
 
-  const baselineMatch = getKnownBuildingMatch(raw);
+  let baselineMatch = getKnownBuildingMatch(raw);
   if (baselineMatch.status === "missing") return baselineMatch;
   const addressParts = parseBuildingAddressValue(raw);
   const hasTruncation = TRUNCATED_BUILDING_PATTERN.test(String(raw || "")) || TRUNCATED_BUILDING_PATTERN.test(baselineMatch.inputName || "");
@@ -352,6 +310,18 @@ function resolveBuildingMatch(raw, aliasLookup, cachedIndex) {
       method: canRecoverTruncatedAddress ? "truncated_address_alias" : "custom_alias",
       inputName: baselineMatch.inputName || String(raw || "").trim(),
       canonicalName: aliasCanonical,
+    };
+  }
+
+  // Loose registry matches and cached fuzzy matches are useful suggestions,
+  // but they are not safe enough to rewrite seller data automatically.
+  if (baselineMatch.method === "loose") {
+    baselineMatch = {
+      status: "unmatched",
+      confidence: "low",
+      method: "unapproved_suggestion",
+      inputName: baselineMatch.inputName,
+      canonicalName: "",
     };
   }
 

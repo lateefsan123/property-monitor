@@ -317,12 +317,19 @@ async function verifyCachedImportCanonicalization(vite) {
       resolveBuilding,
     },
   );
+  const unsafeResolver = dataQuality.createLeadBuildingResolver([], [{
+    key: "viridian",
+    search_name: "Viridian",
+    location_name: "City Center Residences",
+  }]);
+  const unsafeSuggestion = unsafeResolver("City Center Living");
 
   return {
     input: "Synthetic Cache Tower Official",
     storedBuilding: lead?.building || null,
     expectedBuilding: "Synthetic Cache Tower",
     passed: lead?.building === "Synthetic Cache Tower",
+    fuzzySuggestionBlocked: unsafeSuggestion.status === "unmatched" && !unsafeSuggestion.canonicalName,
   };
 }
 
@@ -783,6 +790,10 @@ function assertVerifierResult(result) {
     failures.push(
       `Cached import canonicalization stored "${result.cachedImportCanonicalization.storedBuilding}" instead of "${result.cachedImportCanonicalization.expectedBuilding}".`,
     );
+  }
+
+  if (!result.cachedImportCanonicalization.fuzzySuggestionBlocked) {
+    failures.push("An unapproved cached fuzzy building suggestion was accepted.");
   }
 
   if (!result.addressBuildingParsing.recoverable.passed) {

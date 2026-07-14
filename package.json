@@ -20,7 +20,8 @@
     "fetch:dld": "node scripts/import-dld-transactions.mjs --live",
     "import:dld": "node scripts/import-dld-transactions.mjs",
     "build:listing-alerts": "node scripts/build-listing-alerts-feed.mjs",
-    "verify:building-mapping": "node scripts/verify-building-mapping.mjs"
+    "verify:building-mapping": "node scripts/verify-building-mapping.mjs",
+    "audit:building-names": "node scripts/audit-master-building-names.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.2",
