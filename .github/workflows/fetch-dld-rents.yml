@@ -1,0 +1,33 @@
+name: Fetch DLD Rent Contracts
+
+on:
+  # Refresh Ejari rent contracts just before the monthly report starts
+  # draining on the 1st (sends begin 09:00 Dubai; this runs 06:00 Dubai).
+  schedule:
+    - cron: "0 2 1 * *"
+  workflow_dispatch:
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Fetch DLD rent contracts & sync to Supabase
+        run: npm run fetch:rents -- --days=40
+        env:
+          SHEET_URL: ${{ vars.SHEET_URL }}
+          VITE_SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}

@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import process from "node:process";
+import { pathToFileURL } from "node:url";
 import { createClient } from "@supabase/supabase-js";
 import {
   buildBuildingKeyVariants,
@@ -15,11 +16,12 @@ import {
   rowsToObjects,
 } from "./lib/dld-import-utils.mjs";
 
-const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1-DgZjG5T93t5zmrHmyekKkOLwCRIYEMMOK4AbOrYOVU/export?format=csv&gid=865690319";
-const DEFAULT_BUILDING_REGISTRY_FILE = "public/data/downtown-dubai-building-registry.json";
+export const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1-DgZjG5T93t5zmrHmyekKkOLwCRIYEMMOK4AbOrYOVU/export?format=csv&gid=865690319";
+export const DEFAULT_BUILDING_REGISTRY_FILE = "public/data/downtown-dubai-building-registry.json";
 const SUMMARY_FILE = "reports/dld-import-summary.json";
 const DLD_EXPORT_URL = "https://gateway.dubailand.gov.ae/open-data/transactions/export/csv";
 const DEFAULT_LIVE_DAYS = 120;
+const MIN_SALE_AMOUNT = Number(process.env.DLD_MIN_SALE_AMOUNT || 100000);
 const SQM_TO_SQFT = 10.7639;
 const INSERT_BATCH_SIZE = 200;
 const SAMPLE_LIMIT = 25;
@@ -119,7 +121,7 @@ function parseArgs(argv) {
   return options;
 }
 
-function formatDldDate(dateValue) {
+export function formatDldDate(dateValue) {
   const date = dateValue instanceof Date ? new Date(dateValue) : new Date(dateValue);
   if (Number.isNaN(date.getTime())) throw new Error(`Invalid date: ${dateValue}`);
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -127,7 +129,7 @@ function formatDldDate(dateValue) {
   return `${month}/${day}/${date.getFullYear()}`;
 }
 
-function formatLocalIsoDate(dateValue) {
+export function formatLocalIsoDate(dateValue) {
   const date = dateValue instanceof Date ? new Date(dateValue) : new Date(dateValue);
   if (Number.isNaN(date.getTime())) throw new Error(`Invalid date: ${dateValue}`);
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -163,7 +165,7 @@ function buildDldLiveExportPayload(daysBack) {
   };
 }
 
-async function readEnvMap() {
+export async function readEnvMap() {
   try {
     const raw = await fs.readFile(".env", "utf8");
     const entries = {};
@@ -182,7 +184,7 @@ async function readEnvMap() {
   }
 }
 
-function getEnvValue(envMap, names) {
+export function getEnvValue(envMap, names) {
   for (const name of names) {
     const value = process.env[name] || envMap[name];
     if (value) return value;
@@ -319,7 +321,7 @@ async function fetchLiveDldCsv(daysBack) {
   };
 }
 
-async function loadBuildingOverrides(filePath) {
+export async function loadBuildingOverrides(filePath) {
   if (!filePath) return new Map();
 
   const absolutePath = path.resolve(filePath);
@@ -343,7 +345,7 @@ async function loadBuildingOverrides(filePath) {
   return overrides;
 }
 
-async function loadRegistryAliases(filePath) {
+export async function loadRegistryAliases(filePath) {
   if (!filePath) return new Map();
 
   try {
@@ -403,7 +405,7 @@ function addTargetBuilding(targets, buildingName, overrides, registryAliases) {
   return true;
 }
 
-function buildTargetAliasLookup(targets) {
+export function buildTargetAliasLookup(targets) {
   const aliasLookup = new Map();
   for (const target of targets.values()) {
     for (const alias of target.aliases) {
@@ -424,7 +426,7 @@ function addAliasSetForVariants(targetAliases, variants, aliasMaps) {
   }
 }
 
-async function loadTargetBuildings(sheetUrl, overrides, registryAliases = new Map()) {
+export async function loadTargetBuildings(sheetUrl, overrides, registryAliases = new Map()) {
   const csvText = await readTextFromSource(sheetUrl);
   const rows = parseCsvText(csvText);
   const { headers, records } = rowsToObjectsUsingBestHeader(rows, (candidateHeaders) =>
@@ -445,7 +447,7 @@ async function loadTargetBuildings(sheetUrl, overrides, registryAliases = new Ma
   return { targets, aliasLookup: buildTargetAliasLookup(targets) };
 }
 
-async function addSupabaseLeadTargets(targets, envMap, overrides, registryAliases) {
+export async function addSupabaseLeadTargets(targets, envMap, overrides, registryAliases) {
   const supabaseUrl = getEnvValue(envMap, ["SUPABASE_URL", "VITE_SUPABASE_URL"]);
   const serviceRoleKey = getEnvValue(envMap, ["SUPABASE_SERVICE_ROLE_KEY"]);
   if (!supabaseUrl || !serviceRoleKey) return 0;
@@ -525,7 +527,7 @@ function isSaleTransaction(record, columns) {
   return false;
 }
 
-function resolveBuildingMatch(record, columns, aliasLookup, targets) {
+export function resolveBuildingMatch(record, columns, aliasLookup, targets) {
   const candidates = [
     record[columns.project],
     record[columns.masterProject],
@@ -773,9 +775,25 @@ async function main() {
       skippedInvalidRows += 1;
       continue;
     }
+    // DLD labels fractional/nominal transfers (share transfers, installment
+    // registrations) as "Sale" with tiny amounts (e.g. AED 3,318 for a 1-bed);
+    // they are not market comps.
+    if (amount < MIN_SALE_AMOUNT) {
+      skippedInvalidRows += 1;
+      continue;
+    }
     const dateKey = formatLocalIsoDate(date);
 
-    const propertySizeSqm = parseNumber(record[columns.propertySizeSqm]) ?? parseNumber(record[columns.transactionSizeSqm]);
+    const actualSizeSqm = parseNumber(record[columns.propertySizeSqm]);
+    const procedureSizeSqm = parseNumber(record[columns.transactionSizeSqm]);
+    // A procedure area smaller than the unit's actual area marks a partial-share
+    // transfer (e.g. half a unit changing hands): the declared value covers only
+    // the share, so the row reads as a fake bargain comp. Skip those.
+    if (actualSizeSqm && procedureSizeSqm && procedureSizeSqm < actualSizeSqm * 0.95) {
+      skippedInvalidRows += 1;
+      continue;
+    }
+    const propertySizeSqm = actualSizeSqm ?? procedureSizeSqm;
     const beds = parseRoomCount(record[columns.rooms]);
     const projectName = String(record[columns.project] || "").trim();
     const masterProjectName = String(record[columns.masterProject] || "").trim();
@@ -898,7 +916,15 @@ async function main() {
   }
 }
 
-main().catch((error) => {
-  console.error(error.message || error);
-  process.exit(1);
-});
+// Run only when executed directly (node scripts/import-dld-transactions.mjs);
+// the rents importer imports this module for its shared building-matching helpers.
+const invokedDirectly = process.argv[1]
+  ? pathToFileURL(path.resolve(process.argv[1])).href === import.meta.url
+  : false;
+
+if (invokedDirectly) {
+  main().catch((error) => {
+    console.error(error.message || error);
+    process.exit(1);
+  });
+}

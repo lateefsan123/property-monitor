@@ -1,0 +1,5 @@
+[functions.seller-signal-auto-whatsapp]
+verify_jwt = false
+
+[functions.seller-signal-monthly-report]
+verify_jwt = false

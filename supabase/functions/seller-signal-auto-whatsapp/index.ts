@@ -7,15 +7,35 @@ const corsHeaders = {
 };
 
 const ACTIVE_MESSAGE_STATUSES = ["queued", "sending", "sent", "delivered", "read"];
+const DATA_PAGE_SIZE = 1000;
+// DLD labels fractional/nominal transfers (share transfers, installment
+// registrations) as "Sale" with tiny amounts (e.g. AED 3,318 for a 1-bed).
+// Never surface them as market comps in seller messages.
+const MIN_SALE_AMOUNT = 100_000;
 const RECENT_TRANSACTIONS_LIMIT = 2;
 const DEFAULT_MAX_SENDS_PER_RUN = 2;
-const DEFAULT_MAX_LEADS_PER_RUN = 1000;
+const DEFAULT_DAILY_CAP = 50;
+// Zero means scan every eligible lead. PostgREST caps a single response at
+// 1,000 rows, so fetchScannableLeads paginates until the full set is loaded.
+const DEFAULT_MAX_LEADS_PER_RUN = 0;
+const DEFAULT_LOOKBACK_DAYS = 2;
+// Per-seller cooldown: hot buildings trade several times a week, and unlimited
+// per-date alerts meant the same sellers got 3-4 messages a fortnight while
+// the daily cap starved everyone else (max observed: 4 in 14 days).
+const DEFAULT_COOLDOWN_HOURS = 7 * 24;
 // Quiet-hours guard: no overnight sends. Evening sends are standard practice
 // in Dubai real estate, so the window runs to 21:00 (the ~19:00 DLD batch
 // still goes out the same evening). Override via
 // SELLER_SIGNAL_AUTO_WHATSAPP_SEND_WINDOW_START/END env vars.
 const DEFAULT_SEND_WINDOW_START_HOUR = 9;
 const DEFAULT_SEND_WINDOW_END_HOUR = 21;
+const DEFAULT_MESSAGE_TEMPLATE = `Hi {{name}}, quick update on recent transactions in {{building}}.
+
+{{transactions}}
+
+Buyer activity remains strong, and your unit is in hot demand.
+
+If you would like to further discuss the sale of your unit, please let me know.`;
 
 class HttpError extends Error {
   status: number;
@@ -195,6 +215,16 @@ function getDubaiDateKey(dateValue = new Date()) {
   return `${values.year}-${values.month}-${values.day}`;
 }
 
+function getDubaiDayBoundsUtc(dateKey: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateKey)) return null;
+  const start = new Date(`${dateKey}T00:00:00+04:00`);
+  if (Number.isNaN(start.getTime())) return null;
+  return {
+    start: start.toISOString(),
+    end: new Date(start.getTime() + 24 * 60 * 60 * 1000).toISOString(),
+  };
+}
+
 function getDubaiHour(dateValue = new Date()) {
   const date = dateValue instanceof Date ? dateValue : new Date(dateValue);
   if (Number.isNaN(date.getTime())) return null;
@@ -302,13 +332,15 @@ function buildRecentTransactions(transactions: any[], fallbackLocation: string |
     .slice(0, RECENT_TRANSACTIONS_LIMIT);
 }
 
-function buildMessage(lead: any, transactions: any[], fallbackLocation: string | null) {
-  const name = lead.name || "";
+function buildMessage(
+  lead: any,
+  transactions: any[],
+  fallbackLocation: string | null,
+  templateContent = DEFAULT_MESSAGE_TEMPLATE,
+) {
+  const name = cleanString(lead.name) || "there";
   const cleanedBuilding = cleanBuildingName(lead.building) || "your building";
-  const lines = [
-    `Hi ${name}, quick update on recent transactions in ${cleanedBuilding}.`,
-    "",
-  ];
+  const transactionLines: string[] = [];
 
   for (const transaction of buildRecentTransactions(transactions, fallbackLocation)) {
     const parts = [];
@@ -319,17 +351,42 @@ function buildMessage(lead: any, transactions: any[], fallbackLocation: string |
     parts.push(formatPriceShort(transaction.price));
     if (transaction.area) parts.push(`${Math.round(transaction.area).toLocaleString("en-US")} sqft`);
     if (transaction.date) parts.push(formatDate(transaction.date));
-    lines.push(`- ${parts.join(" | ")}`);
+    transactionLines.push(`- ${parts.join(" | ")}`);
   }
 
-  lines.push(
-    "",
-    "Buyer activity remains strong, and your unit is in hot demand.",
-    "",
-    "If you would like to further discuss the sale of your unit, please let me know.",
-  );
+  const safeTemplate = String(templateContent || DEFAULT_MESSAGE_TEMPLATE).includes("{{transactions}}")
+    ? String(templateContent || DEFAULT_MESSAGE_TEMPLATE)
+    : DEFAULT_MESSAGE_TEMPLATE;
 
-  return lines.join("\n");
+  return safeTemplate
+    .replaceAll("{{name}}", name)
+    .replaceAll("{{building}}", cleanedBuilding)
+    .replaceAll("{{transactions}}", transactionLines.join("\n"))
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+async function fetchDefaultMessageTemplates(adminClient: any, userIds: string[]) {
+  const templatesByUser = new Map<string, string>();
+  if (!userIds.length) return templatesByUser;
+
+  const { data, error } = await adminClient
+    .from("seller_signal_message_templates")
+    .select("user_id, content")
+    .in("user_id", userIds)
+    .eq("is_default", true);
+
+  if (error) {
+    if (error.code === "42P01") return templatesByUser;
+    throw new HttpError(500, error.message);
+  }
+
+  for (const template of data || []) {
+    if (String(template.content || "").includes("{{transactions}}")) {
+      templatesByUser.set(template.user_id, template.content);
+    }
+  }
+  return templatesByUser;
 }
 
 function getBaileysSessionId(account: any) {
@@ -429,6 +486,80 @@ function chunkArray<T>(items: T[], size: number) {
   return chunks;
 }
 
+async function fetchScannableLeads(adminClient: any, userIds: string[], maxLeads: number) {
+  const leads: any[] = [];
+  if (!userIds.length) return leads;
+
+  while (maxLeads === 0 || leads.length < maxLeads) {
+    const remaining = maxLeads > 0 ? maxLeads - leads.length : DATA_PAGE_SIZE;
+    const pageSize = Math.min(DATA_PAGE_SIZE, remaining);
+    const from = leads.length;
+    // Never-contacted sellers first, then longest-since-contacted, so the
+    // daily cap spreads across the pipeline instead of repeatedly hitting the
+    // same low-id sellers in hot buildings.
+    const { data, error } = await adminClient
+      .from("leads")
+      .select("id, user_id, name, phone, building, sent_at, status")
+      .in("user_id", userIds)
+      .not("phone", "is", null)
+      .neq("phone", "")
+      .not("building", "is", null)
+      .neq("building", "")
+      .order("sent_at", { ascending: true, nullsFirst: true })
+      .order("id", { ascending: true })
+      .range(from, from + pageSize - 1);
+
+    if (error) throw new HttpError(500, error.message);
+    const page = data || [];
+    leads.push(...page);
+    if (page.length < pageSize) break;
+  }
+
+  return leads;
+}
+
+function shuffleInPlace<T>(items: T[]) {
+  for (let index = items.length - 1; index > 0; index -= 1) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [items[index], items[swapIndex]] = [items[swapIndex], items[index]];
+  }
+  return items;
+}
+
+// Even split across buildings, random within: group leads by building,
+// shuffle each group (never-contacted sellers keep priority inside it), then
+// round-robin one lead per building. Prevents a single hot tower's sellers -
+// consecutive ids from import - from monopolising the daily cap as a block.
+function interleaveLeadsAcrossBuildings(leads: any[]) {
+  const groups = new Map<string, any[]>();
+  for (const lead of leads) {
+    const key = normalizeToken(cleanBuildingName(lead.building)) || "unknown";
+    const list = groups.get(key) || [];
+    list.push(lead);
+    groups.set(key, list);
+  }
+
+  const buckets = shuffleInPlace([...groups.values()]);
+  for (const bucket of buckets) {
+    shuffleInPlace(bucket);
+    // Stable partition: never-contacted sellers first within their building.
+    bucket.sort((left, right) => Number(Boolean(left.sent_at)) - Number(Boolean(right.sent_at)));
+  }
+
+  const interleaved: any[] = [];
+  for (let round = 0; ; round += 1) {
+    let added = false;
+    for (const bucket of buckets) {
+      if (round < bucket.length) {
+        interleaved.push(bucket[round]);
+        added = true;
+      }
+    }
+    if (!added) break;
+  }
+  return interleaved;
+}
+
 function isMissingBuildingAliasesTableError(error: any) {
   const message = String(error?.message || "");
   return error?.code === "42P01" || message.includes("building_aliases");
@@ -525,6 +656,8 @@ async function fetchRecentTransactions(adminClient: any, buildingKeys: string[],
 
     if (error) throw new HttpError(500, error.message);
     for (const transaction of data || []) {
+      const amount = Number(transaction?.amount);
+      if (!Number.isFinite(amount) || amount < MIN_SALE_AMOUNT) continue;
       const list = transactionsByKey.get(transaction.building_key) || [];
       list.push(transaction);
       transactionsByKey.set(transaction.building_key, list);
@@ -552,6 +685,82 @@ async function fetchExistingMarketMessagePairs(adminClient: any, leadIds: number
     }
   }
   return existing;
+}
+
+function getRecipientDateKey(userId: unknown, phone: unknown, transactionDate: unknown) {
+  const normalizedPhone = normalizeWhatsAppPhone(phone);
+  const dateKey = cleanString(transactionDate);
+  const normalizedUserId = cleanString(userId);
+  if (!normalizedUserId || !normalizedPhone || !dateKey) return null;
+  return `${normalizedUserId}:${normalizedPhone}:${dateKey}`;
+}
+
+async function fetchExistingMarketRecipientDateKeys(adminClient: any, userIds: string[], dateKeys: string[]) {
+  const existing = new Set<string>();
+
+  for (const userBatch of chunkArray([...new Set(userIds)].filter(Boolean), 100)) {
+    let from = 0;
+    while (true) {
+      const { data, error } = await adminClient
+        .from("whatsapp_messages")
+        .select("id, user_id, recipient_phone, market_transaction_date")
+        .eq("direction", "outbound")
+        .in("market_transaction_date", dateKeys)
+        .in("status", ACTIVE_MESSAGE_STATUSES)
+        .in("user_id", userBatch)
+        .order("id", { ascending: true })
+        .range(from, from + DATA_PAGE_SIZE - 1);
+
+      if (error) throw new HttpError(500, error.message);
+      const page = data || [];
+      for (const row of page) {
+        const key = getRecipientDateKey(row.user_id, row.recipient_phone, row.market_transaction_date);
+        if (key) existing.add(key);
+      }
+
+      if (page.length < DATA_PAGE_SIZE) break;
+      from += DATA_PAGE_SIZE;
+    }
+  }
+
+  return existing;
+}
+
+async function fetchDailyAutoMessageCounts(
+  adminClient: any,
+  userIds: string[],
+  dayStartUtc: string,
+  dayEndUtc: string,
+) {
+  const counts = new Map<string, number>();
+
+  for (const userBatch of chunkArray([...new Set(userIds)].filter(Boolean), 100)) {
+    let from = 0;
+    while (true) {
+      const { data, error } = await adminClient
+        .from("whatsapp_messages")
+        .select("id, user_id")
+        .eq("direction", "outbound")
+        .eq("send_source", "auto")
+        .in("status", ACTIVE_MESSAGE_STATUSES)
+        .in("user_id", userBatch)
+        .gte("created_at", dayStartUtc)
+        .lt("created_at", dayEndUtc)
+        .order("id", { ascending: true })
+        .range(from, from + DATA_PAGE_SIZE - 1);
+
+      if (error) throw new HttpError(500, error.message);
+      const page = data || [];
+      for (const row of page) {
+        counts.set(row.user_id, (counts.get(row.user_id) || 0) + 1);
+      }
+
+      if (page.length < DATA_PAGE_SIZE) break;
+      from += DATA_PAGE_SIZE;
+    }
+  }
+
+  return counts;
 }
 
 async function claimAutoSend(adminClient: any, input: {
@@ -591,6 +800,7 @@ async function markAutoEvent(adminClient: any, eventId: string, updates: Record<
 async function insertMessageRow(adminClient: any, input: {
   account: any;
   body: string;
+  dailyCap: number;
   eventId: string;
   lead: any;
   payload: any;
@@ -598,30 +808,28 @@ async function insertMessageRow(adminClient: any, input: {
   transactionDate: string;
 }) {
   const { data, error } = await adminClient
-    .from("whatsapp_messages")
-    .insert({
-      user_id: input.lead.user_id,
-      account_id: input.account.id,
-      lead_id: input.lead.id,
-      direction: "outbound",
-      recipient_phone: input.to,
-      message_type: input.payload.type,
-      template_name: null,
-      template_language: "en_US",
-      template_parameters: [],
-      body: input.body,
-      status: "sending",
-      raw_request: input.payload,
-      send_source: "auto",
-      market_transaction_date: input.transactionDate,
-      auto_send_event_id: input.eventId,
+    .rpc("claim_seller_signal_auto_whatsapp_message", {
+      p_user_id: input.lead.user_id,
+      p_account_id: input.account.id,
+      p_lead_id: input.lead.id,
+      p_recipient_phone: input.to,
+      p_message_type: input.payload.type,
+      p_body: input.body,
+      p_raw_request: input.payload,
+      p_market_transaction_date: input.transactionDate,
+      p_auto_send_event_id: input.eventId,
+      p_daily_cap: input.dailyCap,
     })
-    .select("id")
     .single();
 
-  if (error?.code === "23505") throw new HttpError(409, `A WhatsApp message already exists for ${input.transactionDate}.`);
+  if (error?.code === "23505") return { duplicate: true, claimed: false, id: null, dailyCount: null };
   if (error) throw new HttpError(500, error.message);
-  return data;
+  return {
+    duplicate: false,
+    claimed: Boolean(data?.claimed),
+    id: data?.message_id || null,
+    dailyCount: Number(data?.daily_count || 0),
+  };
 }
 
 async function sendMessage(adminClient: any, account: any, to: string, body: string, payload: any) {
@@ -686,18 +894,19 @@ Deno.serve(async (req) => {
     const dryRun = Boolean(input?.dryRun);
     const enabled = Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_ENABLED") === "true";
     const maxSends = Math.max(1, Math.floor(getNumber(input?.maxSends, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_MAX_SENDS_PER_RUN"), DEFAULT_MAX_SENDS_PER_RUN))));
-    const maxLeads = Math.max(1, Math.floor(getNumber(input?.maxLeads, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_MAX_LEADS_PER_RUN"), DEFAULT_MAX_LEADS_PER_RUN))));
-    // A new dated market transaction is itself the eligibility trigger. The
-    // lead/date dedupe below prevents duplicate sends for the same event, so a
-    // separate multi-day contact cooldown would only suppress valid matches.
-    const cooldownHours = 0;
+    const dailyCap = Math.max(1, Math.min(DEFAULT_DAILY_CAP, Math.floor(getNumber(input?.dailyCap, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_DAILY_CAP"), DEFAULT_DAILY_CAP)))));
+    const maxLeads = Math.max(0, Math.floor(getNumber(input?.maxLeads, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_MAX_LEADS_PER_RUN"), DEFAULT_MAX_LEADS_PER_RUN))));
+    // Any contact (auto or manual, tracked via leads.sent_at) pauses further
+    // auto-alerts to that seller for the cooldown window; the next alert after
+    // the pause carries the freshest transaction data anyway.
+    const cooldownHours = Math.max(0, getNumber(input?.cooldownHours, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_COOLDOWN_HOURS"), DEFAULT_COOLDOWN_HOURS)));
     const cooldownMs = cooldownHours * 60 * 60 * 1000;
     const todayDateKey = getDubaiDateKey(startedAt);
     if (!todayDateKey) throw new HttpError(500, "Could not resolve today's Dubai date.");
     // The DLD export lands twice a day (12:00 and 18:00 Dubai); the evening
-    // batch arrives after the send window closes, so look back one day and
-    // send those transactions the next morning instead of never.
-    const lookbackDays = Math.max(0, Math.floor(getNumber(input?.lookbackDays, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_LOOKBACK_DAYS"), 1))));
+    // batch arrives after the send window closes, so keep a two-day recovery
+    // window. Lead/date and recipient/date dedupe still prevent repeat sends.
+    const lookbackDays = Math.max(0, Math.floor(getNumber(input?.lookbackDays, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_LOOKBACK_DAYS"), DEFAULT_LOOKBACK_DAYS))));
     const activeDateKeys: string[] = [];
     for (let offset = 0; offset <= lookbackDays; offset += 1) {
       const key = getDubaiDateKey(new Date(startedAt.getTime() - offset * 24 * 60 * 60 * 1000));
@@ -711,6 +920,7 @@ Deno.serve(async (req) => {
         enabled: false,
         dryRun,
         maxSends,
+        dailyCap,
         cooldownHours,
         todayDateKey,
         startDubaiDateKey,
@@ -728,6 +938,7 @@ Deno.serve(async (req) => {
         runId,
         enabled,
         dryRun,
+        dailyCap,
         todayDateKey,
         dubaiHour,
         sent: 0,
@@ -743,6 +954,7 @@ Deno.serve(async (req) => {
         enabled,
         dryRun,
         maxSends,
+        dailyCap,
         cooldownHours,
         todayDateKey,
         startDubaiDateKey,
@@ -770,21 +982,14 @@ Deno.serve(async (req) => {
     }
 
     if (!accountByUser.size) {
-      return jsonResponse({ runId, enabled, dryRun, maxSends, cooldownHours, todayDateKey, startDubaiDateKey, sent: 0, skipped: { noConnectedAccount: true } });
+      return jsonResponse({ runId, enabled, dryRun, maxSends, dailyCap, cooldownHours, todayDateKey, startDubaiDateKey, sent: 0, skipped: { noConnectedAccount: true } });
     }
 
-    const { data: leads, error: leadsError } = await adminClient
-      .from("leads")
-      .select("id, user_id, name, phone, building, sent_at, status")
-      .in("user_id", [...accountByUser.keys()])
-      .not("phone", "is", null)
-      .neq("phone", "")
-      .not("building", "is", null)
-      .neq("building", "")
-      .order("id")
-      .limit(maxLeads);
+    const leads = interleaveLeadsAcrossBuildings(
+      await fetchScannableLeads(adminClient, [...accountByUser.keys()], maxLeads),
+    );
 
-    if (leadsError) throw new HttpError(500, leadsError.message);
+    const templatesByUser = await fetchDefaultMessageTemplates(adminClient, [...accountByUser.keys()]);
 
     const baseKeysByLead = new Map<number, string[]>();
     const baseBuildingKeys = new Set<string>();
@@ -811,8 +1016,21 @@ Deno.serve(async (req) => {
     const transactionsByKey = await fetchRecentTransactions(adminClient, [...allBuildingKeys], activeDateKeys);
     const existingMessagePairs = await fetchExistingMarketMessagePairs(
       adminClient,
-      (leads || []).map((lead: any) => Number(lead.id)),
+      leads.map((lead: any) => Number(lead.id)),
       activeDateKeys,
+    );
+    const existingRecipientDateKeys = await fetchExistingMarketRecipientDateKeys(
+      adminClient,
+      [...accountByUser.keys()],
+      activeDateKeys,
+    );
+    const dailyBounds = getDubaiDayBoundsUtc(todayDateKey);
+    if (!dailyBounds) throw new HttpError(500, "Could not resolve today's Dubai day boundaries.");
+    const dailyAutoMessageCounts = await fetchDailyAutoMessageCounts(
+      adminClient,
+      [...accountByUser.keys()],
+      dailyBounds.start,
+      dailyBounds.end,
     );
 
     const summary = {
@@ -822,10 +1040,12 @@ Deno.serve(async (req) => {
       todayDateKey,
       startDubaiDateKey,
       maxSends,
+      dailyCap,
       maxLeads,
       cooldownHours,
-      scanned: leads?.length || 0,
+      scanned: leads.length,
       eligible: 0,
+      attempted: 0,
       sent: 0,
       failed: 0,
       skipped: {
@@ -835,15 +1055,18 @@ Deno.serve(async (req) => {
         noTodayTransactions: 0,
         notInterested: 0,
         duplicateClaim: 0,
+        duplicateRecipientDate: 0,
+        dailyCap: 0,
       },
       failures: [] as Array<{ leadId: number; error: string }>,
       dryRunMatches: [] as Array<{ leadId: number; transactionCount: number; transactionDate: string }>,
       activeDateKeys,
       lookbackDays,
+      dailyActiveByUser: Object.fromEntries(dailyAutoMessageCounts),
     };
 
     for (const lead of leads || []) {
-      if (summary.sent >= maxSends) break;
+      if (!dryRun && summary.attempted >= maxSends) break;
 
       const leadId = Number(lead.id);
 
@@ -885,6 +1108,19 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      const recipientDateKey = getRecipientDateKey(lead.user_id, to, matchedDateKey);
+      if (!recipientDateKey || existingRecipientDateKeys.has(recipientDateKey)) {
+        summary.skipped.duplicateRecipientDate += 1;
+        continue;
+      }
+
+      const userId = String(lead.user_id || "");
+      const currentDailyCount = dailyAutoMessageCounts.get(userId) || 0;
+      if (currentDailyCount >= dailyCap) {
+        summary.skipped.dailyCap += 1;
+        continue;
+      }
+
       const sentAtMs = lead.sent_at ? new Date(lead.sent_at).getTime() : 0;
       if (sentAtMs && cooldownMs > 0 && startedAt.getTime() - sentAtMs < cooldownMs) {
         summary.skipped.cooldown += 1;
@@ -895,6 +1131,10 @@ Deno.serve(async (req) => {
 
       if (dryRun) {
         summary.dryRunMatches.push({ leadId, transactionCount: matchedTransactions.length, transactionDate: matchedDateKey });
+        existingRecipientDateKeys.add(recipientDateKey);
+        const projectedDailyCount = currentDailyCount + 1;
+        dailyAutoMessageCounts.set(userId, projectedDailyCount);
+        summary.dailyActiveByUser[userId] = projectedDailyCount;
         continue;
       }
 
@@ -913,24 +1153,56 @@ Deno.serve(async (req) => {
       }
 
       let messageRowId: string | null = null;
+      let providerAccepted = false;
       try {
-        const body = buildMessage(lead, matchedTransactions, cleanBuildingName(lead.building));
+        const body = buildMessage(
+          lead,
+          matchedTransactions,
+          cleanBuildingName(lead.building),
+          templatesByUser.get(lead.user_id),
+        );
         const payload = account.provider === "baileys"
           ? buildBaileysPayload({ body, to })
           : buildGraphPayload({ body, to });
         const messageRow = await insertMessageRow(adminClient, {
           account,
           body,
+          dailyCap,
           eventId: claim.id,
           lead,
           payload,
           to,
           transactionDate: matchedDateKey,
         });
+        if (!messageRow.claimed && !messageRow.duplicate) {
+          const cappedDailyCount = Number(messageRow.dailyCount || currentDailyCount);
+          summary.skipped.dailyCap += 1;
+          dailyAutoMessageCounts.set(userId, cappedDailyCount);
+          summary.dailyActiveByUser[userId] = cappedDailyCount;
+          await markAutoEvent(adminClient, claim.id, {
+            status: "skipped",
+            reason: `Daily automatic WhatsApp cap of ${dailyCap} reached for the Dubai day.`,
+          });
+          continue;
+        }
+        if (!messageRow?.id) {
+          summary.skipped.duplicateRecipientDate += 1;
+          existingRecipientDateKeys.add(recipientDateKey);
+          await markAutoEvent(adminClient, claim.id, {
+            status: "skipped",
+            reason: "A WhatsApp message already exists for this recipient and transaction date.",
+          });
+          continue;
+        }
         messageRowId = messageRow.id;
+        const claimedDailyCount = Number(messageRow.dailyCount || currentDailyCount + 1);
+        summary.attempted += 1;
+        dailyAutoMessageCounts.set(userId, claimedDailyCount);
+        summary.dailyActiveByUser[userId] = claimedDailyCount;
         await markAutoEvent(adminClient, claim.id, { message_id: messageRowId });
 
         const { providerMessageId, providerPayload } = await sendMessage(adminClient, account, to, body, payload);
+        providerAccepted = true;
         const sentAt = new Date().toISOString();
 
         const { error: updateError } = await adminClient
@@ -947,12 +1219,13 @@ Deno.serve(async (req) => {
         await markLeadSent(adminClient, lead.user_id, lead.id, sentAt);
         await markAutoEvent(adminClient, claim.id, { status: "sent", sent_at: sentAt });
         existingMessagePairs.add(`${leadId}:${matchedDateKey}`);
+        existingRecipientDateKeys.add(recipientDateKey);
         summary.sent += 1;
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error";
         summary.failed += 1;
         summary.failures.push({ leadId, error: message });
-        if (messageRowId) {
+        if (messageRowId && !providerAccepted) {
           await adminClient
             .from("whatsapp_messages")
             .update({
@@ -963,7 +1236,7 @@ Deno.serve(async (req) => {
             .eq("id", messageRowId);
         }
         await markAutoEvent(adminClient, claim.id, {
-          status: "failed",
+          status: providerAccepted ? "sending" : "failed",
           error_message: message,
         });
       }

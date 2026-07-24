@@ -19,6 +19,8 @@
     "fetch:bayut-images": "node scripts/fetch-bayut-apartment-images.mjs",
     "fetch:dld": "node scripts/import-dld-transactions.mjs --live",
     "import:dld": "node scripts/import-dld-transactions.mjs",
+    "fetch:rents": "node scripts/import-dld-rents.mjs --live",
+    "import:rents": "node scripts/import-dld-rents.mjs",
     "build:listing-alerts": "node scripts/build-listing-alerts-feed.mjs",
     "verify:building-mapping": "node scripts/verify-building-mapping.mjs",
     "audit:building-names": "node scripts/audit-master-building-names.mjs"
