@@ -12,6 +12,7 @@ import FiltersToolbar from "./components/FiltersToolbar";
 import ImportHealthPanel from "./components/ImportHealthPanel";
 import LeadCard from "./components/LeadCard";
 import LeadModal from "./components/LeadModal";
+import MessageTemplatesPanel from "./components/MessageTemplatesPanel";
 import Pagination from "./components/Pagination";
 import StickyActionBar from "./components/StickyActionBar";
 import WhatsAppConnectionPanel from "./components/WhatsAppConnectionPanel";
@@ -127,6 +128,16 @@ export default function SellerSignalDashboard({ userId }) {
         account={dashboard.connectedWhatsAppAccount}
         connecting={dashboard.connectingWhatsAppAccount}
         onConnect={dashboard.actions.connectWhatsAppAccount}
+      />
+      <MessageTemplatesPanel
+        key={dashboard.messageTemplates.loading ? "loading" : dashboard.messageTemplates.activeTemplate?.id || "ready"}
+        activeTemplate={dashboard.messageTemplates.activeTemplate}
+        loading={dashboard.messageTemplates.loading}
+        onDelete={dashboard.messageTemplates.deleteTemplate}
+        onSave={dashboard.messageTemplates.saveTemplate}
+        onSetDefault={dashboard.messageTemplates.setDefaultTemplate}
+        saving={dashboard.messageTemplates.saving}
+        templates={dashboard.messageTemplates.templates}
       />
 
       {dashboard.sourceOptions?.length > 0 && (
@@ -264,6 +275,7 @@ export default function SellerSignalDashboard({ userId }) {
               if (!modalLead) return null;
               return (
                 <LeadModal
+                  key={modalLead.id}
                   copiedLeadId={dashboard.copiedLeadId}
                   editDraft={dashboard.editingLeadId === modalLead.id ? dashboard.editingLeadDraft : null}
                   insight={dashboard.insights[modalLead.id]}
@@ -272,6 +284,7 @@ export default function SellerSignalDashboard({ userId }) {
                   isSaving={dashboard.savingLeadId === modalLead.id}
                   isSent={Boolean(dashboard.sentLeads[modalLead.id])}
                   lead={modalLead}
+                  messageTemplate={dashboard.messageTemplates.activeTemplateContent}
                   onCancelEditing={dashboard.actions.cancelEditingLead}
                   onClose={() => dashboard.actions.toggleLeadExpanded(modalLead.id)}
                   onCopyMessage={dashboard.actions.copyMessage}
@@ -283,6 +296,7 @@ export default function SellerSignalDashboard({ userId }) {
                   onStartEditing={dashboard.actions.startEditingLead}
                   onToggleSent={dashboard.actions.toggleSent}
                   onUpdateStatus={dashboard.actions.updateLeadStatus}
+                  templates={dashboard.messageTemplates.templates}
                   whatsappConnected={Boolean(dashboard.connectedWhatsAppAccount)}
                 />
               );

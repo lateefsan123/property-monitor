@@ -40,3 +40,9 @@ export {
   getConnectedWhatsAppAccount,
   sendLeadWhatsAppMessage,
 } from "./whatsapp-services";
+export {
+  deleteMessageTemplate,
+  fetchMessageTemplates,
+  saveMessageTemplate,
+  setDefaultMessageTemplate,
+} from "./message-template-services";

@@ -54,6 +54,7 @@ import {
 } from "./queryKeys";
 import { createSellerSignalActions } from "./useSellerSignalActions";
 import { useSellerSignalBuildingAliases } from "./useSellerSignalBuildingAliases";
+import { useSellerSignalMessageTemplates } from "./useSellerSignalMessageTemplates";
 
 const EMPTY_CACHED_BUILDINGS = [];
 const EMPTY_KEYS = [];
@@ -121,6 +122,8 @@ export function useSellerSignalPage(userId) {
     buildingAliasesQuery,
     upsertBuildingAliasMutation,
   } = useSellerSignalBuildingAliases(userId);
+  const messageTemplates = useSellerSignalMessageTemplates(userId);
+  const messageTemplate = messageTemplates.activeTemplateContent;
   const cachedBuildingsQuery = useQuery({
     queryKey: sellerCachedBuildingsQueryKey(),
     enabled: Boolean(userId),
@@ -408,7 +411,7 @@ export function useSellerSignalPage(userId) {
           hasTargets: true,
           matched: 0,
           pending: 0,
-          updates: buildErroredInsights(insightTargets, getErrorMessage(marketDataQuery.error)),
+          updates: buildErroredInsights(insightTargets, getErrorMessage(marketDataQuery.error), messageTemplate),
         };
       }
       if (insightBuildingKeys.length) {
@@ -416,18 +419,18 @@ export function useSellerSignalPage(userId) {
           hasTargets: true,
           matched: 0,
           pending: insightTargets.length,
-          updates: buildLoadingInsights(insightTargets),
+          updates: buildLoadingInsights(insightTargets, messageTemplate),
         };
       }
       // No resolvable building keys — the query never runs, so settle as unavailable.
-      return computeLeadInsights(insightTargets, null, {});
+      return computeLeadInsights(insightTargets, null, {}, messageTemplate);
     }
     return computeLeadInsights(insightTargets, marketDataQuery.data, {
       data: dldFallbackQuery.data,
       pending: marketDataQuery.isPlaceholderData
         || (missingFallbackNames.length > 0 && !dldFallbackQuery.data && !dldFallbackQuery.error),
-    });
-  }, [dldFallbackQuery.data, dldFallbackQuery.error, insightBuildingKeys, insightTargets, marketDataQuery.data, marketDataQuery.error, marketDataQuery.isPlaceholderData, missingFallbackNames]);
+    }, messageTemplate);
+  }, [dldFallbackQuery.data, dldFallbackQuery.error, insightBuildingKeys, insightTargets, marketDataQuery.data, marketDataQuery.error, marketDataQuery.isPlaceholderData, messageTemplate, missingFallbackNames]);
 
   const insights = insightsResult.updates;
 
@@ -514,6 +517,7 @@ export function useSellerSignalPage(userId) {
     legacySheetStorageKey,
     legacySheetUrl,
     leads,
+    messageTemplate,
     pagedLeads,
     persistLeadSourceMutation,
     queryClient,
@@ -585,6 +589,7 @@ export function useSellerSignalPage(userId) {
     isAllExpanded,
     leadSources,
     loading,
+    messageTemplates,
     notice,
     pagedLeads,
     refreshing,

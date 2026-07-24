@@ -37,6 +37,7 @@ export default function LeadModal({
   isSaving,
   isSent,
   lead,
+  messageTemplate,
   onCancelEditing,
   onClose,
   onCopyMessage,
@@ -47,11 +48,14 @@ export default function LeadModal({
   onSendWhatsApp,
   onStartEditing,
   onToggleSent,
+  templates = [],
   whatsappConnected,
 }) {
   const [activeSection, setActiveSection] = useState("overview");
   const [notesValue, setNotesValue] = useState(lead.notes || "");
   const [notesSaving, setNotesSaving] = useState(false);
+  const [templateChoice, setTemplateChoice] = useState("default");
+  const [draftMessage, setDraftMessage] = useState(null);
   const notesTimerRef = useRef(null);
 
   function handleNotesChange(event) {
@@ -72,7 +76,30 @@ export default function LeadModal({
     }
   }
 
-  const message = insight?.message || buildMessage(lead, insight);
+  // "default" keeps the saved default script; picking another template or typing
+  // in the box only affects this seller's next send.
+  const defaultTemplateName = templates.find((template) => template.is_default)?.name;
+  const templateOptions = [
+    { id: "default", label: defaultTemplateName ? `${defaultTemplateName} (default)` : "Default script" },
+    ...templates.filter((template) => !template.is_default).map((template) => ({
+      id: template.id,
+      label: template.name,
+    })),
+  ];
+  const chosenTemplate = templateChoice === "default"
+    ? null
+    : templates.find((template) => template.id === templateChoice);
+  const baseMessage = chosenTemplate
+    ? buildMessage(lead, insight, chosenTemplate.content)
+    : (insight?.message || buildMessage(lead, insight, messageTemplate));
+  const message = draftMessage ?? baseMessage;
+  const messageEdited = draftMessage !== null && draftMessage !== baseMessage;
+
+  function handleSelectTemplate(nextId) {
+    setTemplateChoice(nextId);
+    setDraftMessage(null);
+  }
+
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
   const displayBuildingLabel = insight?.locationName || formatBuildingLabel(lead.building) || lead.building || "-";
   const bedroomLabel = formatLeadBedroom(lead.bedroom);
@@ -181,7 +208,15 @@ export default function LeadModal({
                   <MarketPanel insight={insight} lead={lead} />
                 )}
                 {activeSection === "message" && (
-                  <MessagePanel message={message} />
+                  <MessagePanel
+                    edited={messageEdited}
+                    message={message}
+                    onChangeMessage={setDraftMessage}
+                    onResetMessage={() => setDraftMessage(null)}
+                    onSelectTemplate={handleSelectTemplate}
+                    selectedTemplateId={templateChoice}
+                    templateOptions={templateOptions}
+                  />
                 )}
                 {activeSection === "notes" && (
                   <NotesPanel
@@ -199,7 +234,7 @@ export default function LeadModal({
                 <button
                   type="button"
                   className="lead-modal-wa-btn"
-                  onClick={() => void onSendWhatsApp?.(lead.id)}
+                  onClick={() => void onSendWhatsApp?.(lead.id, { message })}
                 >
                   <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
                   {isSent ? "Sent" : "Send via WhatsApp"}

@@ -496,7 +496,7 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
   return buildImportResult(leadsToInsert, nextLeads);
 }
 
-export async function fetchLeadInsights(leads) {
+export async function fetchLeadInsights(leads, messageTemplate) {
   const targets = leads.filter((lead) => lead.building);
   if (!targets.length) {
     return { hasTargets: false, matched: 0, updates: {} };
@@ -549,7 +549,7 @@ export async function fetchLeadInsights(leads) {
       updates[lead.id] = {
         status: "error",
         error: "Property market data is not available yet.",
-        message: buildMessage(lead, null),
+        message: buildMessage(lead, null, messageTemplate),
       };
       continue;
     }
@@ -576,7 +576,7 @@ export async function fetchLeadInsights(leads) {
 
     updates[lead.id] = {
       ...insight,
-      message: buildMessage(lead, insight),
+      message: buildMessage(lead, insight, messageTemplate),
     };
     matched += 1;
   }
@@ -610,6 +610,21 @@ export async function persistLeadSentState(userId, leadId, isSent) {
   }
 
   return sentAt;
+}
+
+export async function fetchDefaultMessageTemplate(userId) {
+  if (!userId) return null;
+  const { data, error } = await supabase
+    .from("seller_signal_message_templates")
+    .select("id, name, content, is_default")
+    .eq("user_id", userId)
+    .eq("is_default", true)
+    .maybeSingle();
+  if (error) {
+    if (error.code === "42P01") return null;
+    throw new Error(error.message);
+  }
+  return data || null;
 }
 
 export async function fetchWhatsAppAccounts(userId) {

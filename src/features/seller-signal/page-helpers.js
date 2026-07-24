@@ -54,25 +54,25 @@ export function buildInsightTarget(lead) {
   };
 }
 
-export function buildLoadingInsights(targets) {
+export function buildLoadingInsights(targets, messageTemplate) {
   const updates = {};
   for (const lead of targets) {
     updates[lead.id] = {
       status: "loading",
       error: null,
-      message: buildMessage(lead, null),
+      message: buildMessage(lead, null, messageTemplate),
     };
   }
   return updates;
 }
 
-export function buildErroredInsights(targets, message) {
+export function buildErroredInsights(targets, message, messageTemplate) {
   const updates = {};
   for (const lead of targets) {
     updates[lead.id] = {
       status: "error",
       error: message,
-      message: buildMessage(lead, null),
+      message: buildMessage(lead, null, messageTemplate),
     };
   }
   return updates;

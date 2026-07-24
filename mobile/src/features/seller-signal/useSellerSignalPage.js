@@ -14,6 +14,7 @@ import {
   createLeadSource,
   deleteLeadSource,
   deleteLead,
+  fetchDefaultMessageTemplate,
   insertLead,
   fetchLeadInsights,
   fetchLeadSources,
@@ -35,6 +36,10 @@ export function leadSourcesQueryKey(userId) {
 
 export function whatsappAccountsQueryKey(userId) {
   return ["seller-signal", "whatsapp-accounts", userId];
+}
+
+export function messageTemplateQueryKey(userId) {
+  return ["seller-signal", "message-template", userId];
 }
 
 const MAX_LEAD_SOURCES = 10;
@@ -195,6 +200,14 @@ export function useSellerSignalPage(userId) {
     staleTime: 60 * 1000,
   });
 
+  const messageTemplateQuery = useQuery({
+    queryKey: messageTemplateQueryKey(userId),
+    queryFn: () => fetchDefaultMessageTemplate(userId),
+    enabled: Boolean(userId),
+    staleTime: 60 * 1000,
+  });
+  const messageTemplate = messageTemplateQuery.data?.content;
+
   const connectedWhatsAppAccount = useMemo(
     () => getConnectedWhatsAppAccount(whatsappAccountsQuery.data || []),
     [whatsappAccountsQuery.data],
@@ -287,7 +300,7 @@ export function useSellerSignalPage(userId) {
           ...previousInsights[lead.id],
           status: "loading",
           error: null,
-          message: buildMessage(lead, null),
+          message: buildMessage(lead, null, messageTemplate),
         };
       }
       return nextInsights;
@@ -299,7 +312,7 @@ export function useSellerSignalPage(userId) {
     try {
       for (let index = 0; index < targetLeads.length; index += ENRICH_CHUNK_SIZE) {
         const chunk = targetLeads.slice(index, index + ENRICH_CHUNK_SIZE);
-        const { hasTargets, matched, updates } = await fetchLeadInsights(chunk);
+        const { hasTargets, matched, updates } = await fetchLeadInsights(chunk, messageTemplate);
         if (hasTargets) anyChunkHadTargets = true;
         totalMatched += matched;
         setInsights((previousInsights) => ({ ...previousInsights, ...updates }));
@@ -329,7 +342,7 @@ export function useSellerSignalPage(userId) {
             ...previousInsights[lead.id],
             status: "error",
             error: message,
-            message: buildMessage(lead, null),
+            message: buildMessage(lead, null, messageTemplate),
           };
         }
         return nextInsights;
@@ -337,7 +350,7 @@ export function useSellerSignalPage(userId) {
     } finally {
       setEnriching(false);
     }
-  }, []);
+  }, [messageTemplate]);
 
   const enrichLeadData = useCallback(async () => {
     const targetLeads = leads.filter((lead) => lead.building);
@@ -694,7 +707,7 @@ export function useSellerSignalPage(userId) {
     const insight = insights[lead.id];
     return {
       insight,
-      message: insight?.message || buildMessage(lead, insight),
+      message: insight?.message || buildMessage(lead, insight, messageTemplate),
       phone: formatPhoneForWhatsApp(lead.phone),
     };
   }
@@ -806,7 +819,7 @@ export function useSellerSignalPage(userId) {
         ...current[leadId],
         status: "loading",
         error: null,
-        message: buildMessage(nextLead, null),
+        message: buildMessage(nextLead, null, messageTemplate),
       },
     }));
 
@@ -816,7 +829,7 @@ export function useSellerSignalPage(userId) {
       setEditingLeadDraft(null);
 
       if (nextLead.building) {
-        const { updates } = await fetchLeadInsights([nextLead]);
+        const { updates } = await fetchLeadInsights([nextLead], messageTemplate);
         setInsights((current) => ({ ...current, ...updates }));
       } else {
         setInsights((current) => ({
@@ -824,7 +837,7 @@ export function useSellerSignalPage(userId) {
           [leadId]: {
             status: "error",
             error: "Property market data is not available yet.",
-            message: buildMessage(nextLead, null),
+            message: buildMessage(nextLead, null, messageTemplate),
           },
         }));
       }
@@ -964,6 +977,7 @@ export function useSellerSignalPage(userId) {
     leadSources,
     leads,
     loading,
+    messageTemplate,
     notice,
     pagedLeads,
     safePage,

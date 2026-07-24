@@ -4,6 +4,13 @@ import { cleanBuildingName, formatBuildingLabel } from "./building-utils";
 import { parseDateValue, startOfDay } from "./lead-utils";
 
 const TRANSACTION_TIME_ZONE = "Asia/Dubai";
+export const DEFAULT_MESSAGE_TEMPLATE = `Hi {{name}}, quick update on recent transactions in {{building}}.
+
+{{transactions}}
+
+Buyer activity remains strong, and your unit is in hot demand.
+
+If you would like to further discuss the sale of your unit, please let me know.`;
 // Intl.DateTimeFormat construction is expensive (~0.5ms) and this runs per
 // transaction, so cache one formatter per time zone.
 const dateKeyFormatters = new Map();
@@ -43,10 +50,14 @@ export function getTodayTransactionDateKey() {
   return getTransactionDateKey(new Date());
 }
 
+// DLD labels fractional/nominal transfers (share transfers, installment
+// registrations) as "Sale" with tiny amounts; they are not market comps.
+const MIN_REALISTIC_SALE_PRICE = 100000;
+
 export function extractPrice(transaction) {
   for (const value of [transaction?.price, transaction?.amount, transaction?.sale_price, transaction?.sold_price, transaction?.transaction_value, transaction?.value]) {
     const price = parseNumber(value);
-    if (price && price > 0) return price;
+    if (price && price >= MIN_REALISTIC_SALE_PRICE) return price;
   }
 
   return null;
@@ -219,14 +230,11 @@ export function formatPhoneForWhatsApp(rawValue) {
   return digits;
 }
 
-export function buildMessage(lead, insight) {
-  const name = lead.name || "";
+export function buildMessage(lead, insight, templateContent = DEFAULT_MESSAGE_TEMPLATE) {
+  const name = String(lead.name || "there").trim() || "there";
   const buildingName = lead.resolvedBuilding || lead.building;
   const cleanedBuilding = formatBuildingLabel(buildingName) || cleanBuildingName(buildingName) || "your building";
-  const lines = [
-    `Hi ${name}, quick update on recent transactions in ${cleanedBuilding}.`,
-    "",
-  ];
+  const transactionLines = [];
 
   if (insight?.recentTransactions?.length) {
     for (const transaction of insight.recentTransactions) {
@@ -238,16 +246,18 @@ export function buildMessage(lead, insight) {
       parts.push(formatPriceShort(transaction.price));
       if (transaction.area) parts.push(`${Math.round(transaction.area).toLocaleString("en-US")} sqft`);
       if (transaction.date) parts.push(formatDate(transaction.date));
-      lines.push(`- ${parts.join(" | ")}`);
+      transactionLines.push(`- ${parts.join(" | ")}`);
     }
-    lines.push("");
   }
 
-  lines.push(
-    "Buyer activity remains strong, and your unit is in hot demand.",
-    "",
-    "If you would like to further discuss the sale of your unit, please let me know.",
-  );
+  const safeTemplate = String(templateContent || DEFAULT_MESSAGE_TEMPLATE).includes("{{transactions}}")
+    ? String(templateContent || DEFAULT_MESSAGE_TEMPLATE)
+    : DEFAULT_MESSAGE_TEMPLATE;
 
-  return lines.join("\n");
+  return safeTemplate
+    .replaceAll("{{name}}", name)
+    .replaceAll("{{building}}", cleanedBuilding)
+    .replaceAll("{{transactions}}", transactionLines.join("\n"))
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }

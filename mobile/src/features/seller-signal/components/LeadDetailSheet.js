@@ -228,6 +228,7 @@ export default function LeadDetailSheet({
   visible,
   onClose,
   lead,
+  messageTemplate,
   insight,
   editDraft,
   isDeleting,
@@ -262,7 +263,7 @@ export default function LeadDetailSheet({
 
   if (!lead) return null;
 
-  const message = insight?.message || buildMessage(lead, insight);
+  const message = insight?.message || buildMessage(lead, insight, messageTemplate);
 
   function handleNotesChange(text) {
     setNotesDraft({ leadId, value: text });

@@ -31,6 +31,7 @@ export function createSellerSignalActions(context) {
     expandedLeads,
     insights,
     leads,
+    messageTemplate,
     pagedLeads,
     queryClient,
     sendWhatsAppMessageMutation,
@@ -267,7 +268,7 @@ export function createSellerSignalActions(context) {
     const insight = insights[lead.id];
     return {
       insight,
-      message: insight?.message || buildMessage(lead, insight),
+      message: insight?.message || buildMessage(lead, insight, messageTemplate),
       phone: formatPhoneForWhatsApp(lead.phone),
     };
   }
@@ -292,7 +293,10 @@ export function createSellerSignalActions(context) {
     const lead = leads.find((item) => item.id === leadId) || pagedLeads.find((item) => item.id === leadId);
     if (!lead) return false;
 
-    const { insight, message, phone } = getLeadWhatsAppPayload(lead);
+    const { insight, message: templatedMessage, phone } = getLeadWhatsAppPayload(lead);
+    // A one-off override from the lead modal wins over the templated message so a
+    // single seller can get a tweaked script without touching the saved default.
+    const message = String(options.message || "").trim() || templatedMessage;
     // Hot leads send the today's-transaction message; other due leads send a
     // recent-market follow-up. With no market data there is nothing worth
     // sending automatically.

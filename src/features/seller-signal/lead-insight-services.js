@@ -196,7 +196,7 @@ export function getMissingFallbackBuildingNames(targets, transactionsByBuilding)
   return [...missingNames].sort();
 }
 
-export function computeLeadInsights(targets, marketData, fallbackState = {}) {
+export function computeLeadInsights(targets, marketData, fallbackState = {}, messageTemplate) {
   const buildingLookup = marketData?.buildingLookup || {};
   const transactionsByBuilding = marketData?.transactionsByBuilding || {};
   const fallbackTransactionsByBuilding = fallbackState.data || {};
@@ -226,13 +226,13 @@ export function computeLeadInsights(targets, marketData, fallbackState = {}) {
         updates[lead.id] = {
           status: "loading",
           error: null,
-          message: buildMessage(lead, null),
+          message: buildMessage(lead, null, messageTemplate),
         };
       } else {
         updates[lead.id] = {
           status: "error",
           error: "Property market data is not available yet.",
-          message: buildMessage(lead, null),
+          message: buildMessage(lead, null, messageTemplate),
         };
       }
       continue;
@@ -270,7 +270,7 @@ export function computeLeadInsights(targets, marketData, fallbackState = {}) {
 
     updates[lead.id] = {
       ...insight,
-      message: buildMessage(lead, messageInsight),
+      message: buildMessage(lead, messageInsight, messageTemplate),
     };
     matched += 1;
   }

@@ -166,6 +166,7 @@ export default function DashboardScreen({ onBack, theme, userId }) {
               isDone={d.viewTab === "done"}
               lead={item}
               insight={d.insights[item.id]}
+              messageTemplate={d.messageTemplate}
               onPress={(lead) => setSelectedLeadId(lead.id)}
               copiedLeadId={d.copiedLeadId}
               onCopyMessage={d.actions.copyMessage}
@@ -212,6 +213,7 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         onClose={() => setSelectedLeadId(null)}
         lead={selectedLead}
         insight={selectedLead ? d.insights[selectedLead.id] : null}
+        messageTemplate={d.messageTemplate}
         editDraft={selectedLead && d.editingLeadId === selectedLead.id ? d.editingLeadDraft : null}
         isSent={selectedLead ? Boolean(d.sentLeads[selectedLead.id]) : false}
         isDeleting={selectedLead ? d.deletingLeadId === selectedLead.id : false}

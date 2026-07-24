@@ -129,6 +129,7 @@ export default function LeadCard({
   isDone,
   isSent,
   lead,
+  messageTemplate,
   onCopyMessage,
   onPress,
   onSendWhatsApp,
@@ -136,7 +137,7 @@ export default function LeadCard({
   whatsappConnected,
 }) {
   const c = colors;
-  const message = insight?.message || buildMessage(lead, insight);
+  const message = insight?.message || buildMessage(lead, insight, messageTemplate);
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
   const [previewVisible, setPreviewVisible] = useState(false);
   const bedroomLabel = formatLeadBedroom(lead.bedroom);

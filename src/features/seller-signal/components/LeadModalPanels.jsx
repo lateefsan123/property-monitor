@@ -290,14 +290,53 @@ export function MarketPanel({ insight, lead }) {
   );
 }
 
-export function MessagePanel({ message }) {
+export function MessagePanel({
+  edited,
+  message,
+  onChangeMessage,
+  onResetMessage,
+  onSelectTemplate,
+  selectedTemplateId,
+  templateOptions = [],
+}) {
   return (
     <div className="lead-detail-panel">
       <div className="lead-detail-panel-head">
         <h3 className="lead-detail-panel-title">Message</h3>
-        <p className="lead-detail-panel-subtitle">Preview of the outreach message.</p>
+        <p className="lead-detail-panel-subtitle">
+          Applies to this seller only - your saved templates stay unchanged.
+        </p>
       </div>
-      <div className="message-preview">{message}</div>
+
+      {templateOptions.length > 1 && (
+        <label className="lead-message-template">
+          <span>Template</span>
+          <select
+            value={selectedTemplateId}
+            onChange={(event) => onSelectTemplate(event.target.value)}
+          >
+            {templateOptions.map((option) => (
+              <option key={option.id} value={option.id}>{option.label}</option>
+            ))}
+          </select>
+        </label>
+      )}
+
+      <textarea
+        className="lead-message-editor"
+        value={message}
+        spellCheck={false}
+        onChange={(event) => onChangeMessage(event.target.value)}
+      />
+
+      {edited && (
+        <div className="lead-message-editor-foot">
+          <span>Edited for this seller</span>
+          <button type="button" className="btn-sm" onClick={onResetMessage}>
+            Reset to template
+          </button>
+        </div>
+      )}
     </div>
   );
 }
