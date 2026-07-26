@@ -2,6 +2,7 @@ const PREVIEW_IMAGES = {
   "preview-sellers": "/home-sellers.png",
   "preview-listings": "/home-listings.png",
   "preview-spreadsheets": "/home-spreadsheets.png",
+  "preview-templates": "/home-message-template.svg",
 };
 
 export default function TilePreview({ kind }) {

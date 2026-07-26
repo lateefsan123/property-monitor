@@ -31,6 +31,13 @@ const OPTIONS = [
     description: "Bring in leads from a CSV or Google Sheet you already have.",
     previewKind: "preview-spreadsheets",
   },
+  {
+    id: "message-template",
+    label: "Message template",
+    title: "Create a message template",
+    description: "Create or update the text and image used for WhatsApp sends.",
+    previewKind: "preview-templates",
+  },
 ];
 
 function PreviewPanel({ option }) {

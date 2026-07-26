@@ -13,6 +13,8 @@ import ListingAlertsPage from "./features/listing-alerts/components/ListingAlert
 import SpreadsheetsPage from "./features/seller-signal/components/SpreadsheetsPage";
 import HomePage from "./features/home/HomePage";
 import CreateNewModal from "./features/home/CreateNewModal";
+import MessageTemplatesPanel from "./features/seller-signal/components/MessageTemplatesPanel";
+import { useSellerSignalMessageTemplates } from "./features/seller-signal/useSellerSignalMessageTemplates";
 import ThemeToggleButton from "./components/ThemeToggleButton";
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 
@@ -61,11 +63,29 @@ function readInitialTheme() {
   return window.matchMedia?.("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 }
 
+function MessageTemplatesModal({ onClose, userId }) {
+  const messageTemplates = useSellerSignalMessageTemplates(userId);
+
+  return (
+    <MessageTemplatesPanel
+      key={messageTemplates.loading ? "loading" : messageTemplates.activeTemplate?.id || "ready"}
+      loading={messageTemplates.loading}
+      onClose={onClose}
+      onDelete={messageTemplates.deleteTemplate}
+      onSave={messageTemplates.saveTemplate}
+      onSetDefault={messageTemplates.setDefaultTemplate}
+      saving={messageTemplates.saving}
+      templates={messageTemplates.templates}
+    />
+  );
+}
+
 export default function AppShell({ displayName, userId }) {
   const [currentPage, setCurrentPage] = useState(readPageFromHash);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [messageTemplatesOpen, setMessageTemplatesOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [theme, setTheme] = useState(readInitialTheme);
 
@@ -130,6 +150,8 @@ export default function AppShell({ displayName, userId }) {
       handleNavigate("listing-alerts");
     } else if (optionId === "spreadsheet" || optionId === "import") {
       handleNavigate("spreadsheets");
+    } else if (optionId === "message-template") {
+      setMessageTemplatesOpen(true);
     }
   }
 
@@ -154,6 +176,13 @@ export default function AppShell({ displayName, userId }) {
         <CreateNewModal
           onClose={() => setCreateOpen(false)}
           onSelect={handleCreateSelect}
+        />
+      )}
+
+      {messageTemplatesOpen && (
+        <MessageTemplatesModal
+          onClose={() => setMessageTemplatesOpen(false)}
+          userId={userId}
         />
       )}
 

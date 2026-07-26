@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  IconCheck,
-  IconChevronRight,
-  IconMessage,
   IconPhoto,
   IconPlus,
   IconTrash,
@@ -22,8 +19,8 @@ function getErrorMessage(error) {
 }
 
 export default function MessageTemplatesPanel({
-  activeTemplate,
   loading,
+  onClose,
   onDelete,
   onSave,
   onSetDefault,
@@ -38,7 +35,6 @@ export default function MessageTemplatesPanel({
   const [removeImage, setRemoveImage] = useState(false);
   const [notice, setNotice] = useState(null);
   const [error, setError] = useState(null);
-  const [open, setOpen] = useState(false);
   const imageInputRef = useRef(null);
   const localImageUrlRef = useRef(null);
   const textareaRef = useRef(null);
@@ -49,13 +45,12 @@ export default function MessageTemplatesPanel({
   }, []);
 
   useEffect(() => {
-    if (!open) return undefined;
     function handleKeyDown(event) {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") onClose?.();
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
+  }, [onClose]);
 
   function setTemplateImage(template) {
     if (localImageUrlRef.current) URL.revokeObjectURL(localImageUrlRef.current);
@@ -177,58 +172,36 @@ export default function MessageTemplatesPanel({
   }
 
   return (
-    <>
-      <button
-        type="button"
-        className="message-template-trigger"
-        aria-haspopup="dialog"
-        onClick={() => setOpen(true)}
+    <div
+      className="message-template-overlay"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose?.();
+      }}
+    >
+      <section
+        className="message-template-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="message-template-title"
+        onMouseDown={(event) => event.stopPropagation()}
       >
-        <span className="message-template-trigger-icon" aria-hidden="true">
-          <IconMessage size={19} stroke={1.9} />
-        </span>
-        <span className="message-template-trigger-main">
-          <strong>Message templates</strong>
-          <span>Edit the text and optional image used for WhatsApp sends.</span>
-        </span>
-        <span className="message-template-default-badge">
-          <IconCheck size={14} stroke={2.4} aria-hidden="true" />
-          Default: {activeTemplate ? activeTemplate.name : "Built-in script"}
-        </span>
-        <IconChevronRight size={16} stroke={1.9} aria-hidden="true" />
-      </button>
-
-      {open && (
-        <div
-          className="message-template-overlay"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setOpen(false);
-          }}
-        >
-          <section
-            className="message-template-modal"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="message-template-title"
-            onMouseDown={(event) => event.stopPropagation()}
+        <header className="message-template-modal-header">
+          <div>
+            <h1 id="message-template-title">Message templates</h1>
+            <p>Personalize the script and image used for every matching WhatsApp send.</p>
+          </div>
+          <button
+            type="button"
+            className="message-template-close"
+            onClick={onClose}
+            aria-label="Close message templates"
           >
-            <header className="message-template-modal-header">
-              <div>
-                <h1 id="message-template-title">Message templates</h1>
-                <p>Personalize the script and image used for every matching WhatsApp send.</p>
-              </div>
-              <button
-                type="button"
-                className="message-template-close"
-                onClick={() => setOpen(false)}
-                aria-label="Close message templates"
-              >
-                <IconX size={18} stroke={1.8} aria-hidden="true" />
-              </button>
-            </header>
-            <div className="message-template-modal-body">
-              {loading ? (
+            <IconX size={18} stroke={1.8} aria-hidden="true" />
+          </button>
+        </header>
+        <div className="message-template-modal-body">
+          {loading ? (
         <p className="muted">Loading templates...</p>
       ) : (
         <div className="message-template-editor">
@@ -352,11 +325,9 @@ export default function MessageTemplatesPanel({
             )}
           </div>
         </div>
-              )}
-            </div>
-          </section>
+          )}
         </div>
-      )}
-    </>
+      </section>
+    </div>
   );
 }

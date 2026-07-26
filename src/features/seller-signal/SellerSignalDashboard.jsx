@@ -12,7 +12,6 @@ import FiltersToolbar from "./components/FiltersToolbar";
 import ImportHealthPanel from "./components/ImportHealthPanel";
 import LeadCard from "./components/LeadCard";
 import LeadModal from "./components/LeadModal";
-import MessageTemplatesPanel from "./components/MessageTemplatesPanel";
 import Pagination from "./components/Pagination";
 import StickyActionBar from "./components/StickyActionBar";
 import SellerSignalSettingsModal from "./components/SellerSignalSettingsModal";
@@ -141,17 +140,6 @@ export default function SellerSignalDashboard({
         onMonthlyReportsChange={dashboard.automation.setMonthlyReportsEnabled}
         open={settingsOpen}
       />
-      <MessageTemplatesPanel
-        key={dashboard.messageTemplates.loading ? "loading" : dashboard.messageTemplates.activeTemplate?.id || "ready"}
-        activeTemplate={dashboard.messageTemplates.activeTemplate}
-        loading={dashboard.messageTemplates.loading}
-        onDelete={dashboard.messageTemplates.deleteTemplate}
-        onSave={dashboard.messageTemplates.saveTemplate}
-        onSetDefault={dashboard.messageTemplates.setDefaultTemplate}
-        saving={dashboard.messageTemplates.saving}
-        templates={dashboard.messageTemplates.templates}
-      />
-
       {dashboard.sourceOptions?.length > 0 && (
         <div className="source-tabs-row">
           <div className="source-picker-wrap" ref={sourcePickerRef}>

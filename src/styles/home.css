@@ -422,7 +422,8 @@
 
 .preview-spreadsheets,
 .preview-listings,
-.preview-sellers {
+.preview-sellers,
+.preview-templates {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -430,7 +431,8 @@
 }
 .preview-spreadsheets-img,
 .preview-listings-img,
-.preview-sellers-img {
+.preview-sellers-img,
+.preview-templates-img {
   width: 100%;
   height: 100%;
   display: block;
@@ -440,7 +442,8 @@
 
 [data-theme="dark"] .preview-spreadsheets-img,
 [data-theme="dark"] .preview-listings-img,
-[data-theme="dark"] .preview-sellers-img {
+[data-theme="dark"] .preview-sellers-img,
+[data-theme="dark"] .preview-templates-img {
   filter: invert(1) opacity(0.82);
 }
 
