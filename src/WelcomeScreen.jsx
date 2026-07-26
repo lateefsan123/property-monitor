@@ -20,7 +20,7 @@ export default function WelcomeScreen({ displayName, onContinue }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
   const artSrc = `${import.meta.env.BASE_URL}khalifa.png`;
-  const greeting = displayName ? `Welcome, ${displayName}!` : "Welcome to Seller Signal!";
+  const greeting = displayName ? `Welcome, ${displayName}!` : "Welcome to Repeat AI!";
 
   async function handleContinue() {
     setSaving(true);
@@ -47,7 +47,7 @@ export default function WelcomeScreen({ displayName, onContinue }) {
           {error && <div className="auth-error">{error}</div>}
 
           <div className="welcome-card">
-            <p className="welcome-card-title">Seller Signal helps you...</p>
+            <p className="welcome-card-title">Repeat AI helps you...</p>
             <ul className="welcome-steps">
               {STEPS.map((step) => (
                 <li

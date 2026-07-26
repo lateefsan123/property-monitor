@@ -31,7 +31,10 @@ export async function createCheckoutSession({ successUrl, cancelUrl, trialPeriod
     body: { successUrl, cancelUrl, trialPeriodDays },
   });
 
-  if (error) throw error;
+  if (error) {
+    const payload = await error.context?.clone?.().json().catch(() => null);
+    throw new Error(payload?.error || error.message);
+  }
   if (!data?.checkoutUrl) throw new Error("Stripe checkout URL was not returned");
   return data;
 }

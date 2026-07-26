@@ -7,22 +7,22 @@ const POLICIES = {
     eyebrow: "Privacy",
     title: "Privacy Policy",
     intro:
-      "Seller Signal is operated by Sanusi Labs to help real estate professionals manage seller pipelines, listing signals, follow-ups, and related communications.",
+      "Repeat AI is operated by Sanusi Labs to help real estate professionals manage seller pipelines, listing signals, follow-ups, and related communications.",
     sections: [
       {
         title: "Information We Collect",
         body:
-          "We collect account details such as your name, email address, profile settings, subscription status, and app preferences. When you use Seller Signal, we also process seller records, lead details, imported spreadsheet data, notes, listing alerts, building watchlists, and WhatsApp connection metadata you choose to provide.",
+          "We collect account details such as your name, email address, profile settings, subscription status, and app preferences. When you use Repeat AI, we also process seller records, lead details, imported spreadsheet data, notes, listing alerts, building watchlists, and WhatsApp connection metadata you choose to provide.",
       },
       {
         title: "How We Use Information",
         body:
-          "We use information to provide the Seller Signal workspace, authenticate users, process payments, import and organize records, show listing and lead updates, send requested notifications, support WhatsApp messaging features, prevent abuse, and improve reliability.",
+          "We use information to provide the Repeat AI workspace, authenticate users, process payments, import and organize records, show listing and lead updates, send requested notifications, support WhatsApp messaging features, prevent abuse, and improve reliability.",
       },
       {
         title: "WhatsApp Data",
         body:
-          "If you connect WhatsApp, Seller Signal uses approved WhatsApp Business Platform APIs to send messages you initiate or automate, receive message and delivery events, and associate those events with the relevant account or lead. We do not sell WhatsApp message data.",
+          "If you connect WhatsApp, Repeat AI uses approved WhatsApp Business Platform APIs to send messages you initiate or automate, receive message and delivery events, and associate those events with the relevant account or lead. We do not sell WhatsApp message data.",
       },
       {
         title: "Sharing",
@@ -45,12 +45,12 @@ const POLICIES = {
     eyebrow: "Terms",
     title: "Terms of Service",
     intro:
-      "These terms govern your use of Seller Signal, a seller pipeline and listing intelligence workspace for real estate professionals.",
+      "These terms govern your use of Repeat AI, a seller pipeline and listing intelligence workspace for real estate professionals.",
     sections: [
       {
         title: "Use of the Service",
         body:
-          "You may use Seller Signal only for lawful business purposes and in compliance with applicable real estate, privacy, communications, and platform rules. You are responsible for the accuracy and legality of the data you upload or enter.",
+          "You may use Repeat AI only for lawful business purposes and in compliance with applicable real estate, privacy, communications, and platform rules. You are responsible for the accuracy and legality of the data you upload or enter.",
       },
       {
         title: "Accounts and Access",
@@ -70,7 +70,7 @@ const POLICIES = {
       {
         title: "Service Changes",
         body:
-          "We may update, suspend, or discontinue parts of Seller Signal as we improve the product, maintain security, or comply with platform requirements.",
+          "We may update, suspend, or discontinue parts of Repeat AI as we improve the product, maintain security, or comply with platform requirements.",
       },
       {
         title: "Contact",
@@ -83,12 +83,12 @@ const POLICIES = {
     eyebrow: "Deletion",
     title: "Data Deletion Instructions",
     intro:
-      "You can request deletion of your Seller Signal account data and connected messaging data at any time.",
+      "You can request deletion of your Repeat AI account data and connected messaging data at any time.",
     sections: [
       {
         title: "How To Request Deletion",
         body:
-          "Email lateefsanusiit@gmail.com from the email address linked to your Seller Signal account with the subject line 'Seller Signal data deletion request'. Include your account email and, if relevant, the WhatsApp Business phone number or workspace affected.",
+          "Email lateefsanusiit@gmail.com from the email address linked to your Repeat AI account with the subject line 'Repeat AI data deletion request'. Include your account email and, if relevant, the WhatsApp Business phone number or workspace affected.",
       },
       {
         title: "What We Delete",
@@ -115,7 +115,7 @@ export default function PolicyPage({ path }) {
   return (
     <main className="policy-page">
       <header className="policy-header">
-        <a className="policy-brand" href="/">Seller Signal</a>
+        <a className="policy-brand" href="/">Repeat AI</a>
         <nav className="policy-nav" aria-label="Legal pages">
           <a href="/privacy">Privacy</a>
           <a href="/terms">Terms</a>

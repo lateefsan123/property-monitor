@@ -1,4 +1,4 @@
-import { StrictMode, useEffect, useState } from "react";
+import { StrictMode, useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import "./index.css";
@@ -90,6 +90,7 @@ export function Root() {
     userId: null,
   });
   const [pendingCheckoutSessionId, setPendingCheckoutSessionId] = useState(null);
+  const postAuthCheckoutUserRef = useRef(null);
   const sessionUserId = session?.user.id ?? null;
   const billingReadyForSession = !sessionUserId
     || (billingState.userId === sessionUserId && billingState.initialized);
@@ -98,6 +99,45 @@ export function Root() {
       && billingState.userId === sessionUserId
       && hasActiveSubscription(billingState.subscription),
   );
+
+  const updatePostAuthAction = useCallback((action) => {
+    setPostAuthAction(action);
+    writeStoredPostAuthAction(action);
+  }, []);
+
+  const handleStartCheckout = useCallback(async (options = {}) => {
+    setBillingState((currentState) => ({
+      ...currentState,
+      checkoutPending: true,
+      error: null,
+      message: null,
+    }));
+
+    try {
+      const appUrl = new URL(import.meta.env.BASE_URL, window.location.origin);
+      const successUrl = new URL(appUrl.toString());
+      successUrl.searchParams.set("checkout", "success");
+      successUrl.searchParams.set("checkout_session_id", "{CHECKOUT_SESSION_ID}");
+
+      const cancelUrl = new URL(appUrl.toString());
+      cancelUrl.searchParams.set("checkout", "cancelled");
+
+      const { checkoutUrl } = await createCheckoutSession({
+        successUrl: successUrl.toString(),
+        cancelUrl: cancelUrl.toString(),
+        trialPeriodDays: options.withTrial ? TRIAL_PERIOD_DAYS : undefined,
+      });
+
+      if (options.consumePostAuthAction) updatePostAuthAction(null);
+      window.location.assign(checkoutUrl);
+    } catch (error) {
+      setBillingState((currentState) => ({
+        ...currentState,
+        checkoutPending: false,
+        error: error instanceof Error ? error.message : "Could not start Stripe checkout",
+      }));
+    }
+  }, [updatePostAuthAction]);
 
   useEffect(() => {
     if (!supabase) return undefined;
@@ -259,10 +299,14 @@ export function Root() {
     if (!sessionUserId || postAuthAction !== "checkout") return;
     if (!billingReadyForSession || billingState.subscriptionLoading || billingState.checkoutPending) return;
     if (pendingCheckoutSessionId) return;
+    if (postAuthCheckoutUserRef.current === sessionUserId) return;
 
-    updatePostAuthAction(null);
-    if (hasActiveBillingSubscription) return;
-    void handleStartCheckout();
+    postAuthCheckoutUserRef.current = sessionUserId;
+    if (hasActiveBillingSubscription) {
+      updatePostAuthAction(null);
+      return;
+    }
+    void handleStartCheckout({ consumePostAuthAction: true });
   }, [
     billingReadyForSession,
     billingState.checkoutPending,
@@ -271,15 +315,12 @@ export function Root() {
     pendingCheckoutSessionId,
     postAuthAction,
     sessionUserId,
+    handleStartCheckout,
+    updatePostAuthAction,
   ]);
 
   function handlePasswordResetComplete() {
     setIsRecoveringPassword(false);
-  }
-
-  function updatePostAuthAction(action) {
-    setPostAuthAction(action);
-    writeStoredPostAuthAction(action);
   }
 
   function openAuth(action = null) {
@@ -287,42 +328,9 @@ export function Root() {
     setShowAuth(true);
   }
 
-  async function handleStartCheckout(options = {}) {
-    setBillingState((currentState) => ({
-      ...currentState,
-      checkoutPending: true,
-      error: null,
-      message: null,
-    }));
-
-    try {
-      const appUrl = new URL(import.meta.env.BASE_URL, window.location.origin);
-      const successUrl = new URL(appUrl.toString());
-      successUrl.searchParams.set("checkout", "success");
-      successUrl.searchParams.set("checkout_session_id", "{CHECKOUT_SESSION_ID}");
-
-      const cancelUrl = new URL(appUrl.toString());
-      cancelUrl.searchParams.set("checkout", "cancelled");
-
-      const { checkoutUrl } = await createCheckoutSession({
-        successUrl: successUrl.toString(),
-        cancelUrl: cancelUrl.toString(),
-        trialPeriodDays: options.withTrial ? TRIAL_PERIOD_DAYS : undefined,
-      });
-
-      window.location.assign(checkoutUrl);
-    } catch (error) {
-      setBillingState((currentState) => ({
-        ...currentState,
-        checkoutPending: false,
-        error: error instanceof Error ? error.message : "Could not start Stripe checkout",
-      }));
-    }
-  }
-
   function handleSubscribeFromLanding() {
     if (sessionUserId) {
-      void handleStartCheckout();
+      void handleStartCheckout({ consumePostAuthAction: postAuthAction === "checkout" });
       return;
     }
 
@@ -331,6 +339,7 @@ export function Root() {
 
   function handleSignOutFromLanding() {
     updatePostAuthAction(null);
+    postAuthCheckoutUserRef.current = null;
     setShowAuth(false);
     void supabase.auth.signOut();
   }
@@ -442,10 +451,10 @@ export function Root() {
       onSubscribe={handleSubscribeFromLanding}
     />
   ) : showAuth ? (
-    <Auth />
+    <Auth onSignUpSuccess={() => updatePostAuthAction("checkout")} />
   ) : (
     <LandingPage
-      onGetStarted={() => openAuth()}
+      onGetStarted={() => openAuth("checkout")}
       onSignIn={() => openAuth()}
       onSubscribe={handleSubscribeFromLanding}
     />

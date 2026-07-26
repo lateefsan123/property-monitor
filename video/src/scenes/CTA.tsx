@@ -109,7 +109,7 @@ export const CTA: React.FC = () => {
             marginTop: 14,
           }}
         >
-          <span>€20 / month</span>
+          <span>€50 / month</span>
           <span style={{ width: 6, height: 6, borderRadius: 999, background: theme.hairline }} />
           <span>14-day free trial</span>
           <span style={{ width: 6, height: 6, borderRadius: 999, background: theme.hairline }} />

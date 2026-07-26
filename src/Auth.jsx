@@ -8,7 +8,7 @@ function getRedirectUrl(redirectToUrl) {
   return new URL(import.meta.env.BASE_URL, window.location.origin).toString();
 }
 
-export default function Auth({ redirectToUrl } = {}) {
+export default function Auth({ redirectToUrl, onSignUpSuccess } = {}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -62,6 +62,7 @@ export default function Auth({ redirectToUrl } = {}) {
 
       if (signUpError) setError(signUpError.message);
       else {
+        onSignUpSuccess?.();
         setPendingEmail(email);
         setPassword("");
       }
@@ -75,6 +76,7 @@ export default function Auth({ redirectToUrl } = {}) {
 
   async function handleGoogleAuth() {
     setError(null);
+    if (isSignUp) onSignUpSuccess?.();
     const redirectTo = getRedirectUrl(redirectToUrl);
     const { error: oauthError } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -114,7 +116,7 @@ export default function Auth({ redirectToUrl } = {}) {
     ? "Reset Password"
     : isSignUp
     ? "Create your account"
-    : "Sign in to Seller Signal";
+    : "Sign in to Repeat AI";
 
   const helper = isForgotPassword
     ? "Enter your email to receive instructions to reset your password."
@@ -130,7 +132,7 @@ export default function Auth({ redirectToUrl } = {}) {
             <div className="auth-heading-group">
               <h1 className="auth-heading">Check your email</h1>
               <p className="auth-helper">
-                To start using Seller Signal we need you to confirm your account.
+                To start using Repeat AI we need you to confirm your account.
               </p>
             </div>
 

@@ -3,16 +3,16 @@ import "./styles/landing.css";
 
 const FAQS = [
   {
-    q: "What is Seller Signal, and how does it work?",
-    a: "Seller Signal is a focused workspace for Dubai real estate brokers to track sellers, monitor building activity, and run follow-ups. You import or add your sellers, and the app keeps your pipeline and watched buildings in one place instead of scattered spreadsheets.",
+    q: "What is Repeat AI, and how does it work?",
+    a: "Repeat AI is a focused workspace for Dubai real estate brokers to track sellers, monitor building activity, and run follow-ups. You import or add your sellers, and the app keeps your pipeline and watched buildings in one place instead of scattered spreadsheets.",
   },
   {
     q: "How does billing work?",
-    a: "Seller Signal runs on a single Professional plan at EUR 20/month, billed through Stripe on the web. One subscription unlocks the full workspace and mobile access.",
+    a: "Repeat AI runs on a single Professional plan at EUR 50/month, billed through Stripe on the web. One subscription unlocks the full workspace and mobile access.",
   },
   {
     q: "How does importing spreadsheets work?",
-    a: "Drop your existing Google Sheet or Excel file in and we'll map columns to seller fields. Your data lives in Seller Signal after import, while Sheets stays available as your export if you need it.",
+    a: "Drop your existing Google Sheet or Excel file in and we'll map columns to seller fields. Your data lives in Repeat AI after import, while Sheets stays available as your export if you need it.",
   },
   {
     q: "What happens if I cancel?",
@@ -24,7 +24,7 @@ const FAQS = [
   },
   {
     q: "How is this different from a CRM?",
-    a: "A generic CRM tries to fit any business. Seller Signal is built around how Dubai brokers actually work - towers, seller statuses, and listing portals - so there is less to configure and more that fits immediately.",
+    a: "A generic CRM tries to fit any business. Repeat AI is built around how Dubai brokers actually work - towers, seller statuses, and listing portals - so there is less to configure and more that fits immediately.",
   },
   {
     q: "Is my seller data private?",
@@ -32,42 +32,109 @@ const FAQS = [
   },
 ];
 
-const TESTIMONIALS = [
+const PRODUCT_SECTIONS = [
   {
-    title: "Finally an app built for us",
-    body:
-      "Stopped juggling a dozen spreadsheets. My pipeline actually makes sense now - first real estate tool I've opened twice in a week.",
-    author: "Agent, Marina",
+    id: "dashboard",
+    title: "See the day at a glance.",
+    description:
+      "The dashboard shows follow-ups due today, messages sent, and price drops across watched buildings. Open Repeat AI and know where to start.",
+    image: "/landing/home.png",
+    imageAlt: "Repeat AI dashboard showing follow-ups, sent messages, and watched-building price drops",
   },
   {
-    title: "Cleanest workflow I've used",
-    body:
-      "The listing alerts are actually useful. I see new units come up before my junior even opens the portals.",
-    author: "Senior broker, JBR",
+    id: "listings",
+    title: "Track listings as they change.",
+    description:
+      "See new listings, price drops, status changes, and live units in the buildings you cover. Open a building to review the listings that need attention.",
+    image: "/landing/listings.png",
+    imageAlt: "Repeat AI listings page showing tracked units and recent price drops",
   },
   {
-    title: "Did what I wanted Excel to do",
-    body:
-      "Import once and it just works. Saved me an afternoon of copying cells and arguing with formatting.",
-    author: "Independent agent",
+    id: "sellers",
+    title: "Keep every seller in one place.",
+    description:
+      "Store each seller's contact details, property, status, notes, and next follow-up together. Filter the pipeline and pick up exactly where you left off.",
+    image: "/landing/sellers.png",
+    imageAlt: "Repeat AI sellers page showing seller records, statuses, and follow-up actions",
   },
   {
-    title: "Worth the EUR 20, easily",
-    body:
-      "The price drop alerts paid for it in my first month. Closed a 2BR because I was the first to call.",
-    author: "Downtown specialist",
+    id: "spreadsheets",
+    title: "Bring your spreadsheets with you.",
+    description:
+      "Import the spreadsheets you already use. Repeat AI maps the rows into your seller pipeline and keeps every source organised.",
+    image: "/landing/spreadsheets.png",
+    imageAlt: "Repeat AI spreadsheets page showing imported seller data sources",
   },
   {
-    title: "Great for a small team",
-    body:
-      "Three of us share the same pipeline now. Nothing gets missed, nothing gets called twice.",
-    author: "Team lead, Business Bay",
+    id: "messages",
+    title: "Turn a market signal into a conversation.",
+    description:
+      "Repeat AI matches relevant activity to the right seller, sends your WhatsApp template and image, and keeps the reply connected to the follow-up.",
+    image: "/landing/whatsapp-agent-conversation.png",
+    imageAlt: "Example WhatsApp outreach sent by a real estate agent with a seller reply",
+  },
+];
+
+const DUBAI_TOWERS = [
+  {
+    name: "Marina Gate",
+    logo: "/landing/tower-logos/marina-gate.png",
+    logoAlt: "Jumeirah Living Marina Gate",
+    logoKey: "marina-gate",
   },
   {
-    title: "Not bloated, just useful",
-    body:
-      "Doesn't try to be a CRM, a dialer, and a calendar at once. Does seller follow-up, does it well.",
-    author: "Broker, Palm Jumeirah",
+    name: "Burj Khalifa",
+    logo: "/landing/tower-logos/burj-khalifa.svg",
+    logoAlt: "Burj Khalifa",
+    logoKey: "burj-khalifa",
+  },
+  {
+    name: "One Za'abeel",
+    logo: "/landing/tower-logos/one-zaabeel.svg",
+    logoAlt: "One Za'abeel",
+    logoKey: "one-zaabeel",
+  },
+  {
+    name: "Atlantis The Royal",
+    logo: "/landing/tower-logos/atlantis-the-royal.png",
+    logoAlt: "Atlantis The Royal Dubai",
+    logoKey: "atlantis",
+  },
+  {
+    name: "Museum of the Future",
+    logo: "/landing/tower-logos/museum-of-the-future.svg",
+    logoAlt: "Museum of the Future",
+    logoKey: "museum",
+  },
+  {
+    name: "Dubai Opera",
+    logo: "/landing/tower-logos/dubai-opera.webp",
+    logoAlt: "Dubai Opera",
+    logoKey: "dubai-opera",
+  },
+  {
+    name: "Dubai Frame",
+    logo: "/landing/tower-logos/dubai-frame.png",
+    logoAlt: "Dubai Frame",
+    logoKey: "dubai-frame",
+  },
+  {
+    name: "ICD Brookfield Place",
+    logo: "/landing/tower-logos/icd-brookfield-place.svg",
+    logoAlt: "ICD Brookfield Place",
+    logoKey: "icd-brookfield",
+  },
+  {
+    name: "St. Regis Residences",
+    logo: "/landing/tower-logos/st-regis.svg",
+    logoAlt: "The St. Regis Residences Financial Center Road Dubai",
+    logoKey: "st-regis",
+  },
+  {
+    name: "Address Sky View",
+    logo: "/landing/tower-logos/address-sky-view.svg",
+    logoAlt: "Address Sky View",
+    logoKey: "address",
   },
 ];
 
@@ -99,7 +166,15 @@ export default function LandingPage({
   return (
     <div className="landing">
       <header className="landing-header">
-        <div className="landing-brand">Seller Signal</div>
+        <a className="landing-brand" href="/" aria-label="Repeat AI home">
+          <img
+            src="/brand/repeat-ai-logo.png"
+            alt="Repeat AI"
+            className="landing-brand-logo"
+            width="140"
+            height="25"
+          />
+        </a>
         <nav className="landing-nav">
           <a href="#pricing">Pricing</a>
           <button type="button" className="landing-nav-link" onClick={accountAction}>
@@ -132,90 +207,54 @@ export default function LandingPage({
             </a>
           </div>
         </div>
+        <figure className="landing-hero-visual">
+          <img
+            src="/landing/home.png"
+            alt="Repeat AI dashboard showing follow-ups, sent messages, and watched-building price drops"
+          />
+        </figure>
+      </section>
+
+      <section className="landing-tower-strip" aria-label="Dubai towers">
+        <div className="landing-tower-track">
+          {DUBAI_TOWERS.map((tower) => (
+            <div className="landing-tower" key={tower.name} aria-label={tower.name} title={tower.name}>
+              <span className={`landing-tower-logo landing-tower-logo--${tower.logoKey}`}>
+                <img src={tower.logo} alt={tower.logoAlt} loading="lazy" />
+              </span>
+            </div>
+          ))}
+        </div>
       </section>
 
       <section className="landing-features" id="features">
-        <h2 className="landing-features-title">Why brokers choose Seller Signal.</h2>
-        <div className="landing-feature-grid">
-          <article className="landing-feature-card">
-            <div className="landing-feature-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <circle cx="12" cy="8" r="3.5" />
-                <path d="M5 20c0-3.5 3.2-6 7-6s7 2.5 7 6" strokeLinecap="round" />
-              </svg>
+        {PRODUCT_SECTIONS.map((section, index) => (
+          <article
+            className={`landing-feature-row ${index % 2 === 1 ? "is-reversed" : ""}`}
+            key={section.id}
+          >
+            <div className="landing-feature-copy">
+              <h2>{section.title}</h2>
+              <p>{section.description}</p>
             </div>
-            <h3>Sellers, tracked properly</h3>
-            <p>
-              Keep every prospect, status, contact detail, and follow-up in one
-              focused pipeline. No more scrolling through a dozen spreadsheets
-              to find who you promised to call back.
-            </p>
-            <p className="landing-feature-note">
-              Built around how Dubai brokers actually work.
-            </p>
+            <figure className={`landing-feature-visual landing-feature-visual--${section.id}`}>
+              {section.image ? (
+                <img src={section.image} alt={section.imageAlt} loading="lazy" />
+              ) : (
+                <div className="landing-feature-placeholder" aria-label={section.placeholder}>
+                  <span>{section.placeholder}</span>
+                </div>
+              )}
+            </figure>
           </article>
-
-          <article className="landing-feature-card">
-            <div className="landing-feature-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <path d="M4 20h16" strokeLinecap="round" />
-                <rect x="5" y="4" width="6" height="16" rx="1" />
-                <rect x="13" y="9" width="6" height="11" rx="1" />
-                <path d="M7 8h2M7 11h2M7 14h2M15 12h2M15 15h2" strokeLinecap="round" />
-              </svg>
-            </div>
-            <h3>Listings that actually matter</h3>
-            <p>
-              Monitor building activity, price drops, and new listings across
-              the towers you care about. Get signal when the market moves,
-              not noise from everywhere else.
-            </p>
-          </article>
-
-          <article className="landing-feature-card">
-            <div className="landing-feature-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <rect x="3.5" y="3.5" width="17" height="17" rx="2" />
-                <path d="M3.5 9h17M3.5 15h17M9 3.5v17M15 3.5v17" />
-              </svg>
-            </div>
-            <h3>Spreadsheets without the mess</h3>
-            <p>
-              Import seller data once and let Seller Signal organize it.
-              Your pipeline lives in a real workspace - not 40 Google Sheets
-              tabs you can't find anymore.
-            </p>
-          </article>
-        </div>
-      </section>
-
-      <section className="landing-testimonials">
-        <div className="landing-testimonials-header">
-          <h2 className="landing-testimonials-title">What brokers are saying.</h2>
-          <p className="landing-testimonials-sub">
-            Real feedback from the agents and teams who put Seller Signal
-            to work on their daily pipelines.
-          </p>
-        </div>
-
-        <div className="landing-marquee" aria-hidden="false">
-          <div className="landing-marquee-track">
-            {[...TESTIMONIALS, ...TESTIMONIALS].map((item, index) => (
-              <article className="landing-testimonial-card" key={`${item.title}-${index}`}>
-                <h3>{item.title}</h3>
-                <p>&ldquo;{item.body}&rdquo;</p>
-                <span className="landing-testimonial-meta">{item.author}</span>
-              </article>
-            ))}
-          </div>
-        </div>
+        ))}
       </section>
 
       <section className="landing-pricing" id="pricing">
         <div className="landing-pricing-header">
           <h2 className="landing-pricing-title">Simple pricing.</h2>
           <p className="landing-pricing-sub">
-            One monthly plan for full Seller Signal access.
+            One monthly plan for full Repeat AI access.
           </p>
         </div>
 
@@ -223,7 +262,7 @@ export default function LandingPage({
           <article className="landing-plan landing-plan-featured">
             <div className="landing-plan-label">Professional</div>
             <div className="landing-plan-price">
-              <span className="landing-plan-amount">EUR 20</span>
+              <span className="landing-plan-amount">EUR 50</span>
               <span className="landing-plan-unit">/ month</span>
             </div>
             <p className="landing-plan-desc">
@@ -267,7 +306,7 @@ export default function LandingPage({
       <section className="landing-faq" id="faq">
         <div className="landing-faq-header">
           <p className="landing-faq-eyebrow">Have questions?</p>
-          <h2 className="landing-faq-title">Seller Signal FAQs</h2>
+          <h2 className="landing-faq-title">Repeat AI FAQs</h2>
         </div>
 
         <ul className="landing-faq-list">
@@ -303,16 +342,32 @@ export default function LandingPage({
       </section>
 
       <section className="landing-final-cta">
-        <h2>Built for brokers who want a cleaner workflow.</h2>
-        <p>Manage sellers, listings, and spreadsheets from one focused workspace.</p>
-        <button type="button" className="landing-cta" onClick={heroCtaAction}>
-          {heroCtaLabel}
-        </button>
+        <img
+          className="landing-final-skyline"
+          src="/landing/dubai-skyline-transparent.png"
+          alt=""
+          aria-hidden="true"
+        />
+        <div className="landing-final-cta-content">
+          <h2>Built for brokers who want a cleaner workflow.</h2>
+          <p>Manage sellers, listings, and spreadsheets from one focused workspace.</p>
+          <button type="button" className="landing-cta" onClick={heroCtaAction}>
+            {heroCtaLabel}
+          </button>
+        </div>
       </section>
 
       <footer className="landing-footer">
         <div className="landing-footer-row">
-          <div className="landing-brand">Seller Signal</div>
+          <a className="landing-brand" href="/" aria-label="Repeat AI home">
+            <img
+              src="/brand/repeat-ai-logo.png"
+              alt="Repeat AI"
+              className="landing-brand-logo"
+              width="140"
+              height="25"
+            />
+          </a>
           <nav className="landing-footer-nav">
             <a href="#features">Product</a>
             <a href="#pricing">Pricing</a>

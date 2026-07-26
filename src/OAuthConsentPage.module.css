@@ -46,9 +46,10 @@
   width: 64px;
 }
 
-.sellerSignalIcon .connectionIconImage {
+.repeatAiIcon .connectionIconImage {
   height: 64px;
   width: 64px;
+  filter: brightness(0);
 }
 
 .connectionArrow {
@@ -238,7 +239,7 @@
     width: 54px;
   }
 
-  .sellerSignalIcon .connectionIconImage {
+  .repeatAiIcon .connectionIconImage {
     height: 64px;
     width: 64px;
   }

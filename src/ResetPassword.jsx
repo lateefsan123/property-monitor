@@ -7,7 +7,7 @@ export default function ResetPassword({ onComplete }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
-  const logoSrc = `${import.meta.env.BASE_URL}logo.png`;
+  const logoSrc = `${import.meta.env.BASE_URL}brand/repeat-ai-logo.png`;
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -35,7 +35,7 @@ export default function ResetPassword({ onComplete }) {
   return (
     <div className="auth-page">
       <div className="auth-card">
-        <img src={logoSrc} alt="Seller Signal" className="auth-logo" />
+        <img src={logoSrc} alt="Repeat AI" className="auth-logo" />
         <p className="auth-subtitle">Choose a new password</p>
 
         {error && <div className="error">{error}</div>}

@@ -58,7 +58,7 @@ const FEATURES = [
   },
   {
     id: "support",
-    label: "Priority support from the Seller Signal team",
+    label: "Priority support from the Repeat AI team",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <polygon points="12 2 15 9 22 9.5 17 14 18.5 21 12 17.5 5.5 21 7 14 2 9.5 9 9 12 2" />
@@ -104,14 +104,14 @@ export default function TrialOfferScreen({ onStartTrial, onSkip, checkoutPending
       <div className="auth-pane auth-pane--form">
         <div className="auth-form-container trial-container">
           <div className="auth-heading-group">
-            <h1 className="auth-heading">Try Seller Signal Pro for free</h1>
+            <h1 className="auth-heading">Try Repeat AI Pro for free</h1>
           </div>
 
           <p className="trial-subtitle">
             Get the full workspace. Free for 14 days, cancel any time.
           </p>
 
-          <p className="trial-list-heading">Here’s what you get with Seller Signal Pro:</p>
+          <p className="trial-list-heading">Here’s what you get with Repeat AI Pro:</p>
 
           <ul className="trial-features">
             {FEATURES.map((feature) => (
@@ -123,7 +123,7 @@ export default function TrialOfferScreen({ onStartTrial, onSkip, checkoutPending
           </ul>
 
           <p className="trial-caveat">
-            <strong>Cancel anytime.</strong> We’ll remind you 7 days before your trial ends.
+            <strong>EUR 50/month after your trial.</strong> Cancel anytime. We’ll remind you 7 days before your trial ends.
           </p>
 
           {error && <div className="auth-error">{error}</div>}

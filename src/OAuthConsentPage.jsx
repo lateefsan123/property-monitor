@@ -19,12 +19,12 @@ function getPermissionItems(scopes) {
 
   if (normalizedScopes.has("seller-signal:read") && !normalizedScopes.has("seller-signal:write")) {
     permissions.set("seller-signal:read", {
-      title: "Read access to Seller Signal app data",
+      title: "Read access to Repeat AI app data",
       description: "Including sellers, lead details, notes, listing alerts, WhatsApp accounts, and message history",
     });
   } else {
     permissions.set("seller-signal:write", {
-      title: "Read and write access to Seller Signal app data",
+      title: "Read and write access to Repeat AI app data",
       description: "Including sellers, lead details, notes, listing alerts, WhatsApp accounts, and message sending",
     });
   }
@@ -34,7 +34,7 @@ function getPermissionItems(scopes) {
     .forEach((scope) => {
       permissions.set(scope, {
         title: formatScopeTitle(scope),
-        description: "For your linked Seller Signal account",
+        description: "For your linked Repeat AI account",
       });
     });
 
@@ -77,7 +77,7 @@ export default function OAuthConsentPage({ session }) {
       }
 
       if (!supabase?.auth?.oauth?.getAuthorizationDetails) {
-        setError("OAuth consent is not available in this Seller Signal build.");
+        setError("OAuth consent is not available in this Repeat AI build.");
         setLoading(false);
         return;
       }
@@ -98,7 +98,7 @@ export default function OAuthConsentPage({ session }) {
       }
 
       if (data.user.id !== session.user.id) {
-        setError("This OAuth request belongs to another Seller Signal account.");
+        setError("This OAuth request belongs to another Repeat AI account.");
         setLoading(false);
         return;
       }
@@ -151,7 +151,7 @@ export default function OAuthConsentPage({ session }) {
   const resolvedClientLogoUri = clientLogoUri || (isChatGptClient(clientName) ? CHATGPT_LOGO_URI : "");
   const permissionItems = getPermissionItems(scopes);
   const accountEmail = authDetails.user.email || session.user.email || "your account";
-  const sellerSignalLogoUri = `${import.meta.env.BASE_URL}logo.png`;
+  const repeatAiLogoUri = `${import.meta.env.BASE_URL}brand/repeat-ai-icon.png`;
 
   return (
     <main className={styles.root}>
@@ -170,8 +170,8 @@ export default function OAuthConsentPage({ session }) {
             )}
           </div>
           <ArrowRight size={38} strokeWidth={1.2} className={styles.connectionArrow} />
-          <div className={`${styles.connectionIcon} ${styles.sellerSignalIcon}`}>
-            <img src={sellerSignalLogoUri} alt="" className={styles.connectionIconImage} />
+          <div className={`${styles.connectionIcon} ${styles.repeatAiIcon}`}>
+            <img src={repeatAiLogoUri} alt="" className={styles.connectionIconImage} />
           </div>
         </div>
 
@@ -179,7 +179,7 @@ export default function OAuthConsentPage({ session }) {
           <p id="oauth-consent-title" className={styles.permissionIntro}>
             Signed in as <strong>{accountEmail}</strong>.{" "}
             <span>
-              {clientName} is requesting access to your Seller Signal account. They will have:
+              {clientName} is requesting access to your Repeat AI account. They will have:
             </span>
           </p>
 

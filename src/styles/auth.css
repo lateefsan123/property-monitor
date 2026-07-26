@@ -7,10 +7,16 @@
 }
 
 .auth-logo {
-  height: 180px;
+  height: 36px;
+  max-width: 100%;
   width: auto;
   display: block;
-  margin: -30px auto -20px;
+  margin: 0 auto 4px;
+  filter: brightness(0);
+}
+
+[data-theme="dark"] .auth-logo {
+  filter: none;
 }
 
 .auth-card {
@@ -231,7 +237,7 @@
 
 .profile-avatar-btn {
   padding: 8px 14px;
-  border: 1px solid var(--border);
+  border: 2px solid var(--text-fainter);
   border-radius: 8px;
   background: var(--bg-input);
   color: var(--text);
@@ -279,7 +285,7 @@
 
 .referral-legend {
   font-size: 0.85rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-secondary);
   margin-bottom: 4px;
   padding: 0;
@@ -291,7 +297,7 @@
   gap: 14px;
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid var(--border);
+  border: 2px solid var(--text-fainter);
   border-radius: 10px;
   background: var(--bg-card);
   color: var(--text);
@@ -303,7 +309,7 @@
 
 .referral-option:hover:not(:disabled) {
   background: var(--bg-hover);
-  border-color: var(--text-fainter);
+  border-color: var(--text-faint);
 }
 
 .referral-option.is-selected {
@@ -321,6 +327,7 @@
   border-radius: 999px;
   background: var(--bg-input);
   color: var(--text-muted);
+  border: 1px solid var(--text-fainter);
   font-size: 0.78rem;
   font-weight: 600;
   flex-shrink: 0;
@@ -390,6 +397,10 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 10px 12px;
+  border: 2px solid var(--text-fainter);
+  border-radius: 10px;
+  background: var(--bg-input);
   font-size: 0.92rem;
   color: var(--text);
 }
@@ -400,7 +411,7 @@
   justify-content: center;
   width: 24px;
   height: 24px;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   flex-shrink: 0;
 }
 
@@ -526,7 +537,7 @@
 .auth-field input {
   width: 100%;
   padding: 11px 14px;
-  border: 1px solid var(--border);
+  border: 2px solid var(--text-fainter);
   border-radius: 8px;
   font-size: 0.9rem;
   background: var(--bg-input);
@@ -535,10 +546,18 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+.auth-field input:hover {
+  border-color: var(--text-faint);
+}
+
 .auth-field input:focus {
   outline: none;
-  border-color: var(--text-faint);
-  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
+  border-color: var(--text-muted);
+  box-shadow: 0 0 0 3px rgba(100, 116, 139, 0.14);
+}
+
+[data-theme="dark"] .auth-field input:focus {
+  box-shadow: 0 0 0 3px rgba(170, 162, 150, 0.16);
 }
 
 .auth-submit {
