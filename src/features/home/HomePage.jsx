@@ -69,57 +69,6 @@ function SellerMetaIcon() {
   return <IconUser className="sheet-card-meta-icon" size={14} stroke={1.8} aria-hidden="true" />;
 }
 
-const TILES = [
-  {
-    id: "sellers",
-    title: "Sellers",
-    description: "Track leads, log calls, and manage every conversation with the sellers you're working.",
-    accent: "tile-accent-indigo",
-    preview: "preview-sellers",
-  },
-  {
-    id: "listing-alerts",
-    title: "Listing Alerts",
-    description: "Browse live listings, save searches, and get notified the moment a unit matches your criteria.",
-    accent: "tile-accent-rose",
-    preview: "preview-listings",
-  },
-  {
-    id: "spreadsheets",
-    title: "Spreadsheets",
-    description: "Import, export, and sync your Google Sheets so your pipeline stays in one place.",
-    accent: "tile-accent-emerald",
-    preview: "preview-spreadsheets",
-  },
-];
-
-export function TilePreview({ kind }) {
-  if (kind === "preview-sellers") {
-    return (
-      <div className="tile-preview preview-sellers">
-        <img className="preview-sellers-img" src="/home-sellers.png" alt="" loading="lazy" />
-      </div>
-    );
-  }
-  if (kind === "preview-listings") {
-    return (
-      <div className="tile-preview preview-listings">
-        <img className="preview-listings-img" src="/home-listings.png" alt="" loading="lazy" />
-      </div>
-    );
-  }
-  return (
-    <div className="tile-preview preview-spreadsheets">
-      <img
-        className="preview-spreadsheets-img"
-        src="/home-spreadsheets.png"
-        alt=""
-        loading="lazy"
-      />
-    </div>
-  );
-}
-
 function TopbarActionsPortal({ children }) {
   const [host, setHost] = useState(() =>
     typeof document === "undefined" ? null : document.getElementById("app-topbar-actions"),
@@ -422,8 +371,6 @@ export default function HomePage({ displayName, onNavigate, userId, onOpenCreate
     }
   }, [layout]);
 
-  const hasAnyPinned = pinnedSheetIds.size > 0;
-
   return (
     <div className="home-page">
       <TopbarActionsPortal>
@@ -443,25 +390,6 @@ export default function HomePage({ displayName, onNavigate, userId, onOpenCreate
 
       <HomeInsights userId={userId} onNavigate={onNavigate} />
 
-      <div className="home-tiles">
-        {TILES.map((tile) => (
-          <button
-            key={tile.id}
-            type="button"
-            className={`home-tile ${tile.accent}`}
-            onClick={() => onNavigate(tile.id)}
-          >
-            <div className="home-tile-visual">
-              <TilePreview kind={tile.preview} />
-            </div>
-            <div className="home-tile-body">
-              <h3 className="home-tile-title">{tile.title}</h3>
-              <p className="home-tile-desc">{tile.description}</p>
-            </div>
-          </button>
-        ))}
-      </div>
-
       <PinnedSection
         userId={userId}
         layout={layout}
@@ -469,7 +397,6 @@ export default function HomePage({ displayName, onNavigate, userId, onOpenCreate
         pinnedSheetIds={pinnedSheetIds}
         setPinnedSheetIds={setPinnedSheetIds}
       />
-      {!hasAnyPinned && null}
     </div>
   );
 }

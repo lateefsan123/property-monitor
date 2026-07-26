@@ -1,20 +1,14 @@
 import { useEffect, useState } from "react";
 import {
-  IconBuildingEstate,
-  IconDownload,
   IconSparkles,
-  IconTable,
-  IconUsers,
   IconX,
 } from "@tabler/icons-react";
-import { TilePreview } from "./HomePage";
+import TilePreview from "./TilePreview";
 
 const OPTIONS = [
   {
     id: "seller",
     label: "Seller",
-    Icon: IconUsers,
-    accent: "indigo",
     title: "Add a seller",
     description: "Track a new lead with call notes, contact details, and pipeline status.",
     previewKind: "preview-sellers",
@@ -22,8 +16,6 @@ const OPTIONS = [
   {
     id: "listing-search",
     label: "Listing search",
-    Icon: IconBuildingEstate,
-    accent: "rose",
     title: "Search listings",
     description: "Browse live Dubai listings and watch for units that match your criteria.",
     previewKind: "preview-listings",
@@ -31,8 +23,6 @@ const OPTIONS = [
   {
     id: "spreadsheet",
     label: "Spreadsheet",
-    Icon: IconTable,
-    accent: "emerald",
     title: "Connect a spreadsheet",
     description: "Link a Google Sheet to sync your pipeline in both directions.",
     previewKind: "preview-spreadsheets",
@@ -40,8 +30,6 @@ const OPTIONS = [
   {
     id: "import",
     label: "Import existing data",
-    Icon: IconDownload,
-    accent: "amber",
     title: "Import existing data",
     description: "Bring in leads from a CSV or Google Sheet you already have.",
     previewKind: "preview-spreadsheets",
@@ -108,19 +96,18 @@ export default function CreateNewModal({ onClose, onSelect }) {
         <div className="create-modal-body">
           <ul className="create-modal-options" role="listbox">
             {OPTIONS.map((option) => {
-              const Icon = option.Icon;
               const active = hoveredId === option.id;
               return (
                 <li key={option.id}>
                   <button
                     type="button"
-                    className={`create-modal-option accent-${option.accent}${active ? " active" : ""}`}
+                    className={`create-modal-option${active ? " active" : ""}`}
                     onClick={() => onSelect?.(option.id)}
                     onMouseEnter={() => setHoveredId(option.id)}
                     onFocus={() => setHoveredId(option.id)}
                   >
-                    <span className="create-modal-option-icon">
-                      <Icon size={20} stroke={1.8} aria-hidden="true" />
+                    <span className="create-modal-option-preview" aria-hidden="true">
+                      <TilePreview kind={option.previewKind} />
                     </span>
                     <span className="create-modal-option-label">{option.label}</span>
                   </button>

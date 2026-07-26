@@ -29,12 +29,6 @@
   line-height: 1.2;
 }
 
-.home-tiles {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-}
-
 /* ============================================================
    Home insights (messages chart + price drops)
    ============================================================ */
@@ -300,87 +294,6 @@
   color: var(--text-secondary);
 }
 
-.home-tile {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  text-align: left;
-  padding: 0;
-  overflow: hidden;
-  background: var(--bg-card);
-  border: 1px solid var(--bg-card-border);
-  border-radius: 16px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
-  cursor: pointer;
-  font: inherit;
-  color: inherit;
-}
-
-.home-tile-visual {
-  position: relative;
-  height: 230px;
-  padding: 14px;
-  display: flex;
-  align-items: stretch;
-  justify-content: stretch;
-  overflow: hidden;
-}
-
-.home-tile-icon {
-  position: absolute;
-  top: 14px;
-  left: 14px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 10px;
-  background: var(--bg-card);
-  color: var(--text-name);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
-}
-
-.home-tile-icon svg {
-  width: 22px;
-  height: 22px;
-}
-
-.tile-accent-indigo .home-tile-visual,
-.tile-accent-rose .home-tile-visual,
-.tile-accent-emerald .home-tile-visual { background: transparent; }
-
-.home-tile-body {
-  padding: 8px 20px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.home-tile-title {
-  margin: 0;
-  font-size: 1.02rem;
-  font-weight: 600;
-  color: var(--text-name);
-}
-
-.home-tile-desc {
-  margin: 0;
-  font-size: 0.86rem;
-  line-height: 1.5;
-  color: var(--text-muted);
-}
-
-.home-tile-cta {
-  margin-top: 8px;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-name);
-}
-
 /* Tile previews â€” layered floating cards with name-tag overlays */
 .tile-preview {
   position: relative;
@@ -532,10 +445,6 @@
 }
 
 @media (max-width: 900px) {
-  .home-tiles {
-    grid-template-columns: 1fr;
-  }
-
   .home-insights {
     grid-template-columns: 1fr;
   }

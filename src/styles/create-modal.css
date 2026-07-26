@@ -109,34 +109,19 @@
   background: var(--bg-hover);
 }
 
-.create-modal-option-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
+.create-modal-option-preview {
+  display: block;
+  width: 72px;
+  height: 48px;
+  overflow: hidden;
+  border: 1px solid var(--bg-card-border);
   border-radius: 8px;
+  background: var(--bg-card);
   flex-shrink: 0;
 }
 
-.create-modal-option.accent-indigo .create-modal-option-icon {
-  background: #e0e7ff;
-  color: #4f46e5;
-}
-
-.create-modal-option.accent-rose .create-modal-option-icon {
-  background: #ffe4e6;
-  color: #e11d48;
-}
-
-.create-modal-option.accent-emerald .create-modal-option-icon {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.create-modal-option.accent-amber .create-modal-option-icon {
-  background: #fef3c7;
-  color: #d97706;
+.create-modal-option-preview .tile-preview {
+  padding: 2px;
 }
 
 .create-modal-option-label {
