@@ -46,3 +46,7 @@ export {
   saveMessageTemplate,
   setDefaultMessageTemplate,
 } from "./message-template-services";
+export {
+  fetchAutomationSettings,
+  saveAutomationSettings,
+} from "./automation-settings-services";

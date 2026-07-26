@@ -3,3 +3,6 @@ verify_jwt = false
 
 [functions.seller-signal-monthly-report]
 verify_jwt = false
+
+[functions.seller-signal-automation-dispatcher]
+verify_jwt = false

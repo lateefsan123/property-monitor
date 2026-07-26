@@ -14,7 +14,7 @@ const DATA_PAGE_SIZE = 1000;
 const MIN_SALE_AMOUNT = 100_000;
 const RECENT_TRANSACTIONS_LIMIT = 2;
 const DEFAULT_MAX_SENDS_PER_RUN = 2;
-const DEFAULT_DAILY_CAP = 50;
+const DEFAULT_DAILY_CAP = 40;
 // Zero means scan every eligible lead. PostgREST caps a single response at
 // 1,000 rows, so fetchScannableLeads paginates until the full set is loaded.
 const DEFAULT_MAX_LEADS_PER_RUN = 0;
@@ -808,7 +808,7 @@ async function insertMessageRow(adminClient: any, input: {
   transactionDate: string;
 }) {
   const { data, error } = await adminClient
-    .rpc("claim_seller_signal_auto_whatsapp_message", {
+    .rpc("claim_seller_signal_automation_message", {
       p_user_id: input.lead.user_id,
       p_account_id: input.account.id,
       p_lead_id: input.lead.id,
@@ -819,6 +819,7 @@ async function insertMessageRow(adminClient: any, input: {
       p_market_transaction_date: input.transactionDate,
       p_auto_send_event_id: input.eventId,
       p_daily_cap: input.dailyCap,
+      p_automation_kind: "transaction_updates",
     })
     .single();
 
@@ -981,8 +982,37 @@ Deno.serve(async (req) => {
       if (!accountByUser.has(account.user_id)) accountByUser.set(account.user_id, account);
     }
 
+    const connectedUserIds = [...accountByUser.keys()];
+    const { data: disabledSettings, error: disabledSettingsError } = connectedUserIds.length
+      ? await adminClient
+        .from("seller_signal_automation_settings")
+        .select("user_id")
+        .in("user_id", connectedUserIds)
+        .eq("auto_whatsapp_enabled", false)
+      : { data: [], error: null };
+
+    if (disabledSettingsError) throw new HttpError(500, disabledSettingsError.message);
+
+    const automationDisabledUserIds = new Set(
+      (disabledSettings || []).map((settings: any) => String(settings.user_id)),
+    );
+    for (const userId of automationDisabledUserIds) accountByUser.delete(userId);
+
     if (!accountByUser.size) {
-      return jsonResponse({ runId, enabled, dryRun, maxSends, dailyCap, cooldownHours, todayDateKey, startDubaiDateKey, sent: 0, skipped: { noConnectedAccount: true } });
+      return jsonResponse({
+        runId,
+        enabled,
+        dryRun,
+        maxSends,
+        dailyCap,
+        cooldownHours,
+        todayDateKey,
+        startDubaiDateKey,
+        sent: 0,
+        skipped: automationDisabledUserIds.size
+          ? { automationDisabledUsers: automationDisabledUserIds.size }
+          : { noConnectedAccount: true },
+      });
     }
 
     const leads = interleaveLeadsAcrossBuildings(
@@ -1043,6 +1073,7 @@ Deno.serve(async (req) => {
       dailyCap,
       maxLeads,
       cooldownHours,
+      automationDisabledUsers: automationDisabledUserIds.size,
       scanned: leads.length,
       eligible: 0,
       attempted: 0,

@@ -10,6 +10,7 @@ import {
   connectWhatsAppAccount,
   deleteLead,
   fetchAvailableMarketBuildingKeys,
+  fetchAutomationSettings,
   fetchBuildingKeysWithTransactionsOn,
   fetchBuildingMarketData,
   fetchCachedBuildings,
@@ -22,6 +23,7 @@ import {
   persistLeadSentState,
   replaceLegacyLeadsFromSheet,
   replaceUserLeadsFromSheet,
+  saveAutomationSettings,
   sendLeadWhatsAppMessage,
   updateLead,
   updateLeadStatus,
@@ -43,6 +45,7 @@ import {
 } from "./page-helpers";
 import {
   sellerBuildingCleanupQueryKey,
+  sellerAutomationSettingsQueryKey,
   sellerDldFallbackQueryKey,
   sellerHotBuildingsQueryKey,
   sellerLeadsQueryKey,
@@ -136,6 +139,12 @@ export function useSellerSignalPage(userId) {
     queryFn: () => fetchWhatsAppAccounts(userId),
     staleTime: 60 * 1000,
   });
+  const automationSettingsQuery = useQuery({
+    queryKey: sellerAutomationSettingsQueryKey(userId),
+    enabled: Boolean(userId),
+    queryFn: () => fetchAutomationSettings(userId),
+    staleTime: 60 * 1000,
+  });
 
   const leadSources = leadSourcesQuery.data || EMPTY_SOURCES;
   const leadSourcesReady = Boolean(leadSourcesQuery.data);
@@ -227,6 +236,18 @@ export function useSellerSignalPage(userId) {
   });
   const connectWhatsAppAccountMutation = useMutation({
     mutationFn: (payload) => connectWhatsAppAccount(payload),
+  });
+  const automationSettingsMutation = useMutation({
+    mutationFn: (settings) => saveAutomationSettings(userId, settings),
+    onSuccess: (settings) => {
+      queryClient.setQueryData(sellerAutomationSettingsQueryKey(userId), settings);
+      setActionError(null);
+      setActionNotice("Automation settings updated.");
+    },
+    onError: (mutationError) => {
+      setActionNotice(null);
+      setActionError(getErrorMessage(mutationError));
+    },
   });
   const updateLeadStatusMutation = useMutation({
     mutationFn: ({ leadId, status }) => updateLeadStatus({ userId, leadId, status }),
@@ -482,7 +503,8 @@ export function useSellerSignalPage(userId) {
     || buildingAliasesQuery.error
     || cleanupLeadsQuery.error
     || cachedBuildingsQuery.error
-    || whatsappAccountsQuery.error,
+    || whatsappAccountsQuery.error
+    || automationSettingsQuery.error,
   );
   const insightNotice = insightTargets.length
     ? marketDataQuery.error
@@ -565,6 +587,20 @@ export function useSellerSignalPage(userId) {
     cachedBuildings: cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS,
     copiedLeadId,
     cleanupLeads,
+    automation: {
+      enabled: automationSettingsQuery.data?.autoWhatsAppEnabled !== false,
+      monthlyReportsEnabled: automationSettingsQuery.data?.monthlyReportsEnabled === true,
+      loading: automationSettingsQuery.isPending,
+      saving: automationSettingsMutation.isPending,
+      setEnabled: (enabled) => automationSettingsMutation.mutate({
+        autoWhatsAppEnabled: enabled,
+        monthlyReportsEnabled: automationSettingsQuery.data?.monthlyReportsEnabled === true,
+      }),
+      setMonthlyReportsEnabled: (enabled) => automationSettingsMutation.mutate({
+        autoWhatsAppEnabled: automationSettingsQuery.data?.autoWhatsAppEnabled !== false,
+        monthlyReportsEnabled: enabled,
+      }),
+    },
     connectedWhatsAppAccount,
     connectingWhatsAppAccount: connectWhatsAppAccountMutation.isPending,
     dataFilter,

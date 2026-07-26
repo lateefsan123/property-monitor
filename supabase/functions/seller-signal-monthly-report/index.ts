@@ -3,7 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // Sends each active-pipeline seller a once-a-month recap of sales and Ejari
 // rentals registered in their building. Sends share the automatic WhatsApp
-// daily cap via claim_seller_signal_auto_whatsapp_message, so transaction
+// daily cap via claim_seller_signal_automation_message, so transaction
 // alerts always keep priority over recap sends.
 
 const corsHeaders = {
@@ -15,11 +15,9 @@ const DATA_PAGE_SIZE = 1000;
 // DLD labels fractional/nominal transfers as "Sale" with tiny amounts; keep
 // them out of the recap stats (a 3K row would wreck the month's price range).
 const MIN_SALE_AMOUNT = 100_000;
-const DEFAULT_MAX_SENDS_PER_RUN = 5;
-const DEFAULT_DAILY_CAP = 50;
-// Reports stop claiming once the day's combined auto total hits this, so the
-// last sends of the 50/day cap are reserved for same-day transaction alerts.
-const DEFAULT_REPORT_DAILY_BUDGET = 35;
+const DEFAULT_MAX_SENDS_PER_RUN = 1;
+const DEFAULT_DAILY_CAP = 40;
+const DEFAULT_REPORT_DAILY_BUDGET = 40;
 const DEFAULT_SEND_WINDOW_START_HOUR = 9;
 const DEFAULT_SEND_WINDOW_END_HOUR = 21;
 
@@ -751,7 +749,7 @@ async function insertMessageRow(adminClient: any, input: {
   to: string;
 }) {
   const { data, error } = await adminClient
-    .rpc("claim_seller_signal_auto_whatsapp_message", {
+    .rpc("claim_seller_signal_automation_message", {
       p_user_id: input.lead.user_id,
       p_account_id: input.account.id,
       p_lead_id: input.lead.id,
@@ -762,6 +760,7 @@ async function insertMessageRow(adminClient: any, input: {
       p_market_transaction_date: null,
       p_auto_send_event_id: null,
       p_daily_cap: input.dailyCap,
+      p_automation_kind: "monthly_reports",
     })
     .single();
 
@@ -859,8 +858,35 @@ Deno.serve(async (req) => {
       if (!accountByUser.has(account.user_id)) accountByUser.set(account.user_id, account);
     }
 
+    const connectedUserIds = [...accountByUser.keys()];
+    const { data: enabledSettings, error: enabledSettingsError } = connectedUserIds.length
+      ? await adminClient
+        .from("seller_signal_automation_settings")
+        .select("user_id")
+        .in("user_id", connectedUserIds)
+        .eq("monthly_reports_enabled", true)
+      : { data: [], error: null };
+
+    if (enabledSettingsError) throw new HttpError(500, enabledSettingsError.message);
+
+    const monthlyReportUserIds = new Set(
+      (enabledSettings || []).map((settings: any) => String(settings.user_id)),
+    );
+    for (const userId of accountByUser.keys()) {
+      if (!monthlyReportUserIds.has(userId)) accountByUser.delete(userId);
+    }
+
     if (!accountByUser.size) {
-      return jsonResponse({ runId, enabled, dryRun, reportMonth, sent: 0, skipped: { noConnectedAccount: true } });
+      return jsonResponse({
+        runId,
+        enabled,
+        dryRun,
+        reportMonth,
+        sent: 0,
+        skipped: connectedUserIds.length
+          ? { monthlyReportsDisabledUsers: connectedUserIds.length }
+          : { noConnectedAccount: true },
+      });
     }
 
     const userIds = [...accountByUser.keys()];

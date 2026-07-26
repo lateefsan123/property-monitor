@@ -15,7 +15,7 @@ import LeadModal from "./components/LeadModal";
 import MessageTemplatesPanel from "./components/MessageTemplatesPanel";
 import Pagination from "./components/Pagination";
 import StickyActionBar from "./components/StickyActionBar";
-import WhatsAppConnectionPanel from "./components/WhatsAppConnectionPanel";
+import SellerSignalSettingsModal from "./components/SellerSignalSettingsModal";
 import { useSellerFavorites } from "./useSellerFavorites";
 import { useSellerSignalPage } from "./useSellerSignalPage";
 
@@ -124,10 +124,16 @@ export default function SellerSignalDashboard({ userId }) {
         report={dashboard.lastImportReport}
         onReviewRows={(filter) => dashboard.actions.selectDataQualityFilter(filter)}
       />
-      <WhatsAppConnectionPanel
+      <SellerSignalSettingsModal
         account={dashboard.connectedWhatsAppAccount}
+        automationEnabled={dashboard.automation.enabled}
+        automationLoading={dashboard.automation.loading}
+        automationSaving={dashboard.automation.saving}
         connecting={dashboard.connectingWhatsAppAccount}
+        monthlyReportsEnabled={dashboard.automation.monthlyReportsEnabled}
         onConnect={dashboard.actions.connectWhatsAppAccount}
+        onAutomationChange={dashboard.automation.setEnabled}
+        onMonthlyReportsChange={dashboard.automation.setMonthlyReportsEnabled}
       />
       <MessageTemplatesPanel
         key={dashboard.messageTemplates.loading ? "loading" : dashboard.messageTemplates.activeTemplate?.id || "ready"}

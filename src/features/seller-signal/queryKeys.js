@@ -46,6 +46,10 @@ export function sellerWhatsAppAccountsQueryKey(userId) {
   return ["seller-signal", "whatsapp-accounts", userId];
 }
 
+export function sellerAutomationSettingsQueryKey(userId) {
+  return ["seller-signal", "automation-settings", userId];
+}
+
 export function sellerMessageTemplatesQueryKey(userId) {
   return ["seller-signal", "message-templates", userId];
 }
