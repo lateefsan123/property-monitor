@@ -32,18 +32,6 @@
   border-bottom: 1px solid var(--border-light);
 }
 
-.create-modal-header-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 8px;
-  background: linear-gradient(135deg, #eef2ff, #ede9fe);
-  color: #6366f1;
-  flex-shrink: 0;
-}
-
 .create-modal-header-prompt {
   flex: 1;
   font-size: 0.96rem;

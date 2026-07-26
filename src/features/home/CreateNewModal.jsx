@@ -1,8 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  IconSparkles,
-  IconX,
-} from "@tabler/icons-react";
+import { IconX } from "@tabler/icons-react";
 import TilePreview from "./TilePreview";
 
 const OPTIONS = [
@@ -79,10 +76,7 @@ export default function CreateNewModal({ onClose, onSelect }) {
         onClick={(event) => event.stopPropagation()}
       >
         <div className="create-modal-header">
-          <span className="create-modal-header-icon" aria-hidden>
-            <IconSparkles size={18} stroke={1.8} aria-hidden="true" />
-          </span>
-          <span className="create-modal-header-prompt">What do you want to create?</span>
+          <span className="create-modal-header-prompt">New</span>
           <button
             type="button"
             className="create-modal-close"
