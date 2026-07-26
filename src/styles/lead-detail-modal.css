@@ -306,6 +306,29 @@
   box-sizing: border-box;
 }
 
+.lead-message-image {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+  padding: 9px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--bg-hover);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.lead-message-image img {
+  display: block;
+  width: 120px;
+  height: 72px;
+  object-fit: contain;
+  border-radius: 6px;
+  background: #fff;
+}
+
 .lead-message-editor {
   width: 100%;
   min-height: 200px;

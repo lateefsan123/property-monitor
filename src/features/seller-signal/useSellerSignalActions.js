@@ -32,6 +32,7 @@ export function createSellerSignalActions(context) {
     insights,
     leads,
     messageTemplate,
+    messageTemplateImagePath,
     pagedLeads,
     queryClient,
     sendWhatsAppMessageMutation,
@@ -267,6 +268,7 @@ export function createSellerSignalActions(context) {
   function getLeadWhatsAppPayload(lead) {
     const insight = insights[lead.id];
     return {
+      imagePath: messageTemplateImagePath,
       insight,
       message: insight?.message || buildMessage(lead, insight, messageTemplate),
       phone: formatPhoneForWhatsApp(lead.phone),
@@ -293,10 +295,18 @@ export function createSellerSignalActions(context) {
     const lead = leads.find((item) => item.id === leadId) || pagedLeads.find((item) => item.id === leadId);
     if (!lead) return false;
 
-    const { insight, message: templatedMessage, phone } = getLeadWhatsAppPayload(lead);
+    const {
+      imagePath: templatedImagePath,
+      insight,
+      message: templatedMessage,
+      phone,
+    } = getLeadWhatsAppPayload(lead);
     // A one-off override from the lead modal wins over the templated message so a
     // single seller can get a tweaked script without touching the saved default.
     const message = String(options.message || "").trim() || templatedMessage;
+    const imagePath = Object.prototype.hasOwnProperty.call(options, "imagePath")
+      ? options.imagePath
+      : templatedImagePath;
     // Hot leads send the today's-transaction message; other due leads send a
     // recent-market follow-up. With no market data there is nothing worth
     // sending automatically.
@@ -326,6 +336,7 @@ export function createSellerSignalActions(context) {
 
     try {
       const result = await sendWhatsAppMessageMutation.mutateAsync({
+        imagePath,
         lead,
         message,
         sendSource: options.sendSource || "manual",

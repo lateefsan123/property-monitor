@@ -292,12 +292,14 @@ export function MarketPanel({ insight, lead }) {
 
 export function MessagePanel({
   edited,
+  imageUrl,
   message,
   onChangeMessage,
   onResetMessage,
   onSelectTemplate,
   selectedTemplateId,
   templateOptions = [],
+  whatsappConnected,
 }) {
   return (
     <div className="lead-detail-panel">
@@ -320,6 +322,17 @@ export function MessagePanel({
             ))}
           </select>
         </label>
+      )}
+
+      {imageUrl && (
+        <div className="lead-message-image">
+          <img src={imageUrl} alt="Template attachment preview" />
+          <span>
+            {whatsappConnected
+              ? "This image will be sent with the message."
+              : "Connect WhatsApp in Settings to send this image attachment."}
+          </span>
+        </div>
       )}
 
       <textarea

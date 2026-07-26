@@ -110,6 +110,7 @@ export async function connectWhatsAppAccount({
 
 export async function sendLeadWhatsAppMessage({
   accountId,
+  imagePath,
   leadId,
   message,
   phone,
@@ -122,6 +123,7 @@ export async function sendLeadWhatsAppMessage({
   const { data, error, response } = await supabase.functions.invoke("whatsapp-send-message", {
     body: {
       accountId,
+      imagePath: imagePath || null,
       leadId,
       to,
       body: message,

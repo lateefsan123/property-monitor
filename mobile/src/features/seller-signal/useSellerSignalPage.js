@@ -207,6 +207,7 @@ export function useSellerSignalPage(userId) {
     staleTime: 60 * 1000,
   });
   const messageTemplate = messageTemplateQuery.data?.content;
+  const messageTemplateImagePath = messageTemplateQuery.data?.image_path || null;
 
   const connectedWhatsAppAccount = useMemo(
     () => getConnectedWhatsAppAccount(whatsappAccountsQuery.data || []),
@@ -706,6 +707,7 @@ export function useSellerSignalPage(userId) {
   function getLeadWhatsAppPayload(lead) {
     const insight = insights[lead.id];
     return {
+      imagePath: messageTemplateImagePath,
       insight,
       message: insight?.message || buildMessage(lead, insight, messageTemplate),
       phone: formatPhoneForWhatsApp(lead.phone),
@@ -716,7 +718,7 @@ export function useSellerSignalPage(userId) {
     const lead = leads.find((item) => item.id === leadId) || pagedLeads.find((item) => item.id === leadId);
     if (!lead) return false;
 
-    const { message, phone } = getLeadWhatsAppPayload(lead);
+    const { imagePath, message, phone } = getLeadWhatsAppPayload(lead);
     if (!phone) {
       if (message) await copyMessage(lead.id, message);
       if (!sentLeads[lead.id]) await toggleSent(lead.id);
@@ -735,6 +737,7 @@ export function useSellerSignalPage(userId) {
     try {
       const result = await sendLeadWhatsAppMessage({
         accountId: connectedWhatsAppAccount.id,
+        imagePath,
         leadId: lead.id,
         message,
         phone: lead.phone,

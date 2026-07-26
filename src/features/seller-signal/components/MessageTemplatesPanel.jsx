@@ -1,6 +1,19 @@
-import { useRef, useState } from "react";
-import { IconCheck, IconPlus, IconTrash } from "@tabler/icons-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  IconCheck,
+  IconChevronRight,
+  IconMessage,
+  IconPhoto,
+  IconPlus,
+  IconTrash,
+  IconUpload,
+  IconX,
+} from "@tabler/icons-react";
 import { DEFAULT_MESSAGE_TEMPLATE } from "../insight-utils";
+import {
+  MESSAGE_TEMPLATE_IMAGE_MAX_BYTES,
+  MESSAGE_TEMPLATE_IMAGE_TYPES,
+} from "../message-template-services";
 
 const NEW_TEMPLATE_ID = "new";
 
@@ -20,17 +33,45 @@ export default function MessageTemplatesPanel({
   const [selectedId, setSelectedId] = useState(templates[0]?.id || NEW_TEMPLATE_ID);
   const [name, setName] = useState(templates[0]?.name || "Transaction update");
   const [content, setContent] = useState(templates[0]?.content || DEFAULT_MESSAGE_TEMPLATE);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreviewUrl, setImagePreviewUrl] = useState(templates[0]?.image_url || null);
+  const [removeImage, setRemoveImage] = useState(false);
   const [notice, setNotice] = useState(null);
   const [error, setError] = useState(null);
   const [open, setOpen] = useState(false);
+  const imageInputRef = useRef(null);
+  const localImageUrlRef = useRef(null);
   const textareaRef = useRef(null);
   const selectedTemplate = templates.find((template) => template.id === selectedId) || null;
+
+  useEffect(() => () => {
+    if (localImageUrlRef.current) URL.revokeObjectURL(localImageUrlRef.current);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    function handleKeyDown(event) {
+      if (event.key === "Escape") setOpen(false);
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [open]);
+
+  function setTemplateImage(template) {
+    if (localImageUrlRef.current) URL.revokeObjectURL(localImageUrlRef.current);
+    localImageUrlRef.current = null;
+    setImageFile(null);
+    setImagePreviewUrl(template?.image_url || null);
+    setRemoveImage(false);
+    if (imageInputRef.current) imageInputRef.current.value = "";
+  }
 
   function selectTemplate(nextId) {
     const nextTemplate = templates.find((template) => template.id === nextId);
     setSelectedId(nextId);
     setName(nextTemplate?.name || "Transaction update");
     setContent(nextTemplate?.content || DEFAULT_MESSAGE_TEMPLATE);
+    setTemplateImage(nextTemplate);
     setNotice(null);
     setError(null);
   }
@@ -56,11 +97,17 @@ export default function MessageTemplatesPanel({
     try {
       const saved = await onSave({
         id: selectedTemplate?.id,
+        imageFile,
+        imagePath: selectedTemplate?.image_path || null,
         name,
         content,
         isDefault: Boolean(selectedTemplate?.is_default),
+        removeImage,
       });
-      if (saved?.id) setSelectedId(saved.id);
+      if (saved?.id) {
+        setSelectedId(saved.id);
+        setTemplateImage(saved);
+      }
       setNotice("Template saved.");
     } catch (saveError) {
       setError(getErrorMessage(saveError));
@@ -89,31 +136,99 @@ export default function MessageTemplatesPanel({
       setSelectedId(NEW_TEMPLATE_ID);
       setName("Transaction update");
       setContent(DEFAULT_MESSAGE_TEMPLATE);
+      setTemplateImage(null);
       setNotice("Template deleted.");
     } catch (deleteError) {
       setError(getErrorMessage(deleteError));
     }
   }
 
-  return (
-    <section className="message-template-panel" aria-labelledby="message-template-title">
-      <div className="message-template-head">
-        <div>
-          <h2 id="message-template-title">Message templates</h2>
-          <p>Personalize the script while keeping the latest transaction details in every message.</p>
-        </div>
-        <div className="message-template-head-actions">
-          <span className="message-template-default-badge">
-            <IconCheck size={14} stroke={2.4} aria-hidden="true" />
-            Default: {activeTemplate ? activeTemplate.name : "Built-in script"}
-          </span>
-          <button type="button" className="btn-sm" onClick={() => setOpen((value) => !value)}>
-            {open ? "Close editor" : "Edit templates"}
-          </button>
-        </div>
-      </div>
+  function chooseImage(event) {
+    const file = event.target.files?.[0] || null;
+    if (!file) return;
+    setError(null);
+    setNotice(null);
+    if (!MESSAGE_TEMPLATE_IMAGE_TYPES.includes(file.type)) {
+      setError("Choose a JPG, PNG, or WebP image.");
+      event.target.value = "";
+      return;
+    }
+    if (file.size > MESSAGE_TEMPLATE_IMAGE_MAX_BYTES) {
+      setError("Template images must be 5 MB or smaller.");
+      event.target.value = "";
+      return;
+    }
 
-      {open && (loading ? (
+    if (localImageUrlRef.current) URL.revokeObjectURL(localImageUrlRef.current);
+    const previewUrl = URL.createObjectURL(file);
+    localImageUrlRef.current = previewUrl;
+    setImageFile(file);
+    setImagePreviewUrl(previewUrl);
+    setRemoveImage(false);
+  }
+
+  function clearImage() {
+    if (localImageUrlRef.current) URL.revokeObjectURL(localImageUrlRef.current);
+    localImageUrlRef.current = null;
+    setImageFile(null);
+    setImagePreviewUrl(null);
+    setRemoveImage(Boolean(selectedTemplate?.image_path));
+    if (imageInputRef.current) imageInputRef.current.value = "";
+  }
+
+  return (
+    <>
+      <button
+        type="button"
+        className="message-template-trigger"
+        aria-haspopup="dialog"
+        onClick={() => setOpen(true)}
+      >
+        <span className="message-template-trigger-icon" aria-hidden="true">
+          <IconMessage size={19} stroke={1.9} />
+        </span>
+        <span className="message-template-trigger-main">
+          <strong>Message templates</strong>
+          <span>Edit the text and optional image used for WhatsApp sends.</span>
+        </span>
+        <span className="message-template-default-badge">
+          <IconCheck size={14} stroke={2.4} aria-hidden="true" />
+          Default: {activeTemplate ? activeTemplate.name : "Built-in script"}
+        </span>
+        <IconChevronRight size={16} stroke={1.9} aria-hidden="true" />
+      </button>
+
+      {open && (
+        <div
+          className="message-template-overlay"
+          role="presentation"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setOpen(false);
+          }}
+        >
+          <section
+            className="message-template-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="message-template-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <header className="message-template-modal-header">
+              <div>
+                <h1 id="message-template-title">Message templates</h1>
+                <p>Personalize the script and image used for every matching WhatsApp send.</p>
+              </div>
+              <button
+                type="button"
+                className="message-template-close"
+                onClick={() => setOpen(false)}
+                aria-label="Close message templates"
+              >
+                <IconX size={18} stroke={1.8} aria-hidden="true" />
+              </button>
+            </header>
+            <div className="message-template-modal-body">
+              {loading ? (
         <p className="muted">Loading templates...</p>
       ) : (
         <div className="message-template-editor">
@@ -151,6 +266,48 @@ export default function MessageTemplatesPanel({
               onChange={(event) => setContent(event.target.value)}
             />
           </label>
+
+          <div className="message-template-image-field">
+            <div className="message-template-image-copy">
+              <span>Template image</span>
+              <p>Optional. This image is reused whenever the template sends.</p>
+            </div>
+            {imagePreviewUrl ? (
+              <div className="message-template-image-preview">
+                <img src={imagePreviewUrl} alt="Template attachment preview" />
+                <div className="message-template-image-actions">
+                  <button type="button" className="btn-sm" onClick={() => imageInputRef.current?.click()}>
+                    <IconUpload size={15} stroke={1.9} aria-hidden="true" />
+                    Replace image
+                  </button>
+                  <button type="button" className="btn-sm message-template-image-remove" onClick={clearImage}>
+                    <IconTrash size={15} stroke={1.9} aria-hidden="true" />
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="message-template-image-picker"
+                onClick={() => imageInputRef.current?.click()}
+              >
+                <IconPhoto size={22} stroke={1.7} aria-hidden="true" />
+                <span>Choose image</span>
+                <small>JPG, PNG, or WebP · up to 5 MB</small>
+              </button>
+            )}
+            <input
+              ref={imageInputRef}
+              className="message-template-image-input"
+              type="file"
+              accept={MESSAGE_TEMPLATE_IMAGE_TYPES.join(",")}
+              onChange={chooseImage}
+            />
+            <p className="message-template-help">
+              The message becomes the image caption. WhatsApp allows captions up to 1,024 characters after placeholders are filled.
+            </p>
+          </div>
 
           <div className="message-template-token-row">
             <span>Insert:</span>
@@ -195,7 +352,11 @@ export default function MessageTemplatesPanel({
             )}
           </div>
         </div>
-      ))}
-    </section>
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+    </>
   );
 }

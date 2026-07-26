@@ -66,6 +66,7 @@ export default function AppShell({ displayName, userId }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [theme, setTheme] = useState(readInitialTheme);
 
   useEffect(() => {
@@ -114,6 +115,10 @@ export default function AppShell({ displayName, userId }) {
     if (actionId === "new") {
       setCreateOpen(true);
       setSidebarCollapsed(true);
+    } else if (actionId === "settings") {
+      setSettingsOpen(true);
+      setSidebarCollapsed(true);
+      if (currentPage !== "sellers") handleNavigate("sellers");
     }
   }
 
@@ -207,7 +212,11 @@ export default function AppShell({ displayName, userId }) {
             onOpenCreate={() => setCreateOpen(true)}
           />
         ) : currentPage === "sellers" ? (
-          <SellerSignalDashboard userId={userId} />
+          <SellerSignalDashboard
+            userId={userId}
+            settingsOpen={settingsOpen}
+            onCloseSettings={() => setSettingsOpen(false)}
+          />
         ) : currentPage === "spreadsheets" ? (
           <SpreadsheetsPage userId={userId} />
         ) : (

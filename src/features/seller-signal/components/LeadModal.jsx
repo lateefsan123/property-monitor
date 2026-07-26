@@ -78,7 +78,8 @@ export default function LeadModal({
 
   // "default" keeps the saved default script; picking another template or typing
   // in the box only affects this seller's next send.
-  const defaultTemplateName = templates.find((template) => template.is_default)?.name;
+  const defaultTemplate = templates.find((template) => template.is_default) || null;
+  const defaultTemplateName = defaultTemplate?.name;
   const templateOptions = [
     { id: "default", label: defaultTemplateName ? `${defaultTemplateName} (default)` : "Default script" },
     ...templates.filter((template) => !template.is_default).map((template) => ({
@@ -89,11 +90,14 @@ export default function LeadModal({
   const chosenTemplate = templateChoice === "default"
     ? null
     : templates.find((template) => template.id === templateChoice);
+  const selectedTemplate = chosenTemplate || defaultTemplate;
   const baseMessage = chosenTemplate
     ? buildMessage(lead, insight, chosenTemplate.content)
     : (insight?.message || buildMessage(lead, insight, messageTemplate));
   const message = draftMessage ?? baseMessage;
   const messageEdited = draftMessage !== null && draftMessage !== baseMessage;
+  const templateImagePath = selectedTemplate?.image_path || null;
+  const templateImageUrl = selectedTemplate?.image_url || null;
 
   function handleSelectTemplate(nextId) {
     setTemplateChoice(nextId);
@@ -210,12 +214,14 @@ export default function LeadModal({
                 {activeSection === "message" && (
                   <MessagePanel
                     edited={messageEdited}
+                    imageUrl={templateImageUrl}
                     message={message}
                     onChangeMessage={setDraftMessage}
                     onResetMessage={() => setDraftMessage(null)}
                     onSelectTemplate={handleSelectTemplate}
                     selectedTemplateId={templateChoice}
                     templateOptions={templateOptions}
+                    whatsappConnected={whatsappConnected}
                   />
                 )}
                 {activeSection === "notes" && (
@@ -234,7 +240,7 @@ export default function LeadModal({
                 <button
                   type="button"
                   className="lead-modal-wa-btn"
-                  onClick={() => void onSendWhatsApp?.(lead.id, { message })}
+                  onClick={() => void onSendWhatsApp?.(lead.id, { imagePath: templateImagePath, message })}
                 >
                   <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
                   {isSent ? "Sent" : "Send via WhatsApp"}

@@ -29,6 +29,9 @@ const DEFAULT_COOLDOWN_HOURS = 7 * 24;
 // SELLER_SIGNAL_AUTO_WHATSAPP_SEND_WINDOW_START/END env vars.
 const DEFAULT_SEND_WINDOW_START_HOUR = 9;
 const DEFAULT_SEND_WINDOW_END_HOUR = 21;
+const TEMPLATE_IMAGE_BUCKET = "seller-signal-template-images";
+const TEMPLATE_IMAGE_SIGNED_URL_TTL_SECONDS = 60 * 60;
+const WHATSAPP_IMAGE_CAPTION_MAX_LENGTH = 1024;
 const DEFAULT_MESSAGE_TEMPLATE = `Hi {{name}}, quick update on recent transactions in {{building}}.
 
 {{transactions}}
@@ -367,12 +370,12 @@ function buildMessage(
 }
 
 async function fetchDefaultMessageTemplates(adminClient: any, userIds: string[]) {
-  const templatesByUser = new Map<string, string>();
+  const templatesByUser = new Map<string, { content: string; imagePath: string | null }>();
   if (!userIds.length) return templatesByUser;
 
   const { data, error } = await adminClient
     .from("seller_signal_message_templates")
-    .select("user_id, content")
+    .select("user_id, content, image_path")
     .in("user_id", userIds)
     .eq("is_default", true);
 
@@ -383,7 +386,10 @@ async function fetchDefaultMessageTemplates(adminClient: any, userIds: string[])
 
   for (const template of data || []) {
     if (String(template.content || "").includes("{{transactions}}")) {
-      templatesByUser.set(template.user_id, template.content);
+      templatesByUser.set(template.user_id, {
+        content: template.content,
+        imagePath: cleanString(template.image_path),
+      });
     }
   }
   return templatesByUser;
@@ -418,7 +424,21 @@ async function baileysFetch(path: string, options: RequestInit = {}) {
   return payload;
 }
 
-function buildGraphPayload(input: { body: string; to: string }) {
+function buildGraphPayload(input: { body: string; imageUrl?: string | null; to: string }) {
+  if (input.imageUrl) {
+    if (input.body.length > WHATSAPP_IMAGE_CAPTION_MAX_LENGTH) {
+      throw new HttpError(400, "Image captions must be 1,024 characters or fewer after placeholders are filled.");
+    }
+    return {
+      messaging_product: "whatsapp",
+      to: input.to,
+      type: "image",
+      image: {
+        link: input.imageUrl,
+        caption: input.body,
+      },
+    };
+  }
   return {
     messaging_product: "whatsapp",
     to: input.to,
@@ -430,7 +450,20 @@ function buildGraphPayload(input: { body: string; to: string }) {
   };
 }
 
-function buildBaileysPayload(input: { body: string; to: string }) {
+function buildBaileysPayload(input: { body: string; imageUrl?: string | null; to: string }) {
+  if (input.imageUrl) {
+    if (input.body.length > WHATSAPP_IMAGE_CAPTION_MAX_LENGTH) {
+      throw new HttpError(400, "Image captions must be 1,024 characters or fewer after placeholders are filled.");
+    }
+    return {
+      to: input.to,
+      type: "image",
+      image: {
+        url: input.imageUrl,
+        caption: input.body,
+      },
+    };
+  }
   return {
     to: input.to,
     type: "text",
@@ -441,13 +474,23 @@ function buildBaileysPayload(input: { body: string; to: string }) {
   };
 }
 
-async function sendViaBaileys(account: any, to: string, body: string) {
+async function createTemplateImageUrl(adminClient: any, imagePath: string | null) {
+  if (!imagePath) return null;
+  const { data, error } = await adminClient.storage
+    .from(TEMPLATE_IMAGE_BUCKET)
+    .createSignedUrl(imagePath, TEMPLATE_IMAGE_SIGNED_URL_TTL_SECONDS);
+  if (error) throw new HttpError(500, error.message);
+  if (!data?.signedUrl) throw new HttpError(500, "Could not create a template image URL");
+  return data.signedUrl;
+}
+
+async function sendViaBaileys(account: any, to: string, body: string, imageUrl: string | null) {
   const sessionId = getBaileysSessionId(account);
   if (!sessionId) throw new HttpError(409, "Baileys session is not configured");
 
   return baileysFetch(`/sessions/${encodeURIComponent(sessionId)}/messages`, {
     method: "POST",
-    body: JSON.stringify({ text: body, to }),
+    body: JSON.stringify({ imageUrl, text: body, to }),
   });
 }
 
@@ -833,9 +876,16 @@ async function insertMessageRow(adminClient: any, input: {
   };
 }
 
-async function sendMessage(adminClient: any, account: any, to: string, body: string, payload: any) {
+async function sendMessage(
+  adminClient: any,
+  account: any,
+  to: string,
+  body: string,
+  imageUrl: string | null,
+  payload: any,
+) {
   if (account.provider === "baileys") {
-    const providerPayload = await sendViaBaileys(account, to, body);
+    const providerPayload = await sendViaBaileys(account, to, body, imageUrl);
     return {
       providerMessageId: providerPayload?.messageId || null,
       providerPayload,
@@ -1186,15 +1236,17 @@ Deno.serve(async (req) => {
       let messageRowId: string | null = null;
       let providerAccepted = false;
       try {
+        const template = templatesByUser.get(lead.user_id);
         const body = buildMessage(
           lead,
           matchedTransactions,
           cleanBuildingName(lead.building),
-          templatesByUser.get(lead.user_id),
+          template?.content,
         );
+        const imageUrl = await createTemplateImageUrl(adminClient, template?.imagePath || null);
         const payload = account.provider === "baileys"
-          ? buildBaileysPayload({ body, to })
-          : buildGraphPayload({ body, to });
+          ? buildBaileysPayload({ body, imageUrl, to })
+          : buildGraphPayload({ body, imageUrl, to });
         const messageRow = await insertMessageRow(adminClient, {
           account,
           body,
@@ -1232,7 +1284,14 @@ Deno.serve(async (req) => {
         summary.dailyActiveByUser[userId] = claimedDailyCount;
         await markAutoEvent(adminClient, claim.id, { message_id: messageRowId });
 
-        const { providerMessageId, providerPayload } = await sendMessage(adminClient, account, to, body, payload);
+        const { providerMessageId, providerPayload } = await sendMessage(
+          adminClient,
+          account,
+          to,
+          body,
+          imageUrl,
+          payload,
+        );
         providerAccepted = true;
         const sentAt = new Date().toISOString();
 

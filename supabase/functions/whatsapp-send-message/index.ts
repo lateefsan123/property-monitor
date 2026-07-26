@@ -8,6 +8,9 @@ const corsHeaders = {
 
 const ACTIVE_MARKET_MESSAGE_STATUSES = ["queued", "sending", "sent", "delivered", "read"];
 const SEND_SOURCES = new Set(["manual", "bulk", "mcp", "auto"]);
+const TEMPLATE_IMAGE_BUCKET = "seller-signal-template-images";
+const TEMPLATE_IMAGE_SIGNED_URL_TTL_SECONDS = 60 * 60;
+const WHATSAPP_IMAGE_CAPTION_MAX_LENGTH = 1024;
 
 class HttpError extends Error {
   status: number;
@@ -314,6 +317,7 @@ function getTemplateComponents(parameters: unknown) {
 
 function buildGraphPayload(input: {
   body?: string | null;
+  imageUrl?: string | null;
   templateLanguage?: string | null;
   templateName?: string | null;
   templateParameters?: unknown;
@@ -322,7 +326,11 @@ function buildGraphPayload(input: {
 }) {
   const envTemplateName = Deno.env.get("WHATSAPP_DEFAULT_TEMPLATE_NAME");
   const templateName = input.templateName || envTemplateName || null;
-  const messageType = input.type === "template" || (!input.type && templateName) ? "template" : "text";
+  const messageType = input.imageUrl
+    ? "image"
+    : input.type === "template" || (!input.type && templateName)
+      ? "template"
+      : "text";
 
   if (messageType === "template") {
     if (!templateName) throw new HttpError(400, "templateName is required for template messages");
@@ -340,6 +348,20 @@ function buildGraphPayload(input: {
 
   const body = String(input.body || "").trim();
   if (!body) throw new HttpError(400, "message body is required");
+  if (input.imageUrl) {
+    if (body.length > WHATSAPP_IMAGE_CAPTION_MAX_LENGTH) {
+      throw new HttpError(400, "Image captions must be 1,024 characters or fewer after placeholders are filled.");
+    }
+    return {
+      messaging_product: "whatsapp",
+      to: input.to,
+      type: "image",
+      image: {
+        link: input.imageUrl,
+        caption: body,
+      },
+    };
+  }
   return {
     messaging_product: "whatsapp",
     to: input.to,
@@ -351,9 +373,22 @@ function buildGraphPayload(input: {
   };
 }
 
-function buildBaileysPayload(input: { body?: string | null; to: string }) {
+function buildBaileysPayload(input: { body?: string | null; imageUrl?: string | null; to: string }) {
   const body = String(input.body || "").trim();
   if (!body) throw new HttpError(400, "message body is required");
+  if (input.imageUrl) {
+    if (body.length > WHATSAPP_IMAGE_CAPTION_MAX_LENGTH) {
+      throw new HttpError(400, "Image captions must be 1,024 characters or fewer after placeholders are filled.");
+    }
+    return {
+      to: input.to,
+      type: "image",
+      image: {
+        url: input.imageUrl,
+        caption: body,
+      },
+    };
+  }
   return {
     to: input.to,
     type: "text",
@@ -452,13 +487,37 @@ async function getAccountSecret(adminClient: any, accountId: string) {
   return data.access_token;
 }
 
-async function sendViaBaileys(account: any, to: string, body: string) {
+async function resolveTemplateImageUrl(adminClient: any, userId: string, rawImagePath: unknown) {
+  const imagePath = cleanString(rawImagePath);
+  if (!imagePath) return null;
+  if (!imagePath.startsWith(`${userId}/`)) {
+    throw new HttpError(400, "Invalid template image path");
+  }
+
+  const { data: template, error: templateError } = await adminClient
+    .from("seller_signal_message_templates")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("image_path", imagePath)
+    .maybeSingle();
+  if (templateError) throw new HttpError(500, templateError.message);
+  if (!template) throw new HttpError(400, "Template image was not found");
+
+  const { data, error } = await adminClient.storage
+    .from(TEMPLATE_IMAGE_BUCKET)
+    .createSignedUrl(imagePath, TEMPLATE_IMAGE_SIGNED_URL_TTL_SECONDS);
+  if (error) throw new HttpError(500, error.message);
+  if (!data?.signedUrl) throw new HttpError(500, "Could not create a template image URL");
+  return data.signedUrl;
+}
+
+async function sendViaBaileys(account: any, to: string, body: string, imageUrl: string | null) {
   const sessionId = getBaileysSessionId(account);
   if (!sessionId) throw new HttpError(409, "Baileys session is not configured");
 
   return baileysFetch(`/sessions/${encodeURIComponent(sessionId)}/messages`, {
     method: "POST",
-    body: JSON.stringify({ text: body, to }),
+    body: JSON.stringify({ imageUrl, text: body, to }),
   });
 }
 
@@ -505,12 +564,14 @@ Deno.serve(async (req) => {
     const to = normalizeWhatsAppPhone(input.to || lead?.phone);
     if (!to) throw new HttpError(400, "Recipient phone number is required");
     const sendSource = SEND_SOURCES.has(String(input.sendSource || "")) ? String(input.sendSource) : "manual";
+    const imageUrl = await resolveTemplateImageUrl(adminClient, userId, input.imagePath);
 
     const isBaileys = account.provider === "baileys";
     const payload = isBaileys
-      ? buildBaileysPayload({ body: input.body, to })
+      ? buildBaileysPayload({ body: input.body, imageUrl, to })
       : buildGraphPayload({
           body: input.body,
+          imageUrl,
           templateLanguage: input.templateLanguage,
           templateName: input.templateName,
           templateParameters: input.templateParameters,
@@ -550,7 +611,7 @@ Deno.serve(async (req) => {
     let providerMessageId: string | null = null;
 
     if (isBaileys) {
-      providerPayload = await sendViaBaileys(account, to, input.body);
+      providerPayload = await sendViaBaileys(account, to, input.body, imageUrl);
       providerMessageId = providerPayload?.messageId || null;
     } else {
       const accessToken = await getAccountSecret(adminClient, account.id);

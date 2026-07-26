@@ -2,8 +2,6 @@ import { useEffect, useState } from "react";
 import {
   IconBolt,
   IconBrandWhatsapp,
-  IconChevronRight,
-  IconSettings,
   IconX,
 } from "@tabler/icons-react";
 import WhatsAppConnectionPanel from "./WhatsAppConnectionPanel";
@@ -52,59 +50,45 @@ export default function SellerSignalSettingsModal({
   connecting,
   monthlyReportsEnabled,
   onAutomationChange,
+  onClose,
   onConnect,
   onMonthlyReportsChange,
+  open,
 }) {
-  const [open, setOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("automations");
 
   useEffect(() => {
     if (!open) return undefined;
     function handleKeyDown(event) {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") onClose?.();
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [open]);
+  }, [onClose, open]);
+
+  if (!open) return null;
 
   return (
-    <>
-      <button
-        type="button"
-        className="seller-settings-trigger"
-        onClick={() => setOpen(true)}
+    <div
+      className="seller-settings-overlay"
+      role="presentation"
+      onMouseDown={(event) => {
+        if (event.target === event.currentTarget) onClose?.();
+      }}
+    >
+      <section
+        className="seller-settings-panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="seller-settings-title"
+        onMouseDown={(event) => event.stopPropagation()}
       >
-        <span className="seller-settings-trigger-icon" aria-hidden="true">
-          <IconSettings size={19} stroke={1.9} />
-        </span>
-        <span className="seller-settings-trigger-main">
-          <strong>Settings</strong>
-          <span>Automations, monthly reports and WhatsApp</span>
-        </span>
-        <IconChevronRight size={16} stroke={1.9} aria-hidden="true" />
-      </button>
-
-      {open && (
-        <div
-          className="seller-settings-overlay"
-          role="presentation"
-          onMouseDown={(event) => {
-            if (event.target === event.currentTarget) setOpen(false);
-          }}
-        >
-          <section
-            className="seller-settings-panel"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="seller-settings-title"
-            onMouseDown={(event) => event.stopPropagation()}
-          >
             <header className="seller-settings-header">
               <h1 id="seller-settings-title">Settings</h1>
               <button
                 type="button"
                 className="seller-settings-close"
-                onClick={() => setOpen(false)}
+                onClick={onClose}
                 aria-label="Close settings"
               >
                 <IconX size={18} stroke={1.8} aria-hidden="true" />
@@ -176,9 +160,7 @@ export default function SellerSignalSettingsModal({
                 )}
               </div>
             </div>
-          </section>
-        </div>
-      )}
-    </>
+      </section>
+    </div>
   );
 }

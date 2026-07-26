@@ -460,12 +460,17 @@ app.post("/sessions/:sessionId/messages", requireToken, async (req, res) => {
   try {
     const to = normalizePhone(req.body?.to);
     const text = String(req.body?.text || "").trim();
+    const imageUrl = String(req.body?.imageUrl || "").trim();
     if (!to) {
       res.status(400).json({ error: "Recipient phone number is required" });
       return;
     }
     if (!text) {
       res.status(400).json({ error: "Message text is required" });
+      return;
+    }
+    if (imageUrl && !/^https:\/\//i.test(imageUrl)) {
+      res.status(400).json({ error: "Image URL must use HTTPS" });
       return;
     }
 
@@ -476,7 +481,12 @@ app.post("/sessions/:sessionId/messages", requireToken, async (req, res) => {
     }
 
     const jid = jidNormalizedUser(`${to}@s.whatsapp.net`);
-    const response = await session.socket.sendMessage(jid, { text });
+    const response = await session.socket.sendMessage(
+      jid,
+      imageUrl
+        ? { image: { url: imageUrl }, caption: text }
+        : { text },
+    );
     res.json({
       messageId: response?.key?.id ? `baileys:${response.key.id}` : null,
       raw: response,

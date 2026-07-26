@@ -616,7 +616,7 @@ export async function fetchDefaultMessageTemplate(userId) {
   if (!userId) return null;
   const { data, error } = await supabase
     .from("seller_signal_message_templates")
-    .select("id, name, content, is_default")
+    .select("id, name, content, image_path, is_default")
     .eq("user_id", userId)
     .eq("is_default", true)
     .maybeSingle();
@@ -648,13 +648,14 @@ export function getConnectedWhatsAppAccount(accounts = []) {
   return accounts.find((account) => account.connection_status === "connected") || null;
 }
 
-export async function sendLeadWhatsAppMessage({ accountId, leadId, message, phone }) {
+export async function sendLeadWhatsAppMessage({ accountId, imagePath, leadId, message, phone }) {
   const to = formatPhoneForWhatsApp(phone);
   if (!to) throw new Error("Lead does not have a valid WhatsApp phone number");
 
   const { data, error } = await supabase.functions.invoke("whatsapp-send-message", {
     body: {
       accountId,
+      imagePath: imagePath || null,
       leadId,
       to,
       body: message,

@@ -51,7 +51,11 @@ function SourcePickerMenu({ activeId, options, onSelect }) {
   );
 }
 
-export default function SellerSignalDashboard({ userId }) {
+export default function SellerSignalDashboard({
+  onCloseSettings,
+  settingsOpen = false,
+  userId,
+}) {
   const dashboard = useSellerSignalPage(userId);
   const [addSellerOpen, setAddSellerOpen] = useState(false);
   const [sourceMenuOpen, setSourceMenuOpen] = useState(false);
@@ -133,7 +137,9 @@ export default function SellerSignalDashboard({ userId }) {
         monthlyReportsEnabled={dashboard.automation.monthlyReportsEnabled}
         onConnect={dashboard.actions.connectWhatsAppAccount}
         onAutomationChange={dashboard.automation.setEnabled}
+        onClose={onCloseSettings}
         onMonthlyReportsChange={dashboard.automation.setMonthlyReportsEnabled}
+        open={settingsOpen}
       />
       <MessageTemplatesPanel
         key={dashboard.messageTemplates.loading ? "loading" : dashboard.messageTemplates.activeTemplate?.id || "ready"}

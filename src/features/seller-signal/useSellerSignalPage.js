@@ -127,6 +127,7 @@ export function useSellerSignalPage(userId) {
   } = useSellerSignalBuildingAliases(userId);
   const messageTemplates = useSellerSignalMessageTemplates(userId);
   const messageTemplate = messageTemplates.activeTemplateContent;
+  const messageTemplateImagePath = messageTemplates.activeTemplate?.image_path || null;
   const cachedBuildingsQuery = useQuery({
     queryKey: sellerCachedBuildingsQueryKey(),
     enabled: Boolean(userId),
@@ -224,9 +225,16 @@ export function useSellerSignalPage(userId) {
     mutationFn: ({ leadId, shouldMarkSent }) => persistLeadSentState(userId, leadId, shouldMarkSent),
   });
   const sendWhatsAppMessageMutation = useMutation({
-    mutationFn: ({ lead, message, sendSource = "manual", requireTodaysTransaction = true }) =>
+    mutationFn: ({
+      imagePath,
+      lead,
+      message,
+      sendSource = "manual",
+      requireTodaysTransaction = true,
+    }) =>
       sendLeadWhatsAppMessage({
         accountId: connectedWhatsAppAccount?.id,
+        imagePath,
         leadId: lead.id,
         message,
         phone: lead.phone,
@@ -540,6 +548,7 @@ export function useSellerSignalPage(userId) {
     legacySheetUrl,
     leads,
     messageTemplate,
+    messageTemplateImagePath,
     pagedLeads,
     persistLeadSourceMutation,
     queryClient,

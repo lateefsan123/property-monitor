@@ -4,6 +4,7 @@ import {
   IconLogout,
   IconPlus,
   IconSearch,
+  IconSettings,
   IconTable,
   IconUsers,
 } from "@tabler/icons-react";
@@ -130,6 +131,12 @@ export default function AppSidebar({
       <div className="sidenav-spacer" />
 
       <div className="sidenav-footer">
+        <SidenavItem
+          item={{ id: "settings", label: "Settings", Icon: IconSettings, kind: "action", accent: "purple" }}
+          currentPage={currentPage}
+          onNavigate={onNavigate}
+          onAction={onAction}
+        />
         <button type="button" className="sidenav-link sidenav-signout accent-rose" onClick={onSignOut}>
           <IconLogout size={20} stroke={1.8} aria-hidden="true" />
           <span>Sign out</span>
