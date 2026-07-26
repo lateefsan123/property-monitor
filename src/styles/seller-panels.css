@@ -662,6 +662,20 @@
   width: min(640px, 100%);
 }
 
+.spreadsheet-detail-modal .lead-detail-body {
+  grid-template-columns: 168px 1fr;
+}
+
+.spreadsheet-detail-modal .lead-detail-section {
+  padding: 10px 12px;
+}
+
+@media (max-width: 640px) {
+  .spreadsheet-detail-modal .lead-detail-body {
+    grid-template-columns: 1fr;
+  }
+}
+
 .lead-edit-field-wide {
   grid-column: 1 / -1;
 }

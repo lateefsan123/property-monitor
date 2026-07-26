@@ -1,11 +1,5 @@
 import { useEffect, useState } from "react";
-import {
-  IconRefresh,
-  IconSettings,
-  IconTable,
-  IconTrash,
-  IconX,
-} from "@tabler/icons-react";
+import { IconX } from "@tabler/icons-react";
 
 function DetailsPanel({ name, url, placeholderName, isLegacy, onNameChange, onUrlChange, onBlurSave }) {
   return (
@@ -170,24 +164,21 @@ export default function SpreadsheetDetailModal({
   const subtitle = `${count} lead${count === 1 ? "" : "s"}`;
 
   const sections = [
-    { id: "details", label: "Details", accent: "indigo", Icon: IconSettings },
-    { id: "sync", label: "Sync", accent: "emerald", Icon: IconRefresh },
-    ...(isLegacy ? [] : [{ id: "danger", label: "Danger zone", accent: "rose", Icon: IconTrash }]),
+    { id: "details", label: "Details" },
+    { id: "sync", label: "Sync" },
+    ...(isLegacy ? [] : [{ id: "danger", label: "Danger zone" }]),
   ];
 
   return (
     <div className="lead-modal-backdrop" onClick={onClose}>
       <div
-        className="lead-modal lead-detail-modal"
+        className="lead-modal lead-detail-modal spreadsheet-detail-modal"
         role="dialog"
         aria-modal="true"
         aria-label={title}
         onClick={(event) => event.stopPropagation()}
       >
         <div className="lead-detail-header">
-          <span className="lead-detail-header-icon" aria-hidden>
-            <IconTable size={18} stroke={1.8} aria-hidden="true" />
-          </span>
           <div className="lead-detail-header-title">
             <h2 className="lead-detail-name">{title}</h2>
             <span className="lead-detail-building">{subtitle}</span>
@@ -207,7 +198,6 @@ export default function SpreadsheetDetailModal({
         <div className="lead-detail-body">
           <ul className="lead-detail-sections" role="tablist">
             {sections.map((section) => {
-              const Icon = section.Icon;
               const active = activeSection === section.id;
               return (
                 <li key={section.id}>
@@ -215,12 +205,9 @@ export default function SpreadsheetDetailModal({
                     type="button"
                     role="tab"
                     aria-selected={active}
-                    className={`lead-detail-section accent-${section.accent}${active ? " active" : ""}`}
+                    className={`lead-detail-section${active ? " active" : ""}`}
                     onClick={() => setActiveSection(section.id)}
                   >
-                    <span className="lead-detail-section-icon">
-                      <Icon size={18} stroke={1.8} aria-hidden="true" />
-                    </span>
                     <span className="lead-detail-section-label">{section.label}</span>
                   </button>
                 </li>
