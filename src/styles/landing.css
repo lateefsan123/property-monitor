@@ -143,6 +143,10 @@
   text-underline-offset: 4px;
 }
 
+.landing-download-link {
+  color: var(--ink);
+}
+
 /* Hero */
 .landing-hero {
   position: relative;
@@ -939,6 +943,10 @@
   .landing-hero-actions .landing-cta {
     width: 100%;
     max-width: 320px;
+  }
+
+  .landing-hero-actions .landing-download-link {
+    display: inline-flex;
   }
 
   .landing-features {

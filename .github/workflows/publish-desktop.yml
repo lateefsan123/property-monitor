@@ -1,0 +1,58 @@
+name: Publish Repeat AI desktop release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  publish-windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: "npm"
+          cache-dependency-path: desktop/package-lock.json
+
+      - name: Install desktop dependencies
+        run: npm ci
+        working-directory: desktop
+
+      - name: Publish Windows installer
+        run: npm run publish:win
+        working-directory: desktop
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+
+      - name: Verify and publish updater release
+        shell: pwsh
+        working-directory: desktop
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = node -p "require('./package.json').version"
+          $tag = "v$version"
+          $assets = gh release view $tag --json assets --jq ".assets[].name"
+          $requiredAssets = @(
+            "Repeat-AI-Setup-$version.exe",
+            "Repeat-AI-Setup-$version.exe.blockmap",
+            "latest.yml"
+          )
+
+          foreach ($asset in $requiredAssets) {
+            if ($assets -notcontains $asset) {
+              throw "Release $tag is missing required updater asset: $asset"
+            }
+          }
+
+          gh release edit $tag --draft=false --latest

@@ -177,6 +177,7 @@ export default function LandingPage({
         </a>
         <nav className="landing-nav">
           <a href="#pricing">Pricing</a>
+          <a href="/api/desktop/download">Windows app</a>
           <button type="button" className="landing-nav-link" onClick={accountAction}>
             {accountActionLabel}
           </button>
@@ -204,6 +205,9 @@ export default function LandingPage({
             </button>
             <a href="#features" className="landing-cta-ghost">
               See how it works
+            </a>
+            <a href="/api/desktop/download" className="landing-cta-ghost landing-download-link">
+              Download for Windows
             </a>
           </div>
         </div>
@@ -273,6 +277,7 @@ export default function LandingPage({
               <li>Seller pipeline and follow-up workspace</li>
               <li>Spreadsheet imports and smart mapping</li>
               <li>Listing alerts and price-drop tracking</li>
+              <li>Auto-updating Windows desktop app</li>
               <li>Mobile app access</li>
               <li>Monthly billing through Stripe Checkout</li>
             </ul>
@@ -371,6 +376,7 @@ export default function LandingPage({
           <nav className="landing-footer-nav">
             <a href="#features">Product</a>
             <a href="#pricing">Pricing</a>
+            <a href="/api/desktop/download">Windows app</a>
             <button type="button" className="landing-nav-link" onClick={accountAction}>
               {accountActionLabel}
             </button>

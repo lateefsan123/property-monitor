@@ -6,6 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "desktop:dev": "npm --prefix desktop run dev",
+    "desktop:download:test": "node --test api/desktop/download.test.js",
+    "desktop:test": "npm --prefix desktop test",
+    "desktop:package": "npm --prefix desktop run package:win",
+    "desktop:publish": "npm --prefix desktop run publish:win",
     "lint": "eslint . && npm run lint:size",
     "lint:size": "node scripts/check-file-size.mjs",
     "preview": "vite preview",
