@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "desktop:dev": "npm --prefix desktop run dev",
-    "desktop:download:test": "node --test api/desktop/download.test.js",
+    "desktop:download:test": "node --test tests/desktop-download.test.js",
     "desktop:test": "npm --prefix desktop test",
     "desktop:package": "npm --prefix desktop run package:win",
     "desktop:publish": "npm --prefix desktop run publish:win",

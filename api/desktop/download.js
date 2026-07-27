@@ -1,7 +1,7 @@
 import {
   fetchLatestDesktopRelease,
   findWindowsInstallerAsset,
-} from "./release-assets.js";
+} from "../../server/desktop-release-assets.js";
 
 function sendJson(response, status, body) {
   response.statusCode = status;

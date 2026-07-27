@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { findWindowsInstallerAsset } from "./release-assets.js";
+import { findWindowsInstallerAsset } from "../server/desktop-release-assets.js";
 
 test("selects the Repeat AI Windows installer from release assets", () => {
   const installer = findWindowsInstallerAsset({
