@@ -19,6 +19,26 @@ const DESKTOP_URL_ENV = 'REPEAT_AI_DESKTOP_URL';
 const DISABLE_UPDATES_ENV = 'REPEAT_AI_DESKTOP_DISABLE_UPDATES';
 const UPDATE_CHECK_DELAY_MS = 5_000;
 const UPDATE_CHECK_INTERVAL_MS = 4 * 60 * 60 * 1000;
+const TITLE_BAR_OVERLAY_HEIGHT = 32;
+const DESKTOP_DRAG_REGION_HEIGHT = 12;
+const WINDOW_CONTROLS_SAFE_AREA_WIDTH = 140;
+
+const DESKTOP_DRAG_REGION_INTERACTIVE_SELECTOR = [
+  'a',
+  'button',
+  'input',
+  'textarea',
+  'select',
+  'summary',
+  'iframe',
+  'video',
+  'audio',
+  '[contenteditable="true"]',
+  '[role="button"]',
+  '[role="link"]',
+  '[role="menuitem"]',
+  '[role="tab"]',
+].join(', ');
 
 let mainWindow = null;
 let tray = null;
@@ -115,6 +135,44 @@ async function loadApp(window, appUrl) {
   }
 }
 
+function getDesktopDragRegionCss() {
+  const windowControlsInset = process.platform === 'darwin'
+    ? `left: ${WINDOW_CONTROLS_SAFE_AREA_WIDTH}px; right: 0;`
+    : `left: 0; right: ${WINDOW_CONTROLS_SAFE_AREA_WIDTH}px;`;
+
+  return `
+    @media (min-width: 769px) {
+      body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        ${windowControlsInset}
+        height: ${DESKTOP_DRAG_REGION_HEIGHT}px;
+        z-index: 2147483647;
+        -webkit-app-region: drag;
+      }
+
+      aside[aria-label="Primary navigation"] {
+        -webkit-app-region: drag;
+      }
+
+      ${DESKTOP_DRAG_REGION_INTERACTIVE_SELECTOR} {
+        -webkit-app-region: no-drag;
+      }
+    }
+  `;
+}
+
+function installDesktopDragRegions(window) {
+  const dragRegionCss = getDesktopDragRegionCss();
+
+  window.webContents.on('did-finish-load', () => {
+    void window.webContents.insertCSS(dragRegionCss).catch((error) => {
+      writeLog('warn', 'Could not install desktop drag regions.', error);
+    });
+  });
+}
+
 function createMainWindow() {
   const appUrl = getAppUrl();
   const window = new BrowserWindow({
@@ -126,6 +184,12 @@ function createMainWindow() {
     backgroundColor: '#080808',
     icon: getIconPath(),
     autoHideMenuBar: true,
+    titleBarStyle: 'hidden',
+    titleBarOverlay: {
+      color: 'rgba(8, 8, 8, 0)',
+      symbolColor: '#f8fafc',
+      height: TITLE_BAR_OVERLAY_HEIGHT,
+    },
     show: false,
     webPreferences: {
       contextIsolation: true,
@@ -138,6 +202,7 @@ function createMainWindow() {
   });
 
   configureWindowNavigation(window, appUrl);
+  installDesktopDragRegions(window);
 
   window.once('ready-to-show', () => {
     window.show();

@@ -91,7 +91,10 @@ export default function AppSidebar({
   }
 
   return (
-    <aside className={`sidenav${collapsed ? " sidenav-collapsed" : ""}`}>
+    <aside
+      aria-label="Primary navigation"
+      className={`sidenav${collapsed ? " sidenav-collapsed" : ""}`}
+    >
       <div className="sidenav-group sidenav-group-top">
         {TOP_GROUP.map((item) => (
           <SidenavItem
