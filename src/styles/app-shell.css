@@ -207,6 +207,30 @@ body {
   color: var(--nav-btn-hover-text);
 }
 
+.app-topbar-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--nav-btn-border);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-name);
+  font-size: 0.9rem;
+  font-weight: 650;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.app-topbar-download:hover {
+  background: var(--nav-btn-hover-bg);
+  border-color: var(--text-faint);
+}
+
 .app-topbar-crumbs {
   display: inline-flex;
   align-items: center;
@@ -511,5 +535,20 @@ body {
 
 .subtitle strong {
   color: var(--error-text);
+}
+
+@media (max-width: 640px) {
+  .app-topbar {
+    padding-inline: 10px;
+  }
+
+  .app-topbar-download {
+    width: 40px;
+    padding: 0;
+  }
+
+  .app-topbar-download span {
+    display: none;
+  }
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   IconBuildingEstate,
+  IconDownload,
   IconHome,
   IconMenu2,
   IconTable,
@@ -229,6 +230,10 @@ export default function AppShell({ displayName, userId }) {
 
           <div className="app-topbar-actions">
             <div id="app-topbar-actions" className="app-topbar-actions-slot" />
+            <a className="app-topbar-download" href="/api/desktop/download">
+              <IconDownload size={18} stroke={2} aria-hidden="true" />
+              <span>Download app</span>
+            </a>
             <ThemeToggleButton theme={theme} onToggle={handleToggleTheme} />
           </div>
         </header>
