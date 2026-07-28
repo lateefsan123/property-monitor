@@ -2,6 +2,7 @@ import {
   IconBuildingEstate,
   IconHome,
   IconLogout,
+  IconMessage,
   IconPlus,
   IconSearch,
   IconSettings,
@@ -32,6 +33,7 @@ const MAIN_GROUP = [
   { id: "sellers", label: "Sellers", Icon: IconUsers, kind: "nav", accent: "indigo" },
   { id: "listing-alerts", label: "Listings", Icon: IconBuildingEstate, kind: "nav", accent: "rose" },
   { id: "spreadsheets", label: "Spreadsheets", Icon: IconTable, kind: "nav", accent: "emerald" },
+  { id: "message-template", label: "Message template", Icon: IconMessage, kind: "action", accent: "emerald" },
 ];
 
 function SidenavItem({ item, currentPage, onNavigate, onAction }) {

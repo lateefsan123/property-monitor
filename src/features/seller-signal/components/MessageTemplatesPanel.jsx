@@ -13,6 +13,19 @@ import {
 } from "../message-template-services";
 
 const NEW_TEMPLATE_ID = "new";
+const MESSAGE_PREVIEW_TRANSACTIONS = `- St. Regis Residences | 2 Bed | AED 4.95M | 1,410 sqft
+- St. Regis Residences | 1 Bed | AED 3.15M | 910 sqft`;
+
+function renderMessagePreview(templateContent) {
+  const rendered = String(templateContent || "")
+    .replaceAll("{{name}}", "Lateef")
+    .replaceAll("{{building}}", "St. Regis Residences")
+    .replaceAll("{{transactions}}", MESSAGE_PREVIEW_TRANSACTIONS)
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+
+  return rendered || "Your message preview will appear here.";
+}
 
 function getErrorMessage(error) {
   return error instanceof Error ? error.message : String(error || "Could not save the template.");
@@ -39,6 +52,7 @@ export default function MessageTemplatesPanel({
   const localImageUrlRef = useRef(null);
   const textareaRef = useRef(null);
   const selectedTemplate = templates.find((template) => template.id === selectedId) || null;
+  const previewMessage = renderMessagePreview(content);
 
   useEffect(() => () => {
     if (localImageUrlRef.current) URL.revokeObjectURL(localImageUrlRef.current);
@@ -204,8 +218,9 @@ export default function MessageTemplatesPanel({
           {loading ? (
         <p className="muted">Loading templates...</p>
       ) : (
-        <div className="message-template-editor">
-          <div className="message-template-fields">
+        <div className="message-template-workspace">
+          <div className="message-template-editor">
+            <div className="message-template-fields">
             <label>
               <span>Saved template</span>
               <select value={selectedId} onChange={(event) => selectTemplate(event.target.value)}>
@@ -323,7 +338,29 @@ export default function MessageTemplatesPanel({
             {!selectedTemplate && templates.length > 0 && (
               <span className="message-template-new-label"><IconPlus size={14} aria-hidden="true" /> New script</span>
             )}
+            </div>
           </div>
+
+          <aside className="message-template-live-preview" aria-label="Message preview">
+            <div className="message-template-preview-head">
+              <div>
+                <span>Preview</span>
+                <p>Sample seller and transaction data</p>
+              </div>
+              <span className="message-template-preview-badge">WhatsApp</span>
+            </div>
+            <div className="message-template-chat-preview">
+              <div className="message-template-chat-bubble">
+                {imagePreviewUrl && (
+                  <img src={imagePreviewUrl} alt="Preview of the template attachment" />
+                )}
+                <p>{previewMessage}</p>
+                <span className="message-template-chat-meta">
+                  10:10 <b aria-label="Delivered">✓✓</b>
+                </span>
+              </div>
+            </div>
+          </aside>
         </div>
           )}
         </div>

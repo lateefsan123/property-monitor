@@ -21,11 +21,11 @@ import {
 } from "./LeadModalPanels";
 
 const SECTIONS = [
-  { id: "overview", label: "Overview", accent: "indigo", Icon: IconUser },
-  { id: "quality", label: "Data quality", accent: "teal", Icon: IconShieldCheck },
-  { id: "market", label: "Market data", accent: "emerald", Icon: IconChartBar },
-  { id: "message", label: "Message", accent: "amber", Icon: IconMessage },
-  { id: "notes", label: "Notes", accent: "rose", Icon: IconNotes },
+  { id: "overview", label: "Overview", Icon: IconUser },
+  { id: "quality", label: "Data quality", Icon: IconShieldCheck },
+  { id: "market", label: "Market data", Icon: IconChartBar },
+  { id: "message", label: "Message", Icon: IconMessage },
+  { id: "notes", label: "Notes", Icon: IconNotes },
 ];
 
 export default function LeadModal({
@@ -188,7 +188,7 @@ export default function LeadModal({
                         type="button"
                         role="tab"
                         aria-selected={active}
-                        className={`lead-detail-section accent-${section.accent}${active ? " active" : ""}`}
+                        className={`lead-detail-section${active ? " active" : ""}`}
                         onClick={() => setActiveSection(section.id)}
                       >
                         <span className="lead-detail-section-icon">

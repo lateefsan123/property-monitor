@@ -136,6 +136,9 @@ export default function AppShell({ displayName, userId }) {
     if (actionId === "new") {
       setCreateOpen(true);
       setSidebarCollapsed(true);
+    } else if (actionId === "message-template") {
+      setMessageTemplatesOpen(true);
+      setSidebarCollapsed(true);
     } else if (actionId === "settings") {
       setSettingsOpen(true);
       setSidebarCollapsed(true);

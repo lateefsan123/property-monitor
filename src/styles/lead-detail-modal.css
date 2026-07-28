@@ -141,27 +141,17 @@
   width: 30px;
   height: 30px;
   border-radius: 8px;
+  border: 1px solid var(--bg-card-border);
+  background: var(--bg-hover);
+  color: var(--text-muted);
   flex-shrink: 0;
+  transition: background 0.12s, color 0.12s;
 }
 
-.lead-detail-section.accent-indigo .lead-detail-section-icon {
-  background: #e0e7ff;
-  color: #4f46e5;
-}
-
-.lead-detail-section.accent-emerald .lead-detail-section-icon {
-  background: #d1fae5;
-  color: #059669;
-}
-
-.lead-detail-section.accent-amber .lead-detail-section-icon {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.lead-detail-section.accent-rose .lead-detail-section-icon {
-  background: #ffe4e6;
-  color: #e11d48;
+.lead-detail-section:hover .lead-detail-section-icon,
+.lead-detail-section.active .lead-detail-section-icon {
+  background: var(--bg-card);
+  color: var(--text-name);
 }
 
 .lead-detail-section-label {
