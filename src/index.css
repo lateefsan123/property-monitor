@@ -19,3 +19,59 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+.checkout-redirect-screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #f5f5f5;
+}
+
+.checkout-redirect-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: min(100%, 420px);
+  padding: 22px 24px;
+  border: 1px solid #e3e3e3;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 12px 32px rgb(0 0 0 / 6%);
+}
+
+.checkout-redirect-card strong {
+  display: block;
+  color: #191919;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.checkout-redirect-card p {
+  margin: 3px 0 0;
+  color: #6d6d6d;
+  font-size: 0.875rem;
+}
+
+.checkout-redirect-spinner {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  border: 2px solid #dedede;
+  border-top-color: #222;
+  border-radius: 999px;
+  animation: checkout-redirect-spin 700ms linear infinite;
+}
+
+@keyframes checkout-redirect-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .checkout-redirect-spinner {
+    animation: none;
+    border-top-color: #222;
+  }
+}

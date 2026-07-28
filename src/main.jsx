@@ -24,6 +24,20 @@ import { supabase, supabaseConfigError } from "./supabase";
 
 const POST_AUTH_ACTION_STORAGE_KEY = "seller_signal_post_auth_action_v1";
 
+function CheckoutRedirectScreen() {
+  return (
+    <main className="checkout-redirect-screen" aria-live="polite" aria-busy="true">
+      <div className="checkout-redirect-card" role="status">
+        <span className="checkout-redirect-spinner" aria-hidden="true" />
+        <div>
+          <strong>Opening secure checkout…</strong>
+          <p>You’ll be redirected to Stripe in a moment.</p>
+        </div>
+      </div>
+    </main>
+  );
+}
+
 function readStoredPostAuthAction() {
   try {
     const value = window.localStorage.getItem(POST_AUTH_ACTION_STORAGE_KEY);
@@ -98,6 +112,16 @@ export function Root() {
     sessionUserId
       && billingState.userId === sessionUserId
       && hasActiveSubscription(billingState.subscription),
+  );
+  const postAuthCheckoutWillStart = Boolean(
+    sessionUserId
+      && postAuthAction === "checkout"
+      && billingReadyForSession
+      && !billingState.subscriptionLoading
+      && !billingState.checkoutPending
+      && !pendingCheckoutSessionId
+      && postAuthCheckoutUserRef.current !== sessionUserId
+      && !hasActiveBillingSubscription,
   );
 
   const updatePostAuthAction = useCallback((action) => {
@@ -377,6 +401,10 @@ export function Root() {
 
   if (session && !billingReadyForSession) {
     return <div className="page"><div className="empty">Loading...</div></div>;
+  }
+
+  if (session && (billingState.checkoutPending || postAuthCheckoutWillStart)) {
+    return <CheckoutRedirectScreen />;
   }
 
   if (session && !welcomeDismissed && !session.user.user_metadata?.welcomed) {
