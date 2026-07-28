@@ -7,7 +7,9 @@ const corsHeaders = {
 };
 
 const ACTIVE_MARKET_MESSAGE_STATUSES = ["queued", "sending", "sent", "delivered", "read"];
-const SEND_SOURCES = new Set(["manual", "bulk", "mcp", "auto"]);
+const USER_SEND_SOURCES = new Set(["manual", "bulk"]);
+const CLIENT_KINDS = new Set(["web", "desktop", "api"]);
+const DUPLICATE_WINDOW_MS = 60_000;
 const TEMPLATE_IMAGE_BUCKET = "seller-signal-template-images";
 const TEMPLATE_IMAGE_SIGNED_URL_TTL_SECONDS = 60 * 60;
 const WHATSAPP_IMAGE_CAPTION_MAX_LENGTH = 1024;
@@ -537,6 +539,49 @@ async function markLeadSent(adminClient: any, userId: string, leadId: string | n
   if (sentLeadError) throw new HttpError(500, sentLeadError.message);
 }
 
+function normalizeUuid(value: unknown) {
+  const normalized = String(value || "").trim().toLowerCase();
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/.test(normalized)
+    ? normalized
+    : null;
+}
+
+function getInitiatedVia(input: any, sendSource: string) {
+  const clientKind = String(input?.clientKind || "").trim().toLowerCase();
+  return CLIENT_KINDS.has(clientKind) ? clientKind : "api";
+}
+
+async function findClientRequest(adminClient: any, userId: string, clientRequestId: string | null) {
+  if (!clientRequestId) return null;
+  const { data, error } = await adminClient
+    .from("whatsapp_messages")
+    .select("id, meta_message_id, sent_at, status")
+    .eq("user_id", userId)
+    .eq("client_request_id", clientRequestId)
+    .maybeSingle();
+
+  if (error) throw new HttpError(500, error.message);
+  return data || null;
+}
+
+async function assertNoRapidRepeat(adminClient: any, userId: string, to: string) {
+  const cutoff = new Date(Date.now() - DUPLICATE_WINDOW_MS).toISOString();
+  const { data, error } = await adminClient
+    .from("whatsapp_messages")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("direction", "outbound")
+    .eq("recipient_phone", to)
+    .in("status", ["sending", "sent", "delivered", "read"])
+    .gte("created_at", cutoff)
+    .limit(1);
+
+  if (error) throw new HttpError(500, error.message);
+  if (data?.length) {
+    throw new HttpError(409, "Duplicate WhatsApp send blocked: this recipient was contacted less than 60 seconds ago.");
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
@@ -554,6 +599,17 @@ Deno.serve(async (req) => {
     adminClient = auth.adminClient;
     const userId = auth.user.id;
     const input = await req.json();
+    const clientRequestId = normalizeUuid(input.clientRequestId);
+    const existingRequest = await findClientRequest(adminClient, userId, clientRequestId);
+    if (existingRequest) {
+      return jsonResponse({
+        duplicateRequest: true,
+        messageId: existingRequest.id,
+        metaMessageId: existingRequest.meta_message_id,
+        sentAt: existingRequest.sent_at,
+        status: existingRequest.status,
+      });
+    }
     const lead = await getLead(adminClient, userId, input.leadId || null);
     let marketTransactionDate: string | null = null;
     if (lead && input.requireTodaysTransaction !== false) {
@@ -563,7 +619,10 @@ Deno.serve(async (req) => {
     const account = await getConnectedAccount(adminClient, userId, input.accountId || null);
     const to = normalizeWhatsAppPhone(input.to || lead?.phone);
     if (!to) throw new HttpError(400, "Recipient phone number is required");
-    const sendSource = SEND_SOURCES.has(String(input.sendSource || "")) ? String(input.sendSource) : "manual";
+    const requestedSource = String(input.sendSource || "");
+    const sendSource = USER_SEND_SOURCES.has(requestedSource) ? requestedSource : "manual";
+    const initiatedVia = getInitiatedVia(input, sendSource);
+    await assertNoRapidRepeat(adminClient, userId, to);
     const imageUrl = await resolveTemplateImageUrl(adminClient, userId, input.imagePath);
 
     const isBaileys = account.provider === "baileys";
@@ -597,6 +656,9 @@ Deno.serve(async (req) => {
         raw_request: payload,
         send_source: sendSource,
         market_transaction_date: marketTransactionDate,
+        initiated_by: userId,
+        initiated_via: initiatedVia,
+        client_request_id: clientRequestId,
       })
       .select("id")
       .single();
@@ -650,7 +712,14 @@ Deno.serve(async (req) => {
     if (updateError) throw new HttpError(500, updateError.message);
     if (lead?.id) await markLeadSent(adminClient, userId, lead.id, sentAt);
 
-    return jsonResponse({ messageId: messageRowId, metaMessageId: providerMessageId, sentAt });
+    return jsonResponse({
+      clientRequestId,
+      initiatedVia,
+      messageId: messageRowId,
+      metaMessageId: providerMessageId,
+      sendSource,
+      sentAt,
+    });
   } catch (error) {
     const status = error instanceof HttpError ? error.status : 500;
     const message = error instanceof Error ? error.message : "Unknown error";

@@ -4,6 +4,20 @@ import { formatPhoneForWhatsApp } from "./insight-utils";
 const WHATSAPP_CONNECT_TIMEOUT_MS = 25_000;
 const WHATSAPP_SEND_TIMEOUT_MS = 30_000;
 
+function getWhatsAppClientKind() {
+  if (typeof navigator !== "undefined" && /Electron/i.test(navigator.userAgent || "")) {
+    return "desktop";
+  }
+  return "web";
+}
+
+function createClientRequestId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  return null;
+}
+
 export async function fetchWhatsAppAccounts(userId) {
   if (!userId) return [];
 
@@ -119,10 +133,13 @@ export async function sendLeadWhatsAppMessage({
 }) {
   const to = formatPhoneForWhatsApp(phone);
   if (!to) throw new Error("Lead does not have a valid WhatsApp phone number");
+  const clientRequestId = createClientRequestId();
 
   const { data, error, response } = await supabase.functions.invoke("whatsapp-send-message", {
     body: {
       accountId,
+      clientKind: getWhatsAppClientKind(),
+      clientRequestId,
       imagePath: imagePath || null,
       leadId,
       to,

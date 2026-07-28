@@ -50,6 +50,10 @@ export function sellerAutomationSettingsQueryKey(userId) {
   return ["seller-signal", "automation-settings", userId];
 }
 
+export function sellerSendActivityQueryKey(userId) {
+  return ["seller-signal", "send-activity", userId];
+}
+
 export function sellerMessageTemplatesQueryKey(userId) {
   return ["seller-signal", "message-templates", userId];
 }

@@ -50,3 +50,4 @@ export {
   fetchAutomationSettings,
   saveAutomationSettings,
 } from "./automation-settings-services";
+export { fetchWhatsAppSendActivity } from "./send-activity-services";

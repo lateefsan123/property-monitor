@@ -16,6 +16,7 @@ import {
   fetchCachedBuildings,
   fetchDldFallbackTransactions,
   fetchSellerBuildingCleanupLeads,
+  fetchWhatsAppSendActivity,
   fetchUserLeads,
   fetchWhatsAppAccounts,
   getConnectedWhatsAppAccount,
@@ -51,6 +52,7 @@ import {
   sellerLeadsQueryKey,
   sellerMarketAvailabilityQueryKey,
   sellerMarketDataQueryKey,
+  sellerSendActivityQueryKey,
   sellerSourcesQueryKey,
   sellerCachedBuildingsQueryKey,
   sellerWhatsAppAccountsQueryKey,
@@ -145,6 +147,13 @@ export function useSellerSignalPage(userId) {
     enabled: Boolean(userId),
     queryFn: () => fetchAutomationSettings(userId),
     staleTime: 60 * 1000,
+  });
+  const sendActivityQuery = useQuery({
+    queryKey: sellerSendActivityQueryKey(userId),
+    enabled: Boolean(userId),
+    queryFn: () => fetchWhatsAppSendActivity(userId),
+    refetchInterval: 60 * 1000,
+    staleTime: 30 * 1000,
   });
 
   const leadSources = leadSourcesQuery.data || EMPTY_SOURCES;
@@ -241,6 +250,9 @@ export function useSellerSignalPage(userId) {
         requireTodaysTransaction,
         sendSource,
       }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: sellerSendActivityQueryKey(userId) });
+    },
   });
   const connectWhatsAppAccountMutation = useMutation({
     mutationFn: (payload) => connectWhatsAppAccount(payload),
@@ -512,7 +524,8 @@ export function useSellerSignalPage(userId) {
     || cleanupLeadsQuery.error
     || cachedBuildingsQuery.error
     || whatsappAccountsQuery.error
-    || automationSettingsQuery.error,
+    || automationSettingsQuery.error
+    || sendActivityQuery.error,
   );
   const insightNotice = insightTargets.length
     ? marketDataQuery.error
@@ -635,6 +648,10 @@ export function useSellerSignalPage(userId) {
     leadSources,
     loading,
     messageTemplates,
+    sendActivity: {
+      data: sendActivityQuery.data || null,
+      loading: sendActivityQuery.isPending,
+    },
     notice,
     pagedLeads,
     refreshing,

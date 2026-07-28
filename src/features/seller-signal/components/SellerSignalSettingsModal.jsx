@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import {
+  IconActivityHeartbeat,
   IconBolt,
   IconBrandWhatsapp,
   IconX,
 } from "@tabler/icons-react";
+import SendActivityPanel from "./SendActivityPanel";
 import WhatsAppConnectionPanel from "./WhatsAppConnectionPanel";
 
 const TABS = [
   { id: "automations", label: "Automations", icon: IconBolt },
   { id: "whatsapp", label: "WhatsApp", icon: IconBrandWhatsapp },
+  { id: "activity", label: "Send activity", icon: IconActivityHeartbeat },
 ];
 
 function AutomationToggle({
@@ -54,6 +57,8 @@ export default function SellerSignalSettingsModal({
   onConnect,
   onMonthlyReportsChange,
   open,
+  sendActivity,
+  sendActivityLoading,
 }) {
   const [activeTab, setActiveTab] = useState("automations");
 
@@ -119,7 +124,11 @@ export default function SellerSignalSettingsModal({
 
               <div className="seller-settings-content">
                 <h2 className="seller-settings-section-title">
-                  {activeTab === "automations" ? "Automations" : "WhatsApp"}
+                  {activeTab === "automations"
+                    ? "Automations"
+                    : activeTab === "whatsapp"
+                      ? "WhatsApp"
+                      : "Send activity"}
                 </h2>
                 {activeTab === "automations" ? (
                   <div className="seller-settings-automation-pane">
@@ -149,7 +158,7 @@ export default function SellerSignalSettingsModal({
                       Transaction updates get the first available slot. A monthly report can use that slot only when no transaction update is due.
                     </p>
                   </div>
-                ) : (
+                ) : activeTab === "whatsapp" ? (
                   <div className="seller-settings-whatsapp-pane">
                     <WhatsAppConnectionPanel
                       account={account}
@@ -157,6 +166,8 @@ export default function SellerSignalSettingsModal({
                       onConnect={onConnect}
                     />
                   </div>
+                ) : (
+                  <SendActivityPanel activity={sendActivity} loading={sendActivityLoading} />
                 )}
               </div>
             </div>

@@ -134,6 +134,8 @@ export default function SellerSignalDashboard({
         automationSaving={dashboard.automation.saving}
         connecting={dashboard.connectingWhatsAppAccount}
         monthlyReportsEnabled={dashboard.automation.monthlyReportsEnabled}
+        sendActivity={dashboard.sendActivity.data}
+        sendActivityLoading={dashboard.sendActivity.loading}
         onConnect={dashboard.actions.connectWhatsAppAccount}
         onAutomationChange={dashboard.automation.setEnabled}
         onClose={onCloseSettings}
