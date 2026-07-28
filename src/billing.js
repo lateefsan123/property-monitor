@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 
 export const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
-export const TRIAL_PERIOD_DAYS = 14;
+export const TRIAL_PERIOD_DAYS = 7;
 
 export function hasActiveSubscription(subscription) {
   if (!subscription || !ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status)) {

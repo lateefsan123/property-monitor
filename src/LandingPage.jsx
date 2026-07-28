@@ -8,7 +8,7 @@ const FAQS = [
   },
   {
     q: "How does billing work?",
-    a: "Repeat AI runs on a single Professional plan at EUR 50/month, billed through Stripe on the web. One subscription unlocks the full workspace and mobile access.",
+    a: "Repeat AI includes a 7-day free trial, then runs on a single Professional plan at EUR 50/month through Stripe. One subscription unlocks the full workspace and mobile access.",
   },
   {
     q: "How does importing spreadsheets work?",
@@ -161,7 +161,7 @@ export default function LandingPage({
     ? "Redirecting to Stripe..."
     : isAuthenticated
     ? "Continue to Stripe"
-    : "Start subscription";
+    : "Start 7-day free trial";
 
   return (
     <div className="landing">
@@ -258,7 +258,7 @@ export default function LandingPage({
         <div className="landing-pricing-header">
           <h2 className="landing-pricing-title">Simple pricing.</h2>
           <p className="landing-pricing-sub">
-            One monthly plan for full Repeat AI access.
+            Try the full workspace free for 7 days, then continue on one monthly plan.
           </p>
         </div>
 
@@ -270,7 +270,7 @@ export default function LandingPage({
               <span className="landing-plan-unit">/ month</span>
             </div>
             <p className="landing-plan-desc">
-              One subscription per account with the full web workspace, listing alerts, and mobile access.
+              Free for 7 days, then EUR 50/month for the full web workspace, listing alerts, and mobile access.
             </p>
 
             <ul className="landing-plan-features">
@@ -293,7 +293,7 @@ export default function LandingPage({
 
             {!isAuthenticated ? (
               <p className="landing-plan-note">
-                Create your account first, then we'll send you to Stripe.
+                Create your account first, then start your 7-day trial through Stripe.
               </p>
             ) : null}
 

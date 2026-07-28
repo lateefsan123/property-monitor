@@ -108,7 +108,7 @@ export default function TrialOfferScreen({ onStartTrial, onSkip, checkoutPending
           </div>
 
           <p className="trial-subtitle">
-            Get the full workspace. Free for 14 days, cancel any time.
+            Get the full workspace. Free for 7 days, cancel any time.
           </p>
 
           <p className="trial-list-heading">Here’s what you get with Repeat AI Pro:</p>
@@ -123,7 +123,7 @@ export default function TrialOfferScreen({ onStartTrial, onSkip, checkoutPending
           </ul>
 
           <p className="trial-caveat">
-            <strong>EUR 50/month after your trial.</strong> Cancel anytime. We’ll remind you 7 days before your trial ends.
+            <strong>EUR 50/month after your trial.</strong> Cancel anytime. Your renewal date is shown before you confirm.
           </p>
 
           {error && <div className="auth-error">{error}</div>}

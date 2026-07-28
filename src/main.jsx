@@ -306,7 +306,7 @@ export function Root() {
       updatePostAuthAction(null);
       return;
     }
-    void handleStartCheckout({ consumePostAuthAction: true });
+    void handleStartCheckout({ consumePostAuthAction: true, withTrial: true });
   }, [
     billingReadyForSession,
     billingState.checkoutPending,
@@ -330,7 +330,10 @@ export function Root() {
 
   function handleSubscribeFromLanding() {
     if (sessionUserId) {
-      void handleStartCheckout({ consumePostAuthAction: postAuthAction === "checkout" });
+      void handleStartCheckout({
+        consumePostAuthAction: postAuthAction === "checkout",
+        withTrial: true,
+      });
       return;
     }
 
