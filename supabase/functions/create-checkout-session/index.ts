@@ -87,10 +87,26 @@ async function stripeRequest(path: string, body: URLSearchParams) {
   return payload;
 }
 
+async function stripeResourceExists(path: string) {
+  const stripeSecretKey = requireEnv("STRIPE_SECRET_KEY");
+  const response = await fetch(`https://api.stripe.com${path}`, {
+    headers: {
+      Authorization: `Bearer ${stripeSecretKey}`,
+    },
+  });
+
+  if (response.ok) return true;
+  if (response.status === 404) return false;
+
+  const payload = await response.json().catch(() => null);
+  const message = payload?.error?.message || `Stripe request failed with ${response.status}`;
+  throw new HttpError(502, message);
+}
+
 async function userHasPriorSubscription(adminClient: any, userId: string) {
   const { data, error } = await adminClient
     .from("billing_subscriptions")
-    .select("id")
+    .select("user_id")
     .eq("user_id", userId)
     .maybeSingle();
   if (error) throw new HttpError(500, error.message);
@@ -111,7 +127,12 @@ async function ensureStripeCustomer(adminClient: any, user: any) {
     .maybeSingle();
 
   if (error) throw new HttpError(500, error.message);
-  if (existing?.customer_id) return existing.customer_id;
+  if (
+    existing?.customer_id
+    && await stripeResourceExists(`/v1/customers/${encodeURIComponent(existing.customer_id)}`)
+  ) {
+    return existing.customer_id;
+  }
 
   const body = new URLSearchParams();
   if (user.email) body.set("email", user.email);
