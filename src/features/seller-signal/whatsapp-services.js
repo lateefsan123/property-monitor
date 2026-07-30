@@ -35,6 +35,24 @@ export async function fetchWhatsAppAccounts(userId) {
   return data || [];
 }
 
+export async function fetchWhatsAppConnectionEvents(userId, limit = 12) {
+  if (!userId) return [];
+
+  const { data, error } = await supabase
+    .from("whatsapp_connection_events")
+    .select("id, account_id, reason_code, reason_label, status_code, message, recoverable, recovery_action, recovered_at, occurred_at")
+    .eq("user_id", userId)
+    .order("occurred_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    if (error.code === "42P01") return [];
+    throw new Error(error.message);
+  }
+
+  return data || [];
+}
+
 export function getConnectedWhatsAppAccount(accounts = []) {
   return accounts.find((account) => account.connection_status === "connected") || null;
 }

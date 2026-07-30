@@ -18,6 +18,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import { QRCodeSVG } from "qrcode.react";
+import WhatsAppConnectionHistory from "./WhatsAppConnectionHistory";
 
 const FACEBOOK_SDK_ID = "facebook-jssdk";
 const META_MESSAGE_ORIGINS = new Set(["https://www.facebook.com", "https://web.facebook.com"]);
@@ -141,6 +142,8 @@ function getBaileysQrValue(result) {
 export default function WhatsAppConnectionPanel({
   account,
   connecting,
+  connectionEvents = [],
+  connectionEventsLoading = false,
   onConnect,
 }) {
   const config = useMemo(getMetaConfig, []);
@@ -739,6 +742,11 @@ export default function WhatsAppConnectionPanel({
                   <span>{localError}</span>
                 </div>
               )}
+
+              <WhatsAppConnectionHistory
+                events={connectionEvents}
+                loading={connectionEventsLoading}
+              />
 
               {connected && (
                 <div className="whatsapp-connect-disconnect-zone">

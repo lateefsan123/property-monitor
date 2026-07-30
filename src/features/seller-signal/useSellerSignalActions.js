@@ -15,6 +15,7 @@ import {
   sellerInsightsQueryPrefix,
   sellerLeadsQueryKey,
   sellerWhatsAppAccountsQueryKey,
+  sellerWhatsAppConnectionEventsQueryKey,
 } from "./queryKeys";
 import { createSellerSignalImportActions } from "./useSellerSignalImportActions";
 
@@ -409,6 +410,7 @@ export function createSellerSignalActions(context) {
         return [account, ...next];
       });
       await queryClient.invalidateQueries({ queryKey: sellerWhatsAppAccountsQueryKey(userId) });
+      await queryClient.invalidateQueries({ queryKey: sellerWhatsAppConnectionEventsQueryKey(userId) });
 
       if (!payload?.quiet) {
         const accountLabel = account.display_phone_number || account.business_name || "WhatsApp";

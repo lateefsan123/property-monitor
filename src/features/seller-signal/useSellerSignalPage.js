@@ -19,6 +19,7 @@ import {
   fetchWhatsAppSendActivity,
   fetchUserLeads,
   fetchWhatsAppAccounts,
+  fetchWhatsAppConnectionEvents,
   getConnectedWhatsAppAccount,
   getMissingFallbackBuildingNames,
   persistLeadSentState,
@@ -56,6 +57,7 @@ import {
   sellerSourcesQueryKey,
   sellerCachedBuildingsQueryKey,
   sellerWhatsAppAccountsQueryKey,
+  sellerWhatsAppConnectionEventsQueryKey,
 } from "./queryKeys";
 import { createSellerSignalActions } from "./useSellerSignalActions";
 import { useSellerSignalBuildingAliases } from "./useSellerSignalBuildingAliases";
@@ -141,6 +143,13 @@ export function useSellerSignalPage(userId) {
     enabled: Boolean(userId),
     queryFn: () => fetchWhatsAppAccounts(userId),
     staleTime: 60 * 1000,
+  });
+  const whatsappConnectionEventsQuery = useQuery({
+    queryKey: sellerWhatsAppConnectionEventsQueryKey(userId),
+    enabled: Boolean(userId),
+    queryFn: () => fetchWhatsAppConnectionEvents(userId),
+    refetchInterval: 60 * 1000,
+    staleTime: 30 * 1000,
   });
   const automationSettingsQuery = useQuery({
     queryKey: sellerAutomationSettingsQueryKey(userId),
@@ -524,6 +533,7 @@ export function useSellerSignalPage(userId) {
     || cleanupLeadsQuery.error
     || cachedBuildingsQuery.error
     || whatsappAccountsQuery.error
+    || whatsappConnectionEventsQuery.error
     || automationSettingsQuery.error
     || sendActivityQuery.error,
   );
@@ -624,6 +634,10 @@ export function useSellerSignalPage(userId) {
       }),
     },
     connectedWhatsAppAccount,
+    whatsappConnectionHistory: {
+      data: whatsappConnectionEventsQuery.data || [],
+      loading: whatsappConnectionEventsQuery.isPending,
+    },
     connectingWhatsAppAccount: connectWhatsAppAccountMutation.isPending,
     dataFilter,
     dataQualityFilter,

@@ -59,6 +59,8 @@ export default function SellerSignalSettingsModal({
   open,
   sendActivity,
   sendActivityLoading,
+  whatsappConnectionEvents,
+  whatsappConnectionEventsLoading,
 }) {
   const [activeTab, setActiveTab] = useState("automations");
 
@@ -163,6 +165,8 @@ export default function SellerSignalSettingsModal({
                     <WhatsAppConnectionPanel
                       account={account}
                       connecting={connecting}
+                      connectionEvents={whatsappConnectionEvents}
+                      connectionEventsLoading={whatsappConnectionEventsLoading}
                       onConnect={onConnect}
                     />
                   </div>

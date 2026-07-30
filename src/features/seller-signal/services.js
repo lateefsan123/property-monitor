@@ -37,6 +37,7 @@ export { fetchCachedBuildings } from "./building-cache-services";
 export {
   connectWhatsAppAccount,
   fetchWhatsAppAccounts,
+  fetchWhatsAppConnectionEvents,
   getConnectedWhatsAppAccount,
   sendLeadWhatsAppMessage,
 } from "./whatsapp-services";

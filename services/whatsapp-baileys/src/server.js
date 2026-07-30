@@ -30,6 +30,78 @@ const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
     })
   : null;
 
+const DISCONNECT_DETAILS = new Map([
+  [DisconnectReason.loggedOut, {
+    reasonCode: "logged_out",
+    reasonLabel: "WhatsApp logged this device out",
+    recoverable: false,
+    recoveryAction: "Link the number again in Repeat AI.",
+  }],
+  [DisconnectReason.connectionReplaced, {
+    reasonCode: "connection_replaced",
+    reasonLabel: "Another WhatsApp session replaced this connection",
+    recoverable: false,
+    recoveryAction: "Review Linked devices in WhatsApp, then reconnect Repeat AI.",
+  }],
+  [DisconnectReason.multideviceMismatch, {
+    reasonCode: "multidevice_mismatch",
+    reasonLabel: "WhatsApp rejected the linked-device session",
+    recoverable: false,
+    recoveryAction: "Remove the old linked device and link Repeat AI again.",
+  }],
+  [DisconnectReason.badSession, {
+    reasonCode: "bad_session",
+    reasonLabel: "The saved WhatsApp session became invalid",
+    recoverable: false,
+    recoveryAction: "Link the number again to create a fresh session.",
+  }],
+  [DisconnectReason.forbidden, {
+    reasonCode: "forbidden",
+    reasonLabel: "WhatsApp refused access to this session",
+    recoverable: false,
+    recoveryAction: "Check the WhatsApp account and linked devices before reconnecting.",
+  }],
+  [DisconnectReason.unavailableService, {
+    reasonCode: "service_unavailable",
+    reasonLabel: "WhatsApp was temporarily unavailable",
+    recoverable: true,
+    recoveryAction: "Repeat AI will retry automatically.",
+  }],
+  [DisconnectReason.restartRequired, {
+    reasonCode: "restart_required",
+    reasonLabel: "WhatsApp requested a connection restart",
+    recoverable: true,
+    recoveryAction: "Repeat AI will reconnect automatically.",
+  }],
+  [DisconnectReason.connectionLost, {
+    reasonCode: "connection_lost",
+    reasonLabel: "The connection timed out or was lost",
+    recoverable: true,
+    recoveryAction: "Repeat AI will reconnect automatically.",
+  }],
+  [DisconnectReason.connectionClosed, {
+    reasonCode: "connection_closed",
+    reasonLabel: "The WhatsApp connection closed unexpectedly",
+    recoverable: true,
+    recoveryAction: "Repeat AI will reconnect automatically.",
+  }],
+]);
+
+const INTENTIONAL_DISCONNECT_DETAILS = {
+  manual_disconnect: {
+    reasonCode: "manual_disconnect",
+    reasonLabel: "Disconnected from Repeat AI",
+    recoverable: false,
+    recoveryAction: "Reconnect the number when you want to use it again.",
+  },
+  session_reset: {
+    reasonCode: "session_reset",
+    reasonLabel: "Session reset for a new link",
+    recoverable: false,
+    recoveryAction: "Finish linking the number again.",
+  },
+};
+
 app.use(express.json({ limit: "1mb" }));
 
 function requireToken(req, res, next) {
@@ -99,6 +171,7 @@ function publicSession(session) {
     connectedAt: session.connectedAt,
     displayPhoneNumber: session.displayPhoneNumber || null,
     lastError: session.lastError || null,
+    lastDisconnect: session.lastDisconnect || null,
     pairingCode: session.pairingCode || null,
     pairingCodeFormatted: formatPairingCode(session.pairingCode),
     pairingCodeRequestedAt: session.pairingCodeRequestedAt || null,
@@ -108,6 +181,38 @@ function publicSession(session) {
     sessionId: session.id,
     status: session.status,
     updatedAt: session.updatedAt || null,
+  };
+}
+
+function getDisconnectStatusCode(error) {
+  const directStatus = Number(error?.output?.statusCode);
+  if (Number.isFinite(directStatus)) return directStatus;
+
+  try {
+    const boomStatus = Number(new Boom(error).output.statusCode);
+    return Number.isFinite(boomStatus) ? boomStatus : null;
+  } catch {
+    return null;
+  }
+}
+
+function getDisconnectInfo(error, intent) {
+  const statusCode = getDisconnectStatusCode(error);
+  const details = INTENTIONAL_DISCONNECT_DETAILS[intent]
+    || DISCONNECT_DETAILS.get(statusCode)
+    || {
+      reasonCode: "unknown",
+      reasonLabel: "WhatsApp closed the connection for an unknown reason",
+      recoverable: true,
+      recoveryAction: "Repeat AI will retry automatically. Reconnect if it does not recover.",
+    };
+  const rawMessage = error?.message || error?.output?.payload?.message || null;
+
+  return {
+    ...details,
+    message: rawMessage ? String(rawMessage).slice(0, 500) : null,
+    occurredAt: new Date().toISOString(),
+    statusCode,
   };
 }
 
@@ -156,7 +261,7 @@ async function maybeRequestPairingCode(session) {
 }
 
 async function syncAccount(session) {
-  if (!supabase) return;
+  if (!supabase) return null;
 
   const patch = {
     connection_status: session.status === "connected" ? "connected" : session.status === "error" ? "error" : "pending",
@@ -168,17 +273,79 @@ async function syncAccount(session) {
         session_id: session.id,
         status: session.status,
         updated_at: session.updatedAt || null,
+        last_disconnect: session.lastDisconnect || null,
       },
     },
   };
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("whatsapp_accounts")
     .update(patch)
     .eq("provider", "baileys")
-    .eq("phone_number_id", accountPhoneNumberId(session.id));
+    .eq("phone_number_id", accountPhoneNumberId(session.id))
+    .select("id, user_id")
+    .maybeSingle();
 
   if (error) logger.warn({ error, sessionId: session.id }, "Could not sync Baileys account");
+  return data || null;
+}
+
+async function recordDisconnectEvent(session, account, disconnectInfo) {
+  logger.warn({
+    reasonCode: disconnectInfo.reasonCode,
+    recoverable: disconnectInfo.recoverable,
+    sessionId: session.id,
+    statusCode: disconnectInfo.statusCode,
+  }, "Baileys connection closed");
+
+  if (!supabase || !account) return null;
+
+  const { data, error } = await supabase
+    .from("whatsapp_connection_events")
+    .insert({
+      account_id: account.id,
+      details: { pairing_mode: session.pairingMode || "qr" },
+      event_type: "disconnected",
+      message: disconnectInfo.message,
+      occurred_at: disconnectInfo.occurredAt,
+      reason_code: disconnectInfo.reasonCode,
+      reason_label: disconnectInfo.reasonLabel,
+      recoverable: disconnectInfo.recoverable,
+      recovery_action: disconnectInfo.recoveryAction,
+      session_id: session.id,
+      status_code: disconnectInfo.statusCode,
+      user_id: account.user_id,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    logger.warn({ error, sessionId: session.id }, "Could not persist Baileys disconnect event");
+    return null;
+  }
+
+  return data?.id || null;
+}
+
+async function markDisconnectEventsRecovered(session, account) {
+  if (!supabase || !account) return;
+
+  const recoveredAt = new Date().toISOString();
+  const { error } = await supabase
+    .from("whatsapp_connection_events")
+    .update({ recovered_at: recoveredAt })
+    .eq("account_id", account.id)
+    .eq("recoverable", true)
+    .is("recovered_at", null);
+
+  if (error) {
+    logger.warn({ error, sessionId: session.id }, "Could not mark Baileys disconnect as recovered");
+    return;
+  }
+
+  if (session.lastDisconnect?.recoverable) {
+    session.lastDisconnect = { ...session.lastDisconnect, recoveredAt };
+  }
 }
 
 async function persistInboundMessage(session, message) {
@@ -226,8 +393,9 @@ async function removeSessionFiles(sessionId) {
   await fs.rm(sessionPath(sessionId), { recursive: true, force: true });
 }
 
-async function stopSessionSocket(session) {
+async function stopSessionSocket(session, intent = "manual_disconnect") {
   if (!session?.socket) return;
+  session.disconnectIntent = intent;
 
   try {
     if (session.status === "connected") {
@@ -249,7 +417,7 @@ async function stopSessionSocket(session) {
 
 async function resetSession(sessionId) {
   const existing = sessions.get(sessionId);
-  await stopSessionSocket(existing);
+  await stopSessionSocket(existing, "session_reset");
   sessions.delete(sessionId);
   await removeSessionFiles(sessionId);
 }
@@ -266,11 +434,14 @@ async function startSession(sessionId, options = {}) {
 
   await fs.mkdir(sessionPath(sessionId), { recursive: true });
   const { state, saveCreds } = await useMultiFileAuthState(sessionPath(sessionId));
+  const restoringLinkedSession = !existing && Boolean(state.creds.registered);
   const session = existing || {
     connectedAt: null,
     displayPhoneNumber: null,
+    disconnectIntent: null,
     id: sessionId,
     lastError: null,
+    lastDisconnect: null,
     pairingCode: null,
     pairingCodeRequestInFlight: false,
     pairingCodeRequestedAt: null,
@@ -280,6 +451,7 @@ async function startSession(sessionId, options = {}) {
     qr: null,
     qrDataUrl: null,
     socket: null,
+    startupDisconnectAt: restoringLinkedSession ? new Date().toISOString() : null,
     status: "starting",
     updatedAt: new Date().toISOString(),
   };
@@ -318,9 +490,21 @@ async function startSession(sessionId, options = {}) {
     }
 
     if (connection === "open") {
+      const startupDisconnect = session.startupDisconnectAt
+        ? {
+          message: null,
+          occurredAt: session.startupDisconnectAt,
+          reasonCode: "service_restart",
+          reasonLabel: "The Repeat AI WhatsApp service restarted",
+          recoverable: true,
+          recoveryAction: "Repeat AI restored the saved WhatsApp session automatically.",
+          statusCode: null,
+        }
+        : null;
       session.status = "connected";
       session.connectedAt = new Date().toISOString();
       session.lastError = null;
+      if (startupDisconnect) session.lastDisconnect = startupDisconnect;
       session.pairingCode = null;
       session.pairingCodeRequestInFlight = false;
       session.pairingCodeRequestedAt = null;
@@ -329,7 +513,13 @@ async function startSession(sessionId, options = {}) {
       session.qr = null;
       session.qrDataUrl = null;
       session.displayPhoneNumber = normalizeOwnPhone(socket.user?.id || socket.authState?.creds?.me?.id);
-      await syncAccount(session);
+      const account = await syncAccount(session);
+      if (startupDisconnect) {
+        const eventId = await recordDisconnectEvent(session, account, startupDisconnect);
+        if (eventId) session.lastDisconnect = { ...session.lastDisconnect, eventId };
+      }
+      await markDisconnectEventsRecovered(session, account);
+      session.startupDisconnectAt = null;
     }
 
     if (connection === "connecting" && !session.qr) {
@@ -337,15 +527,24 @@ async function startSession(sessionId, options = {}) {
     }
 
     if (connection === "close") {
-      const statusCode = lastDisconnect?.error?.output?.statusCode
-        || new Boom(lastDisconnect?.error).output.statusCode;
-      const loggedOut = statusCode === DisconnectReason.loggedOut;
+      const wasConnected = session.status === "connected";
+      const wasRestoring = Boolean(session.startupDisconnectAt);
+      const disconnectInfo = getDisconnectInfo(lastDisconnect?.error, session.disconnectIntent);
+      session.lastDisconnect = disconnectInfo;
       session.socket = null;
-      session.status = loggedOut ? "logged_out" : "reconnecting";
-      session.lastError = lastDisconnect?.error?.message || null;
-      await syncAccount(session);
+      session.status = disconnectInfo.recoverable ? "reconnecting" : "error";
+      session.lastError = disconnectInfo.message || disconnectInfo.reasonLabel;
+      const account = await syncAccount(session);
 
-      if (!loggedOut) {
+      if (wasConnected || wasRestoring) {
+        const eventId = await recordDisconnectEvent(session, account, disconnectInfo);
+        if (eventId) session.lastDisconnect = { ...session.lastDisconnect, eventId };
+      }
+
+      session.disconnectIntent = null;
+      session.startupDisconnectAt = null;
+
+      if (disconnectInfo.recoverable) {
         setTimeout(() => {
           startSession(sessionId).catch((error) => {
             logger.error({ error, sessionId }, "Baileys reconnect failed");
