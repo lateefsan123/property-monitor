@@ -13,13 +13,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { PRO_TRIAL_DAYS } from "../subscriptions";
 
-const BENEFITS = [
-  "Seller pipeline and follow-ups",
-  "Spreadsheet imports and clean records",
-  "Building listings and price alerts",
-  "Message templates and WhatsApp workflow",
-  "Access on mobile and desktop",
-];
+const BENEFITS = ["Sellers and follow-ups", "Listings and price alerts", "Mobile and desktop"];
 const TERMS_URL = "https://repeatai.org/terms";
 const PRIVACY_URL = "https://repeatai.org/privacy";
 
@@ -33,7 +27,6 @@ export default function SubscriptionScreen({
   onSignOut,
   priceString,
   storeConfigured,
-  storeLabel,
   trialEligible,
 }) {
   const insets = useSafeAreaInsets();
@@ -73,7 +66,7 @@ export default function SubscriptionScreen({
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.header}>
-        <Text style={styles.brand}>Repeat AI</Text>
+        <View />
         <Pressable onPress={onSignOut} hitSlop={12} style={({ pressed }) => pressed && styles.pressed}>
           <Text style={styles.signOut}>Sign out</Text>
         </Pressable>
@@ -83,30 +76,23 @@ export default function SubscriptionScreen({
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.hero}>
-          <Text style={styles.eyebrow}>REPEAT AI PRO</Text>
-          <Text style={styles.title}>Your property workspace, wherever you are.</Text>
-          <Text style={styles.subtitle}>One plan for the full desktop and mobile experience.</Text>
-        </View>
+        <Text style={styles.title}>CHOOSE A PLAN</Text>
 
         <View style={styles.planCard}>
           {trialCopy ? <View style={styles.ribbon}><Text style={styles.ribbonText}>{trialCopy}</Text></View> : null}
-          <View style={styles.planTopRow}>
-            <View>
-              <Text style={styles.planName}>Professional</Text>
-              <Text style={styles.planTerm}>1 month</Text>
-            </View>
-            <View style={styles.priceWrap}>
-              <Text selectable style={styles.price}>{price || "—"}</Text>
-              <Text style={styles.perMonth}>per month</Text>
-            </View>
+          <View style={styles.planRow}>
+            <Text style={styles.planLength}>1 Month</Text>
+            <Text selectable style={styles.price}>{price ? `${price} / mo` : "—"}</Text>
           </View>
+          <View style={styles.checkBadge}><Text style={styles.checkBadgeText}>✓</Text></View>
         </View>
 
+        <Text style={styles.billingLine}>{trialCopy ? "Billed monthly after trial" : "Billed monthly"}</Text>
+
         <View style={styles.benefits}>
-          <Text style={styles.sectionTitle}>Everything you need</Text>
-          {BENEFITS.map((benefit, index) => (
-            <View key={benefit} style={[styles.benefitRow, index > 0 && styles.benefitBorder]}>
+          <Text style={styles.sectionTitle}>WHAT PRO ADDS</Text>
+          {BENEFITS.map((benefit) => (
+            <View key={benefit} style={styles.benefitRow}>
               <View style={styles.check}><Text style={styles.checkText}>✓</Text></View>
               <Text style={styles.benefitText}>{benefit}</Text>
             </View>
@@ -139,15 +125,15 @@ export default function SubscriptionScreen({
             <Text style={styles.primaryButtonText}>
               {!storeConfigured || !canPurchase
                 ? "Subscription unavailable"
-                : trialCopy ? `Start ${trialCopy}` : `Continue to ${storeLabel}`}
+                : trialCopy ? `Start ${trialCopy}` : "Subscribe"}
             </Text>
           )}
         </Pressable>
 
         {price ? <Text style={styles.billingCaption}>
           {trialCopy
-            ? `Payment method required. Free for ${PRO_TRIAL_DAYS} days, then ${price} per month. Cancel in the ${storeLabel} anytime.`
-            : `Renews monthly at ${price} until canceled in the ${storeLabel}.`}
+            ? `Then ${price}/month. Cancel anytime.`
+            : `${price}/month. Cancel anytime.`}
         </Text> : null}
 
         <Pressable
@@ -175,29 +161,24 @@ export default function SubscriptionScreen({
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#FFFFFF" },
   header: { minHeight: 56, paddingHorizontal: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  brand: { color: "#111111", fontSize: 17, fontWeight: "700", letterSpacing: -0.4 },
   signOut: { color: "#6B7280", fontSize: 14, fontWeight: "600" },
-  content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 28, gap: 24 },
-  hero: { alignItems: "center", gap: 10, paddingHorizontal: 4 },
-  eyebrow: { color: "#707070", fontSize: 12, fontWeight: "800", letterSpacing: 1.6 },
-  title: { color: "#111111", fontSize: 34, lineHeight: 39, fontWeight: "800", letterSpacing: -1.4, textAlign: "center" },
-  subtitle: { color: "#6B7280", fontSize: 15, lineHeight: 22, textAlign: "center", maxWidth: 330 },
-  planCard: { minHeight: 154, borderRadius: 18, borderWidth: 2, borderColor: "#111111", padding: 20, paddingTop: 52, backgroundColor: "#FFFFFF", position: "relative" },
-  ribbon: { position: "absolute", top: -2, left: -2, backgroundColor: "#111111", minHeight: 38, paddingHorizontal: 16, justifyContent: "center", borderTopLeftRadius: 18, borderBottomRightRadius: 16 },
-  ribbonText: { color: "#FFFFFF", fontSize: 13, fontWeight: "700" },
-  planTopRow: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 18 },
-  planName: { color: "#111111", fontSize: 21, fontWeight: "800", letterSpacing: -0.5 },
-  planTerm: { color: "#6B7280", fontSize: 14, marginTop: 6 },
-  priceWrap: { alignItems: "flex-end" },
-  price: { color: "#111111", fontSize: 24, fontWeight: "800", letterSpacing: -0.6 },
-  perMonth: { color: "#6B7280", fontSize: 13, marginTop: 4 },
-  benefits: { gap: 0 },
-  sectionTitle: { color: "#111111", fontSize: 20, fontWeight: "800", letterSpacing: -0.4, marginBottom: 8 },
-  benefitRow: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 12 },
-  benefitBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E7EB" },
-  check: { width: 25, height: 25, borderRadius: 13, backgroundColor: "#111111", alignItems: "center", justifyContent: "center" },
-  checkText: { color: "#FFFFFF", fontSize: 14, fontWeight: "800" },
-  benefitText: { flex: 1, color: "#292929", fontSize: 14, lineHeight: 20, fontWeight: "500" },
+  content: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 28, gap: 18 },
+  title: { color: "#111111", fontSize: 34, lineHeight: 38, fontWeight: "900", letterSpacing: -1.5, textAlign: "center", paddingBottom: 34 },
+  planCard: { minHeight: 164, borderRadius: 10, borderWidth: 3, borderColor: "#111111", padding: 17, paddingTop: 50, backgroundColor: "#FFFFFF", position: "relative" },
+  ribbon: { position: "absolute", top: -3, left: -3, backgroundColor: "#111111", minHeight: 39, minWidth: 190, paddingHorizontal: 16, alignItems: "center", justifyContent: "center", borderTopLeftRadius: 9, borderBottomRightRadius: 9 },
+  ribbonText: { color: "#FFFFFF", fontSize: 15, fontWeight: "500" },
+  planRow: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 16 },
+  planLength: { color: "#111111", fontSize: 21, fontWeight: "700" },
+  price: { color: "#111111", fontSize: 16, fontWeight: "500" },
+  checkBadge: { position: "absolute", right: -13, bottom: -13, width: 33, height: 33, borderRadius: 17, backgroundColor: "#111111", alignItems: "center", justifyContent: "center" },
+  checkBadgeText: { color: "#FFFFFF", fontSize: 18, fontWeight: "800" },
+  billingLine: { color: "#666666", fontSize: 13, marginTop: -11 },
+  benefits: { marginTop: 10 },
+  sectionTitle: { color: "#111111", fontSize: 24, fontWeight: "900", letterSpacing: -0.8, marginBottom: 8 },
+  benefitRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  check: { width: 22, height: 22, borderRadius: 11, backgroundColor: "#111111", alignItems: "center", justifyContent: "center" },
+  checkText: { color: "#FFFFFF", fontSize: 12, fontWeight: "800" },
+  benefitText: { color: "#292929", fontSize: 14, lineHeight: 20, fontWeight: "600" },
   errorBox: { borderRadius: 12, backgroundColor: "#FFF1F2", padding: 14, alignItems: "center", gap: 8 },
   errorText: { color: "#9F1239", fontSize: 13, lineHeight: 18, textAlign: "center" },
   retryText: { color: "#111111", fontSize: 13, fontWeight: "700", textDecorationLine: "underline" },
