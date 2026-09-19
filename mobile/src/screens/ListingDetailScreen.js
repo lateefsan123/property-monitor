@@ -6,20 +6,19 @@ import {
   StatusBar,
   StyleSheet,
   Text,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
 import { Svg, Circle, Line, Path, Text as SvgText } from "react-native-svg";
 import {
   formatArea,
   formatBedsAndBaths,
   formatEventTimestamp,
   formatPrice,
-  formatSyncTimestamp,
 } from "../features/listing-alerts/formatters";
 
-const HERO_HEIGHT = 320;
+const HERO_HEIGHT = 240;
 
 // ---------- Icons ----------
 
@@ -48,11 +47,10 @@ function Eyebrow({ children, color }) {
   return (
     <Text
       style={{
-        fontSize: 10,
-        fontWeight: "800",
+        fontSize: 18,
+        fontWeight: "700",
         color,
-        textTransform: "uppercase",
-        letterSpacing: 1.6,
+
         includeFontPadding: false,
       }}
     >
@@ -91,54 +89,6 @@ function PriceDeltaChip({ priceDelta, colors }) {
       >
         {formatPrice(Math.abs(priceDelta))}
       </Text>
-    </View>
-  );
-}
-
-// Inline stat cell — used inside the StatStrip below.
-function StatCell({ label, value, accent, colors }) {
-  return (
-    <View style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 18, gap: 6 }}>
-      <Text
-        style={{
-          fontSize: 24,
-          fontWeight: "800",
-          color: accent || colors.textName,
-          lineHeight: 26,
-          includeFontPadding: false,
-          letterSpacing: -0.5,
-        }}
-      >
-        {value}
-      </Text>
-      <Eyebrow color={colors.textFaint}>{label}</Eyebrow>
-    </View>
-  );
-}
-
-function StatStrip({ items, colors }) {
-  return (
-    <View
-      style={{
-        flexDirection: "row",
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderBottomWidth: StyleSheet.hairlineWidth,
-        borderColor: colors.bgCardBorder,
-      }}
-    >
-      {items.map((item, index) => (
-        <View
-          key={item.label}
-          style={{
-            flex: 1,
-            flexDirection: "row",
-            borderLeftWidth: index === 0 ? 0 : StyleSheet.hairlineWidth,
-            borderColor: colors.bgCardBorder,
-          }}
-        >
-          <StatCell label={item.label} value={item.value} accent={item.accent} colors={colors} />
-        </View>
-      ))}
     </View>
   );
 }
@@ -188,7 +138,7 @@ function TimelineEvent({ event, colors, isLast }) {
         <Text style={{ fontSize: 14, fontWeight: "700", color: colors.textName, letterSpacing: -0.1 }}>
           {headline}
         </Text>
-        <Text style={{ fontSize: 11, fontWeight: "600", color: colors.textFaint, letterSpacing: 0.4, textTransform: "uppercase" }}>
+        <Text style={{ fontSize: 12, color: colors.textMuted }}>
           {formatEventTimestamp(event.at)}
         </Text>
       </View>
@@ -199,7 +149,7 @@ function TimelineEvent({ event, colors, isLast }) {
 // ---------- Price chart ----------
 
 const CHART_HEIGHT = 220;
-const CHART_PAD_LEFT = 16;
+const CHART_PAD_LEFT = 62;
 const CHART_PAD_RIGHT = 16;
 const CHART_PAD_TOP = 24;
 const CHART_PAD_BOTTOM = 32;
@@ -242,7 +192,7 @@ function PriceChart({ priceHistory, width, colors }) {
           {points.length === 0 ? "No price history yet" : "Just one data point so far"}
         </Text>
         <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: "center", lineHeight: 17 }}>
-          Refresh this watchlist after the market moves to start drawing the curve.
+          Price changes will appear here after the next watchlist refresh.
         </Text>
       </View>
     );
@@ -297,7 +247,7 @@ function PriceChart({ priceHistory, width, colors }) {
   const lineColor = colors.statValue;
   const areaColor = colors.isDark ? "rgba(94,234,212,0.18)" : "rgba(10,112,130,0.10)";
   const gridColor = colors.bgCardBorder;
-  const labelColor = colors.textFaint;
+  const labelColor = colors.textMuted;
 
   const firstDate = new Date(minT).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
   const lastDate = new Date(maxT).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
@@ -338,7 +288,12 @@ function PriceChart({ priceHistory, width, colors }) {
         </View>
       </View>
 
-      <Svg width={width} height={CHART_HEIGHT}>
+      <Svg width="100%" height={CHART_HEIGHT} viewBox={`0 0 ${width} ${CHART_HEIGHT}`} accessibilityLabel={`Price history in AED. Lowest ${minPrice.toLocaleString()}, highest ${maxPrice.toLocaleString()}. ${firstDate} to ${lastDate}.`}>
+        {gridLines.map((y, i) => (
+          <SvgText key={`value-${i}`} x={CHART_PAD_LEFT - 8} y={y + 4} textAnchor="end" fontSize={10} fill={labelColor}>
+            {new Intl.NumberFormat("en", { notation: "compact", maximumFractionDigits: 2 }).format(maxY - (y - CHART_PAD_TOP) / innerHeight * yRange)}
+          </SvgText>
+        ))}
         {/* dashed grid */}
         {gridLines.map((y, i) => (
           <Line
@@ -416,20 +371,16 @@ function PriceChart({ priceHistory, width, colors }) {
 
 // ---------- Main screen ----------
 
-function daysBetween(start, end) {
-  const a = start ? new Date(String(start).replace(" ", "T")).getTime() : NaN;
-  const b = end ? new Date(String(end).replace(" ", "T")).getTime() : NaN;
-  if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
-  return Math.max(0, Math.round((b - a) / (1000 * 60 * 60 * 24)));
-}
-
 export default function ListingDetailScreen({
   listing,
+  onBack,
   colors,
   onOpenExternal,
   onToggleTracking,
+  embeddedHeader = false,
 }) {
   const insets = useSafeAreaInsets();
+  const { width: screenWidth } = useWindowDimensions();
   if (!listing) return null;
 
   const isTracked = Boolean(listing.isTracked);
@@ -438,172 +389,45 @@ export default function ListingDetailScreen({
     ? null
     : listing.currentPrice ?? listing.price ?? listing.lastKnownPrice ?? null;
   const lastKnownPrice = listing.lastKnownPrice ?? listing.price ?? listing.currentPrice ?? null;
-  const firstSeenAt = listing.firstSeenAt || listing.verifiedAt || null;
-  const lastSeenAt = listing.lastSeenAt || listing.removedAt || listing.lastVerifiedAt || listing.verifiedAt || null;
-  const daysTracked = daysBetween(firstSeenAt, lastSeenAt || new Date().toISOString());
+  const details = [formatBedsAndBaths(listing.beds, listing.baths), formatArea(listing.areaSqft)].filter(Boolean).join(" · ");
 
-  const bedsBaths = formatBedsAndBaths(listing.beds, listing.baths);
-  const area = formatArea(listing.areaSqft);
-
-  // Compose the editorial eyebrow string from the most distinctive metadata available.
-  const eyebrowBits = [
-    isTracked ? "Tracked unit" : "Live unit",
-    listing.community || listing.cluster || null,
-    bedsBaths,
-  ].filter(Boolean);
-
-  const chartWidth = 360 - 32; // ~screen width minus 16 padding either side
+  const chartWidth = Math.max(260, screenWidth - 32);
   const reversedHistory = (listing.priceHistory || []).slice().reverse();
   const hasCover = Boolean(listing.coverPhoto);
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
-      <StatusBar barStyle={colors.isDark ? "light-content" : "light-content"} />
+      {!embeddedHeader && <Pressable accessibilityRole="button" accessibilityLabel="Back to listings" onPress={onBack} style={{ padding: 16 }}><Text style={{ color: colors.text, fontWeight: "600" }}>← {listing.buildingName || "Listings"}</Text></Pressable>}
       <ScrollView
         style={{ flex: 1 }}
         contentContainerStyle={{ paddingBottom: 140 + insets.bottom }}
         showsVerticalScrollIndicator={false}
       >
-        {/* HERO ---------------------------------------------------- */}
         {hasCover ? (
-          <View style={{ height: HERO_HEIGHT, backgroundColor: colors.bgCard }}>
-            <Image
-              source={{ uri: listing.coverPhoto }}
-              style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
-              resizeMode="cover"
-            />
-            {/* Top fade so the status bar stays readable */}
-            <LinearGradient
-              colors={["rgba(0,0,0,0.55)", "rgba(0,0,0,0)"]}
-              style={{ position: "absolute", top: 0, left: 0, right: 0, height: insets.top + 60 }}
-            />
-            {/* Bottom fade into the page background for a clean handoff */}
-            <LinearGradient
-              colors={["rgba(0,0,0,0)", colors.bg]}
-              style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 110 }}
-            />
-          </View>
-        ) : (
-          // No cover photo: a calm tinted block sized so the heading still has a real top.
-          <View
-            style={{
-              height: HERO_HEIGHT * 0.55,
-              backgroundColor: colors.bgCard,
-              borderBottomWidth: StyleSheet.hairlineWidth,
-              borderColor: colors.bgCardBorder,
-            }}
-          >
-            <LinearGradient
-              colors={[colors.bgCard, colors.bg]}
-              style={{ position: "absolute", left: 0, right: 0, bottom: 0, height: 80 }}
-            />
-          </View>
-        )}
+          <Image source={{ uri: listing.coverPhoto }} style={{ height: HERO_HEIGHT, width: "100%", backgroundColor: colors.bgCard }} resizeMode="cover" />
+        ) : null}
 
-        {/* HEADING ------------------------------------------------- */}
-        <View style={{ paddingHorizontal: 24, marginTop: hasCover ? -24 : 16, gap: 12 }}>
-          <Eyebrow color={colors.textMuted}>{eyebrowBits.join("  ·  ")}</Eyebrow>
-
-          <Text
-            style={{
-              fontSize: 34,
-              lineHeight: 38,
-              fontWeight: "900",
-              color: colors.textName,
-              letterSpacing: -1.2,
-            }}
-          >
-            {listing.buildingName || "Untitled building"}
-          </Text>
-
-          <Text style={{ fontSize: 15, lineHeight: 21, color: colors.textMuted, letterSpacing: -0.1 }}>
-            {listing.title || "Untitled listing"}
-          </Text>
-
-          <Text style={{ fontSize: 12, color: colors.textFaint, letterSpacing: 0.2 }}>
-            {area}
-          </Text>
-        </View>
-
-        {/* PRICE HERO --------------------------------------------- */}
-        <View style={{ paddingHorizontal: 24, marginTop: 28, gap: 10 }}>
-          <Eyebrow color={colors.textFaint}>
-            {isRemoved ? "Last known price" : "Current valuation"}
-          </Eyebrow>
-          <View style={{ flexDirection: "row", alignItems: "flex-end", flexWrap: "wrap", gap: 12 }}>
-            <Text
-              style={{
-                fontSize: 44,
-                lineHeight: 46,
-                fontWeight: "900",
-                color: colors.textName,
-                letterSpacing: -1.6,
-              }}
-            >
-              {isRemoved ? formatPrice(lastKnownPrice) : formatPrice(currentPrice)}
+        <View style={{ paddingHorizontal: 20, paddingTop: 24, gap: 10 }}>
+          {isRemoved ? <Text style={{ color: colors.errorText, fontSize: 13, fontWeight: "600" }}>Off market · Last known price</Text> : null}
+          <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
+            <Text style={{ fontSize: 32, lineHeight: 38, fontWeight: "800", color: colors.textName, letterSpacing: -0.8 }}>
+              {formatPrice(isRemoved ? lastKnownPrice : currentPrice)}
             </Text>
             {!isRemoved ? <PriceDeltaChip priceDelta={listing.priceDelta} colors={colors} /> : null}
           </View>
-          {Number.isFinite(listing.previousPrice) && !isRemoved ? (
-            <Text style={{ fontSize: 12, color: colors.textFaint, letterSpacing: 0.2 }}>
-              {`Previously ${formatPrice(listing.previousPrice)}`}
-            </Text>
+          <Text style={{ fontSize: 15, lineHeight: 22, color: colors.text }}>{details}</Text>
+          {listing.title ? <Text style={{ fontSize: 14, lineHeight: 21, color: colors.textMuted }}>{listing.title}</Text> : null}
+          {Number.isFinite(listing.previousPrice) && listing.previousPrice !== currentPrice && !isRemoved ? (
+            <Text style={{ fontSize: 13, color: colors.textMuted }}>Previously {formatPrice(listing.previousPrice)}</Text>
           ) : null}
         </View>
 
         {/* CHART --------------------------------------------------- */}
         <View style={{ paddingHorizontal: 16, marginTop: 32, gap: 12 }}>
           <View style={{ paddingHorizontal: 8 }}>
-            <Eyebrow color={colors.textFaint}>Price trajectory</Eyebrow>
+            <Eyebrow color={colors.textFaint}>Price history</Eyebrow>
           </View>
           <PriceChart priceHistory={listing.priceHistory} width={chartWidth} colors={colors} />
-        </View>
-
-        {/* INLINE STATS STRIP ------------------------------------- */}
-        <View style={{ marginTop: 32 }}>
-          <View style={{ paddingHorizontal: 24, paddingBottom: 12 }}>
-            <Eyebrow color={colors.textFaint}>By the numbers</Eyebrow>
-          </View>
-          <StatStrip
-            colors={colors}
-            items={[
-              {
-                label: "Drops",
-                value: String(listing.dropsCount || 0),
-                accent: listing.dropsCount ? colors.badgeOkText : undefined,
-              },
-              {
-                label: "Rises",
-                value: String(listing.increasesCount || 0),
-                accent: listing.increasesCount ? colors.badgeDueText : undefined,
-              },
-              {
-                label: "Changes",
-                value: String(listing.totalChanges || 0),
-              },
-              {
-                label: "Days",
-                value: daysTracked == null ? "—" : String(daysTracked),
-              },
-            ]}
-          />
-          {/* Footnote with seen-first / seen-last context, no separate cards needed */}
-          <View
-            style={{
-              flexDirection: "row",
-              justifyContent: "space-between",
-              paddingHorizontal: 24,
-              paddingTop: 14,
-              gap: 12,
-            }}
-          >
-            <Text style={{ fontSize: 11, color: colors.textFaint, letterSpacing: 0.2 }}>
-              First seen {formatSyncTimestamp(firstSeenAt)}
-            </Text>
-            <Text style={{ fontSize: 11, color: colors.textFaint, letterSpacing: 0.2 }}>
-              Last seen {formatSyncTimestamp(lastSeenAt)}
-            </Text>
-          </View>
         </View>
 
         {/* TIMELINE ------------------------------------------------ */}
@@ -621,10 +445,8 @@ export default function ListingDetailScreen({
               ))}
             </View>
           ) : (
-            <Text style={{ fontSize: 13, color: colors.textMuted, lineHeight: 19 }}>
-              {isTracked
-                ? "Tracking has started. Refresh this watchlist after the market moves to fill out the activity log."
-                : "Track this unit, then refresh after the market moves to fill out the activity log."}
+            <Text style={{ fontSize: 14, color: colors.textMuted, lineHeight: 20 }}>
+              {isTracked ? "No price changes yet." : "Track this listing to follow price changes."}
             </Text>
           )}
         </View>
@@ -668,11 +490,10 @@ export default function ListingDetailScreen({
               fontSize: 13,
               fontWeight: "800",
               color: isTracked ? colors.textName : colors.tabActiveText,
-              letterSpacing: 0.3,
-              textTransform: "uppercase",
+
             }}
           >
-            {isTracked ? "Stop tracking" : "Track unit"}
+            {isTracked ? "Stop tracking" : "Track listing"}
           </Text>
         </Pressable>
 
@@ -699,8 +520,7 @@ export default function ListingDetailScreen({
                 fontSize: 13,
                 fontWeight: "800",
                 color: colors.bg,
-                letterSpacing: 0.3,
-                textTransform: "uppercase",
+
               }}
             >
               Open on Bayut

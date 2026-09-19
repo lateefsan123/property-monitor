@@ -1,451 +1,215 @@
-/* global require */
-import { useEffect, useState } from "react";
+import { useRef, useState } from "react";
 import {
-  Animated,
-  Easing,
-  Image,
-  Platform,
+  ActivityIndicator,
+  Alert,
+  Linking,
   Pressable,
+  ScrollView,
+  StatusBar,
   StyleSheet,
   Text,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { LinearGradient } from "expo-linear-gradient";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { PRO_TRIAL_DAYS } from "../subscriptions";
 
-const logo = require("../../assets/logo2white.png");
-const bgImage = require("../../assets/dubaii.png");
-
-const ROW_1 = [
-  "Unlimited lead imports",
-  "Building-level sales comps",
-  "Due-only seller follow-ups",
+const BENEFITS = [
+  "Seller pipeline and follow-ups",
+  "Spreadsheet imports and clean records",
+  "Building listings and price alerts",
+  "Message templates and WhatsApp workflow",
+  "Access on mobile and desktop",
 ];
-const ROW_2 = [
-  "Ready-to-send WhatsApp copy",
-  "Smart sheet column mapping",
-  "Active and done pipeline tracking",
-];
-const DEFAULT_PRODUCT_OPTIONS = [
-  {
-    badge: "Monthly",
-    description: "A flexible monthly seller signal Pro subscription billed by the store.",
-    id: "monthly",
-    label: "Monthly",
-    priceLabel: "Configured in RevenueCat",
-    productTitle: "",
-  },
-];
+const TERMS_URL = "https://repeatai.org/terms";
+const PRIVACY_URL = "https://repeatai.org/privacy";
 
-function MarqueeRow({ items, reverse = false, duration = 15000 }) {
-  const [contentWidth, setContentWidth] = useState(0);
-  const [animatedValue] = useState(() => new Animated.Value(0));
+export default function SubscriptionScreen({
+  action,
+  canPurchase,
+  error,
+  onPurchase,
+  onRefresh,
+  onRestore,
+  onSignOut,
+  priceString,
+  storeConfigured,
+  storeLabel,
+  trialEligible,
+}) {
+  const insets = useSafeAreaInsets();
+  const actionPending = useRef(false);
+  const [localAction, setLocalAction] = useState(null);
+  const pendingAction = action || localAction;
+  const price = priceString || null;
+  const trialCopy = trialEligible === true ? `${PRO_TRIAL_DAYS}-day free trial` : null;
+  const purchaseDisabled = !storeConfigured || !canPurchase || Boolean(pendingAction);
 
-  useEffect(() => {
-    if (contentWidth <= 0) return;
-
-    if (reverse) {
-      animatedValue.setValue(-contentWidth);
-      Animated.loop(
-        Animated.timing(animatedValue, {
-          toValue: 0,
-          duration,
-          easing: Easing.linear,
-          useNativeDriver: true,
-        }),
-      ).start();
-      return;
+  async function runAction(name, task) {
+    if (actionPending.current) return;
+    actionPending.current = true;
+    setLocalAction(name);
+    try {
+      const active = await task();
+      if (name === "restore") {
+        Alert.alert(
+          active ? "Purchases restored" : "Nothing to restore",
+          active ? "Your Repeat AI Pro access is active." : "No active subscription was found for this store account.",
+        );
+      }
+    } catch (actionError) {
+      Alert.alert(
+        "Subscription unavailable",
+        actionError instanceof Error
+          ? actionError.message
+          : "Check your connection and try again.",
+      );
+    } finally {
+      actionPending.current = false;
+      setLocalAction(null);
     }
-
-    animatedValue.setValue(0);
-    Animated.loop(
-      Animated.timing(animatedValue, {
-        toValue: -contentWidth,
-        duration,
-        easing: Easing.linear,
-        useNativeDriver: true,
-      }),
-    ).start();
-  }, [animatedValue, contentWidth, duration, reverse]);
-
-  function onLayout(event) {
-    setContentWidth(event.nativeEvent.layout.width);
   }
 
   return (
-    <View style={s.marqueeContainer}>
-      <Animated.View style={[s.marqueeTrack, { transform: [{ translateX: animatedValue }] }]}>
-        <View onLayout={onLayout} style={s.marqueeSet}>
-          {items.map((item, index) => (
-            <View key={`orig-${index}`} style={s.pill}>
-              <Text style={s.pillText}>{item}</Text>
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <View style={styles.header}>
+        <Text style={styles.brand}>Repeat AI</Text>
+        <Pressable onPress={onSignOut} hitSlop={12} style={({ pressed }) => pressed && styles.pressed}>
+          <Text style={styles.signOut}>Sign out</Text>
+        </Pressable>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.hero}>
+          <Text style={styles.eyebrow}>REPEAT AI PRO</Text>
+          <Text style={styles.title}>Your property workspace, wherever you are.</Text>
+          <Text style={styles.subtitle}>One plan for the full desktop and mobile experience.</Text>
+        </View>
+
+        <View style={styles.planCard}>
+          {trialCopy ? <View style={styles.ribbon}><Text style={styles.ribbonText}>{trialCopy}</Text></View> : null}
+          <View style={styles.planTopRow}>
+            <View>
+              <Text style={styles.planName}>Professional</Text>
+              <Text style={styles.planTerm}>1 month</Text>
+            </View>
+            <View style={styles.priceWrap}>
+              <Text selectable style={styles.price}>{price || "—"}</Text>
+              <Text style={styles.perMonth}>per month</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.benefits}>
+          <Text style={styles.sectionTitle}>Everything you need</Text>
+          {BENEFITS.map((benefit, index) => (
+            <View key={benefit} style={[styles.benefitRow, index > 0 && styles.benefitBorder]}>
+              <View style={styles.check}><Text style={styles.checkText}>✓</Text></View>
+              <Text style={styles.benefitText}>{benefit}</Text>
             </View>
           ))}
         </View>
-        {[1, 2, 3, 4, 5].map((dup) => (
-          <View key={`dup-${dup}`} style={s.marqueeSet}>
-            {items.map((item, index) => (
-              <View key={`dup-${dup}-${index}`} style={s.pill}>
-                <Text style={s.pillText}>{item}</Text>
-              </View>
-            ))}
-          </View>
-        ))}
-      </Animated.View>
-    </View>
-  );
-}
 
-function PlanCard({ option }) {
-  return (
-    <View style={s.card}>
-      <View style={s.planBadge}>
-        <Text style={s.planBadgeText}>{option.badge}</Text>
-      </View>
-      <Text style={s.planLabel}>{option.label}</Text>
-      <Text style={s.planPrice}>{option.priceLabel}</Text>
-      <Text style={s.planSub}>{option.description}</Text>
-      {option.productTitle ? <Text style={s.planFoot}>{option.productTitle}</Text> : null}
-    </View>
-  );
-}
-
-export default function SubscriptionScreen({
-  onClose,
-  onRestorePurchases,
-  onStartPurchase,
-  purchaseAvailable = true,
-  productOptions,
-  purchasePending = false,
-  restorePending = false,
-  storeLabel = Platform.OS === "ios"
-    ? "App Store"
-    : Platform.OS === "android"
-    ? "Google Play"
-    : "mobile store",
-  subscriptionError,
-  subscriptionLoading = false,
-  subscriptionMessage,
-}) {
-  const previewMode = typeof onStartPurchase !== "function";
-  const optionsToShow = productOptions?.length ? productOptions : DEFAULT_PRODUCT_OPTIONS;
-  const ctaLabel = previewMode
-    ? "Sign in to subscribe"
-    : !purchaseAvailable
-    ? "Subscription unavailable"
-    : purchasePending
-    ? `Opening ${storeLabel}...`
-    : subscriptionLoading
-    ? "Loading subscription..."
-    : "Start monthly subscription";
-  const restoreLabel = restorePending ? "Restoring purchases..." : "Restore purchases";
-  const buttonDisabled = previewMode || !purchaseAvailable || purchasePending || subscriptionLoading;
-  const restoreDisabled = previewMode || restorePending || subscriptionLoading;
-  const statusNote = subscriptionMessage
-    || (previewMode
-      ? `seller signal Pro is sold natively through the ${storeLabel}. Sign in to continue.`
-      : !purchaseAvailable
-      ? "The monthly RevenueCat package is not configured yet."
-      : `Purchases are completed through the ${storeLabel}, while this screen stays fully custom inside your app.`);
-
-  return (
-    <SafeAreaView style={s.container}>
-      <View style={StyleSheet.absoluteFill}>
-        <Image source={bgImage} style={s.bgImage} resizeMode="cover" />
-        <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.8)", "#121212", "#121212"]}
-          style={s.gradient}
-          locations={[0, 0.4, 0.7, 1]}
-        />
-      </View>
-
-      <View style={s.scrollContent}>
-        {onClose ? (
-          <View style={s.headerRow}>
-            <Pressable
-              onPress={onClose}
-              hitSlop={10}
-              style={({ pressed }) => [s.closeButton, pressed && s.closeButtonPressed]}
-            >
-              <Text style={s.closeButtonText}>Close</Text>
+        {error ? (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+            <Pressable onPress={onRefresh} hitSlop={10}>
+              <Text style={styles.retryText}>Try again</Text>
             </Pressable>
           </View>
         ) : null}
-        <View style={s.spacer} />
+      </ScrollView>
 
-        <View style={s.logoWrap}>
-          <View style={s.logoImageContainer}>
-            <Image source={logo} style={s.logo} resizeMode="contain" />
-          </View>
-          <Text style={s.brandText}>seller signal</Text>
-        </View>
-
-        <Text style={s.headline}>
-          Turn raw owner lists{"\n"}into seller signals
-        </Text>
-        <Text style={s.subheadline}>
-          Unlock seller signal Pro with one monthly subscription using the paywall you designed in the app.
-        </Text>
-
-        <View style={s.marqueeArea}>
-          <MarqueeRow items={ROW_1} duration={22000} />
-          <MarqueeRow items={ROW_2} duration={25000} reverse={true} />
-        </View>
-
-        <View style={s.cardWrap}>
-          {optionsToShow.map((option) => (
-            <PlanCard key={option.id} option={option} />
-          ))}
-        </View>
-
-        <Text style={s.statusNote}>{statusNote}</Text>
-        {subscriptionError ? <Text style={s.errorNote}>{subscriptionError}</Text> : null}
-      </View>
-
-      <View style={s.bottomWrap}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 14) }]}>
         <Pressable
-          disabled={buttonDisabled}
+          disabled={purchaseDisabled}
+          onPress={() => void runAction("purchase", onPurchase)}
           style={({ pressed }) => [
-            s.subscribeBtn,
-            buttonDisabled && s.subscribeBtnDisabled,
-            pressed && !buttonDisabled && { opacity: 0.85 },
+            styles.primaryButton,
+            purchaseDisabled && styles.primaryButtonDisabled,
+            pressed && !purchaseDisabled && styles.pressed,
           ]}
-          onPress={onStartPurchase}
         >
-          <Text style={s.subscribeBtnText}>{ctaLabel}</Text>
+          {pendingAction === "purchase" ? (
+            <ActivityIndicator color="#FFFFFF" />
+          ) : (
+            <Text style={styles.primaryButtonText}>
+              {!storeConfigured || !canPurchase
+                ? "Subscription unavailable"
+                : trialCopy ? `Start ${trialCopy}` : `Continue to ${storeLabel}`}
+            </Text>
+          )}
         </Pressable>
+
+        {price ? <Text style={styles.billingCaption}>
+          {trialCopy
+            ? `Payment method required. Free for ${PRO_TRIAL_DAYS} days, then ${price} per month. Cancel in the ${storeLabel} anytime.`
+            : `Renews monthly at ${price} until canceled in the ${storeLabel}.`}
+        </Text> : null}
+
         <Pressable
-          disabled={restoreDisabled}
-          style={({ pressed }) => [
-            s.restoreBtn,
-            restoreDisabled && s.restoreBtnDisabled,
-            pressed && !restoreDisabled && { opacity: 0.85 },
-          ]}
-          onPress={onRestorePurchases}
+          disabled={Boolean(pendingAction)}
+          onPress={() => void runAction("restore", onRestore)}
+          style={styles.textButton}
         >
-          <Text style={s.restoreBtnText}>{restoreLabel}</Text>
+          {pendingAction === "restore" ? (
+            <ActivityIndicator color="#111111" size="small" />
+          ) : (
+            <Text style={styles.textButtonLabel}>Restore purchases</Text>
+          )}
         </Pressable>
+
+        <View style={styles.legalRow}>
+          <Pressable onPress={() => Linking.openURL(TERMS_URL)}><Text style={styles.legalLink}>Terms</Text></Pressable>
+          <Text style={styles.legalDot}>•</Text>
+          <Pressable onPress={() => Linking.openURL(PRIVACY_URL)}><Text style={styles.legalLink}>Privacy</Text></Pressable>
+        </View>
       </View>
     </SafeAreaView>
   );
 }
 
-const ACCENT = "#2dd4bf";
-
-const s = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#121212",
-  },
-  bgImage: {
-    width: "100%",
-    height: "60%",
-    opacity: 0.9,
-  },
-  gradient: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  scrollContent: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    paddingTop: 0,
-  },
-  headerRow: {
-    alignItems: "flex-start",
-    paddingTop: 4,
-  },
-  closeButton: {
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.18)",
-    borderRadius: 999,
-    backgroundColor: "rgba(18,18,18,0.72)",
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-  },
-  closeButtonPressed: {
-    opacity: 0.8,
-  },
-  closeButtonText: {
-    color: "#e5e7eb",
-    fontSize: 13,
-    fontWeight: "600",
-  },
-  spacer: {
-    flex: 1,
-  },
-  logoWrap: {
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  logoImageContainer: {
-    width: 44,
-    height: 44,
-    justifyContent: "center",
-    alignItems: "center",
-    overflow: "hidden",
-    marginBottom: -10,
-  },
-  logo: {
-    width: 154,
-    height: 154,
-    tintColor: "#fff",
-  },
-  brandText: {
-    color: "#fff",
-    fontSize: 20,
-    fontWeight: "500",
-    letterSpacing: -1,
-  },
-  headline: {
-    color: "#e8e8e8",
-    fontSize: 24,
-    fontFamily: Platform.OS === "ios" ? "Georgia" : "serif",
-    textAlign: "center",
-    lineHeight: 30,
-    marginBottom: 10,
-  },
-  subheadline: {
-    color: "#a9afb7",
-    fontSize: 14,
-    textAlign: "center",
-    lineHeight: 20,
-    paddingHorizontal: 14,
-    marginBottom: 16,
-  },
-  marqueeArea: {
-    marginBottom: 16,
-    marginTop: 0,
-    width: "100%",
-  },
-  marqueeContainer: {
-    width: "100%",
-    overflow: "hidden",
-    marginBottom: 12,
-  },
-  marqueeTrack: {
-    flexDirection: "row",
-    alignItems: "center",
-  },
-  marqueeSet: {
-    flexDirection: "row",
-    paddingRight: 10,
-    gap: 10,
-  },
-  pill: {
-    backgroundColor: "rgba(255,255,255,0.06)",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.1)",
-  },
-  pillText: {
-    color: "#d1d5db",
-    fontSize: 13,
-    fontWeight: "500",
-  },
-  cardWrap: {
-    gap: 12,
-  },
-  card: {
-    width: "100%",
-    maxWidth: 420,
-    backgroundColor: "rgba(18,18,18,0.86)",
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1.5,
-    borderColor: "rgba(255,255,255,0.15)",
-    alignSelf: "center",
-  },
-  planBadge: {
-    alignSelf: "flex-start",
-    backgroundColor: "rgba(45,212,191,0.14)",
-    borderWidth: 1,
-    borderColor: "rgba(45,212,191,0.32)",
-    borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    marginBottom: 12,
-  },
-  planBadgeText: {
-    color: ACCENT,
-    fontSize: 12,
-    fontWeight: "700",
-  },
-  planLabel: {
-    color: "#f5f5f5",
-    fontSize: 14,
-    fontWeight: "600",
-    marginBottom: 6,
-  },
-  planPrice: {
-    color: ACCENT,
-    fontSize: 22,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  planSub: {
-    color: "#cbd5e1",
-    fontSize: 12,
-    lineHeight: 17,
-  },
-  planFoot: {
-    color: "#7dd3fc",
-    fontSize: 11,
-    marginTop: 10,
-  },
-  statusNote: {
-    color: "#9ca3af",
-    fontSize: 13,
-    textAlign: "center",
-    marginTop: 16,
-    lineHeight: 18,
-  },
-  errorNote: {
-    color: "#fca5a5",
-    fontSize: 13,
-    textAlign: "center",
-    marginTop: 10,
-    lineHeight: 18,
-  },
-  bottomWrap: {
-    paddingHorizontal: 16,
-    paddingBottom: Platform.OS === "ios" ? 14 : 20,
-    paddingTop: 10,
-    backgroundColor: "#121212",
-    gap: 10,
-  },
-  subscribeBtn: {
-    backgroundColor: ACCENT,
-    borderRadius: 30,
-    paddingVertical: 14,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  subscribeBtnDisabled: {
-    opacity: 0.72,
-  },
-  subscribeBtnText: {
-    color: "#000",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  restoreBtn: {
-    borderRadius: 30,
-    paddingVertical: 14,
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.16)",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "rgba(255,255,255,0.04)",
-  },
-  restoreBtnDisabled: {
-    opacity: 0.72,
-  },
-  restoreBtnText: {
-    color: "#d1d5db",
-    fontSize: 15,
-    fontWeight: "600",
-  },
+const styles = StyleSheet.create({
+  safeArea: { flex: 1, backgroundColor: "#FFFFFF" },
+  header: { minHeight: 56, paddingHorizontal: 20, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  brand: { color: "#111111", fontSize: 17, fontWeight: "700", letterSpacing: -0.4 },
+  signOut: { color: "#6B7280", fontSize: 14, fontWeight: "600" },
+  content: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 28, gap: 24 },
+  hero: { alignItems: "center", gap: 10, paddingHorizontal: 4 },
+  eyebrow: { color: "#707070", fontSize: 12, fontWeight: "800", letterSpacing: 1.6 },
+  title: { color: "#111111", fontSize: 34, lineHeight: 39, fontWeight: "800", letterSpacing: -1.4, textAlign: "center" },
+  subtitle: { color: "#6B7280", fontSize: 15, lineHeight: 22, textAlign: "center", maxWidth: 330 },
+  planCard: { minHeight: 154, borderRadius: 18, borderWidth: 2, borderColor: "#111111", padding: 20, paddingTop: 52, backgroundColor: "#FFFFFF", position: "relative" },
+  ribbon: { position: "absolute", top: -2, left: -2, backgroundColor: "#111111", minHeight: 38, paddingHorizontal: 16, justifyContent: "center", borderTopLeftRadius: 18, borderBottomRightRadius: 16 },
+  ribbonText: { color: "#FFFFFF", fontSize: 13, fontWeight: "700" },
+  planTopRow: { flex: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 18 },
+  planName: { color: "#111111", fontSize: 21, fontWeight: "800", letterSpacing: -0.5 },
+  planTerm: { color: "#6B7280", fontSize: 14, marginTop: 6 },
+  priceWrap: { alignItems: "flex-end" },
+  price: { color: "#111111", fontSize: 24, fontWeight: "800", letterSpacing: -0.6 },
+  perMonth: { color: "#6B7280", fontSize: 13, marginTop: 4 },
+  benefits: { gap: 0 },
+  sectionTitle: { color: "#111111", fontSize: 20, fontWeight: "800", letterSpacing: -0.4, marginBottom: 8 },
+  benefitRow: { minHeight: 54, flexDirection: "row", alignItems: "center", gap: 12 },
+  benefitBorder: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E7EB" },
+  check: { width: 25, height: 25, borderRadius: 13, backgroundColor: "#111111", alignItems: "center", justifyContent: "center" },
+  checkText: { color: "#FFFFFF", fontSize: 14, fontWeight: "800" },
+  benefitText: { flex: 1, color: "#292929", fontSize: 14, lineHeight: 20, fontWeight: "500" },
+  errorBox: { borderRadius: 12, backgroundColor: "#FFF1F2", padding: 14, alignItems: "center", gap: 8 },
+  errorText: { color: "#9F1239", fontSize: 13, lineHeight: 18, textAlign: "center" },
+  retryText: { color: "#111111", fontSize: 13, fontWeight: "700", textDecorationLine: "underline" },
+  footer: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: "#E5E7EB", backgroundColor: "#FFFFFF", paddingHorizontal: 20, paddingTop: 12, gap: 8 },
+  primaryButton: { minHeight: 54, borderRadius: 14, backgroundColor: "#111111", alignItems: "center", justifyContent: "center", paddingHorizontal: 18 },
+  primaryButtonDisabled: { backgroundColor: "#D1D5DB" },
+  primaryButtonText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700", textAlign: "center" },
+  billingCaption: { color: "#6B7280", fontSize: 11, lineHeight: 16, textAlign: "center", paddingHorizontal: 4 },
+  textButton: { minHeight: 30, alignItems: "center", justifyContent: "center" },
+  textButtonLabel: { color: "#111111", fontSize: 12, fontWeight: "700", textDecorationLine: "underline" },
+  legalRow: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 10 },
+  legalLink: { color: "#6B7280", fontSize: 11, textDecorationLine: "underline" },
+  legalDot: { color: "#9CA3AF" },
+  pressed: { opacity: 0.68 },
 });

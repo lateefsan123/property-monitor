@@ -35,5 +35,6 @@ export function useListingAlertsSummary() {
     ...EMPTY_SUMMARY,
     ...(query.data ?? {}),
     loading: query.isPending,
+    refetch: query.refetch,
   };
 }

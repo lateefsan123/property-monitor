@@ -17,24 +17,27 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { makeRedirectUri } from "expo-auth-session";
 import * as QueryParams from "expo-auth-session/build/QueryParams";
+import * as AppleAuthentication from "expo-apple-authentication";
+import * as Crypto from "expo-crypto";
 import * as WebBrowser from "expo-web-browser";
 import * as Linking from "expo-linking";
 import { supabase } from "../supabase";
-import SubscriptionScreen from "./SubscriptionScreen";
 import Svg, { Path } from "react-native-svg";
 
-const lightLogo = require("../../assets/logo2white.png");
+const lightLogo = require("../../assets/repeat-ai-logo.png");
 const bgImage = { uri: "https://cdn.midjourney.com/30e8eec1-dc28-41f8-b358-9bd07d143e01/0_3.png" };
 
 const { height: SCREEN_HEIGHT } = Dimensions.get("window");
-const GOOGLE_REDIRECT_PATH = "auth/callback";
+const AUTH_REDIRECT_PATH = "auth/callback";
+const PRIVACY_URL = "https://repeatai.org/privacy";
+const TERMS_URL = "https://repeatai.org/terms";
 
 WebBrowser.maybeCompleteAuthSession();
 
-function getGoogleRedirectUri() {
+function getAuthRedirectUri() {
   return makeRedirectUri({
     scheme: "seller-signal",
-    path: GOOGLE_REDIRECT_PATH,
+    path: AUTH_REDIRECT_PATH,
   });
 }
 
@@ -71,12 +74,13 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
   const [isSignUp, setIsSignUp] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
-  const [showSubscription, setShowSubscription] = useState(false);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
-  const redirectTo = getGoogleRedirectUri();
+  const redirectTo = getAuthRedirectUri();
   const incomingUrl = Linking.useURL();
 
   useEffect(() => {
@@ -90,6 +94,13 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
         setError(err.message || "Sign-in failed");
       });
   }, [incomingUrl, onPasswordRecovery]);
+
+  useEffect(() => {
+    if (Platform.OS !== "ios") return;
+    AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {
+      setAppleAvailable(false);
+    });
+  }, []);
 
   async function handleEmailAuth() {
     setLoading(true);
@@ -106,7 +117,7 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
       const { error: signUpError } = await supabase.auth.signUp({
         email,
         password,
-        options: { data: { username: username.trim() } },
+        options: { emailRedirectTo: redirectTo, data: { username: username.trim() } },
       });
       if (signUpError) setError(signUpError.message);
       else setMessage("Check your email for a confirmation link.");
@@ -150,6 +161,53 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
     }
 
     setGoogleLoading(false);
+  }
+
+  async function handleAppleAuth() {
+    setAppleLoading(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const rawNonce = Crypto.randomUUID();
+      const hashedNonce = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        rawNonce,
+      );
+      const credential = await AppleAuthentication.signInAsync({
+        nonce: hashedNonce,
+        requestedScopes: [
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+          AppleAuthentication.AppleAuthenticationScope.EMAIL,
+        ],
+      });
+
+      if (!credential.identityToken) {
+        throw new Error("Apple did not return a sign-in token.");
+      }
+
+      const { data, error: appleError } = await supabase.auth.signInWithIdToken({
+        provider: "apple",
+        token: credential.identityToken,
+        nonce: rawNonce,
+      });
+      if (appleError) throw appleError;
+
+      const fullName = [credential.fullName?.givenName, credential.fullName?.familyName]
+        .filter(Boolean)
+        .join(" ");
+      if (fullName && data.user) {
+        await supabase.auth.updateUser({
+          data: { full_name: fullName, username: fullName },
+        });
+      }
+    } catch (err) {
+      if (err?.code !== "ERR_REQUEST_CANCELED") {
+        setError(err.message || "Apple sign-in failed");
+      }
+    } finally {
+      setAppleLoading(false);
+    }
   }
 
   const s = styles();
@@ -324,13 +382,6 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
         locations={[0, 0.4, 0.8, 1]}
       />
 
-      {/* Beta badge */}
-      <View style={s.proRow}>
-        <Pressable style={s.proBtnWrap} onPress={() => setShowSubscription(true)}>
-          <Text style={s.proBtnText}>BETA</Text>
-        </Pressable>
-      </View>
-
       <ScrollView
         contentContainerStyle={s.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -352,7 +403,7 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
                 resizeMode="contain"
               />
             </View>
-            <Text style={s.brandText}>seller signal</Text>
+
           </View>
 
           {error && (
@@ -368,6 +419,22 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
 
           {/* Main buttons */}
           <View style={s.buttonsWrap}>
+            {appleAvailable ? (
+              appleLoading ? (
+                <View style={[s.btn, s.appleLoadingButton]}>
+                  <ActivityIndicator color="#111" size="small" />
+                </View>
+              ) : (
+                <AppleAuthentication.AppleAuthenticationButton
+                  buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.WHITE}
+                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
+                  cornerRadius={30}
+                  onPress={handleAppleAuth}
+                  style={s.appleButton}
+                />
+              )
+            ) : null}
+
             {/* Continue with Google */}
             <Pressable
               style={({ pressed }) => [s.btn, s.btnWhite, pressed && s.btnPressed, googleLoading && s.btnDisabled]}
@@ -405,20 +472,17 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
 
           {/* Privacy & Terms */}
           <View style={s.footer}>
-            <Text style={s.footerLink}>Privacy policy</Text>
+            <Pressable onPress={() => Linking.openURL(PRIVACY_URL)} hitSlop={8}>
+              <Text style={s.footerLink}>Privacy policy</Text>
+            </Pressable>
             <Text style={s.footerSep}>{"    "}</Text>
-            <Text style={s.footerLink}>Terms of service</Text>
+            <Pressable onPress={() => Linking.openURL(TERMS_URL)} hitSlop={8}>
+              <Text style={s.footerLink}>Terms of service</Text>
+            </Pressable>
           </View>
         </KeyboardAvoidingView>
       </ScrollView>
 
-      {showSubscription && (
-        <View style={StyleSheet.absoluteFill}>
-          <SubscriptionScreen
-            onClose={() => setShowSubscription(false)}
-          />
-        </View>
-      )}
     </SafeAreaView>
   );
 }
@@ -527,27 +591,25 @@ const styles = () =>
       marginBottom: 36,
     },
     logoImageContainer: {
-      width: 100,
-      height: 100,
+      width: 260,
+      height: 48,
       justifyContent: "center",
       alignItems: "center",
-      overflow: "hidden",
-      marginBottom: -24, // Aggressive negative margin to pull the text extremely close to the visible cropped logo
     },
     logo: {
-      width: 360,
-      height: 360,
-      tintColor: "#fff",
-    },
-    brandText: {
-      color: "#fff",
-      fontSize: 48,
-      fontWeight: "500",
-      letterSpacing: -2,
+      width: 260,
+      height: 48,
     },
     buttonsWrap: {
       width: "100%",
       gap: 12,
+    },
+    appleButton: {
+      width: "100%",
+      height: 58,
+    },
+    appleLoadingButton: {
+      backgroundColor: "#fff",
     },
     btn: {
       borderRadius: 30,

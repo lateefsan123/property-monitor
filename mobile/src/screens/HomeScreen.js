@@ -1,290 +1,502 @@
-import React from "react";
-import { Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import { createElement, useMemo } from "react";
+import {
+  Pressable,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Svg, Circle, Path, Rect, Line } from "react-native-svg";
+import {
+  Circle,
+  Line,
+  Path,
+  Polyline,
+  Svg,
+  Text as SvgText,
+} from "react-native-svg";
 import { useListingAlertsSummary } from "../features/listing-alerts/useListingAlertsSummary";
 import { useHomeLeadSummary } from "../features/seller-signal/useHomeLeadSummary";
 import { getTheme } from "../theme";
 
 function getHomeColors(theme) {
-  const c = getTheme(theme);
+  const base = getTheme(theme);
   const isDark = theme === "dark";
 
   return {
+    accent: isDark ? "#60A5FA" : "#155EEF",
+    border: isDark ? "#2A2D32" : "#E1E4E8",
+    danger: isDark ? "#FB7185" : "#DC2626",
     isDark,
-    pageBg: c.bg,
-    gapBg: c.bg,
-    ghostNumber: isDark ? "#161616" : "#ededed",
-    eyebrow: isDark ? "#666" : c.textFaint,
-    status: isDark ? "#fff" : c.textName,
-    meta: isDark ? "#727272" : c.textMuted,
+    muted: isDark ? "#9CA3AF" : "#667085",
+    navBackground: isDark ? "#111315" : "#FAFAF8",
+    page: isDark ? "#111315" : "#FAFAF8",
+    pressed: isDark ? "#1B1E22" : "#F1F3F5",
+    text: isDark ? "#F5F7FA" : "#15171A",
+    textSoft: isDark ? "#D0D5DD" : "#344054",
+    themeBase: base,
   };
 }
 
-const TILE_ICON_SIZE = 36;
-
-function PeopleIcon({ color }) {
+function Icon({ children, color, size = 22, strokeWidth = 1.7 }) {
   return (
-    <Svg width={TILE_ICON_SIZE} height={TILE_ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-      <Circle cx="9" cy="7" r="4" />
-      <Path d="M23 21v-2a4 4 0 0 0-3-3.87" />
-      <Path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    <Svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={strokeWidth}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {children}
     </Svg>
+  );
+}
+
+function SunIcon({ color }) {
+  return (
+    <Icon color={color}>
+      <Circle cx="12" cy="12" r="3.5" />
+      <Line x1="12" y1="2" x2="12" y2="4" />
+      <Line x1="12" y1="20" x2="12" y2="22" />
+      <Line x1="4.93" y1="4.93" x2="6.34" y2="6.34" />
+      <Line x1="17.66" y1="17.66" x2="19.07" y2="19.07" />
+      <Line x1="2" y1="12" x2="4" y2="12" />
+      <Line x1="20" y1="12" x2="22" y2="12" />
+      <Line x1="4.93" y1="19.07" x2="6.34" y2="17.66" />
+      <Line x1="17.66" y1="6.34" x2="19.07" y2="4.93" />
+    </Icon>
+  );
+}
+
+function MoonIcon({ color }) {
+  return (
+    <Icon color={color}>
+      <Path d="M20.5 14.4A8 8 0 0 1 9.6 3.5a8 8 0 1 0 10.9 10.9Z" />
+    </Icon>
+  );
+}
+
+function SettingsIcon({ color }) {
+  return (
+    <Icon color={color}>
+      <Circle cx="12" cy="12" r="3" />
+      <Path d="M19 12a7.1 7.1 0 0 0-.1-1l2-1.6-2-3.4-2.5 1a8.4 8.4 0 0 0-1.8-1L14.2 3h-4.4L9.4 6a8.4 8.4 0 0 0-1.8 1L5.1 6l-2 3.4 2 1.6a7.1 7.1 0 0 0 0 2l-2 1.6 2 3.4 2.5-1a8.4 8.4 0 0 0 1.8 1l.4 3h4.4l.4-3a8.4 8.4 0 0 0 1.8-1l2.5 1 2-3.4-2-1.6a7.1 7.1 0 0 0 .1-1Z" />
+    </Icon>
+  );
+}
+
+function HomeIcon({ color }) {
+  return (
+    <Icon color={color}>
+      <Path d="m3 10 9-7 9 7" />
+      <Path d="M5 9v12h14V9" />
+      <Path d="M9 21v-7h6v7" />
+    </Icon>
+  );
+}
+
+function LeadsIcon({ color }) {
+  return (
+    <Icon color={color}>
+      <Circle cx="9" cy="8" r="3" />
+      <Path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2a4.5 4.5 0 0 1 4.5 4.5V20" />
+      <Path d="M16 6.3a3 3 0 0 1 0 5.4M18 14.5a4.5 4.5 0 0 1 2.5 4V20" />
+    </Icon>
+  );
+}
+
+function ListingsIcon({ color }) {
+  return (
+    <Icon color={color}>
+      <Path d="M5 21V5l7-2v18" />
+      <Path d="M12 8h7v13H3h18" />
+      <Line x1="8" y1="8" x2="9" y2="8" />
+      <Line x1="8" y1="12" x2="9" y2="12" />
+      <Line x1="8" y1="16" x2="9" y2="16" />
+      <Line x1="15" y1="12" x2="16" y2="12" />
+      <Line x1="15" y1="16" x2="16" y2="16" />
+    </Icon>
   );
 }
 
 function SheetIcon({ color }) {
   return (
-    <Svg width={TILE_ICON_SIZE} height={TILE_ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Rect x="3" y="3" width="18" height="18" rx="2" />
-      <Line x1="3" y1="9" x2="21" y2="9" />
-      <Line x1="3" y1="15" x2="21" y2="15" />
-      <Line x1="9" y1="3" x2="9" y2="21" />
-      <Line x1="15" y1="3" x2="15" y2="21" />
-    </Svg>
+    <Icon color={color}>
+      <Path d="M4 3h16v18H4z" />
+      <Line x1="4" y1="9" x2="20" y2="9" />
+      <Line x1="4" y1="15" x2="20" y2="15" />
+      <Line x1="10" y1="3" x2="10" y2="21" />
+    </Icon>
   );
 }
 
-function GearIcon({ color }) {
+function MoreIcon({ color }) {
   return (
-    <Svg width={TILE_ICON_SIZE} height={TILE_ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Circle cx="12" cy="12" r="3" />
-      <Path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
-    </Svg>
+    <Icon color={color}>
+      <Circle cx="5" cy="12" r="1" fill={color} stroke="none" />
+      <Circle cx="12" cy="12" r="1" fill={color} stroke="none" />
+      <Circle cx="19" cy="12" r="1" fill={color} stroke="none" />
+    </Icon>
   );
 }
 
-function BellIcon({ color }) {
+function ArrowDownIcon({ color }) {
   return (
-    <Svg width={TILE_ICON_SIZE} height={TILE_ICON_SIZE} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-      <Path d="M13.73 21a2 2 0 0 1-3.46 0" />
-    </Svg>
+    <Icon color={color} size={28} strokeWidth={1.8}>
+      <Line x1="12" y1="3" x2="12" y2="20" />
+      <Path d="m5 13 7 7 7-7" />
+    </Icon>
   );
 }
 
-function DotsIcon({ color }) {
+function ChevronIcon({ color }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2}>
-      <Circle cx="5" cy="12" r="1.5" fill={color} stroke="none" />
-      <Circle cx="12" cy="12" r="1.5" fill={color} stroke="none" />
-      <Circle cx="19" cy="12" r="1.5" fill={color} stroke="none" />
+    <Icon color={color} size={18}>
+      <Path d="m9 18 6-6-6-6" />
+    </Icon>
+  );
+}
+
+function MessageChart({ colors, series, width }) {
+  const chartWidth = Math.max(280, width);
+  const height = 206;
+  const top = 30;
+  const bottom = 34;
+  const left = 8;
+  const right = 8;
+  const plotWidth = chartWidth - left - right;
+  const plotHeight = height - top - bottom;
+  const values = series.map((day) => Number(day?.count) || 0);
+  const maxValue = Math.max(4, ...values);
+  const chartMax = Math.max(4, Math.ceil(maxValue / 4) * 4);
+  const xFor = (index) => left + (index / Math.max(series.length - 1, 1)) * plotWidth;
+  const yFor = (value) => top + plotHeight - (value / chartMax) * plotHeight;
+  const points = values.map((value, index) => `${xFor(index)},${yFor(value)}`).join(" ");
+  const lastIndex = Math.max(series.length - 1, 0);
+  const lastValue = values[lastIndex] || 0;
+  const lastX = xFor(lastIndex);
+  const lastY = yFor(lastValue);
+  const guides = [0, chartMax / 2, chartMax];
+
+  return (
+    <Svg width={chartWidth} height={height} viewBox={`0 0 ${chartWidth} ${height}`}>
+      {guides.map((value) => {
+        const y = yFor(value);
+        return (
+          <Line
+            key={value}
+            x1={left}
+            x2={chartWidth - right}
+            y1={y}
+            y2={y}
+            stroke={colors.border}
+            strokeWidth="1"
+            strokeDasharray={value === 0 ? undefined : "4 6"}
+          />
+        );
+      })}
+      <Line
+        x1={lastX}
+        x2={lastX}
+        y1={top - 2}
+        y2={top + plotHeight}
+        stroke={colors.accent}
+        strokeWidth="1"
+        strokeDasharray="3 4"
+        opacity="0.65"
+      />
+      <Polyline
+        points={points}
+        fill="none"
+        stroke={colors.accent}
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      {values.map((value, index) => (
+        <Circle
+          key={`${series[index]?.key || index}-dot`}
+          cx={xFor(index)}
+          cy={yFor(value)}
+          r={index === lastIndex ? 4.5 : 2.6}
+          fill={colors.page}
+          stroke={colors.accent}
+          strokeWidth={index === lastIndex ? 2.4 : 1.8}
+        />
+      ))}
+      <SvgText
+        x={lastX - 2}
+        y={Math.max(15, lastY - 14)}
+        fill={colors.accent}
+        fontSize="11"
+        fontWeight="600"
+        textAnchor="end"
+      >
+        {`Today ${lastValue}`}
+      </SvgText>
+      {series.map((day, index) => (
+        <SvgText
+          key={`${day?.key || index}-label`}
+          x={xFor(index)}
+          y={height - 8}
+          fill={colors.muted}
+          fontSize="9"
+          textAnchor="middle"
+        >
+          {day?.label || ""}
+        </SvgText>
+      ))}
     </Svg>
   );
 }
 
-function Tile({ title, subtitle, icon: Icon, color, backgroundColor, titleColor, subtitleColor, onPress }) {
+function Metric({ label, value, colors, isLast }) {
+  return (
+    <View style={[s.metric, !isLast && { borderRightColor: colors.border, borderRightWidth: StyleSheet.hairlineWidth }]}>
+      <Text selectable style={[s.metricValue, { color: colors.text }]}>{value}</Text>
+      <Text style={[s.metricLabel, { color: colors.muted }]}>{label}</Text>
+    </View>
+  );
+}
+
+function NavItem({ active = false, colors, icon: NavIcon, label, onPress }) {
+  const color = active ? colors.accent : colors.muted;
   return (
     <Pressable
-      style={({ pressed }) => [
-        { 
-          flex: 1, 
-          backgroundColor: backgroundColor,
-          padding: 16,
-          justifyContent: "space-between"
-        },
-        pressed && { opacity: 0.85 }
-      ]}
+      accessibilityRole="button"
+      accessibilityState={{ selected: active }}
       onPress={onPress}
+      style={({ pressed }) => [s.navItem, pressed && { opacity: 0.55 }]}
     >
-      <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
-        <View>
-          <Text style={{ fontSize: 18, color: titleColor, fontWeight: "500" }}>{title}</Text>
-          {subtitle ? <Text style={{ fontSize: 17, color: subtitleColor, fontWeight: "400", marginTop: 1 }}>{subtitle}</Text> : null}
-        </View>
-        <View style={{ marginTop: 2 }}>
-          <DotsIcon color={color} />
-        </View>
-      </View>
-      <View>
-        <Icon color={color} />
-      </View>
+      {createElement(NavIcon, { color })}
+      <Text style={[s.navLabel, { color }, active && s.navLabelActive]}>{label}</Text>
     </Pressable>
   );
 }
 
-export default function HomeScreen({ theme, onOpenDashboard, onOpenSpreadsheet, onOpenSettings, onOpenAlerts, userId }) {
-  const hc = getHomeColors(theme);
-  const s = styles(hc);
-  const summary = useHomeLeadSummary(userId);
-  const alertSummary = useListingAlertsSummary();
-  const bigNumber = summary.loading || summary.error ? "" : String(summary.dueCount);
-  const hasLargeNumber = bigNumber.length > 2;
-  const followupSubtitle = summary.loading
-    ? "Syncing"
-    : summary.error
-      ? "Open queue"
-      : summary.hasLeads
-        ? summary.dueCount === 0
-          ? "Queue clear"
-          : `${summary.dueCount} due`
-        : "Import leads";
-  const headerEyebrow = "Follow-up Queue";
-  const headerTitle = summary.loading
-    ? "Syncing queue"
-    : summary.error
-      ? "Open Seller Followup"
-      : summary.hasLeads
-        ? summary.dueCount === 0
-          ? "Queue clear"
-          : "Due now"
-        : "Import your first seller list";
-  const headerMeta = summary.loading
-    ? "Checking your active leads"
-    : summary.error
-      ? "Tap to open your seller queue"
-      : summary.hasLeads
-        ? `From ${summary.activeCount} active ${summary.activeCount === 1 ? "lead" : "leads"}`
-        : "Tap to add a sheet and start tracking";
-  const alertsSubtitle = alertSummary.loading
-    ? "Watchlist"
-    : alertSummary.totalChanges > 0
-      ? `${alertSummary.totalChanges} ${alertSummary.totalChanges === 1 ? "change" : "changes"}`
-      : alertSummary.watchedBuildingCount > 0
-        ? alertSummary.trackedListingCount > 0
-          ? alertSummary.hasSnapshot
-            ? "Up to date"
-            : `Tracking ${alertSummary.trackedListingCount}`
-          : "Pick units"
-        : "Watchlist";
+function formatToday() {
+  return new Date().toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    weekday: "short",
+  });
+}
+
+export default function HomeScreen({
+  theme,
+  onOpenDashboard,
+  onOpenSpreadsheet,
+  onOpenSettings,
+  onOpenAlerts,
+  onToggleTheme,
+  userId,
+  previewAlertSummary,
+  previewSummary,
+}) {
+  const colors = getHomeColors(theme);
+  const { width } = useWindowDimensions();
+  const liveSummary = useHomeLeadSummary(userId);
+  const liveAlertSummary = useListingAlertsSummary();
+  const summary = previewSummary ?? liveSummary;
+  const alertSummary = previewAlertSummary ?? liveAlertSummary;
+  const chartWidth = Math.max(280, width - 48);
+  const series = useMemo(() => {
+    if (Array.isArray(summary.messageSeries) && summary.messageSeries.length) return summary.messageSeries;
+    return (summary.sentTrend || []).map((count, index) => ({ count, key: String(index), label: "" }));
+  }, [summary.messageSeries, summary.sentTrend]);
+  const totalMessages = series.reduce((total, day) => total + (Number(day.count) || 0), 0);
+  const dueCount = summary.loading ? "—" : summary.dueCount ?? 0;
+  const urgentCount = summary.loading ? "—" : summary.urgentCount ?? 0;
+  const scheduledCount = summary.loading ? "—" : summary.scheduledCount ?? 0;
+  const replyRate = summary.replyLoading
+    ? "—"
+    : Number.isFinite(summary.replyRate)
+      ? `${summary.replyRate}%`
+      : "—";
+  const priceDropCount = alertSummary.loading ? null : alertSummary.priceDropCount ?? 0;
+  const upcomingFollowups = summary.upcomingFollowups || [];
+  const queueTitle = summary.hasLeads === false && !summary.loading
+    ? "Import your first seller list"
+    : `${dueCount} follow-up${dueCount === 1 ? "" : "s"} due`;
+  const queueAction = summary.hasLeads === false ? "Import leads" : "Start queue";
 
   return (
-    <SafeAreaView style={s.page} edges={["top", "bottom"]}>
-      <StatusBar barStyle={hc.isDark ? "light-content" : "dark-content"} backgroundColor={hc.pageBg} />
-      
-      <Pressable style={({ pressed }) => [s.headerContainer, pressed && { opacity: 0.94 }]} onPress={onOpenDashboard}>
-        <View style={s.headerContent}>
-          <Text style={[s.bigNumber, hasLargeNumber && s.bigNumberCompact]}>{bigNumber}</Text>
+    <SafeAreaView style={[s.page, { backgroundColor: colors.page }]} edges={["top", "bottom"]}>
+      <StatusBar barStyle={colors.isDark ? "light-content" : "dark-content"} backgroundColor={colors.page} />
 
-          <View style={s.statsContainer}>
-            <Text style={s.eyebrowText}>{headerEyebrow}</Text>
-            <Text style={s.statusText}>{headerTitle}</Text>
-            <Text style={s.metaText}>{headerMeta}</Text>
+      <ScrollView
+        contentInsetAdjustmentBehavior="automatic"
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.content}
+      >
+        <View style={s.topBar}>
+          <View>
+            <Text style={[s.brand, { color: colors.text }]}>Repeat AI</Text>
+            <Text style={[s.date, { color: colors.muted }]}>{formatToday()}</Text>
+          </View>
+          <View style={s.topActions}>
+            <Pressable
+              accessibilityLabel={`Use ${colors.isDark ? "light" : "dark"} mode`}
+              accessibilityRole="button"
+              hitSlop={10}
+              onPress={onToggleTheme}
+              style={({ pressed }) => [s.iconButton, pressed && { opacity: 0.5 }]}
+            >
+              {colors.isDark ? <SunIcon color={colors.text} /> : <MoonIcon color={colors.text} />}
+            </Pressable>
+            <Pressable
+              accessibilityLabel="Open settings"
+              accessibilityRole="button"
+              hitSlop={10}
+              onPress={onOpenSettings}
+              style={({ pressed }) => [s.iconButton, pressed && { opacity: 0.5 }]}
+            >
+              <SettingsIcon color={colors.text} />
+            </Pressable>
           </View>
         </View>
-      </Pressable>
 
-      <View style={s.grid}>
-        <View style={s.row}>
-          <Tile 
-            title="Seller Followup" 
-            subtitle={followupSubtitle}
-            icon={PeopleIcon}
-            color="#fff" 
-            backgroundColor="#2563EB" 
-            titleColor="#fff"
-            subtitleColor="#BFDBFE"
+        <View style={s.hero}>
+          <Text style={[s.eyebrow, { color: colors.muted }]}>TODAY</Text>
+          <View style={s.heroRow}>
+            <Text selectable style={[s.heroTitle, { color: colors.text }]}>{queueTitle}</Text>
+            <Pressable
+              accessibilityRole="button"
+              onPress={summary.hasLeads === false ? onOpenSpreadsheet : onOpenDashboard}
+              style={({ pressed }) => [s.textAction, pressed && { opacity: 0.55 }]}
+            >
+              <Text style={[s.textActionLabel, { color: colors.accent }]}>{queueAction} →</Text>
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={[s.metrics, { borderBottomColor: colors.border, borderTopColor: colors.border }]}>
+          <Metric colors={colors} label="urgent" value={urgentCount} />
+          <Metric colors={colors} label="scheduled" value={scheduledCount} />
+          <Metric colors={colors} label="reply rate" value={replyRate} isLast />
+        </View>
+
+        <View style={s.sectionHeader}>
+          <View>
+            <Text style={[s.sectionTitle, { color: colors.text }]}>Messages</Text>
+            <Text selectable style={[s.sectionMeta, { color: colors.muted }]}>{totalMessages} · last 14 days</Text>
+          </View>
+          {summary.replySampleSize > 0 ? (
+            <Text style={[s.sampleMeta, { color: colors.muted }]}>{summary.repliedCount}/{summary.replySampleSize} contacts replied</Text>
+          ) : null}
+        </View>
+
+        <View style={s.chartWrap}>
+          <MessageChart colors={colors} series={series} width={chartWidth} />
+        </View>
+
+        <Pressable
+          accessibilityRole="button"
+          onPress={onOpenAlerts}
+          style={({ pressed }) => [
+            s.priceRow,
+            { borderBottomColor: colors.border, borderTopColor: colors.border },
+            pressed && { backgroundColor: colors.pressed },
+          ]}
+        >
+          <ArrowDownIcon color={colors.danger} />
+          <View style={s.priceCopy}>
+            <Text selectable style={[s.priceTitle, { color: colors.text }]}>
+              {priceDropCount === null
+                ? "Checking price changes"
+                : `${priceDropCount} listing${priceDropCount === 1 ? "" : "s"} reduced`}
+            </Text>
+            <Text style={[s.priceMeta, { color: colors.muted }]}>Changes in your tracked listings</Text>
+          </View>
+          <Text style={[s.rowAction, { color: colors.accent }]}>View</Text>
+        </Pressable>
+
+        <View style={s.upcomingHeader}>
+          <Text style={[s.sectionTitle, { color: colors.text }]}>Upcoming follow-ups</Text>
+          <Pressable onPress={onOpenDashboard} hitSlop={8}>
+            <Text style={[s.rowAction, { color: colors.accent }]}>See all</Text>
+          </Pressable>
+        </View>
+
+        {upcomingFollowups.length ? upcomingFollowups.map((lead) => (
+          <Pressable
+            accessibilityRole="button"
+            key={lead.id}
             onPress={onOpenDashboard}
-          />
-          <View style={s.vGap} />
-          <Tile 
-            title="Spreadsheet" 
-            subtitle="Sync" 
-            icon={SheetIcon}
-            color="#fff" 
-            backgroundColor="#2C2C2E" 
-            titleColor="#bbb"
-            subtitleColor="#3B82F6"
-            onPress={onOpenSpreadsheet}
-          />
-        </View>
-        <View style={s.hGap} />
-        <View style={s.row}>
-          <Tile 
-            title="Listing Alerts" 
-            subtitle={alertsSubtitle}
-            icon={BellIcon}
-            color="#fff" 
-            backgroundColor="#2563EB" 
-            titleColor="#fff"
-            subtitleColor="#BFDBFE"
-            onPress={onOpenAlerts}
-          />
-          <View style={s.vGap} />
-          <Tile 
-            title="Settings" 
-            subtitle="System" 
-            icon={GearIcon}
-            color="#fff" 
-            backgroundColor="#2C2C2E" 
-            titleColor="#bbb"
-            subtitleColor="#bbb"
-            onPress={onOpenSettings}
-          />
-        </View>
+            style={({ pressed }) => [
+              s.followupRow,
+              { borderBottomColor: colors.border },
+              pressed && { backgroundColor: colors.pressed },
+            ]}
+          >
+            <View style={s.followupCopy}>
+              <Text selectable numberOfLines={1} style={[s.followupName, { color: colors.text }]}>{lead.name}</Text>
+              <Text numberOfLines={1} style={[s.followupMeta, { color: colors.muted }]}>
+                {[lead.dueLabel, lead.building].filter(Boolean).join(" · ")}
+              </Text>
+            </View>
+            <ChevronIcon color={colors.muted} />
+          </Pressable>
+        )) : (
+          <View style={[s.emptyQueue, { borderBottomColor: colors.border }]}>
+            <Text style={[s.followupName, { color: colors.text }]}>Queue clear</Text>
+            <Text style={[s.followupMeta, { color: colors.muted }]}>No upcoming follow-ups.</Text>
+          </View>
+        )}
+      </ScrollView>
+
+      <View style={[s.bottomNav, { backgroundColor: colors.navBackground, borderTopColor: colors.border }]}>
+        <NavItem active colors={colors} icon={HomeIcon} label="Home" />
+        <NavItem colors={colors} icon={LeadsIcon} label="Leads" onPress={onOpenDashboard} />
+        <NavItem colors={colors} icon={ListingsIcon} label="Listings" onPress={onOpenAlerts} />
+        <NavItem colors={colors} icon={SheetIcon} label="Sheet" onPress={onOpenSpreadsheet} />
+        <NavItem colors={colors} icon={MoreIcon} label="More" onPress={onOpenSettings} />
       </View>
     </SafeAreaView>
   );
 }
 
-const styles = (hc) =>
-  StyleSheet.create({
-    page: { flex: 1, backgroundColor: hc.pageBg },
-    headerContainer: {
-      flex: 0.56,
-      overflow: "hidden",
-    },
-    headerContent: {
-      flex: 1,
-      paddingHorizontal: 24,
-      paddingVertical: 16,
-      position: "relative",
-    },
-    bigNumber: {
-      position: "absolute",
-      right: -36,
-      top: 18,
-      fontSize: 236,
-      fontWeight: "400",
-      color: hc.ghostNumber,
-      lineHeight: 264,
-      includeFontPadding: false,
-      letterSpacing: -12,
-    },
-    bigNumberCompact: {
-      right: -12,
-      top: 26,
-      fontSize: 188,
-      lineHeight: 214,
-      letterSpacing: -8,
-    },
-    statsContainer: {
-      position: "absolute",
-      top: 76,
-      left: 24,
-      maxWidth: 180,
-      zIndex: 10,
-    },
-    eyebrowText: {
-      fontSize: 11,
-      color: hc.eyebrow,
-      marginBottom: 10,
-      fontWeight: "700",
-      letterSpacing: 0.9,
-      textTransform: "uppercase",
-    },
-    statusText: {
-      fontSize: 28,
-      color: hc.status,
-      fontWeight: "500",
-      lineHeight: 32,
-      letterSpacing: -0.5,
-    },
-    metaText: {
-      fontSize: 13,
-      color: hc.meta,
-      lineHeight: 18,
-      marginTop: 12,
-    },
-    grid: {
-      flex: 1,
-      backgroundColor: hc.gapBg,
-    },
-    row: {
-      flex: 1,
-      flexDirection: "row",
-    },
-    hGap: { height: 2, backgroundColor: hc.gapBg },
-    vGap: { width: 2, backgroundColor: hc.gapBg },
-  });
+const s = StyleSheet.create({
+  page: { flex: 1 },
+  content: { paddingBottom: 22, paddingHorizontal: 24 },
+  topBar: { alignItems: "flex-start", flexDirection: "row", justifyContent: "space-between", paddingTop: 12 },
+  brand: { fontSize: 25, fontWeight: "700", letterSpacing: -0.8 },
+  date: { fontSize: 12, marginTop: 2 },
+  topActions: { flexDirection: "row", gap: 18, paddingTop: 3 },
+  iconButton: { alignItems: "center", height: 36, justifyContent: "center", width: 28 },
+  hero: { paddingBottom: 22, paddingTop: 34 },
+  eyebrow: { fontSize: 11, fontWeight: "700", letterSpacing: 1.2 },
+  heroRow: { alignItems: "flex-end", flexDirection: "row", justifyContent: "space-between", marginTop: 8 },
+  heroTitle: { flex: 1, fontSize: 27, fontWeight: "600", letterSpacing: -0.8, lineHeight: 32, paddingRight: 14 },
+  textAction: { paddingBottom: 3, paddingVertical: 8 },
+  textActionLabel: { fontSize: 14, fontWeight: "600" },
+  metrics: { borderBottomWidth: StyleSheet.hairlineWidth, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: "row", paddingVertical: 15 },
+  metric: { flex: 1, paddingHorizontal: 11 },
+  metricValue: { fontSize: 17, fontVariant: ["tabular-nums"], fontWeight: "600" },
+  metricLabel: { fontSize: 11, marginTop: 2 },
+  sectionHeader: { alignItems: "flex-end", flexDirection: "row", justifyContent: "space-between", paddingTop: 24 },
+  sectionTitle: { fontSize: 20, fontWeight: "600", letterSpacing: -0.35 },
+  sectionMeta: { fontSize: 13, fontVariant: ["tabular-nums"], marginTop: 3 },
+  sampleMeta: { fontSize: 10, paddingBottom: 2 },
+  chartWrap: { alignItems: "center", marginHorizontal: -1, overflow: "hidden", paddingTop: 4 },
+  priceRow: { alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: "row", minHeight: 76, paddingHorizontal: 5 },
+  priceCopy: { flex: 1, paddingHorizontal: 16 },
+  priceTitle: { fontSize: 16, fontVariant: ["tabular-nums"], fontWeight: "600" },
+  priceMeta: { fontSize: 11, marginTop: 3 },
+  rowAction: { fontSize: 13, fontWeight: "600" },
+  upcomingHeader: { alignItems: "center", flexDirection: "row", justifyContent: "space-between", paddingBottom: 6, paddingTop: 22 },
+  followupRow: { alignItems: "center", borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: "row", minHeight: 62, paddingHorizontal: 4, paddingVertical: 10 },
+  followupCopy: { flex: 1, paddingRight: 12 },
+  followupName: { fontSize: 15, fontWeight: "600" },
+  followupMeta: { fontSize: 11, marginTop: 3 },
+  emptyQueue: { borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 16 },
+  bottomNav: { borderTopWidth: StyleSheet.hairlineWidth, flexDirection: "row", minHeight: 68, paddingHorizontal: 8, paddingTop: 8 },
+  navItem: { alignItems: "center", flex: 1, gap: 3, justifyContent: "flex-start" },
+  navLabel: { fontSize: 10 },
+  navLabelActive: { fontWeight: "600" },
+});

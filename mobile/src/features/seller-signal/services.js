@@ -1,3 +1,4 @@
+import { randomUUID } from 'expo-crypto';
 import { aiMapColumns } from "../../ai-mapper";
 import { supabase } from "../../supabase";
 import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
@@ -131,13 +132,32 @@ export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
     }
   }
 
+  const sentHistoryRows = sentLeadRows?.length ? sentLeadRows : leadRows;
+  const sentHistory = sentHistoryRows
+    .map((row) => new Date(row.sent_at).getTime())
+    .filter(Number.isFinite);
+
   const leads = sortLeadsByPriority(
     (leadRows || [])
       .map((row, index) => mapStoredLeadRow(row, index, today))
       .filter((lead) => lead.name || lead.building || lead.phone),
   );
 
-  return { leads, sentMap };
+  return { leads, sentHistory, sentMap };
+}
+
+export async function fetchWhatsAppHomeActivity(userId, days = 14) {
+  if (!userId) return [];
+
+  const since = startOfDay(new Date());
+  since.setDate(since.getDate() - (days - 1));
+
+  return selectAllRows(() => supabase
+    .from("whatsapp_messages")
+    .select("direction, recipient_phone, status, queued_at, sent_at, created_at")
+    .eq("user_id", userId)
+    .gte("queued_at", since.toISOString())
+    .order("queued_at", { ascending: true }));
 }
 
 export async function fetchLeadSources(userId) {
@@ -446,6 +466,10 @@ export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl })
 
   const csvText = await response.text();
   const rawRows = parseCsvText(csvText);
+  return replaceUserLeadsFromRows({ userId, source, rawRows });
+}
+
+export async function replaceUserLeadsFromRows({ userId, source, rawRows }) {
   const { headers, records } = rowsToObjects(rawRows);
 
   if (!headers.length) throw new Error("Sheet has no header row.");
@@ -648,13 +672,17 @@ export function getConnectedWhatsAppAccount(accounts = []) {
   return accounts.find((account) => account.connection_status === "connected") || null;
 }
 
-export async function sendLeadWhatsAppMessage({ accountId, imagePath, leadId, message, phone }) {
+export async function sendLeadWhatsAppMessage({ accountId, imagePath, leadId, message, phone, sendSource = "manual" }) {
   const to = formatPhoneForWhatsApp(phone);
   if (!to) throw new Error("Lead does not have a valid WhatsApp phone number");
 
   const { data, error } = await supabase.functions.invoke("whatsapp-send-message", {
     body: {
       accountId,
+      clientKind: "mobile",
+      clientRequestId: randomUUID(),
+      sendSource,
+      requireTodaysTransaction: true,
       imagePath: imagePath || null,
       leadId,
       to,

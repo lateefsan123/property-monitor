@@ -1,26 +1,14 @@
 import { PAGE_SIZE } from "./constants";
 
-export function splitLeadsBySentStatus(leads, sentLeads, insights) {
-  const activeLeads = [];
-  const doneLeads = [];
-
-  for (const lead of leads) {
-    const sentAt = sentLeads[lead.id];
-    if (!sentAt) {
-      activeLeads.push(lead);
-      continue;
-    }
-
-    doneLeads.push(lead);
-  }
-
-  return { activeLeads, doneLeads };
+export function splitLeadsBySentStatus(leads) {
+  return { activeLeads: leads.filter(lead => lead.isDue && lead.statusRule?.id !== 'not_interested'), doneLeads: leads.filter(lead => !lead.isDue && lead.statusRule?.id !== 'not_interested') };
 }
 
 export function filterLeads({
   activeLeads,
   doneLeads,
   dataFilter,
+  dataQualityFilter,
   insights,
   searchTerm,
   showDueOnly,
@@ -30,15 +18,15 @@ export function filterLeads({
 }) {
   const isDoneView = viewTab === "done";
   const baseLeads = isDoneView ? doneLeads : activeLeads;
-  let result = !isDoneView && showDueOnly ? baseLeads.filter((lead) => lead.isDue) : baseLeads;
+  let result = !isDoneView && showDueOnly ? baseLeads.filter((lead) => lead.isDue || lead.statusRule?.id === "not_interested") : baseLeads;
 
-  if (!isDoneView && statusFilter !== "all") {
-    result = result.filter((lead) => lead.statusRule?.id === statusFilter);
+  if (statusFilter !== "all") {
+    result = result.filter((lead) => (Array.isArray(statusFilter) ? statusFilter : [statusFilter]).includes(lead.statusRule?.id));
   }
 
-  if (!isDoneView && dataFilter === "with_data") {
+  if (dataFilter === "with_data") {
     result = result.filter((lead) => insights[lead.id]?.status === "ready");
-  } else if (!isDoneView && dataFilter === "no_data") {
+  } else if (dataFilter === "no_data") {
     result = result.filter((lead) => insights[lead.id]?.status !== "ready");
   }
 
@@ -50,10 +38,12 @@ export function filterLeads({
     }
   }
 
+  if (dataQualityFilter && dataQualityFilter !== "all") result = result.filter(lead => lead.dataQuality?.level === dataQualityFilter);
+
   if (searchTerm.trim()) {
     const term = searchTerm.toLowerCase();
     result = result.filter((lead) =>
-      [lead.name, lead.building, lead.phone].some((value) => String(value || "").toLowerCase().includes(term)),
+      [lead.name, lead.building, lead.phone, lead.unit, lead.bedroom].some((value) => String(value || "").toLowerCase().includes(term)),
     );
   }
 

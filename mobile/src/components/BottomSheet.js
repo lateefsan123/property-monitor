@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import {
   Animated,
-  Dimensions,
+  KeyboardAvoidingView,
+  Platform,
+  useWindowDimensions,
   Modal,
   Pressable,
   StyleSheet,
@@ -9,10 +11,11 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-const SCREEN_HEIGHT = Dimensions.get("window").height;
 
-export default function BottomSheet({ visible, onClose, children, colors }) {
-  const [translateY] = useState(() => new Animated.Value(SCREEN_HEIGHT));
+
+export default function BottomSheet({ visible, onClose, onDismiss, children, colors }) {
+  const { height: screenHeight } = useWindowDimensions();
+  const [translateY] = useState(() => new Animated.Value(screenHeight));
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -25,12 +28,12 @@ export default function BottomSheet({ visible, onClose, children, colors }) {
       }).start();
     } else {
       Animated.timing(translateY, {
-        toValue: SCREEN_HEIGHT,
+        toValue: screenHeight,
         duration: 250,
         useNativeDriver: true,
       }).start();
     }
-  }, [translateY, visible]);
+  }, [translateY, visible, screenHeight]);
 
   return (
     <Modal
@@ -38,16 +41,19 @@ export default function BottomSheet({ visible, onClose, children, colors }) {
       transparent
       animationType="none"
       onRequestClose={onClose}
+      onDismiss={onDismiss}
       statusBarTranslucent
       navigationBarTranslucent
     >
-      <Pressable style={s.overlay} onPress={onClose}>
+      <KeyboardAvoidingView style={s.overlay} behavior={Platform.OS === "ios" ? "padding" : undefined}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Close dialog" style={StyleSheet.absoluteFill} onPress={onClose} />
         <Animated.View
           // Stop taps on the sheet body from bubbling up to the backdrop
-          onStartShouldSetResponder={() => true}
+          accessibilityViewIsModal
           style={[
             s.sheet,
             {
+              maxHeight: screenHeight * 0.85,
               backgroundColor: colors.bgCard,
               borderTopColor: colors.border,
               transform: [{ translateY }],
@@ -62,7 +68,7 @@ export default function BottomSheet({ visible, onClose, children, colors }) {
               content isn't hidden behind them when the Modal draws edge-to-edge */}
           <View style={{ height: insets.bottom }} />
         </Animated.View>
-      </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -77,7 +83,7 @@ const s = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     borderTopWidth: 1,
-    maxHeight: SCREEN_HEIGHT * 0.8,
+
   },
   handleWrap: {
     alignItems: "center",

@@ -1,7 +1,4 @@
-import * as FileSystem from "expo-file-system";
-import * as Sharing from "expo-sharing";
 import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { TEMPLATE_CSV_HEADERS } from "../constants";
 
 export default function LeadImportEmptyState({ error, importing, onImport, onSheetUrlChange, sheetUrl, colors }) {
   const s = styles(colors);
@@ -20,13 +17,6 @@ export default function LeadImportEmptyState({ error, importing, onImport, onShe
         ))}
       </View>
 
-      <Pressable style={s.templateBtn} onPress={async () => {
-        const path = `${FileSystem.cacheDirectory}seller-signal-template.csv`;
-        await FileSystem.writeAsStringAsync(path, TEMPLATE_CSV_HEADERS);
-        await Sharing.shareAsync(path, { mimeType: "text/csv", UTI: "public.comma-separated-values-text" });
-      }}>
-        <Text style={s.templateBtnText}>Download Template</Text>
-      </Pressable>
 
       <TextInput
         style={s.input}
@@ -82,14 +72,6 @@ const styles = (c) =>
       backgroundColor: c.bgInput,
       color: c.text,
     },
-    templateBtn: {
-      borderWidth: 1,
-      borderColor: c.btnPrimaryBg,
-      borderRadius: 8,
-      padding: 14,
-      alignItems: "center",
-    },
-    templateBtnText: { color: c.btnPrimaryBg, fontWeight: "600", fontSize: 15 },
     btn: {
       backgroundColor: c.btnPrimaryBg,
       borderRadius: 8,

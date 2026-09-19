@@ -6,7 +6,6 @@ export const IMPORT_BATCH_SIZE = 200;
 export const ENRICH_CHUNK_SIZE = 10;
 export const RECENT_TRANSACTIONS_LIMIT = 2;
 export const WHATSAPP_OPEN_DELAY_MS = 600;
-export const TEMPLATE_CSV_HEADERS = "Name,Building,Phone,Unit,Bedroom,Status,Last Contact\n";
 export const MIN_NEW_TRANSACTIONS_TO_REACTIVATE = 2;
 
 export const STATUS_RULES = [

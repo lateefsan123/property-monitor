@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import BottomSheet from "../../../components/BottomSheet";
 
@@ -19,29 +19,31 @@ const EMPTY_DRAFT = {
   lastContact: "",
 };
 
-export default function AddSellerSheet({ visible, onClose, onSubmit, submitting, sourceLabel, colors }) {
+export default function AddSellerSheet({ visible, onClose, onSubmit, submitting, sourceLabel, error, colors }) {
   const [draft, setDraft] = useState(EMPTY_DRAFT);
-
-  useEffect(() => {
-    if (visible) setDraft(EMPTY_DRAFT);
-  }, [visible]);
 
   function updateField(field, value) {
     setDraft((current) => ({ ...current, [field]: value }));
   }
 
+  function handleClose() {
+    setDraft(EMPTY_DRAFT);
+    onClose?.();
+  }
+
   async function handleSubmit() {
     const ok = await onSubmit(draft);
-    if (ok) onClose?.();
+    if (ok) handleClose();
   }
 
   const disabled = submitting
     || !(String(draft.name).trim() || String(draft.building).trim() || String(draft.phone).trim());
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} colors={colors}>
+    <BottomSheet visible={visible} onClose={handleClose} colors={colors}>
       <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <Text style={[s.title, { color: colors.textName }]}>Add seller</Text>
+        {error && <Text style={{color: colors.errorText}}>{error.message || error}</Text>}
         {sourceLabel ? (
           <Text style={[s.subtitle, { color: colors.textMuted }]}>to {sourceLabel}</Text>
         ) : null}
@@ -148,7 +150,7 @@ export default function AddSellerSheet({ visible, onClose, onSubmit, submitting,
               s.cancelBtn,
               { borderColor: colors.border, opacity: submitting ? 0.5 : pressed ? 0.8 : 1 },
             ]}
-            onPress={onClose}
+            onPress={handleClose}
             disabled={submitting}
           >
             <Text style={[s.cancelBtnText, { color: colors.text }]}>Cancel</Text>

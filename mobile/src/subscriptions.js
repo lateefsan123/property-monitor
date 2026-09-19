@@ -1,266 +1,199 @@
+/* global process */
 import { Platform } from "react-native";
-import Purchases from "react-native-purchases";
-import RevenueCatUI from "react-native-purchases-ui";
 
-const env = globalThis.process?.env ?? {};
-const TEST_API_KEY = env.EXPO_PUBLIC_REVENUECAT_TEST_API_KEY?.trim()
-  || "test_NHynuKFdkhjanbNArVwGheRdkKG";
-const APPLE_API_KEY = env.EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY?.trim() || "";
-const GOOGLE_API_KEY = env.EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY?.trim() || "";
-
-export const ENTITLEMENT_ID = env.EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID?.trim()
+export const PRO_ENTITLEMENT_ID = process.env.EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID?.trim()
   || "seller_signal_pro";
-export const ENTITLEMENT_DISPLAY_NAME = "seller signal Pro";
+export const PRO_TRIAL_DAYS = 7;
 
-let configuredUserId = null;
-let logLevelConfigured = false;
+let purchasesModulePromise = null;
 
-function isNativePurchasePlatform() {
-  return Platform.OS === "ios" || Platform.OS === "android";
+function getPurchasesModule() {
+  purchasesModulePromise ??= import("react-native-purchases");
+  return purchasesModulePromise;
 }
 
-function getPlatformReleaseApiKey() {
-  if (Platform.OS === "ios") return APPLE_API_KEY;
-  if (Platform.OS === "android") return GOOGLE_API_KEY;
-  return "";
-}
-
-function getActiveApiKey() {
-  if (globalThis.__DEV__ && TEST_API_KEY) return TEST_API_KEY;
-  return getPlatformReleaseApiKey();
-}
-
-function getMissingConfig() {
-  if (!isNativePurchasePlatform()) {
-    return ["Native subscriptions are only available on iOS and Android builds."];
+function getPublicApiKey() {
+  if (Platform.OS === "ios") {
+    return process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY?.trim() || null;
   }
-
-  const missing = [];
-
-  if (!ENTITLEMENT_ID) {
-    missing.push("EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID");
+  if (Platform.OS === "android") {
+    return process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY?.trim() || null;
   }
-
-  if (globalThis.__DEV__) {
-    if (!getActiveApiKey()) {
-      missing.push(
-        "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY or a platform-specific RevenueCat API key",
-      );
-    }
-    return missing;
-  }
-
-  if (Platform.OS === "ios" && !APPLE_API_KEY) {
-    missing.push("EXPO_PUBLIC_REVENUECAT_APPLE_API_KEY");
-  }
-
-  if (Platform.OS === "android" && !GOOGLE_API_KEY) {
-    missing.push("EXPO_PUBLIC_REVENUECAT_GOOGLE_API_KEY");
-  }
-
-  return missing;
-}
-
-function ensureConfiguredEnvironment() {
-  const missing = getMissingConfig();
-  if (!missing.length) return;
-
-  throw new Error(
-    missing.length === 1 && missing[0].startsWith("Native subscriptions")
-      ? missing[0]
-      : `Missing RevenueCat configuration: ${missing.join(", ")}.`,
-  );
-}
-
-function getVerificationStatus(customerInfo) {
-  return customerInfo?.entitlements?.verification
-    || customerInfo?.entitlements?.active?.[ENTITLEMENT_ID]?.verification
-    || Purchases.VERIFICATION_RESULT.NOT_REQUESTED;
-}
-
-function getPackageMeta() {
-  return {
-    badge: "Monthly",
-    description: "Flexible seller signal Pro access renewed through the store each month.",
-    label: "Monthly",
-  };
-}
-
-function toProductOption(subscriptionPackage) {
-  const meta = getPackageMeta();
-
-  if (!subscriptionPackage) {
-    return {
-      badge: meta.badge,
-      description: `${meta.description} Configure this package in RevenueCat to make it available.`,
-      id: "monthly",
-      label: meta.label,
-      priceLabel: "Not configured",
-      productTitle: "",
-      subscriptionPackage: null,
-    };
-  }
-
-  return {
-    badge: meta.badge,
-    description: meta.description,
-    id: "monthly",
-    label: meta.label,
-    priceLabel: subscriptionPackage.product?.priceString || "Configured in RevenueCat",
-    productTitle: subscriptionPackage.product?.title?.trim() || "",
-    subscriptionPackage,
-  };
-}
-
-function getCurrentPackageMap(currentOffering) {
-  if (!currentOffering) {
-    return {
-      monthly: null,
-    };
-  }
-
-  return {
-    monthly: currentOffering.monthly
-      || currentOffering.availablePackages?.find(
-        (subscriptionPackage) => subscriptionPackage.packageType === Purchases.PACKAGE_TYPE.MONTHLY,
-      )
-      || null,
-  };
+  return null;
 }
 
 export function getSubscriptionStoreLabel() {
   if (Platform.OS === "ios") return "App Store";
   if (Platform.OS === "android") return "Google Play";
-  return "mobile store";
+  return "app store";
 }
 
-export function hasActiveSubscription(customerInfo) {
-  return Boolean(customerInfo?.entitlements?.active?.[ENTITLEMENT_ID]?.isActive);
+function isProCustomer(customerInfo) {
+  return customerInfo?.entitlements?.active?.[PRO_ENTITLEMENT_ID]?.isActive === true;
 }
 
-export function hasSubscriptionAccess(customerInfo) {
-  return hasActiveSubscription(customerInfo)
-    && getVerificationStatus(customerInfo) !== Purchases.VERIFICATION_RESULT.FAILED;
+function getEntitlementExpiry(customerInfo) {
+  return customerInfo?.entitlements?.active?.[PRO_ENTITLEMENT_ID]?.expirationDate ?? null;
 }
 
-export function getSubscriptionVerificationWarning(customerInfo) {
-  if (getVerificationStatus(customerInfo) !== Purchases.VERIFICATION_RESULT.FAILED) {
-    return null;
-  }
-
-  return "RevenueCat could not verify this purchase securely. Access remains locked until verification succeeds.";
-}
-
-export function isPurchaseCancelledError(error) {
-  return Boolean(
-    error?.userCancelled
-      || error?.code === Purchases.PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR
-      || error?.code === "1",
-  );
-}
-
-export async function configureSubscriptionClient({ userId, email, displayName }) {
-  ensureConfiguredEnvironment();
-
-  if (!logLevelConfigured) {
-    await Purchases.setLogLevel(
-      globalThis.__DEV__ ? Purchases.LOG_LEVEL.DEBUG : Purchases.LOG_LEVEL.WARN,
-    );
-    logLevelConfigured = true;
-  }
-
-  const isConfigured = await Purchases.isConfigured();
-
-  if (!isConfigured) {
-    Purchases.configure({
-      apiKey: getActiveApiKey(),
-      appUserID: userId,
-      diagnosticsEnabled: Boolean(globalThis.__DEV__),
-      entitlementVerificationMode: Purchases.ENTITLEMENT_VERIFICATION_MODE.INFORMATIONAL,
-    });
-    configuredUserId = userId;
-  } else if (configuredUserId !== userId) {
-    await Purchases.logIn(userId);
-    configuredUserId = userId;
-  }
-
-  const attributeUpdates = [];
-  if (email) attributeUpdates.push(Purchases.setEmail(email));
-  if (displayName) attributeUpdates.push(Purchases.setDisplayName(displayName));
-
-  if (attributeUpdates.length) {
-    await Promise.all(attributeUpdates);
-  }
-
-  return Purchases.getCustomerInfo();
-}
-
-export function subscribeToSubscriptionUpdates(listener) {
-  Purchases.addCustomerInfoUpdateListener(listener);
-  return () => {
-    Purchases.removeCustomerInfoUpdateListener(listener);
-  };
-}
-
-export async function clearSubscriptionClient() {
-  const isConfigured = await Purchases.isConfigured();
-  configuredUserId = null;
-
-  if (!isConfigured) return;
-
-  try {
-    await Purchases.logOut();
-  } catch {
-    // Ignore logout failures when the SDK was not initialized with a real user.
-  }
-}
-
-export async function fetchSubscriptionStatus() {
-  ensureConfiguredEnvironment();
-  return Purchases.getCustomerInfo();
-}
-
-export async function fetchSubscriptionOfferings() {
-  ensureConfiguredEnvironment();
-
+async function getMonthlyPackage() {
+  const { default: Purchases } = await getPurchasesModule();
   const offerings = await Purchases.getOfferings();
-  const currentOffering = offerings.current;
+  return offerings.current?.monthly ?? offerings.current?.availablePackages?.[0] ?? null;
+}
 
-  if (!currentOffering) {
-    throw new Error("No current RevenueCat offering is configured for seller signal Pro.");
+function hasSevenDayAndroidTrial(subscriptionPackage) {
+  const period = subscriptionPackage?.product?.defaultOption?.freePhase?.billingPeriod?.iso8601;
+  return period === "P7D" || period === "P1W";
+}
+
+async function getTrialEligibility(subscriptionPackage) {
+  if (!subscriptionPackage) return false;
+  if (Platform.OS === "android") return hasSevenDayAndroidTrial(subscriptionPackage);
+  if (Platform.OS !== "ios") return false;
+
+  const introPrice = subscriptionPackage.product?.introPrice;
+  const hasSevenDayIntro = introPrice?.price === 0
+    && (introPrice.period === "P1W"
+      || (introPrice.periodUnit === "DAY" && introPrice.periodNumberOfUnits === PRO_TRIAL_DAYS));
+  if (!hasSevenDayIntro) return false;
+
+  const { default: Purchases } = await getPurchasesModule();
+  const eligibility = await Purchases.checkTrialOrIntroductoryPriceEligibility([
+    subscriptionPackage.product.identifier,
+  ]);
+  const status = eligibility[subscriptionPackage.product.identifier]?.status;
+  if (status === Purchases.INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_ELIGIBLE) return true;
+  if (status === Purchases.INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_UNKNOWN) return null;
+  return false;
+}
+
+export async function configureMobileSubscriptions({ userId, email, displayName }) {
+  const apiKey = getPublicApiKey();
+  if (!apiKey || !userId) return false;
+
+  const { default: Purchases } = await getPurchasesModule();
+  if (!(await Purchases.isConfigured())) {
+    Purchases.configure({
+      apiKey,
+      appUserID: userId,
+      automaticDeviceIdentifierCollectionEnabled: false,
+      diagnosticsEnabled: Boolean(globalThis.__DEV__),
+    });
+  } else if ((await Purchases.getAppUserID()) !== userId) {
+    await Purchases.logIn(userId);
   }
 
-  const packageMap = getCurrentPackageMap(currentOffering);
+  const attributes = [];
+  if (email) attributes.push(Purchases.setEmail(email));
+  if (displayName) attributes.push(Purchases.setDisplayName(displayName));
+  if (attributes.length) await Promise.all(attributes);
+  return true;
+}
 
+export async function clearMobileSubscriptionUser() {
+  if (!getPublicApiKey()) return;
+  const { default: Purchases } = await getPurchasesModule();
+  if (!(await Purchases.isConfigured())) return;
+  const currentUserId = await Purchases.getAppUserID();
+  if (!currentUserId.startsWith("$RCAnonymousID:")) await Purchases.logOut();
+}
+
+export async function getMobileSubscriptionSnapshot(user) {
+  const configured = await configureMobileSubscriptions(user);
+  if (!configured) {
+    return {
+      configured: false,
+      canPurchase: false,
+      customerInfo: null,
+      entitlementExpiresAt: null,
+      isPro: false,
+      priceString: null,
+      subscriptionPackage: null,
+      trialEligible: null,
+    };
+  }
+
+  const { default: Purchases } = await getPurchasesModule();
+  const [customerInfo, subscriptionPackage] = await Promise.all([
+    Purchases.getCustomerInfo(),
+    getMonthlyPackage().catch(() => null),
+  ]);
+  const isPro = isProCustomer(customerInfo);
   return {
-    currentOffering,
-    packageMap,
-    productOptions: [toProductOption(packageMap.monthly)],
+    configured: true,
+    canPurchase: Boolean(subscriptionPackage),
+    customerInfo,
+    entitlementExpiresAt: getEntitlementExpiry(customerInfo),
+    isPro,
+    priceString: subscriptionPackage?.product?.priceString ?? null,
+    subscriptionPackage,
+    trialEligible: isPro
+      ? false
+      : subscriptionPackage
+        ? await getTrialEligibility(subscriptionPackage).catch(() => null)
+        : null,
   };
 }
 
-export async function purchaseSubscriptionPackage(subscriptionPackage) {
-  ensureConfiguredEnvironment();
-
-  if (!subscriptionPackage) {
-    throw new Error("No RevenueCat package was provided for purchase.");
+export async function purchaseMobilePro(user, subscriptionPackage) {
+  if (!(await configureMobileSubscriptions(user))) {
+    throw new Error("Mobile subscriptions are not configured for this build.");
+  }
+  const selectedPackage = subscriptionPackage || await getMonthlyPackage();
+  if (!selectedPackage) {
+    throw new Error("Repeat AI Pro is not available in this storefront yet.");
   }
 
-  const result = await Purchases.purchasePackage(subscriptionPackage);
-  return result.customerInfo;
+  const { default: Purchases } = await getPurchasesModule();
+  const { customerInfo } = await Purchases.purchasePackage(selectedPackage);
+  return {
+    configured: true,
+    canPurchase: true,
+    customerInfo,
+    entitlementExpiresAt: getEntitlementExpiry(customerInfo),
+    isPro: isProCustomer(customerInfo),
+    priceString: selectedPackage.product?.priceString ?? null,
+    subscriptionPackage: selectedPackage,
+    trialEligible: false,
+  };
 }
 
-export async function restoreSubscriptionPurchases() {
-  ensureConfiguredEnvironment();
-  return Purchases.restorePurchases();
-}
-
-export async function openSubscriptionCustomerCenter(callbacks) {
-  ensureConfiguredEnvironment();
-
-  if (callbacks) {
-    return RevenueCatUI.presentCustomerCenter({ callbacks });
+export async function restoreMobilePurchases(user) {
+  if (!(await configureMobileSubscriptions(user))) {
+    throw new Error("Mobile subscriptions are not configured for this build.");
   }
 
-  return RevenueCatUI.presentCustomerCenter();
+  const { default: Purchases } = await getPurchasesModule();
+  const [customerInfo, subscriptionPackage] = await Promise.all([
+    Purchases.restorePurchases(),
+    getMonthlyPackage().catch(() => null),
+  ]);
+  const isPro = isProCustomer(customerInfo);
+  return {
+    configured: true,
+    canPurchase: Boolean(subscriptionPackage),
+    customerInfo,
+    entitlementExpiresAt: getEntitlementExpiry(customerInfo),
+    isPro,
+    priceString: subscriptionPackage?.product?.priceString ?? null,
+    subscriptionPackage,
+    trialEligible: isPro
+      ? false
+      : subscriptionPackage
+        ? await getTrialEligibility(subscriptionPackage).catch(() => null)
+        : null,
+  };
+}
+
+export async function showMobileSubscriptionManagement(user) {
+  if (!(await configureMobileSubscriptions(user))) {
+    throw new Error("Mobile subscriptions are not configured for this build.");
+  }
+  const { default: Purchases } = await getPurchasesModule();
+  await Purchases.showManageSubscriptions();
+}
+
+export function isMobilePurchaseCancellation(error) {
+  return Boolean(error?.userCancelled || String(error?.code ?? "") === "1");
 }

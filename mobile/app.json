@@ -1,20 +1,21 @@
 {
   "expo": {
-    "name": "seller signal",
+    "name": "Repeat AI",
     "slug": "seller-signal",
     "owner": "lateefsan-2",
     "version": "1.0.0",
     "scheme": "seller-signal",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/repeat-ai-icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/repeat-ai-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#000000"
     },
     "ios": {
-      "supportsTablet": true,
+      "supportsTablet": false,
+      "usesAppleSignIn": true,
       "bundleIdentifier": "com.lateefsan.sellersignal",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -22,22 +23,22 @@
       "entitlements": {
         "aps-environment": "production"
       },
-      "buildNumber": "6"
+      "buildNumber": "21"
     },
     "android": {
       "package": "com.lateefsan.sellersignal",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/android-icon-foreground.png",
-        "backgroundImage": "./assets/android-icon-background.png",
-        "monochromeImage": "./assets/android-icon-monochrome.png"
-      }
+        "foregroundImage": "./assets/repeat-ai-icon.png",
+        "backgroundColor": "#000000"
+      },
+      "versionCode": 3
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/repeat-ai-icon.png"
     },
     "plugins": [
       "expo-dev-client",
+      "expo-apple-authentication",
       "expo-web-browser",
       "expo-sharing",
       [

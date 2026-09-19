@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import listingAlertsFeed from "../../data/listing-alerts-feed.json";
-import { fetchBayutWatchedBuildings, searchBayutAlertLocations } from "./api";
+import { loadWatchedBuildingsProgressively, searchBayutAlertLocations } from "./api";
 import { supabase } from "../../supabase";
 import {
   buildListingAlertsState,
@@ -248,6 +248,9 @@ export function useListingAlerts() {
   const [searchResults, setSearchResults] = useState([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [watchedLoading, setWatchedLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [hydrating, setHydrating] = useState(false);
+  const remoteRequest = useRef(0);
   const [hydrated, setHydrated] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const [watchError, setWatchError] = useState(null);
@@ -279,10 +282,11 @@ export function useListingAlerts() {
     };
   }, []);
 
-  async function loadRemoteState({ showLoading = true } = {}) {
+  const loadRemoteState = useCallback(async ({ showLoading = true } = {}) => {
     if (!supabase || !sessionUserId) return;
 
-    if (showLoading) setWatchedLoading(true);
+    const requestId = ++remoteRequest.current;
+    if (showLoading) setHydrating(true);
     setWatchError(null);
 
     try {
@@ -302,6 +306,7 @@ export function useListingAlerts() {
           .maybeSingle(),
       ]);
 
+      if (requestId !== remoteRequest.current) return;
       if (watchlistError) throw watchlistError;
       if (trackedError) throw trackedError;
       if (stateError) throw stateError;
@@ -344,37 +349,18 @@ export function useListingAlerts() {
         [LISTING_ALERTS_STATE_KEY, JSON.stringify(nextState)],
       ]);
 
-      const snapshotListingCount = snapshotBuildings.reduce((sum, building) => sum + (building.listings?.length || 0), 0);
-      const needsLiveFallback = nextWatchedItems.length && (
-        !snapshotBuildings.length || snapshotListingCount === 0
-      );
-      if (needsLiveFallback) {
-        try {
-          const buildings = await fetchBayutWatchedBuildings(nextWatchedItems);
-          const normalizedBuildings = buildings.map((building) => ({ ...building, locationId: toLocationId(building.locationId) })).sort(sortBuildings);
-          const nextFallbackState = buildListingAlertsState({
-            currentBuildings: normalizedBuildings,
-            previousState: nextState,
-            watchedItems: nextWatchedItems,
-            selectedListingKeys: nextSelectedKeys,
-            trackAllListings: AUTO_TRACK_ALL_LISTINGS,
-          });
 
-          setWatchedBuildingsRemote(normalizedBuildings);
-          setChangeState(nextFallbackState);
-          changeStateRef.current = nextFallbackState;
-          await AsyncStorage.setItem(LISTING_ALERTS_STATE_KEY, JSON.stringify(nextFallbackState));
-        } catch {
-          // ignore live fallback failure
-        }
-      }
     } catch (error) {
-      setWatchError(getErrorMessage(error));
+      if (requestId === remoteRequest.current) setWatchError(getErrorMessage(error));
     } finally {
-      if (showLoading) setWatchedLoading(false);
-      setHydrated(true);
+      if (requestId === remoteRequest.current) {
+        if (showLoading) setHydrating(false);
+        setHydrated(true);
+      }
     }
-  }
+  }, [sessionUserId]);
+
+  useEffect(() => () => { remoteRequest.current += 1; }, [sessionUserId]);
 
   useEffect(() => {
     let isActive = true;
@@ -434,7 +420,7 @@ export function useListingAlerts() {
     return () => {
       isActive = false;
     };
-  }, [remoteEnabled, sessionUserId]);
+  }, [remoteEnabled, sessionUserId, loadRemoteState]);
 
   useEffect(() => {
     if (!hydrated) return;
@@ -488,7 +474,6 @@ export function useListingAlerts() {
 
   useEffect(() => {
     if (!hydrated) return undefined;
-    if (remoteEnabled) return undefined;
     if (!watchedItems.length) {
       const emptyState = createEmptyListingAlertsState();
       setWatchedBuildingsRemote([]);
@@ -501,12 +486,21 @@ export function useListingAlerts() {
     }
 
     let isActive = true;
+    const controller = new AbortController();
     setWatchedLoading(true);
     setWatchError(null);
 
     async function loadWatchedBuildings() {
       try {
-        const buildings = await fetchBayutWatchedBuildings(watchedItems);
+        const buildings = await loadWatchedBuildingsProgressively(watchedItems, (building) => {
+          if (!isActive) return;
+          const normalized = { ...building, locationId: toLocationId(building.locationId) };
+          setWatchedBuildingsRemote((previous) => {
+            const old = previous.find((item) => item.locationId === normalized.locationId);
+            const next = normalized.fetchError && old ? { ...old, fetchError: normalized.fetchError } : normalized;
+            return [...previous.filter((item) => item.locationId !== next.locationId), next].sort(sortBuildings);
+          });
+        }, controller.signal);
         if (!isActive) return;
         const normalizedBuildings = buildings.map((building) => ({ ...building, locationId: toLocationId(building.locationId) })).sort(sortBuildings);
         const nextChangeState = buildListingAlertsState({
@@ -517,12 +511,13 @@ export function useListingAlerts() {
           trackAllListings: AUTO_TRACK_ALL_LISTINGS,
         });
 
-        setWatchedBuildingsRemote(normalizedBuildings);
+        const failed = normalizedBuildings.filter((building) => building.fetchError);
+        if (failed.length) setWatchError("Could not load listings for " + failed.map((building) => building.buildingName).join(", ") + ". Please try again.");
         setChangeState(nextChangeState);
         changeStateRef.current = nextChangeState;
         await AsyncStorage.multiSet([
           [LISTING_ALERTS_STATE_KEY, JSON.stringify(nextChangeState)],
-          [WATCHED_BUILDINGS_SNAPSHOT_KEY, JSON.stringify(normalizedBuildings)],
+          [WATCHED_BUILDINGS_SNAPSHOT_KEY, JSON.stringify(Object.values(nextChangeState.snapshot || {}).map(snapshotToRemoteBuilding))],
         ]);
       } catch (error) {
         if (!isActive) return;
@@ -536,6 +531,7 @@ export function useListingAlerts() {
 
     return () => {
       isActive = false;
+      controller.abort();
     };
   }, [hydrated, refreshNonce, watchedItems, remoteEnabled]);
 
@@ -749,6 +745,9 @@ export function useListingAlerts() {
       ? watchedItems.filter((entry) => entry.locationId !== normalized.locationId)
       : [...watchedItems, normalized];
 
+    remoteRequest.current += 1;
+    setHydrating(false);
+    setHydrated(true);
     setWatchError(null);
     setWatchedItems(nextWatchedItems);
 
@@ -790,14 +789,15 @@ export function useListingAlerts() {
   }
 
   async function refresh() {
-    if (!watchedItems.length || watchedLoading) return;
+    if (!watchedItems.length || watchedLoading || refreshing || hydrating) return;
     if (!remoteEnabled) {
       setWatchError(null);
       setRefreshNonce((current) => current + 1);
       return;
     }
 
-    setWatchedLoading(true);
+    const refreshRequestId = remoteRequest.current;
+    setRefreshing(true);
     setWatchError(null);
 
     try {
@@ -805,13 +805,14 @@ export function useListingAlerts() {
         body: { forceFresh: true, source: "mobile-refresh" },
       });
       if (error) throw error;
+      if (refreshRequestId !== remoteRequest.current) return;
       await loadRemoteState({ showLoading: false });
       const syncError = getSyncFetchErrorMessage(data);
       if (syncError) setWatchError(syncError);
     } catch (error) {
       setWatchError(getErrorMessage(error));
     } finally {
-      setWatchedLoading(false);
+      setRefreshing(false);
     }
   }
 
@@ -834,7 +835,7 @@ export function useListingAlerts() {
     watchLimit: MAX_WATCHED_BUILDINGS,
     watchError,
     watchedBuildings,
-    watchedLoading,
+    watchedLoading: watchedLoading || refreshing || hydrating,
     selectedListingKeys,
     selectedListingSet,
     watchedSet,

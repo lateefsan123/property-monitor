@@ -1,3 +1,4 @@
+import { Icon } from "../../../workspace/ui";
 import * as Linking from "expo-linking";
 import { useState } from "react";
 import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
@@ -126,7 +127,7 @@ export default function LeadCard({
   colors,
   copiedLeadId,
   insight,
-  isDone,
+  favorite, pinned, onFavorite, onPin,
   isSent,
   lead,
   messageTemplate,
@@ -155,7 +156,7 @@ export default function LeadCard({
   }
 
   return (
-    <Pressable onPress={() => onPress(lead)} style={{ opacity: isSent ? 0.5 : 1 }}>
+    <Pressable onPress={() => onPress(lead)} accessibilityRole="button" accessibilityLabel={`Open seller ${lead.name || "Unnamed"}`}>
       {/* Name + building image */}
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         {buildingImageUrl && (
@@ -167,10 +168,10 @@ export default function LeadCard({
           </Pressable>
         )}
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 18, fontWeight: "800", color: c.textName, textDecorationLine: isDone ? "line-through" : "none" }}>{lead.name || "Unnamed"}</Text>
+          <Text style={{ fontSize: 17, fontWeight: "700", color: c.textName }}>{lead.name || "Unnamed"}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
             <HomeIcon size={14} color={c.textMuted} />
-            <Text style={{ fontSize: 15, color: c.textMuted }} numberOfLines={1}>{formatBuildingLabel(lead.building) || "-"}</Text>
+            <Text style={{ fontSize: 15, color: c.textMuted }} numberOfLines={1}>{formatBuildingLabel(lead.resolvedBuilding || lead.building) || "-"}</Text>
           </View>
           {(bedroomLabel || unitLabel) && (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 2 }}>
@@ -186,15 +187,17 @@ export default function LeadCard({
             </View>
           )}
         </View>
+      <View style={{flexDirection:'row',justifyContent:'flex-end'}}>{[[onPin,pinned,'pin','Pin seller'],[onFavorite,favorite,'star','Favorite seller']].map(([action,selected,icon,label]) => <Pressable key={icon} accessibilityRole="button" accessibilityLabel={label} accessibilityState={{selected}} onPress={event=>{event.stopPropagation();action?.();}} style={{padding:8}}><Icon name={icon} size={16} color={selected ? c.statValue : c.textFaint}/></Pressable>)}</View>
       </View>
 
+
       {/* Badges + action button */}
-      {!isDone && (
+      {(
         <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
           <View style={[s.badges, { flex: 1 }]}>
             <Badge label={lead.statusLabel} statusId={lead.statusRule?.id} colors={c} />
             <Badge label={lead.dueLabel} type={lead.isDue ? "due" : "ok"} colors={c} />
-            {insight?.status === "ready" && <Badge label="Enriched" type="ok" colors={c} />}
+            {lead.dataQuality?.level === "review" && <Badge label="Needs review" colors={c} />}
             {lead.newTxSinceSent > 0 && <Badge label={`${lead.newTxSinceSent} new txns`} type="due" colors={c} />}
           </View>
           {whatsappPhone ? (

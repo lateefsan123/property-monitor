@@ -7,10 +7,6 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "env": {
-        "EXPO_PUBLIC_REVENUECAT_TEST_API_KEY": "test_NHynuKFdkhjanbNArVwGheRdkKG",
-        "EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID": "seller_signal_pro"
-      },
       "android": {
         "credentialsSource": "local"
       }
@@ -26,6 +22,14 @@
     },
     "production": {
       "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6762112437",
+        "appleTeamId": "BDV35GTHAU"
+      }
     }
   }
 }

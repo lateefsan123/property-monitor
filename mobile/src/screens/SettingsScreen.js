@@ -1,8 +1,12 @@
-import { Alert, Pressable, ScrollView, StatusBar, StyleSheet, Switch, Text, View } from "react-native";
+import { Alert, Linking, Pressable, ScrollView, StatusBar, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Svg, Circle, Line, Path, Polyline } from "react-native-svg";
 import { supabase } from "../supabase";
 import { getTheme } from "../theme";
+
+const PRIVACY_URL = "https://repeatai.org/privacy";
+const TERMS_URL = "https://repeatai.org/terms";
+const DATA_DELETION_URL = "https://repeatai.org/data-deletion";
 
 function BackIcon({ color }) {
   return (
@@ -45,6 +49,17 @@ function ReplayIcon({ color }) {
     <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
       <Polyline points="1 4 1 10 7 10" />
       <Path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+    </Svg>
+  );
+}
+
+function DocumentIcon({ color }) {
+  return (
+    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
+      <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <Polyline points="14 2 14 8 20 8" />
+      <Line x1="8" y1="13" x2="16" y2="13" />
+      <Line x1="8" y1="17" x2="16" y2="17" />
     </Svg>
   );
 }
@@ -121,6 +136,7 @@ function Row({ icon, label, labelColor, value, rightElement, onPress, isLast, co
 }
 
 export default function SettingsScreen({
+  hideAppearance = false, embedded = false,
   displayName,
   manageSubscriptionPending = false,
   onBack,
@@ -168,16 +184,16 @@ export default function SettingsScreen({
   }
 
   return (
-    <SafeAreaView style={s.page} edges={["top", "left", "right"]}>
+    <SafeAreaView style={s.page} edges={embedded ? [] : ["top", "left", "right"]}>
       <StatusBar barStyle={isDark ? "light-content" : "dark-content"} />
 
-      <View style={s.header}>
+      {!embedded && <View style={s.header}>
         <Pressable style={s.backBtn} onPress={onBack} hitSlop={12}>
           <BackIcon color={colors.text} />
         </Pressable>
         <Text style={s.headerTitle}>Settings</Text>
         <View style={s.backBtn} />
-      </View>
+      </View>}
 
       <ScrollView contentContainerStyle={s.list} showsVerticalScrollIndicator={false}>
         <Row
@@ -186,7 +202,7 @@ export default function SettingsScreen({
           value={displayName || "-"}
           colors={colors}
         />
-        <Row
+        {!hideAppearance && <Row
           icon={MoonIcon}
           label="Dark mode"
           rightElement={
@@ -198,7 +214,7 @@ export default function SettingsScreen({
             />
           }
           colors={colors}
-        />
+        />}
         {onManageSubscription ? (
           <Row
             icon={CreditCardIcon}
@@ -214,6 +230,27 @@ export default function SettingsScreen({
           label="Replay onboarding"
           rightElement={<ChevronRight color={colors.textFaint} />}
           onPress={onReplayOnboarding}
+          colors={colors}
+        />
+        <Row
+          icon={DocumentIcon}
+          label="Privacy policy"
+          rightElement={<ChevronRight color={colors.textFaint} />}
+          onPress={() => Linking.openURL(PRIVACY_URL)}
+          colors={colors}
+        />
+        <Row
+          icon={DocumentIcon}
+          label="Terms of service"
+          rightElement={<ChevronRight color={colors.textFaint} />}
+          onPress={() => Linking.openURL(TERMS_URL)}
+          colors={colors}
+        />
+        <Row
+          icon={DocumentIcon}
+          label="Data deletion help"
+          rightElement={<ChevronRight color={colors.textFaint} />}
+          onPress={() => Linking.openURL(DATA_DELETION_URL)}
           colors={colors}
         />
         <Row

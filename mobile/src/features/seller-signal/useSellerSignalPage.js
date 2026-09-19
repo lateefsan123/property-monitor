@@ -1,7 +1,12 @@
+import {fetchLeadInsights} from '../../workspace/lead-insights';
+import { fetchBuildingAliases, fetchCachedBuildings } from '../../workspace/building-reference';
+import { useWorkspacePreference } from '../../workspace/preferences';
+import { enrichLeadsWithDataQuality } from "../../../../src/features/seller-signal/lead-data-quality";
+import { fetchMarketAvailability } from "../../workspace/market-availability";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Clipboard from "expo-clipboard";
 import * as Linking from "expo-linking";
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ENRICH_CHUNK_SIZE, WHATSAPP_OPEN_DELAY_MS } from "./constants";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
@@ -16,7 +21,6 @@ import {
   deleteLead,
   fetchDefaultMessageTemplate,
   insertLead,
-  fetchLeadInsights,
   fetchLeadSources,
   fetchUserLeads,
   fetchWhatsAppAccounts,
@@ -130,7 +134,8 @@ function formatImportErrorMessage(label, message) {
   return label ? `Import failed for ${label}: ${message}` : `Import failed: ${message}`;
 }
 
-export function useSellerSignalPage(userId) {
+export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
+  const pins = useWorkspacePreference(userId, 'seller-pins', []);
   const legacySheetStorageKey = userId ? `seller-signal:legacy-sheet-url:${userId}` : null;
   const queryClient = useQueryClient();
   useAutoSheetSync(userId);
@@ -149,7 +154,7 @@ export function useSellerSignalPage(userId) {
   const [showDueOnly, setShowDueOnly] = useState(true);
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("prospect");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [sentLeads, setSentLeads] = useState({});
@@ -157,7 +162,9 @@ export function useSellerSignalPage(userId) {
   const [sheetUrl, setSheetUrl] = useState("");
   const [showImport, setShowImport] = useState(false);
   const [viewTab, setViewTab] = useState("active");
-  const [dataFilter, setDataFilter] = useState("with_data");
+  const [dataQualityFilter, setDataQualityFilter] = useState("all");
+  const [sort, setSort] = useState("priority");
+  const [dataFilter, setDataFilter] = useState("all");
   const [expandedLeads, setExpandedLeads] = useState({});
   const [editingLeadId, setEditingLeadId] = useState(null);
   const [editingLeadDraft, setEditingLeadDraft] = useState(null);
@@ -166,7 +173,7 @@ export function useSellerSignalPage(userId) {
   const [clearingSourceId, setClearingSourceId] = useState(null);
   const [addingLead, setAddingLead] = useState(false);
   const deferredSearchTerm = useDeferredValue(searchTerm);
-  const hasAutoEnriched = useRef(false);
+
 
   function createLeadEditDraft(lead) {
     if (!lead) return null;
@@ -187,6 +194,8 @@ export function useSellerSignalPage(userId) {
     enabled: Boolean(userId),
   });
 
+  const aliasesQuery = useQuery({queryKey:['seller-signal','building-aliases',userId],queryFn:()=>fetchBuildingAliases(userId),enabled:Boolean(userId),staleTime:600000});
+  const buildingsQuery = useQuery({queryKey:['seller-signal','cached-buildings'],queryFn:fetchCachedBuildings,enabled:Boolean(userId),staleTime:600000});
   const sourcesQuery = useQuery({
     queryKey: leadSourcesQueryKey(userId),
     queryFn: () => fetchSellerSources(userId),
@@ -244,12 +253,14 @@ export function useSellerSignalPage(userId) {
     }
 
     if (leadsQuery.data && sourcesQuery.data) {
-      setLeads(leadsQuery.data.leads);
+      setLeads(enrichLeadsWithDataQuality(leadsQuery.data.leads, aliasesQuery.data, buildingsQuery.data));
       setSentLeads(leadsQuery.data.sentMap);
       setLeadSources(sourcesQuery.data);
       setError(null);
     }
   }, [
+    aliasesQuery.data,
+    buildingsQuery.data,
     leadsQuery.data,
     leadsQuery.error,
     leadsQuery.isPending,
@@ -262,11 +273,6 @@ export function useSellerSignalPage(userId) {
   useEffect(() => {
     if (!leadsQuery.isFetching || leadsQuery.isPending) return;
     setInsights({});
-    setExpandedLeads({});
-    setEditingLeadId(null);
-    setEditingLeadDraft(null);
-    setCurrentPage(1);
-    hasAutoEnriched.current = false;
   }, [leadsQuery.isFetching, leadsQuery.isPending]);
 
   useEffect(() => {
@@ -323,7 +329,7 @@ export function useSellerSignalPage(userId) {
         setError("No leads with a building name.");
         setInsights((previousInsights) => {
           const nextInsights = { ...previousInsights };
-          for (const lead of targetLeads) delete nextInsights[lead.id];
+          for (const lead of targetLeads) nextInsights[lead.id] = { status: "error", error: "No matching building data." };
           return nextInsights;
         });
         return;
@@ -353,23 +359,6 @@ export function useSellerSignalPage(userId) {
     }
   }, [messageTemplate]);
 
-  const enrichLeadData = useCallback(async () => {
-    const targetLeads = leads.filter((lead) => lead.building);
-    if (!targetLeads.length) {
-      setError("No leads with a building name.");
-      return;
-    }
-
-    await enrichLeads(targetLeads);
-  }, [enrichLeads, leads]);
-
-  useEffect(() => {
-    if (loading || enriching || !leads.length || hasAutoEnriched.current) return;
-    if (Object.keys(insights).length > 0) return;
-    hasAutoEnriched.current = true;
-    void enrichLeadData();
-  }, [enrichLeadData, enriching, insights, leads, loading]);
-
   const hasLegacyLeads = useMemo(() => leads.some((lead) => !lead.sourceId), [leads]);
   const effectiveSourceFilter = useMemo(
     () => {
@@ -381,30 +370,38 @@ export function useSellerSignalPage(userId) {
   );
 
   const { activeLeads, doneLeads } = useMemo(
-    () => splitLeadsBySentStatus(leads, sentLeads, insights),
-    [insights, leads, sentLeads],
+    () => splitLeadsBySentStatus(leads),
+    [leads],
   );
 
+  const marketQuery = useQuery({ queryKey: ['seller-signal', 'market-availability', userId, leads.map(lead => lead.building).join('|')], queryFn: () => fetchMarketAvailability(leads), enabled: Boolean(userId) && dataFilter !== 'all' && leads.length > 0, staleTime: 600000 });
   const filteredLeads = useMemo(
     () =>
       filterLeads({
-        activeLeads,
+        activeLeads: (Array.isArray(statusFilter) ? statusFilter.includes('not_interested') : statusFilter === 'not_interested') ? [...activeLeads, ...leads.filter(lead => lead.statusRule?.id === 'not_interested')] : activeLeads,
         doneLeads,
         dataFilter,
-        insights,
+        dataQualityFilter,
+        insights: dataFilter === 'all' ? insights : (marketQuery.data || {}),
         searchTerm: deferredSearchTerm,
         showDueOnly,
         sourceFilter: effectiveSourceFilter,
         statusFilter,
         viewTab,
-      }),
-    [activeLeads, dataFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, showDueOnly, statusFilter, viewTab],
+      }).sort((a,b) => Number(pins.value.includes(String(b.id))) - Number(pins.value.includes(String(a.id))) || (sort === "alpha" ? String(a.name).localeCompare(String(b.name)) : 0)),
+    [activeLeads, dataFilter, dataQualityFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, showDueOnly, statusFilter, viewTab, leads, marketQuery.data, sort, pins.value],
   );
 
   const { totalPages, safePage, pagedLeads } = useMemo(
     () => paginateLeads(filteredLeads, currentPage),
     [currentPage, filteredLeads],
   );
+
+  useEffect(() => {
+    if (!enrichVisible || loading || enriching) return;
+    const targets = pagedLeads.filter(lead => lead.building && !insights[lead.id]);
+    if (targets.length) void enrichLeads(targets);
+  }, [enrichVisible, loading, enriching, pagedLeads, insights, enrichLeads]);
 
   const sourceCounts = useMemo(() => {
     const counts = {};
@@ -433,7 +430,7 @@ export function useSellerSignalPage(userId) {
   const isAllExpanded = filteredLeads.length > 0 && filteredLeads.every((lead) => expandedLeads[lead.id]);
   const sendAllCount = pagedLeads.filter((lead) => {
     const phone = formatPhoneForWhatsApp(lead.phone);
-    return phone && insights[lead.id]?.status === "ready";
+    return phone && insights[lead.id]?.status === "ready" && insights[lead.id]?.hasTodaysTransactions;
   }).length;
 
   function resetPaging() {
@@ -565,8 +562,10 @@ export function useSellerSignalPage(userId) {
       await deleteLeadSource(userId, sourceId);
       await reloadLeads();
       setNotice("Spreadsheet removed.");
+      return true;
     } catch (clearError) {
       setError(getErrorMessage(clearError));
+      return false;
     } finally {
       setClearingSourceId(null);
     }
@@ -679,6 +678,7 @@ export function useSellerSignalPage(userId) {
 
     try {
       const persistedSentAt = await persistLeadSentState(userId, leadId, shouldMarkSent);
+      await reloadLeads();
       setSentLeads((previous) => {
         const next = { ...previous };
         if (persistedSentAt) {
@@ -741,6 +741,7 @@ export function useSellerSignalPage(userId) {
         leadId: lead.id,
         message,
         phone: lead.phone,
+        sendSource: options.quiet ? "bulk" : "manual",
       });
       const sentAt = result?.sentAt || new Date().toISOString();
       setSentLeads((previous) => ({ ...previous, [lead.id]: new Date(sentAt).getTime() }));
@@ -909,7 +910,7 @@ export function useSellerSignalPage(userId) {
   async function bulkWhatsApp(markAsSent = true) {
     const targets = pagedLeads.filter((lead) => {
       const phone = formatPhoneForWhatsApp(lead.phone);
-      return phone && insights[lead.id]?.status === "ready";
+      return phone && insights[lead.id]?.status === "ready" && insights[lead.id]?.hasTodaysTransactions;
     });
 
     if (!targets.length) return;
@@ -960,6 +961,8 @@ export function useSellerSignalPage(userId) {
     connectedWhatsAppAccount,
     copiedLeadId,
     dataFilter,
+    dataQualityFilter,
+    sort,
     addingSource,
     canAddSource,
     clearingSourceId,
@@ -967,7 +970,7 @@ export function useSellerSignalPage(userId) {
     doneLeads,
     editingLeadDraft,
     editingLeadId,
-    error,
+    error: error || marketQuery.error?.message,
     expandedLeads,
     filteredLeads,
     hasLeads: leads.length > 0,
@@ -1013,6 +1016,8 @@ export function useSellerSignalPage(userId) {
       persistLeadSource,
       saveLeadEdits,
       saveNotes,
+      selectDataQualityFilter: value => { setDataQualityFilter(value); resetPaging(); },
+      selectSort: value => { setSort(value); resetPaging(); },
       selectDataFilter,
       selectSourceFilter,
       selectStatusFilter,

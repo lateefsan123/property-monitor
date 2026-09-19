@@ -1,31 +1,16 @@
+/* global process */
 import "react-native-url-polyfill/auto";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, BackHandler, StatusBar, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import {
-  clearSubscriptionClient,
-  configureSubscriptionClient,
-  fetchSubscriptionOfferings,
-  getSubscriptionVerificationWarning,
-  getSubscriptionStoreLabel,
-  hasSubscriptionAccess,
-  isPurchaseCancelledError,
-  openSubscriptionCustomerCenter,
-  purchaseSubscriptionPackage,
-  restoreSubscriptionPurchases,
-  subscribeToSubscriptionUpdates,
-} from "./src/subscriptions";
 import { useThemePreference } from "./src/hooks/useThemePreference";
+import { useSubscriptionAccess } from "./src/hooks/useSubscriptionAccess";
+import WorkspaceShell from './src/workspace/workspace-shell';
 import AuthScreen from "./src/screens/AuthScreen";
-import DashboardScreen from "./src/screens/DashboardScreen";
-import HomeScreen from "./src/screens/HomeScreen";
-import ListingAlertsScreen from "./src/screens/ListingAlertsScreen";
 import OnboardingScreen from "./src/screens/OnboardingScreen";
 import ResetPasswordScreen from "./src/screens/ResetPasswordScreen";
-import SettingsScreen from "./src/screens/SettingsScreen";
-import SpreadsheetScreen from "./src/screens/SpreadsheetScreen";
 import SubscriptionScreen from "./src/screens/SubscriptionScreen";
 import UsernameSetupScreen from "./src/screens/UsernameSetupScreen";
 import { registerForPushNotifications, saveTokenToSupabase } from "./src/notifications";
@@ -34,19 +19,6 @@ import { supabase } from "./src/supabase";
 import { getTheme } from "./src/theme";
 
 const ONBOARDING_KEY = "@seller_signal_onboarding_completed_v3";
-const INITIAL_SUBSCRIPTION_STATE = {
-  currentOffering: null,
-  customerInfo: null,
-  error: null,
-  initialized: false,
-  managePending: false,
-  message: null,
-  productOptions: [],
-  purchasePending: false,
-  restorePending: false,
-  statusLoading: false,
-};
-
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
@@ -74,12 +46,10 @@ function AppInner() {
     hydrated: false,
     onboardingCompleted: false,
   });
-  const [subscriptionState, setSubscriptionState] = useState(INITIAL_SUBSCRIPTION_STATE);
   const [displayNameOverride, setDisplayNameOverride] = useState({
     userId: null,
     value: "",
   });
-  const [screen, setScreen] = useState("home");
   const [theme, setTheme] = useThemePreference();
   const colors = getTheme(theme);
   const sessionUserId = session?.user.id ?? null;
@@ -87,6 +57,11 @@ function AppInner() {
   const metadataDisplayName = session?.user.user_metadata?.username?.trim() || "";
   const displayName = metadataDisplayName
     || (displayNameOverride.userId === sessionUserId ? displayNameOverride.value : "");
+  const subscription = useSubscriptionAccess({
+    userId: sessionUserId,
+    email: session?.user.email ?? null,
+    displayName: displayName || null,
+  });
 
   useEffect(() => {
     let isActive = true;
@@ -139,119 +114,6 @@ function AppInner() {
     };
   }, [sessionUserId]);
 
-  useEffect(() => {
-    let ignore = false;
-    let unsubscribeFromCustomerInfo = () => {};
-
-    async function syncSubscriptionState() {
-      if (!sessionUserId) {
-        await clearSubscriptionClient();
-        if (!ignore) {
-          setSubscriptionState({ ...INITIAL_SUBSCRIPTION_STATE, initialized: true });
-        }
-        return;
-      }
-
-      setSubscriptionState((currentState) => ({
-        ...currentState,
-        error: null,
-        statusLoading: true,
-      }));
-
-      try {
-        const customerInfo = await configureSubscriptionClient({
-          userId: sessionUserId,
-          email: session?.user.email ?? null,
-          displayName: metadataDisplayName || null,
-        });
-
-        unsubscribeFromCustomerInfo = subscribeToSubscriptionUpdates((nextCustomerInfo) => {
-          if (ignore) return;
-
-          const verificationWarning = getSubscriptionVerificationWarning(nextCustomerInfo);
-
-          setSubscriptionState((currentState) => ({
-            ...currentState,
-            customerInfo: nextCustomerInfo,
-            error: verificationWarning || currentState.error,
-          }));
-        });
-
-        let currentOffering = null;
-        let productOptions = [];
-        let offeringError = null;
-
-        try {
-          const offeringData = await fetchSubscriptionOfferings();
-          currentOffering = offeringData.currentOffering;
-          productOptions = offeringData.productOptions;
-        } catch (offeringLoadError) {
-          offeringError = offeringLoadError instanceof Error
-            ? offeringLoadError.message
-            : "Could not load subscription plans";
-        }
-
-        if (ignore) return;
-
-        const verificationWarning = getSubscriptionVerificationWarning(customerInfo);
-
-        setSubscriptionState((currentState) => ({
-          ...currentState,
-          currentOffering,
-          customerInfo,
-          error: verificationWarning || offeringError,
-          initialized: true,
-          productOptions,
-          statusLoading: false,
-        }));
-      } catch (error) {
-        if (ignore) return;
-
-        setSubscriptionState((currentState) => ({
-          ...currentState,
-          currentOffering: null,
-          customerInfo: null,
-          error: error instanceof Error ? error.message : "Could not load subscription status",
-          initialized: true,
-          productOptions: [],
-          statusLoading: false,
-        }));
-      }
-    }
-
-    void syncSubscriptionState();
-
-    return () => {
-      ignore = true;
-      unsubscribeFromCustomerInfo();
-    };
-  }, [metadataDisplayName, session?.user.email, sessionUserId]);
-
-  useEffect(() => {
-    const backSubscription = BackHandler.addEventListener("hardwareBackPress", () => {
-      const inMainApp = Boolean(session)
-        && gateState.hydrated
-        && gateState.onboardingCompleted
-        && hasSubscriptionAccess(subscriptionState.customerInfo);
-
-      if (!inMainApp) return false;
-      if (screen === "home") return false;
-
-      setScreen("home");
-      return true;
-    });
-
-    return () => {
-      backSubscription.remove();
-    };
-  }, [
-    gateState.hydrated,
-    gateState.onboardingCompleted,
-    screen,
-    session,
-    subscriptionState.customerInfo,
-  ]);
-
   function toggleTheme() {
     setTheme((current) => (current === "light" ? "dark" : "light"));
   }
@@ -266,117 +128,35 @@ function AppInner() {
     setGateState((currentState) => ({ ...currentState, onboardingCompleted: false }));
   }
 
-  async function handleStartSubscriptionPurchase() {
-    setSubscriptionState((currentState) => ({
-      ...currentState,
-      error: null,
-      message: null,
-      purchasePending: true,
-    }));
-
+  async function handleManageSubscription() {
     try {
-      const monthlyProductOption = subscriptionState.productOptions[0];
-      const customerInfo = await purchaseSubscriptionPackage(
-        monthlyProductOption?.subscriptionPackage || null,
+      await subscription.manage();
+    } catch (error) {
+      Alert.alert(
+        "Could not open subscription settings",
+        error instanceof Error ? error.message : "Check your connection and try again.",
       );
-      const verificationWarning = getSubscriptionVerificationWarning(customerInfo);
-
-      setSubscriptionState((currentState) => ({
-        ...currentState,
-        customerInfo,
-        error: verificationWarning,
-        initialized: true,
-        message: hasSubscriptionAccess(customerInfo)
-          ? "seller signal Pro unlocked."
-          : "Purchase completed.",
-        purchasePending: false,
-      }));
-    } catch (error) {
-      const cancelledByUser = isPurchaseCancelledError(error);
-
-      setSubscriptionState((currentState) => ({
-        ...currentState,
-        error: cancelledByUser
-          ? null
-          : error instanceof Error
-          ? error.message
-          : "Could not complete the monthly purchase",
-        message: cancelledByUser ? "Purchase cancelled." : currentState.message,
-        purchasePending: false,
-      }));
     }
   }
 
-  async function handleRestorePurchases() {
-    setSubscriptionState((currentState) => ({
-      ...currentState,
-      error: null,
-      message: null,
-      restorePending: true,
-    }));
-
-    try {
-      const customerInfo = await restoreSubscriptionPurchases();
-      const verificationWarning = getSubscriptionVerificationWarning(customerInfo);
-
-      setSubscriptionState((currentState) => ({
-        ...currentState,
-        customerInfo,
-        error: verificationWarning,
-        initialized: true,
-        message: hasSubscriptionAccess(customerInfo)
-          ? "Purchases restored. Access unlocked."
-          : "No active subscription was found to restore.",
-        restorePending: false,
-      }));
-    } catch (error) {
-      setSubscriptionState((currentState) => ({
-        ...currentState,
-        error: error instanceof Error ? error.message : "Could not restore purchases",
-        restorePending: false,
-      }));
-    }
-  }
-
-  async function handleOpenCustomerCenter() {
-    setSubscriptionState((currentState) => ({
-      ...currentState,
-      error: null,
-      managePending: true,
-    }));
-
-    try {
-      await openSubscriptionCustomerCenter({
-        onRestoreCompleted: ({ customerInfo }) => {
-          const verificationWarning = getSubscriptionVerificationWarning(customerInfo);
-
-          setSubscriptionState((currentState) => ({
-            ...currentState,
-            customerInfo,
-            error: verificationWarning,
-            message: hasSubscriptionAccess(customerInfo)
-              ? "Purchases restored from Customer Center."
-              : "Customer Center restore completed, but no active entitlement was found.",
-          }));
-        },
-        onRestoreFailed: ({ error }) => {
-          setSubscriptionState((currentState) => ({
-            ...currentState,
-            error: error?.message || "Could not restore purchases from Customer Center.",
-          }));
-        },
-      });
-    } catch (error) {
-      setSubscriptionState((currentState) => ({
-        ...currentState,
-        error: error instanceof Error ? error.message : "Could not open Customer Center",
-      }));
-    } finally {
-      setSubscriptionState((currentState) => ({
-        ...currentState,
-        managePending: false,
-      }));
-    }
+  if (globalThis.__DEV__ && process.env.EXPO_PUBLIC_SUBSCRIPTION_PREVIEW === "true") {
+    return (
+      <SafeAreaProvider>
+        <SubscriptionScreen
+          action={null}
+          canPurchase
+          error={null}
+          onPurchase={async () => false}
+          onRefresh={async () => {}}
+          onRestore={async () => false}
+          onSignOut={() => {}}
+          priceString="€25.00"
+          storeConfigured
+          storeLabel="App Store"
+          trialEligible
+        />
+      </SafeAreaProvider>
+    );
   }
 
   if (loading || !gateState.hydrated || session === undefined) {
@@ -430,80 +210,43 @@ function AppInner() {
     );
   }
 
-  // TODO: Re-enable paywall once App Store products are configured
-  if (false && !hasSubscriptionAccess(subscriptionState.customerInfo)) {
+  if (subscription.isLoading) {
+    return (
+      <View style={[styles.loading, { backgroundColor: colors.bg }]}>
+        <ActivityIndicator size="large" color={colors.textMuted} />
+        <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} />
+      </View>
+    );
+  }
+
+  if (!subscription.hasAccess) {
     return (
       <SafeAreaProvider>
         <SubscriptionScreen
-          onRestorePurchases={handleRestorePurchases}
-          onStartPurchase={handleStartSubscriptionPurchase}
-          purchaseAvailable={Boolean(subscriptionState.productOptions[0]?.subscriptionPackage)}
-          productOptions={subscriptionState.productOptions}
-          purchasePending={subscriptionState.purchasePending}
-          restorePending={subscriptionState.restorePending}
-          storeLabel={getSubscriptionStoreLabel()}
-          subscriptionError={subscriptionState.error}
-          subscriptionLoading={!subscriptionState.initialized || subscriptionState.statusLoading}
-          subscriptionMessage={subscriptionState.message}
+          action={subscription.action}
+          canPurchase={subscription.canPurchase}
+          error={subscription.error}
+          onPurchase={subscription.purchase}
+          onRefresh={subscription.refresh}
+          onRestore={subscription.restore}
+          onSignOut={() => supabase.auth.signOut({ scope: "local" })}
+          priceString={subscription.priceString}
+          storeConfigured={subscription.storeConfigured}
+          storeLabel={subscription.storeLabel}
+          trialEligible={subscription.trialEligible}
         />
-        <StatusBar style="light" />
       </SafeAreaProvider>
     );
   }
 
-  const goHome = () => setScreen("home");
-
-  let activeScreen;
-  if (screen === "dashboard") {
-    activeScreen = (
-      <DashboardScreen
-        onBack={goHome}
-        theme={theme}
-        userId={session.user.id}
-      />
-    );
-  } else if (screen === "spreadsheet") {
-    activeScreen = (
-      <SpreadsheetScreen
-        onBack={goHome}
-        theme={theme}
-        userId={session.user.id}
-      />
-    );
-  } else if (screen === "settings") {
-    activeScreen = (
-      <SettingsScreen
-        displayName={displayName}
-        manageSubscriptionPending={subscriptionState.managePending}
-        onBack={goHome}
-        onManageSubscription={handleOpenCustomerCenter}
-        onReplayOnboarding={handleReplayOnboarding}
-        onToggleTheme={toggleTheme}
-        subscriptionStoreLabel={getSubscriptionStoreLabel()}
-        theme={theme}
-      />
-    );
-  } else if (screen === "alerts") {
-    activeScreen = <ListingAlertsScreen onBack={goHome} theme={theme} />;
-  } else {
-    activeScreen = (
-      <HomeScreen
-        theme={theme}
-        onOpenDashboard={() => setScreen("dashboard")}
-        onOpenSpreadsheet={() => setScreen("spreadsheet")}
-        onOpenSettings={() => setScreen("settings")}
-        onOpenAlerts={() => setScreen("alerts")}
-        userId={session.user.id}
-      />
-    );
-  }
-
-  return (
-    <SafeAreaProvider>
-      {activeScreen}
-      <StatusBar style={theme === "dark" ? "light" : "dark"} />
-    </SafeAreaProvider>
-  );
+  return (<SafeAreaProvider>
+    <WorkspaceShell key={session.user.id} userId={session.user.id} displayName={displayName} theme={theme} onToggleTheme={toggleTheme}
+      manageSubscriptionPending={subscription.action === "manage"}
+      onManageSubscription={handleManageSubscription}
+      onReplayOnboarding={handleReplayOnboarding}
+      subscriptionStoreLabel={subscription.storeLabel} />
+    <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} />
+  </SafeAreaProvider>);
 }
 
 const styles = StyleSheet.create({

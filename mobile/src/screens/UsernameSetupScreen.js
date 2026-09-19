@@ -31,7 +31,7 @@ export default function UsernameSetupScreen({ onComplete, theme }) {
   return (
     <View style={s.page}>
       <View style={s.card}>
-        <Text style={s.title}>Seller Signal</Text>
+        <Text style={s.title}>Repeat AI</Text>
         <Text style={s.subtitle}>Choose a display name to get started</Text>
 
         {error && <View style={s.errorBox}><Text style={s.errorText}>{error}</Text></View>}

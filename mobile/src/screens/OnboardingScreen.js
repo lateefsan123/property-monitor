@@ -18,7 +18,7 @@ const SLIDES = [
   {
     key: "welcome",
     title: "Your Dubai owner CRM",
-    body: "Seller Signal helps you track confirmed property owners, organize them by readiness to sell, and send recurring market updates that keep you top of mind.",
+    body: "Repeat AI helps you track confirmed property owners, organize them by readiness to sell, and send recurring market updates that keep you top of mind.",
   },
   {
     key: "how-it-works",
@@ -50,7 +50,7 @@ const SLIDES = [
   {
     key: "what-you-send",
     title: "Market updates built for each owner",
-    body: "Seller Signal helps you send a relevant market report for the owner's unit or building.",
+    body: "Repeat AI helps you send a relevant market report for the owner's unit or building.",
     bullets: [
       "Recent building transactions",
       "Price movement",
@@ -74,7 +74,7 @@ const SLIDES = [
   {
     key: "import-sheet",
     title: "Import your owners",
-    body: "Your owners already live in WhatsApp and your spreadsheet. Paste your Google Sheet and Seller Signal will organize them by category and prepare them for follow-up.",
+    body: "Your owners already live in WhatsApp and your spreadsheet. Paste your Google Sheet and Repeat AI will organize them by category and prepare them for follow-up.",
     fields: ["name", "phone", "building", "unit", "status", "last contact", "notes"],
   },
   {

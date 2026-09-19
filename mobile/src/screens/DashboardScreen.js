@@ -1,28 +1,44 @@
-import { useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, PanResponder, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import AppSearchBar from "../components/AppSearchBar";
+import LeadCard from "../features/seller-signal/components/LeadCard";
+import { getBuildingKeyVariants } from "../features/seller-signal/lead-utils";
+import buildingImages from "../data/building-images.json";
+import { Button, Field } from "../workspace/ui";
+import { useWorkspacePreference } from "../workspace/preferences";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, FlatList, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Svg, Line, Path } from "react-native-svg";
 import BottomSheet from "../components/BottomSheet";
 import AddSellerSheet from "../features/seller-signal/components/AddSellerSheet";
 import LeadImportEmptyState from "../features/seller-signal/components/LeadImportEmptyState";
-import LeadCard from "../features/seller-signal/components/LeadCard";
 import LeadDetailSheet from "../features/seller-signal/components/LeadDetailSheet";
 import Pagination from "../features/seller-signal/components/Pagination";
 import { DATA_FILTER_OPTIONS, STATUS_FILTER_OPTIONS } from "../features/seller-signal/constants";
-import { getBuildingKeyVariants } from "../features/seller-signal/lead-utils";
 import { useSellerSignalPage } from "../features/seller-signal/useSellerSignalPage";
-import buildingImages from "../data/building-images.json";
 import { getTheme } from "../theme";
 
-export default function DashboardScreen({ onBack, theme, userId }) {
+export default function DashboardScreen({ onBack, theme, userId, embedded = false, request }) {
   const d = useSellerSignalPage(userId);
   const colors = getTheme(theme);
   const s = styles(colors);
+  const insets = useSafeAreaInsets();
 
+  const favorites = useWorkspacePreference(userId, "seller-favorites", []);
+  const pins = useWorkspacePreference(userId, "seller-pins", []);
+  const views = useWorkspacePreference(userId, "seller-views", []);
+  const [viewsOpen, setViewsOpen] = useState(false);
+  const [viewName, setViewName] = useState("");
+  const bottomInset = embedded ? 0 : insets.bottom;
+  const [sendBarHeight, setSendBarHeight] = useState(68 + bottomInset);
+  const [confirmSend, setConfirmSend] = useState(false);
+  const [sendingBulk, setSendingBulk] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [addSellerOpen, setAddSellerOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState(null);
 
+  const lastRequest = useRef(null);
+  useEffect(() => { if (lastRequest.current === request) return; lastRequest.current = request; if (request?.sourceId) d.actions.selectSourceFilter(request.sourceId); if (request?.add) setAddSellerOpen(true); }, [request, d.actions]);
+  const toggle = (preference, id) => !preference.pending && preference.set(preference.value.includes(String(id)) ? preference.value.filter(value => value !== String(id)) : [...preference.value, String(id)]);
   const canAddSeller = d.sourceFilter && d.sourceFilter !== "all" && d.sourceFilter !== "legacy";
   const activeSourceLabel = canAddSeller
     ? (d.sourceOptions.find((option) => option.id === d.sourceFilter)?.label || "")
@@ -31,6 +47,16 @@ export default function DashboardScreen({ onBack, theme, userId }) {
     () => d.leads.find((lead) => lead.id === selectedLeadId) || null,
     [d.leads, selectedLeadId],
   );
+
+  function restoreView(filters) {
+    d.actions.selectSourceFilter(filters.sourceFilter || "all");
+    d.actions.selectStatusFilter(filters.statusFilter || "all");
+    d.actions.selectViewTab(filters.viewTab || "active");
+    d.actions.selectDataFilter(filters.dataFilter || "all");
+    d.actions.selectDataQualityFilter(filters.dataQualityFilter || "all");
+    d.actions.updateSearchTerm(filters.searchTerm || "");
+    setSheetOpen(false);
+  }
 
   const swipeResponder = useMemo(
     () =>
@@ -60,7 +86,7 @@ export default function DashboardScreen({ onBack, theme, userId }) {
 
   if (!d.hasLeads) {
     return (
-      <SafeAreaView style={s.page} edges={["top"]}>
+      <SafeAreaView style={s.page} edges={embedded ? [] : ["top"]}>
         {onBack ? (
           <Pressable style={s.emptyBackBtn} onPress={onBack} hitSlop={12}>
             <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
@@ -82,7 +108,7 @@ export default function DashboardScreen({ onBack, theme, userId }) {
   }
 
   return (
-    <SafeAreaView style={s.page} edges={["top"]}>
+    <SafeAreaView style={s.page} edges={embedded ? [] : ["top"]}>
       <View style={s.tabBar}>
         {onBack ? (
           <Pressable style={s.backBtn} onPress={onBack} hitSlop={12}>
@@ -95,12 +121,14 @@ export default function DashboardScreen({ onBack, theme, userId }) {
 
         <View style={s.pillTrack}>
           {[
-            { id: "active", label: "Active" },
-            { id: "done", label: "Done" },
+            { id: "active", label: `Due today ${d.activeLeads.length}` },
+            { id: "done", label: `Scheduled ${d.doneLeads.length}` },
           ].map((tab) => {
             const isActive = d.viewTab === tab.id;
             return (
               <Pressable
+                accessibilityRole="tab"
+                accessibilityState={{selected:isActive}}
                 key={tab.id}
                 style={[s.pillTab, isActive && s.pillTabActive]}
                 onPress={() => d.actions.selectViewTab(tab.id)}
@@ -111,33 +139,18 @@ export default function DashboardScreen({ onBack, theme, userId }) {
           })}
         </View>
 
-        <Pressable
-          style={({ pressed }) => [
-            s.addBtn,
-            { opacity: !canAddSeller ? 0.35 : pressed ? 0.7 : 1 },
-          ]}
-          onPress={() => setAddSellerOpen(true)}
-          disabled={!canAddSeller}
-          hitSlop={10}
-        >
-          <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={colors.text} strokeWidth={2.2} strokeLinecap="round" strokeLinejoin="round">
-            <Line x1="12" y1="5" x2="12" y2="19" />
-            <Line x1="5" y1="12" x2="19" y2="12" />
-          </Svg>
-        </Pressable>
       </View>
 
       <View style={s.searchBar}>
-        <TextInput
-          style={s.searchInput}
-          placeholder="Search name, building, phone..."
-          placeholderTextColor={colors.textFaint}
+        <AppSearchBar
+          colors={colors}
+          placeholder="Search sellers"
+          accessibilityLabel="Search sellers"
+          clearLabel="Clear seller search"
           value={d.searchTerm}
           onChangeText={d.actions.updateSearchTerm}
         />
       </View>
-
-      <Text style={s.leadCountRow}>{d.filteredLeads.length} leads</Text>
 
       {d.notice && (
         <View style={s.successBox}>
@@ -157,26 +170,10 @@ export default function DashboardScreen({ onBack, theme, userId }) {
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={s.listContent}
           renderItem={({ item }) => (
-            <LeadCard
-              buildingImageUrl={(() => {
-                const match = getBuildingKeyVariants(item.building).find((key) => buildingImages[key]);
-                return match ? buildingImages[match] : undefined;
-              })()}
-              isSent={Boolean(d.sentLeads[item.id])}
-              isDone={d.viewTab === "done"}
-              lead={item}
-              insight={d.insights[item.id]}
-              messageTemplate={d.messageTemplate}
-              onPress={(lead) => setSelectedLeadId(lead.id)}
-              copiedLeadId={d.copiedLeadId}
-              onCopyMessage={d.actions.copyMessage}
-              onSendWhatsApp={d.actions.sendWhatsAppLead}
-              onToggleSent={d.actions.toggleSent}
-              whatsappConnected={Boolean(d.connectedWhatsAppAccount)}
-              colors={colors}
-            />
+            <LeadCard buildingImageUrl={buildingImages[getBuildingKeyVariants(item.resolvedBuilding || item.building).find(key => buildingImages[key])]} lead={item} insight={d.insights[item.id]} colors={colors} onPress={lead => setSelectedLeadId(lead.id)} isSent={Boolean(d.sentLeads[item.id])} messageTemplate={d.messageTemplate} copiedLeadId={d.copiedLeadId} onCopyMessage={d.actions.copyMessage} onSendWhatsApp={d.actions.sendWhatsAppLead} onToggleSent={d.actions.toggleSent} whatsappConnected={Boolean(d.connectedWhatsAppAccount)} favorite={favorites.value.includes(String(item.id))} pinned={pins.value.includes(String(item.id))} onFavorite={() => toggle(favorites,item.id)} onPin={() => toggle(pins,item.id)} />
           )}
           ItemSeparatorComponent={() => <View style={[s.separator, { backgroundColor: colors.textFainter }]} />}
+          ListEmptyComponent={<Text style={{ color: colors.textMuted, textAlign: "center", paddingVertical: 32 }}>No sellers match your search or filters.</Text>}
           ListFooterComponent={
             d.totalPages > 1 ? (
               <Pagination
@@ -191,22 +188,18 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         />
       </View>
 
+      <View onLayout={event => setSendBarHeight(event.nativeEvent.layout.height)} style={{ padding: 12, paddingBottom: Math.max(12, bottomInset), borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bgCard }}><Button colors={colors} primary disabled={!d.connectedWhatsAppAccount || !d.sendAllCount || sendingBulk} onPress={() => setConfirmSend(true)}>{sendingBulk ? 'Sending…' : `Send messages · ${d.sendAllCount} ready`}</Button></View>
       <Pressable
-        style={({ pressed }) => [s.fab, pressed && { opacity: 0.85 }]}
+        accessibilityRole="button"
+        accessibilityLabel="Seller filters"
         onPress={() => setSheetOpen(true)}
+        style={({ pressed }) => [s.fab, { bottom: sendBarHeight + 16 }, pressed && { opacity: 0.85 }]}
       >
         <Svg width={26} height={26} viewBox="0 0 24 24" fill="none" stroke={colors.bg} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-          <Line x1="4" y1="21" x2="4" y2="14" />
-          <Line x1="4" y1="10" x2="4" y2="3" />
-          <Line x1="12" y1="21" x2="12" y2="12" />
-          <Line x1="12" y1="8" x2="12" y2="3" />
-          <Line x1="20" y1="21" x2="20" y2="16" />
-          <Line x1="20" y1="12" x2="20" y2="3" />
-          <Line x1="1" y1="14" x2="7" y2="14" />
-          <Line x1="9" y1="8" x2="15" y2="8" />
-          <Line x1="17" y1="16" x2="23" y2="16" />
+          <Path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6m2-6h6m2 8h6" />
         </Svg>
       </Pressable>
+      <BottomSheet visible={confirmSend} onClose={() => !sendingBulk && setConfirmSend(false)} colors={colors}><View style={{ padding: 20, gap: 12 }}><Text style={{ color: colors.text }}>Send messages to {d.sendAllCount} sellers on this page using your connected WhatsApp account?</Text><Button colors={colors} disabled={sendingBulk} onPress={async () => { setSendingBulk(true); try { await d.actions.bulkWhatsApp(); } finally { setSendingBulk(false); setConfirmSend(false); } }}>Confirm send</Button><Button colors={colors} disabled={sendingBulk} onPress={() => setConfirmSend(false)}>Cancel</Button></View></BottomSheet>
 
       <LeadDetailSheet
         visible={Boolean(selectedLeadId && selectedLead)}
@@ -234,8 +227,9 @@ export default function DashboardScreen({ onBack, theme, userId }) {
         colors={colors}
       />
 
+      <BottomSheet visible={addSellerOpen && !canAddSeller} onClose={() => setAddSellerOpen(false)} colors={colors}><ScrollView contentContainerStyle={{ padding: 20, gap: 10 }}><Text style={{ color: colors.text }}>Choose a spreadsheet for this seller</Text>{d.sourceOptions.filter(item => item.id !== 'legacy').map(item => <Button key={item.id} colors={colors} onPress={() => d.actions.selectSourceFilter(item.id)}>{item.label}</Button>)}<Button colors={colors} onPress={() => setAddSellerOpen(false)}>Cancel</Button></ScrollView></BottomSheet>
       <AddSellerSheet
-        visible={addSellerOpen}
+        visible={addSellerOpen && canAddSeller}
         onClose={() => setAddSellerOpen(false)}
         onSubmit={d.actions.addLead}
         submitting={d.addingLead}
@@ -244,16 +238,16 @@ export default function DashboardScreen({ onBack, theme, userId }) {
       />
 
       <BottomSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} colors={colors}>
-        <ScrollView style={s.sheetScroll} contentContainerStyle={s.sheetContent} showsVerticalScrollIndicator={false}>
-          <Text style={s.sectionLabel}>Status</Text>
+        <ScrollView keyboardShouldPersistTaps="handled" style={s.sheetScroll} contentContainerStyle={s.sheetContent} showsVerticalScrollIndicator={false}>
+          <View style={{flexDirection:'row',gap:8,marginBottom:16}}><Button colors={colors} onPress={() => setSheetOpen(false)}>Done</Button><Button colors={colors} onPress={() => {d.actions.selectStatusFilter('all');d.actions.selectDataFilter('all');d.actions.selectDataQualityFilter('all');}}>Reset filters</Button></View><Button colors={colors} onPress={() => d.actions.selectSort(d.sort === 'alpha' ? 'priority' : 'alpha')}>{d.sort === 'alpha' ? 'Name A–Z' : 'Priority order'}</Button><Button colors={colors} primary={d.dataQualityFilter === 'review'} onPress={() => d.actions.selectDataQualityFilter(d.dataQualityFilter === 'review' ? 'all' : 'review')}>Needs review</Button><Text style={s.sectionLabel}>Status</Text>
           <View style={s.chipRow}>
             {STATUS_FILTER_OPTIONS.map((option) => (
               <Pressable
                 key={option.id}
-                style={[s.chip, d.statusFilter === option.id && s.chipActive]}
-                onPress={() => d.actions.selectStatusFilter(option.id)}
+                style={[s.chip, (Array.isArray(d.statusFilter) ? d.statusFilter.includes(option.id) : d.statusFilter === option.id) && s.chipActive]}
+                onPress={() => {const selected = Array.isArray(d.statusFilter) ? d.statusFilter : d.statusFilter === 'all' ? [] : [d.statusFilter]; const next = selected.includes(option.id) ? selected.filter(id=>id!==option.id) : [...selected,option.id];d.actions.selectStatusFilter(next.length ? next : 'all');}}
               >
-                <Text style={[s.chipText, d.statusFilter === option.id && s.chipTextActive]}>{option.label}</Text>
+                <Text style={[s.chipText, (Array.isArray(d.statusFilter) ? d.statusFilter.includes(option.id) : d.statusFilter === option.id) && s.chipTextActive]}>{option.label}</Text>
               </Pressable>
             ))}
           </View>
@@ -294,16 +288,46 @@ export default function DashboardScreen({ onBack, theme, userId }) {
             ))}
           </View>
 
-          <View style={s.toggleSection}>
-            <View style={s.toggleRow}>
-              <Text style={s.toggleLabel}>Due only</Text>
-              <Switch
-                value={d.showDueOnly}
-                onValueChange={d.actions.setDueOnly}
-                trackColor={{ false: colors.border, true: colors.tabActiveBg }}
-              />
+          <Button colors={colors} onPress={() => setViewsOpen(!viewsOpen)}>
+            {viewsOpen ? "Hide saved views" : "Saved views"}
+          </Button>
+          {viewsOpen ? (
+            <View style={{ gap: 10 }}>
+              {[
+                ["All due", {}],
+                ["Needs review", { dataQualityFilter: "review" }],
+                ["Has market data", { dataFilter: "with_data" }],
+                ["Appraisals", { statusFilter: "market_appraisal" }],
+                ["Scheduled", { viewTab: "done" }],
+              ].map(([name, filters]) => (
+                <Button key={name} colors={colors} onPress={() => restoreView(filters)}>{name}</Button>
+              ))}
+              {views.value.map(view => (
+                <View key={view.id} style={{ flexDirection: "row", gap: 8 }}>
+                  <Button colors={colors} style={{ flex: 1 }} onPress={() => restoreView(view.filters)}>{view.name}</Button>
+                  <Button colors={colors} accessibilityLabel={`Remove saved view ${view.name}`} disabled={views.pending} onPress={() => views.set(views.value.filter(item => item.id !== view.id))}>Remove</Button>
+                </View>
+              ))}
+              <Field colors={colors} label="View name" value={viewName} onChangeText={setViewName} />
+              <Button colors={colors} disabled={!viewName.trim() || views.pending} onPress={() => {
+                views.set([...views.value, {
+                  id: String(Date.now()),
+                  name: viewName.trim(),
+                  filters: {
+                    sourceFilter: d.sourceFilter,
+                    statusFilter: d.statusFilter,
+                    dataFilter: d.dataFilter,
+                    dataQualityFilter: d.dataQualityFilter,
+                    viewTab: d.viewTab,
+                    searchTerm: d.searchTerm,
+                  },
+                }]);
+                setViewName("");
+              }}>Save current view</Button>
+              {views.error ? <Text style={{ color: colors.errorText }}>{views.error.message}</Text> : null}
             </View>
-          </View>
+          ) : null}
+
         </ScrollView>
       </BottomSheet>
     </SafeAreaView>
@@ -359,21 +383,6 @@ const styles = (c) =>
     pillTabActive: { backgroundColor: c.tabActiveBg },
     pillTabLabel: { fontSize: 14, fontWeight: "600", color: c.textMuted },
     pillTabLabelActive: { color: c.tabActiveText },
-    addBtn: {
-      position: "absolute",
-      right: 10,
-      top: 10,
-      width: 40,
-      height: 40,
-      alignItems: "center",
-      justifyContent: "center",
-    },
-    leadCountRow: {
-      paddingHorizontal: 16,
-      paddingBottom: 6,
-      fontSize: 12,
-      color: c.textFaint,
-    },
     errorBox: {
       marginHorizontal: 16,
       marginTop: 8,
@@ -396,15 +405,7 @@ const styles = (c) =>
     successText: { color: c.badgeOkText, fontSize: 13 },
     searchBar: {
       paddingHorizontal: 16,
-      paddingVertical: 10,
-    },
-    searchInput: {
-      borderRadius: 12,
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      fontSize: 15,
-      backgroundColor: c.bgCard,
-      color: c.text,
+      paddingVertical: 8,
     },
     listWrap: { flex: 1 },
     listContent: { padding: 16, paddingBottom: 100 },
