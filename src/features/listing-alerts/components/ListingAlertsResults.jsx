@@ -1,7 +1,6 @@
 import Pagination from "../../seller-signal/components/Pagination";
 import { useListingFavorites } from "../useListingFavorites";
 import {
-  BuildingCard,
   BuildingRow,
   ListingCard,
   ListingHistoryRow,
@@ -91,7 +90,7 @@ export default function ListingAlertsResults({
         </div>
       ) : (
         (() => {
-          const gridClass = layout === "grid" ? "sheet-grid la-grid" : "sheet-list la-list-rows";
+          const gridClass = viewTab === "buildings" ? "la-building-list" : layout === "grid" ? "sheet-grid la-grid" : "sheet-list la-list-rows";
 
           function renderItem(item, index) {
             if (viewTab === "buildings") {
@@ -107,11 +106,7 @@ export default function ListingAlertsResults({
                 onToggleFavorite: () => toggleFavorite(favKey),
               };
               const key = String(item.locationId || item.key || index);
-              return layout === "grid" ? (
-                <BuildingCard key={key} {...commonProps} />
-              ) : (
-                <BuildingRow key={key} {...commonProps} />
-              );
+              return <BuildingRow key={key} {...commonProps} />;
             }
 
             const favKey = `l:${item.id || item.key}`;

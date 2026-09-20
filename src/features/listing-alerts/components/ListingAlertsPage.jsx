@@ -523,7 +523,7 @@ export default function ListingAlertsPage() {
         >
           <IconPlus size={18} stroke={2} aria-hidden="true" />
         </button>
-        <LayoutMenu value={layout} onChange={setLayout} />
+        {selectedBuildingId ? <LayoutMenu value={layout} onChange={setLayout} /> : null}
       </TopbarActionsPortal>
 
       {selectedBuildingId ? (

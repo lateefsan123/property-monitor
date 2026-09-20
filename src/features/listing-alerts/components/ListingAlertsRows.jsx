@@ -17,6 +17,7 @@ import {
   formatPrice,
   formatPriceRange,
 } from "../formatters";
+import "../../../styles/listing-building-list.css";
 
 function ExternalLinkIcon({ size = 16 }) {
   return <IconExternalLink size={size} stroke={2} aria-hidden="true" />;
@@ -134,46 +135,21 @@ export function BuildingRow({ building, isWatched, onPress, onToggleWatch, price
     : building.lowestPrice != null || building.highestPrice != null
       ? formatPriceRange(building.lowestPrice, building.highestPrice)
       : "Watch to load listings";
-  const newListingCount = building?.changeSummary?.newListingCount || 0;
-
-  function handleKey(event) {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      onPress();
-    }
-  }
-
   return (
-    <div
-      className={`sheet-row la-row la-row-building${isWatched ? " is-watched" : ""}`}
-      role="button"
-      tabIndex={0}
-      onClick={onPress}
-      onKeyDown={handleKey}
-    >
-      <span className="sheet-row-icon la-row-building-icon" aria-hidden>
-        <BuildingIcon />
-      </span>
-      <div className="la-row-primary">
-        <span className="la-row-title">
-          {building.buildingName}
-          {newListingCount > 0 ? (
-            <span className="la-new-pill" title={`${newListingCount} new since last check`}>
-              {newListingCount} new
-            </span>
-          ) : null}
-        </span>
-        <span className="la-row-sub">{countLine}</span>
-      </div>
-      <div className="la-row-price">
-        <span className="la-cell-price-value">{priceLine}</span>
+    <div className="la-building-row">
+      <button type="button" className="la-building-open" onClick={onPress}>
+        <span className="la-building-name">{building.buildingName}</span>
+        <span className="la-building-count">{countLine}</span>
+        <span className="la-building-price">{priceLine}</span>
+        <span className="la-building-drops">
         {priceDropCount > 0 ? (
           <span className="la-drop-indicator">
             <ArrowIcon direction="down" size={10} />
             {priceDropCount} {priceDropCount === 1 ? "drop" : "drops"}
           </span>
         ) : null}
-      </div>
+        </span>
+      </button>
       <RowHoverActions
         favorited={favorited}
         onToggleFavorite={onToggleFavorite}
