@@ -1,4 +1,5 @@
 import { Composition } from "remotion";
+import { RepeatAIConnectedFilm } from "./RepeatAIConnectedFilm";
 import { RepeatAIReferenceOpening } from "./RepeatAIReferenceOpening";
 import { RepeatAICleanProductFilm } from "./RepeatAICleanProductFilm";
 import { RepeatAIProductFilm } from "./RepeatAIProductFilm";
@@ -19,6 +20,7 @@ import {
 export const Root: React.FC = () => {
   return (
     <>
+      <Composition id="RepeatAIConnectedFilm" component={RepeatAIConnectedFilm} durationInFrames={1260} fps={30} width={1920} height={1080} />
       <Composition id="RepeatAIReferenceOpening" component={RepeatAIReferenceOpening} durationInFrames={360} fps={30} width={1920} height={1080} />
       <Composition id="RepeatAICleanProductFilm" component={RepeatAICleanProductFilm} durationInFrames={1440} fps={30} width={1920} height={1080} />
       <Composition id="RepeatAIProductFilm" component={RepeatAIProductFilm} durationInFrames={1440} fps={30} width={1920} height={1080} />

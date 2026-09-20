@@ -16,12 +16,12 @@ const Activity:React.FC<{f:number;start:number;x:number;y:number;width:number;ce
  </div>;
 };
 
-export const RepeatAIReferenceOpening:React.FC=()=>{
+export const RepeatAIReferenceOpening:React.FC<{muted?:boolean}>=({muted=false})=>{
  const f=useCurrentFrame();
  const handoff=ramp(f,252,269);
  const pose=f<90?0:[0,1,2,1,0,3][Math.floor(f/11)%6];
  return <AbsoluteFill style={{background:'#fff',fontFamily:'Arial, sans-serif',color:'#242424'}}>
-  <Audio src={staticFile('video/repeat-ai-storyboard/sunlit-walkthrough.mp3')} volume={t=>.32*ramp(t,0,12)*(1-ramp(t,344,359))}/>
+  {!muted && <Audio src={staticFile('video/repeat-ai-storyboard/sunlit-walkthrough.mp3')} volume={t=>.32*ramp(t,0,12)*(1-ramp(t,344,359))}/>}
   <div style={{position:'absolute',width:960,height:540,transform:'scale(2)',transformOrigin:'top left',overflow:'hidden'}}>
    <div style={{position:'absolute',inset:0,opacity:1-handoff,transform:`translateY(${-handoff*22}px) scale(${1+handoff*.03})`,backgroundImage:'radial-gradient(#dededb .6px, transparent .7px)',backgroundSize:'16px 16px'}}>
     <Activity f={f} start={0} x={70} y={58} width={260} cell={0} label="Find the right spreadsheet" tilt={-3}/>
