@@ -21,7 +21,7 @@
 .ld-chart-first .ld-tabs { display: flex; gap: 32px; }
 .ld-chart-first .ld-tabs .tab { border: 0; border-bottom: 2px solid transparent; padding: 12px 14px 16px; border-radius: 0; background: transparent; color: var(--text-muted); font-size: 21px; font-weight: 550; cursor: pointer; }
 .ld-chart-first .ld-tabs .tab.active { border-bottom-color: var(--text-name); color: var(--text-name); font-weight: 700; }
-.ld-chart-first button:focus-visible, .ld-history-details summary:focus-visible { outline: 2px solid var(--text-name); outline-offset: 5px; }
+.ld-chart-first button:focus-visible { outline: 2px solid var(--text-name); outline-offset: 5px; }
 .ld-chart-first .ld-section { margin: 0; }
 .ld-chart-first .ld-chart-section { padding: 0; }
 .ld-chart-first .ld-chart { border: 0; border-radius: 0; background: transparent; --listing-chart-line: #23445e; }
@@ -31,8 +31,6 @@
 .ld-chart-first .ld-chart-dot { fill: var(--listing-chart-line); stroke: var(--bg-card); stroke-width: 1.5; }
 .ld-chart-first .ld-chart-dot.drop { fill: var(--badge-ok-text); }
 .ld-chart-first .ld-activity { padding: 0; gap: 28px; }
-.ld-history-details { color: var(--text-muted); }
-.ld-history-details summary { cursor: pointer; padding: 16px 0; width: fit-content; }
 .ld-removed-note { color: var(--text-muted); font-size: 14px; }
 @media (max-width: 1000px) {
   .ld-chart-first .ld-scroll { padding-top: 36px; }
@@ -57,5 +55,4 @@
   .ld-chart-first .ld-price-prev { font-size: 15px; }
   .ld-chart-first .ld-chart-body { height: 270px; }
   .ld-chart-first .ld-chart .recharts-cartesian-axis-tick-value { font-size: 11px; }
-  .ld-chart-first .ld-stat-footnote { flex-wrap: wrap; padding-left: 0; }
 }

@@ -1,17 +1,14 @@
 import { useState } from "react";
-import { daysBetween } from "../date-utils";
 import {
   formatArea,
   formatBedsAndBaths,
   formatPrice,
-  formatSyncTimestamp,
 } from "../formatters";
 import {
   ActivityTimeline,
   ExternalLinkIcon,
   PriceChart,
   PriceDeltaChip,
-  StatStrip,
 } from "./ListingDetailParts";
 
 import '../../../styles/listing-detail-chart-first.css';
@@ -37,9 +34,6 @@ export default function ListingDetailPage({
     ? null
     : listing.currentPrice ?? listing.price ?? listing.lastKnownPrice ?? null;
   const lastKnownPrice = listing.lastKnownPrice ?? listing.price ?? listing.currentPrice ?? null;
-  const firstSeenAt = listing.firstSeenAt || listing.verifiedAt || null;
-  const lastSeenAt = listing.lastSeenAt || listing.removedAt || listing.lastVerifiedAt || listing.verifiedAt || null;
-  const daysTracked = daysBetween(firstSeenAt, lastSeenAt || new Date().toISOString());
 
   const bedsBaths = formatBedsAndBaths(listing.beds, listing.baths).replace(' | ', ' · ');
   const area = formatArea(listing.areaSqft);
@@ -130,35 +124,6 @@ export default function ListingDetailPage({
         ) : (
           <div className="ld-section ld-activity">
             <ActivityTimeline events={reversedHistory} isTracked={isTracked} />
-            <details className="ld-history-details">
-              <summary>Details</summary>
-              <StatStrip
-                items={[
-                  {
-                    label: "Drops",
-                    value: String(listing.dropsCount || 0),
-                    accentClass: listing.dropsCount ? "drop" : "",
-                  },
-                  {
-                    label: "Rises",
-                    value: String(listing.increasesCount || 0),
-                    accentClass: listing.increasesCount ? "rise" : "",
-                  },
-                  {
-                    label: "Changes",
-                    value: String(listing.totalChanges || 0),
-                  },
-                  {
-                    label: "Days",
-                    value: daysTracked == null ? "-" : String(daysTracked),
-                  },
-                ]}
-              />
-              <div className="ld-stat-footnote">
-                <span>First seen {formatSyncTimestamp(firstSeenAt)}</span>
-                <span>Last seen {formatSyncTimestamp(lastSeenAt)}</span>
-              </div>
-            </details>
           </div>
         )}
         </div>
