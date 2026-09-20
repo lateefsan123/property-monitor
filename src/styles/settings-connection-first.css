@@ -23,12 +23,6 @@
 .settings-today { display: flex; justify-content: space-between; gap: 16px; padding: 0 0 24px; border-bottom: 1px solid #ffffff19; font-size: 14px; }
 .settings-today > :last-child { color: #aaa; }
 .settings-activity-empty { margin: 0; padding: 40px 0; color: #aaa; font-size: 14px; }
-.settings-technical { margin-top: 28px; padding-top: 18px; border-top: 1px solid #ffffff19; font-size: 13px; color: #aaa; }
-.settings-technical summary { cursor: pointer; padding: 6px 0; }
-.settings-technical dl { margin: 18px 0; }
-.settings-technical dl > div { display: flex; justify-content: space-between; gap: 20px; padding: 9px 0; }
-.settings-technical dd { margin: 0; color: #ededeb; }
-.settings-technical p { font-size: 12px; line-height: 1.6; }
 .settings-send-warning { display: flex; gap: 12px; margin: 24px 0; color: #e5b981; font-size: 13px; }
 .settings-send-warning p { margin: 6px 0 0; }
 .settings-connection-first :is(button, summary):focus-visible { outline: 2px solid #bbb; outline-offset: 3px; }

@@ -14,27 +14,11 @@ export default function SendActivityPanel({ activity, loading }) {
   const warning = repeated && total < 60
     ? ["Repeat send detected", "The same recipient was contacted more than once within 60 seconds."]
     : WARNINGS[activity.state];
-  const sources = activity.sources || {};
-  const origins = activity.origins || {};
-  const rows = [
-    ["Automatic", sources.auto || 0],
-    ["Individual / API", sources.manual || 0],
-    ["Bulk / MCP", (sources.bulk || 0) + (sources.mcp || 0)],
-    ["Web", origins.web || 0],
-    ["Desktop", origins.desktop || 0],
-    ["Automation", origins.automation || sources.auto || 0],
-    ["API / legacy", (origins.api || 0) + (origins.mcp || 0) + (origins.unknown || 0)],
-  ];
   return (
     <div className="settings-send-activity">
       <div className="settings-today"><span>Today</span><span>{total} message{total === 1 ? "" : "s"} sent</span></div>
       {warning && <div className="settings-send-warning" role="alert"><IconAlertTriangle size={18} aria-hidden="true" /><div><strong>{warning[0]}</strong><p>{warning[1]}</p></div></div>}
       {total === 0 && <p className="settings-activity-empty">No messages sent today.</p>}
-      <details className="settings-technical">
-        <summary>Technical details</summary>
-        <dl>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
-        <p>Identical sends to the same recipient within 60 seconds are blocked automatically.</p>
-      </details>
     </div>
   );
 }
