@@ -8,7 +8,7 @@ const p = (f: number, a: number, b: number) => interpolate(f,[a,b],[0,1],{extrap
 const mix = (a:number,b:number,t:number) => a+(b-a)*t;
 const art = (name:string) => staticFile(`video/repeat-ai-v4/${name}.png`);
 const poses = [0,0,1,1,2,2,1,1,0,0,3,3];
-const Broker: React.FC<{frame:number}> = ({frame}) => {
+export const Broker: React.FC<{frame:number}> = ({frame}) => {
   const pose=poses[Math.floor(Math.max(0,frame)/6)%poses.length];
   return <div style={{width:'100%',height:'100%',clipPath:'inset(0 -5% 0 8%)',position:'relative'}}>
     <Img src={art('broker-suit-poses')} style={{position:'absolute',width:'200%',height:'200%',maxWidth:'none',left:`${-(pose%2)*100}%`,top:`${-Math.floor(pose/2)*100}%`}}/>
@@ -26,7 +26,7 @@ const objects = [
   {name:'notes',label:'Another follow-up',x:1420,y:795,size:450,start:105,angle:-7},
 ];
 
-export const RepeatAIIllustratedOpening: React.FC = () => {
+export const RepeatAIIllustratedOpening: React.FC<{narration?:boolean}> = ({narration=true}) => {
   const f=useCurrentFrame();
   const gather=p(f,220,290);
   const focus=p(f,317,350);
@@ -34,7 +34,7 @@ export const RepeatAIIllustratedOpening: React.FC = () => {
   const message='Hi Sara, a similar apartment in your building just dropped 5%. Shall we review your price?';
   const typed=message.slice(0,Math.floor(p(f,359,420)*message.length));
   return <AbsoluteFill style={{background:paper,color:ink,fontFamily:'Inter, Arial, sans-serif',overflow:'hidden'}}>
-    <Audio src={staticFile('video/repeat-ai-v3/opening-audio.wav')}/>
+    {narration && <Audio src={staticFile('video/repeat-ai-v5/voice-only.wav')} endAt={450}/>}
     <div style={{position:'absolute',left:310,top:720,opacity:p(f,152,176)*(1-gather),transform:`translateY(${mix(15,0,p(f,152,176))}px)`}}>
       <div style={{fontSize:53,fontWeight:500,letterSpacing:-2}}>It all adds up.</div>
       <div style={{marginTop:20,height:5,width:mix(0,215,p(f,173,193)),background:'#b6c9a4',borderRadius:5,transform:'rotate(-3deg)'}}/>
