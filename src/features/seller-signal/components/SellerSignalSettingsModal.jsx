@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react";
 import {
-  IconActivityHeartbeat,
+  IconArrowLeft,
+  IconChevronRight,
   IconBolt,
   IconBrandWhatsapp,
   IconX,
 } from "@tabler/icons-react";
+import "../../../styles/settings-connection-first.css";
 import SendActivityPanel from "./SendActivityPanel";
 import WhatsAppConnectionPanel from "./WhatsAppConnectionPanel";
 
 const TABS = [
   { id: "automations", label: "Automations", icon: IconBolt },
   { id: "whatsapp", label: "WhatsApp", icon: IconBrandWhatsapp },
-  { id: "activity", label: "Send activity", icon: IconActivityHeartbeat },
+  { id: "activity", label: "Send activity", icon: null },
 ];
 
 function AutomationToggle({
@@ -65,7 +67,7 @@ export default function SellerSignalSettingsModal({
   useEffect(() => {
     if (!open) return undefined;
     function handleKeyDown(event) {
-      if (event.key === "Escape") onClose?.();
+      if (event.key === "Escape" && !document.querySelector(".whatsapp-connect-modal-overlay")) onClose?.();
     }
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
@@ -82,7 +84,7 @@ export default function SellerSignalSettingsModal({
       }}
     >
       <section
-        className="seller-settings-panel"
+        className="seller-settings-panel settings-connection-first"
         role="dialog"
         aria-modal="true"
         aria-labelledby="seller-settings-title"
@@ -110,12 +112,12 @@ export default function SellerSignalSettingsModal({
                       key={tab.id}
                       type="button"
                       role="tab"
-                      className="seller-settings-tab"
-                      data-active={active ? "true" : "false"}
+                      className={`seller-settings-tab${tab.id === "activity" ? " settings-activity-subtab" : ""}`}
+                      data-active={active || (tab.id === "whatsapp" && activeTab === "activity") ? "true" : "false"}
                       aria-selected={active}
                       onClick={() => setActiveTab(tab.id)}
                     >
-                      <Icon size={18} stroke={1.85} aria-hidden="true" />
+                      {Icon && <Icon size={18} stroke={1.85} aria-hidden="true" />}
                       <span>{tab.label}</span>
                     </button>
                   );
@@ -123,6 +125,7 @@ export default function SellerSignalSettingsModal({
               </nav>
 
               <div className="seller-settings-content">
+                {activeTab === "activity" && <button type="button" className="settings-back" onClick={() => setActiveTab("whatsapp")}><IconArrowLeft size={16} aria-hidden="true" /> Back to WhatsApp</button>}
                 <h2 className="seller-settings-section-title">
                   {activeTab === "automations"
                     ? "Automations"
@@ -161,10 +164,14 @@ export default function SellerSignalSettingsModal({
                 ) : activeTab === "whatsapp" ? (
                   <div className="seller-settings-whatsapp-pane">
                     <WhatsAppConnectionPanel
+                      minimal
                       account={account}
                       connecting={connecting}
                       onConnect={onConnect}
                     />
+                    <button type="button" className="settings-activity-link" onClick={() => setActiveTab("activity")}>
+                      <span>Messages today</span><span>{sendActivityLoading && !sendActivity ? "…" : sendActivity?.total ?? "—"}</span><IconChevronRight size={16} aria-hidden="true" />
+                    </button>
                   </div>
                 ) : (
                   <SendActivityPanel activity={sendActivity} loading={sendActivityLoading} />

@@ -139,6 +139,7 @@ function getBaileysQrValue(result) {
 }
 
 export default function WhatsAppConnectionPanel({
+  minimal = false,
   account,
   connecting,
   onConnect,
@@ -511,7 +512,7 @@ export default function WhatsAppConnectionPanel({
         : "Not connected";
 
   return (
-    <section className="whatsapp-connect-panel" aria-label="WhatsApp connection">
+    <section className={`whatsapp-connect-panel${minimal ? " whatsapp-connect-minimal" : ""}`} aria-label="WhatsApp connection">
       <button
         type="button"
         className="whatsapp-connect-line"
@@ -524,11 +525,12 @@ export default function WhatsAppConnectionPanel({
           <IconBrandWhatsapp size={19} stroke={1.9} />
         </span>
         <div className="whatsapp-connect-line-main">
-          <span className="whatsapp-connect-line-label">WhatsApp</span>
+          <span className="whatsapp-connect-line-label">{minimal ? (connected ? accountLabel || "WhatsApp" : "Connect WhatsApp") : "WhatsApp"}</span>
           <span className="whatsapp-connect-line-value">
-            {accountLabel && connected ? `Connected to ${accountLabel}` : rowValue}
+            {minimal ? <><span className={connected ? "settings-connected-dot" : ""} />{rowValue}</> : accountLabel && connected ? `Connected to ${accountLabel}` : rowValue}
           </span>
         </div>
+        {minimal && <span className="settings-manage">{connected ? "Manage" : "Connect"}</span>}
         <IconChevronRight
           className="whatsapp-connect-line-chevron"
           size={16}
@@ -536,6 +538,7 @@ export default function WhatsAppConnectionPanel({
           aria-hidden="true"
         />
       </button>
+      {minimal && <p className="settings-connection-note">{connected ? "Your account is ready to send messages." : "Link your WhatsApp account to send seller messages."}</p>}
       {modalOpen && (
         <div
           className="whatsapp-connect-modal-overlay"

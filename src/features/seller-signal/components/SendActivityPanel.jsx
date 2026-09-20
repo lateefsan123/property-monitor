@@ -1,109 +1,40 @@
-import {
-  IconAlertTriangle,
-  IconCheck,
-  IconDeviceDesktop,
-  IconLink,
-  IconRobot,
-  IconWorld,
-} from "@tabler/icons-react";
+import { IconAlertTriangle } from "@tabler/icons-react";
 
-const STATE_COPY = {
-  critical: {
-    label: "Critical volume",
-    description: "Daily outbound volume has reached 80 messages.",
-    icon: IconAlertTriangle,
-  },
-  high: {
-    label: "High volume",
-    description: "Daily outbound volume has reached 60 messages.",
-    icon: IconAlertTriangle,
-  },
-  warning: {
-    label: "Volume warning",
-    description: "Daily outbound volume has reached 40 messages.",
-    icon: IconAlertTriangle,
-  },
-  normal: {
-    label: "Normal activity",
-    description: "No unusual sending pattern has been detected.",
-    icon: IconCheck,
-  },
+const WARNINGS = {
+  critical: ["Critical volume", "Daily outbound volume has reached 80 messages."],
+  high: ["High volume", "Daily outbound volume has reached 60 messages."],
+  warning: ["Volume warning", "Daily outbound volume has reached 40 messages."],
 };
 
-function ActivityStat({ label, value }) {
-  return (
-    <div className="send-activity-stat">
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
 export default function SendActivityPanel({ activity, loading }) {
-  if (loading && !activity) {
-    return <div className="send-activity-loading">Checking today&apos;s WhatsApp activity...</div>;
-  }
-
-  const state = activity?.state || "normal";
-  const repeatDetected = activity?.alerts?.some((alert) => alert.alert_type === "rapid_repeat");
-  const stateCopy = repeatDetected && (activity?.total || 0) < 60
-    ? {
-        label: "Repeat send detected",
-        description: "The same recipient was contacted more than once within 60 seconds.",
-        icon: IconAlertTriangle,
-      }
-    : STATE_COPY[state];
-  const StateIcon = stateCopy.icon;
-  const origins = activity?.origins || {};
-
+  if (loading && !activity) return <p role="status">Checking today's activity...</p>;
+  if (!activity) return <p role="status">Activity is unavailable right now.</p>;
+  const total = activity.total || 0;
+  const repeated = activity.alerts?.some((alert) => alert.alert_type === "rapid_repeat");
+  const warning = repeated && total < 60
+    ? ["Repeat send detected", "The same recipient was contacted more than once within 60 seconds."]
+    : WARNINGS[activity.state];
+  const sources = activity.sources || {};
+  const origins = activity.origins || {};
+  const rows = [
+    ["Automatic", sources.auto || 0],
+    ["Individual / API", sources.manual || 0],
+    ["Bulk / MCP", (sources.bulk || 0) + (sources.mcp || 0)],
+    ["Web", origins.web || 0],
+    ["Desktop", origins.desktop || 0],
+    ["Automation", origins.automation || sources.auto || 0],
+    ["API / legacy", (origins.api || 0) + (origins.mcp || 0) + (origins.unknown || 0)],
+  ];
   return (
-    <div className="send-activity-panel">
-      <div className={`send-activity-status is-${state}`}>
-        <span className="send-activity-status-icon">
-          <StateIcon size={18} stroke={2} aria-hidden="true" />
-        </span>
-        <div>
-          <strong>{stateCopy.label}</strong>
-          <span>{stateCopy.description}</span>
-        </div>
-      </div>
-
-      <div className="send-activity-stats">
-        <ActivityStat label="Total today" value={activity?.total || 0} />
-        <ActivityStat label="Automatic" value={activity?.sources?.auto || 0} />
-        <ActivityStat label="Individual / API" value={activity?.sources?.manual || 0} />
-        <ActivityStat
-          label="Bulk / MCP"
-          value={(activity?.sources?.bulk || 0) + (activity?.sources?.mcp || 0)}
-        />
-      </div>
-
-      <div className="send-activity-origin-list">
-        <div>
-          <IconWorld size={17} stroke={1.9} aria-hidden="true" />
-          <span>Web</span>
-          <strong>{origins.web || 0}</strong>
-        </div>
-        <div>
-          <IconDeviceDesktop size={17} stroke={1.9} aria-hidden="true" />
-          <span>Desktop</span>
-          <strong>{origins.desktop || 0}</strong>
-        </div>
-        <div>
-          <IconRobot size={17} stroke={1.9} aria-hidden="true" />
-          <span>Automation</span>
-          <strong>{origins.automation || activity?.sources?.auto || 0}</strong>
-        </div>
-        <div>
-          <IconLink size={17} stroke={1.9} aria-hidden="true" />
-          <span>API / legacy</span>
-          <strong>{(origins.api || 0) + (origins.mcp || 0) + (origins.unknown || 0)}</strong>
-        </div>
-      </div>
-
-      <p className="send-activity-note">
-        New sends record their exact route. Identical sends to the same recipient within 60 seconds are blocked automatically.
-      </p>
+    <div className="settings-send-activity">
+      <div className="settings-today"><span>Today</span><span>{total} message{total === 1 ? "" : "s"} sent</span></div>
+      {warning && <div className="settings-send-warning" role="alert"><IconAlertTriangle size={18} aria-hidden="true" /><div><strong>{warning[0]}</strong><p>{warning[1]}</p></div></div>}
+      {total === 0 && <p className="settings-activity-empty">No messages sent today.</p>}
+      <details className="settings-technical">
+        <summary>Technical details</summary>
+        <dl>{rows.map(([label, value]) => <div key={label}><dt>{label}</dt><dd>{value}</dd></div>)}</dl>
+        <p>Identical sends to the same recipient within 60 seconds are blocked automatically.</p>
+      </details>
     </div>
   );
 }
