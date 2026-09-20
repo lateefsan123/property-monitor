@@ -149,7 +149,7 @@ export default function LandingPage({
   onSubscribe,
 }) {
   const [openFaq, setOpenFaq] = useState(null);
-  const accountActionLabel = isAuthenticated ? "Sign out" : "Sign in";
+  const accountActionLabel = isAuthenticated ? "Sign out" : "Log in";
   const accountAction = isAuthenticated ? onSignOut : onSignIn;
   const heroCtaLabel = isAuthenticated
     ? checkoutPending
@@ -165,27 +165,18 @@ export default function LandingPage({
 
   return (
     <div className="landing">
-      <header className="landing-header">
-        <a className="landing-brand" href="/" aria-label="Repeat AI home">
-          <img
-            src="/brand/repeat-ai-logo.png"
-            alt="Repeat AI"
-            className="landing-brand-logo"
-            width="140"
-            height="25"
-          />
-        </a>
-        <nav className="landing-nav">
-          <a href="#pricing">Pricing</a>
-          <a href="/api/desktop/download">Windows app</a>
-          <button type="button" className="landing-nav-link" onClick={accountAction}>
-            {accountActionLabel}
-          </button>
-          <button type="button" className="landing-cta landing-cta-sm" onClick={heroCtaAction}>
-            {heroCtaLabel}
-          </button>
-        </nav>
-      </header>
+      <div className="landing-header-frame">
+        <header className="landing-header">
+          <a className="landing-brand" href="/" aria-label="Repeat AI home">
+            <img src="/brand/repeat-ai-logo.png" alt="Repeat AI" className="landing-brand-logo" width="140" height="25" />
+          </a>
+          <nav className="landing-nav" aria-label="Account">
+            <button type="button" className="landing-nav-link" onClick={accountAction}>
+              {accountActionLabel}
+            </button>
+          </nav>
+        </header>
+      </div>
 
       <section className="landing-hero">
         <div className="landing-hero-copy">
