@@ -6,6 +6,7 @@
     "start": "remotion studio src/index.ts",
     "render": "remotion render src/index.ts SellerSignal out/seller-signal.mp4",
     "render:repeat-ai": "remotion render src/index.ts RepeatAIExplainer out/repeat-ai-explainer.mp4",
+    "render:repeat-ai-v2": "remotion render src/index.ts RepeatAIExplainerV2 out/repeat-ai-explainer-v2-visual-master.mp4",
     "build": "remotion bundle"
   },
   "dependencies": {

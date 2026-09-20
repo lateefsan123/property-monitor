@@ -4,6 +4,10 @@ import {
   RepeatAIExplainer,
   REPEAT_AI_DURATION_IN_FRAMES,
 } from "./RepeatAIExplainer";
+import {
+  RepeatAIExplainerV2,
+  REPEAT_AI_V2_DURATION_IN_FRAMES,
+} from "./RepeatAIExplainerV2";
 
 export const Root: React.FC = () => {
   return (
@@ -20,6 +24,14 @@ export const Root: React.FC = () => {
         id="RepeatAIExplainer"
         component={RepeatAIExplainer}
         durationInFrames={REPEAT_AI_DURATION_IN_FRAMES}
+        fps={FPS}
+        width={WIDTH}
+        height={HEIGHT}
+      />
+      <Composition
+        id="RepeatAIExplainerV2"
+        component={RepeatAIExplainerV2}
+        durationInFrames={REPEAT_AI_V2_DURATION_IN_FRAMES}
         fps={FPS}
         width={WIDTH}
         height={HEIGHT}
