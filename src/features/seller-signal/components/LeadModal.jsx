@@ -1,11 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import {
   IconBrandWhatsapp,
-  IconChartBar,
-  IconMessage,
-  IconNotes,
-  IconShieldCheck,
-  IconUser,
   IconX,
 } from "@tabler/icons-react";
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
@@ -17,15 +12,13 @@ import {
   MessagePanel,
   NotesPanel,
   OverviewPanel,
-  DataQualityPanel,
 } from "./LeadModalPanels";
 
 const SECTIONS = [
-  { id: "overview", label: "Overview", Icon: IconUser },
-  { id: "quality", label: "Data quality", Icon: IconShieldCheck },
-  { id: "market", label: "Market data", Icon: IconChartBar },
-  { id: "message", label: "Message", Icon: IconMessage },
-  { id: "notes", label: "Notes", Icon: IconNotes },
+  { id: "overview", label: "Overview" },
+  { id: "market", label: "Market data" },
+  { id: "message", label: "Message" },
+  { id: "notes", label: "Notes" },
 ];
 
 export default function LeadModal({
@@ -177,36 +170,29 @@ export default function LeadModal({
           </div>
         ) : (
           <>
-            <div className="lead-detail-body">
-              <ul className="lead-detail-sections" role="tablist">
-                {SECTIONS.map((section) => {
-                  const Icon = section.Icon;
-                  const active = activeSection === section.id;
-                  return (
-                    <li key={section.id}>
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={active}
-                        className={`lead-detail-section${active ? " active" : ""}`}
-                        onClick={() => setActiveSection(section.id)}
-                      >
-                        <span className="lead-detail-section-icon">
-                          <Icon size={18} stroke={1.8} aria-hidden="true" />
-                        </span>
-                        <span className="lead-detail-section-label">{section.label}</span>
-                      </button>
-                    </li>
-                  );
-                })}
-              </ul>
+            <ul className="lead-detail-sections" role="tablist" aria-label="Seller details">
+              {SECTIONS.map((section) => {
+                const active = activeSection === section.id;
+                return (
+                  <li key={section.id}>
+                    <button
+                      type="button"
+                      role="tab"
+                      aria-selected={active}
+                      className={`lead-detail-section${active ? " active" : ""}`}
+                      onClick={() => setActiveSection(section.id)}
+                    >
+                      {section.label}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
 
+            <div className="lead-detail-body">
               <div className="lead-detail-content">
                 {activeSection === "overview" && (
                   <OverviewPanel lead={lead} bedroomLabel={bedroomLabel} unitLabel={unitLabel} />
-                )}
-                {activeSection === "quality" && (
-                  <DataQualityPanel lead={lead} />
                 )}
                 {activeSection === "market" && (
                   <MarketPanel insight={insight} lead={lead} />

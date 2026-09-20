@@ -86,8 +86,7 @@
 }
 
 .lead-detail-body {
-  display: grid;
-  grid-template-columns: 200px 1fr;
+  display: block;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -102,64 +101,44 @@
 .lead-detail-sections {
   list-style: none;
   margin: 0;
-  padding: 12px;
+  padding: 0 18px;
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  border-right: 1px solid var(--bg-card-border);
+  align-items: center;
+  gap: 28px;
+  border-bottom: 1px solid var(--bg-card-border);
   background: var(--bg-card);
-  overflow-y: auto;
+  overflow-x: auto;
+  flex-shrink: 0;
 }
 
 .lead-detail-section {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  padding: 9px 10px;
-  border-radius: 8px;
-  border: none;
+  display: block;
+  width: auto;
+  padding: 12px 0 10px;
+  border: 0;
+  border-bottom: 2px solid transparent;
   background: transparent;
-  color: var(--text);
-  text-align: left;
+  color: var(--text-faint);
   cursor: pointer;
   font: inherit;
-  font-weight: 500;
-  font-size: 0.9rem;
-  transition: background 0.12s;
+  font-weight: 600;
+  font-size: 0.82rem;
+  white-space: nowrap;
+  transition: border-color 0.12s, color 0.12s;
 }
 
-.lead-detail-section:hover,
+.lead-detail-section:hover {
+  color: var(--text);
+}
+
 .lead-detail-section.active {
-  background: var(--bg-card-border);
-}
-
-.lead-detail-section-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  border: 1px solid var(--bg-card-border);
-  background: var(--bg-hover);
-  color: var(--text-muted);
-  flex-shrink: 0;
-  transition: background 0.12s, color 0.12s;
-}
-
-.lead-detail-section:hover .lead-detail-section-icon,
-.lead-detail-section.active .lead-detail-section-icon {
-  background: var(--bg-card);
+  border-bottom-color: var(--text-name);
   color: var(--text-name);
 }
 
-.lead-detail-section-label {
-  flex: 1;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.lead-detail-section:focus-visible {
+  outline: 2px solid var(--text-name);
+  outline-offset: 3px;
 }
 
 .lead-detail-content {
@@ -246,6 +225,13 @@
 
 .lead-detail-cell-due {
   color: var(--error-text);
+}
+
+.lead-detail-quality-notice {
+  margin: 0;
+  color: var(--text-faint);
+  font-size: 0.78rem;
+  line-height: 1.45;
 }
 
 .lead-detail-notes {
@@ -366,27 +352,18 @@
   }
 
   .lead-detail-body {
-    grid-template-columns: 1fr;
+    display: block;
   }
 
   .lead-detail-sections {
-    flex-direction: row;
     flex-wrap: nowrap;
-    overflow-x: auto;
-    border-right: none;
-    border-bottom: 1px solid var(--bg-card-border);
-    padding: 8px;
-    gap: 6px;
+    padding: 0 14px;
+    gap: 20px;
   }
 
   .lead-detail-section {
     flex: 0 0 auto;
-    padding: 6px 10px;
-  }
-
-  .lead-detail-section-icon {
-    width: 24px;
-    height: 24px;
+    padding: 11px 0 9px;
   }
 
   .lead-detail-grid {

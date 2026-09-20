@@ -157,6 +157,7 @@ export function LeadEditForm({ draft, isDeleting, isSaving, onCancel, onChange, 
 
 export function OverviewPanel({ lead, bedroomLabel, unitLabel }) {
   const chips = [bedroomLabel, unitLabel].filter(Boolean);
+  const issues = (lead.dataQuality?.issues || []).filter((issue) => issue.id !== "legacy_source");
   return (
     <div className="lead-detail-panel">
       <div className="lead-detail-panel-head">
@@ -190,6 +191,11 @@ export function OverviewPanel({ lead, bedroomLabel, unitLabel }) {
           </span>
         </div>
       </div>
+      {issues.length > 0 && (
+        <p className="lead-detail-quality-notice" role="status">
+          {issues.map((issue) => issue.label).join(" · ")}
+        </p>
+      )}
     </div>
   );
 }
