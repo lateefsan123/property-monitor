@@ -9,13 +9,12 @@ import {
 import {
   ActivityTimeline,
   ExternalLinkIcon,
-  Eyebrow,
   PriceChart,
   PriceDeltaChip,
   StatStrip,
 } from "./ListingDetailParts";
 
-const HERO_HEIGHT = 320;
+import '../../../styles/listing-detail-chart-first.css';
 
 const DETAIL_TABS = [
   { id: "overview", label: "Overview" },
@@ -42,30 +41,25 @@ export default function ListingDetailPage({
   const lastSeenAt = listing.lastSeenAt || listing.removedAt || listing.lastVerifiedAt || listing.verifiedAt || null;
   const daysTracked = daysBetween(firstSeenAt, lastSeenAt || new Date().toISOString());
 
-  const bedsBaths = formatBedsAndBaths(listing.beds, listing.baths);
+  const bedsBaths = formatBedsAndBaths(listing.beds, listing.baths).replace(' | ', ' · ');
   const area = formatArea(listing.areaSqft);
-  const eyebrowBits = [
-    autoTracking ? "Auto-tracked unit" : (isTracked ? "Tracked unit" : "Live unit"),
-    listing.community || listing.cluster || null,
-    bedsBaths,
-  ].filter(Boolean);
   const reversedHistory = (listing.priceHistory || []).slice().reverse();
   const hasCover = Boolean(listing.coverPhoto);
 
   return (
-    <div className="ld-page">
+    <div className="ld-page ld-chart-first">
       <div className="ld-scroll">
+        <header className="ld-summary">
         {hasCover ? (
-          <div className="ld-hero" style={{ height: HERO_HEIGHT }}>
+          <div className="ld-hero">
             <img className="ld-hero-img" src={listing.coverPhoto} alt="" />
-            <div className="ld-hero-fade-bottom" />
           </div>
         ) : null}
 
-        <div className={`ld-heading${hasCover ? " overlap" : ""}`}>
-          <Eyebrow>{eyebrowBits.join("  ·  ")}</Eyebrow>
+        <div className="ld-heading">
           <h1 className="ld-title">{listing.buildingName || "Untitled building"}</h1>
-          <div className="ld-area">{area}</div>
+          <div className="ld-area">{[bedsBaths, area].filter(Boolean).join(' · ')}</div>
+        </div>
 
           <div className="ld-actions">
             {!autoTracking ? (
@@ -84,27 +78,40 @@ export default function ListingDetailPage({
               </button>
             ) : null}
           </div>
-        </div>
+        </header>
 
+        <div className="ld-price-toolbar">
         <div className="ld-price-hero">
-          <Eyebrow>{isRemoved ? "Last known price" : "Current valuation"}</Eyebrow>
+          {isRemoved ? <span className="ld-removed-note">Off market · Last known price</span> : null}
           <div className="ld-price-row">
             <div className="ld-price-value">
               {isRemoved ? formatPrice(lastKnownPrice) : formatPrice(currentPrice)}
             </div>
             {!isRemoved ? <PriceDeltaChip priceDelta={listing.priceDelta} /> : null}
-          </div>
           {Number.isFinite(listing.previousPrice) && !isRemoved ? (
-            <div className="ld-price-prev">{`Previously ${formatPrice(listing.previousPrice)}`}</div>
+            <s className="ld-price-prev" aria-label={`Previous price ${formatPrice(listing.previousPrice)}`}>{formatPrice(listing.previousPrice)}</s>
           ) : null}
+          </div>
         </div>
 
         <div className="ld-tabs-wrap">
-          <div className="tabs ld-tabs">
+          <div className="ld-tabs" role="tablist" aria-label="Listing history">
             {DETAIL_TABS.map((tab) => (
               <button
                 key={tab.id}
                 type="button"
+                role="tab"
+                id={`listing-tab-${tab.id}`}
+                aria-selected={activeTab === tab.id}
+                aria-controls="listing-history-panel"
+                tabIndex={activeTab === tab.id ? 0 : -1}
+                onKeyDown={(event) => {
+                  if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+                  event.preventDefault();
+                  const next = event.key === "Home" ? "overview" : event.key === "End" ? "activity" : activeTab === "overview" ? "activity" : "overview";
+                  setActiveTab(next);
+                  event.currentTarget.parentElement.querySelector(`#listing-tab-${next}`)?.focus();
+                }}
                 className={`tab${activeTab === tab.id ? " active" : ""}`}
                 onClick={() => setActiveTab(tab.id)}
               >
@@ -113,14 +120,18 @@ export default function ListingDetailPage({
             ))}
           </div>
         </div>
+        </div>
 
+        <div id="listing-history-panel" role="tabpanel" aria-labelledby={`listing-tab-${activeTab}`}>
         {activeTab === "overview" ? (
-          <>
             <div className="ld-section ld-chart-section">
               <PriceChart priceHistory={listing.priceHistory} />
             </div>
-
-            <div className="ld-section">
+        ) : (
+          <div className="ld-section ld-activity">
+            <ActivityTimeline events={reversedHistory} isTracked={isTracked} />
+            <details className="ld-history-details">
+              <summary>Details</summary>
               <StatStrip
                 items={[
                   {
@@ -147,13 +158,10 @@ export default function ListingDetailPage({
                 <span>First seen {formatSyncTimestamp(firstSeenAt)}</span>
                 <span>Last seen {formatSyncTimestamp(lastSeenAt)}</span>
               </div>
-            </div>
-          </>
-        ) : (
-          <div className="ld-section ld-activity">
-            <ActivityTimeline events={reversedHistory} isTracked={isTracked} />
+            </details>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

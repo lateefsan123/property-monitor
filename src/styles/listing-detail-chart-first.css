@@ -1,0 +1,61 @@
+/* Approved concept C. Scoped to listing details; shared chips/cards stay unchanged. */
+.ld-chart-first { max-width: 1536px; background: var(--bg-card); }
+.app-main:has(.ld-chart-first) { background: var(--bg-card); }
+.ld-chart-first .ld-scroll { padding: 72px 4% 72px; }
+.ld-summary { display: flex; align-items: center; gap: 36px; padding-bottom: 32px; border-bottom: 1px solid var(--bg-card-border); }
+.ld-chart-first .ld-hero { flex: 0 0 24%; aspect-ratio: 1.84; border-radius: 5px; }
+.ld-chart-first .ld-heading { padding: 0; gap: 16px; min-width: 0; }
+.ld-chart-first .ld-title { font-size: clamp(28px, 3.1vw, 48px); font-weight: 750; letter-spacing: -.045em; overflow-wrap: anywhere; }
+.ld-chart-first .ld-area { font-size: clamp(14px, 1.5vw, 23px); color: var(--text-muted); letter-spacing: 0; }
+.ld-chart-first .ld-actions { margin: 0 0 0 auto; flex-shrink: 0; }
+.ld-chart-first .ld-actions .btn-sm { padding: 15px 22px; gap: 12px; background: transparent; border: 1px solid var(--text-faint); border-radius: 4px; color: var(--text-name); font: inherit; font-size: 20px; cursor: pointer; }
+.ld-chart-first .ld-actions svg { width: 21px; height: 21px; }
+.ld-price-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 40px 0 48px; }
+.ld-chart-first .ld-price-hero { padding: 0; }
+.ld-chart-first .ld-price-row { align-items: center; gap: 28px; }
+.ld-chart-first .ld-price-value { font-size: clamp(34px, 3.6vw, 56px); font-weight: 800; letter-spacing: -.055em; }
+.ld-chart-first .ld-delta-chip { font-size: 21px; padding: 11px 17px; gap: 9px; border-radius: 18px; font-weight: 650; }
+.ld-chart-first .ld-delta-chip svg { width: 20px; height: 20px; }
+.ld-chart-first .ld-price-prev { font-size: 22px; color: var(--text-muted); white-space: nowrap; }
+.ld-chart-first .ld-tabs-wrap { margin: 0; flex-shrink: 0; }
+.ld-chart-first .ld-tabs { display: flex; gap: 32px; }
+.ld-chart-first .ld-tabs .tab { border: 0; border-bottom: 2px solid transparent; padding: 12px 14px 16px; border-radius: 0; background: transparent; color: var(--text-muted); font-size: 21px; font-weight: 550; cursor: pointer; }
+.ld-chart-first .ld-tabs .tab.active { border-bottom-color: var(--text-name); color: var(--text-name); font-weight: 700; }
+.ld-chart-first button:focus-visible, .ld-history-details summary:focus-visible { outline: 2px solid var(--text-name); outline-offset: 5px; }
+.ld-chart-first .ld-section { margin: 0; }
+.ld-chart-first .ld-chart-section { padding: 0; }
+.ld-chart-first .ld-chart { border: 0; border-radius: 0; background: transparent; --listing-chart-line: #23445e; }
+:root[data-theme="dark"] .ld-chart-first .ld-chart { --listing-chart-line: #a6c5dd; }
+.ld-chart-first .ld-chart-body { height: 350px; padding: 0; }
+.ld-chart-first .ld-chart .recharts-cartesian-axis-tick-value { font-size: 16px; font-weight: 400; letter-spacing: 0; fill: var(--text-muted); }
+.ld-chart-first .ld-chart-dot { fill: var(--listing-chart-line); stroke: var(--bg-card); stroke-width: 1.5; }
+.ld-chart-first .ld-chart-dot.drop { fill: var(--badge-ok-text); }
+.ld-chart-first .ld-activity { padding: 0; gap: 28px; }
+.ld-history-details { color: var(--text-muted); }
+.ld-history-details summary { cursor: pointer; padding: 16px 0; width: fit-content; }
+.ld-removed-note { color: var(--text-muted); font-size: 14px; }
+@media (max-width: 1000px) {
+  .ld-chart-first .ld-scroll { padding-top: 36px; }
+  .ld-summary { gap: 24px; }
+  .ld-chart-first .ld-actions .btn-sm { font-size: 15px; padding: 12px; }
+  .ld-chart-first .ld-price-row { gap: 16px; }
+  .ld-chart-first .ld-delta-chip, .ld-chart-first .ld-price-prev, .ld-chart-first .ld-tabs .tab { font-size: 16px; }
+  .ld-chart-first .ld-tabs { gap: 12px; }
+}
+@media (max-width: 640px) {
+  .ld-chart-first .ld-scroll { padding: 24px 18px 40px; }
+  .ld-summary { flex-wrap: wrap; gap: 18px; padding-bottom: 24px; }
+  .ld-chart-first .ld-hero { flex-basis: 110px; aspect-ratio: 1.25; }
+  .ld-chart-first .ld-heading { flex: 1; gap: 9px; }
+  .ld-chart-first .ld-title { font-size: 26px; }
+  .ld-chart-first .ld-area { font-size: 13px; line-height: 1.6; }
+  .ld-chart-first .ld-actions { margin-left: 0; width: 100%; }
+  .ld-price-toolbar { align-items: flex-start; flex-direction: column; padding: 24px 0; gap: 20px; }
+  .ld-chart-first .ld-price-row { gap: 12px; }
+  .ld-chart-first .ld-price-value { font-size: 34px; }
+  .ld-chart-first .ld-delta-chip { font-size: 14px; padding: 8px 10px; }
+  .ld-chart-first .ld-price-prev { font-size: 15px; }
+  .ld-chart-first .ld-chart-body { height: 270px; }
+  .ld-chart-first .ld-chart .recharts-cartesian-axis-tick-value { font-size: 11px; }
+  .ld-chart-first .ld-stat-footnote { flex-wrap: wrap; padding-left: 0; }
+}

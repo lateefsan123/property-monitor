@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useId, useMemo } from "react";
 import {
   IconArrowDown,
   IconArrowLeft,
@@ -10,7 +10,6 @@ import {
   Area,
   AreaChart,
   CartesianGrid,
-  Line,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -101,7 +100,7 @@ function TimelineEvent({ event, isLast }) {
 }
 
 function formatChartDate(value) {
-  return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short" }).toUpperCase();
+  return new Date(value).toLocaleDateString("en-GB", { day: "numeric", month: "short" });
 }
 
 function parseChartTime(value) {
@@ -124,15 +123,14 @@ function PriceChartTooltip({ active, payload }) {
 
 function PriceChartDot({ cx, cy, payload, index, dataLength }) {
   if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
-  const isDrop = payload?.type === "price_drop";
-  const isRise = payload?.type === "price_increase";
-  const isEnd = index === 0 || index === dataLength - 1;
-  const className = isDrop ? "ld-chart-dot drop" : isRise ? "ld-chart-dot rise" : "ld-chart-dot";
+  const isEnd = index === dataLength - 1;
+  const className = isEnd && payload?.type === "price_drop" ? "ld-chart-dot drop" : "ld-chart-dot";
 
   return <circle cx={cx} cy={cy} r={isEnd ? 5 : 3.5} className={className} />;
 }
 
 export function PriceChart({ priceHistory }) {
+  const gradientId = useId();
   const chart = useMemo(() => {
     if (!Array.isArray(priceHistory)) return [];
     const points = priceHistory
@@ -215,29 +213,14 @@ export function PriceChart({ priceHistory }) {
   const lastTime = points[points.length - 1].t;
 
   return (
-    <div className="ld-chart">
-      <div className="ld-chart-header">
-        <div className="ld-chart-stat">
-          <Eyebrow>HIGH</Eyebrow>
-          <div className="ld-chart-stat-value">{formatPrice(chart.maxPrice)}</div>
-        </div>
-        <div className="ld-chart-stat center">
-          <Eyebrow>RANGE</Eyebrow>
-          <div className="ld-chart-stat-value">{formatPrice(chart.maxPrice - chart.minPrice)}</div>
-        </div>
-        <div className="ld-chart-stat end">
-          <Eyebrow>LOW</Eyebrow>
-          <div className="ld-chart-stat-value">{formatPrice(chart.minPrice)}</div>
-        </div>
-      </div>
-
+    <div className="ld-chart" role="region" aria-label="Price history">
       <div className="ld-chart-body">
-        <ResponsiveContainer width="100%" height={220}>
-          <AreaChart data={points} margin={{ top: 14, right: 18, bottom: 18, left: 18 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <AreaChart data={points} margin={{ top: 12, right: 18, bottom: 16, left: 0 }}>
             <defs>
-              <linearGradient id="listing-price-gradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="var(--stat-value)" stopOpacity={0.2} />
-                <stop offset="95%" stopColor="var(--stat-value)" stopOpacity={0.02} />
+              <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#91c6b8" stopOpacity={0.14} />
+                <stop offset="95%" stopColor="#91c6b8" stopOpacity={0.02} />
               </linearGradient>
             </defs>
             <CartesianGrid
@@ -249,8 +232,9 @@ export function PriceChart({ priceHistory }) {
               dataKey="t"
               type="number"
               domain={[firstTime, lastTime]}
-              ticks={[firstTime, lastTime]}
-              interval={0}
+              ticks={Array.from({ length: 6 }, (_, index) => firstTime + (lastTime - firstTime) * index / 5)}
+              minTickGap={35}
+              interval="preserveStartEnd"
               axisLine={false}
               tickLine={false}
               tickMargin={10}
@@ -261,7 +245,11 @@ export function PriceChart({ priceHistory }) {
               dataKey="price"
               type="number"
               domain={[chart.minY, chart.maxY]}
-              hide
+              width={88}
+              tickCount={3}
+              axisLine={false}
+              tickLine={false}
+              tickFormatter={formatPrice}
             />
             <Tooltip
               content={<PriceChartTooltip />}
@@ -269,18 +257,11 @@ export function PriceChart({ priceHistory }) {
               wrapperStyle={{ outline: "none" }}
             />
             <Area
-              type="monotone"
+              type="linear"
               dataKey="price"
-              stroke="none"
-              fill="url(#listing-price-gradient)"
-              isAnimationActive={false}
-              activeDot={false}
-            />
-            <Line
-              type="monotone"
-              dataKey="price"
-              stroke="var(--stat-value)"
-              strokeWidth={2.5}
+              stroke="var(--listing-chart-line, var(--stat-value))"
+              strokeWidth={2}
+              fill={`url(#${gradientId})`}
               dot={(props) => <PriceChartDot {...props} dataLength={points.length} />}
               activeDot={{ r: 6, stroke: "var(--bg-card)", strokeWidth: 2, fill: "var(--stat-value)" }}
               isAnimationActive={false}
