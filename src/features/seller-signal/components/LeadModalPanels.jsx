@@ -155,41 +155,31 @@ export function LeadEditForm({ draft, isDeleting, isSaving, onCancel, onChange, 
   );
 }
 
-export function OverviewPanel({ lead, bedroomLabel, unitLabel }) {
-  const chips = [bedroomLabel, unitLabel].filter(Boolean);
+export function OverviewPanel({ action, lead, bedroomLabel, unitLabel }) {
   const issues = (lead.dataQuality?.issues || []).filter((issue) => issue.id !== "legacy_source");
+  const facts = [
+    { label: "Unit", value: unitLabel?.replace(/^Unit\s+/i, "") || "—" },
+    { label: "Bedroom", value: bedroomLabel && bedroomLabel !== "N/A" ? bedroomLabel : "—" },
+    { label: "Status", value: lead.statusLabel || "Unknown" },
+    { label: "Follow-up", value: lead.dueLabel || "Never contacted", due: lead.isDue },
+  ];
+
   return (
-    <div className="lead-detail-panel">
-      <div className="lead-detail-panel-head">
-        <h3 className="lead-detail-panel-title">Overview</h3>
-        <p className="lead-detail-panel-subtitle">Contact info and pipeline status.</p>
-        {chips.length > 0 && (
-          <div className="lead-detail-chips">
-            {chips.map((chip) => (
-              <span key={chip} className="lead-detail-chip">{chip}</span>
-            ))}
-          </div>
-        )}
+    <div className="lead-detail-panel lead-overview">
+      <div className="lead-overview-primary">
+        <span className="lead-overview-phone">{lead.phone || "No phone number"}</span>
+        {action}
       </div>
-      <div className="lead-detail-grid">
-        <div className="lead-detail-cell">
-          <span className="lead-detail-cell-label">Status</span>
-          <span className="lead-detail-cell-value">{lead.statusLabel || "-"}</span>
-        </div>
-        <div className="lead-detail-cell">
-          <span className="lead-detail-cell-label">Phone</span>
-          <span className="lead-detail-cell-value">{lead.phone || "-"}</span>
-        </div>
-        <div className="lead-detail-cell">
-          <span className="lead-detail-cell-label">Last contact</span>
-          <span className="lead-detail-cell-value">{formatDate(lead.lastContactDate)}</span>
-        </div>
-        <div className="lead-detail-cell">
-          <span className="lead-detail-cell-label">Follow-up</span>
-          <span className={`lead-detail-cell-value ${lead.isDue ? "lead-detail-cell-due" : ""}`}>
-            {lead.dueLabel || "-"}
-          </span>
-        </div>
+
+      <div className="lead-overview-facts">
+        {facts.map((fact) => (
+          <div className="lead-overview-fact" key={fact.label}>
+            <span className="lead-overview-fact-label">{fact.label}</span>
+            <span className={`lead-overview-fact-value${fact.due ? " is-due" : ""}`}>
+              {fact.value}
+            </span>
+          </div>
+        ))}
       </div>
       {issues.length > 0 && (
         <p className="lead-detail-quality-notice" role="status">

@@ -143,7 +143,7 @@
 
 .lead-detail-content {
   overflow-y: auto;
-  padding: 18px 20px;
+  padding: 26px 24px;
   background: var(--bg-card);
 }
 
@@ -174,21 +174,72 @@
   line-height: 1.5;
 }
 
-.lead-detail-chips {
-  display: flex;
-  gap: 6px;
-  flex-wrap: wrap;
-  margin-top: 4px;
+.lead-overview {
+  gap: 0;
 }
 
-.lead-detail-chip {
-  display: inline-block;
-  padding: 3px 9px;
-  border-radius: 6px;
-  font-size: 0.78rem;
+.lead-overview-primary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid var(--bg-card-border);
+}
+
+.lead-overview-phone {
+  min-width: 0;
+  color: var(--text-name);
+  font-size: 1.3rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  overflow-wrap: anywhere;
+}
+
+.lead-overview-primary .lead-modal-wa-btn {
+  flex-shrink: 0;
+}
+
+.lead-overview-facts {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 20px 0;
+  border-bottom: 1px solid var(--bg-card-border);
+}
+
+.lead-overview-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+  padding: 0 18px;
+  border-left: 1px solid var(--bg-card-border);
+}
+
+.lead-overview-fact:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.lead-overview-fact:last-child {
+  padding-right: 0;
+}
+
+.lead-overview-fact-label {
+  color: var(--text-faint);
+  font-size: 0.72rem;
+  font-weight: 500;
+}
+
+.lead-overview-fact-value {
+  color: var(--text);
+  font-size: 0.88rem;
   font-weight: 600;
-  background: var(--bg-badge);
-  color: var(--text-badge);
+  overflow-wrap: anywhere;
+}
+
+.lead-overview-fact-value.is-due {
+  color: var(--error-text);
 }
 
 .lead-detail-grid {
@@ -228,7 +279,7 @@
 }
 
 .lead-detail-quality-notice {
-  margin: 0;
+  margin: 14px 0 0;
   color: var(--text-faint);
   font-size: 0.78rem;
   line-height: 1.45;
@@ -368,5 +419,30 @@
 
   .lead-detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .lead-detail-content {
+    padding: 20px 16px;
+  }
+
+  .lead-overview-primary {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .lead-overview-primary .lead-modal-wa-btn {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .lead-overview-facts {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 18px;
+  }
+
+  .lead-overview-fact:nth-child(3) {
+    padding-left: 0;
+    border-left: 0;
   }
 }

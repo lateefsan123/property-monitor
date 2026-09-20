@@ -119,6 +119,50 @@ export default function LeadModal({
 
   const initials = (lead.name || "?").trim().charAt(0).toUpperCase() || "?";
 
+  function renderWhatsAppAction() {
+    if (whatsappPhone && whatsappConnected) {
+      return (
+        <button
+          type="button"
+          className="lead-modal-wa-btn"
+          onClick={() => void onSendWhatsApp?.(lead.id, { imagePath: templateImagePath, message })}
+        >
+          <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
+          {isSent ? "Sent" : "Send via WhatsApp"}
+        </button>
+      );
+    }
+
+    if (whatsappUrl) {
+      return (
+        <a
+          className="lead-modal-wa-btn"
+          href={whatsappUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          onClick={() => { if (!isSent) void onToggleSent(lead.id); }}
+        >
+          <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
+          {isSent ? "Sent" : "Send via WhatsApp"}
+        </a>
+      );
+    }
+
+    return (
+      <button
+        type="button"
+        className="lead-modal-wa-btn lead-modal-wa-nophone"
+        onClick={() => {
+          void onCopyMessage(lead.id, message);
+          if (!isSent) void onToggleSent(lead.id);
+        }}
+      >
+        <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
+        {isSent ? "Sent" : copiedLeadId === lead.id ? "Copied!" : "Copy message"}
+      </button>
+    );
+  }
+
   return (
     <div className="lead-modal-backdrop" onClick={onClose}>
       <div
@@ -192,7 +236,12 @@ export default function LeadModal({
             <div className="lead-detail-body">
               <div className="lead-detail-content">
                 {activeSection === "overview" && (
-                  <OverviewPanel lead={lead} bedroomLabel={bedroomLabel} unitLabel={unitLabel} />
+                  <OverviewPanel
+                    action={renderWhatsAppAction()}
+                    lead={lead}
+                    bedroomLabel={bedroomLabel}
+                    unitLabel={unitLabel}
+                  />
                 )}
                 {activeSection === "market" && (
                   <MarketPanel insight={insight} lead={lead} />
@@ -221,41 +270,9 @@ export default function LeadModal({
               </div>
             </div>
 
-            <div className="lead-detail-footer">
-              {whatsappPhone && whatsappConnected ? (
-                <button
-                  type="button"
-                  className="lead-modal-wa-btn"
-                  onClick={() => void onSendWhatsApp?.(lead.id, { imagePath: templateImagePath, message })}
-                >
-                  <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
-                  {isSent ? "Sent" : "Send via WhatsApp"}
-                </button>
-              ) : whatsappUrl ? (
-                <a
-                  className="lead-modal-wa-btn"
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  onClick={() => { if (!isSent) void onToggleSent(lead.id); }}
-                >
-                  <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
-                  {isSent ? "Sent" : "Send via WhatsApp"}
-                </a>
-              ) : (
-                <button
-                  type="button"
-                  className="lead-modal-wa-btn lead-modal-wa-nophone"
-                  onClick={() => {
-                    void onCopyMessage(lead.id, message);
-                    if (!isSent) void onToggleSent(lead.id);
-                  }}
-                >
-                  <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
-                  {isSent ? "Sent" : copiedLeadId === lead.id ? "Copied!" : "Copy message"}
-                </button>
-              )}
-            </div>
+            {activeSection !== "overview" && (
+              <div className="lead-detail-footer">{renderWhatsAppAction()}</div>
+            )}
           </>
         )}
       </div>
