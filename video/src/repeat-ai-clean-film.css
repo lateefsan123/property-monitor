@@ -1,0 +1,12 @@
+/* Scoped presentation styles; real product panels, enlarged for video readability.
+   Mirrors app-shell.css and lead-detail-modal.css. No app files are changed. */
+.repeat-clean-film .lead-detail-panel {display:flex;flex-direction:column;gap:18px;color:#1e293b;}
+.repeat-clean-film .lead-detail-panel-head {display:none;}
+.repeat-clean-film .bayut-row {display:none;}
+.repeat-clean-film .tx-table-title {font-size:17px;font-weight:600;margin:4px 0 26px;}
+.repeat-clean-film .tx-table {width:100%;border-collapse:collapse;font-size:16px;}
+.repeat-clean-film .tx-table th {font-size:11px;font-weight:600;color:#64748b;text-align:left;padding:13px 8px;background:#fcfcfc;border-bottom:1px solid #e8e8e8;}
+.repeat-clean-film .tx-table td {padding:24px 8px;border-bottom:1px solid #e8e8e8;line-height:1.5;}
+.repeat-clean-film .tx-table th:first-child,.repeat-clean-film .tx-table td:first-child {display:none;}
+.repeat-clean-film .tx-price {font-weight:600;white-space:nowrap;}
+.repeat-clean-film .lead-message-editor {box-sizing:border-box;width:100%;height:238px;resize:none;border:1px solid #e8e8e8;border-radius:8px;background:white;color:#334155;font:19px/1.45 Arial,sans-serif;padding:19px;outline:none;}
