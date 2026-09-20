@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from "react";
 import {
   IconArrowLeft,
   IconLink,
-  IconPhoto,
+  IconFileSpreadsheet,
   IconPlus,
   IconX,
 } from "@tabler/icons-react";
-import { downloadAsXlsx, extractTableFromImages } from "../image-to-sheet";
+import { parseSpreadsheetFile } from "../file-import";
 import { previewSheetBuildings } from "../lead-import-services";
 
 function UrlTab({ onSubmit, submitting, onClose, maxSelections }) {
@@ -128,141 +128,57 @@ function UrlTab({ onSubmit, submitting, onClose, maxSelections }) {
   );
 }
 
-function PictureTab() {
-  const inputRef = useRef(null);
-  const [files, setFiles] = useState([]);
-  const [filename, setFilename] = useState("extracted");
-  const [preview, setPreview] = useState(null);
-  const [status, setStatus] = useState("");
+function FileTab({ onImportFile, onClose, submitting, onBusyChange }) {
+  const [file, setFile] = useState(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const lock = useRef(false);
 
-  function handleFilesSelected(list) {
-    const picked = Array.from(list || []).filter((f) => f.type.startsWith("image/"));
-    setFiles(picked);
-    setPreview(null);
-    setError("");
-    setStatus(picked.length ? `${picked.length} screenshot${picked.length === 1 ? "" : "s"} ready.` : "");
-  }
-
-  async function handleExtract() {
-    if (!files.length) return;
+  async function handleImport(event) {
+    event.preventDefault();
+    if (!file || lock.current || submitting) return;
+    lock.current = true;
     setBusy(true);
+    onBusyChange(true);
     setError("");
-    setStatus("Reading screenshots with AI. This can take 20-60 seconds...");
     try {
-      const result = await extractTableFromImages(files);
-      setPreview(result);
-      setStatus(`Detected ${result.rows.length} row${result.rows.length === 1 ? "" : "s"} across ${result.headers.length} columns.`);
+      const rows = await parseSpreadsheetFile(file);
+      if (await onImportFile(file, rows)) onClose();
     } catch (err) {
-      setError(err.message || "Could not extract table.");
-      setStatus("");
+      setError(err.message || "Could not import this file.");
     } finally {
+      lock.current = false;
       setBusy(false);
+      onBusyChange(false);
     }
   }
-
-  async function handleDownload() {
-    if (!preview) return;
-    try {
-      await downloadAsXlsx(preview, { filename: filename || "extracted", sheetName: filename || "Sheet1" });
-    } catch (err) {
-      setError(err.message || "Could not build .xlsx file.");
-    }
-  }
-
-  function handleReset() {
-    setFiles([]);
-    setPreview(null);
-    setStatus("");
-    setError("");
-    if (inputRef.current) inputRef.current.value = "";
-  }
-
-  const previewHeaders = preview?.headers || [];
-  const previewRows = preview?.rows || [];
-  const truncatedRows = previewRows.slice(0, 10);
 
   return (
-    <div className="new-sheet-picture">
-      <p className="new-sheet-picture-hint">
-        Upload one or more screenshots of a spreadsheet. We OCR the tables and give you a downloadable .xlsx file.
-      </p>
-
+    <form className="new-sheet-form" onSubmit={handleImport}>
+      <p className="new-sheet-picture-hint">Import sellers from Excel or CSV. One worksheet, up to 10 MB.</p>
       <div className="screenshot-panel-controls">
-        <input
-          ref={inputRef}
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={(e) => handleFilesSelected(e.target.files)}
-          disabled={busy}
-        />
-        <input
-          type="text"
-          className="screenshot-panel-filename"
-          value={filename}
-          onChange={(e) => setFilename(e.target.value)}
-          placeholder="Filename"
-          disabled={busy}
-        />
-        <button
-          type="button"
-          className="sheet-add-btn"
-          disabled={!files.length || busy}
-          onClick={handleExtract}
-        >
-          {busy ? "Extracting..." : "Extract"}
+        <input type="file" accept=".xlsx,.xls,.csv" aria-label="Choose spreadsheet"
+          disabled={busy || submitting} onChange={(event) => {
+            setFile(event.target.files?.[0] || null);
+            setError("");
+          }} />
+        <button type="submit" className="sheet-add-btn" disabled={!file || busy || submitting}>
+          {busy || submitting ? "Importing..." : "Import"}
         </button>
-        <button
-          type="button"
-          className="sheet-add-btn"
-          disabled={!preview || busy}
-          onClick={handleDownload}
-        >
-          Download .xlsx
-        </button>
-        {(files.length > 0 || preview) && !busy && (
-          <button type="button" className="source-row-clear" onClick={handleReset}>
-            Reset
-          </button>
-        )}
       </div>
-
-      {status && <div className="source-row-feedback source-row-feedback-notice" role="status">{status}</div>}
       {error && <div className="source-row-feedback source-row-feedback-error" role="alert">{error}</div>}
-
-      {preview && previewHeaders.length > 0 && (
-        <div className="screenshot-preview">
-          <div className="screenshot-preview-title">
-            Preview ({truncatedRows.length} of {previewRows.length} rows)
-          </div>
-          <div className="screenshot-preview-scroll">
-            <table>
-              <thead>
-                <tr>{previewHeaders.map((h, i) => <th key={i}>{h}</th>)}</tr>
-              </thead>
-              <tbody>
-                {truncatedRows.map((row, ri) => (
-                  <tr key={ri}>
-                    {previewHeaders.map((_, ci) => <td key={ci}>{row[ci] ?? ""}</td>)}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
-    </div>
+    </form>
   );
 }
 
-export default function NewSpreadsheetModal({ onClose, onSubmit, submitting, maxSelections = 10 }) {
+export default function NewSpreadsheetModal({ onClose, onSubmit, onImportFile, submitting, maxSelections = 10 }) {
   const [mode, setMode] = useState(null);
+  const [fileBusy, setFileBusy] = useState(false);
+  const locked = submitting || fileBusy;
 
   useEffect(() => {
     function handleKey(event) {
-      if (event.key === "Escape") onClose?.();
+      if (event.key === "Escape" && !locked) onClose?.();
     }
     document.addEventListener("keydown", handleKey);
     document.body.style.overflow = "hidden";
@@ -270,16 +186,16 @@ export default function NewSpreadsheetModal({ onClose, onSubmit, submitting, max
       document.removeEventListener("keydown", handleKey);
       document.body.style.overflow = "";
     };
-  }, [onClose]);
+  }, [onClose, locked]);
 
   const title = mode === "url"
     ? "From a Google Sheet URL"
-    : mode === "picture"
-      ? "From a spreadsheet picture"
+    : mode === "file"
+      ? "Import Excel (.xlsx)"
       : "Add a spreadsheet";
 
   return (
-    <div className="lead-modal-backdrop" onClick={onClose}>
+    <div className="lead-modal-backdrop" onClick={locked ? undefined : onClose}>
       <div
         className="lead-modal new-sheet-modal"
         onClick={(event) => event.stopPropagation()}
@@ -290,6 +206,7 @@ export default function NewSpreadsheetModal({ onClose, onSubmit, submitting, max
               <button
                 type="button"
                 className="new-sheet-back"
+                disabled={locked}
                 onClick={() => setMode(null)}
                 aria-label="Back"
               >
@@ -298,7 +215,7 @@ export default function NewSpreadsheetModal({ onClose, onSubmit, submitting, max
             )}
             <h2 className="lead-modal-name">{title}</h2>
           </div>
-          <button type="button" className="lead-modal-close" onClick={onClose} aria-label="Close">
+          <button type="button" className="lead-modal-close" onClick={onClose} disabled={locked} aria-label="Close">
             <IconX className="icon" size={16} stroke={2} aria-hidden="true" />
           </button>
         </div>
@@ -322,14 +239,14 @@ export default function NewSpreadsheetModal({ onClose, onSubmit, submitting, max
               <button
                 type="button"
                 className="new-sheet-choice-card"
-                onClick={() => setMode("picture")}
+                onClick={() => setMode("file")}
               >
                 <span className="new-sheet-choice-icon" aria-hidden>
-                  <IconPhoto size={22} stroke={1.8} aria-hidden="true" />
+                  <IconFileSpreadsheet size={22} stroke={1.8} aria-hidden="true" />
                 </span>
                 <span className="new-sheet-choice-text">
-                  <span className="new-sheet-choice-title">Picture to spreadsheet</span>
-                  <span className="new-sheet-choice-desc">Upload a screenshot and we&rsquo;ll OCR the table.</span>
+                  <span className="new-sheet-choice-title">Import Excel (.xlsx)</span>
+                  <span className="new-sheet-choice-desc">Upload an Excel or CSV file.</span>
                 </span>
               </button>
             </div>
@@ -339,7 +256,7 @@ export default function NewSpreadsheetModal({ onClose, onSubmit, submitting, max
             <UrlTab onSubmit={onSubmit} submitting={submitting} onClose={onClose} maxSelections={maxSelections} />
           )}
 
-          {mode === "picture" && <PictureTab />}
+          {mode === "file" && <FileTab onImportFile={onImportFile} onClose={onClose} submitting={submitting} onBusyChange={setFileBusy} />}
         </div>
       </div>
     </div>

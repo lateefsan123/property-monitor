@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { replaceUserLeadsFromRows } from "./lead-import-services";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   clearLeadsForSource,
@@ -112,6 +113,8 @@ async function fetchSellerSources(userId) {
 
 export function useSpreadsheetsPage(userId) {
   const queryClient = useQueryClient();
+  const pendingFileSource = useRef(null);
+  const fileImportBusy = useRef(false);
   const legacySheetStorageKey = userId ? `seller-signal:legacy-sheet-url:${userId}` : null;
 
   const [actionError, setActionError] = useState(null);
@@ -255,6 +258,42 @@ export function useSpreadsheetsPage(userId) {
     }
   }
 
+  async function importFile(file, rawRows) {
+    if (fileImportBusy.current) return false;
+    if (!userId) throw new Error("Sign in required.");
+    fileImportBusy.current = true;
+    setAddingSource(true);
+    setActionError(null);
+    setActionNotice(null);
+    try {
+      const key = `${userId}:${file.name}:${file.size}:${file.lastModified}`;
+      if (pendingFileSource.current?.key !== key) {
+        if (!canAddSource) throw new Error("You can have up to 10 spreadsheets.");
+        const source = await createLeadSource(userId, {
+          label: file.name.replace(/\.(xlsx|xls|csv)$/i, ""),
+          sheet_url: null,
+          sort_order: getNextLeadSourceSortOrder(leadSources),
+        });
+        pendingFileSource.current = { key, source };
+      }
+      const { source } = pendingFileSource.current;
+      setImportingSourceId(source.id);
+      const result = await replaceUserLeadsFromRows({ userId, source, rawRows });
+      pendingFileSource.current = null;
+      setActionNotice(formatImportNotice(source, result));
+      return true;
+    } finally {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) }),
+        queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) }),
+      ]);
+      queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
+      setImportingSourceId(null);
+      setAddingSource(false);
+      fileImportBusy.current = false;
+    }
+  }
+
   async function saveLeadSource(sourceId, fields) {
     const source = leadSources.find((item) => item.id === sourceId);
     if (!source) return;
@@ -384,6 +423,7 @@ export function useSpreadsheetsPage(userId) {
     legacyNotice: legacyFeedback.notice,
     legacyError: legacyFeedback.error,
     actions: {
+      importFile,
       addSource,
       clearSource,
       importFromSheet,

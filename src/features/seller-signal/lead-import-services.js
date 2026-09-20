@@ -196,6 +196,10 @@ async function fetchSheetRows(rawSheetUrl) {
 
   const csvText = await response.text();
   const rawRows = parseCsvText(csvText);
+  return mapImportRows(rawRows);
+}
+
+async function mapImportRows(rawRows) {
   const { headers, records } = rowsToObjects(rawRows);
   if (!headers.length) throw new Error("Sheet has no header row.");
 
@@ -347,6 +351,17 @@ export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
 
 export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }) {
   const { mapping, records } = await fetchSheetRows(rawSheetUrl || source?.sheet_url);
+  return importUserLeadRecords({ userId, source, mapping, records });
+}
+
+export async function replaceUserLeadsFromRows({ userId, source, rawRows }) {
+  const { mapping, records } = await mapImportRows(rawRows);
+  return importUserLeadRecords({ userId, source, mapping, records });
+}
+
+async function importUserLeadRecords({ userId, source, mapping, records }) {
+  if (!userId) throw new Error("Sign in required.");
+  if (source?.user_id !== userId) throw new Error("Choose a spreadsheet owned by your account.");
   const selectedBuildings = Array.isArray(source?.selected_buildings) ? source.selected_buildings : [];
   const selectedBuildingSet = new Set(selectedBuildings);
   const importRecords = selectedBuildingSet.size && mapping.building

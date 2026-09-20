@@ -751,6 +751,7 @@ export default function SpreadsheetsPage({ userId }) {
         <NewSpreadsheetModal
           onClose={() => setNewSheetOpen(false)}
           onSubmit={handleCreateFromUrl}
+          onImportFile={page.actions.importFile}
           submitting={page.addingSource || Boolean(page.importingSourceId)}
           maxSelections={page.remainingSourceSlots}
         />
