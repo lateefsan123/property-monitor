@@ -15,12 +15,12 @@ Status: planning deliverable, not a new finished video. Eight rendered keyframes
 | Time | Product point / action | Voiceover | Continuity into next shot |
 | --- | --- | --- | --- |
 | 00–04 | Broker, scattered spreadsheet row, listing and notes. Establish the daily problem immediately. | Your sellers. Your spreadsheets. A market that never stops. | Sara's loose row moves into the import surface; no fade to blank. |
-| 04–10 | Existing spreadsheet becomes the seller pipeline. Keep Sara highlighted. | Repeat AI brings your seller pipeline together. Import your spreadsheet and keep every seller organised. | Preserve Sara and Marina Tower as the visual anchors. |
+| 04–10 | Multiple named spreadsheet sources collect into one organised workspace and seller pipeline. Keep Sara highlighted. | Keep all your spreadsheets together. Bring your sellers into one organised workspace. | Preserve Sara and Marina Tower as the visual anchors. |
 | 10–16 | Show watched-building listings, price drops and status changes. One asking price changes from AED 2.6M to AED 2.47M. | Monitor listings and price changes in the buildings you cover. | Carry the building name into the seller's market-data view. Do not depict a price drop as a completed transaction. |
 | 16–22 | Sara's market-data panel shows a separate recent sale: 2 bed, 1,410 sq ft, AED 2.4M. | See recent sales in their building, so your follow-up has a reason. | The exact transaction line moves into a message template. |
 | 22–28 | Message template populated for Sara; broker edits/reviews the closing and clicks Send via WhatsApp. Connected account is shown. | Personalise your template. Then send through your connected WhatsApp. | The same text becomes the outgoing chat bubble; no retyping the whole message. |
 | 28–36 | WhatsApp close-up. Message already mostly read in previous shot; seller example reply enters near 34s. | A relevant update. A more useful conversation. | Audio narration ends early in this beat to give room for reading. Music continues; never cut to silence. |
-| 36–42 | Broker manually adds a note to Sara's record; show existing status, last contact and follow-up information. | Keep notes, seller status and follow-ups together. Pick up where you left off. | Seller card folds/shrinks away to reveal the original broker. |
+| 36–42 | Automatic WhatsApp follow-up with saved template, eligible seller and relevant market context. Large proposed daily-cap benefit. | PROPOSED, NOT RELEASE-READY: Automate up to fifty seller follow-ups a day. Keep your pipeline moving. | Automation panel folds away to reveal the original broker. |
 | 42–48 | Suited broker; Repeat AI wordmark, benefit and Get started CTA. | Less admin. More informed follow-ups. Repeat AI. Seller follow-up, done properly. | End in a deliberate short CTA hold, music resolved/faded. |
 
 ## Exact WhatsApp text
@@ -50,6 +50,12 @@ Show Sara's header, Today separator, small timestamps and understated delivery t
 - Render narration only after the sequence is established. If a line overruns, shorten copy rather than create dead air elsewhere or unnaturally speed it up.
 
 ## Product evidence and limits
+
+### Daily automation claim — unresolved implementation mismatch
+
+User requested “automate up to 50 seller follow-ups a day.” Included as explicitly proposed storyboard copy, not a verified current capacity. `supabase/migrations/20260723173244_increase_auto_whatsapp_daily_cap_to_50.sql` defines a maximum of 50 per user per Dubai day and schedules a 50-cap request. However, the current `supabase/functions/seller-signal-auto-whatsapp/index.ts` sets `DEFAULT_DAILY_CAP = 40` (line 17) and clamps requested/environment values with `Math.min(DEFAULT_DAILY_CAP, ...)` (line 948). A configured 50 therefore does not override this worker's hard ceiling. No live deployment verification or settings/code change was performed. Before recording final numeric copy or publishing, reconcile this discrepancy. Safe interim copy is “Automate your daily seller follow-ups.”
+
+Spreadsheet organisation is supported by `src/features/seller-signal/components/SpreadsheetsPage.jsx`, which lists named spreadsheet sources. The claim means organising imported sources in Repeat AI, not an unrestricted general-purpose cloud file-storage service.
 
 Inspected current local source, not a live end-to-end messaging test:
 
