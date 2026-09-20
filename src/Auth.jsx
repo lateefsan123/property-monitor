@@ -29,6 +29,7 @@ export default function Auth({ redirectToUrl, onSignUpSuccess } = {}) {
     return () => clearTimeout(timer);
   }, [resendCooldown]);
   const artSrc = `${import.meta.env.BASE_URL}khalifa.png`;
+  const brandMarkSrc = `${import.meta.env.BASE_URL}brand/repeat-ai-icon.png`;
 
   function clearFeedback() {
     setError(null);
@@ -118,17 +119,12 @@ export default function Auth({ redirectToUrl, onSignUpSuccess } = {}) {
     ? "Create your account"
     : "Sign in to Repeat AI";
 
-  const helper = isForgotPassword
-    ? "Enter your email to receive instructions to reset your password."
-    : isSignUp
-    ? "Start tracking leads in under a minute."
-    : "Welcome back. Enter your details to continue.";
-
   if (pendingEmail) {
     return (
       <div className="auth-split-page">
         <div className="auth-pane auth-pane--form">
           <div className="auth-form-container">
+            <img src={brandMarkSrc} alt="Repeat AI" className="auth-brand-mark" />
             <div className="auth-heading-group">
               <h1 className="auth-heading">Check your email</h1>
               <p className="auth-helper">
@@ -182,9 +178,9 @@ export default function Auth({ redirectToUrl, onSignUpSuccess } = {}) {
     <div className="auth-split-page">
       <div className="auth-pane auth-pane--form">
         <div className="auth-form-container">
+          <img src={brandMarkSrc} alt="Repeat AI" className="auth-brand-mark" />
           <div className="auth-heading-group">
             <h1 className="auth-heading">{heading}</h1>
-            <p className="auth-helper">{helper}</p>
           </div>
 
           {error && <div className="auth-error">{error}</div>}

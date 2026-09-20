@@ -112,6 +112,20 @@
   gap: 18px;
 }
 
+.auth-brand-mark {
+  display: block;
+  width: 48px;
+  height: auto;
+  margin: 0 0 2px;
+  object-fit: contain;
+  object-position: left center;
+  filter: brightness(0);
+}
+
+[data-theme="dark"] .auth-brand-mark {
+  filter: none;
+}
+
 .auth-heading-group {
   display: flex;
   flex-direction: column;
