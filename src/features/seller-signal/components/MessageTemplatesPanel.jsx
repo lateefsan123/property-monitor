@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import {
+  IconCheck,
+  IconDots,
   IconPhoto,
   IconPlus,
-  IconTrash,
-  IconUpload,
   IconX,
 } from "@tabler/icons-react";
 import { DEFAULT_MESSAGE_TEMPLATE } from "../insight-utils";
@@ -13,13 +13,12 @@ import {
 } from "../message-template-services";
 
 const NEW_TEMPLATE_ID = "new";
-const MESSAGE_PREVIEW_TRANSACTIONS = `- St. Regis Residences | 2 Bed | AED 4.95M | 1,410 sqft
-- St. Regis Residences | 1 Bed | AED 3.15M | 910 sqft`;
+const MESSAGE_PREVIEW_TRANSACTIONS = "2 bed · AED 2.9M · 992 sqft";
 
 function renderMessagePreview(templateContent) {
   const rendered = String(templateContent || "")
-    .replaceAll("{{name}}", "Lateef")
-    .replaceAll("{{building}}", "St. Regis Residences")
+    .replaceAll("{{name}}", "Alex")
+    .replaceAll("{{building}}", "Forte 2")
     .replaceAll("{{transactions}}", MESSAGE_PREVIEW_TRANSACTIONS)
     .replace(/\n{3,}/g, "\n\n")
     .trim();
@@ -48,6 +47,8 @@ export default function MessageTemplatesPanel({
   const [removeImage, setRemoveImage] = useState(false);
   const [notice, setNotice] = useState(null);
   const [error, setError] = useState(null);
+  const modalRef = useRef(null);
+  const actionsRef = useRef(null);
   const imageInputRef = useRef(null);
   const localImageUrlRef = useRef(null);
   const textareaRef = useRef(null);
@@ -59,12 +60,39 @@ export default function MessageTemplatesPanel({
   }, []);
 
   useEffect(() => {
+    const previousFocus = document.activeElement;
+    modalRef.current?.querySelector('button')?.focus();
+    return () => previousFocus?.focus();
+  }, []);
+
+  useEffect(() => {
+    const modal = modalRef.current;
     function handleKeyDown(event) {
-      if (event.key === "Escape") onClose?.();
+      if (event.key === "Escape") {
+        event.preventDefault();
+        event.stopPropagation();
+        if (actionsRef.current?.open) {
+          actionsRef.current.open = false;
+          actionsRef.current.querySelector('summary')?.focus();
+        } else if (!saving) onClose?.();
+      }
+      if (event.key === "Tab") {
+        const controls = [...modal.querySelectorAll('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), summary')]
+          .filter((element) => element.getClientRects().length);
+        const first = controls[0];
+        const last = controls.at(-1);
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault(); last?.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault(); first?.focus();
+        }
+      }
     }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [onClose]);
+    modal.addEventListener("keydown", handleKeyDown);
+    return () => {
+      modal.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose, saving]);
 
   function setTemplateImage(template) {
     if (localImageUrlRef.current) URL.revokeObjectURL(localImageUrlRef.current);
@@ -76,6 +104,7 @@ export default function MessageTemplatesPanel({
   }
 
   function selectTemplate(nextId) {
+    if (actionsRef.current) actionsRef.current.open = false;
     const nextTemplate = templates.find((template) => template.id === nextId);
     setSelectedId(nextId);
     setName(nextTemplate?.name || "Transaction update");
@@ -124,6 +153,7 @@ export default function MessageTemplatesPanel({
   }
 
   async function setAsDefault() {
+    if (actionsRef.current) actionsRef.current.open = false;
     if (!selectedTemplate) return;
     setError(null);
     setNotice(null);
@@ -136,6 +166,7 @@ export default function MessageTemplatesPanel({
   }
 
   async function deleteTemplate() {
+    if (actionsRef.current) actionsRef.current.open = false;
     if (!selectedTemplate) return;
     if (!window.confirm(`Delete "${selectedTemplate.name}"?`)) return;
     setError(null);
@@ -186,184 +217,110 @@ export default function MessageTemplatesPanel({
   }
 
   return (
-    <div
-      className="message-template-overlay"
-      role="presentation"
-      onMouseDown={(event) => {
-        if (event.target === event.currentTarget) onClose?.();
-      }}
-    >
-      <section
-        className="message-template-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="message-template-title"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
+    <div className="message-template-overlay" role="presentation"
+      onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) onClose?.(); }}>
+      <section ref={modalRef} className="message-template-modal" role="dialog"
+        aria-modal="true" aria-labelledby="message-template-title">
         <header className="message-template-modal-header">
-          <div>
-            <h1 id="message-template-title">Message templates</h1>
-            <p>Personalize the script and image used for every matching WhatsApp send.</p>
-          </div>
-          <button
-            type="button"
-            className="message-template-close"
-            onClick={onClose}
-            aria-label="Close message templates"
-          >
-            <IconX size={18} stroke={1.8} aria-hidden="true" />
+          <h1 id="message-template-title">Message templates</h1>
+          <button type="button" className="message-template-close" disabled={saving}
+            onClick={onClose} aria-label="Close message templates">
+            <IconX size={26} stroke={1.8} aria-hidden="true" />
           </button>
         </header>
         <div className="message-template-modal-body">
-          {loading ? (
-        <p className="muted">Loading templates...</p>
-      ) : (
-        <div className="message-template-workspace">
-          <div className="message-template-editor">
-            <div className="message-template-fields">
-            <label>
-              <span>Saved template</span>
-              <select value={selectedId} onChange={(event) => selectTemplate(event.target.value)}>
-                <option value={NEW_TEMPLATE_ID}>New template (starts from built-in script)</option>
+          {loading ? <p role="status" className="message-template-loading">Loading templates…</p> : (
+            <div className="message-template-workspace">
+              <nav className="message-template-library" aria-label="Saved templates">
+                <button type="button" className="message-template-new" disabled={saving}
+                  onClick={() => selectTemplate(NEW_TEMPLATE_ID)}>
+                  <IconPlus size={22} stroke={1.7} aria-hidden="true" /> New template
+                </button>
                 {templates.map((template) => (
-                  <option key={template.id} value={template.id}>
-                    {template.name}{template.is_default ? " (Default)" : ""}
-                  </option>
+                  <button type="button" key={template.id} disabled={saving}
+                    aria-current={selectedId === template.id ? "true" : undefined}
+                    className={selectedId === template.id ? "is-selected" : ""}
+                    onClick={() => selectTemplate(template.id)}>
+                    <span>{template.name}</span>
+                    {template.is_default ? <IconCheck className="message-template-default" size={20} aria-label="Default template" /> : null}
+                  </button>
                 ))}
-              </select>
-            </label>
-            <label>
-              <span>Template name</span>
-              <input
-                type="text"
-                maxLength={80}
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-                placeholder="Transaction update"
-              />
-            </label>
-          </div>
-
-          <label className="message-template-body-field">
-            <span>Message script</span>
-            <textarea
-              ref={textareaRef}
-              value={content}
-              maxLength={4000}
-              rows={9}
-              onChange={(event) => setContent(event.target.value)}
-            />
-          </label>
-
-          <div className="message-template-image-field">
-            <div className="message-template-image-copy">
-              <span>Template image</span>
-              <p>Optional. This image is reused whenever the template sends.</p>
-            </div>
-            {imagePreviewUrl ? (
-              <div className="message-template-image-preview">
-                <img src={imagePreviewUrl} alt="Template attachment preview" />
-                <div className="message-template-image-actions">
-                  <button type="button" className="btn-sm" onClick={() => imageInputRef.current?.click()}>
-                    <IconUpload size={15} stroke={1.9} aria-hidden="true" />
-                    Replace image
-                  </button>
-                  <button type="button" className="btn-sm message-template-image-remove" onClick={clearImage}>
-                    <IconTrash size={15} stroke={1.9} aria-hidden="true" />
-                    Remove
-                  </button>
+              </nav>
+              <div className="message-template-editor">
+                <div className="message-template-name-row">
+                  <label className="message-template-name-field">
+                    <span>Template name</span>
+                    <input type="text" maxLength={80} value={name} disabled={saving}
+                      onChange={(event) => setName(event.target.value)} placeholder="Transaction update" />
+                  </label>
+                  {selectedTemplate ? (
+                    <details className="message-template-more" ref={actionsRef}>
+                      <summary aria-label="Template actions"><IconDots size={22} aria-hidden="true" /></summary>
+                      <div className="message-template-more-menu">
+                        <button type="button" disabled={saving || selectedTemplate.is_default} onClick={setAsDefault}>
+                          {selectedTemplate.is_default ? "Default template" : "Use as default"}
+                        </button>
+                        <button type="button" disabled={saving} className="message-template-delete" onClick={deleteTemplate}>Delete template</button>
+                      </div>
+                    </details>
+                  ) : null}
+                </div>
+                <label className="message-template-body-field">
+                  <span>Message</span>
+                  <textarea ref={textareaRef} value={content} maxLength={4000} rows={9} disabled={saving}
+                    onChange={(event) => setContent(event.target.value)} />
+                </label>
+                <div className="message-template-token-field">
+                  <span>Insert variable</span>
+                  <div className="message-template-token-row">
+                    {["{{name}}", "{{building}}", "{{transactions}}"].map((token) => (
+                      <button key={token} type="button" disabled={saving} onClick={() => insertToken(token)}>{token}</button>
+                    ))}
+                  </div>
+                </div>
+                <div className="message-template-image-field">
+                  <span>Attached image <span className="message-template-optional">(optional)</span></span>
+                  {imagePreviewUrl ? (
+                    <div className="message-template-image-preview">
+                      <img src={imagePreviewUrl} alt="Template attachment preview" />
+                      <div>
+                        <span className="message-template-image-name">{imageFile?.name || "Attached image"}</span>
+                        <div className="message-template-image-actions">
+                          <button type="button" disabled={saving} onClick={() => imageInputRef.current?.click()}>Replace</button>
+                          <span aria-hidden="true">|</span>
+                          <button type="button" disabled={saving} onClick={clearImage}>Remove</button>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <button type="button" className="message-template-image-picker" disabled={saving}
+                      title="JPG, PNG or WebP, up to 5 MB" onClick={() => imageInputRef.current?.click()}>
+                      <IconPhoto size={20} stroke={1.7} aria-hidden="true" /> Add image
+                    </button>
+                  )}
+                  <input ref={imageInputRef} className="message-template-image-input" type="file"
+                    aria-label="Attach template image" accept={MESSAGE_TEMPLATE_IMAGE_TYPES.join(",")} onChange={chooseImage} />
                 </div>
               </div>
-            ) : (
-              <button
-                type="button"
-                className="message-template-image-picker"
-                onClick={() => imageInputRef.current?.click()}
-              >
-                <IconPhoto size={22} stroke={1.7} aria-hidden="true" />
-                <span>Choose image</span>
-                <small>JPG, PNG, or WebP · up to 5 MB</small>
-              </button>
-            )}
-            <input
-              ref={imageInputRef}
-              className="message-template-image-input"
-              type="file"
-              accept={MESSAGE_TEMPLATE_IMAGE_TYPES.join(",")}
-              onChange={chooseImage}
-            />
-            <p className="message-template-help">
-              The message becomes the image caption. WhatsApp allows captions up to 1,024 characters after placeholders are filled.
-            </p>
-          </div>
-
-          <div className="message-template-token-row">
-            <span>Insert:</span>
-            {["{{name}}", "{{building}}", "{{transactions}}"].map((token) => (
-              <button key={token} type="button" onClick={() => insertToken(token)}>{token}</button>
-            ))}
-          </div>
-          <p className="message-template-help">
-            <code>{"{{transactions}}"}</code> is required and is replaced with the real sale lines at send time.
-          </p>
-
-          {error && <p className="message-template-error">{error}</p>}
-          {notice && <p className="message-template-notice">{notice}</p>}
-
-          <div className="message-template-actions">
-            <button type="button" className="btn-sm btn-primary" disabled={saving} onClick={saveTemplate}>
-              {saving ? "Saving..." : selectedTemplate ? "Save changes" : "Create template"}
-            </button>
-            {selectedTemplate && !selectedTemplate.is_default && (
-              <button type="button" className="btn-sm" disabled={saving} onClick={setAsDefault}>
-                Use as default
-              </button>
-            )}
-            {selectedTemplate && (
-              <button
-                type="button"
-                className="btn-sm message-template-delete"
-                disabled={saving}
-                onClick={deleteTemplate}
-              >
-                <IconTrash size={15} stroke={1.9} aria-hidden="true" />
-                Delete
-              </button>
-            )}
-            {!selectedTemplate && templates.length === 0 && (
-              <span className="message-template-new-label">
-                This will become your default and replace the built-in script for every send.
-              </span>
-            )}
-            {!selectedTemplate && templates.length > 0 && (
-              <span className="message-template-new-label"><IconPlus size={14} aria-hidden="true" /> New script</span>
-            )}
+              <aside className="message-template-live-preview" aria-label="Message preview">
+                <h2 className="message-template-preview-head">Preview (WhatsApp)</h2>
+                <div className="message-template-chat-bubble">
+                  {imagePreviewUrl ? <img src={imagePreviewUrl} alt="Preview of the template attachment" /> : null}
+                  <p>{previewMessage}</p>
+                </div>
+              </aside>
             </div>
-          </div>
-
-          <aside className="message-template-live-preview" aria-label="Message preview">
-            <div className="message-template-preview-head">
-              <div>
-                <span>Preview</span>
-                <p>Sample seller and transaction data</p>
-              </div>
-              <span className="message-template-preview-badge">WhatsApp</span>
-            </div>
-            <div className="message-template-chat-preview">
-              <div className="message-template-chat-bubble">
-                {imagePreviewUrl && (
-                  <img src={imagePreviewUrl} alt="Preview of the template attachment" />
-                )}
-                <p>{previewMessage}</p>
-                <span className="message-template-chat-meta">
-                  10:10 <b aria-label="Delivered">✓✓</b>
-                </span>
-              </div>
-            </div>
-          </aside>
-        </div>
           )}
         </div>
+        <footer className="message-template-actions">
+          <div aria-live="polite">
+            {error ? <p role="alert" className="message-template-error">{error}</p> : null}
+            {notice ? <p className="message-template-notice">{notice}</p> : null}
+          </div>
+          <button type="button" className="message-template-save" disabled={saving || loading} onClick={saveTemplate}>
+            {saving ? "Saving…" : selectedTemplate ? "Save changes" : "Create template"}
+          </button>
+        </footer>
       </section>
     </div>
   );
