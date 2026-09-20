@@ -1,0 +1,22 @@
+{
+  "tool": "built-in imagegen",
+  "assets": [
+    {
+      "key": "broker-phone",
+      "prompt": "Use case: illustration-story. Asset for a charming hand-drawn animated explainer for Repeat AI, a property seller follow-up app. Extremely simple editorial pen doodle: thin slightly wobbly charcoal ink, soft organic forms, sparse pale sage and warm ochre flat accents, mostly unfilled. Professional illustrator's confident playful sketch, like a friendly productivity explainer, NOT stiff geometric icon art, NOT stick figure, NOT detailed realism, NO gradients, NO shadows, NO 3D. Generous clear padding; genuinely transparent background, transparent outside the object, no checkerboard drawn into pixels. No text, no watermark. One single expressive gender-neutral soft bean-shaped human character, waist-up, in three-quarter view, on a phone call; slightly slouched shoulder, tiny nose, dot eye, free hand open in mild overwhelm. Broad flowing silhouette, no suit or tie, subtle pale sage sleeve. Entire figure centered and fully visible. Only the character and phone."
+    },
+    {
+      "key": "property",
+      "prompt": "Use case: illustration-story. Asset for a charming hand-drawn animated explainer for Repeat AI, a property seller follow-up app. Extremely simple editorial pen doodle: thin slightly wobbly charcoal ink, soft organic forms, sparse pale sage and warm ochre flat accents, mostly unfilled. Professional illustrator's confident playful sketch, like a friendly productivity explainer, NOT stiff geometric icon art, NOT stick figure, NOT detailed realism, NO gradients, NO shadows, NO 3D. Generous clear padding; genuinely transparent background, transparent outside the object, no checkerboard drawn into pixels. No text, no watermark. One single loose illustrated property listing card tilted slightly left, with a charming little apartment building sketch inside, two simple abstract lines beneath the building, tiny ochre corner patch. A separate hand-drawn green downward arrow near the card's top right, but contained within overall object. Only this card and arrow. Large subject centered."
+    },
+    {
+      "key": "messages",
+      "prompt": "Use case: illustration-story. Asset for a charming hand-drawn animated explainer for Repeat AI, a property seller follow-up app. Extremely simple editorial pen doodle: thin slightly wobbly charcoal ink, soft organic forms, sparse pale sage and warm ochre flat accents, mostly unfilled. Professional illustrator's confident playful sketch, like a friendly productivity explainer, NOT stiff geometric icon art, NOT stick figure, NOT detailed realism, NO gradients, NO shadows, NO 3D. Generous clear padding; genuinely transparent background, transparent outside the object, no checkerboard drawn into pixels. No text, no watermark. One single hand-drawn smartphone, front view at a jaunty slight angle, with two overlapping organically drawn chat bubbles, one pale sage, one unfilled. A few short charcoal dashes inside bubbles suggest messages. A tiny ochre notification dot near top right. Entire object centered and fully visible."
+    },
+    {
+      "key": "notes",
+      "prompt": "Use case: illustration-story. Asset for a charming hand-drawn animated explainer for Repeat AI, a property seller follow-up app. Extremely simple editorial pen doodle: thin slightly wobbly charcoal ink, soft organic forms, sparse pale sage and warm ochre flat accents, mostly unfilled. Professional illustrator's confident playful sketch, like a friendly productivity explainer, NOT stiff geometric icon art, NOT stick figure, NOT detailed realism, NO gradients, NO shadows, NO 3D. Generous clear padding; genuinely transparent background, transparent outside the object, no checkerboard drawn into pixels. No text, no watermark. One single small scattered stack of three handwritten-looking paper notes, curled paper corners and a loose pencil resting diagonally on them. Abstract scribble lines only, no readable words, one pale ochre sticky note and a small sage tick. Playful organic pen drawing, simple and lightweight. Entire subject centered."
+    }
+  ],
+  "note": "Initial generation prompts. The casual broker was superseded by a suited edit and animation sheet; see repeat-ai-v4-animation-prompts.json for the final broker prompts. Generated PNG artwork preserved with original alpha. No SVG illustration in the V4 composition."
+}

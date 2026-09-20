@@ -1,5 +1,6 @@
 import { Composition } from "remotion";
 import { RepeatAIMotionStudy } from "./RepeatAIMotionStudy";
+import { RepeatAIIllustratedOpening, RepeatAIBrokerLoop } from "./RepeatAIIllustratedOpening";
 import { SellerSignalVideo, FPS, DURATION_IN_FRAMES, WIDTH, HEIGHT } from "./SellerSignalVideo";
 import {
   RepeatAIExplainer,
@@ -13,6 +14,8 @@ import {
 export const Root: React.FC = () => {
   return (
     <>
+      <Composition id="RepeatAIBrokerLoop" component={RepeatAIBrokerLoop} durationInFrames={72} fps={30} width={720} height={720} />
+      <Composition id="RepeatAIIllustratedOpening" component={RepeatAIIllustratedOpening} durationInFrames={450} fps={30} width={1920} height={1080} />
       <Composition id="RepeatAIMotionStudy" component={RepeatAIMotionStudy} durationInFrames={450} fps={30} width={1920} height={1080} />
       <Composition
         id="SellerSignal"
