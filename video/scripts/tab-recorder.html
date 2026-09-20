@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Repeat AI — Local tab recorder</title>
+<style>
+body{font:17px/1.5 system-ui;margin:70px auto;max-width:760px;padding:0 24px;background:#fafafa;color:#202020}h1{font-size:32px}button{font:inherit;padding:12px 18px;border-radius:9px;border:1px solid #ccc;background:white;cursor:pointer;margin:8px 10px 8px 0}button:disabled{opacity:.4;cursor:default}#start{background:#222;color:white}video{width:100%;background:#eee;border-radius:12px;margin-top:22px}#status{white-space:pre-wrap;overflow-wrap:anywhere;padding:16px;background:#fff;border:1px solid #ddd;border-radius:10px}label{display:block;margin:14px 0}small{color:#666}
+</style>
+<h1>Record the Repeat AI tab</h1>
+<p>Select <strong>Chrome Tab → Repeat AI → Share</strong>. Sharing alone does not start recording.</p>
+<small>Local only. No microphone. No entire-screen or window recording. Files stay on this computer.</small>
+<label><input id="audio" type="checkbox"> Include this tab’s audio</label>
+<button id="choose">Choose Repeat AI tab</button><button id="start" disabled>Record 30 seconds</button><button id="stop" disabled>Stop</button>
+<p id="status" role="status">Waiting for tab selection.</p>
+<video id="preview" autoplay muted playsinline></video>
+<a id="backup" hidden>Download recording</a>
+<script>
+const choose=document.querySelector('#choose'), start=document.querySelector('#start'), stop=document.querySelector('#stop'), status=document.querySelector('#status'), preview=document.querySelector('#preview'), audio=document.querySelector('#audio'), backup=document.querySelector('#backup');
+let stream, recorder, timeout, ticker, chunks=[], downloadUrl;
+function release(){clearTimeout(timeout);clearInterval(ticker);if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;preview.srcObject=null;start.disabled=true;stop.disabled=true;choose.disabled=false;audio.disabled=false;}
+choose.onclick=async()=>{
+ try{
+  release(); status.textContent='In Chrome’s chooser, select the Repeat AI tab and click Share.';
+  stream=await navigator.mediaDevices.getDisplayMedia({video:{displaySurface:'browser',frameRate:{ideal:30}},audio:audio.checked,monitorTypeSurfaces:'exclude',selfBrowserSurface:'exclude',surfaceSwitching:'exclude',systemAudio:'exclude'});
+  const track=stream.getVideoTracks()[0];
+  if(track.getSettings().displaySurface!=='browser'){release();throw new Error('Only a browser tab is allowed. Please choose Chrome Tab → Repeat AI.');}
+  preview.srcObject=stream;start.disabled=false;choose.disabled=true;audio.disabled=true;
+  status.textContent='Tab shared. Not recording yet. Ready for a 30-second take.';
+  track.onended=()=>{if(recorder?.state==='recording')recorder.stop();else{release();status.textContent='Sharing ended.';}};
+ }catch(e){release();status.textContent=e.name==='NotAllowedError'?'Sharing was cancelled. Click Choose Repeat AI tab to try again.':e.message;}
+};
+start.onclick=()=>{
+ try{
+  const mime=['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
+  if(!mime)throw new Error('This browser cannot record WebM.');
+  recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:10000000});chunks=[];
+  recorder.ondataavailable=e=>{if(e.data.size)chunks.push(e.data);};
+  recorder.onerror=e=>{status.textContent='Recording failed: '+(e.error?.message||'unknown error');release();};
+  recorder.onstop=async()=>{
+   release();choose.disabled=true;status.textContent='Saving locally…';
+   const blob=new Blob(chunks,{type:mime});
+   if(downloadUrl)URL.revokeObjectURL(downloadUrl);
+   downloadUrl=URL.createObjectURL(blob);backup.href=downloadUrl;backup.download='repeat-tab.webm';backup.hidden=false;
+   try{
+    const response=await fetch('/recording',{method:'POST',headers:{'Content-Type':'video/webm','X-Recorder-Token':'__TOKEN__'},body:blob});
+    if(!response.ok)throw new Error(await response.text());
+    const result=await response.json();status.textContent='Saved locally:\n'+result.file;
+   }catch(e){status.textContent='Automatic save failed. Use Download recording below.\n'+e.message;}
+   choose.disabled=false;
+  };
+  recorder.start(1000);start.disabled=true;stop.disabled=false;backup.hidden=true;
+  const began=Date.now();status.textContent='Recording — 30 seconds remaining.';
+  ticker=setInterval(()=>{status.textContent='Recording — '+Math.max(0,30-Math.floor((Date.now()-began)/1000))+' seconds remaining.';},250);
+  timeout=setTimeout(()=>{if(recorder.state==='recording')recorder.stop();},30000);
+ }catch(e){release();status.textContent=e.message;}
+};
+stop.onclick=()=>{if(recorder?.state==='recording')recorder.stop();};
+window.addEventListener('beforeunload',()=>{if(stream)stream.getTracks().forEach(t=>t.stop());});
+</script></html>
