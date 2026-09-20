@@ -14,6 +14,7 @@ import { formatSyncTimestamp } from "../formatters";
 import { consumePendingOpenListing, useOpenListingRequests } from "../open-listing-request";
 import { getRecentPriceDrop } from "../price-drop-utils";
 import { useListingAlerts } from "../useListingAlerts";
+import { useListingNavigation } from "../useListingNavigation";
 import ListingAlertsFilters from "./ListingAlertsFilters";
 import ListingAlertsResults from "./ListingAlertsResults";
 import ListingAlertsSearchBox from "./ListingAlertsSearchBox";
@@ -168,25 +169,20 @@ export default function ListingAlertsPage() {
   // Deep links from other pages (e.g. the home price-drops card) may request a
   // listing before this page mounts; consume the pending key at first render.
   const [pendingInitialListingKey] = useState(() => consumePendingOpenListing());
-  const [selectedListingKey, setSelectedListingKey] = useState(pendingInitialListingKey);
-  const [selectedBuildingId, setSelectedBuildingId] = useState(
-    pendingInitialListingKey ? pendingInitialListingKey.split(":")[0] || null : null,
-  );
+  const { selectedListingKey, selectedBuildingId, navigate } = useListingNavigation(pendingInitialListingKey);
 
   useEffect(() => {
     function handleCrumbClick(event) {
       if (event?.detail !== "listing-alerts") return;
-      setSelectedBuildingId(null);
-      setSelectedListingKey(null);
+      navigate();
       setListingsPage(1);
     }
     window.addEventListener("app-crumb-click", handleCrumbClick);
     return () => window.removeEventListener("app-crumb-click", handleCrumbClick);
-  }, []);
+  }, [navigate]);
 
   useOpenListingRequests((listingKey) => {
-    setSelectedBuildingId(listingKey.split(":")[0] || null);
-    setSelectedListingKey(listingKey);
+    navigate(listingKey.split(":")[0] || null, listingKey);
     setListingsPage(1);
   });
 
@@ -452,8 +448,7 @@ export default function ListingAlertsPage() {
           type="button"
           className="app-crumb-sub app-crumb-btn"
           onClick={() => {
-            setSelectedBuildingId(crumbBuilding.locationId);
-            setSelectedListingKey(null);
+            navigate(crumbBuilding.locationId);
             setListingsPage(1);
           }}
           title={`Back to ${crumbBuilding.name}`}
@@ -476,7 +471,7 @@ export default function ListingAlertsPage() {
         {crumbExtra}
         <ListingDetailPage
           listing={selectedListing}
-          onBack={() => setSelectedListingKey(null)}
+          onBack={() => navigate(selectedBuildingId)}
           onOpenExternal={() => {
             if (selectedListing.bayutUrl) window.open(selectedListing.bayutUrl, "_blank", "noopener,noreferrer");
           }}
@@ -499,13 +494,13 @@ export default function ListingAlertsPage() {
       const didWatch = alerts.actions.toggleWatch(building);
       if (!didWatch) return;
     }
-    setSelectedBuildingId(building.locationId || null);
+    navigate(building.locationId || null);
     setListingsPage(1);
   }
 
   function openListingDetails(listing) {
     if (!listing) return;
-    setSelectedListingKey(listing.key || `${listing.locationId}:${listing.id}`);
+    navigate(listing.locationId || selectedBuildingId, listing.key || `${listing.locationId}:${listing.id}`);
   }
 
   return (
