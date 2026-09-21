@@ -298,7 +298,7 @@
 .landing-hero-artwork {
   position: relative;
   left: 50%;
-  width: min(1200px, calc(100% + 46px));
+  width: min(1678px, calc(100% + 46px));
   margin: 20px 0 0;
   transform: translateX(-50%);
   overflow: hidden;
