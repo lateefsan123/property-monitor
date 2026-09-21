@@ -1,6 +1,6 @@
 # Building schedule
 
-Separate Schedule page on web and native mobile. Web uses a seven-column board;
+Separate Schedule page on web and native mobile. Web uses a five-column board;
 mobile uses horizontally swipeable day columns. Styling follows light/dark themes
 without red accents. Building choices come only from the authenticated user's leads.
 
@@ -24,9 +24,11 @@ without red accents. Building choices come only from the authenticated user's le
 
 ## Delivery order
 
-This change is local only. Before allowing live schedule saves, apply
-`20260921203524_building_automation_schedule.sql` and deploy both
-`seller-signal-auto-whatsapp` and `seller-signal-monthly-report` together.
+Backend deployed on 2026-09-21 to Repeat AI (`zrqxaammmrydkekbphqa`):
+`20260921212209_building_automation_schedule.sql` is applied, and both
+`seller-signal-auto-whatsapp` (version 37) and `seller-signal-monthly-report`
+(version 15) are ACTIVE. The local migration filename matches the version assigned
+by the hosted migration tool. Frontend and voice/text handler publication are separate.
 Do not publish the schedule UI against older send functions: they ignore schedules.
 No rows are created or schedules enabled by the migration. Do not invoke a sending
 function without `dryRun: true` during release checks. Existing account settings
@@ -50,8 +52,9 @@ updated voice/text session handler with the UI before advertising these tools.
 - Expo Android bundle export (not an on-device native verification).
 - `supabase/tests/building-schedule-rls.sql` tests owner access, cross-account
   isolation, ownership reassignment, forbidden deletion and anonymous access inside
-  a rollback transaction. Validated with isolated PGlite/Postgres; the connected
-  Supabase connector is read-only and Docker is unavailable locally.
+  a rollback transaction. Passed on hosted Postgres after deployment, as well as
+  isolated PGlite/Postgres. Hosted verification confirmed RLS enabled, three owner
+  policies, and zero saved schedule rows after rollback. No sends were invoked.
 - Interactive sample-data UI at `/docs/design/schedule-preview/`, using the real
   page and shared hook with an isolated client. Saves there affect preview-local
   browser storage only and never contact WhatsApp or a real account.
