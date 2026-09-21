@@ -16,9 +16,8 @@ export default function SchedulePage({ userId, client = supabase }) {
   }, [day]);
   const blocked = state.loading || Boolean(state.loadError) || state.saving;
   return (
-    <main className="schedule-page">
+    <main className="schedule-page" aria-label="Schedule">
       <header className="schedule-heading">
-        <h1>Schedule</h1>
         <div className="schedule-heading-actions"><button className="schedule-save" disabled={blocked || !state.dirty} onClick={state.save}>{state.saving ? "Saving…" : state.saved ? "Saved" : "Save"}</button></div>
       </header>
       {state.loadError ? <div role="alert" className="schedule-feedback">{state.loadError.message} <button onClick={state.retry}>Retry</button></div> : null}

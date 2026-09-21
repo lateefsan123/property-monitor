@@ -1,7 +1,6 @@
 .schedule-page { --schedule-bg: #fff; --schedule-panel: #fafafa; --schedule-text: #222; --schedule-muted: #737373; --schedule-border: #dedede; padding: 44px 32px 140px; color: var(--schedule-text); width: 100%; box-sizing: border-box; max-width: 1320px; margin: 0 auto; }
 [data-theme="dark"] .schedule-page { --schedule-bg: #242423; --schedule-panel: #20201f; --schedule-text: #eee; --schedule-muted: #a3a3a3; --schedule-border: #444; }
-.schedule-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; }
-.schedule-heading h1 { font-size: 32px; letter-spacing: -1px; margin: 0; }
+.schedule-heading { display: flex; align-items: center; justify-content: flex-end; gap: 24px; }
 .schedule-heading-actions { display: flex; align-items: center; gap: 20px; }
 .schedule-page button { cursor: pointer; font: inherit; }
 .schedule-page button:disabled { cursor: default; opacity: .5; }
