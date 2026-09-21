@@ -1,9 +1,16 @@
 .repeat-tour { position: fixed; right: 24px; bottom: 24px; z-index: 950; color: #323338; font-family: inherit; font-size: 14px; line-height: 1.5; }
 .repeat-tour-card { width: 380px; max-height: calc(100dvh - 48px); overflow: auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 22px #0002; }
 .repeat-tour-visual { position: relative; height: 250px; overflow: hidden; background: #e2efed; border-radius: 8px 8px 0 0; }
+.repeat-tour-visual:has(img[src*="product-spreadsheets"]) { background: #d8edf9; }
+.repeat-tour-visual:has(img[src*="product-seller"]) { background: #f8ddce; }
+.repeat-tour-visual:has(img[src*="product-market"]) { background: #e3dbf3; }
+.repeat-tour-visual:has(img[src*="product-templates"]) { background: #def7ee; }
+.repeat-tour-visual:has(img[src*="product-followups"]) { background: #dde9d3; }
 .repeat-tour-visual img { display: block; width: 100%; height: 100%; object-fit: contain; }
 .repeat-tour button { font: inherit; cursor: pointer; }
-.repeat-tour-close { position: absolute; top: 8px; right: 8px; border: 0; border-radius: 4px; width: 32px; height: 32px; background: #ffffffe6; color: #323338; font-size: 24px !important; }
+.repeat-tour .repeat-tour-close { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 4px; width: 32px; height: 32px; background: #ffffffe6; color: #323338; font-size: 0; line-height: 1; }
+.repeat-tour-close::before, .repeat-tour-close::after { content: ""; position: absolute; top: 50%; left: 50%; width: 13px; height: 1.5px; border-radius: 1px; background: currentColor; transform: translate(-50%, -50%) rotate(45deg); }
+.repeat-tour-close::after { transform: translate(-50%, -50%) rotate(-45deg); }
 .repeat-tour-copy { padding: 24px; }
 .repeat-tour-copy h2 { font-size: 18px; line-height: 1.4; font-weight: 600; margin: 0 0 8px; color: #323338; }
 .repeat-tour-copy p { font-size: 14px; line-height: 1.6; margin: 0; color: #55565c; min-height: 66px; }
