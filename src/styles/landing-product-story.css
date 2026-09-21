@@ -31,7 +31,27 @@
   margin: 24px 0 0;
   overflow: hidden;
   border: 1px solid #45433e;
-  background: #f3f0ea;
+  background: var(--product-artwork-background, #f3f0ea);
+}
+
+#product-details {
+  --product-artwork-background: #dcecf7;
+}
+
+#seller-workspace {
+  --product-artwork-background: #f7dfd1;
+}
+
+#market-activity {
+  --product-artwork-background: #e6dff4;
+}
+
+#message-templates {
+  --product-artwork-background: #dff0ea;
+}
+
+#whatsapp-follow-ups {
+  --product-artwork-background: #dde9d4;
 }
 
 .landing-product-artwork img {
