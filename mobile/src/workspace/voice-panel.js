@@ -89,7 +89,7 @@ export default function VoicePanel({ colors, userId }) {
         </ScrollView>
         <View style={{ padding: 18, gap: 12, borderTopWidth: .5, borderColor: colors.border }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 10, backgroundColor: colors.bgInput }}>
-            <TextInput accessibilityLabel="Message Repeat AI" placeholder="Ask about your account…" placeholderTextColor={colors.textMuted}
+            <TextInput accessibilityLabel="Message Repeat AI" placeholder="Ask Repeat anything…" placeholderTextColor={colors.textMuted}
               value={draft} onChangeText={setDraft} multiline maxLength={4000} editable={!voice.chatting && !voice.sending && !voice.preview}
               style={{ ...text, flex: 1, minHeight: 40, maxHeight: 90 }} />
             {voice.chatting ? <Button colors={colors} onPress={voice.stopChat}>Stop</Button> : <Button colors={colors} primary disabled={!draft.trim() || voice.sending || !!voice.preview}

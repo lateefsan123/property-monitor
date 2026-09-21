@@ -78,7 +78,7 @@ export default function VoicePanel({ userId, onOpenChange }) {
       </div>
       <footer className="assistant-footer">
         <form className="assistant-composer" onSubmit={event => { event.preventDefault(); if (draft.trim()) { void voice.sendText(draft); setDraft(''); } }}>
-          <textarea aria-label="Message Repeat AI" placeholder="Ask about your account…" value={draft} maxLength={4000} rows={2}
+          <textarea aria-label="Message Repeat AI" placeholder="Ask Repeat anything…" value={draft} maxLength={4000} rows={2}
             disabled={voice.chatting || voice.sending || !!voice.preview} onChange={event => setDraft(event.target.value)}
             onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form.requestSubmit(); } }} />
           {voice.chatting ? <button type="button" aria-label="Stop response" onClick={voice.stopChat}><X size={20} /></button>
