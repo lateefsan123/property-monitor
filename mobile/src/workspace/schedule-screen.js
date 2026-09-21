@@ -18,12 +18,13 @@ export default function ScheduleScreen({ userId, colors }) {
   return <>
     <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingVertical: 20, paddingBottom: 150, gap: 20 }}>
       <View style={{ paddingHorizontal: 20, gap: 12 }}>
-        <Text style={muted}>Repeats every week until you change it.</Text>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}><Text style={muted}>Dubai time</Text><Button colors={colors} primary disabled={blocked || !state.dirty} onPress={state.save}>{state.saving ? "Saving…" : "Save schedule"}</Button></View>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}><Switch accessibilityLabel="Weekly schedule" accessibilityHint="Repeats weekly in Dubai time. Turning off restores account-wide automation, not a pause." disabled={blocked} value={state.value.enabled} onValueChange={enabled => state.change({ enabled })} trackColor={{ false: colors.border, true: colors.textMuted }} /><Text style={text}>Weekly schedule</Text></View>
+          <Button colors={colors} primary disabled={blocked || !state.dirty} onPress={state.save}>{state.saving ? "Saving…" : state.saved ? "Saved" : "Save"}</Button>
+        </View>
         {state.loadError ? <><Text selectable style={text}>{state.loadError.message}</Text><Button colors={colors} onPress={state.retry}>Retry</Button></> : null}
         {state.error ? <Text selectable accessibilityRole="alert" style={text}>{state.error.message}</Text> : null}
-        {state.loading || state.saved || state.dirty ? <Text accessibilityLiveRegion="polite" style={muted}>{state.loading ? "Loading your schedule…" : state.saved ? "Schedule saved" : "Unsaved changes"}</Text> : null}
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}><Text style={text}>Use weekly schedule</Text><Switch accessibilityLabel="Use weekly schedule" disabled={blocked} value={state.value.enabled} onValueChange={enabled => state.change({ enabled })} trackColor={{ false: colors.border, true: colors.textMuted }} /></View>
+        {state.loading ? <Text accessibilityLiveRegion="polite" style={muted}>Loading…</Text> : null}
       </View>
       <ScrollView horizontal showsHorizontalScrollIndicator snapToInterval={cardWidth + 12} decelerationRate="fast" contentContainerStyle={{ paddingHorizontal: 20, gap: 12 }}>
         {SCHEDULE_DAYS.map(name => <View key={name} style={{ width: cardWidth, minHeight: 360, padding: 16, borderWidth: 1, borderColor: colors.border, borderRadius: 12, backgroundColor: colors.bgCard, gap: 18 }}>
@@ -35,11 +36,9 @@ export default function ScheduleScreen({ userId, colors }) {
           <Button colors={colors} icon="plus" disabled={blocked} accessibilityLabel={`Add buildings to ${name}`} onPress={() => { setSearch(""); setDay(name); }}>Add buildings</Button>
         </View>)}
       </ScrollView>
-      <View style={{ marginHorizontal: 20, padding: 16, gap: 10, borderWidth: 1, borderColor: colors.border, borderRadius: 12 }}>
-        <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><Text style={{ ...text, flex: 1 }}>Fill unused slots from other buildings</Text><Switch accessibilityLabel="Fill unused slots from other buildings" disabled={blocked} value={state.value.fill_unused} onValueChange={fill_unused => state.change({ fill_unused })} trackColor={{ false: colors.border, true: colors.textMuted }} /></View>
-        <Text style={muted}>Selected buildings share the daily allowance evenly. Empty days stay off.</Text>
+      <View style={{ marginHorizontal: 20 }}>
+        <View style={{ flexDirection: "row", gap: 12, alignItems: "center" }}><Text style={{ ...text, flex: 1 }}>Fill unused slots from other buildings</Text><Switch accessibilityLabel="Fill unused slots from other buildings" accessibilityHint="Uses other buildings when selected buildings run out. Empty days stay off and sending limits still apply." disabled={blocked} value={state.value.fill_unused} onValueChange={fill_unused => state.change({ fill_unused })} trackColor={{ false: colors.border, true: colors.textMuted }} /></View>
       </View>
-      <Text style={{ ...muted, paddingHorizontal: 20 }}>{state.value.enabled ? "Your existing sending limits and automation settings still apply." : "Weekly schedule is off. Existing automation settings still apply."}</Text>
     </ScrollView>
     <BottomSheet visible={Boolean(day)} onClose={() => setDay(null)} colors={colors}>
       <View style={{ padding: 20, gap: 16 }}>
