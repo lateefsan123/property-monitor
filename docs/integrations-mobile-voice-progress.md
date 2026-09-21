@@ -48,6 +48,12 @@ Build 782d5387-d228-4c56-96d2-a95d5b945dd4 is now FINISHED with no error. Instal
 - Known warnings: existing large web chunk; WebRTC's event-target-shim subpath uses Metro file-resolution fallback. Npm audit reports 23 issues across the mobile dependency tree (the added plugin inherits the existing Expo dependency advisory); no broad dependency upgrades were performed.
 - A new native build is required for these modules; the earlier integrations APK does not contain voice.
 
+Voice UI/API deployment from 1deb953 is READY at https://repeatai.org (dpl_3z8ijZLW2FHFRExbttaRqmPcCqG4). Unauthenticated POST /api/voice returned 401; initial error log scan returned no logs. No separate key/allowlist has been activated.
+
+Native uploads completed successfully: Android preview 1d0e0028-0e4b-4e99-81ea-7f8b3e427d02; iOS production build 24, 2e8113a2-fe8c-460d-9853-9f0ef8c06bf0. They are submitted builds, not released/tested apps. Follow these exact IDs; no restart based on observation timeout.
+
+After those uploads, a local controller follow-up adds defensive handling for malformed events/data-channel send failures and requests session.close before unmount cleanup. All 17 voice tests and lint pass. This follow-up is NOT in the above deployment/build uploads; include it in the final delivery before enabling voice. EAS changed only ios.buildNumber from 23 to 24; that version bump is tracked with the follow-up.
+
 Android upload recovery: the first preview upload did not create a build (latest remote build was still 2026-09-04). The process handle was gone. EAS archive now excludes web/video/generated artifacts and credentials, retaining mobile, shared, src imports and root package manifests. A fresh preview upload was started after verifying no new remote build existed. Track the returned EAS build id; do not confuse the old September 4 AAB with the new integration build.
 
 Build 457e8385-ee93-4da6-a52f-df182ce05a4e failed because the initial allowlist omitted mobile/package.json. Fixed in 4191605 using explicit exclusions. `eas build:inspect --stage archive` verified mobile/package.json, native integration screens, shared/navigation.js and imported web utilities were present; no env/credential files were found. Replacement Android preview upload completed: 782d5387-d228-4c56-96d2-a95d5b945dd4. Follow its live EAS status before reporting an APK ready.

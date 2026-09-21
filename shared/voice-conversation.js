@@ -9,7 +9,9 @@ export function createVoiceConversation({ transport, sessionRequest, integration
   const responses = new Map();
   const seenCalls = new Set();
   const send = event => {
-    if (!closed && channel?.readyState === 'open') channel.send(JSON.stringify(event));
+    if (!closed && channel?.readyState === 'open') {
+      try { channel.send(JSON.stringify(event)); } catch { fail('Voice connection was lost. Please start a new conversation.'); }
+    }
   };
   function cleanup() {
     if (closed) return;
@@ -46,6 +48,7 @@ export function createVoiceConversation({ transport, sessionRequest, integration
     if (closed) return;
     let event;
     try { event = JSON.parse(raw); } catch { return; }
+    if (!event || typeof event !== 'object') return;
     if (event.type === 'session.closed') { onUsage({ ...event.usage, finalized: true }); cleanup(); return; }
     if (closing) return;
     if (event.type === 'session.started') {
@@ -109,7 +112,8 @@ export function createVoiceConversation({ transport, sessionRequest, integration
     } catch (error) { if (!closed && !closing) fail(error.name === 'NotAllowedError' ? 'Allow microphone access to start voice.' : error.message || 'Voice could not connect.'); }
   }
   return {
-    start, end, dispose: cleanup,
+    start, end,
+    dispose() { if (ready && !closing) send({ type: 'session.close' }); cleanup(); },
     mute(value) { if (ready && !closing) { microphone?.getAudioTracks().forEach(track => { track.enabled = !value; }); onState(value ? 'muted' : 'listening'); } },
     notify(content) { if (ready && !closing) send({ type: 'session.commentary.append', delegation_id: null, content: String(content).slice(0,1000) }); },
   };
