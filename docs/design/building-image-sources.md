@@ -1,7 +1,7 @@
 # Building logos and exterior-image source register
 
 Local design preview, checked 21 September 2026. The landing page keeps building
-logos: nine identities in three columns / three rows. Exterior images are separate
+logos: nine identities, six per row on desktop and three on smaller screens. Exterior images are separate
 small thumbnails on Listings building rows, never images of a particular unit.
 Unknown or ambiguous names keep a neutral icon; there is no fuzzy photo fallback.
 

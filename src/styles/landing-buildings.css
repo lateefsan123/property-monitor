@@ -1,7 +1,10 @@
 .landing-buildings { padding: 56px 24px; background: #fff; color: #242320; color-scheme: light; border-top: 1px solid #45433e; scroll-margin-top: 64px; }
-.landing-building-grid { max-width: 960px; margin: 0 auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 36px 56px; padding: 0; list-style: none; }
+.landing-building-grid { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 28px 32px; padding: 0; list-style: none; }
 .landing-building-grid li { display: flex; align-items: center; justify-content: center; min-width: 0; height: 100px; }
 .landing-building-grid img { display: block; width: 180px; max-width: 100%; height: 90px; object-fit: contain; filter: brightness(0); opacity: .85; }
+@media (max-width: 860px) {
+  .landing-building-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 @media (max-width: 600px) {
   .landing-buildings { padding: 36px 20px; }
   .landing-building-grid { gap: 24px 20px; }

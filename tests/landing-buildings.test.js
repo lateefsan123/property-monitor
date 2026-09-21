@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { LANDING_BUILDINGS } from '../src/landing-buildings.js';
 
-test('nine distinct building logos form three rows', () => {
+test('nine distinct building logos keep six columns on desktop and three on smaller screens', () => {
   assert.equal(LANDING_BUILDINGS.length, 9);
   assert.equal(new Set(LANDING_BUILDINGS.map(b => b.name)).size, 9);
   for (const b of LANDING_BUILDINGS) {
@@ -12,7 +12,8 @@ test('nine distinct building logos form three rows', () => {
     assert.match(b.logo, /\.(png|svg)$/);
   }
   const css = readFileSync(new URL('../src/styles/landing-buildings.css', import.meta.url), 'utf8');
-  assert.match(css, /grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
+  assert.match(css, /grid-template-columns: repeat\(6, minmax\(0, 1fr\)\)/);
+  assert.match(css, /@media \(max-width: 860px\)[\s\S]*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/);
 });
 
 test('logo section is lazy, dimensioned and has no photo gallery or endorsement claims', () => {
