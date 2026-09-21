@@ -17,7 +17,8 @@ the returned browser response. No retry is performed after a failed code exchang
   cannot supply an owner. Responses are non-cacheable and contain no provider tokens.
 - `server/integration-store.js` persists encrypted records using a server-only client.
   The migration creates RLS-enabled tables with no browser-role access and an atomic,
-  service-role-only state-consumption function. It has NOT been applied to any database.
+  service-role-only state-consumption function. Applied to the Repeat AI database on
+  2026-09-21; catalog checks confirm RLS and server-only table/function privileges.
 - Settings → Integrations lists six provider/feature connections, error/retry states
   and disabled setup states. No connection is simulated in the actual Settings panel.
 - `/integrations/callback/google` and `/integrations/callback/microsoft` finish consent
@@ -89,10 +90,12 @@ Production uses HTTPS. Provider console configuration/consent remains a separate
 
 ## Remaining before live rollout
 
-- Register/configure Google and Microsoft OAuth applications and callback URLs.
-- Supply server-only client IDs/secrets and a separate 32-byte encryption key.
-- Apply and verify the migration against the intended database; test role access and
-  concurrent state consumption on Postgres. No local Docker database was available.
+- Finish Google test-user consent and real-account connection testing; register the
+  Microsoft OAuth application after Azure profile/identity verification is complete.
+- Supply Microsoft server-only client configuration. Google credentials and a persistent
+  32-byte encryption key are configured for Vercel production and development.
+- Test concurrent state consumption on Postgres. Catalog privilege checks passed;
+  the MCP SQL connection rejected a rollback-only mutation smoke test as read-only.
 - Configure hosting logs to redact callback query strings and authorization headers.
 - Wire the read endpoint into selected-file imports, calendar/email UI and assistant tools.
   Automatic sync, complete pagination, file imports and Microsoft workbook values are
@@ -102,10 +105,27 @@ Production uses HTTPS. Provider console configuration/consent remains a separate
 - Add retention maintenance for abandoned users' expired states and a key-rotation procedure.
 - Test real provider consent, permission denial, expiration and disconnection before launch.
 
-Endpoints and Settings are implemented locally. No live permissions were granted and
-no database migration was applied. Tests use fake providers and mocked storage.
-The local `.env` and `.env.local` contained no matching provider integration configuration
-keys when checked; hosted configuration has not been inspected.
+Endpoints and Settings are implemented locally; this setup does not deploy them.
+The Google Cloud project is `repeat-ai`, with OAuth branding/support contact
+`repeataiorg@gmail.com` and client `Repeat AI Web`, in external testing mode.
+Its registered callbacks are `https://repeatai.org/integrations/callback/google` and
+`http://localhost:5182/integrations/callback/google`. The brand account has only
+OAuth Config Editor; the existing owner session manages API/client console pages
+that additionally require service-usage or service-account-list permissions.
+Google Sheets, Gmail and Google Calendar APIs are enabled and were verified in
+the Cloud console. API enablement is not user consent to read an account.
+
+Vercel production stores the Google client secret and encryption key as sensitive
+secrets. Development values are retrievable for local use; `.env.development.local`
+was pulled into an ignored, untracked file without overwriting `.env.local`.
+Preview is not configured. Local and production currently share the same database,
+so their encryption key must stay aligned; use separate databases before isolating
+keys. Production environment changes require a deployment to take effect.
+
+Unit tests still use fake providers and mocked storage; no real provider account
+has completed consent. The live local endpoint rejects unauthenticated requests
+with HTTP 401. Microsoft is blocked at Azure profile information and verification;
+no Microsoft client or secret exists yet.
 
 References:
 - https://developers.google.com/identity/protocols/oauth2/web-server
