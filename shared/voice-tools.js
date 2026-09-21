@@ -1,3 +1,5 @@
+import { SCHEDULE_ACTIONS } from './voice-schedule.js';
+import { SCHEDULE_DAYS } from '../supabase/functions/_shared/building-schedule.js';
 const provider = { type: 'string', enum: ['google', 'microsoft'] };
 const text = { type: 'string' };
 const tool = (name, description, properties) => ({
@@ -22,8 +24,11 @@ export const VOICE_TOOLS = [
   tool('workspace_spreadsheets', 'List your imported Repeat AI spreadsheets.', {}),
   tool('message_templates', 'Read your saved seller message templates.', {}),
   tool('automation_status', 'Read your current scheduled automation settings.', {}),
+  tool('weekly_schedule', 'Read saved weekly building assignments, weekly-mode and fallback settings, and today/tomorrow in Dubai time. Off means saved assignments do not control sends. Empty days are off only when weekly mode is enabled.', {}),
+  tool('schedule_buildings', 'Find exact buildings from this account for schedule changes. query filters names; offset is a numeric string starting at 0. Returns 20 and nextOffset. Resolve ambiguous tower names before preparing a change.', { query: text, offset: text }),
+  tool('prepare_schedule', 'PREPARE one recurring weekly schedule change for visible confirmation, never save or send. Read weekly_schedule first. Use exact names from schedule_buildings. add preserves current buildings; replace requires explicit replacement intent. clear_day stops that weekday when weekly mode is on. enable/disable changes weekly mode only: disable restores account-wide automation and does NOT pause sends. Use prepare_automation for pausing. Do not enable as a side effect of editing days. Use day="" and buildings_json="[]" for preferences; use a weekday and JSON array of names for add/remove/replace; clear_day uses a weekday and "[]". No one-off-date scheduling.', { action: { type: 'string', enum: SCHEDULE_ACTIONS }, day: { type: 'string', enum: ['', ...SCHEDULE_DAYS] }, buildings_json: text }),
   tool('send_activity', 'Show recent outbound WhatsApp status. Queued is not sent or delivered.', {}),
-  tool('prepare_automation', 'PREPARE enable or pause of existing account-wide follow-ups/reports for visible confirmation. No immediate batch send. Refuse requests for a particular subset or new schedule: these require normal settings. This never applies changes itself.', { automation: { type: 'string', enum: ['followups', 'reports'] }, action: { type: 'string', enum: ['enable', 'pause'] } }),
+  tool('prepare_automation', 'PREPARE enable or pause of existing account-wide follow-ups/reports for visible confirmation. No immediate batch send. For recurring building/day assignments use prepare_schedule instead. This never applies changes itself.', { automation: { type: 'string', enum: ['followups', 'reports'] }, action: { type: 'string', enum: ['enable', 'pause'] } }),
   tool('connected_apps', 'List this user’s connected apps and permissions before accessing data.', {}),
   tool('read_connected_app', 'Read connected email, calendar or spreadsheets. input_json is a JSON object: {} for inbox/calendar/OneDrive root; Google file search {query}; Google tabs {spreadsheetId,tabs:true}; Google rows {spreadsheetId,sheetName}; Excel folder {folderId}, tabs {fileId}, rows {fileId,sheetName}. Use IDs returned by tools, never ask users to find IDs. Rows are a bounded preview, not the entire workbook.', {
     provider, feature: { type: 'string', enum: ['email', 'calendar', 'sheets'] }, input_json: text,
@@ -45,14 +50,14 @@ export async function executeVoiceTool(name, args, { request, workspace, onResul
     if (typeof value !== 'string' || value.length > 8000 || (schema.enum && !schema.enum.includes(value))) throw new Error('Invalid voice action.');
   }
   if (signal?.aborted) throw new Error('Conversation ended.');
-  if (['market_locations', 'market_sales', 'market_listings', 'account_profile', 'find_leads', 'lead_details', 'price_drops', 'workspace_spreadsheets', 'message_templates', 'automation_status', 'send_activity'].includes(name)) {
+  if (['weekly_schedule', 'schedule_buildings', 'market_locations', 'market_sales', 'market_listings', 'account_profile', 'find_leads', 'lead_details', 'price_drops', 'workspace_spreadsheets', 'message_templates', 'automation_status', 'send_activity'].includes(name)) {
     if (!workspace) throw new Error('Workspace unavailable.');
     const result = await workspace.read(name, args, signal);
     if (signal?.aborted) throw new Error('Conversation ended.');
     onResult(result);
     return result;
   }
-  if (['prepare_automation', 'prepare_lead_note', 'prepare_lead_status', 'prepare_template'].includes(name)) {
+  if (['prepare_schedule', 'prepare_automation', 'prepare_lead_note', 'prepare_lead_status', 'prepare_template'].includes(name)) {
     if (!workspace) throw new Error('Workspace unavailable.');
     const prepared = name === 'prepare_automation' ? await workspace.prepare(args, signal) : await workspace.prepareRecord(name, args, signal);
     if (signal?.aborted) { workspace.discard(); throw new Error('Conversation ended.'); }

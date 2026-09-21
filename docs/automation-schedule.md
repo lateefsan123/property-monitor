@@ -34,6 +34,17 @@ must not be changed for testing.
 
 ## Verification
 
+Ask Repeat supports the same schedule operations in voice and text: `weekly_schedule`
+reads mode, fallback, all seven days and Dubai today/tomorrow; `schedule_buildings`
+resolves owned building names; `prepare_schedule` proposes add/remove/replace/clear
+day, weekly-mode and fallback changes. The existing visible Confirm change button
+is the only execution path. Spoken agreement cannot save. Approvals expire after
+two minutes and are single-use, account-checked, and protected against concurrent
+schedule edits. Editing a day never implicitly enables weekly mode. Deploy the
+updated voice/text session handler with the UI before advertising these tools.
+
+- `node --test tests/voice-schedule.test.js tests/voice-workspace.test.js tests/assistant-chat.test.js tests/voice-session.test.js`
+
 - `node --test tests/building-schedule.test.js`
 - Root Vite production build and targeted ESLint.
 - Expo Android bundle export (not an on-device native verification).

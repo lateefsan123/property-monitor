@@ -1,6 +1,7 @@
 import { VOICE_TOOLS } from '../shared/voice-tools.js';
 import { chatItems, respondToChat } from './assistant-chat.js';
 import { marketInstructions } from '../shared/assistant-prompts.js';
+import { SCHEDULE_INSTRUCTIONS } from '../shared/voice-schedule.js';
 
 export function voiceSessionConfig() {
   const config = {
@@ -13,6 +14,8 @@ export function voiceSessionConfig() {
     } },
   };
   config.delegation.responses.instructions += ` ${marketInstructions()} The chat renders plain text, not Markdown. Use two to four short sentences, no Markdown tables, bold markers or code fences. The cards already show individual records; summarise the answer instead of repeating every row. Explain imported coverage briefly without technical schema or provenance jargon.`;
+  config.instructions += ' Delegate building schedules and weekday assignments to the backend too; it can prepare changes for on-screen confirmation.';
+  config.delegation.responses.instructions += ` ${SCHEDULE_INSTRUCTIONS}`;
   return config;
 }
 

@@ -1,4 +1,5 @@
 import { createAssistantMarket, marketResultCards } from './assistant-market.js';
+import { createVoiceSchedule } from './voice-schedule.js';
 
 // The model can read account data and PREPARE changes. Only the visible UI can
 // execute a pending change; no approval capability is exposed as a model tool.
@@ -6,6 +7,7 @@ export function createVoiceWorkspace({ supabase, userId, fetchPriceDrops, onChan
   let pending = null;
   const knownLeads = new Set();
   const market = createAssistantMarket({ supabase });
+  const schedule = createVoiceSchedule({ supabase, userId });
   async function identity(signal) {
     if (signal?.aborted) throw new Error('Conversation ended.');
     const { data, error } = await supabase.auth.getUser();
@@ -25,6 +27,7 @@ export function createVoiceWorkspace({ supabase, userId, fetchPriceDrops, onChan
   }
   async function read(name, args, signal) {
     const user = await identity(signal);
+    if (['weekly_schedule', 'schedule_buildings'].includes(name)) return schedule.read(name, args, signal);
     if (['market_locations', 'market_sales', 'market_listings'].includes(name)) return market.read(name, args, signal);
     if (name === 'account_profile') return { title: 'Your account', items: [{ name: String(user.user_metadata?.full_name || user.user_metadata?.name || 'Repeat AI account').slice(0, 120), content: user.email || '' }] };
     if (name === 'find_leads') {
@@ -80,6 +83,12 @@ export function createVoiceWorkspace({ supabase, userId, fetchPriceDrops, onChan
   async function prepareRecord(name, args, signal) {
     await identity(signal);
     if (pending) throw new Error('Review or dismiss the current change first.');
+    if (name === 'prepare_schedule') {
+      const prepared = await schedule.prepare(args, signal);
+      if (prepared.unchanged) return prepared;
+      pending = { ...prepared.change, expires: Date.now() + 120000 };
+      return { kind: 'workspace', preview: prepared.preview };
+    }
     if (name === 'prepare_template') {
       const title = args.name.trim(), content = args.content.trim();
       if (!title || title.length > 120 || !content || content.length > 6000 || !content.includes('{{transactions}}')) throw new Error('A name and template with {{transactions}} are required.');
@@ -128,6 +137,11 @@ export function createVoiceWorkspace({ supabase, userId, fetchPriceDrops, onChan
     pending = null; // one shot, including an uncertain network outcome
     await identity();
     if (!change || change.expires < Date.now()) throw new Error('This approval expired. Ask again.');
+    if (change.kind === 'schedule') {
+      const saved = await schedule.confirm(change);
+      onChanged();
+      return saved;
+    }
     if (change.kind === 'template') {
       const { data } = await result(supabase.from('seller_signal_message_templates').insert({ user_id: userId, name: change.name, content: change.content, is_default: false, image_path: null }).select('id').single());
       if (!data?.id) throw new Error('Could not verify the saved template.');
