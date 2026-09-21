@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { listingStateOptions } from "./listing-state-query";
 import { supabase } from "../../supabase";
 import {
   buildListingAlertsState,
@@ -40,67 +41,52 @@ function getStoredSyncErrorMessage(summary) {
   return `Bayut live listing sync failed for ${fetchErrorCount} ${fetchErrorCount === 1 ? "building" : "buildings"}: ${firstError}`;
 }
 
-export function useListingAlertsState(feedBuildings) {
-  const [watchedItems, setWatchedItems] = useState([]);
-  const [selectedListingKeys, setSelectedListingKeys] = useState([]);
-  const [watchedBuildingsRemote, setWatchedBuildingsRemote] = useState([]);
-  const [changeState, setChangeState] = useState(() => createEmptyListingAlertsState());
-  const [sessionUserId, setSessionUserId] = useState(null);
+function cachedListingState(cache, userId, feedBuildings) {
+  const payload = cache.getQueryData(["listing-alerts-state", userId]);
+  if (!payload) return null;
+  const row = payload.stateRow;
+  const state = parseListingAlertsState(row ? {
+    summary: row.summary || {}, snapshot: row.snapshot || {},
+    changeItems: row.change_items || [], listingHistory: row.listing_history || {},
+  } : null);
+  return {
+    state,
+    watched: payload.watchlistRows.map(row => normalizeWatchedItem({
+      locationId: row.location_id, buildingName: row.building_name,
+      searchName: row.search_name, fullPath: row.full_path,
+    }, feedBuildings)).filter(Boolean),
+    selected: parseSelectedListingKeys(payload.trackedRows.map(row => createTrackedListingKey(row.location_id, row.listing_id)).filter(Boolean)),
+    buildings: Object.values(state.snapshot || {}).map(snapshotToRemoteBuilding).sort(sortBuildings),
+  };
+}
+
+export function useListingAlertsState(feedBuildings, sessionUserId) {
+  const queryClient = useQueryClient();
+  const [initial] = useState(() => cachedListingState(queryClient, sessionUserId, feedBuildings));
+  const [watchedItems, setWatchedItems] = useState(initial?.watched || []);
+  const [selectedListingKeys, setSelectedListingKeys] = useState(initial?.selected || []);
+  const [watchedBuildingsRemote, setWatchedBuildingsRemote] = useState(initial?.buildings || []);
+  const [changeState, setChangeState] = useState(() => initial?.state || createEmptyListingAlertsState());
   const [remoteWatchedLoading, setRemoteWatchedLoading] = useState(false);
-  const [hydrated, setHydrated] = useState(false);
+  const [hydrated, setHydrated] = useState(Boolean(initial));
   const [watchError, setWatchError] = useState(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
-  const changeStateRef = useRef(createEmptyListingAlertsState());
-  const selectedListingKeysRef = useRef([]);
+  const changeStateRef = useRef(initial?.state || createEmptyListingAlertsState());
+  const selectedListingKeysRef = useRef(initial?.selected || []);
 
   const remoteEnabled = Boolean(supabase && sessionUserId);
 
-  useEffect(() => {
-    if (!supabase) return undefined;
-
-    let isActive = true;
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!isActive) return;
-      setSessionUserId(session?.user?.id ?? null);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (!isActive) return;
-      setSessionUserId(session?.user?.id ?? null);
-    });
-
-    return () => {
-      isActive = false;
-      subscription?.unsubscribe();
-    };
-  }, []);
-
-  const loadRemoteState = useCallback(async ({ showLoading = true } = {}) => {
+  const loadRemoteState = useCallback(async ({ showLoading = true, useCache = false } = {}) => {
     if (!supabase || !sessionUserId) return;
 
     if (showLoading) setRemoteWatchedLoading(true);
     setWatchError(null);
 
     try {
-      const [{ data: watchlistRows, error: watchlistError }, { data: trackedRows, error: trackedError }, { data: stateRow, error: stateError }] = await Promise.all([
-        supabase
-          .from("listing_alerts_watchlists")
-          .select("location_id, building_name, search_name, full_path")
-          .eq("user_id", sessionUserId),
-        supabase
-          .from("listing_alerts_tracked_listings")
-          .select("location_id, listing_id")
-          .eq("user_id", sessionUserId),
-        supabase
-          .from("listing_alerts_state")
-          .select("summary, snapshot, change_items, listing_history")
-          .eq("user_id", sessionUserId)
-          .maybeSingle(),
-      ]);
-
-      if (watchlistError) throw watchlistError;
-      if (trackedError) throw trackedError;
-      if (stateError) throw stateError;
+      const options = listingStateOptions(supabase, sessionUserId);
+      const { watchlistRows, trackedRows, stateRow } = await queryClient.fetchQuery({
+        ...options, staleTime: useCache ? options.staleTime : 0,
+      });
 
       const nextWatchedItems = (watchlistRows || [])
         .map((row) => normalizeWatchedItem({
@@ -169,7 +155,7 @@ export function useListingAlertsState(feedBuildings) {
       if (showLoading) setRemoteWatchedLoading(false);
       setHydrated(true);
     }
-  }, [feedBuildings, sessionUserId]);
+  }, [feedBuildings, sessionUserId, queryClient]);
 
   useEffect(() => {
     let isActive = true;
@@ -218,10 +204,10 @@ export function useListingAlertsState(feedBuildings) {
       }
     }
 
-    loadLocalState();
-
     if (remoteEnabled) {
-      void loadRemoteState({ showLoading: false });
+      void loadRemoteState({ showLoading: false, useCache: true });
+    } else {
+      loadLocalState();
     }
 
     return () => {

@@ -134,8 +134,8 @@ function LayoutMenu({ value, onChange }) {
   );
 }
 
-export default function ListingAlertsPage() {
-  const alerts = useListingAlerts();
+export default function ListingAlertsPage({ userId }) {
+  const alerts = useListingAlerts(userId);
   const [layout, setLayout] = useState(loadInitialLayout);
   const searchInputRef = useRef(null);
   const [watchingOnly, setWatchingOnly] = useState(false);

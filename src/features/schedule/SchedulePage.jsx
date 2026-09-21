@@ -2,11 +2,13 @@ import { useEffect, useRef, useState } from "react";
 import { IconPlus, IconX } from "@tabler/icons-react";
 import { supabase } from "../../supabase";
 import { useBuildingSchedule } from "../../../shared/use-building-schedule.js";
+import { useSpreadsheetBuildings } from "./useSpreadsheetBuildings";
 import { SCHEDULE_DAYS, scheduleBuildingKey } from "../../../supabase/functions/_shared/building-schedule.js";
 import "./schedule.css";
 
 export default function SchedulePage({ userId, client = supabase }) {
-  const state = useBuildingSchedule(client, userId);
+  const spreadsheets = useSpreadsheetBuildings(userId);
+  const state = useBuildingSchedule(client, userId, spreadsheets);
   const [day, setDay] = useState(null);
   const [search, setSearch] = useState("");
   const dialog = useRef(null);
@@ -39,10 +41,14 @@ export default function SchedulePage({ userId, client = supabase }) {
       </fieldset>
       <dialog ref={dialog} className="schedule-picker" onCancel={() => setDay(null)} onClose={() => setDay(null)} onClick={event => { if (event.target === dialog.current) setDay(null); }}>
         <header><h2>{day} buildings</h2><button aria-label="Close building picker" onClick={() => setDay(null)}><IconX size={20} /></button></header>
-        <input aria-label="Search your buildings" placeholder="Search your buildings" value={search} onChange={event => setSearch(event.target.value)} />
+        <label className="schedule-source">Spreadsheet<select aria-label="Spreadsheet" value={spreadsheets.sourceId} onChange={event => { spreadsheets.setSourceId(event.target.value); setSearch(""); }}>
+          <option value="">{spreadsheets.sources.length ? "Choose a spreadsheet" : "No spreadsheets yet"}</option>
+          {spreadsheets.sources.map(source => <option key={source.id} value={source.id}>{source.label}</option>)}
+        </select></label>
+        <input aria-label="Search spreadsheet buildings" placeholder="Search spreadsheet buildings" value={search} onChange={event => setSearch(event.target.value)} />
         <div className="schedule-picker-list">
           {state.buildings.filter(name => name.toLowerCase().includes(search.toLowerCase())).map(name => <label key={name}><input type="checkbox" checked={Boolean(day && state.value.days[day].some(item => scheduleBuildingKey(item) === scheduleBuildingKey(name)))} onChange={() => state.toggleBuilding(day, name)} /><span>{name}</span></label>)}
-          {!state.buildings.length ? <p>Add sellers with building names to see them here.</p> : !state.buildings.some(name => name.toLowerCase().includes(search.toLowerCase())) ? <p>No matching buildings.</p> : null}
+          {!spreadsheets.sourceId ? <p>Choose a spreadsheet to see its buildings.</p> : !state.buildings.length ? <p>This spreadsheet has no sellers with building names yet.</p> : !state.buildings.some(name => name.toLowerCase().includes(search.toLowerCase())) ? <p>No matching buildings.</p> : null}
         </div>
         <button className="schedule-save" onClick={() => setDay(null)}>Done</button>
       </dialog>

@@ -28,5 +28,7 @@
 .schedule-picker > input { width: 100%; box-sizing: border-box; border: 1px solid var(--schedule-border); background: var(--schedule-panel); color: inherit; border-radius: 8px; padding: 12px; font: inherit; }
 .schedule-picker-list { max-height: 45vh; overflow: auto; padding: 12px 0; margin-bottom: 10px; }
 .schedule-picker-list label { display: flex; gap: 12px; align-items: center; min-height: 48px; }
+.schedule-source { display: grid; gap: 8px; margin-bottom: 14px; font-size: 14px; }
+.schedule-source select { width: 100%; border: 1px solid var(--schedule-border); background: var(--schedule-panel); color: inherit; border-radius: 8px; padding: 12px; font: inherit; }
 @media (max-width: 1000px) { .schedule-board { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 600px) { .schedule-page { padding: 28px 16px 140px; } .schedule-board { grid-template-columns: repeat(7, min(78vw, 300px)); overflow-x: auto; scroll-snap-type: x proximity; padding-bottom: 12px; } .schedule-day { scroll-snap-align: start; } .schedule-building button { min-width: 44px; min-height: 44px; } }

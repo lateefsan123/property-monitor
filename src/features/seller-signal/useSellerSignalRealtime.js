@@ -16,7 +16,10 @@ export function useSellerSignalRealtime(userId) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "leads", filter },
-        () => queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) }),
+        () => {
+          void queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
+          void queryClient.invalidateQueries({ queryKey: ["schedule-buildings", userId] });
+        },
       )
       .on(
         "postgres_changes",
@@ -26,7 +29,10 @@ export function useSellerSignalRealtime(userId) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "lead_sources", filter },
-        () => queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) }),
+        () => {
+          void queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) });
+          void queryClient.invalidateQueries({ queryKey: ["schedule-buildings", userId] });
+        },
       )
       .subscribe();
 

@@ -51,6 +51,7 @@ function AutomationToggle({
 }
 
 export default function SellerSignalSettingsModal({
+  userId,
   account,
   automationEnabled,
   automationLoading,
@@ -177,7 +178,7 @@ export default function SellerSignalSettingsModal({
                     </button>
                   </div>
                 ) : activeTab === "integrations" ? (
-                  <IntegrationConnectionsPanel />
+                  <IntegrationConnectionsPanel key={userId} userId={userId} />
                 ) : (
                   <SendActivityPanel activity={sendActivity} loading={sendActivityLoading} />
                 )}

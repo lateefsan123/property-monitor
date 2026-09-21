@@ -128,6 +128,7 @@ export default function SellerSignalDashboard({
         onReviewRows={(filter) => dashboard.actions.selectDataQualityFilter(filter)}
       />
       <SellerSignalSettingsModal
+        userId={userId}
         account={dashboard.connectedWhatsAppAccount}
         automationEnabled={dashboard.automation.enabled}
         automationLoading={dashboard.automation.loading}

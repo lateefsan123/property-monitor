@@ -38,7 +38,7 @@ const MAIN_GROUP = [
   { id: "schedule", label: "Schedule", Icon: IconCalendarWeek, kind: "nav" },
 ];
 
-function SidenavItem({ item, currentPage, onNavigate, onAction }) {
+function SidenavItem({ item, currentPage, onNavigate, onAction, onPrefetch }) {
   const Icon = item.Icon;
   const isNav = item.kind === "nav";
   const isAction = item.kind === "action";
@@ -56,6 +56,8 @@ function SidenavItem({ item, currentPage, onNavigate, onAction }) {
       type="button"
       className={`sidenav-link${accent}${isActive ? " active" : ""}${!isInteractive ? " disabled" : ""}`}
       onClick={isInteractive ? handleClick : undefined}
+      onMouseEnter={() => onPrefetch?.(item.id)}
+      onFocus={() => onPrefetch?.(item.id)}
       disabled={!isInteractive}
     >
       <Icon size={20} stroke={1.8} aria-hidden="true" />
@@ -80,6 +82,7 @@ function FavoriteItem({ source, onOpen }) {
 }
 
 export default function AppSidebar({
+  onPrefetch,
   currentPage,
   onNavigate,
   onAction,
@@ -107,6 +110,7 @@ export default function AppSidebar({
             currentPage={currentPage}
             onNavigate={onNavigate}
             onAction={onAction}
+            onPrefetch={onPrefetch}
           />
         ))}
       </div>
@@ -131,6 +135,7 @@ export default function AppSidebar({
             currentPage={currentPage}
             onNavigate={onNavigate}
             onAction={onAction}
+            onPrefetch={onPrefetch}
           />
         ))}
       </div>
@@ -143,6 +148,7 @@ export default function AppSidebar({
           currentPage={currentPage}
           onNavigate={onNavigate}
           onAction={onAction}
+          onPrefetch={onPrefetch}
         />
         <button type="button" className="sidenav-link sidenav-signout accent-rose" onClick={onSignOut}>
           <IconLogout size={20} stroke={1.8} aria-hidden="true" />

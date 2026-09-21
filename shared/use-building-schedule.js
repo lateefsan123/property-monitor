@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createBuildingScheduleServices } from "./building-schedule-services.js";
+import { buildingScheduleOptions } from "./building-schedule-queries.js";
 import { emptySchedule, scheduleBuildingKey } from "../supabase/functions/_shared/building-schedule.js";
 
-export function useBuildingSchedule(client, userId) {
+export function useBuildingSchedule(client, userId, spreadsheetBuildings) {
   const services = createBuildingScheduleServices(client);
   const cache = useQueryClient();
-  const key = ["building-schedule", userId];
-  const query = useQuery({ queryKey: key, queryFn: () => services.load(userId), enabled: Boolean(userId) });
-  const buildings = useQuery({ queryKey: ["schedule-buildings", userId], queryFn: () => services.buildings(userId), enabled: Boolean(userId) });
+  const options = buildingScheduleOptions(client, userId);
+  const key = options.schedule.queryKey;
+  const query = useQuery(options.schedule);
+  const buildings = useQuery({ ...options.buildings, enabled: options.buildings.enabled && !spreadsheetBuildings });
   const [draft, setDraft] = useState(null);
   const value = draft?.userId === userId ? draft.value : query.data || emptySchedule();
   const mutation = useMutation({
@@ -25,12 +27,12 @@ export function useBuildingSchedule(client, userId) {
     change({ days: { ...value.days, [day]: exists ? items.filter(item => scheduleBuildingKey(item) !== scheduleBuildingKey(name)) : [...items, name] } });
   }
   return {
-    value, change, toggleBuilding, buildings: buildings.data || [],
-    loading: query.isPending || buildings.isPending,
-    loadError: query.error || buildings.error,
+    value, change, toggleBuilding, buildings: spreadsheetBuildings?.buildings || buildings.data || [],
+    loading: query.isPending || (spreadsheetBuildings ? spreadsheetBuildings.loading : buildings.isPending),
+    loadError: query.error || (spreadsheetBuildings ? spreadsheetBuildings.error : buildings.error),
     error: mutation.error, saving: mutation.isPending,
     saved: mutation.isSuccess, dirty: draft?.userId === userId,
-    retry: () => { void query.refetch(); void buildings.refetch(); },
+    retry: () => { void query.refetch(); if (spreadsheetBuildings) spreadsheetBuildings.retry(); else void buildings.refetch(); },
     save: () => mutation.mutate(value),
   };
 }

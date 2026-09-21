@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { usePagePrefetch } from "./usePagePrefetch";
 import SchedulePage from "./features/schedule/SchedulePage";
 import {
   IconBuildingEstate,
@@ -88,6 +89,7 @@ function MessageTemplatesModal({ onClose, userId }) {
 }
 
 export default function AppShell({ displayName, userId }) {
+  const prefetchPage = usePagePrefetch(userId);
   const [currentPage, setCurrentPage] = useState(readPageFromHash);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
@@ -132,6 +134,7 @@ export default function AppShell({ displayName, userId }) {
 
   function handleNavigate(pageId) {
     if (!VALID_PAGES.has(pageId)) return;
+    prefetchPage(pageId);
     if (window.location.hash !== `#/${pageId}`) {
       window.location.hash = `/${pageId}`;
     }
@@ -140,6 +143,7 @@ export default function AppShell({ displayName, userId }) {
   }
 
   function handleSidebarAction(actionId) {
+    prefetchPage(actionId);
     if (actionId === "new") {
       setCreateOpen(true);
       setSidebarCollapsed(true);
@@ -173,6 +177,7 @@ export default function AppShell({ displayName, userId }) {
   return (
     <div className="app-shell">
       <AppSidebar
+        onPrefetch={prefetchPage}
         currentPage={currentPage}
         displayName={displayName}
         userId={userId}
@@ -269,7 +274,7 @@ export default function AppShell({ displayName, userId }) {
         ) : currentPage === "spreadsheets" ? (
           <SpreadsheetsPage userId={userId} />
         ) : (
-          <ListingAlertsPage />
+          <ListingAlertsPage key={userId} userId={userId} />
         )}
       </div>
     </div>

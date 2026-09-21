@@ -1,4 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { integrationStatusOptions } from '../../../integration-query';
 import { integrationRequest } from '../../../integration-client';
 import '../../../styles/integration-connections.css';
 import IntegrationWorkspace from './IntegrationWorkspace';
@@ -12,27 +14,24 @@ const ITEMS = [
   ['microsoft', 'calendar', 'Outlook Calendar', 'Connect read-only access to your upcoming events. No events are changed.', 'https://res.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/brand-icons/product/svg/outlook_48x1.svg'],
 ];
 
-export default function IntegrationConnectionsPanel({ request = integrationRequest }) {
-  const [connections, setConnections] = useState(null);
+export default function IntegrationConnectionsPanel({ userId, request = integrationRequest }) {
+  const cache = useQueryClient();
+  const options = integrationStatusOptions(userId, request);
+  const status = useQuery(options);
+  const connections = status.data;
   const [error, setError] = useState('');
   const [busy, setBusy] = useState('');
-  const [attempt, setAttempt] = useState(0);
   const [confirmId, setConfirmId] = useState('');
   const [openId, setOpenId] = useState('');
-  useEffect(() => {
-    const controller = new AbortController();
-    request({ action: 'status' }, controller.signal).then(result => {
-      if (!controller.signal.aborted) { setConnections(result.connections); setError(''); }
-    }).catch(error => { if (!controller.signal.aborted) setError(error.message); });
-    return () => controller.abort();
-  }, [request, attempt]);
   async function change(provider, feature, connected, capability) {
     setBusy(`${provider}-${feature}`);
     setError('');
     try {
       const result = await request({ action: connected ? 'disconnect' : 'begin', provider, feature, ...(capability ? { capability } : {}) });
       if (connected) {
-        setConnections(current => current.map(item => item.provider === provider && item.feature === feature ? { ...item, connected: false } : item));
+        await cache.cancelQueries({ queryKey: options.queryKey });
+        cache.setQueryData(options.queryKey, current => current?.map(item => item.provider === provider && item.feature === feature ? { ...item, connected: false } : item));
+        void cache.invalidateQueries({ queryKey: options.queryKey });
         setConfirmId('');
         setOpenId('');
       } else {
@@ -46,10 +45,9 @@ export default function IntegrationConnectionsPanel({ request = integrationReque
   }
   return <section className="integration-connections" aria-label="App connections">
     <p className="integration-intro">Your everyday tools, all in one place.</p>
-    {error && <div className="integration-error" role="alert">{error} <button type="button" onClick={() => setAttempt(value => value + 1)}>Try again</button></div>}
-    {!connections && !error && <p role="status">Loading connections…</p>}
-    {connections && <div className="integration-list">{ITEMS.map(([provider, feature, name, description, logo]) => {
-      const connection = connections.find(item => item.provider === provider && item.feature === feature);
+    {(error || status.error) && <div className="integration-error" role="alert">{error || status.error.message} <button type="button" onClick={() => { setError(''); void status.refetch(); }}>Try again</button></div>}
+    <div className="integration-list" aria-busy={status.isPending}>{ITEMS.map(([provider, feature, name, description, logo]) => {
+      const connection = connections?.find(item => item.provider === provider && item.feature === feature);
       const id = `${provider}-${feature}`;
       const expanded = openId === id;
       return <article key={id} className={`integration-card${expanded ? ' is-open' : ''}`}><div className="integration-row">
@@ -61,7 +59,7 @@ export default function IntegrationConnectionsPanel({ request = integrationReque
           aria-expanded={connection?.connected ? expanded : undefined} aria-controls={connection?.connected ? `integration-${id}` : undefined}
           disabled={Boolean(busy) || (!connection?.configured && !connection?.connected)}
           onClick={() => { setConfirmId(''); if (connection?.connected) setOpenId(expanded ? '' : id); else change(provider, feature, false); }}>
-          {busy === id ? 'Connecting…' : connection?.connected ? expanded ? 'Close' : 'Open' : connection?.configured ? 'Connect' : 'Setup needed'}
+          {!connections ? status.error ? 'Unavailable' : 'Checking…' : busy === id ? 'Connecting…' : connection?.connected ? expanded ? 'Close' : 'Open' : connection?.configured ? 'Connect' : 'Setup needed'}
         </button>
       </div>{expanded && connection?.connected && <div className="integration-detail" id={`integration-${id}`}>
         <p className="integration-access">{connection.canSend ? 'Reading and sending enabled. Every send needs your confirmation.' : 'Read-only access. Your files and events stay unchanged.'}</p>
@@ -72,7 +70,7 @@ export default function IntegrationConnectionsPanel({ request = integrationReque
         <button type="button" disabled={Boolean(busy)} onClick={() => setConfirmId('')}>Keep connected</button>
         <button type="button" disabled={Boolean(busy)} onClick={() => change(provider, feature, true)}>Confirm disconnect</button>
       </div>}</div>}</article>;
-    })}</div>}
+    })}</div>
     <p className="integration-note">Nothing is sent or changed automatically. WhatsApp is managed in its own tab.</p>
   </section>;
 }

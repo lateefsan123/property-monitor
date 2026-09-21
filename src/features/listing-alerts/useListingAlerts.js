@@ -1,5 +1,5 @@
 import { useDeferredValue, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 import { searchBayutAlertLocations } from "./api";
 import {
@@ -49,7 +49,8 @@ function getSyncFetchErrorMessage(payload) {
   return `Bayut live listing sync failed for ${fetchErrorCount} ${fetchErrorCount === 1 ? "building" : "buildings"}: ${firstError}`;
 }
 
-export function useListingAlerts() {
+export function useListingAlerts(userId) {
+  const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState("");
   const deferredSearchTerm = useDeferredValue(searchTerm);
   const normalizedSearchTerm = deferredSearchTerm.trim();
@@ -80,7 +81,7 @@ export function useListingAlerts() {
     watchedBuildingsRemote,
     watchedItems,
     watchedLoading,
-  } = useListingAlertsState(feedBuildings);
+  } = useListingAlertsState(feedBuildings, userId);
 
   const searchQuery = useQuery({
     queryKey: ["listing-alerts-search", normalizedSearchTerm],
@@ -263,6 +264,8 @@ export function useListingAlerts() {
       }
     } catch (error) {
       setWatchError(getErrorMessage(error));
+    } finally {
+      void queryClient.invalidateQueries({ queryKey: ["listing-alerts-state", sessionUserId] });
     }
   }
 
@@ -293,6 +296,8 @@ export function useListingAlerts() {
       }
     } catch (error) {
       setWatchError(getErrorMessage(error));
+    } finally {
+      void queryClient.invalidateQueries({ queryKey: ["listing-alerts-state", sessionUserId] });
     }
   }
 
