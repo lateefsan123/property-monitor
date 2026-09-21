@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { CircleHelp } from "lucide-react";
 import { TOUR_STEPS, readTourState, saveTourState } from "./product-tour";
 import "../styles/product-tour.css";
 
@@ -66,7 +67,7 @@ export default function ProductTour({ userId, onNavigate, onAction }) {
           </div>
         </section>
       ) : (
-        <button ref={launcher} type="button" className="repeat-tour-launcher" aria-label="Open product tour" onClick={() => move(state.step === TOUR_STEPS.length - 1 ? 0 : state.step)}><span aria-hidden="true">?</span> Quick tour</button>
+        <button ref={launcher} type="button" className="repeat-tour-launcher" aria-label="Open product tour" onClick={() => move(state.step === TOUR_STEPS.length - 1 ? 0 : state.step)}><CircleHelp className="repeat-tour-help-icon" size={20} strokeWidth={1.75} aria-hidden="true" />Quick tour</button>
       )}
     </div>
   );

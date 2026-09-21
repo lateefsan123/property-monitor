@@ -35,7 +35,7 @@ test("seven steps use real destinations and existing product assets", () => {
 });
 test("tour integration is authenticated, user-scoped and suppressed for shell modals", () => {
   const shell = readFileSync(new URL('../src/AppShell.jsx', import.meta.url), 'utf8');
-  assert.match(shell, /!createOpen && !messageTemplatesOpen && !settingsOpen && <ProductTour key=\{userId\}/);
+  assert.match(shell, /!createOpen && !messageTemplatesOpen && !settingsOpen && !assistantOpen && <ProductTour key=\{userId\}/);
   const component = readFileSync(new URL('../src/components/ProductTour.jsx', import.meta.url), 'utf8');
   assert.match(component, /observer.disconnect/);
   assert.match(component, /event.key === "Escape"/);
@@ -46,7 +46,7 @@ test("Next, Back, actions, completion, restart and Escape preserve the journey",
   const source = readFileSync(new URL('../src/components/ProductTour.jsx', import.meta.url), 'utf8').replace(/^import .*;\r?\n/gm, '');
   const { code } = await transform(source, { loader: 'jsx', format: 'cjs', jsxFactory: 'h' });
   let state; const routes = []; const actions = []; const storage = store();
-  const ctx = { module: { exports: {} }, TOUR_STEPS, readTourState, saveTourState,
+  const ctx = { module: { exports: {} }, TOUR_STEPS, readTourState, saveTourState, CircleHelp: 'help-icon',
     window: { localStorage: storage }, requestAnimationFrame: fn => fn(),
     useRef: () => ({ current: null }), useEffect: () => {},
     useState: init => { state ??= init(); return [state, next => { state = next; }]; },
@@ -65,4 +65,12 @@ test("Next, Back, actions, completion, restart and Escape preserve the journey",
   click('repeat-tour-launcher'); click('repeat-tour-next'); click('repeat-tour-next'); assert.equal(state.open, false);
   click('repeat-tour-launcher'); assert.equal(state.step, 0);
   render().props.onKeyDown({ key: 'Escape', stopPropagation() {} }); assert.equal(state.open, false);
+});
+
+test("artwork retains its palette in dark mode and launcher uses a fixed-size icon", () => {
+  const css = readFileSync(new URL('../src/styles/product-tour.css', import.meta.url), 'utf8');
+  assert.ok(!css.includes('[data-theme="dark"] .app-shell .repeat-tour-visual'));
+  assert.ok(!css.includes('brightness(.8)'));
+  assert.match(css, /repeat-tour-help-icon[^}]+flex: 0 0 20px/);
+  for (const colour of ['#d5ebf8', '#f6dbca', '#e0d9f1', '#dbf5eb', '#d9e6cf']) assert.ok(css.includes(colour));
 });
