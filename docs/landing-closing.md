@@ -11,3 +11,11 @@ Visitor action invokes onGetStarted; signed-in action invokes onSubscribe. Check
 Unused old-ending CSS and FAQ state removed. Old image assets remain on disk so they are recoverable/reusable. No deployment performed.
 
 Verification: 12 landing tests and targeted ESLint passed. Executed component tests cover visitor/authenticated callbacks, disabled pending state, feedback roles and footer destinations. Browser checked at 1440px and 390px: 1280x304 desktop panel, readable mobile stack, document width equals scroll width (previous footer overflow fixed), no old sections in the DOM. The CTA opens the existing authentication screen without submitting account data; the Connected tools footer link scrolls to the correct section. Production build passes with the existing large-chunk warning.
+
+## Reference-alignment correction
+
+Footer now follows the measured reference structure: full-width upper rule, logo on its own row (32px below the rule and 32px before the links), four equal desktop columns with 38px gutters, 15px links, and legal links in the bottom row. Real product-section anchors replace folk-specific destinations; no invented social accounts or empty links. Mobile uses two columns. Removed the extra Dubai tagline.
+
+The 60px header is now CSS-sticky at top: 0 with an opaque white background and a subtle lower rule, without adding navigation items or scroll listeners. Section anchors have an 84px scroll margin so their headings remain below the header. Existing login/logout and trial handlers are unchanged.
+
+Correction verified: 18 landing/navigation tests, targeted ESLint and production build pass (existing chunk warning only). At 1440px the footer has four 291.5px columns and 38px gaps; at 390px it has two 155.5px columns with no horizontal document overflow. Header remains at y=0 with a white background while scrolled at both sizes. Clicking Message templates positions its section at y=84.36 below the 60px header. Viewport override reset after checks.

@@ -56,3 +56,23 @@ test("legacy ending is removed and trial terms are retained", () => {
   assert.match(source, /7 days free, then EUR 25\/month/);
   assert.doesNotMatch(source, /14-day|No credit card/);
 });
+
+test("footer places its logo above four link columns and legal links below", () => {
+  const nodes = flatten(render({}));
+  const inner = nodes.find(x => x.props.className === "landing-end-inner");
+  assert.deepEqual(Array.from(inner.children, x => x.props.className), ["landing-end-brand", "landing-end-main", "landing-end-bottom"]);
+  const columns = nodes.find(x => x.props.className === "landing-end-main");
+  assert.equal(columns.children.length, 4);
+  assert.ok(columns.children.every(x => x.tag === "nav"));
+  const bottom = nodes.find(x => x.props.className === "landing-end-bottom");
+  assert.equal(bottom.children[0].props["aria-label"], "Legal");
+});
+
+test("header is sticky and opaque with clearance for section anchors", () => {
+  const css = readFileSync(new URL("../src/styles/landing.css", import.meta.url), "utf8");
+  const header = css.match(/\.landing-header-frame \{([^}]+)\}/)[1];
+  assert.match(header, /position: sticky/);
+  assert.match(header, /top: 0/);
+  assert.match(header, /background: #fff/);
+  assert.match(css, /\.landing \[id\] \{\s*scroll-margin-top: 84px/);
+});

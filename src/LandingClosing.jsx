@@ -36,30 +36,40 @@ export default function LandingClosing({
       </section>
 
       <footer className="landing-end-footer">
-        <div className="landing-end-main">
+        <div className="landing-end-inner">
           <a className="landing-end-brand" href="/" aria-label="Repeat AI home">
             <img src="/brand/repeat-ai-logo.png" alt="Repeat AI" width="140" height="25" />
           </a>
-          <nav aria-label="Product" className="landing-end-links">
-            <h2>Product</h2>
-            <a href="#product-details">How it works</a>
-            <a href="#connected-stack">Connected tools</a>
-            <a href="/api/desktop/download">Windows app</a>
-          </nav>
-          <nav aria-label="Account" className="landing-end-links">
-            <h2>Get started</h2>
-            <a href="#start-free">Free trial</a>
-            <button type="button" onClick={accountAction}>{accountActionLabel}</button>
-          </nav>
-          <nav aria-label="Legal" className="landing-end-links">
-            <h2>Legal</h2>
-            <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
-          </nav>
-        </div>
-        <div className="landing-end-bottom">
-          <span>© {new Date().getFullYear()} Repeat AI</span>
-          <span>Made for Dubai brokers.</span>
+          <div className="landing-end-main">
+            <nav aria-label="Product" className="landing-end-links">
+              <h2>Product</h2>
+              <a href="#product-details">How it works</a>
+              <a href="#connected-stack">Connected tools</a>
+              <a href="#start-free">Free trial</a>
+            </nav>
+            <nav aria-label="Sellers" className="landing-end-links">
+              <h2>Sellers</h2>
+              <a href="#seller-workspace">Seller workspace</a>
+              <a href="#market-activity">Market activity</a>
+            </nav>
+            <nav aria-label="Outreach" className="landing-end-links">
+              <h2>Outreach</h2>
+              <a href="#message-templates">Message templates</a>
+              <a href="#whatsapp-follow-ups">WhatsApp follow-ups</a>
+            </nav>
+            <nav aria-label="Account" className="landing-end-links">
+              <h2>Get started</h2>
+              <a href="/api/desktop/download">Windows app</a>
+              <button type="button" onClick={accountAction}>{accountActionLabel}</button>
+            </nav>
+          </div>
+          <div className="landing-end-bottom">
+            <nav aria-label="Legal" className="landing-end-legal">
+              <a href="/terms">Terms of Use</a>
+              <a href="/privacy">Privacy Policy</a>
+            </nav>
+            <span>© {new Date().getFullYear()} Repeat AI</span>
+          </div>
         </div>
       </footer>
     </div>

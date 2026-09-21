@@ -46,19 +46,21 @@
 
 /* Header: folk's 1680px frame, 1280px inner width and 60px height. */
 .landing-header-frame {
-  position: relative;
-  background: #f6f4f0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: #fff;
   color: #242320;
+  box-shadow: 0 1px 0 #dedbd5;
 }
-.landing-header-frame::before {
-  box-sizing: border-box;
-  content: "";
-  position: absolute;
-  inset: 0;
-  width: min(100%, 1680px);
-  margin-inline: auto;
-  border-inline: 1px solid #45433e;
-  pointer-events: none;
+
+/* Keep section headings and focused controls clear of the persistent header. */
+.landing [id] {
+  scroll-margin-top: 84px;
+}
+
+.landing :is(a, button):focus-visible {
+  scroll-margin-top: 84px;
 }
 .landing-header {
   display: flex;
