@@ -91,3 +91,14 @@ test('scope upgrades are explicit, feature-bound and verified on callback', asyn
   await assert.rejects(f.oauth.complete({ userId: 'a', provider: 'microsoft', state: url.searchParams.get('state'), code: 'code' }), { code: 'oauth_scope' });
   await assert.rejects(f.oauth.begin({ userId: 'a', provider: 'microsoft', feature: 'sheets', capability: 'send' }), { code: 'invalid_input' });
 });
+
+test('native OAuth keeps PKCE, owner binding and fixed registered HTTPS callback', async () => {
+  const f = fixture();
+  const url = new URL((await f.oauth.begin({ userId: 'a', provider: 'google', feature: 'calendar', client: 'mobile' })).authorizationUrl);
+  const state = url.searchParams.get('state');
+  assert.match(state, /^m_[\w-]{43}$/);
+  assert.equal(url.searchParams.get('redirect_uri'), 'https://example.com/callback/google');
+  await assert.rejects(f.oauth.complete({ userId: 'b', provider: 'google', state, code: 'code' }));
+  assert.equal((await f.oauth.complete({ userId: 'a', provider: 'google', state, code: 'code' })).status, 'connected');
+  await assert.rejects(f.oauth.begin({ userId: 'a', provider: 'google', feature: 'calendar', client: 'https://evil.test' }), { code: 'invalid_input' });
+});

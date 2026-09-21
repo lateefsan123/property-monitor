@@ -23,7 +23,7 @@ export function createIntegrationHandler({ authenticate, store, oauth, configure
       if (!body || Array.isArray(body) || JSON.stringify(body).length > 12000) throw new Error();
     } catch { return send(400, { error: 'Invalid request' }); }
     const { action, provider, feature } = body;
-    const fields = { status: ['action'], begin: ['action', 'provider', 'feature', 'capability'],
+    const fields = { status: ['action'], begin: ['action', 'provider', 'feature', 'capability', 'client'],
       prepare_email: ['action', 'provider', 'feature', 'input'], confirm_email: ['action', 'provider', 'feature', 'confirmation'],
       complete: ['action', 'provider', 'state', 'code', 'error'], disconnect: ['action', 'provider', 'feature'], read: ['action', 'provider', 'feature', 'input'] };
     if (!Object.hasOwn(fields, action) || Object.keys(body).some(key => !fields[action].includes(key))) return send(400, { error: 'Invalid request' });
@@ -50,7 +50,7 @@ export function createIntegrationHandler({ authenticate, store, oauth, configure
         return send(200, await (action === 'prepare_email' ? mail.prepare({ userId: user.id, provider, input: body.input }) : mail.confirm({ userId: user.id, provider, confirmation: body.confirmation })));
       }
       const result = action === 'begin'
-        ? await oauth.begin({ userId: user.id, provider, feature, capability: body.capability })
+        ? await oauth.begin({ userId: user.id, provider, feature, capability: body.capability, client: body.client })
         : await oauth.complete({ userId: user.id, provider, state: body.state, code: body.code, error: body.error });
       return send(200, result);
     } catch (error) {

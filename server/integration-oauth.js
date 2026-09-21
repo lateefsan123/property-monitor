@@ -60,14 +60,15 @@ export function createTokenVault(key) {
 export function createIntegrationOAuth({ configs, store, vault, fetchImpl = fetch, now = Date.now }) {
   if (!store?.putPending || !store?.consumePending || !store?.saveConnection || !vault?.seal || !vault?.open) throw new Error('Persistent store and token vault are required');
   return {
-    async begin({ userId, provider, feature, capability }) {
+    async begin({ userId, provider, feature, capability, client }) {
       principal(userId);
       const spec = providerFor(provider);
       if (!Object.hasOwn(spec.scopes, feature)) throw new Error('Unsupported feature');
       const config = configuration(configs[provider]);
+      if (client !== undefined && client !== 'mobile') throw new IntegrationError('invalid_input');
       if (capability !== undefined && !((capability === 'send' && feature === 'email') || (capability === 'workbook' && feature === 'sheets' && provider === 'microsoft') || (capability === 'browse' && feature === 'sheets' && provider === 'google'))) throw new IntegrationError('invalid_input');
       const scopes = [...spec.scopes[feature], ...(capability ? EXTRA_SCOPES[provider][capability] : [])];
-      const state = randomBytes(32).toString('base64url');
+      const state = `${client === 'mobile' ? 'm_' : ''}${randomBytes(32).toString('base64url')}`;
       const verifier = randomBytes(32).toString('base64url');
       const expiresAt = now() + 10 * 60 * 1000;
       await store.putPending({ hash: digest(state), userId, provider, feature, expiresAt, secret: vault.seal({ verifier, redirectUri: config.redirectUri, scopes }, userId, provider, feature) });
@@ -81,7 +82,7 @@ export function createIntegrationOAuth({ configs, store, vault, fetchImpl = fetc
       principal(userId);
       const spec = providerFor(provider);
       const config = configuration(configs[provider]);
-      if (typeof state !== 'string' || !/^[\w-]{43}$/.test(state)) throw new IntegrationError('oauth_expired');
+      if (typeof state !== 'string' || !/^(?:m_)?[\w-]{43}$/.test(state)) throw new IntegrationError('oauth_expired');
       const pending = await store.consumePending({ hash: digest(state), userId, provider, now: now() });
       if (!pending || pending.userId !== userId || pending.provider !== provider || pending.expiresAt <= now()) throw new IntegrationError('oauth_expired');
       if (error) return { status: 'cancelled' };

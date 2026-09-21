@@ -9,7 +9,7 @@ Goal: full web/mobile integration workflows plus a separate funded voice-agent A
 - Targeted mobile lint passed; Android Expo export succeeded. No device interaction evidence yet.
 
 ## Remaining
-- Finish native connect/reconnect, permission upgrades, disconnect confirmation, email compose/reply/exact-send confirmation, provider logos and mobile end-to-end testing.
+- Native connect, permission upgrades, disconnect confirmation, email compose/reply/exact-send confirmation and provider logos are implemented. Web callback forwards only to the fixed seller-signal app scheme; mobile checks state/provider and completes with its authenticated session. Forty backend/callback tests, targeted lint, web build and Android export pass. Mobile end-to-end testing remains; native expo-image dependency requires a new build, not an incompatible OTA.
 - Deploy web/API picker changes before testing mobile browsing against production (mobile points to https://repeatai.org/api/integrations).
 - Obtain metadata consent and test actual Google spreadsheet selection, not only sample fixtures.
 - OpenAI secure key setup still returns reauthentication required. User requested a NEW separate voice key, not reuse. No new key created and no top-up charged. Reconnect OpenAI Platform, confirm separate key destination and correct billing account, then action-time confirm the requested EUR 10 top-up; do not substitute USD without checking.
