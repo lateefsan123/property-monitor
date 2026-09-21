@@ -5,6 +5,7 @@ import { fetchAutomationSettings, saveAutomationSettings } from "./automation-se
 import { fetchWhatsAppSendActivity } from "./send-activity";
 import WhatsAppPanel from "./whatsapp-panel";
 import AccountSettings from "../screens/SettingsScreen";
+import Integrations from './integrations';
 import { Button, Feedback, Icon } from "./ui";
 
 const SETTINGS_PAGES = [
@@ -12,6 +13,7 @@ const SETTINGS_PAGES = [
   ["Automations", "filter"],
   ["WhatsApp", "message"],
   ["Send activity", "table"],
+  ["Integrations", "table"],
   ["Accounts", "users"],
 ];
 
@@ -136,6 +138,7 @@ export default function WorkspaceSettings({ userId, colors, active = true, onHea
       </SettingsRow>
     ) : page === "Automations" ? <Automations userId={userId} colors={colors} />
       : page === "WhatsApp" ? <WhatsAppPanel userId={userId} colors={colors} active={active} />
-        : page === "Send activity" ? <SendActivity userId={userId} colors={colors} active={active} /> : null}
+        : page === "Send activity" ? <SendActivity userId={userId} colors={colors} active={active} />
+          : page === "Integrations" ? <Integrations key={userId} userId={userId} colors={colors} /> : null}
   </ScrollView>;
 }
