@@ -314,38 +314,50 @@
 
 /* Tower strip */
 .landing-tower-strip {
+  box-sizing: border-box;
   width: 100%;
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-  overflow: hidden;
+  padding: 80px 24px;
+  border-top: 1px solid #45433e;
+  background: #fff;
+  color: #242320;
+  color-scheme: light;
+}
+
+.landing-tower-strip h2 {
+  margin: 0 0 24px;
+  font: 500 21px/1.2 "Geist", "Inter", sans-serif;
+  letter-spacing: -0.025em;
+  text-align: center;
 }
 
 .landing-tower-track {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: clamp(24px, 2vw, 42px);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 1px;
   width: 100%;
-  min-width: 0;
-  max-width: 1600px;
+  max-width: 1280px;
   margin: 0 auto;
-  padding: 30px clamp(24px, 4vw, 58px);
+  padding: 1px;
+  list-style: none;
+  background: #45433e;
 }
 
 .landing-tower {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1 1 0;
+  height: 100px;
   min-width: 0;
+  padding: 0 20px;
+  background: #fff;
 }
 
 .landing-tower-logo {
-  display: grid;
-  place-items: center;
+  display: block;
   width: 100%;
-  max-width: 92px;
-  height: 38px;
+  max-width: 140px;
+  height: 52px;
   line-height: 0;
 }
 
@@ -353,31 +365,18 @@
   display: block;
   width: 100%;
   height: 100%;
-  max-height: 38px;
   object-fit: contain;
-}
-
-.landing-tower-logo--museum img {
-  filter: brightness(0) invert(1);
+  filter: brightness(0);
   opacity: 0.88;
 }
 
+.landing-tower-logo--marina-gate {
+  height: 72px;
+}
+
 .landing-tower-logo--one-zaabeel,
-.landing-tower-logo--st-regis,
 .landing-tower-logo--address {
-  max-width: 112px;
-}
-
-.landing-tower-logo--dubai-frame {
-  max-width: 54px;
-}
-
-.landing-tower-logo--icd-brookfield {
-  max-width: 128px;
-}
-
-.landing-tower-logo--burj-khalifa img {
-  filter: brightness(1.2);
+  max-width: 150px;
 }
 
 /* Features */
@@ -936,44 +935,11 @@
   }
 
   .landing-tower-strip {
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  .landing-tower-strip::-webkit-scrollbar {
-    display: none;
+    padding-block: 56px;
   }
 
   .landing-tower-track {
-    justify-content: flex-start;
-    gap: 38px;
-    width: max-content;
-    min-width: max-content;
-    padding-left: 32px;
-    padding-right: 40px;
-  }
-
-  .landing-tower {
-    flex: 0 0 auto;
-  }
-
-  .landing-tower-logo {
-    width: 92px;
-  }
-
-  .landing-tower-logo--one-zaabeel,
-  .landing-tower-logo--st-regis,
-  .landing-tower-logo--address {
-    width: 112px;
-  }
-
-  .landing-tower-logo--dubai-frame {
-    width: 54px;
-  }
-
-  .landing-tower-logo--icd-brookfield {
-    width: 128px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .landing-pricing-grid {
@@ -992,6 +958,23 @@
 }
 
 @media (max-width: 480px) {
+  .landing-tower-strip {
+    padding: 48px 20px;
+  }
+
+  .landing-tower-strip h2 {
+    font-size: 20px;
+  }
+
+  .landing-tower-track {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .landing-tower {
+    height: 92px;
+    padding-inline: 16px;
+  }
+
   .landing-header {
     width: calc(100% - 40px);
     padding: 0;

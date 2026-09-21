@@ -101,30 +101,6 @@ const DUBAI_TOWERS = [
     logoKey: "atlantis",
   },
   {
-    name: "Museum of the Future",
-    logo: "/landing/tower-logos/museum-of-the-future.svg",
-    logoAlt: "Museum of the Future",
-    logoKey: "museum",
-  },
-  {
-    name: "Dubai Opera",
-    logo: "/landing/tower-logos/dubai-opera.webp",
-    logoAlt: "Dubai Opera",
-    logoKey: "dubai-opera",
-  },
-  {
-    name: "Dubai Frame",
-    logo: "/landing/tower-logos/dubai-frame.png",
-    logoAlt: "Dubai Frame",
-    logoKey: "dubai-frame",
-  },
-  {
-    name: "ICD Brookfield Place",
-    logo: "/landing/tower-logos/icd-brookfield-place.svg",
-    logoAlt: "ICD Brookfield Place",
-    logoKey: "icd-brookfield",
-  },
-  {
     name: "St. Regis Residences",
     logo: "/landing/tower-logos/st-regis.svg",
     logoAlt: "The St. Regis Residences Financial Center Road Dubai",
@@ -216,16 +192,17 @@ export default function LandingPage({
         </figure>
       </section>
 
-      <section className="landing-tower-strip" aria-label="Dubai towers">
-        <div className="landing-tower-track">
+      <section className="landing-tower-strip" aria-labelledby="landing-buildings-heading">
+        <h2 id="landing-buildings-heading">Your buildings. One workspace.</h2>
+        <ul className="landing-tower-track" aria-label="Dubai residential buildings">
           {DUBAI_TOWERS.map((tower) => (
-            <div className="landing-tower" key={tower.name} aria-label={tower.name} title={tower.name}>
+            <li className="landing-tower" key={tower.name}>
               <span className={`landing-tower-logo landing-tower-logo--${tower.logoKey}`}>
-                <img src={tower.logo} alt={tower.logoAlt} loading="lazy" />
+                <img src={tower.logo} alt={tower.logoAlt} width="160" height="52" loading="lazy" decoding="async" />
               </span>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       </section>
 
       <section className="landing-features" id="features">
