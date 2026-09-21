@@ -10,6 +10,7 @@ import {
   IconStar,
   IconStarFilled,
 } from "@tabler/icons-react";
+import BuildingListRow from "./BuildingListRow";
 import {
   formatArea,
   formatBedsAndBaths,
@@ -123,41 +124,11 @@ function TrackingPill() {
   return <span className="la-tracking-pill">Tracking</span>;
 }
 
-export function BuildingRow({ building, isWatched, onPress, onToggleWatch, priceDropCount, favorited, onToggleFavorite }) {
-  const loadedCount = building?.listings?.length || 0;
-  const countLine = isWatched
-    ? loadedCount
-      ? `${loadedCount} ${loadedCount === 1 ? "listing" : "listings"}`
-      : "No live listings"
-    : building.fullPath || "Bayut location";
-  const priceLine = building.fetchError
-    ? "Live pricing unavailable"
-    : building.lowestPrice != null || building.highestPrice != null
-      ? formatPriceRange(building.lowestPrice, building.highestPrice)
-      : "Watch to load listings";
-  return (
-    <div className="la-building-row">
-      <button type="button" className="la-building-open" onClick={onPress}>
-        <span className="la-building-name">{building.buildingName}</span>
-        <span className="la-building-count">{countLine}</span>
-        <span className="la-building-price">{priceLine}</span>
-        <span className="la-building-drops">
-        {priceDropCount > 0 ? (
-          <span className="la-drop-indicator">
-            <ArrowIcon direction="down" size={10} />
-            {priceDropCount} {priceDropCount === 1 ? "drop" : "drops"}
-          </span>
-        ) : null}
-        </span>
-      </button>
-      <RowHoverActions
-        favorited={favorited}
-        onToggleFavorite={onToggleFavorite}
-        watched={isWatched}
-        onToggleWatch={onToggleWatch}
-      />
-    </div>
-  );
+export function BuildingRow(props) {
+  return <BuildingListRow {...props} actions={<RowHoverActions
+    favorited={props.favorited} onToggleFavorite={props.onToggleFavorite}
+    watched={props.isWatched} onToggleWatch={props.onToggleWatch}
+  />} />;
 }
 
 function hashSeed(value) {

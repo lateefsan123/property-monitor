@@ -9,7 +9,7 @@ import { voiceSessionConfig } from '../server/voice-session.js';
 const args = { building_key: 'forte2', area: '', start_date: '2026-08-01', end_date: '2026-08-31', beds: '', property_type: '', min_area_sqft: '', max_area_sqft: '' };
 const sale = (amount = 2000000, size = 1000, extra = {}) => ({ id: 1, amount, builtup_area_sqft: size, date: '2026-08-10', category: 'Sale | Sale', beds: '2', property_type: 'Flat | Unit', location_name: 'Forte 2', created_at: '2026-09-21', ...extra });
 
-function fixture({ rows = [sale()], count = rows.length, edgeError = false, owner = 'owner' } = {}) {
+function fixture({ rows = [sale()], count = rows.length, edgeError = false, owner = 'owner', latest = '2026-08-10', earliest = latest, buildings } = {}) {
   const calls = [], edge = [];
   const supabase = {
     auth: { getUser: async () => ({ data: { user: { id: owner } } }) },
@@ -18,9 +18,15 @@ function fixture({ rows = [sale()], count = rows.length, edgeError = false, owne
       for (const name of ['select', 'or', 'order', 'limit', 'eq', 'ilike', 'gte', 'lte', 'range', 'abortSignal']) q[name] = (...args) => { steps.push([name, ...args]); return q; };
       q.then = (resolve, reject) => Promise.resolve().then(() => {
         calls.push({ table, steps });
-        if (table === 'buildings') return { data: [{ key: 'forte2', search_name: 'Forte 2', location_name: 'Downtown Dubai' }], count: 1 };
+        if (table === 'buildings') {
+          const data = buildings ? buildings(steps) : [{ key: 'forte2', search_name: 'Forte 2', location_name: 'Downtown Dubai' }];
+          return { data, count: data.length };
+        }
         const range = steps.find(s => s[0] === 'range');
-        if (!range) return { data: [{ date: '2026-08-10' }], count };
+        if (!range) {
+          const date = steps.find(s => s[0] === 'order')?.[2]?.ascending ? earliest : latest;
+          return { data: date ? [{ date }] : [], count };
+        }
         return { data: rows.slice(range[1], range[2] + 1), count };
       }).then(resolve, reject);
       return q;
@@ -94,7 +100,41 @@ test('more than 5000 records withholds all totals and averages rather than extra
 test('empty sales are zero imported matches, not a claim about market activity', async () => {
   const f = fixture({ rows: [] });
   const r = await f.market.read('market_sales', { ...args, building_key: '', area: 'Dubai Marina' });
-  assert.equal(r.summary.count, 0); assert.equal(r.summary.averagePriceAed, null); assert.equal(r.summary.pricePerSqftAed, null);
+  assert.equal(r.summary, null); assert.equal(r.total, null);
+  assert.equal(r.coverage.availability, 'no_matching_records');
+  assert.equal(marketResultCards(r)[0].title, 'No matching imported sales');
+});
+
+test('Forte 1 stale history produces coverage guidance, never a zero-sales card', async () => {
+  const f = fixture({ rows: [], latest: '2026-03-06', earliest: '2025-08-01' });
+  const r = await f.market.read('market_sales', { ...args, building_key: '', area: 'Forte 1', start_date: '2026-09-01', end_date: '2026-09-21' });
+  assert.equal(r.summary, null); assert.equal(r.total, null);
+  assert.equal(r.coverage.availability, 'outside_recorded_range');
+  assert.match(r.emptyState.detail, /2026-03-06/);
+  assert.doesNotMatch(JSON.stringify(marketResultCards(r)), /0 (recorded|imported|qualifying) sales/);
+  assert.match(marketInstructions(), /lead with the coverage limitation/);
+});
+
+test('missing history and periods before the first record are unavailable, not zero', async () => {
+  for (const dates of [{ latest: null }, { earliest: '2026-09-01', latest: '2026-09-20' }]) {
+    const f = fixture({ rows: [], ...dates });
+    const r = await f.market.read('market_sales', { ...args, building_key: '', area: 'Dubai Marina' });
+    assert.equal(r.summary, null); assert.equal(r.total, null);
+    assert.match(r.coverage.availability, /no_history|outside_recorded_range/);
+    assert.ok(marketResultCards(r).length);
+  }
+});
+
+test('Fort 1 fallback preserves tower number and discloses the spelling match', async () => {
+  const f = fixture({ buildings: steps => steps.some(s => s[0] === 'or' && s[1].includes('%Forte 1%'))
+    ? [{ key: 'forte1', search_name: 'Forte 1', location_name: 'Forte 1' }] : [] });
+  const r = await f.market.read('market_locations', { query: 'Fort 1', source: 'sales' });
+  assert.equal(r.matchedQuery, 'Forte 1'); assert.equal(r.items[0].key, 'forte1');
+  assert.match(r.note, /Tell the user/);
+  assert.equal(f.calls.length, 2);
+  const other = fixture({ buildings: () => [] });
+  const no = await other.market.read('market_locations', { query: 'Fort 3', source: 'sales' });
+  assert.deepEqual(no.items, []); assert.equal(other.calls.length, 1);
 });
 
 test('Bayut resolves provider IDs, supports studio, labels asking-price samples and caching', async () => {

@@ -4,48 +4,10 @@ import LandingConnectedStack from "./LandingConnectedStack";
 import LandingBrokerFeedback from "./LandingBrokerFeedback";
 import LandingClosing from "./LandingClosing";
 import LandingPricing from "./LandingPricing";
+import LandingBuildings from "./LandingBuildings";
 import "./styles/landing.css";
 import "./styles/landing-overview.css";
 import "./styles/landing-product-story.css";
-
-const DUBAI_TOWERS = [
-  {
-    name: "Marina Gate",
-    logo: "/landing/tower-logos/marina-gate.png",
-    logoAlt: "Jumeirah Living Marina Gate",
-    logoKey: "marina-gate",
-  },
-  {
-    name: "Burj Khalifa",
-    logo: "/landing/tower-logos/burj-khalifa.svg",
-    logoAlt: "Burj Khalifa",
-    logoKey: "burj-khalifa",
-  },
-  {
-    name: "One Za'abeel",
-    logo: "/landing/tower-logos/one-zaabeel.svg",
-    logoAlt: "One Za'abeel",
-    logoKey: "one-zaabeel",
-  },
-  {
-    name: "Atlantis The Royal",
-    logo: "/landing/tower-logos/atlantis-the-royal.png",
-    logoAlt: "Atlantis The Royal Dubai",
-    logoKey: "atlantis",
-  },
-  {
-    name: "St. Regis Residences",
-    logo: "/landing/tower-logos/st-regis.svg",
-    logoAlt: "The St. Regis Residences Financial Center Road Dubai",
-    logoKey: "st-regis",
-  },
-  {
-    name: "Address Sky View",
-    logo: "/landing/tower-logos/address-sky-view.svg",
-    logoAlt: "Address Sky View",
-    logoKey: "address",
-  },
-];
 
 export default function LandingPage({
   billingError = null,
@@ -131,18 +93,7 @@ export default function LandingPage({
         </figure>
       </section>
 
-      <section className="landing-tower-strip" aria-labelledby="landing-buildings-heading">
-        <h2 id="landing-buildings-heading">Your buildings. One workspace.</h2>
-        <ul className="landing-tower-track" aria-label="Dubai residential buildings">
-          {DUBAI_TOWERS.map((tower) => (
-            <li className="landing-tower" key={tower.name}>
-              <span className={`landing-tower-logo landing-tower-logo--${tower.logoKey}`}>
-                <img src={tower.logo} alt={tower.logoAlt} width="160" height="52" loading="lazy" decoding="async" />
-              </span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <LandingBuildings />
 
       <section className="landing-overview" id="features" aria-labelledby="landing-overview-heading">
         <div className="landing-overview-inner">

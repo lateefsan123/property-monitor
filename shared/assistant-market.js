@@ -79,12 +79,18 @@ export function createAssistantMarket({ supabase, now = () => new Date() }) {
       for (const item of items) listingLocations.set(item.key, { locationId: item.key, buildingName: item.name, searchName: item.name, fullPath: item.area });
       return { kind: 'market-locations', title: 'Bayut locations', items, note: 'Choose the matching building or area. Similar names may refer to different towers.' };
     }
-    const { data, count } = await query(supabase.from('buildings').select('key,search_name,location_name', { count: 'exact' })
-      .or(`search_name.ilike.%${term}%,location_name.ilike.%${term}%`).order('key').limit(20), signal);
+    const find = name => query(supabase.from('buildings').select('key,search_name,location_name', { count: 'exact' })
+      .or(`search_name.ilike.%${name}%,location_name.ilike.%${name}%`).order('key').limit(20), signal);
+    let { data, count } = await find(term);
+    // A known spelling variant only; preserve the tower number and never merge towers.
+    const spelling = /^fort\s+(1|2)$/i.exec(term);
+    const matchedQuery = !data?.length && spelling ? `Forte ${spelling[1]}` : term;
+    if (matchedQuery !== term) ({ data, count } = await find(matchedQuery));
     const items = (data || []).map(row => ({ key: row.key, name: row.search_name || row.location_name, area: row.location_name }));
     for (const item of items) salesLocations.set(item.key, item);
-    return { kind: 'market-locations', title: 'Buildings in sales data', items, total: count,
-      note: count > 20 ? 'First 20 matches. Narrow the name; do not combine ambiguous buildings.' : 'Imported market reference data. Resolve the exact tower before looking up sales.' };
+    return { kind: 'market-locations', title: 'Buildings in sales data', items, total: count, requestedQuery: term, matchedQuery,
+      note: matchedQuery !== term && items.length ? `Spelling match for “${term}”: “${matchedQuery}”. Tell the user the corrected name. If multiple towers match, ask which one; never silently substitute another tower.`
+        : count > 20 ? 'First 20 matches. Narrow the name; do not combine ambiguous buildings.' : 'Imported market reference data. Resolve the exact tower before looking up sales.' };
   }
   async function sales(args, signal) {
     const filters = salesFilters(args);
@@ -112,11 +118,26 @@ export function createAssistantMarket({ supabase, now = () => new Date() }) {
     }
     const { eligible, summary } = summarizeSales(rows, filters, complete);
     const coverage = { earliestRecordedSale: oldest?.[0]?.date || null, latestRecordedSale: newest?.[0]?.date || null };
+    const availability = !coverage.latestRecordedSale ? 'no_history'
+      : coverage.latestRecordedSale < filters.start || coverage.earliestRecordedSale > filters.end ? 'outside_recorded_range'
+        : !eligible.length ? 'no_matching_records' : 'records_found';
+    coverage.availability = availability;
+    // A last transaction date is not a successful-import watermark. Never claim
+    // the source is complete through that date, or that an empty month had no sales.
+    const empty = complete && !eligible.length;
+    const emptyState = empty ? {
+      title: availability === 'outside_recorded_range' ? 'Requested period unavailable'
+        : availability === 'no_history' ? 'Sales history unavailable' : 'No matching imported sales',
+      detail: coverage.latestRecordedSale
+        ? `Latest available record: ${coverage.latestRecordedSale}. This does not establish that no sales occurred in your requested period.`
+        : 'There is no imported history for this location yet. This is not evidence of zero market sales.',
+      meta: coverage.latestRecordedSale ? 'Ask for the latest available sales, or refresh the data source.' : 'A current sales source is needed.',
+    } : null;
     const caveat = 'Imported sales only, not all Dubai sales. Asking prices are excluded. Source is the shared DLD/Bayut import; individual rows do not retain provider provenance. Unknown/non-sale categories and values below AED 100,000 are excluded. Comparable candidates are not a valuation.';
     return { kind: 'market-sales', title: `${building?.name || filters.area} sales`, source: 'Repeat AI imported sales (CSV / market cache)',
-      priceType: 'recorded_sale', queriedAt: now().toISOString(), filters, coverage, summary,
-      complete, scannedRows: rows.length, matchingRows, total: complete ? eligible.length : null,
-      note: `${filters.start} – ${filters.end} · Latest recorded: ${coverage.latestRecordedSale || 'none'}. ${complete ? `${eligible.length} qualifying sales; showing up to 20.` : 'Too many records. Narrow the dates or building; totals and averages are withheld.'} Imported coverage only.`,
+      priceType: 'recorded_sale', queriedAt: now().toISOString(), filters, coverage, summary: empty ? null : summary, emptyState,
+      complete, scannedRows: rows.length, matchingRows, total: complete && !empty ? eligible.length : null,
+      note: `${filters.start} – ${filters.end} · ${empty ? 'No matching records available for this request; market activity is unknown.' : complete ? `${eligible.length} imported sales; showing up to 20.` : 'Too many records. Narrow the dates or building; totals and averages are withheld.'} Imported coverage only.`,
       limitations: caveat,
       items: eligible.slice(0, 20).map(row => ({ date: row.date, name: row.location_name || building?.name || filters.area,
         amountAed: Number(row.amount), beds: bedsValue(row.beds), areaSqft: positive(row.builtup_area_sqft),
@@ -149,9 +170,10 @@ export function createAssistantMarket({ supabase, now = () => new Date() }) {
 export function marketResultCards(result) {
   if (result.kind === 'market-locations') return result.items.map(item => ({ title: item.name, detail: item.area }));
   const cards = [];
+  if (result.emptyState) cards.push(result.emptyState);
   if (result.summary) {
     const s = result.summary;
-    cards.push({ title: `${s.count} recorded sales`, detail: `Average ${money(s.averagePriceAed)} · Median ${money(s.medianPriceAed)}`,
+    cards.push({ title: `${s.count} imported sales`, detail: `Average ${money(s.averagePriceAed)} · Median ${money(s.medianPriceAed)}`,
       meta: s.pricePerSqftAed === null ? 'Price per sq ft unavailable' : `${money(s.pricePerSqftAed)} / sq ft · Area-weighted, ${s.pricePerSqftSampleSize} sales with sizes` });
   }
   for (const item of result.items) cards.push({ title: item.name, detail: `${money(item.amountAed)}${item.beds !== null ? ` · ${item.beds === '0' ? 'Studio' : `${item.beds} bed`}` : ''}${item.areaSqft ? ` · ${Math.round(item.areaSqft).toLocaleString('en-GB')} sq ft` : ''}`,
