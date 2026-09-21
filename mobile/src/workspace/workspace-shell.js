@@ -3,6 +3,7 @@ import { BackHandler, Platform, Text, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import NavigationDrawer from "./navigation-drawer";
 import WorkspaceHome from "./home";
+import ScheduleScreen from "./schedule-screen";
 import WorkspaceSettings from "./settings";
 import MessageTemplatesScreen from "./message-templates-screen";
 import WorkspaceSpreadsheets from "./spreadsheets";
@@ -87,7 +88,7 @@ export default function WorkspaceShell({
   return (
     <NavigationDrawer
       page={page}
-      headerTitle={contextualHeader?.title}
+      headerTitle={page === "schedule" ? "Schedule" : contextualHeader?.title}
       onHeaderBack={contextualHeader?.onBack}
       hideCreate={page === "spreadsheets" || Boolean(contextualHeader?.onBack)}
       colors={colors}
@@ -115,6 +116,8 @@ export default function WorkspaceShell({
             <WorkspaceSpreadsheets {...common} request={requests[id]} />
           ) : id === "listing-alerts" ? (
             <ListingAlertsScreen {...common} onHeaderChange={setListingHeader} active={page === id} onExit={() => navigate("home")} embedded request={requests[id]} />
+          ) : id === "schedule" ? (
+            <ScheduleScreen {...common} />
           ) : id === "message-template" ? (
             <MessageTemplatesScreen {...common} />
           ) : (

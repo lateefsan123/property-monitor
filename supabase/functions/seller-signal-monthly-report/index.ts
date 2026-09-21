@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // Sends each active-pipeline seller a once-a-month recap of sales and Ejari
@@ -964,7 +965,8 @@ Deno.serve(async (req) => {
     // other users' queues keep draining in the same run.
     const budgetReachedUsers = new Set<string>();
 
-    for (const lead of leads) {
+    const scheduleQueue = await loadScheduleQueue(adminClient, leads, new Date(), allLeads);
+    for (const lead of scheduleQueue) {
       if (summary.sent >= maxSends) break;
       if (budgetReachedUsers.size >= accountByUser.size) break;
 
@@ -997,6 +999,7 @@ Deno.serve(async (req) => {
       summary.eligible += 1;
 
       if (dryRun) {
+        scheduleQueue.recordSend(lead);
         summary.dryRunMatches.push({
           leadId,
           salesCount: sales?.count || 0,
@@ -1077,6 +1080,7 @@ Deno.serve(async (req) => {
         if (updateError) throw new HttpError(500, updateError.message);
         await markReportEvent(adminClient, claim.id, { status: "sent", sent_at: sentAt });
         summary.sent += 1;
+        scheduleQueue.recordSend(lead);
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error";
         summary.failed += 1;

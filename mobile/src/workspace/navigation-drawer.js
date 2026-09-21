@@ -15,12 +15,13 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
-  MAIN_NAVIGATION,
+  MAIN_NAVIGATION as BASE_MAIN_NAVIGATION,
   TOP_NAVIGATION,
   FOOTER_NAVIGATION,
   PAGE_LABELS,
 } from "../../../shared/navigation";
 import { Icon } from "./ui";
+const MAIN_NAVIGATION = [...BASE_MAIN_NAVIGATION, { id: "schedule", label: "Schedule", icon: "calendar", kind: "nav" }];
 
 // Same native drawer pattern as FighterCenter: edge swipe, scrim, animated panel,
 // accessible menu trigger and Android Back dismissal. Repeat AI supplies the menu.

@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -1066,7 +1067,7 @@ Deno.serve(async (req) => {
     }
 
     const leads = interleaveLeadsAcrossBuildings(
-      await fetchScannableLeads(adminClient, [...accountByUser.keys()], maxLeads),
+      await fetchScannableLeads(adminClient, [...accountByUser.keys()], 0),
     );
 
     const templatesByUser = await fetchDefaultMessageTemplates(adminClient, [...accountByUser.keys()]);
@@ -1146,7 +1147,11 @@ Deno.serve(async (req) => {
       dailyActiveByUser: Object.fromEntries(dailyAutoMessageCounts),
     };
 
-    for (const lead of leads || []) {
+    const scheduleQueue = await loadScheduleQueue(adminClient, leads, startedAt);
+    let scheduleScanned = 0;
+    for (const lead of scheduleQueue) {
+      if (maxLeads > 0 && scheduleScanned >= maxLeads) break;
+      scheduleScanned += 1;
       if (!dryRun && summary.attempted >= maxSends) break;
 
       const leadId = Number(lead.id);
@@ -1211,6 +1216,7 @@ Deno.serve(async (req) => {
       summary.eligible += 1;
 
       if (dryRun) {
+        scheduleQueue.recordSend(lead);
         summary.dryRunMatches.push({ leadId, transactionCount: matchedTransactions.length, transactionDate: matchedDateKey });
         existingRecipientDateKeys.add(recipientDateKey);
         const projectedDailyCount = currentDailyCount + 1;
@@ -1311,6 +1317,7 @@ Deno.serve(async (req) => {
         existingMessagePairs.add(`${leadId}:${matchedDateKey}`);
         existingRecipientDateKeys.add(recipientDateKey);
         summary.sent += 1;
+        scheduleQueue.recordSend(lead);
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error";
         summary.failed += 1;

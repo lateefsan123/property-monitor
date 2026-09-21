@@ -8,6 +8,7 @@ import {
 import Svg, { Path } from "react-native-svg";
 
 const paths = {
+  calendar: "M4 5h16v16H4zM4 10h16M8 3v4M16 3v4M8 14h2M14 14h2M8 18h2",
   menu: "M4 6h16M4 12h16M4 18h16",
   close: "M6 6l12 12M18 6L6 18",
   home: "M3 10l9-7 9 7M5 9v12h5v-7h4v7h5V9",

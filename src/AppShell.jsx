@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import SchedulePage from "./features/schedule/SchedulePage";
 import {
   IconBuildingEstate,
+  IconCalendarWeek,
   IconDownload,
   IconHome,
   IconMenu2,
@@ -21,11 +23,12 @@ import ProductTour from "./components/ProductTour";
 import VoicePanel from "./voice/VoicePanel";
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 
-const VALID_PAGES = new Set(["home", "sellers", "listing-alerts", "spreadsheets"]);
+const VALID_PAGES = new Set(["home", "sellers", "listing-alerts", "spreadsheets", "schedule"]);
 const THEME_STORAGE_KEY = "property:theme";
 
 const PAGE_LABELS = {
   home: "Home",
+  schedule: "Schedule",
   sellers: "Sellers",
   "listing-alerts": "Listings",
   spreadsheets: "Spreadsheets",
@@ -38,6 +41,7 @@ const PAGE_ACCENTS = {
 };
 
 function PageIcon({ page }) {
+  if (page === "schedule") return <IconCalendarWeek size={14} stroke={2} aria-hidden="true" />;
   if (page === "sellers") {
     return <IconUsers size={14} stroke={2} aria-hidden="true" />;
   }
@@ -260,6 +264,8 @@ export default function AppShell({ displayName, userId }) {
             settingsOpen={settingsOpen}
             onCloseSettings={() => setSettingsOpen(false)}
           />
+        ) : currentPage === "schedule" ? (
+          <SchedulePage key={userId} userId={userId} />
         ) : currentPage === "spreadsheets" ? (
           <SpreadsheetsPage userId={userId} />
         ) : (

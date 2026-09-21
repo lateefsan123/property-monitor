@@ -1,5 +1,6 @@
 import {
   IconBuildingEstate,
+  IconCalendarWeek,
   IconHome,
   IconLogout,
   IconMessage,
@@ -34,6 +35,7 @@ const MAIN_GROUP = [
   { id: "listing-alerts", label: "Listings", Icon: IconBuildingEstate, kind: "nav", accent: "rose" },
   { id: "spreadsheets", label: "Spreadsheets", Icon: IconTable, kind: "nav", accent: "emerald" },
   { id: "message-template", label: "Message template", Icon: IconMessage, kind: "action", accent: "emerald" },
+  { id: "schedule", label: "Schedule", Icon: IconCalendarWeek, kind: "nav" },
 ];
 
 function SidenavItem({ item, currentPage, onNavigate, onAction }) {
