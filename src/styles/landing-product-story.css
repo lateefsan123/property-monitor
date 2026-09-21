@@ -31,7 +31,7 @@
   margin: 24px 0 0;
   overflow: hidden;
   border: 1px solid #45433e;
-  background: #e7f1f4;
+  background: #f3f0ea;
 }
 
 .landing-product-artwork img {
@@ -42,10 +42,6 @@
 
 .landing-product-story + .landing-product-story {
   padding-top: 0;
-}
-
-.landing-product-artwork--seller {
-  background: #f3f0ea;
 }
 
 .landing-product-artwork picture {
@@ -78,20 +74,5 @@
   .landing-product-story p {
     max-width: 330px;
     margin-top: 12px;
-  }
-
-  .landing-product-artwork--import {
-    aspect-ratio: 1;
-  }
-
-  .landing-product-artwork--import img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: 96% center;
-  }
-
-  .landing-product-artwork--seller img {
-    aspect-ratio: 1145 / 1374;
   }
 }

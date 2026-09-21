@@ -1,4 +1,5 @@
 import { useState } from "react";
+import LandingProductStory from "./LandingProductStory";
 import "./styles/landing.css";
 import "./styles/landing-overview.css";
 import "./styles/landing-product-story.css";
@@ -31,26 +32,6 @@ const FAQS = [
   {
     q: "Is my seller data private?",
     a: "Your data is yours. It's not shared with other users, sold to third parties, or used to train anything. You can export or delete it whenever you want.",
-  },
-];
-
-const PRODUCT_SECTIONS = [
-  {
-    id: "listings",
-    reversed: true,
-    title: "Track listings as they change.",
-    description:
-      "See new listings, price drops, status changes, and live units in the buildings you cover. Open a building to review the listings that need attention.",
-    image: "/landing/listings.png",
-    imageAlt: "Repeat AI listings page showing tracked units and recent price drops",
-  },
-  {
-    id: "messages",
-    title: "Turn a market signal into a conversation.",
-    description:
-      "Repeat AI matches relevant activity to the right seller, sends your WhatsApp template and image, and keeps the reply connected to the follow-up.",
-    image: "/landing/whatsapp-agent-conversation.png",
-    imageAlt: "Example WhatsApp outreach sent by a real estate agent with a seller reply",
   },
 ];
 
@@ -204,65 +185,7 @@ export default function LandingPage({
         </div>
       </section>
 
-      <section className="landing-product-story" id="product-details" aria-labelledby="landing-import-heading">
-        <div className="landing-product-story-inner">
-          <h2 id="landing-import-heading">Your spreadsheets. One seller workspace.</h2>
-          <p>Import Excel or Google Sheets and keep every seller organised.</p>
-          <figure className="landing-product-artwork landing-product-artwork--import">
-            <img
-              src="/landing/product-spreadsheets-v1.png"
-              alt="Illustration based on Repeat AI's current screens, using sample records: the Add a spreadsheet panel offers URL to spreadsheet and Import Excel (.xlsx), alongside a seller table with names, buildings, bedrooms, units and follow-up statuses."
-              width="1942"
-              height="809"
-              loading="lazy"
-              decoding="async"
-            />
-          </figure>
-        </div>
-      </section>
-
-      <section className="landing-product-story" id="seller-workspace" aria-labelledby="landing-seller-heading">
-        <div className="landing-product-story-inner">
-          <h2 id="landing-seller-heading">Pick up where you left off.</h2>
-          <p>Keep each seller’s property, notes and next follow-up together.</p>
-          <figure className="landing-product-artwork landing-product-artwork--seller">
-            <picture>
-              <source media="(max-width: 600px)" srcSet="/landing/product-seller-story-mobile-v1.png" width="1145" height="1374" />
-              <img
-                src="/landing/product-seller-story-v1.png"
-                alt="Simplified illustration using sample seller Alex Morgan: Forte 2, two bedrooms, unit 1204. A note says Alex prefers a WhatsApp update before a call, beside a Due today follow-up reminder."
-                width="1942"
-                height="810"
-                loading="lazy"
-                decoding="async"
-              />
-            </picture>
-          </figure>
-        </div>
-      </section>
-
-      <section className="landing-features">
-        {PRODUCT_SECTIONS.map((section) => (
-          <article
-            className={`landing-feature-row ${section.reversed ? "is-reversed" : ""}`}
-            key={section.id}
-          >
-            <div className="landing-feature-copy">
-              <h2>{section.title}</h2>
-              <p>{section.description}</p>
-            </div>
-            <figure className={`landing-feature-visual landing-feature-visual--${section.id}`}>
-              {section.image ? (
-                <img src={section.image} alt={section.imageAlt} loading="lazy" />
-              ) : (
-                <div className="landing-feature-placeholder" aria-label={section.placeholder}>
-                  <span>{section.placeholder}</span>
-                </div>
-              )}
-            </figure>
-          </article>
-        ))}
-      </section>
+      <LandingProductStory />
 
       <section className="landing-pricing" id="pricing">
         <div className="landing-pricing-header">

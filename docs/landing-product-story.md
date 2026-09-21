@@ -1,5 +1,7 @@
 # Product story: spreadsheet section
 
+> Historical checkpoint. The completed five-section editorial sequence supersedes this literal import illustration. See [landing-product-story-complete.md](landing-product-story-complete.md). The later user request authorised completing all remaining features together.
+
 ## Agreed sequence
 
 Work one section at a time. Story planned around actual screens:
