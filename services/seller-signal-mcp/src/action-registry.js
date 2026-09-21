@@ -6,9 +6,11 @@ import {
   listLeads,
   listWhatsAppAccounts,
   listWhatsAppMessages,
+  normalizeWhatsAppPhone,
   sendWhatsAppMessage,
   updateLead,
 } from "./seller-signal.js";
+import { prepareAction } from "./action-preview.js";
 
 
 const leadIdSchema = z.union([z.string().min(1), z.number().int()]);
@@ -121,17 +123,20 @@ export function createActionRegistry(options = {}) {
 
 
   return {
-    list: () => [...actions.values()].map(({ handler: _handler, ...definition }) => definition),
+    list: () => [...actions.values()].map(({ name, title, description, inputSchema, readOnly }) => ({ name, title, description, inputSchema, readOnly })),
     async execute(name, input = {}, context) {
       const action = actions.get(name);
       if (!action) throw new Error("Unknown action");
       const userId = options.authInfo?.extra?.userId;
       if (typeof userId !== "string" || !userId.trim()) throw new Error("Authenticated user required");
-      const args = z.object(action.inputSchema).strict().parse(input);
+      let args = z.object(action.inputSchema).strict().parse(input);
       if (!action.readOnly) {
         if (!options.confirmAction) return { status: "confirmation_required", action: name };
-        const approved = await options.confirmAction({ userId, action: name, input: structuredClone(args) }, context);
+        const prepared = await prepareAction(name, args, options.authInfo, { getLead, listWhatsAppAccounts, normalizeWhatsAppPhone });
+        args = prepared.input;
+        const approved = await options.confirmAction({ userId, action: name, input: structuredClone(args), summary: prepared.summary }, context);
         if (approved !== true) return { status: "cancelled", action: name };
+        if (context?.signal?.aborted) return { status: "cancelled", action: name };
       }
       return action.handler(args);
     },

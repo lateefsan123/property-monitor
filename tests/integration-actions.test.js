@@ -3,12 +3,13 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import vm from 'node:vm';
+import { prepareAction } from '../services/seller-signal-mcp/src/action-preview.js';
 const require = createRequire(new URL('../services/seller-signal-mcp/package.json', import.meta.url));
 const { z } = require('zod');
 const source = readFileSync(new URL('../services/seller-signal-mcp/src/action-registry.js', import.meta.url), 'utf8');
 function setup(options = {}) {
   const calls = [];
-  const context = { z, structuredClone };
+  const context = { z, structuredClone, prepareAction, normalizeWhatsAppPhone: value => value };
   for (const name of ['addLead', 'getAccountSummary', 'getLead', 'listLeads', 'listWhatsAppAccounts', 'listWhatsAppMessages', 'sendWhatsAppMessage', 'updateLead']) {
     context[name] = async (...args) => { calls.push({ name, args }); return { ok: true }; };
   }

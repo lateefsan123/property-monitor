@@ -12,6 +12,7 @@ import { requireBearerAuth } from "@modelcontextprotocol/sdk/server/auth/middlew
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import { createSellerSignalMcpServer } from "./server.js";
+import { isSessionOwner } from "./session-owner.js";
 import { assertDevOAuthAllowed, INSECURE_DEV_OAUTH_OPT_IN_ENV } from "./dev-oauth-policy.js";
 import { SellerSignalDevOAuthProvider } from "./oauth.js";
 import { assertUserHasSubscription, SubscriptionRequiredError } from "./seller-signal.js";
@@ -183,6 +184,10 @@ async function main() {
     try {
       const existingSession = sessionId ? sessions.get(sessionId) : undefined;
       if (existingSession) {
+        if (!isSessionOwner(existingSession, req.auth)) {
+          res.status(403).json({ error: "Session does not belong to this account and client." });
+          return;
+        }
         await existingSession.transport.handleRequest(req, res, req.body);
         return;
       }
@@ -212,7 +217,7 @@ async function main() {
         },
       });
       const server = createSellerSignalMcpServer({ authInfo: req.auth });
-      session = { server, transport };
+      session = { server, transport, userId: req.auth?.extra?.userId, clientId: req.auth?.clientId };
 
       transport.onclose = async () => {
         const closedSessionId = transport.sessionId;
@@ -246,6 +251,10 @@ async function main() {
       res.status(400).send("Invalid or missing MCP session ID.");
       return;
     }
+    if (!isSessionOwner(session, req.auth)) {
+      res.status(403).json({ error: "Session does not belong to this account and client." });
+      return;
+    }
     await session.transport.handleRequest(req, res);
   };
 
@@ -254,6 +263,10 @@ async function main() {
     const session = sessionId ? sessions.get(sessionId) : undefined;
     if (!session) {
       res.status(400).send("Invalid or missing MCP session ID.");
+      return;
+    }
+    if (!isSessionOwner(session, req.auth)) {
+      res.status(403).json({ error: "Session does not belong to this account and client." });
       return;
     }
     await session.transport.handleRequest(req, res);

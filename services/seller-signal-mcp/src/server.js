@@ -1,9 +1,10 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { createActionRegistry } from "./action-registry.js";
+import { createMcpConfirmation } from "./action-confirmation.js";
 
 export function createSellerSignalMcpServer(options = {}) {
   const server = new McpServer({ name: "seller-signal-mcp", version: "0.1.0" });
-  const actions = createActionRegistry(options);
+  const actions = createActionRegistry({ ...options, confirmAction: options.confirmAction ?? createMcpConfirmation(server.server) });
   for (const action of actions.list()) {
     server.registerTool(action.name, {
       title: action.title,

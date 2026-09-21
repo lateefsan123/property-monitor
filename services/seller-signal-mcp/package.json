@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/http.js",
     "dev": "node --watch src/http.js",
-    "check": "node --check src/http.js && node --check src/server.js && node --check src/seller-signal.js && node --check src/supabase-oauth.js && node --check src/oauth.js && node --check src/dev-oauth-policy.js"
+    "check": "node --check src/http.js && node --check src/server.js && node --check src/seller-signal.js && node --check src/supabase-oauth.js && node --check src/oauth.js && node --check src/dev-oauth-policy.js && node --check src/action-registry.js && node --check src/action-confirmation.js && node --check src/action-preview.js && node --check src/session-owner.js"
   },
   "engines": {
     "node": ">=22"

@@ -7,11 +7,13 @@ consent page at `/oauth/consent`.
 ## Tools
 
 The tools share the server-only action registry in `src/action-registry.js`.
-Mutating tools return `confirmation_required` unless the server host supplies a
-trusted `confirmAction` callback. The HTTP host does not supply one yet, so
-creating/updating leads and sending WhatsApp through MCP are blocked at this
-checkpoint. Reads remain available to authenticated users. Do not deploy this
-checkpoint without reviewing that behavior change. See
+Mutating tools request a user confirmation form through the connected MCP host.
+The host must support form elicitation and render the exact action details to the user.
+Only explicit acceptance with the approval box checked executes the action.
+Unsupported hosts, cancellation, timeout and declined forms do not execute writes.
+WhatsApp approvals resolve and pin the recipient and sending account first.
+This does not yet add an approval screen to the Repeat AI website or live voice.
+Reads remain available to authenticated users. See
 `../../docs/integration-foundation.md` for the approval and provider rollout plan.
 
 - `get_my_seller_signal_account`
@@ -30,8 +32,9 @@ npm --prefix services/seller-signal-mcp install
 npm run mcp:start
 ```
 
-Local unauthenticated mode is useful only for private testing. Set
-`SELLER_SIGNAL_MCP_AUTH_USER_ID` to bind tools to one Supabase user.
+Action execution now requires an authenticated identity. Use the dev OAuth
+configuration below for private local testing; an unauthenticated session
+cannot execute tools. A fixed user ID alone is not sufficient.
 
 For a private single-user deployment before Supabase OAuth Server is enabled,
 use dev OAuth:
