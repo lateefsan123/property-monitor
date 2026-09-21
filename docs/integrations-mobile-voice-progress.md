@@ -10,10 +10,12 @@ Goal: full web/mobile integration workflows plus a separate funded voice-agent A
 
 ## Remaining
 - Native connect, permission upgrades, disconnect confirmation, email compose/reply/exact-send confirmation and provider logos are implemented. Web callback forwards only to the fixed seller-signal app scheme; mobile checks state/provider and completes with its authenticated session. Forty backend/callback tests, targeted lint, web build and Android export pass. Mobile end-to-end testing remains; native expo-image dependency requires a new build, not an incompatible OTA.
-- Deploy web/API picker changes before testing mobile browsing against production (mobile points to https://repeatai.org/api/integrations).
+- Web/API picker and native callback bridge deployed to production: dpl_2WdaX4zungTqBgL3zWWxeBkMQwGQ, https://repeatai.org, source 721867d plus the previously authorized local web changes. Landing rendered, unauthenticated API returned 401, initial error log scan empty. Authenticated native OAuth still requires device verification.
 - Obtain metadata consent and test actual Google spreadsheet selection, not only sample fixtures.
 - OpenAI secure key setup still returns reauthentication required. User requested a NEW separate voice key, not reuse. No new key created and no top-up charged. Reconnect OpenAI Platform, confirm separate key destination and correct billing account, then action-time confirm the requested EUR 10 top-up; do not substitute USD without checking.
 - Implement and verify voice on web and native mobile, with authenticated user-scoped reads and explicit approval for sends/writes. Preserve existing API credentials. No voice implementation should be claimed yet.
 - Deliver mobile build/OTA as compatible with native dependencies, then test microphone, playback, interruptions, permissions and cleanup on a device.
 
 Current mobile work is a verified compilation checkpoint, not full goal completion or a release.
+
+Android upload recovery: the first preview upload did not create a build (latest remote build was still 2026-09-04). The process handle was gone. EAS archive now excludes web/video/generated artifacts and credentials, retaining mobile, shared, src imports and root package manifests. A fresh preview upload was started after verifying no new remote build existed. Track the returned EAS build id; do not confuse the old September 4 AAB with the new integration build.
