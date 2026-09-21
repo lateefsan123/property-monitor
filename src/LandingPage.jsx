@@ -178,12 +178,15 @@ export default function LandingPage({
         </header>
       </div>
 
-      <section className="landing-hero">
+      <section className="landing-hero" aria-labelledby="landing-headline">
         <div className="landing-hero-copy">
-          <h1 className="landing-headline">Seller follow-up, done properly.</h1>
+          <h1 className="landing-headline" id="landing-headline">
+            Seller follow-up that <em>works</em> for you.
+          </h1>
           <p className="landing-sub">
-            Track sellers, monitor listings, and manage spreadsheets from one calm
-            workspace.
+            Keep your sellers, spreadsheets and listing alerts together.{" "}
+            <br className="landing-hero-break" />
+            Automate up to 50 seller follow-ups a day on WhatsApp.
           </p>
 
           <div className="landing-hero-actions">
@@ -191,23 +194,16 @@ export default function LandingPage({
               type="button"
               className="landing-cta landing-cta-lg"
               onClick={heroCtaAction}
+              disabled={checkoutPending}
+              aria-busy={checkoutPending}
             >
-              {heroCtaLabel}
+              {isAuthenticated ? heroCtaLabel : "Try Repeat AI for free"}
             </button>
-            <a href="#features" className="landing-cta-ghost">
-              See how it works
-            </a>
-            <a href="/api/desktop/download" className="landing-cta-ghost landing-download-link">
-              Download for Windows
-            </a>
+            <p className="landing-hero-note">7-day free trial</p>
           </div>
+          {billingError ? <p className="landing-hero-feedback" role="alert">{billingError}</p> : null}
+          {billingMessage ? <p className="landing-hero-feedback" role="status">{billingMessage}</p> : null}
         </div>
-        <figure className="landing-hero-visual">
-          <img
-            src="/landing/home.png"
-            alt="Repeat AI dashboard showing follow-ups, sent messages, and watched-building price drops"
-          />
-        </figure>
       </section>
 
       <section className="landing-tower-strip" aria-label="Dubai towers">
