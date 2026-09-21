@@ -1,6 +1,7 @@
 import { useState } from "react";
 import LandingProductStory from "./LandingProductStory";
 import LandingConnectedStack from "./LandingConnectedStack";
+import LandingBrokerFeedback from "./LandingBrokerFeedback";
 import "./styles/landing.css";
 import "./styles/landing-overview.css";
 import "./styles/landing-product-story.css";
@@ -188,6 +189,7 @@ export default function LandingPage({
 
       <LandingProductStory />
       <LandingConnectedStack />
+      <LandingBrokerFeedback />
 
       <section className="landing-pricing" id="pricing">
         <div className="landing-pricing-header">

@@ -6,7 +6,7 @@ const source = readFileSync(new URL("../src/LandingConnectedStack.jsx", import.m
 
 test("connected stack follows the product stories without replacing pricing", () => {
   const page = readFileSync(new URL("../src/LandingPage.jsx", import.meta.url), "utf8");
-  assert.match(page, /<LandingProductStory \/>\s*<LandingConnectedStack \/>\s*<section className="landing-pricing"/);
+  assert.match(page, /<LandingProductStory \/>\s*<LandingConnectedStack \/>\s*<LandingBrokerFeedback \/>\s*<section className="landing-pricing"/);
   assert.equal((page.match(/<LandingConnectedStack \/>/g) || []).length, 1);
 });
 
