@@ -5,12 +5,12 @@
 Work one section at a time. Story planned around actual screens:
 
 1. Import: Excel or Google Sheets to organised sellers. IMPLEMENTED in this checkpoint.
-2. Sellers: a current seller record, property and next follow-up together. Existing older feature remains pending redesign.
+2. Sellers: property, notes and next follow-up together. IMPLEMENTED as an editorial benefit illustration, not a literal screenshot. See landing-seller-story.md.
 3. Market activity: building listings and real transaction context, with illustrative sample values. Existing older feature remains pending redesign.
 4. Message templates: actual MessageTemplatesPanel editor, supported name/building/transactions tokens, sample broker card ABOVE message preview. Planned; not implemented in this checkpoint.
 5. Follow-ups: template-driven WhatsApp outreach and scheduled seller state. Existing older feature remains pending redesign.
 
-No invented live integrations, customer metrics or new product functions. Subsequent work should inspect those components and render safe fixtures before creating each asset. The existing dark lower sections are not redesigned yet.
+No invented live integrations, customer metrics or new product functions. Subsequent work should inspect components for functional accuracy, then simplify the visual hierarchy. The user rejected literal screen replication during the seller feature: remove unnecessary tabs, metadata and repeated chrome, while keeping the real capabilities and useful content. The existing dark lower sections are not redesigned yet.
 
 ## Implemented composition
 

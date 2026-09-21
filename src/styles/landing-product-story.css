@@ -40,6 +40,18 @@
   height: auto;
 }
 
+.landing-product-story + .landing-product-story {
+  padding-top: 0;
+}
+
+.landing-product-artwork--seller {
+  background: #f3f0ea;
+}
+
+.landing-product-artwork picture {
+  display: block;
+}
+
 @media (max-width: 860px) {
   .landing-product-story {
     padding-bottom: 72px;
@@ -77,5 +89,9 @@
     height: 100%;
     object-fit: cover;
     object-position: 96% center;
+  }
+
+  .landing-product-artwork--seller img {
+    aspect-ratio: 1145 / 1374;
   }
 }

@@ -3,6 +3,7 @@
 import { createRoot } from "react-dom/client";
 import NewSpreadsheetModal from "../../../src/features/seller-signal/components/NewSpreadsheetModal.jsx";
 import LeadCard from "../../../src/features/seller-signal/components/LeadCard.jsx";
+import LeadModal from "../../../src/features/seller-signal/components/LeadModal.jsx";
 import "../../../src/index.css";
 import "../../../src/App.css";
 import "./reference.css";
@@ -14,7 +15,32 @@ const leads = [
   { id: "sample-3", name: "Jordan Lee", building: "Burj Khalifa", bedroom: 2, unit: "2206", statusLabel: "Due today", isDue: true },
 ];
 
+const sellerView = new URLSearchParams(window.location.search).get("view") === "seller";
+const sampleSeller = {
+  ...leads[0],
+  phone: "+971 50 ••• ••••",
+  statusLabel: "Prospect",
+  dueLabel: "Due today",
+  notes: "Interested in selling after the current tenancy ends.\n\nPrefers a WhatsApp update before a call.",
+};
+
+const sellerModal = (key) => <LeadModal
+  key={key}
+  lead={sampleSeller}
+  insight={{ status: "ready", recentTransactions: [], locationName: "Forte 2, Downtown Dubai" }}
+  whatsappConnected
+  onClose={noop}
+  onCopyMessage={noop}
+  onSendWhatsApp={noop}
+  onToggleSent={noop}
+  onSaveNotes={noop}
+/>;
+
 createRoot(document.getElementById("root")).render(
+  sellerView ? <main className="seller-reference">
+    <section className="reference-overview">{sellerModal("overview")}</section>
+    <section className="reference-notes">{sellerModal("notes")}</section>
+  </main> :
   <main className="product-reference">
     <section className="reference-table">
       <h1>Sellers</h1>

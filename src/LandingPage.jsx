@@ -45,14 +45,6 @@ const PRODUCT_SECTIONS = [
     imageAlt: "Repeat AI listings page showing tracked units and recent price drops",
   },
   {
-    id: "sellers",
-    title: "Keep every seller in one place.",
-    description:
-      "Store each seller's contact details, property, status, notes, and next follow-up together. Filter the pipeline and pick up exactly where you left off.",
-    image: "/landing/sellers.png",
-    imageAlt: "Repeat AI sellers page showing seller records, statuses, and follow-up actions",
-  },
-  {
     id: "messages",
     title: "Turn a market signal into a conversation.",
     description:
@@ -225,6 +217,26 @@ export default function LandingPage({
               loading="lazy"
               decoding="async"
             />
+          </figure>
+        </div>
+      </section>
+
+      <section className="landing-product-story" id="seller-workspace" aria-labelledby="landing-seller-heading">
+        <div className="landing-product-story-inner">
+          <h2 id="landing-seller-heading">Pick up where you left off.</h2>
+          <p>Keep each seller’s property, notes and next follow-up together.</p>
+          <figure className="landing-product-artwork landing-product-artwork--seller">
+            <picture>
+              <source media="(max-width: 600px)" srcSet="/landing/product-seller-story-mobile-v1.png" width="1145" height="1374" />
+              <img
+                src="/landing/product-seller-story-v1.png"
+                alt="Simplified illustration using sample seller Alex Morgan: Forte 2, two bedrooms, unit 1204. A note says Alex prefers a WhatsApp update before a call, beside a Due today follow-up reminder."
+                width="1942"
+                height="810"
+                loading="lazy"
+                decoding="async"
+              />
+            </picture>
           </figure>
         </div>
       </section>

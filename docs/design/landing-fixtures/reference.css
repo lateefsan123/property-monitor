@@ -6,3 +6,6 @@ body { background: #f5f5f5; }
 .product-reference .lead-modal-backdrop { position: static; padding: 0; background: none; backdrop-filter: none; overflow: visible; }
 .product-reference .lead-modal { width: 640px; max-height: none; }
 .product-reference .lead-table-wrap { overflow: hidden; }
+.seller-reference { display: grid; grid-template-columns: 820px 820px; gap: 48px; padding: 64px; }
+.seller-reference .lead-modal-backdrop { position: static; padding: 0; background: none; backdrop-filter: none; overflow: visible; }
+.seller-reference .lead-modal { width: 820px; max-height: none; }
