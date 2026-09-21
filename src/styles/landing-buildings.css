@@ -1,13 +1,13 @@
 .landing-buildings { padding: 56px 24px; background: #fff; color: #242320; color-scheme: light; border-top: 1px solid #45433e; scroll-margin-top: 64px; }
-.landing-building-grid { max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 28px 32px; padding: 0; list-style: none; }
-.landing-building-grid li { display: flex; align-items: center; justify-content: center; min-width: 0; height: 100px; }
-.landing-building-grid img { display: block; width: 180px; max-width: 100%; height: 90px; object-fit: contain; filter: brightness(0); opacity: .85; }
+.landing-building-grid { box-sizing: border-box; max-width: 1280px; margin: 0 auto; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 0; padding: 0; list-style: none; border-top: 1px solid #45433e; border-left: 1px solid #45433e; }
+.landing-building-grid li { box-sizing: border-box; display: flex; align-items: center; justify-content: center; min-width: 0; height: 100px; padding: 0 20px; background: #fff; border-right: 1px solid #45433e; border-bottom: 1px solid #45433e; }
+.landing-building-grid img { display: block; width: 140px; max-width: 100%; height: 52px; object-fit: contain; filter: brightness(0); opacity: .88; }
+.landing-building-grid img[src$="marina-gate.png"] { height: 72px; }
+.landing-building-grid img:is([src$="one-zaabeel.svg"], [src$="address-sky-view.svg"]) { width: 150px; }
 @media (max-width: 860px) {
   .landing-building-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (max-width: 600px) {
   .landing-buildings { padding: 36px 20px; }
-  .landing-building-grid { gap: 24px 20px; }
-  .landing-building-grid li { height: 76px; }
-  .landing-building-grid img { height: 70px; }
+  .landing-building-grid li { height: 92px; padding-inline: 12px; }
 }
