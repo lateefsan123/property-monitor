@@ -2,7 +2,7 @@ import { executeVoiceTool } from './voice-tools.js';
 
 // Platform adapters own microphone, speaker and peer setup. The conversation
 // lifecycle and tool authorization are identical on web and native.
-export function createVoiceConversation({ transport, sessionRequest, integrationRequest, onState, onCaption, onPreview, onError, onUsage = () => {} }) {
+export function createVoiceConversation({ transport, sessionRequest, integrationRequest, workspace, onResult, onState, onCaption, onPreview, onError, onUsage = () => {} }) {
   const abort = new AbortController();
   let peer, channel, microphone, deadline, closeTimer, durationTimer;
   let closed = false, closing = false, ready = false, started = false, toolCount = 0;
@@ -72,7 +72,7 @@ export function createVoiceConversation({ transport, sessionRequest, integration
         batch.calls.push((async () => {
           try {
             if (++toolCount > 40 || typeof item.arguments !== 'string' || item.arguments.length > 10000) throw new Error('Voice action limit reached.');
-            const result = await executeVoiceTool(item.name, JSON.parse(item.arguments), { request: integrationRequest, onPreview, signal: abort.signal });
+            const result = await executeVoiceTool(item.name, JSON.parse(item.arguments), { request: integrationRequest, workspace, onResult, onPreview, signal: abort.signal });
             return { callId: item.call_id, result };
           } catch { return { callId: item.call_id, result: { error: 'Action unavailable or invalid. Nothing has been sent. Check the integration or ask for clarification.' } }; }
         })());

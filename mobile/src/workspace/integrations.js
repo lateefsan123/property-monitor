@@ -5,7 +5,6 @@ import { integrationRequest } from './integration-client';
 import IntegrationMail from './integration-mail';
 import { connectIntegration } from './integration-connect';
 import { Image } from 'expo-image';
-import VoicePanel from './voice-panel';
 
 const LOGOS = {
   'google-sheets': 'https://www.gstatic.com/images/branding/product/2x/sheets_48dp.png',
@@ -101,7 +100,6 @@ export default function Integrations({ userId, colors }) {
     return () => controller.abort();
   }, [userId, attempt]);
   return <View style={{ gap: 14 }}>
-    <VoicePanel colors={colors} />
     <Text style={{ color: colors.textMuted }}>Your tools, connected to Repeat AI.</Text>
     {error ? <><Text selectable accessibilityRole="alert" style={{ color: colors.text }}>{error}</Text><Button colors={colors} onPress={() => { setError(''); setConnections(null); setOpen(''); setAttempt(value => value + 1); }}>Try again</Button></> : !connections ? <Text style={{ color: colors.text }}>Loading connections…</Text> : null}
     {connections ? APPS.map(app => {

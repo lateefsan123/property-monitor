@@ -28,6 +28,16 @@
 .repeat-tour button:hover { filter: brightness(.94); }
 .repeat-tour button:focus-visible { outline: 2px solid #007f91; outline-offset: 3px; }
 .repeat-tour-copy h2:focus { outline: none; }
+.app-shell .repeat-tour { color: var(--text); }
+.app-shell .repeat-tour-card { background: var(--bg-card); border: 1px solid var(--nav-btn-border); }
+.app-shell .repeat-tour-copy h2 { color: var(--text); }
+.app-shell .repeat-tour-copy p, .app-shell .repeat-tour-count { color: var(--text-muted); }
+.app-shell .repeat-tour .repeat-tour-launcher, .app-shell .repeat-tour .repeat-tour-close { background: var(--bg-card); color: var(--text); border: 1px solid var(--nav-btn-border); }
+.app-shell .repeat-tour .repeat-tour-back, .app-shell .repeat-tour .repeat-tour-link { background: transparent; color: var(--text); }
+.app-shell .repeat-tour .repeat-tour-next { background: var(--btn-primary-bg); color: var(--btn-primary-text); border-color: var(--btn-primary-bg); }
+.app-shell .repeat-tour-controls progress, .app-shell .repeat-tour-controls progress::-webkit-progress-bar { background: var(--bg-hover); }
+[data-theme="dark"] .app-shell .repeat-tour-visual { background: var(--bg-card); }
+[data-theme="dark"] .app-shell .repeat-tour-visual img { filter: brightness(.8); }
 .repeat-tour-target { outline: 3px solid #007f91 !important; outline-offset: 5px; border-radius: 4px; }
 @media (max-width: 600px) {
   .repeat-tour { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }

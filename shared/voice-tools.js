@@ -6,6 +6,17 @@ const tool = (name, description, properties) => ({
 });
 
 export const VOICE_TOOLS = [
+  tool('lead_details', 'Read details and saved notes for a seller ID returned by find_leads. Resolve ambiguous names first.', { lead_id: text }),
+  tool('prepare_lead_note', 'Draft an appended note for a seller found by find_leads. Keep existing notes. Never save until the user presses Confirm change.', { lead_id: text, note: text }),
+  tool('prepare_lead_status', 'Draft a seller status change for review. May change follow-up eligibility. Use a seller returned by find_leads; resolve ambiguous names.', { lead_id: text, status: { type: 'string', enum: ['Prospect', 'Not Interested', 'Market Appraisal', 'For Sale Available'] } }),
+  tool('prepare_template', 'Draft a NEW seller message template for review. Must contain {{transactions}}. Does not replace or set the default, attach an image or send. Match the requested wording.', { name: text, content: text }),
+  tool('find_leads', 'Search your sellers by name, building or phone. Empty query/status means all. offset is a numeric string starting at 0. Returns 20 with total and nextOffset; follow pages for more. Never call these due leads without cadence evidence.', { query: text, status: text, offset: text }),
+  tool('price_drops', 'Show the latest recorded price drops in your watched listings. Empty building means all; never claim a live market refresh.', { building: text }),
+  tool('workspace_spreadsheets', 'List your imported Repeat AI spreadsheets.', {}),
+  tool('message_templates', 'Read your saved seller message templates.', {}),
+  tool('automation_status', 'Read your current scheduled automation settings.', {}),
+  tool('send_activity', 'Show recent outbound WhatsApp status. Queued is not sent or delivered.', {}),
+  tool('prepare_automation', 'PREPARE enable or pause of existing account-wide follow-ups/reports for visible confirmation. No immediate batch send. Refuse requests for a particular subset or new schedule: these require normal settings. This never applies changes itself.', { automation: { type: 'string', enum: ['followups', 'reports'] }, action: { type: 'string', enum: ['enable', 'pause'] } }),
   tool('connected_apps', 'List this user’s connected apps and permissions before accessing data.', {}),
   tool('read_connected_app', 'Read connected email, calendar or spreadsheets. input_json is a JSON object: {} for inbox/calendar/OneDrive root; Google file search {query}; Google tabs {spreadsheetId,tabs:true}; Google rows {spreadsheetId,sheetName}; Excel folder {folderId}, tabs {fileId}, rows {fileId,sheetName}. Use IDs returned by tools, never ask users to find IDs. Rows are a bounded preview, not the entire workbook.', {
     provider, feature: { type: 'string', enum: ['email', 'calendar', 'sheets'] }, input_json: text,
@@ -17,7 +28,7 @@ export const VOICE_TOOLS = [
 
 // Shared by web and native. There is deliberately no send/confirm/OAuth tool.
 // The supplied request function authenticates every call as the current user.
-export async function executeVoiceTool(name, args, { request, onPreview, signal }) {
+export async function executeVoiceTool(name, args, { request, workspace, onResult = () => {}, onPreview, signal }) {
   const spec = VOICE_TOOLS.find(item => item.name === name);
   if (!spec || !args || typeof args !== 'object' || Array.isArray(args)
     || Object.keys(args).some(key => !Object.hasOwn(spec.parameters.properties, key))
@@ -27,12 +38,30 @@ export async function executeVoiceTool(name, args, { request, onPreview, signal 
     if (typeof value !== 'string' || value.length > 8000 || (schema.enum && !schema.enum.includes(value))) throw new Error('Invalid voice action.');
   }
   if (signal?.aborted) throw new Error('Conversation ended.');
+  if (['find_leads', 'lead_details', 'price_drops', 'workspace_spreadsheets', 'message_templates', 'automation_status', 'send_activity'].includes(name)) {
+    if (!workspace) throw new Error('Workspace unavailable.');
+    const result = await workspace.read(name, args, signal);
+    if (signal?.aborted) throw new Error('Conversation ended.');
+    onResult(result);
+    return result;
+  }
+  if (['prepare_automation', 'prepare_lead_note', 'prepare_lead_status', 'prepare_template'].includes(name)) {
+    if (!workspace) throw new Error('Workspace unavailable.');
+    const prepared = name === 'prepare_automation' ? await workspace.prepare(args, signal) : await workspace.prepareRecord(name, args, signal);
+    if (signal?.aborted) { workspace.discard(); throw new Error('Conversation ended.'); }
+    if (prepared.unchanged) return prepared;
+    try { onPreview(prepared); } catch (error) { workspace.discard(); throw error; }
+    return { status: 'awaiting_user_confirmation', preview: prepared.preview, message: 'Not changed. Press Confirm change on the visible card.' };
+  }
   if (name === 'connected_apps') return request({ action: 'status' }, signal);
   if (name === 'read_connected_app') {
     let input;
     try { input = JSON.parse(args.input_json); } catch { throw new Error('Invalid lookup.'); }
     if (!input || typeof input !== 'object' || Array.isArray(input)) throw new Error('Invalid lookup.');
-    return request({ action: 'read', provider: args.provider, feature: args.feature, input }, signal);
+    const result = await request({ action: 'read', provider: args.provider, feature: args.feature, input }, signal);
+    if (signal?.aborted) throw new Error('Conversation ended.');
+    onResult(result);
+    return result;
   }
   const input = args.reply_to_id ? { replyToId: args.reply_to_id, body: args.body } : { to: args.to, subject: args.subject, body: args.body };
   const prepared = await request({ action: 'prepare_email', provider: args.provider, feature: 'email', input }, signal);

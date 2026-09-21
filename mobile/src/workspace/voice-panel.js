@@ -1,46 +1,93 @@
-import { useEffect, useRef } from 'react';
-import { AppState, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { AppState, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
+import BottomSheet from '../components/BottomSheet';
 import { integrationRequest } from './integration-client';
-import { Button } from './ui';
+import { fetchListingPriceDrops } from './home-insights';
+import { Button, Icon } from './ui';
 import { createVoiceRequest } from '../../../shared/voice-request';
 import { useVoice } from '../../../shared/use-voice';
+import { createVoiceWorkspace, voiceResultCards } from '../../../shared/voice-workspace';
 import { createNativeVoiceTransport } from './voice-transport';
 
 const sessionRequest = createVoiceRequest({ getSession: () => supabase.auth.getSession(), url: 'https://repeatai.org/api/voice' });
-export default function VoicePanel({ colors }) {
-  const voice = useVoice({ makeTransport: createNativeVoiceTransport, sessionRequest, integrationRequest });
+export default function VoicePanel({ colors, userId }) {
+  const [open, setOpen] = useState(false), [captions, setCaptions] = useState(false);
+  const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const cache = useQueryClient();
+  const workspace = useMemo(() => createVoiceWorkspace({ supabase, userId, fetchPriceDrops: fetchListingPriceDrops,
+    onChanged: () => cache.invalidateQueries() }), [cache, userId]);
+  const voice = useVoice({ makeTransport: createNativeVoiceTransport, sessionRequest, integrationRequest, workspace });
   const end = useRef(voice.end);
   useEffect(() => { end.current = voice.end; });
   useEffect(() => {
-    // iOS permission dialogs temporarily mark the app inactive. Do not cancel
-    // the first microphone request; end only when the app actually backgrounds.
     const subscription = AppState.addEventListener('change', state => { if (state === 'background') end.current(); });
     return () => subscription.remove();
   }, []);
+  const active = voice.state !== 'idle';
   const text = { color: colors.text, fontSize: 14, lineHeight: 21 };
-  return <View style={{ gap: 12, paddingBottom: 24, borderBottomWidth: 0.5, borderColor: colors.border }}>
-    <Text style={{ ...text, fontSize: 18, fontWeight: '600' }}>Talk to Repeat AI</Text>
-    <Text style={text}>Ask about your spreadsheets, inbox or upcoming viewings.</Text>
-    <Text style={{ ...text, color: colors.textMuted, fontSize: 12 }}>AI-generated voice. Audio and requested tool results are processed by OpenAI. Calls end after five minutes or when you leave the app.</Text>
-    {voice.state === 'idle' ? <Button colors={colors} disabled={voice.sending} onPress={voice.start}>Start conversation</Button> : <View style={{ gap: 10 }}>
-      <Text accessibilityLiveRegion="polite" style={text}>{{ connecting: 'Connecting…', listening: 'Listening', muted: 'Microphone muted', ending: 'Ending…' }[voice.state]}</Text>
-      <Button colors={colors} disabled={!['listening', 'muted'].includes(voice.state)} onPress={voice.mute}>{voice.state === 'muted' ? 'Unmute' : 'Mute'}</Button>
-      <Button colors={colors} disabled={voice.state === 'ending'} onPress={voice.end}>End conversation</Button>
-    </View>}
-    {voice.error ? <Text selectable accessibilityRole="alert" style={text}>{voice.error}</Text> : null}
-    {voice.notice ? <Text selectable accessibilityLiveRegion="polite" style={text}>{voice.notice}</Text> : null}
-    {voice.captions.you ? <Text selectable style={text}>You: {voice.captions.you}</Text> : null}
-    {voice.captions.assistant ? <Text selectable style={text}>Repeat AI: {voice.captions.assistant}</Text> : null}
-    {voice.preview ? <View style={{ gap: 12, borderWidth: 1, borderColor: colors.border, borderRadius: 12, borderCurve: 'continuous', padding: 14 }}>
-      <Text style={{ ...text, fontWeight: '600' }}>Review email</Text>
-      <Text selectable style={text}>Via {voice.preview.provider === 'google' ? 'Gmail' : 'Outlook'}</Text>
-      <Text selectable style={text}>To: {voice.preview.preview.to}</Text>
-      <Text selectable style={{ ...text, fontWeight: '600' }}>{voice.preview.preview.subject}</Text>
-      <Text selectable style={text}>{voice.preview.preview.body}</Text>
-      <Button colors={colors} disabled={voice.sending} onPress={voice.confirm}>Confirm and send</Button>
-      <Button colors={colors} disabled={voice.sending} onPress={voice.reject}>Discard</Button>
-    </View> : null}
-    {voice.sending ? <Text accessibilityLiveRegion="polite" style={text}>Sending your approved email…</Text> : null}
-  </View>;
+  const muted = { ...text, color: colors.textMuted, fontSize: 12 };
+  const cards = voiceResultCards(voice.result);
+  const title = { connecting: 'Connecting', listening: 'I’m listening', muted: 'Microphone muted', ending: 'Ending conversation' }[voice.state] || 'What can I help with?';
+  function close() { voice.end(); setOpen(false); }
+  return <>
+    <Pressable accessibilityRole="button" accessibilityLabel="Open Repeat AI assistant" onPress={() => setOpen(true)}
+      style={{ position: 'absolute', right: 20, bottom: Math.max(insets.bottom, 16) + 8, height: 52, borderRadius: 26, backgroundColor: colors.bgCard, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: colors.border, boxShadow: '0 4px 20px #0003' }}>
+      <LinearGradient colors={['#ecf2ff', '#99a4d3', '#83759e']} style={{ width: 24, height: 24, borderRadius: 12 }} /><Text style={{ color: colors.text, fontWeight: '600' }}>Ask Repeat</Text>
+    </Pressable>
+    <BottomSheet visible={open} onClose={close} colors={colors}>
+      <View style={{ height: Math.min(700, height * .77) }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 22, paddingBottom: 8 }}>
+          <Text style={{ ...text, fontWeight: '600' }}>Repeat AI</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="Close and end conversation" onPress={close} style={{ padding: 12, borderRadius: 24, backgroundColor: colors.bgInput }}><Icon name="close" color={colors.text} /></Pressable>
+        </View>
+        <ScrollView contentContainerStyle={{ padding: 22, gap: 14 }}>
+          <LinearGradient colors={['#f2f6ff', '#acbddf', '#9583b0', '#e6dfea']} start={{ x: .1, y: 0 }} end={{ x: .9, y: 1 }} style={{ alignSelf: 'center', width: cards.length ? 64 : 116, height: cards.length ? 64 : 116, borderRadius: 60, marginTop: cards.length ? 0 : 18, marginBottom: 10 }} />
+          <Text accessibilityLiveRegion="polite" style={{ ...text, textAlign: 'center', fontSize: 25, lineHeight: 32, fontWeight: '500' }}>{title}</Text>
+          {!voice.result && <Text style={{ ...muted, textAlign: 'center' }}>Your sellers, signals and follow-ups. Just ask.</Text>}
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
+            <Button colors={colors} disabled={voice.loading} onPress={() => voice.show('find_leads', { query: '', status: '', offset: '0' })}>My leads</Button>
+            <Button colors={colors} disabled={voice.loading} onPress={() => voice.show('price_drops', { building: '' })}>Price drops</Button>
+            <Button colors={colors} disabled={voice.loading} onPress={() => voice.show('automation_status')}>Automations</Button>
+          </View>
+          {voice.loading && <Text style={muted}>Checking your workspace…</Text>}
+          {voice.error ? <Text selectable accessibilityRole="alert" style={text}>{voice.error}</Text> : null}
+          {voice.notice ? <Text selectable accessibilityLiveRegion="polite" style={text}>{voice.notice}</Text> : null}
+          {voice.result && <View style={{ gap: 8 }}>
+            <Text style={{ ...text, fontWeight: '600' }}>{voice.result.title || 'Here’s what I found'}{typeof voice.result.total === 'number' ? ` · ${voice.result.total}` : ''}</Text>
+            {voice.result.note && <Text style={muted}>{voice.result.note}</Text>}
+            {!cards.length && <Text style={muted}>No results found.</Text>}
+            {cards.map((card, i) => <View key={i} style={{ paddingVertical: 12, gap: 3, borderBottomWidth: .5, borderColor: colors.border }}>
+              <Text selectable style={{ ...text, fontWeight: '600' }}>{card.title}</Text>
+              {!!card.detail && <Text selectable style={text}>{card.detail}</Text>}
+              {!!card.meta && <Text selectable style={muted}>{card.meta}</Text>}
+            </View>)}
+            {voice.result.nextOffset != null && <Text style={muted}>Showing {voice.result.offset + 1}–{voice.result.offset + cards.length}. Ask for the next page.</Text>}
+          </View>}
+          {voice.preview && <View style={{ padding: 16, borderWidth: 1, borderColor: colors.border, borderRadius: 16, gap: 12 }}>
+            <Text style={{ ...text, fontWeight: '600' }}>{voice.preview.preview.subject}</Text>
+            {voice.preview.preview.to && <Text selectable style={text}>To: {voice.preview.preview.to}</Text>}
+            <Text selectable style={text}>{voice.preview.preview.body}</Text>
+            <Button colors={colors} disabled={voice.sending} onPress={voice.confirm}>{voice.preview.kind ? 'Confirm change' : 'Confirm and send'}</Button>
+            <Button colors={colors} disabled={voice.sending} onPress={voice.reject}>Discard</Button>
+          </View>}
+          {captions && <View style={{ gap: 12 }}><Text selectable style={muted}>{voice.captions.you}</Text><Text selectable style={text}>{voice.captions.assistant}</Text></View>}
+        </ScrollView>
+        <View style={{ padding: 18, gap: 12, borderTopWidth: .5, borderColor: colors.border }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 12 }}>
+            <Button colors={colors} accessibilityLabel="Toggle captions" onPress={() => setCaptions(!captions)}>CC</Button>
+            {!active ? <Button colors={colors} primary disabled={voice.sending} onPress={voice.start}>Let’s talk ↑</Button> : <>
+              <Button colors={colors} disabled={!['listening', 'muted'].includes(voice.state)} onPress={voice.mute}>{voice.state === 'muted' ? 'Unmute' : 'Mute'}</Button>
+              <Button colors={colors} disabled={voice.state === 'ending'} onPress={voice.end}>End</Button>
+            </>}
+          </View>
+          <Text style={{ ...muted, fontSize: 10, textAlign: 'center' }}>{voice.sending ? 'Applying your approved action…' : active ? 'Connected until you end. Five-minute limit.' : 'AI voice · Audio and requested app details shared with OpenAI.'}</Text>
+        </View>
+      </View>
+    </BottomSheet>
+  </>;
 }

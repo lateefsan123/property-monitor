@@ -18,6 +18,7 @@ import MessageTemplatesPanel from "./features/seller-signal/components/MessageTe
 import { useSellerSignalMessageTemplates } from "./features/seller-signal/useSellerSignalMessageTemplates";
 import ThemeToggleButton from "./components/ThemeToggleButton";
 import ProductTour from "./components/ProductTour";
+import VoicePanel from "./voice/VoicePanel";
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 
 const VALID_PAGES = new Set(["home", "sellers", "listing-alerts", "spreadsheets"]);
@@ -87,6 +88,7 @@ export default function AppShell({ displayName, userId }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
+  const [assistantOpen, setAssistantOpen] = useState(false);
   const [messageTemplatesOpen, setMessageTemplatesOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [theme, setTheme] = useState(readInitialTheme);
@@ -191,7 +193,8 @@ export default function AppShell({ displayName, userId }) {
         />
       )}
 
-      {!createOpen && !messageTemplatesOpen && !settingsOpen && <ProductTour key={userId} userId={userId} onNavigate={handleNavigate} onAction={handleSidebarAction} />}
+      {!createOpen && !messageTemplatesOpen && !settingsOpen && !assistantOpen && <ProductTour key={userId} userId={userId} onNavigate={handleNavigate} onAction={handleSidebarAction} />}
+      <VoicePanel key={`voice:${userId}`} userId={userId} onOpenChange={setAssistantOpen} />
 
       <div className="app-main">
         <header className={`app-topbar${scrolled ? " app-topbar-scrolled" : ""}`}>

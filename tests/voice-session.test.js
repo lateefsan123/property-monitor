@@ -54,7 +54,9 @@ test('voice tool dispatcher cannot send, confirm, connect or inject an owner', a
   for (const name of ['confirm_email', 'send_email', 'begin', '__proto__']) await assert.rejects(executeVoiceTool(name, {}, deps));
   await assert.rejects(executeVoiceTool('connected_apps', { userId: 'other' }, deps));
   assert.equal(calls, 0);
-  assert.deepEqual(VOICE_TOOLS.map(item => item.name), ['connected_apps', 'read_connected_app', 'prepare_email']);
+  assert.ok(VOICE_TOOLS.some(item => item.name === 'find_leads'));
+  assert.ok(VOICE_TOOLS.some(item => item.name === 'prepare_automation'));
+  assert.ok(!VOICE_TOOLS.some(item => item.name.startsWith('confirm_')));
 });
 test('voice resolves sheets through authenticated read calls, not manual IDs', async () => {
   let body;

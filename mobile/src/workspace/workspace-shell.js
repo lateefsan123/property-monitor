@@ -15,6 +15,7 @@ import { useWorkspacePreference } from "./preferences";
 import { getTheme } from "../theme";
 import { supabase } from "../supabase";
 import { Button, Feedback } from "./ui";
+import VoicePanel from './voice-panel';
 
 export default function WorkspaceShell({
   userId,
@@ -128,6 +129,7 @@ export default function WorkspaceShell({
           )}
         </View>
       ))}
+      <VoicePanel key={userId} userId={userId} colors={colors} />
       <BottomSheet
         visible={createOpen}
         onDismiss={finishShortcutDismiss}
