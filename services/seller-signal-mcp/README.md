@@ -6,6 +6,14 @@ consent page at `/oauth/consent`.
 
 ## Tools
 
+The tools share the server-only action registry in `src/action-registry.js`.
+Mutating tools return `confirmation_required` unless the server host supplies a
+trusted `confirmAction` callback. The HTTP host does not supply one yet, so
+creating/updating leads and sending WhatsApp through MCP are blocked at this
+checkpoint. Reads remain available to authenticated users. Do not deploy this
+checkpoint without reviewing that behavior change. See
+`../../docs/integration-foundation.md` for the approval and provider rollout plan.
+
 - `get_my_seller_signal_account`
 - `list_my_seller_leads`
 - `get_my_seller_lead`
