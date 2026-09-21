@@ -66,6 +66,7 @@ Both replacement builds are now FINISHED with no build error:
 - Android preview 61a4d7f9-bb5e-40b4-b0a0-2d186eb1924b: https://expo.dev/artifacts/eas/H-XbIqoRaYXGlqNogesKqx91qIvDkRdUlfiArNnWuK0.apk . Includes integrations, picker pagination, native voice modules and shutdown hardening.
 - iOS production build 25, 5c148730-ad5c-432a-95ff-4c4d59550f4b: https://expo.dev/artifacts/eas/HM8GK-tzubht0ehfhp_KaVflIgFLx3naNDVFaA83dIc.ipa .
 - Submitted that exact iOS build through the existing EAS App Store Connect credential. Submission 18d72517-9476-4e9c-975a-a9a4a146c7b0 was successfully scheduled. This is not proof of Apple processing completion, tester availability, device operation, or an App Store release.
+- Follow-up live EAS submission page reports Succeeded at 18:25 Dublin time. Logs confirm Apple build upload 3735f3f7-e06b-4d36-9d78-117681d7f097 completed. TestFlight tester availability remains unverified; no public App Store release was requested.
 - No Android device is connected to adb; native end-to-end and real audio remain unverified. Voice credentials/allowlist remain disabled.
 - Signed into the authorized web test account successfully. Google Sheets, Excel, Gmail and Outlook show Connected; both calendars remain unconnected. Google spreadsheet picker requests the additional drive.metadata.readonly scope. Selected the Repeat AI Google account and reached the exact additional metadata consent screen; approval has NOT been granted. Asked the user for that specific approval and left the browser at the consent screen.
 
