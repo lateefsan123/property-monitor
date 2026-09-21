@@ -1,0 +1,11 @@
+.repeat-voice { margin: 0 0 28px; padding-bottom: 24px; border-bottom: 1px solid color-mix(in srgb, currentColor 18%, transparent); font-size: 13px; line-height: 1.6; }
+.repeat-voice h3 { margin: 0 0 6px; font-size: 17px; font-weight: 550; }
+.repeat-voice .voice-disclosure { opacity: .65; font-size: 12px; max-width: 560px; }
+.voice-controls { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin: 14px 0; }
+.repeat-voice button { color: inherit; font: inherit; background: transparent; border: 1px solid color-mix(in srgb, currentColor 35%, transparent); padding: 9px 14px; border-radius: 8px; cursor: pointer; }
+.repeat-voice button:disabled { opacity: .45; cursor: default; }
+.repeat-voice audio { max-width: 100%; height: 36px; }
+.repeat-voice details p { overflow-wrap: anywhere; max-height: 140px; overflow: auto; }
+.voice-email-preview { padding: 16px; border: 1px solid color-mix(in srgb, currentColor 25%, transparent); border-radius: 10px; overflow-wrap: anywhere; }
+.voice-email-preview h4 { margin-top: 0; }
+.voice-email-preview pre { white-space: pre-wrap; font: inherit; max-height: 280px; overflow: auto; }

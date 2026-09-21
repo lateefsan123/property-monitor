@@ -48,7 +48,13 @@
           "color": "#000000"
         }
       ],
-      "expo-image"
+      "expo-image",
+      [
+        "@config-plugins/react-native-webrtc",
+        {
+          "microphonePermission": "Allow Repeat AI to use your microphone for voice conversations."
+        }
+      ]
     ],
     "extra": {
       "eas": {

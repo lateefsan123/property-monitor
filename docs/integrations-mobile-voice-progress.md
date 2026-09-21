@@ -38,6 +38,16 @@ Build 782d5387-d228-4c56-96d2-a95d5b945dd4 is now FINISHED with no error. Instal
 - Credential decision is resolved: user explicitly requested a NEW separate key. Implementation can proceed while provisioning is blocked; secure key creation and destination confirmation remain gated by the OpenAI Platform skill.
 - API contract sources: https://developers.openai.com/api/docs/guides/voice-webrtc?api=live , https://developers.openai.com/api/docs/guides/live-delegation , https://developers.openai.com/api/docs/guides/live-conversations .
 
+## Web and native voice controls
+
+- Voice panels now sit in Integrations on web and mobile. Both use the shared hook/controller for start/end, mute, separate speaker captions and exact email confirmation. Approval is consumed on the first send attempt; uncertain sends require checking Sent rather than automatic retry. Pending approvals cannot be silently replaced.
+- Web adapter uses browser WebRTC and an audio player with autoplay fallback. Native adapter lazy-loads react-native-webrtc 124.0.7, Expo SDK 55 config plugin 14.0.0 and incall-manager 4.3.0; only audio is captured. Native routing/microphone/speaker behavior still needs physical-device testing.
+- Leaving the web page or backgrounding the native app stops voice. iOS permission dialogs can mark the app inactive; only actual backgrounding ends native voice so the first microphone prompt is not cancelled.
+- Local Vite now serves the same authenticated /api/voice handler. No provider key or allowlist has been configured, so no paid voice session can start yet.
+- Targeted lint and all 17 voice tests passed. Vite production build plus Android AND iOS Expo exports passed. Expo introspection confirmed the microphone permission description. Browser fixture rendered the voice controls, returned the signed-out error without prompting for a microphone, and had no browser errors. These are not live speech/tool or native-device tests.
+- Known warnings: existing large web chunk; WebRTC's event-target-shim subpath uses Metro file-resolution fallback. Npm audit reports 23 issues across the mobile dependency tree (the added plugin inherits the existing Expo dependency advisory); no broad dependency upgrades were performed.
+- A new native build is required for these modules; the earlier integrations APK does not contain voice.
+
 Android upload recovery: the first preview upload did not create a build (latest remote build was still 2026-09-04). The process handle was gone. EAS archive now excludes web/video/generated artifacts and credentials, retaining mobile, shared, src imports and root package manifests. A fresh preview upload was started after verifying no new remote build existed. Track the returned EAS build id; do not confuse the old September 4 AAB with the new integration build.
 
 Build 457e8385-ee93-4da6-a52f-df182ce05a4e failed because the initial allowlist omitted mobile/package.json. Fixed in 4191605 using explicit exclusions. `eas build:inspect --stage archive` verified mobile/package.json, native integration screens, shared/navigation.js and imported web utilities were present; no env/credential files were found. Replacement Android preview upload completed: 782d5387-d228-4c56-96d2-a95d5b945dd4. Follow its live EAS status before reporting an APK ready.

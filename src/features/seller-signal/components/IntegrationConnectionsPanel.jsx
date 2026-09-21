@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { integrationRequest } from '../../../integration-client';
 import '../../../styles/integration-connections.css';
 import IntegrationWorkspace from './IntegrationWorkspace';
+import VoicePanel from '../../../voice/VoicePanel';
 
 const ITEMS = [
   ['google', 'sheets', 'Google Sheets', 'Open a spreadsheet and search its rows without leaving Repeat AI.', 'https://www.gstatic.com/images/branding/product/2x/sheets_48dp.png'],
@@ -45,6 +46,7 @@ export default function IntegrationConnectionsPanel({ request = integrationReque
     finally { setBusy(''); }
   }
   return <section className="integration-connections" aria-label="App connections">
+    <VoicePanel />
     <p className="integration-intro">Your everyday tools, all in one place.</p>
     {error && <div className="integration-error" role="alert">{error} <button type="button" onClick={() => setAttempt(value => value + 1)}>Try again</button></div>}
     {!connections && !error && <p role="status">Loading connections…</p>}
