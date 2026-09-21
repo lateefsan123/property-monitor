@@ -9,4 +9,7 @@ export const LANDING_BUILDINGS = [
   { name: 'Jumeirah Living Business Bay', logo: 'jumeirah-business-bay.png' },
   { name: 'Peninsula Four, The Plaza', logo: 'peninsula-four.svg' },
   { name: 'Six Senses Residences Dubai Marina', logo: 'six-senses-marina.png' },
+  { name: 'Studio One', logo: 'studio-one.png' },
+  { name: 'No.9', logo: 'no-9.png' },
+  { name: 'The Torch', logo: 'the-torch.png' },
 ];

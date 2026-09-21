@@ -3,9 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { LANDING_BUILDINGS } from '../src/landing-buildings.js';
 
-test('nine distinct building logos keep six columns on desktop and three on smaller screens', () => {
-  assert.equal(LANDING_BUILDINGS.length, 9);
-  assert.equal(new Set(LANDING_BUILDINGS.map(b => b.name)).size, 9);
+test('twelve distinct building logos fill two six-column desktop rows', () => {
+  assert.equal(LANDING_BUILDINGS.length, 12);
+  assert.equal(new Set(LANDING_BUILDINGS.map(b => b.name)).size, 12);
+  assert.equal(LANDING_BUILDINGS.length % 6, 0);
   for (const b of LANDING_BUILDINGS) {
     const bytes = readFileSync(new URL(`../public/landing/tower-logos/${b.logo}`, import.meta.url));
     assert.ok(bytes.length > 100);
@@ -25,6 +26,8 @@ test('logo section is lazy, dimensioned and has no photo gallery or endorsement 
   assert.match(component, /loading="lazy"/);
   assert.match(component, /width="180"/);
   assert.match(component, /alt=\{building.name\}/);
+  assert.match(component, /Your buildings\. One workspace\./);
+  assert.match(component, /aria-labelledby="landing-buildings-heading"/);
   assert.doesNotMatch(component, /figcaption|Trusted by|building-photo/);
   assert.equal((page.match(/<LandingBuildings \/>/g) || []).length, 1);
   assert.doesNotMatch(page, /DUBAI_TOWERS/);

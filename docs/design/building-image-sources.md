@@ -1,13 +1,13 @@
 # Building logos and exterior-image source register
 
 Local design preview, checked 21 September 2026. The landing page keeps building
-logos: nine identities, six per row on desktop and three on smaller screens. Exterior images are separate
+logos: twelve identities, six per row on desktop and three on smaller screens. Exterior images are separate
 small thumbnails on Listings building rows, never images of a particular unit.
 Unknown or ambiguous names keep a neutral icon; there is no fuzzy photo fallback.
 
 ## Additional official logos
 
-The existing six logos are unchanged. Three more come from Select Group's project
+The existing six logos are unchanged. Six more come from Select Group's project
 header logos (rendered monochrome with CSS, not redrawn):
 
 | Asset under `public/landing/tower-logos/` | Official project source | Original asset |
@@ -15,6 +15,9 @@ header logos (rendered monochrome with CSS, not redrawn):
 | jumeirah-business-bay.png | https://www.select-group.ae/developments/jumeirah-living-business-bay | https://cdn.prod.website-files.com/63bd7443c5c4c66606ad6362/672854d8d76ed5042468baa3_JLBB_ID_WHT_RGB-p-500.png |
 | peninsula-four.svg | https://www.select-group.ae/developments/peninsula-four-the-plaza | https://cdn.prod.website-files.com/63bd7443c5c4c66606ad6362/63c0097e0fc062544a43fa59_peninsula-four.svg |
 | six-senses-marina.png | https://www.select-group.ae/developments/six-senses-residences-dubai-marina | https://cdn.prod.website-files.com/63bd7443c5c4c66606ad6362/65fbda395bb711dd1dc7d91c_SSR_Dubai%20Marina_standard_logo_white-p-500.png |
+| studio-one.png | https://www.select-group.ae/developments/studio-one | https://cdn.prod.website-files.com/63bd7443c5c4c66606ad6362/646f42600fd4e547d04b0b90_S1%20BLK-p-500.png |
+| no-9.png | https://www.select-group.ae/developments/no-9 | https://cdn.prod.website-files.com/63bd7443c5c4c66606ad6362/646f386b804aae272d98f863_No9%20(White%20Logo)-p-500.png |
+| the-torch.png | https://www.select-group.ae/developments/the-torch | https://cdn.prod.website-files.com/63bd7443c5c4c66606ad6362/6474527bec978e6b93e4308b_The%20Torch%20Logo%20(white)-min-p-500.png |
 
 ## Publication gate
 
