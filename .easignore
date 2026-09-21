@@ -1,11 +1,20 @@
 # Mobile EAS builds keep the app and its shared imports, not web/video artifacts.
-/*
-!/mobile/
-!/shared/
-!/src/
-!/package.json
-!/package-lock.json
-!/yarn.lock
+/video/
+/desktop/
+/public/
+/outputs/
+/tmp/
+/reports/
+/docs/
+/tests/
+/services/
+/supabase/
+/api/
+/server/
+/.git/
+/.vercel/
+/.claude/
+/.codex-run/
 **/node_modules/
 **/.env*
 **/.expo/
