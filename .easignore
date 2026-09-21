@@ -1,52 +1,29 @@
-# Logs
-logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-desktop/release
-*.local
-
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
-
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# Generated reports
-reports/
-
-.vercel
-
-# Local agent/session tooling
-.claude/
-.codex-run/
-.env*
-
-# Local captures, exports and tooling are not build inputs
-/tmp/
-/outputs/
-/mobile/dist-dashboard-check/
-/mobile/dist-subscription-*/
-/mobile/.expo/
-/mobile/credentials/
-/mobile/credentials.json
+# Mobile EAS builds keep the app and its shared imports, not web/video artifacts.
+/*
+!/mobile/
+!/shared/
+!/src/
+!/package.json
+!/package-lock.json
+!/yarn.lock
+**/node_modules/
+**/.env*
+**/.expo/
+**/dist/
+**/dist-*/
+**/web-build/
+**/*.log
+**/*.jks
 **/*.p8
 **/*.p12
+**/*.pem
+**/*.key
 **/*.mobileprovision
+**/credentials.json
+**/credentials/
+/mobile/android/
+/mobile/ios/
+/mobile/build/
+**/*.apk
+**/*.aab
+**/*.ipa
