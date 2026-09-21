@@ -26,7 +26,7 @@ const panels = [
 const connectedPanels = panels.map((panel) => (
   <li className="landing-stack-panel" key={panel.id}>
     <img
-      src={`/landing/stack-${panel.id}-v1.png`}
+      src={`/landing/stack-${panel.id}${panel.id === "devices" ? "-dubai" : ""}-v1.png`}
       alt={panel.alt}
       width="1499"
       height="1049"

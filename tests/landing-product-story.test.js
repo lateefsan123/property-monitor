@@ -14,6 +14,18 @@ test("product story covers the complete journey once, in order", () => {
   }
 });
 
+test("fictional landing names are consistent across the Dubai seller journey", () => {
+  const allAlt = LANDING_PRODUCT_SECTIONS.map(section => section.alt).join(' ');
+  assert.doesNotMatch(allAlt, /Alex|Jamie|Jordan/);
+  for (const name of ['Ahmed Mansoori', 'Priya Shah', 'Daniel Reed', 'Omar Hassan']) {
+    assert.ok(allAlt.includes(name));
+  }
+  for (const section of LANDING_PRODUCT_SECTIONS.filter(section => section.id !== 'market-activity')) {
+    assert.match(section.image, /dubai-v1\.png$/);
+    assert.match(section.mobileImage, /dubai-v1\.png$/);
+  }
+});
+
 test("every desktop and mobile artwork exists with accurate intrinsic dimensions", () => {
   for (const section of LANDING_PRODUCT_SECTIONS) {
     for (const [file, width, height] of [

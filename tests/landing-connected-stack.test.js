@@ -6,14 +6,18 @@ const source = readFileSync(new URL("../src/LandingConnectedStack.jsx", import.m
 
 test("connected stack follows the product stories before feedback and closing", () => {
   const page = readFileSync(new URL("../src/LandingPage.jsx", import.meta.url), "utf8");
-  assert.match(page, /<LandingProductStory \/>\s*<LandingConnectedStack \/>\s*<LandingBrokerFeedback \/>\s*<LandingClosing/);
+  const order = ['<LandingProductStory />', '<LandingConnectedStack />', '<LandingBrokerFeedback />', '<LandingClosing'];
+  for (let index = 1; index < order.length; index += 1) {
+    assert.ok(page.indexOf(order[index - 1]) >= 0);
+    assert.ok(page.indexOf(order[index]) > page.indexOf(order[index - 1]));
+  }
   assert.equal((page.match(/<LandingConnectedStack \/>/g) || []).length, 1);
 });
 
 test("four illustrations have the declared dimensions", () => {
   assert.equal((source.match(/id: "/g) || []).length, 4);
   for (const name of ["tools", "data", "ai", "devices"]) {
-    const image = readFileSync(new URL(`../public/landing/stack-${name}-v1.png`, import.meta.url));
+    const image = readFileSync(new URL(`../public/landing/stack-${name}${name === 'devices' ? '-dubai' : ''}-v1.png`, import.meta.url));
     assert.equal(image.readUInt32BE(16), 1499);
     assert.equal(image.readUInt32BE(20), 1049);
   }

@@ -10,9 +10,9 @@ import "./reference.css";
 
 const noop = () => {};
 const leads = [
-  { id: "sample-1", name: "Alex Morgan", building: "Forte 2", bedroom: 2, unit: "1204", statusLabel: "Due today", isDue: true },
-  { id: "sample-2", name: "Jamie Taylor", building: "Forte 2", bedroom: 1, unit: "805", statusLabel: "Scheduled" },
-  { id: "sample-3", name: "Jordan Lee", building: "Burj Khalifa", bedroom: 2, unit: "2206", statusLabel: "Due today", isDue: true },
+  { id: "sample-1", name: "Ahmed Mansoori", building: "Forte 2", bedroom: 2, unit: "1204", statusLabel: "Due today", isDue: true },
+  { id: "sample-2", name: "Priya Shah", building: "Forte 2", bedroom: 1, unit: "805", statusLabel: "Scheduled" },
+  { id: "sample-3", name: "Daniel Reed", building: "Burj Khalifa", bedroom: 2, unit: "2206", statusLabel: "Due today", isDue: true },
 ];
 
 const sellerView = new URLSearchParams(window.location.search).get("view") === "seller";
