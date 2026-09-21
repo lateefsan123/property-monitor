@@ -1,5 +1,5 @@
 export const EXTRA_SCOPES = {
-  google: { send: ['https://www.googleapis.com/auth/gmail.send'] },
+  google: { send: ['https://www.googleapis.com/auth/gmail.send'], browse: ['https://www.googleapis.com/auth/drive.metadata.readonly'] },
   microsoft: { send: ['Mail.Send'], workbook: ['Files.ReadWrite'] },
 };
 

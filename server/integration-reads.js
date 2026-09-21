@@ -13,18 +13,25 @@ export function createIntegrationReads({ tokens, fetchImpl = fetch, now = Date.n
     if (!userId || !Object.hasOwn(INTEGRATION_PROVIDERS, provider)
       || !Object.hasOwn(INTEGRATION_PROVIDERS[provider].scopes, feature)
       || !input || typeof input !== 'object' || Array.isArray(input)) throw new IntegrationError('invalid_input');
-    const allowed = feature !== 'sheets' ? [] : provider === 'google' ? ['spreadsheetId', 'sheetName'] : ['folderId', 'fileId', 'sheetName'];
+    const allowed = feature !== 'sheets' ? [] : provider === 'google' ? ['spreadsheetId', 'sheetName', 'query', 'pageToken', 'tabs'] : ['folderId', 'fileId', 'sheetName'];
     if (Object.keys(input).some(key => !allowed.includes(key))) throw new IntegrationError('invalid_input');
     if (feature === 'sheets') {
-      if (provider === 'google' && (!id(input.spreadsheetId)
+      if (provider === 'google' && ((input.spreadsheetId !== undefined && !id(input.spreadsheetId))
         || (input.sheetName !== undefined && (typeof input.sheetName !== 'string' || !input.sheetName.length || input.sheetName.length > 100 || [...input.sheetName].some(char => char.charCodeAt(0) < 32))))) throw new IntegrationError('invalid_input');
+      if (provider === 'google' && ((input.query !== undefined && (typeof input.query !== 'string' || input.query.length > 100))
+        || (input.pageToken !== undefined && (typeof input.pageToken !== 'string' || !/^[\x21-\x7e]{1,2048}$/.test(input.pageToken)))
+        || (input.tabs !== undefined && (input.tabs !== true || !input.spreadsheetId))
+        || (input.sheetName && (!input.spreadsheetId || input.tabs))
+        || (input.spreadsheetId && (input.query !== undefined || input.pageToken !== undefined)))) throw new IntegrationError('invalid_input');
       if (provider === 'microsoft' && input.folderId !== undefined && !id(input.folderId)) throw new IntegrationError('invalid_input');
       if (provider === 'microsoft' && ((input.fileId !== undefined && !id(input.fileId)) || (input.folderId && input.fileId)
         || (input.sheetName !== undefined && (!input.fileId || typeof input.sheetName !== 'string' || !input.sheetName.length || input.sheetName.length > 100 || [...input.sheetName].some(char => char.charCodeAt(0) < 32))))) throw new IntegrationError('invalid_input');
     }
     const identity = { userId, provider, feature };
     const token = provider === 'microsoft' && input.fileId
-      ? await tokens.requireScopes(identity, EXTRA_SCOPES.microsoft.workbook) : await tokens.accessToken(identity);
+      ? await tokens.requireScopes(identity, EXTRA_SCOPES.microsoft.workbook)
+      : provider === 'google' && feature === 'sheets' && !input.spreadsheetId
+        ? await tokens.requireScopes(identity, EXTRA_SCOPES.google.browse) : await tokens.accessToken(identity);
     const get = (base, params) => {
       const url = new URL(base);
       for (const [key, value] of Object.entries(params || {})) url.searchParams.set(key, value);
@@ -63,6 +70,19 @@ export function createIntegrationReads({ tokens, fetchImpl = fetch, now = Date.n
       return { kind: 'calendar', items, hasMore: Boolean(data.nextPageToken || data['@odata.nextLink']) };
     }
     if (provider === 'google') {
+      if (!input.spreadsheetId) {
+        const search = (input.query || '').replaceAll('\\', '\\\\').replaceAll("'", "\\'");
+        const data = await get('https://www.googleapis.com/drive/v3/files', {
+          q: `trashed = false and mimeType = 'application/vnd.google-apps.spreadsheet'${search ? ` and name contains '${search}'` : ''}`,
+          pageSize: '50', fields: 'nextPageToken,files(id,name)', orderBy: 'modifiedTime desc',
+          ...(input.pageToken ? { pageToken: input.pageToken } : {}),
+        });
+        return { kind: 'file-list', items: (Array.isArray(data.files) ? data.files : []).slice(0, 50).filter(item => id(item.id)).map(item => ({ id: item.id, name: string(item.name), spreadsheet: true })), nextPageToken: string(data.nextPageToken, 2048) };
+      }
+      if (input.tabs) {
+        const data = await get(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(input.spreadsheetId)}`, { fields: 'sheets.properties.title' });
+        return { kind: 'worksheet-list', items: (Array.isArray(data.sheets) ? data.sheets : []).slice(0, 200).map(item => ({ name: string(item.properties?.title, 100) })) };
+      }
       const range = input.sheetName ? `'${input.sheetName.replaceAll("'", "''")}'!A1:Z100` : 'A1:Z100';
       const data = await get(`https://sheets.googleapis.com/v4/spreadsheets/${encodeURIComponent(input.spreadsheetId)}/values/${encodeURIComponent(range)}`, { valueRenderOption: 'FORMATTED_VALUE' });
       return { kind: 'sheet-preview', range: string(data.range), rowLimit: 100, columnLimit: 26,

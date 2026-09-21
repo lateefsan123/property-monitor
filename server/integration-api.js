@@ -35,6 +35,7 @@ export function createIntegrationHandler({ authenticate, store, oauth, configure
         return send(200, { connections: Object.entries(INTEGRATION_PROVIDERS).flatMap(([provider, spec]) =>
           Object.keys(spec.scopes).map(feature => ({ provider, feature, configured: configured(provider),
             connected: rows.some(row => row.provider === provider && row.feature === feature),
+            canBrowse: provider === 'google' && feature === 'sheets' && rows.some(row => row.provider === provider && row.feature === feature && includesScopes(provider, row.scopes, EXTRA_SCOPES.google.browse)),
             canSend: feature === 'email' && rows.some(row => row.provider === provider && row.feature === feature && includesScopes(provider, row.scopes, EXTRA_SCOPES[provider].send)),
             canReadWorkbook: feature === 'sheets' && (provider === 'google' || rows.some(row => row.provider === provider && row.feature === feature && includesScopes(provider, row.scopes, EXTRA_SCOPES.microsoft.workbook))) }))) });
       }

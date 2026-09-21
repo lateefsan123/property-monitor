@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react';
+import GoogleSpreadsheetPicker from './GoogleSpreadsheetPicker';
 
 export default function IntegrationWorkspace({ provider, feature, connection, request, upgrade }) {
   const [data, setData] = useState(null);
@@ -6,8 +7,6 @@ export default function IntegrationWorkspace({ provider, feature, connection, re
   const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
   const lock = useRef(false);
-  const [spreadsheetId, setSpreadsheetId] = useState('');
-  const [sheetName, setSheetName] = useState('');
   const [fileId, setFileId] = useState('');
   const [query, setQuery] = useState('');
   const [draft, setDraft] = useState(null);
@@ -56,10 +55,10 @@ export default function IntegrationWorkspace({ provider, feature, connection, re
       </div>}
     </>}
     {feature === 'sheets' && <>
-      {provider === 'google' ? <form onSubmit={event => { event.preventDefault(); read({ spreadsheetId, ...(sheetName ? { sheetName } : {}) }); }}>
-        <label>Spreadsheet ID<input required value={spreadsheetId} onChange={event => setSpreadsheetId(event.target.value)} /></label>
-        <label>Sheet name (optional)<input value={sheetName} onChange={event => setSheetName(event.target.value)} /></label><button disabled={busy}>Read spreadsheet</button>
-      </form> : <>
+      {provider === 'google' ? connection.canBrowse
+        ? <GoogleSpreadsheetPicker request={request} disabled={busy} onBrowse={() => setData(null)} onSelect={(spreadsheetId, sheetName) => { setData(null); read({ spreadsheetId, sheetName }); }} />
+        : <div><p>Choose spreadsheets directly from your Google account. Allow file-name access once to see the list. This does not allow editing or deleting files.</p><button disabled={busy} onClick={() => upgrade('browse')}>Choose from Google Drive</button></div>
+        : <>
         <button disabled={busy} onClick={() => { setFileId(''); read(); }}>Browse OneDrive</button>
         {data?.kind === 'file-list' && data.items.map(item => <div className="integration-file" key={item.id}>
           <span>{item.name}</span><button disabled={busy || (!item.folder && (!item.spreadsheet || !connection.canReadWorkbook))} onClick={() => {

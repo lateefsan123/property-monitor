@@ -65,7 +65,7 @@ export function createIntegrationOAuth({ configs, store, vault, fetchImpl = fetc
       const spec = providerFor(provider);
       if (!Object.hasOwn(spec.scopes, feature)) throw new Error('Unsupported feature');
       const config = configuration(configs[provider]);
-      if (capability !== undefined && !((capability === 'send' && feature === 'email') || (capability === 'workbook' && feature === 'sheets' && provider === 'microsoft'))) throw new IntegrationError('invalid_input');
+      if (capability !== undefined && !((capability === 'send' && feature === 'email') || (capability === 'workbook' && feature === 'sheets' && provider === 'microsoft') || (capability === 'browse' && feature === 'sheets' && provider === 'google'))) throw new IntegrationError('invalid_input');
       const scopes = [...spec.scopes[feature], ...(capability ? EXTRA_SCOPES[provider][capability] : [])];
       const state = randomBytes(32).toString('base64url');
       const verifier = randomBytes(32).toString('base64url');

@@ -4,12 +4,14 @@ import IntegrationConnectionsPanel from '../../../src/features/seller-signal/com
 const mode = new URLSearchParams(window.location.search).get('state') || 'ready';
 let failed = false;
 const connections = ['google', 'microsoft'].flatMap(provider => ['sheets', 'email', 'calendar'].map(feature => ({
-  provider, feature, configured: mode !== 'setup', connected: mode === 'tools' || (mode === 'connected' && provider === 'google' && feature === 'sheets'), canSend: mode === 'tools' && feature === 'email', canReadWorkbook: mode === 'tools' && feature === 'sheets',
+  provider, feature, configured: mode !== 'setup', connected: mode === 'tools' || (mode === 'connected' && provider === 'google' && feature === 'sheets'), canBrowse: mode === 'tools', canSend: mode === 'tools' && feature === 'email', canReadWorkbook: mode === 'tools' && feature === 'sheets',
 })));
 async function request({ action, provider, feature, input }) {
   if (mode === 'error' && !failed) { failed = true; throw new Error('Connections are unavailable. Please try again.'); }
   if (action === 'status') return { connections };
   if (mode === 'tools' && action === 'read') {
+    if (provider === 'google' && feature === 'sheets' && !input.spreadsheetId) return { kind: 'file-list', items: [{ id: 'sample', name: 'Dubai sellers' }] };
+    if (input.tabs) return { kind: 'worksheet-list', items: [{ name: 'Sellers' }, { name: 'Viewings' }] };
     if (feature === 'email') return { kind: 'email', items: [{ id: 'sample', subject: 'Viewing tomorrow', from: 'broker@example.com', snippet: 'Can we arrange a viewing tomorrow afternoon?' }] };
     if (provider === 'microsoft' && !input.fileId) return { kind: 'file-list', items: [{ id: 'sample', name: 'Sellers.xlsx', spreadsheet: true }] };
     if (provider === 'microsoft' && !input.sheetName) return { kind: 'worksheet-list', items: [{ name: 'Sellers' }] };

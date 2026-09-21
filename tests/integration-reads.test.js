@@ -10,6 +10,37 @@ import { Buffer } from 'node:buffer';
 const json = value => new Response(JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
 const identity = { userId: 'alice', provider: 'google', feature: 'email' };
 
+test('Google spreadsheet picker uses scoped metadata, escapes searches and bounds results', async () => {
+  let called = false;
+  const read = createIntegrationReads({ tokens: { requireScopes: async (owner, scopes) => {
+    assert.equal(owner.userId, 'alice');
+    assert.deepEqual(scopes, ['https://www.googleapis.com/auth/drive.metadata.readonly']); return 'access';
+  } }, fetchImpl: async (url, options) => {
+    called = true;
+    const parsed = new URL(url);
+    assert.equal(parsed.origin, 'https://www.googleapis.com');
+    assert.equal(parsed.searchParams.get('pageSize'), '50');
+    assert.equal(parsed.searchParams.get('pageToken'), 'next-page');
+    assert.ok(parsed.searchParams.get('q').includes("name contains 'Seller\\'s'"));
+    assert.equal(options.method, undefined);
+    return json({ files: [{ id: 'sheet_1', name: 'Sellers', privateData: 'not-returned' }], nextPageToken: 'page-2' });
+  } });
+  const result = await read({ ...identity, feature: 'sheets', input: { query: "Seller's", pageToken: 'next-page' } });
+  assert.ok(called);
+  assert.deepEqual(result.items, [{ id: 'sheet_1', name: 'Sellers', spreadsheet: true }]);
+  assert.equal(result.nextPageToken, 'page-2');
+});
+
+test('Google worksheet selection returns titles only and rejects mixed picker inputs', async () => {
+  const f = readFixture([{ sheets: [{ properties: { title: 'Sellers', hidden: false }, data: 'not-returned' }] }]);
+  const result = await f.read({ ...identity, feature: 'sheets', input: { spreadsheetId: 'sheet_1', tabs: true } });
+  assert.deepEqual(result, { kind: 'worksheet-list', items: [{ name: 'Sellers' }] });
+  assert.equal(f.calls[0].url.searchParams.get('fields'), 'sheets.properties.title');
+  for (const input of [{ tabs: true }, { sheetName: 'Sellers' }, { spreadsheetId: 'id', query: 'mixed' }, { query: 'x'.repeat(101) }, { pageToken: '\n' }]) {
+    await assert.rejects(f.read({ ...identity, feature: 'sheets', input }), { code: 'invalid_input' });
+  }
+});
+
 test('workbook reads require upgraded scope, stay bounded and never write', async () => {
   const calls = [];
   const read = createIntegrationReads({ tokens: { requireScopes: async (who, scopes) => { assert.equal(who.userId, 'alice'); assert.deepEqual(scopes, ['Files.ReadWrite']); return 'token'; } },
