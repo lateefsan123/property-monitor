@@ -5,9 +5,21 @@ import { createIntegrationReads } from '../server/integration-reads.js';
 import { createTokenVault, INTEGRATION_PROVIDERS } from '../server/integration-oauth.js';
 import { providerJson } from '../server/integration-http.js';
 import { includesScopes } from '../server/integration-scopes.js';
+import { Buffer } from 'node:buffer';
 
 const json = value => new Response(JSON.stringify(value), { headers: { 'Content-Type': 'application/json' } });
 const identity = { userId: 'alice', provider: 'google', feature: 'email' };
+
+test('workbook reads require upgraded scope, stay bounded and never write', async () => {
+  const calls = [];
+  const read = createIntegrationReads({ tokens: { requireScopes: async (who, scopes) => { assert.equal(who.userId, 'alice'); assert.deepEqual(scopes, ['Files.ReadWrite']); return 'token'; } },
+    fetchImpl: async (url, options) => { calls.push({ url, options }); return json({ address: 'Sheet1!A1:Z100', text: [['Name', 'Phone'], ['Seller', '123']] }); } });
+  const result = await read({ userId: 'alice', provider: 'microsoft', feature: 'sheets', input: { fileId: 'file!1', sheetName: 'Sheet 1' } });
+  assert.equal(result.rows[1][0], 'Seller');
+  assert.ok(calls[0].url.includes("range(address='A1:Z100')"));
+  assert.equal(calls[0].options.method, undefined);
+  await assert.rejects(read({ userId: 'alice', provider: 'microsoft', feature: 'sheets', input: { fileId: '../bad' } }));
+});
 function fixture({ expired = false, provider = 'google', fetchImpl, rotate } = {}) {
   const owner = { ...identity, provider };
   const vault = createTokenVault(Buffer.alloc(32, 1));
@@ -28,6 +40,17 @@ test('current tokens do not refresh; missing and cross-user connections fail clo
   assert.equal(await f.tokens.accessToken(identity), 'access');
   await assert.rejects(f.tokens.accessToken({ ...identity, userId: 'bob' }), { code: 'reconnect' });
   await assert.rejects(f.tokens.accessToken({ ...identity, provider: '__proto__' }), { code: 'invalid_input' });
+});
+
+test('extra permission checks apply to the exact token context without breaking read-only access', async () => {
+  const f = fixture({ provider: 'microsoft' });
+  f.row = { ...f.row, scopes: ['Mail.Read'] };
+  assert.equal(await f.tokens.accessToken(f.owner), 'access');
+  await assert.rejects(f.tokens.requireScopes(f.owner, ['Mail.Send']), { code: 'reconnect' });
+  f.row = { ...f.row, scopes: ['Mail.Read', 'Mail.Send'] };
+  const context = await f.tokens.context(f.owner, ['Mail.Send']);
+  assert.equal(context.connectionSecret, f.row.secret);
+  assert.equal(context.accessToken, 'access');
 });
 test('expired tokens refresh once per concurrent owner/feature and encrypt rotated tokens', async () => {
   let exchanges = 0;

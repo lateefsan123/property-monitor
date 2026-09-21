@@ -97,10 +97,11 @@ Production uses HTTPS. Provider console configuration/consent remains a separate
 - Test concurrent state consumption on Postgres. Catalog privilege checks passed;
   the MCP SQL connection rejected a rollback-only mutation smoke test as read-only.
 - Configure hosting logs to redact callback query strings and authorization headers.
-- Wire the read endpoint into selected-file imports, calendar/email UI and assistant tools.
-  Automatic sync, complete pagination, file imports and Microsoft workbook values are
-  not implemented. No real provider account has been read by these adapters yet.
-- Add durable action approvals for email/calendar writes and the GPT Live interface.
+- Complete selected-seller imports, calendar UI and assistant-tool wiring.
+  Automatic sync, complete pagination and seller imports are not implemented.
+  Settings now includes inbox previews, email compose/reply, and spreadsheet previews.
+- Add calendar writes and the GPT Live interface. Email sending uses encrypted,
+  five-minute single-use previews consumed atomically before sending.
   Existing MCP WhatsApp actions already use the shared confirmation layer.
 - Add retention maintenance for abandoned users' expired states and a key-rotation procedure.
 - Test real provider consent, permission denial, expiration and disconnection before launch.
@@ -142,10 +143,46 @@ Microsoft consent. An incorrectly captured accessibility label (`field `) in the
 client secret caused token exchange failures; the development and production values
 were corrected, local configuration refreshed, and the local server restarted.
 A fresh authorization successfully persisted the test user's Microsoft sheets
-connection. Google, Outlook email and Outlook Calendar consent remain outstanding.
+connection. Outlook read-only email consent and token exchange also succeeded.
+Google and Outlook Calendar consent remain outstanding, as do the new optional
+email-send and workbook-reading permission upgrades.
 Callback errors now distinguish expired attempts, provider rejection, missing scopes
 and missing offline access without exposing provider responses or credentials.
 Restart the connection from Settings if the ten-minute pending authorization expires.
+
+## Email and spreadsheet workspace (local implementation)
+
+- Gmail/Outlook can prepare new plain-text emails and single-recipient replies.
+  Reply recipients are resolved server-side from the original message's Reply-To or
+  From fields. Gmail replies preserve the original thread and message headers.
+- The web UI must show the exact recipient, subject and body, then require
+  `Confirm and send`. Editing the draft invalidates its visible preview. The server
+  accepts only the opaque preview token for confirmation, never replacement contents.
+- Preview contents are encrypted in the existing service-role-only pending table,
+  using an `email-send:` hash namespace distinct from OAuth states. They are bound
+  to the authenticated user, provider and connection ciphertext. Reconnection,
+  disconnection, expiry and replay reject the send. Token refresh between preview
+  and confirmation conservatively requires a fresh preview too.
+- Provider timeouts are ambiguous: check Sent before composing again. There is no
+  automatic send retry. An accepted response is not proof of recipient delivery.
+- `begin` supports explicit `capability: send` for Gmail/Outlook, or `workbook` for
+  Microsoft sheets. Existing read-only connections keep working without upgrades.
+- Microsoft workbook reads require Files.ReadWrite according to Graph's range API;
+  the UI explains this, but the implementation exposes no spreadsheet writes.
+  Users select a workbook and worksheet. Google accepts a spreadsheet ID and
+  optional sheet name. Both previews are bounded to A1:Z100, with local search.
+- Inbox/file/worksheet lists show at most ten entries and disclose truncation.
+  No attachments, reply-all, spreadsheet edits, full sync or automatic imports.
+- These send endpoints are not exposed as assistant tools. GPT Live needs a separate
+  trusted human-approval flow before it can use them.
+- Tested with mocked providers and sample-data browser workflows. No live email was
+  sent, and upgraded live workbook access has not yet been verified. Not deployed.
+
+Additional references:
+- https://learn.microsoft.com/en-us/graph/api/worksheet-range?view=graph-rest-1.0
+- https://learn.microsoft.com/en-us/graph/api/user-sendmail?view=graph-rest-1.0
+- https://learn.microsoft.com/en-us/graph/api/message-reply?view=graph-rest-1.0
+- https://developers.google.com/workspace/gmail/api/guides/threads
 
 References:
 - https://developers.google.com/identity/protocols/oauth2/web-server

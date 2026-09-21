@@ -9,6 +9,8 @@ const MESSAGES = {
   oauth_exchange: ['The provider rejected the connection. Please reconnect from Settings.', 409],
   oauth_scope: ['The required permission was not granted. Reconnect and allow the requested access.', 409],
   oauth_offline: ['Offline access was not granted. Reconnect and allow the requested access.', 409],
+  send_uncertain: ['Sending could not be confirmed. Check Sent in your mailbox before composing again; this request will not be retried.', 503],
+  send_rejected: ['The provider did not accept this email. Check your connection and create a new preview.', 409],
 };
 export class IntegrationError extends Error {
   constructor(code) {

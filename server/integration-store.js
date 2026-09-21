@@ -22,7 +22,7 @@ export function createIntegrationStore(db) {
         feature: value.feature, scopes: value.scopes, expires_at: value.expiresAt, secret: value.secret }, { onConflict: 'user_id,provider,feature' }));
     },
     async list(userId) {
-      return checked(await db.from('integration_connections').select('provider,feature,expires_at').eq('user_id', userId)) || [];
+      return checked(await db.from('integration_connections').select('provider,feature,expires_at,scopes').eq('user_id', userId)) || [];
     },
     async getConnection({ userId, provider, feature }) {
       return fromRow(checked(await db.from('integration_connections').select('user_id,provider,feature,expires_at,scopes,secret')

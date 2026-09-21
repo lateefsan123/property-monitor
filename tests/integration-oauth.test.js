@@ -82,3 +82,12 @@ test('callback failures expose only actionable fixed error codes', async () => {
     assert.equal(f.saved.length, 0);
   }
 });
+
+test('scope upgrades are explicit, feature-bound and verified on callback', async () => {
+  const f = fixture('microsoft', 'email');
+  const url = new URL((await f.oauth.begin({ userId: 'a', provider: 'microsoft', feature: 'email', capability: 'send' })).authorizationUrl);
+  assert.equal(url.searchParams.get('scope'), 'offline_access Mail.Read Mail.Send');
+  f.tokens.scope = 'Mail.Read';
+  await assert.rejects(f.oauth.complete({ userId: 'a', provider: 'microsoft', state: url.searchParams.get('state'), code: 'code' }), { code: 'oauth_scope' });
+  await assert.rejects(f.oauth.begin({ userId: 'a', provider: 'microsoft', feature: 'sheets', capability: 'send' }), { code: 'invalid_input' });
+});

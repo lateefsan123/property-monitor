@@ -1,5 +1,6 @@
 import { INTEGRATION_PROVIDERS } from './integration-oauth.js';
 import { IntegrationError, providerJson } from './integration-http.js';
+import { EXTRA_SCOPES } from './integration-scopes.js';
 
 const string = (value, limit = 500) => typeof value === 'string' ? value.slice(0, limit) : '';
 const id = value => typeof value === 'string' && /^[a-zA-Z0-9_!-]{1,200}$/.test(value);
@@ -12,14 +13,18 @@ export function createIntegrationReads({ tokens, fetchImpl = fetch, now = Date.n
     if (!userId || !Object.hasOwn(INTEGRATION_PROVIDERS, provider)
       || !Object.hasOwn(INTEGRATION_PROVIDERS[provider].scopes, feature)
       || !input || typeof input !== 'object' || Array.isArray(input)) throw new IntegrationError('invalid_input');
-    const allowed = feature !== 'sheets' ? [] : provider === 'google' ? ['spreadsheetId', 'sheetName'] : ['folderId'];
+    const allowed = feature !== 'sheets' ? [] : provider === 'google' ? ['spreadsheetId', 'sheetName'] : ['folderId', 'fileId', 'sheetName'];
     if (Object.keys(input).some(key => !allowed.includes(key))) throw new IntegrationError('invalid_input');
     if (feature === 'sheets') {
       if (provider === 'google' && (!id(input.spreadsheetId)
         || (input.sheetName !== undefined && (typeof input.sheetName !== 'string' || !input.sheetName.length || input.sheetName.length > 100 || [...input.sheetName].some(char => char.charCodeAt(0) < 32))))) throw new IntegrationError('invalid_input');
       if (provider === 'microsoft' && input.folderId !== undefined && !id(input.folderId)) throw new IntegrationError('invalid_input');
+      if (provider === 'microsoft' && ((input.fileId !== undefined && !id(input.fileId)) || (input.folderId && input.fileId)
+        || (input.sheetName !== undefined && (!input.fileId || typeof input.sheetName !== 'string' || !input.sheetName.length || input.sheetName.length > 100 || [...input.sheetName].some(char => char.charCodeAt(0) < 32))))) throw new IntegrationError('invalid_input');
     }
-    const token = await tokens.accessToken({ userId, provider, feature });
+    const identity = { userId, provider, feature };
+    const token = provider === 'microsoft' && input.fileId
+      ? await tokens.requireScopes(identity, EXTRA_SCOPES.microsoft.workbook) : await tokens.accessToken(identity);
     const get = (base, params) => {
       const url = new URL(base);
       for (const [key, value] of Object.entries(params || {})) url.searchParams.set(key, value);
@@ -63,8 +68,16 @@ export function createIntegrationReads({ tokens, fetchImpl = fetch, now = Date.n
       return { kind: 'sheet-preview', range: string(data.range), rowLimit: 100, columnLimit: 26,
         rows: (Array.isArray(data.values) ? data.values : []).slice(0, 100).map(row => (Array.isArray(row) ? row : []).slice(0, 26).map(value => string(String(value), 2000))) };
     }
-    // Files.Read supports file discovery. Excel workbook APIs require broader
-    // permissions; do not silently request write access just to show a preview.
+    if (input.fileId) {
+      const base = `https://graph.microsoft.com/v1.0/me/drive/items/${encodeURIComponent(input.fileId)}/workbook/worksheets`;
+      if (!input.sheetName) {
+        const data = await get(base, { '$select': 'id,name', '$top': '10' });
+        return { kind: 'worksheet-list', items: list(data.value).map(item => ({ name: string(item.name, 100) })), hasMore: Boolean(data['@odata.nextLink']) };
+      }
+      const data = await get(`${base}/${encodeURIComponent(input.sheetName)}/range(address='A1:Z100')`);
+      return { kind: 'sheet-preview', range: string(data.address), rowLimit: 100, columnLimit: 26,
+        rows: (Array.isArray(data.text) ? data.text : []).slice(0, 100).map(row => (Array.isArray(row) ? row : []).slice(0, 26).map(value => string(String(value), 2000))) };
+    }
     const path = input.folderId ? `items/${encodeURIComponent(input.folderId)}` : 'root';
     const data = await get(`https://graph.microsoft.com/v1.0/me/drive/${path}/children`, { '$top': '10', '$select': 'id,name,file,folder' });
     return { kind: 'file-list', items: list(data.value).map(item => ({ id: string(item.id), name: string(item.name),

@@ -1,6 +1,6 @@
 import { createHash, randomBytes, createCipheriv, createDecipheriv } from 'node:crypto';
 import { Buffer } from 'node:buffer';
-import { includesScopes } from './integration-scopes.js';
+import { includesScopes, EXTRA_SCOPES } from './integration-scopes.js';
 import { IntegrationError } from './integration-http.js';
 
 export const INTEGRATION_PROVIDERS = Object.freeze({
@@ -60,17 +60,19 @@ export function createTokenVault(key) {
 export function createIntegrationOAuth({ configs, store, vault, fetchImpl = fetch, now = Date.now }) {
   if (!store?.putPending || !store?.consumePending || !store?.saveConnection || !vault?.seal || !vault?.open) throw new Error('Persistent store and token vault are required');
   return {
-    async begin({ userId, provider, feature }) {
+    async begin({ userId, provider, feature, capability }) {
       principal(userId);
       const spec = providerFor(provider);
       if (!Object.hasOwn(spec.scopes, feature)) throw new Error('Unsupported feature');
       const config = configuration(configs[provider]);
+      if (capability !== undefined && !((capability === 'send' && feature === 'email') || (capability === 'workbook' && feature === 'sheets' && provider === 'microsoft'))) throw new IntegrationError('invalid_input');
+      const scopes = [...spec.scopes[feature], ...(capability ? EXTRA_SCOPES[provider][capability] : [])];
       const state = randomBytes(32).toString('base64url');
       const verifier = randomBytes(32).toString('base64url');
       const expiresAt = now() + 10 * 60 * 1000;
-      await store.putPending({ hash: digest(state), userId, provider, feature, expiresAt, secret: vault.seal({ verifier, redirectUri: config.redirectUri }, userId, provider, feature) });
+      await store.putPending({ hash: digest(state), userId, provider, feature, expiresAt, secret: vault.seal({ verifier, redirectUri: config.redirectUri, scopes }, userId, provider, feature) });
       const url = new URL(spec.authorize);
-      const params = { client_id: config.clientId, redirect_uri: config.redirectUri, response_type: 'code', scope: spec.scopes[feature].join(' '), state, code_challenge: digest(verifier), code_challenge_method: 'S256' };
+      const params = { client_id: config.clientId, redirect_uri: config.redirectUri, response_type: 'code', scope: scopes.join(' '), state, code_challenge: digest(verifier), code_challenge_method: 'S256' };
       if (provider === 'google') Object.assign(params, { access_type: 'offline', prompt: 'consent' });
       for (const [name, value] of Object.entries(params)) url.searchParams.set(name, value);
       return { authorizationUrl: url.toString(), expiresAt };
@@ -91,7 +93,7 @@ export function createIntegrationOAuth({ configs, store, vault, fetchImpl = fetc
       if (!response.ok) { await response.body?.cancel(); throw new IntegrationError('oauth_exchange'); }
       const tokens = await response.json();
       if (typeof tokens.access_token !== 'string' || !tokens.access_token || tokens.token_type?.toLowerCase() !== 'bearer') throw new Error('Invalid provider token response');
-      const required = spec.scopes[pending.feature].filter(scope => scope !== 'offline_access');
+      const required = (secret.scopes || spec.scopes[pending.feature]).filter(scope => scope !== 'offline_access');
       const granted = typeof tokens.scope === 'string' ? tokens.scope.split(' ') : [];
       if (!includesScopes(provider, granted, required)) throw new IntegrationError('oauth_scope');
       const expiresIn = Number(tokens.expires_in);

@@ -4,6 +4,9 @@ import { createIntegrationStore } from '../../server/integration-store.js';
 import { createIntegrationHandler } from '../../server/integration-api.js';
 import { createIntegrationTokens } from '../../server/integration-tokens.js';
 import { createIntegrationReads } from '../../server/integration-reads.js';
+import { createIntegrationMail } from '../../server/integration-mail.js';
+import { Buffer } from 'node:buffer';
+import process from 'node:process';
 
 let handler;
 export default async function integrations(req, res) {
@@ -24,7 +27,8 @@ export default async function integrations(req, res) {
       const oauth = vault ? createIntegrationOAuth({ configs, store, vault }) : null;
       const tokens = vault ? createIntegrationTokens({ configs, store, vault }) : null;
       const read = tokens ? createIntegrationReads({ tokens }) : null;
-      handler = createIntegrationHandler({ store, oauth, configured, read, authenticate: async token => {
+      const mail = tokens ? createIntegrationMail({ tokens, store, vault }) : null;
+      handler = createIntegrationHandler({ store, oauth, configured, read, mail, authenticate: async token => {
         const { data, error } = await db.auth.getUser(token);
         return error ? null : data.user;
       } });

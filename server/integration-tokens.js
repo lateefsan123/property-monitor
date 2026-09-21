@@ -22,7 +22,7 @@ export function createIntegrationTokens({ store, vault, configs, fetchImpl = fet
   async function resolve(identity) {
     const row = await store.getConnection(identity);
     const old = open(row, identity);
-    if (valid(row)) return old.accessToken;
+    if (valid(row)) return { accessToken: old.accessToken, connectionSecret: row.secret, scopes: row.scopes };
     const config = configs[identity.provider];
     if (!config?.clientId || !config?.clientSecret) throw new IntegrationError('unavailable');
     const body = new URLSearchParams({ grant_type: 'refresh_token', client_id: config.clientId,
@@ -35,7 +35,7 @@ export function createIntegrationTokens({ store, vault, configs, fetchImpl = fet
     } catch (error) {
       // Another instance may already have rotated the token; never overwrite it.
       const current = await store.getConnection(identity);
-      if (valid(current) && current.secret !== row.secret) return open(current, identity).accessToken;
+      if (valid(current) && current.secret !== row.secret) return { accessToken: open(current, identity).accessToken, connectionSecret: current.secret, scopes: current.scopes };
       throw error;
     }
     const scopes = result.scope === undefined ? row.scopes : String(result.scope).split(/\s+/);
@@ -46,18 +46,24 @@ export function createIntegrationTokens({ store, vault, configs, fetchImpl = fet
       || (result.refresh_token !== undefined && (typeof result.refresh_token !== 'string' || !result.refresh_token))) throw new IntegrationError('reconnect');
     const secret = vault.seal({ accessToken: result.access_token, refreshToken: result.refresh_token || old.refreshToken }, identity.userId, identity.provider, identity.feature);
     const saved = await store.rotateConnection({ ...identity, previousSecret: row.secret, secret, scopes, expiresAt: now() + Number(result.expires_in) * 1000 });
-    if (saved) return result.access_token;
+    if (saved) return { accessToken: result.access_token, connectionSecret: secret, scopes };
     const current = await store.getConnection(identity);
     if (!valid(current)) throw new IntegrationError('changed');
-    return open(current, identity).accessToken;
+    return { accessToken: open(current, identity).accessToken, connectionSecret: current.secret, scopes: current.scopes };
   }
   return {
-    async accessToken(identity) {
+    async context(identity, required = []) {
       if (!identity.userId || !Object.hasOwn(INTEGRATION_PROVIDERS, identity.provider)
         || !Object.hasOwn(INTEGRATION_PROVIDERS[identity.provider].scopes, identity.feature)) throw new IntegrationError('invalid_input');
       const key = JSON.stringify([identity.userId, identity.provider, identity.feature]);
       if (!refreshing.has(key)) refreshing.set(key, resolve(identity).finally(() => refreshing.delete(key)));
-      return refreshing.get(key);
+      const result = await refreshing.get(key);
+      if (!includesScopes(identity.provider, result.scopes, required)) throw new IntegrationError('reconnect');
+      return result;
+    },
+    async accessToken(identity) { return (await this.context(identity)).accessToken; },
+    async requireScopes(identity, required) {
+      return (await this.context(identity, required)).accessToken;
     },
   };
 }

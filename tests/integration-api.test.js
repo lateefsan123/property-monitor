@@ -9,6 +9,7 @@ function fixture() {
     authenticate: async token => token === 'valid' ? { id: 'owner' } : null,
     configured: provider => provider === 'google',
     read: async args => { calls.push(['read', args]); return { kind: 'email', items: [] }; },
+    mail: { prepare: async args => { calls.push(['prepare', args]); return { confirmation: 'opaque' }; }, confirm: async args => { calls.push(['confirm', args]); return { status: 'accepted' }; } },
     store: { list: async user => { calls.push(['list', user]); return [{ provider: 'google', feature: 'sheets', secret: 'never-return' }]; },
       disconnect: async args => calls.push(['disconnect', args]) },
     oauth: { begin: async args => { calls.push(['begin', args]); return { authorizationUrl: 'https://accounts.google.com/test' }; },
@@ -22,11 +23,20 @@ function fixture() {
 }
 test('all operations require a verified session and reject caller-supplied owners', async () => {
   const { run, calls } = fixture();
-  for (const action of ['status', 'begin', 'complete', 'disconnect', 'read']) {
+  for (const action of ['status', 'begin', 'complete', 'disconnect', 'read', 'prepare_email', 'confirm_email']) {
     assert.equal((await run({ action }, 'invalid')).statusCode, 401);
     assert.equal((await run({ action, userId: 'victim' })).statusCode, 400);
   }
   assert.deepEqual(calls, []);
+});
+
+test('email confirmation accepts only an opaque preview id, not modified contents or approval flags', async () => {
+  const { run, calls } = fixture();
+  const base = { action: 'confirm_email', provider: 'google', feature: 'email', confirmation: 'opaque' };
+  assert.equal((await run({ ...base, input: { to: 'changed@example.com' } })).statusCode, 400);
+  assert.equal((await run({ ...base, approved: true })).statusCode, 400);
+  assert.equal((await run(base)).statusCode, 200);
+  assert.deepEqual(calls, [['confirm', { userId: 'owner', provider: 'google', confirmation: 'opaque' }]]);
 });
 test('read API derives the owner from authentication and passes only allowed inputs', async () => {
   const { run, calls } = fixture();
@@ -72,7 +82,7 @@ test('storage consumes state in one scoped RPC and excludes tokens from lists', 
   assert.equal(pending.userId, 'owner');
   assert.deepEqual(calls[0], ['consume_integration_oauth', { p_hash: 'hash', p_user: 'owner', p_provider: 'google', p_now: 1 }]);
   await store.list('owner');
-  assert.deepEqual(calls[1], ['integration_connections', 'provider,feature,expires_at', 'user_id', 'owner']);
+  assert.deepEqual(calls[1], ['integration_connections', 'provider,feature,expires_at,scopes', 'user_id', 'owner']);
 });
 test('token rotation updates only the matching owner, provider, feature and previous ciphertext', async () => {
   const calls = [];
