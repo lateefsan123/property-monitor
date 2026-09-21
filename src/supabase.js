@@ -14,4 +14,6 @@ export const supabaseConfigError = missingConfig.length
 
 export const supabase = supabaseConfigError
   ? null
-  : createClient(supabaseUrl, supabaseAnonKey);
+  : createClient(supabaseUrl, supabaseAnonKey, {
+    auth: { detectSessionInUrl: !window.location.pathname.startsWith('/integrations/callback/') },
+  });

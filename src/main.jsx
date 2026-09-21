@@ -1,4 +1,4 @@
-import { StrictMode, useCallback, useEffect, useRef, useState } from "react";
+import { StrictMode, Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
 import "./index.css";
@@ -24,6 +24,7 @@ import { queryClient } from "./queryClient";
 import { supabase, supabaseConfigError } from "./supabase";
 
 const POST_AUTH_ACTION_STORAGE_KEY = "seller_signal_post_auth_action_v1";
+const IntegrationCallback = lazy(() => import('./IntegrationCallback.jsx'));
 
 function CheckoutRedirectScreen() {
   return (
@@ -533,7 +534,9 @@ export function Root() {
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <Root />
+      {window.location.pathname.startsWith('/integrations/callback/')
+        ? <Suspense fallback={<p role="status">Connecting…</p>}><IntegrationCallback /></Suspense>
+        : <Root />}
     </QueryClientProvider>
   </StrictMode>,
 );

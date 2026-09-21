@@ -4,16 +4,19 @@ import {
   IconChevronRight,
   IconBolt,
   IconBrandWhatsapp,
+  IconPlug,
   IconX,
 } from "@tabler/icons-react";
 import "../../../styles/settings-connection-first.css";
 import SendActivityPanel from "./SendActivityPanel";
 import WhatsAppConnectionPanel from "./WhatsAppConnectionPanel";
+import IntegrationConnectionsPanel from "./IntegrationConnectionsPanel";
 
 const TABS = [
   { id: "automations", label: "Automations", icon: IconBolt },
   { id: "whatsapp", label: "WhatsApp", icon: IconBrandWhatsapp },
   { id: "activity", label: "Send activity", icon: null },
+  { id: "integrations", label: "Integrations", icon: IconPlug },
 ];
 
 function AutomationToggle({
@@ -131,7 +134,7 @@ export default function SellerSignalSettingsModal({
                     ? "Automations"
                     : activeTab === "whatsapp"
                       ? "WhatsApp"
-                      : "Send activity"}
+                      : activeTab === "integrations" ? "Integrations" : "Send activity"}
                 </h2>
                 {activeTab === "automations" ? (
                   <div className="seller-settings-automation-pane">
@@ -173,6 +176,8 @@ export default function SellerSignalSettingsModal({
                       <span>Messages today</span><span>{sendActivityLoading && !sendActivity ? "…" : sendActivity?.total ?? "—"}</span><IconChevronRight size={16} aria-hidden="true" />
                     </button>
                   </div>
+                ) : activeTab === "integrations" ? (
+                  <IntegrationConnectionsPanel />
                 ) : (
                   <SendActivityPanel activity={sendActivity} loading={sendActivityLoading} />
                 )}
