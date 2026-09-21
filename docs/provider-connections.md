@@ -90,10 +90,10 @@ Production uses HTTPS. Provider console configuration/consent remains a separate
 
 ## Remaining before live rollout
 
-- Finish Google test-user consent and real-account connection testing; register the
-  Microsoft OAuth application after Azure profile/identity verification is complete.
-- Supply Microsoft server-only client configuration. Google credentials and a persistent
-  32-byte encryption key are configured for Vercel production and development.
+- Finish Google test-user consent and real-account connection testing for both providers.
+- Save the prepared Microsoft localhost redirect after approval. Both providers' server
+  credentials and a persistent 32-byte encryption key are configured for Vercel
+  production and development, but Microsoft currently registers only the production URI.
 - Test concurrent state consumption on Postgres. Catalog privilege checks passed;
   the MCP SQL connection rejected a rollback-only mutation smoke test as read-only.
 - Configure hosting logs to redact callback query strings and authorization headers.
@@ -115,7 +115,7 @@ that additionally require service-usage or service-account-list permissions.
 Google Sheets, Gmail and Google Calendar APIs are enabled and were verified in
 the Cloud console. API enablement is not user consent to read an account.
 
-Vercel production stores the Google client secret and encryption key as sensitive
+Vercel production stores both provider client secrets and the encryption key as sensitive
 secrets. Development values are retrievable for local use; `.env.development.local`
 was pulled into an ignored, untracked file without overwriting `.env.local`.
 Preview is not configured. Local and production currently share the same database,
@@ -124,8 +124,17 @@ keys. Production environment changes require a deployment to take effect.
 
 Unit tests still use fake providers and mocked storage; no real provider account
 has completed consent. The live local endpoint rejects unauthenticated requests
-with HTTP 401. Microsoft is blocked at Azure profile information and verification;
-no Microsoft client or secret exists yet.
+with HTTP 401.
+
+Microsoft Azure signup is complete in the owner's Default Directory. The `Repeat AI`
+application supports organizational and personal Microsoft accounts. Its client ID is
+`41b4520e-68c4-4884-8dd4-5ef196c682e9`; the production Web redirect is
+`https://repeatai.org/integrations/callback/microsoft`. The server secret was created
+and stored in Vercel on 2026-09-21, expiring 2027-03-20. Rotate it before expiry.
+The local callback `http://localhost:5182/integrations/callback/microsoft` is prepared
+in Azure but not saved yet. No tenant-wide admin consent or user data access was granted.
+Local configuration checks report both providers configured and a 32-byte vault key;
+this is not proof of successful live consent or token exchange.
 
 References:
 - https://developers.google.com/identity/protocols/oauth2/web-server
