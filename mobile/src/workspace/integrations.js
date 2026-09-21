@@ -40,7 +40,9 @@ function Workspace({ app, connection, colors, upgrade }) {
     setBusy(true); setError('');
     try {
       const result = await integrationRequest({ action: 'read', provider, feature, input }, current.signal);
-      if (!current.signal.aborted) setData(result);
+      // Keep pagination bound to the search that produced these results, not
+      // text the user may have edited without submitting another search.
+      if (!current.signal.aborted) setData({ ...result, browseQuery: input.query || '' });
     } catch (error) { if (!current.signal.aborted) setError(error.message); }
     finally { if (!current.signal.aborted) setBusy(false); }
   }
@@ -61,7 +63,7 @@ function Workspace({ app, connection, colors, upgrade }) {
       if (item.folder) read({ folderId: item.id });
       else { setFile(item); read(provider === 'google' ? { spreadsheetId: item.id, tabs: true } : { fileId: item.id }); }
     }}>{item.name}</Button>) : null}
-    {data?.nextPageToken ? <Button colors={colors} disabled={busy} onPress={() => read({ query: search, pageToken: data.nextPageToken })}>Next spreadsheets</Button> : null}
+    {data?.nextPageToken ? <Button colors={colors} disabled={busy} onPress={() => read({ query: data.browseQuery, pageToken: data.nextPageToken })}>Next spreadsheets</Button> : null}
     {data?.kind === 'worksheet-list' ? data.items.map(item => <Button key={item.name} colors={colors} disabled={busy} onPress={() => read({ [provider === 'google' ? 'spreadsheetId' : 'fileId']: file.id, sheetName: item.name })}>{item.name}</Button>) : null}
     {data?.kind === 'sheet-preview' ? <>
       <Text selectable style={label}>{file?.name} · {data.range}</Text>
