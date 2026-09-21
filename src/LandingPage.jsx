@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import LandingProductStory from "./LandingProductStory";
 import LandingConnectedStack from "./LandingConnectedStack";
 import LandingBrokerFeedback from "./LandingBrokerFeedback";
@@ -21,6 +21,13 @@ export default function LandingPage({
   onSignOut,
   onSubscribe,
 }) {
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+  useEffect(() => {
+    const updateHeader = () => setHeaderScrolled(window.scrollY > 8);
+    updateHeader();
+    window.addEventListener("scroll", updateHeader, { passive: true });
+    return () => window.removeEventListener("scroll", updateHeader);
+  }, []);
   const accountActionLabel = isAuthenticated ? "Sign out" : "Log in";
   const accountAction = isAuthenticated ? onSignOut : onSignIn;
   const heroCtaLabel = isAuthenticated
@@ -38,7 +45,7 @@ export default function LandingPage({
 
   return (
     <div className="landing">
-      <div className="landing-header-frame">
+      <div className={`landing-header-frame${headerScrolled || pricingOnly ? " is-scrolled" : ""}`}>
         <header className="landing-header">
           <a className="landing-brand" href="/" aria-label="Repeat AI home">
             <img src="/brand/repeat-ai-logo.png" alt="Repeat AI" className="landing-brand-logo" width="140" height="25" />

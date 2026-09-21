@@ -49,9 +49,18 @@
   position: sticky;
   top: 0;
   z-index: 50;
-  background: #fff;
+  background: #f6f4f0;
   color: #242320;
+  transition: background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.landing-header-frame.is-scrolled {
+  background: #fff;
   box-shadow: 0 1px 0 #dedbd5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-header-frame { transition: none; }
 }
 
 /* Keep section headings and focused controls clear of the persistent header. */
@@ -181,7 +190,7 @@
 
 .landing-hero {
   position: relative;
-  padding: 150px 24px 0;
+  padding: 72px 24px 0;
   background: #f6f4f0;
   color: #242320;
   color-scheme: light;
@@ -242,7 +251,7 @@
   align-items: center;
   gap: 12px;
   width: min(100%, 300px);
-  margin-top: 40px;
+  margin-top: 24px;
 }
 
 .landing-hero .landing-cta {
@@ -289,8 +298,8 @@
 .landing-hero-artwork {
   position: relative;
   left: 50%;
-  width: min(1678px, calc(100% + 46px));
-  margin: 28px 0 0;
+  width: min(1200px, calc(100% + 46px));
+  margin: 20px 0 0;
   transform: translateX(-50%);
   overflow: hidden;
 }
@@ -304,7 +313,7 @@
 
 @media (max-width: 600px) {
   .landing-hero-artwork {
-    aspect-ratio: 4 / 5;
+    aspect-ratio: 1;
   }
 
   .landing-hero-artwork img {
@@ -466,7 +475,7 @@
 /* Responsive */
 @media (max-width: 860px) {
   .landing-hero {
-    padding: 100px 24px 0;
+    padding: 56px 24px 0;
   }
 
   .landing-headline {
@@ -545,7 +554,7 @@
   }
 
   .landing-hero {
-    padding: 76px 24px 0;
+    padding: 48px 24px 0;
   }
 
   .landing-headline {
