@@ -1,0 +1,54 @@
+{
+  "movie": "video/review/september-rebuild/repeat-ai-explainer.mp4",
+  "sha256": "63156bc57f8eca3f2e81d5c99fd18e2da6eb014dc064e504dfdc0a96ceb4eb0a",
+  "bytes": 11181155,
+  "video": {
+    "codec_name": "h264",
+    "width": 1920,
+    "height": 1080,
+    "r_frame_rate": "30/1",
+    "nb_read_frames": "2700",
+    "duration": "90.000000",
+    "bit_rate": "692055"
+  },
+  "audio": {
+    "codec_name": "aac",
+    "sample_rate": "48000",
+    "channels": 2,
+    "duration": "90.000000",
+    "bit_rate": "292782"
+  },
+  "duration_seconds": 90.0,
+  "full_decode": "passed",
+  "black_intervals": [],
+  "loudness": {
+    "input_i": "-16.10",
+    "input_tp": "-1.48",
+    "input_lra": "5.70",
+    "input_thresh": "-26.48",
+    "output_i": "-16.06",
+    "output_tp": "-1.50",
+    "output_lra": "5.40",
+    "output_thresh": "-26.41",
+    "normalization_type": "dynamic",
+    "target_offset": "0.06"
+  },
+  "source_files": [
+    "video/assets/september-rebuild/assistant-held.mp4",
+    "video/assets/september-rebuild/brand-lockup.png",
+    "video/assets/september-rebuild/dashboard-held.mp4",
+    "video/assets/september-rebuild/followup-held.mp4",
+    "video/assets/september-rebuild/happy.png",
+    "video/assets/september-rebuild/integrations-held.mp4",
+    "video/assets/september-rebuild/laptop.png",
+    "video/assets/september-rebuild/market-held.mp4",
+    "video/assets/september-rebuild/mobile-canvas.png",
+    "video/assets/september-rebuild/phone.png",
+    "video/assets/september-rebuild/planner.png",
+    "video/assets/september-rebuild/schedule-held.mp4",
+    "video/assets/september-rebuild/spreadsheets-held.mp4",
+    "video/assets/september-rebuild/towers.png",
+    "video/assets/september-rebuild/walking.png"
+  ],
+  "review": "Rendered contact sheets and selected full-resolution frames generated; visual review recorded separately."
+}

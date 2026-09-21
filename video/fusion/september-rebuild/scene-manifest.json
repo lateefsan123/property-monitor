@@ -1,0 +1,74 @@
+[
+  {
+    "name": "01-opening",
+    "seconds": 14.0,
+    "frames": 420,
+    "nodes": 108,
+    "comp": "D:/Users/Lateef/Documents/property/video/fusion/september-rebuild/01-opening.comp",
+    "record_frame": 0
+  },
+  {
+    "name": "02-spreadsheets",
+    "seconds": 9.0,
+    "frames": 270,
+    "nodes": 28,
+    "comp": "D:/Users/Lateef/Documents/property/video/fusion/september-rebuild/02-spreadsheets.comp",
+    "record_frame": 420
+  },
+  {
+    "name": "03-market",
+    "seconds": 9.0,
+    "frames": 270,
+    "nodes": 12,
+    "comp": "D:/Users/Lateef/Documents/property/video/fusion/september-rebuild/03-market.comp",
+    "record_frame": 690
+  },
+  {
+    "name": "04-assistant",
+    "seconds": 11.0,
+    "frames": 330,
+    "nodes": 24,
+    "comp": "D:/Users/Lateef/Documents/property/video/fusion/september-rebuild/04-assistant.comp",
+    "record_frame": 960
+  },
+  {
+    "name": "05-followup",
+    "seconds": 10.0,
+    "frames": 300,
+    "nodes": 12,
+    "comp": "D:/Users/Lateef/Documents/property/video/fusion/september-rebuild/05-followup.comp",
+    "record_frame": 1290
+  },
+  {
+    "name": "06-schedule",
+    "seconds": 7.0,
+    "frames": 210,
+    "nodes": 10,
+    "comp": "D:/Users/Lateef/Documents/property/video/fusion/september-rebuild/06-schedule.comp",
+    "record_frame": 1590
+  },
+  {
+    "name": "07-integrations",
+    "seconds": 12.0,
+    "frames": 360,
+    "nodes": 28,
+    "comp": "D:/Users/Lateef/Documents/property/video/fusion/september-rebuild/07-integrations.comp",
+    "record_frame": 1800
+  },
+  {
+    "name": "08-platforms",
+    "seconds": 10.0,
+    "frames": 300,
+    "nodes": 22,
+    "comp": "D:/Users/Lateef/Documents/property/video/fusion/september-rebuild/08-platforms.comp",
+    "record_frame": 2160
+  },
+  {
+    "name": "09-close",
+    "seconds": 8.0,
+    "frames": 240,
+    "nodes": 16,
+    "comp": "D:/Users/Lateef/Documents/property/video/fusion/september-rebuild/09-close.comp",
+    "record_frame": 2460
+  }
+]

@@ -1,0 +1,82 @@
+[
+  {
+    "name": "01-scattered",
+    "start": 0.4,
+    "text": "There's always another update. Another spreadsheet. Another seller to get back to.",
+    "duration": 4.920083333333333,
+    "voice": "af_heart",
+    "speed": 0.96
+  },
+  {
+    "name": "02-together",
+    "start": 6.4,
+    "text": "Repeat A I brings your property work together, so the next conversation starts with the right context.",
+    "duration": 6.038625,
+    "voice": "af_heart",
+    "speed": 0.96
+  },
+  {
+    "name": "03-sellers",
+    "start": 14.5,
+    "text": "Connect your spreadsheets. Keep your sellers, their properties, and your follow-ups in one place.",
+    "duration": 5.2687083333333335,
+    "voice": "af_heart",
+    "speed": 0.96
+  },
+  {
+    "name": "04-market",
+    "start": 23.5,
+    "text": "Follow the buildings you cover. Spot asking-price changes, and see what's moved since you last checked.",
+    "duration": 6.118083333333334,
+    "voice": "af_heart",
+    "speed": 0.96
+  },
+  {
+    "name": "05-assistant",
+    "start": 32.5,
+    "text": "Need an answer? Type a question, or talk to Repeat A I. Get help with your market, your sellers, and your next step.",
+    "duration": 6.630041666666667,
+    "voice": "af_heart",
+    "speed": 0.96
+  },
+  {
+    "name": "06-follow-up",
+    "start": 43.5,
+    "text": "Make every follow-up feel personal. Start with your own wording, add the property context, and preview it for WhatsApp.",
+    "duration": 7.223916666666667,
+    "voice": "af_heart",
+    "speed": 0.96
+  },
+  {
+    "name": "07-schedule",
+    "start": 53.5,
+    "text": "Plan the week by building. Choose what to follow up, and when.",
+    "duration": 3.3674166666666667,
+    "voice": "af_heart",
+    "speed": 0.96
+  },
+  {
+    "name": "08-integrations",
+    "start": 60.4,
+    "text": "Bring your tools along. Google Sheets and Excel. Gmail and Outlook. Calendars. Even Claude and Chat G P T, through an M C P connection.",
+    "duration": 9.845125,
+    "voice": "af_heart",
+    "speed": 0.96
+  },
+  {
+    "name": "09-platforms",
+    "start": 72.5,
+    "text": "And keep going across web, Windows, and mobile. At your desk, between viewings, wherever the day takes you.",
+    "duration": 6.2045,
+    "voice": "af_heart",
+    "speed": 0.96
+  },
+  {
+    "name": "10-close",
+    "start": 82.5,
+    "text": "Less admin. More useful conversations. Repeat A I.",
+    "duration": 3.5570416666666667,
+    "voice": "af_heart",
+    "speed": 0.96
+  }
+]

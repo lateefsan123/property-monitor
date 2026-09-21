@@ -1,0 +1,10 @@
+[0:v]trim=start_frame=0:end_frame=420,setpts=PTS-STARTPTS[v0];
+[0:v]trim=start_frame=420:end_frame=690,setpts=PTS-STARTPTS[v1];
+[0:v]trim=start_frame=780:end_frame=1050,setpts=PTS-STARTPTS[v2];
+[0:v]trim=start_frame=1140:end_frame=1470,setpts=PTS-STARTPTS[v3];
+[0:v]trim=start_frame=1560:end_frame=1860,setpts=PTS-STARTPTS[v4];
+[0:v]trim=start_frame=1920:end_frame=2130,setpts=PTS-STARTPTS[v5];
+[0:v]trim=start_frame=2220:end_frame=2580,setpts=PTS-STARTPTS[v6];
+[0:v]trim=start_frame=2580:end_frame=2880,setpts=PTS-STARTPTS[v7];
+[0:v]trim=start_frame=2940:end_frame=3180,setpts=PTS-STARTPTS[v8];
+[v0][v1][v2][v3][v4][v5][v6][v7][v8]concat=n=9:v=1:a=0[outv]

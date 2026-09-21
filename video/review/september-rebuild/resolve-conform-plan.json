@@ -1,0 +1,92 @@
+[
+  {
+    "path": "D:/Users/Lateef/Documents/property/video/review/september-rebuild/repeat-ai-full-explainer-motion-03.mp4",
+    "name": "01-opening",
+    "start_frame": 0,
+    "end_frame": 420,
+    "record_frame": 0,
+    "media_type": "video",
+    "media_start_tc_frame": 108000
+  },
+  {
+    "path": "D:/Users/Lateef/Documents/property/video/review/september-rebuild/repeat-ai-full-explainer-motion-03.mp4",
+    "name": "02-spreadsheets",
+    "start_frame": 420,
+    "end_frame": 690,
+    "record_frame": 420,
+    "media_type": "video",
+    "media_start_tc_frame": 108000
+  },
+  {
+    "path": "D:/Users/Lateef/Documents/property/video/review/september-rebuild/repeat-ai-full-explainer-motion-03.mp4",
+    "name": "03-market",
+    "start_frame": 780,
+    "end_frame": 1050,
+    "record_frame": 690,
+    "media_type": "video",
+    "media_start_tc_frame": 108000
+  },
+  {
+    "path": "D:/Users/Lateef/Documents/property/video/review/september-rebuild/repeat-ai-full-explainer-motion-03.mp4",
+    "name": "04-assistant",
+    "start_frame": 1140,
+    "end_frame": 1470,
+    "record_frame": 960,
+    "media_type": "video",
+    "media_start_tc_frame": 108000
+  },
+  {
+    "path": "D:/Users/Lateef/Documents/property/video/review/september-rebuild/repeat-ai-full-explainer-motion-03.mp4",
+    "name": "05-followup",
+    "start_frame": 1560,
+    "end_frame": 1860,
+    "record_frame": 1290,
+    "media_type": "video",
+    "media_start_tc_frame": 108000
+  },
+  {
+    "path": "D:/Users/Lateef/Documents/property/video/review/september-rebuild/repeat-ai-full-explainer-motion-03.mp4",
+    "name": "06-schedule",
+    "start_frame": 1920,
+    "end_frame": 2130,
+    "record_frame": 1590,
+    "media_type": "video",
+    "media_start_tc_frame": 108000
+  },
+  {
+    "path": "D:/Users/Lateef/Documents/property/video/review/september-rebuild/repeat-ai-full-explainer-motion-03.mp4",
+    "name": "07-integrations",
+    "start_frame": 2220,
+    "end_frame": 2580,
+    "record_frame": 1800,
+    "media_type": "video",
+    "media_start_tc_frame": 108000
+  },
+  {
+    "path": "D:/Users/Lateef/Documents/property/video/review/september-rebuild/repeat-ai-full-explainer-motion-03.mp4",
+    "name": "08-platforms",
+    "start_frame": 2580,
+    "end_frame": 2880,
+    "record_frame": 2160,
+    "media_type": "video",
+    "media_start_tc_frame": 108000
+  },
+  {
+    "path": "D:/Users/Lateef/Documents/property/video/review/september-rebuild/repeat-ai-full-explainer-motion-03.mp4",
+    "name": "09-close",
+    "start_frame": 2940,
+    "end_frame": 3180,
+    "record_frame": 2460,
+    "media_type": "video",
+    "media_start_tc_frame": 108000
+  },
+  {
+    "path": "D:/Users/Lateef/Documents/property/video/audio/september-rebuild/final-mix-90.wav",
+    "name": "Narration, music and motion cues",
+    "start_frame": 0,
+    "end_frame": 2700,
+    "record_frame": 0,
+    "media_type": "audio",
+    "media_start_tc_frame": 0
+  }
+]
