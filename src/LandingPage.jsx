@@ -204,6 +204,16 @@ export default function LandingPage({
           {billingError ? <p className="landing-hero-feedback" role="alert">{billingError}</p> : null}
           {billingMessage ? <p className="landing-hero-feedback" role="status">{billingMessage}</p> : null}
         </div>
+        <figure className="landing-hero-artwork">
+          <img
+            src="/landing/hero-seller-follow-up-v1.png"
+            alt="Illustration of Repeat AI's seller workspace with sample contacts and a scheduled WhatsApp follow-up, including a sample broker introduction card above the message."
+            width="1859"
+            height="846"
+            fetchPriority="high"
+            decoding="async"
+          />
+        </figure>
       </section>
 
       <section className="landing-tower-strip" aria-label="Dubai towers">

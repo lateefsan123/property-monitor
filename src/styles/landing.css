@@ -179,7 +179,7 @@
 
 .landing-hero {
   position: relative;
-  padding: 150px 24px 104px;
+  padding: 150px 24px 0;
   background: #f6f4f0;
   color: #242320;
   color-scheme: light;
@@ -282,6 +282,34 @@
   max-width: 480px;
   margin: 20px 0 0;
   font: 14px/22px "Inter", Arial, sans-serif;
+}
+
+.landing-hero-artwork {
+  position: relative;
+  left: 50%;
+  width: min(1678px, calc(100% + 46px));
+  margin: 28px 0 0;
+  transform: translateX(-50%);
+  overflow: hidden;
+}
+
+.landing-hero-artwork img {
+  display: block;
+  width: 100%;
+  height: auto;
+  mask-image: linear-gradient(to bottom, transparent, #000 32px);
+}
+
+@media (max-width: 600px) {
+  .landing-hero-artwork {
+    aspect-ratio: 4 / 5;
+  }
+
+  .landing-hero-artwork img {
+    height: 100%;
+    object-fit: cover;
+    object-position: 80% center;
+  }
 }
 
 /* Tower strip */
@@ -871,7 +899,7 @@
 /* Responsive */
 @media (max-width: 860px) {
   .landing-hero {
-    padding: 100px 24px 88px;
+    padding: 100px 24px 0;
   }
 
   .landing-headline {
@@ -970,7 +998,7 @@
   }
 
   .landing-hero {
-    padding: 76px 24px 80px;
+    padding: 76px 24px 0;
   }
 
   .landing-headline {
