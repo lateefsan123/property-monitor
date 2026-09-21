@@ -13,7 +13,7 @@ Goal: full web/mobile integration workflows plus a separate funded voice-agent A
 - Web/API picker and native callback bridge deployed to production: dpl_2WdaX4zungTqBgL3zWWxeBkMQwGQ, https://repeatai.org, source 721867d plus the previously authorized local web changes. Landing rendered, unauthenticated API returned 401, initial error log scan empty. Authenticated native OAuth still requires device verification.
 - Obtain metadata consent and test actual Google spreadsheet selection, not only sample fixtures.
 - OpenAI secure key setup still returns reauthentication required. User requested a NEW separate voice key, not reuse. No new key created and no top-up charged. Reconnect OpenAI Platform, confirm separate key destination and correct billing account, then action-time confirm the requested EUR 10 top-up; do not substitute USD without checking.
-- Implement and verify voice on web and native mobile, with authenticated user-scoped reads and explicit approval for sends/writes. Preserve existing API credentials. No voice implementation should be claimed yet.
+- Voice backend and shared conversation controller are implemented locally (see checkpoint below). Web/native UI and transport adapters, activation, funding and live verification remain. Preserve existing API credentials.
 - Deliver mobile build/OTA as compatible with native dependencies, then test microphone, playback, interruptions, permissions and cleanup on a device.
 
 Current mobile work is a verified compilation checkpoint, not full goal completion or a release.
@@ -23,6 +23,20 @@ Follow-up: mobile spreadsheet pagination now retains the submitted search alongs
 Web calendar parity: both connected calendar cards now expose upcoming events, including location, source time zone and all-day labels. Calendar cards no longer inherit Excel permission prompts. Both provider views were clicked and visually checked against sample fixtures with no browser errors; 25 API/read tests, targeted ESLint and Vite build passed. Live calendar connections and authenticated event reads remain unverified.
 
 Calendar web update deployed READY to https://repeatai.org as dpl_Fbgvz5xVgBXScwGQgoaqtrrvzJ3N from 61ef79d plus the previously authorized local web tree. Production landing rendered without browser errors. Android build 782d5387-d228-4c56-96d2-a95d5b945dd4 remains IN_PROGRESS; current logs show native CMake release compilation, not a terminal failure.
+
+## Android artifact now ready
+
+Build 782d5387-d228-4c56-96d2-a95d5b945dd4 is now FINISHED with no error. Installable internal preview APK: https://expo.dev/artifacts/eas/BIa6tbxNCxT7yfOI75GjFpna1xWdPIRk1UbKYIo1RDU.apk . It contains the integrations checkpoint, NOT the later pagination fix or voice. No device verification or store release is implied.
+
+## GPT-Live backend/controller checkpoint
+
+- `api/voice/index.js` verifies the Supabase session via getUser. Separate `REPEAT_VOICE_OPENAI_API_KEY` only; no fallback to existing keys. `REPEAT_VOICE_USER_IDS` is a server-only private allowlist, default empty. Neither variable has been provisioned or activated.
+- `server/voice-session.js` creates GPT-Live 1 WebRTC sessions with Responses delegation to GPT-5.6 Luna. Fixed server configuration, no stored recording, sanitized responses, bounded SDP, 25-second provider timeout and per-instance start throttle. The throttle and client five-minute timer are NOT a durable billing cap. Public rollout still needs durable usage controls.
+- Shared tool dispatcher supports connected-app status, existing authenticated bounded reads, and email preparation. There is no send/confirm tool; approval tokens go only to UI, not model context.
+- Shared conversation controller waits for session.started, handles both speakers' caption fragments independently, batches function results before response.create, deduplicates calls, supports mute/graceful close, and rejects late work after shutdown.
+- Thirteen mocked handler/controller tests and targeted ESLint passed. No live OpenAI request was made, no key was created and no credit purchased. UI/transport adapters, native dependencies, visible exact-send approval, device audio tests and production activation remain required.
+- Credential decision is resolved: user explicitly requested a NEW separate key. Implementation can proceed while provisioning is blocked; secure key creation and destination confirmation remain gated by the OpenAI Platform skill.
+- API contract sources: https://developers.openai.com/api/docs/guides/voice-webrtc?api=live , https://developers.openai.com/api/docs/guides/live-delegation , https://developers.openai.com/api/docs/guides/live-conversations .
 
 Android upload recovery: the first preview upload did not create a build (latest remote build was still 2026-09-04). The process handle was gone. EAS archive now excludes web/video/generated artifacts and credentials, retaining mobile, shared, src imports and root package manifests. A fresh preview upload was started after verifying no new remote build existed. Track the returned EAS build id; do not confuse the old September 4 AAB with the new integration build.
 
