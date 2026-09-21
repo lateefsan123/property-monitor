@@ -9,12 +9,12 @@ function store() { const data = new Map(); return { getItem: key => data.get(key
 test("Listings uses listing and price-drop artwork, not seller artwork", () => {
   assert.equal(TOUR_STEPS.find(step => step.page === "listing-alerts").image, "product-market-story-colour-v2.png");
 });
-test("new users get the tour; dismissed users resume their own step", () => {
+test("tour is opt-in for every sign-in; users resume their own step", () => {
   const storage = store();
-  assert.deepEqual(readTourState(storage, "a"), { step: 0, open: true });
+  assert.deepEqual(readTourState(storage, "a"), { step: 0, open: false });
   saveTourState(storage, "a", 4);
   assert.deepEqual(readTourState(storage, "a"), { step: 4, open: false });
-  assert.deepEqual(readTourState(storage, "b"), { step: 0, open: true });
+  assert.deepEqual(readTourState(storage, "b"), { step: 0, open: false });
   assert.deepEqual(readTourState(storage, null), { step: 0, open: false });
 });
 test("invalid and blocked storage cannot break the tour", () => {
@@ -23,6 +23,7 @@ test("invalid and blocked storage cannot break the tour", () => {
   }
   const blocked = { getItem: () => { throw Error(); }, setItem: () => { throw Error(); } };
   assert.doesNotThrow(() => readTourState(blocked, "a"));
+  assert.equal(readTourState(blocked, "a").open, false);
   assert.doesNotThrow(() => saveTourState(blocked, "a", 1));
 });
 test("nine steps use real destinations and existing product assets", () => {
@@ -57,10 +58,13 @@ test("Next, Back, actions, completion, restart and Escape preserve the journey",
   const render = () => ctx.module.exports.default({ userId: 'test', onNavigate: p => routes.push(p), onAction: a => actions.push(a) });
   const flatten = n => Array.isArray(n) ? n.flatMap(flatten) : n && typeof n === 'object' ? [n, ...n.children.flatMap(flatten)] : [];
   const click = className => flatten(render()).find(n => n.props.className === className).props.onClick();
-  click('repeat-tour-next'); assert.equal(state.step, 1); assert.equal(routes.at(-1), 'spreadsheets');
+  click('repeat-tour-launcher'); assert.equal(routes.length, 0);
+  click('repeat-tour-next'); assert.equal(state.step, 1); assert.equal(routes.length, 0);
+  click('repeat-tour-image-link'); assert.equal(routes.at(-1), 'spreadsheets'); assert.equal(state.open, false);
+  click('repeat-tour-launcher');
   click('repeat-tour-back'); assert.equal(state.step, 0);
   for (let i = 0; i < 4; i++) click('repeat-tour-next');
-  click('repeat-tour-link'); assert.equal(actions.at(-1), 'message-template'); assert.equal(state.open, false);
+  click('repeat-tour-image-link'); assert.equal(actions.at(-1), 'message-template'); assert.equal(state.open, false);
   click('repeat-tour-launcher'); assert.equal(state.step, 4);
   click('repeat-tour-next'); click('repeat-tour-link'); assert.equal(actions.at(-1), 'settings');
   click('repeat-tour-launcher');
@@ -96,4 +100,9 @@ test("artwork retains its palette in dark mode and launcher uses a fixed-size ic
   assert.ok(!css.includes('brightness(.8)'));
   assert.match(css, /repeat-tour-help-icon[^}]+flex: 0 0 20px/);
   for (const colour of ['#d5ebf8', '#f6dbca', '#e0d9f1', '#dbf5eb', '#d9e6cf']) assert.ok(css.includes(colour));
+});
+
+test("seller automation clears the bottom help and assistant row", () => {
+  const css = readFileSync(new URL('../src/voice/voice.css', import.meta.url), 'utf8');
+  assert.match(css, /\.app-shell \.floating-action-container\s*\{[^}]*bottom: calc\(88px \+ env\(safe-area-inset-bottom, 0px\)\)/);
 });

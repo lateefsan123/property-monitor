@@ -4,6 +4,8 @@
 .repeat-assistant button:focus-visible { outline: 3px solid #758dcc; outline-offset: 3px; }
 .assistant-launcher { height: 48px; border: 1px solid #43475a; color: #fff; border-radius: 24px; background: #252735; box-shadow: 0 4px 18px #0002; padding: 0 18px; display: flex; align-items: center; gap: 9px; }
 .app-shell .repeat-tour { right: 192px; }
+/* Keep seller automation above the shared bottom-right help/assistant row. */
+.app-shell .floating-action-container { bottom: calc(88px + env(safe-area-inset-bottom, 0px)); right: 24px; }
 .assistant-panel { width: min(420px, calc(100vw - 32px)); height: min(700px, calc(100dvh - 100px)); background: #fafafa; border: 1px solid #dedfe5; box-shadow: 0 12px 60px #0003; border-radius: 22px; display: flex; flex-direction: column; overflow: hidden; }
 .assistant-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid #e9e9ef; }
 .assistant-header>span { display: flex; align-items: center; gap: 9px; font-weight: 600; }

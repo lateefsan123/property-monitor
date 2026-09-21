@@ -7,6 +7,8 @@
 .repeat-tour-visual:has(img[src*="product-templates"]) { background: #dbf5eb; }
 .repeat-tour-visual:has(img[src*="product-followups"]) { background: #d9e6cf; }
 .repeat-tour-visual img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.repeat-tour-image-link { display: block; width: 100%; height: 100%; padding: 0; border: 0; background: transparent; }
+.repeat-tour .repeat-tour-image-link:focus-visible { outline-offset: -4px; }
 /* These illustrations fill their header edge-to-edge: no mismatched letterbox colour. */
 .repeat-tour-visual:has(img[src*="product-assistant"]) { height: auto; }
 .repeat-tour-visual img[src*="product-assistant"] { height: auto; }

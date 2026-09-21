@@ -22,7 +22,7 @@ export function readTourState(storage, userId) {
       return { step: value.step === 6 ? TOUR_STEPS.length - 1 : value.step, open: false };
     }
   } catch { /* A blocked or corrupt store must not prevent using the app. */ }
-  return { step: 0, open: true };
+  return { step: 0, open: false };
 }
 
 export function saveTourState(storage, userId, step) {

@@ -10,6 +10,7 @@ export default function ProductTour({ userId, onNavigate, onAction }) {
   const heading = useRef(null);
   const launcher = useRef(null);
   const step = TOUR_STEPS[state.step];
+  const destinationLabel = step.cta || `Open ${({ home: 'home', spreadsheets: 'spreadsheets', sellers: 'sellers', 'listing-alerts': 'listings' })[step.page]}`;
 
   useEffect(() => {
     if (!state.open) return;
@@ -43,7 +44,12 @@ export default function ProductTour({ userId, onNavigate, onAction }) {
     const next = Math.max(0, Math.min(TOUR_STEPS.length - 1, index));
     persist(next);
     setState({ step: next, open: true });
-    onNavigate(TOUR_STEPS[next].page);
+  }
+
+  function openDestination() {
+    close();
+    if (step.action) onAction(step.action);
+    else onNavigate(step.page);
   }
 
   return (
@@ -51,18 +57,20 @@ export default function ProductTour({ userId, onNavigate, onAction }) {
       {state.open ? (
         <section className="repeat-tour-card" role="region" aria-labelledby="repeat-tour-heading">
           <div className="repeat-tour-visual">
-            <img src={`/landing/${step.image}`} alt="" />
+            <button type="button" className="repeat-tour-image-link" aria-label={destinationLabel} onClick={openDestination}>
+              <img src={`/landing/${step.image}`} alt="" />
+            </button>
             <button type="button" className="repeat-tour-close" aria-label="Close tour" onClick={close}>×</button>
           </div>
           <div className="repeat-tour-copy">
             <h2 id="repeat-tour-heading" tabIndex={-1} ref={heading}>{step.title}</h2>
             <p>{step.description}</p>
-            {step.action && <button type="button" className="repeat-tour-link" onClick={() => { close(); onAction(step.action); }}>{step.cta} ↗</button>}
+            <button type="button" className="repeat-tour-link" onClick={openDestination}>{destinationLabel} ↗</button>
             <div className="repeat-tour-controls">
               <progress aria-label="Tour progress" max={TOUR_STEPS.length} value={state.step + 1} />
               <span className="repeat-tour-count">{state.step + 1} / {TOUR_STEPS.length}</span>
               {state.step > 0 && <button type="button" className="repeat-tour-back" onClick={() => move(state.step - 1)}>Back</button>}
-              <button type="button" className="repeat-tour-next" onClick={() => state.step === TOUR_STEPS.length - 1 ? close() : move(state.step + 1)}>{state.step === 0 ? "Start working" : state.step === TOUR_STEPS.length - 1 ? "Done" : "Next"}</button>
+              <button type="button" className="repeat-tour-next" onClick={() => state.step === TOUR_STEPS.length - 1 ? close() : move(state.step + 1)}>{state.step === TOUR_STEPS.length - 1 ? "Done" : "Next"}</button>
             </div>
           </div>
         </section>
