@@ -2,6 +2,8 @@ import { createClient } from '@supabase/supabase-js';
 import { createIntegrationOAuth, createTokenVault } from '../../server/integration-oauth.js';
 import { createIntegrationStore } from '../../server/integration-store.js';
 import { createIntegrationHandler } from '../../server/integration-api.js';
+import { createIntegrationTokens } from '../../server/integration-tokens.js';
+import { createIntegrationReads } from '../../server/integration-reads.js';
 
 let handler;
 export default async function integrations(req, res) {
@@ -18,8 +20,11 @@ export default async function integrations(req, res) {
           redirectUri: env[`${prefix}_INTEGRATION_REDIRECT_URI`] }];
       }));
       const configured = provider => key.length === 32 && Object.values(configs[provider]).every(Boolean);
-      const oauth = key.length === 32 ? createIntegrationOAuth({ configs, store, vault: createTokenVault(key) }) : null;
-      handler = createIntegrationHandler({ store, oauth, configured, authenticate: async token => {
+      const vault = key.length === 32 ? createTokenVault(key) : null;
+      const oauth = vault ? createIntegrationOAuth({ configs, store, vault }) : null;
+      const tokens = vault ? createIntegrationTokens({ configs, store, vault }) : null;
+      const read = tokens ? createIntegrationReads({ tokens }) : null;
+      handler = createIntegrationHandler({ store, oauth, configured, read, authenticate: async token => {
         const { data, error } = await db.auth.getUser(token);
         return error ? null : data.user;
       } });

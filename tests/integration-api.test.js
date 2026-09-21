@@ -8,6 +8,7 @@ function fixture() {
   const handler = createIntegrationHandler({
     authenticate: async token => token === 'valid' ? { id: 'owner' } : null,
     configured: provider => provider === 'google',
+    read: async args => { calls.push(['read', args]); return { kind: 'email', items: [] }; },
     store: { list: async user => { calls.push(['list', user]); return [{ provider: 'google', feature: 'sheets', secret: 'never-return' }]; },
       disconnect: async args => calls.push(['disconnect', args]) },
     oauth: { begin: async args => { calls.push(['begin', args]); return { authorizationUrl: 'https://accounts.google.com/test' }; },
@@ -21,11 +22,18 @@ function fixture() {
 }
 test('all operations require a verified session and reject caller-supplied owners', async () => {
   const { run, calls } = fixture();
-  for (const action of ['status', 'begin', 'complete', 'disconnect']) {
+  for (const action of ['status', 'begin', 'complete', 'disconnect', 'read']) {
     assert.equal((await run({ action }, 'invalid')).statusCode, 401);
     assert.equal((await run({ action, userId: 'victim' })).statusCode, 400);
   }
   assert.deepEqual(calls, []);
+});
+test('read API derives the owner from authentication and passes only allowed inputs', async () => {
+  const { run, calls } = fixture();
+  const result = await run({ action: 'read', provider: 'google', feature: 'email', input: {} });
+  assert.equal(result.statusCode, 200);
+  assert.deepEqual(calls, [['read', { userId: 'owner', provider: 'google', feature: 'email', input: {} }]]);
+  assert.equal((await run({ action: 'read', provider: 'google', feature: 'email', accessToken: 'forged' })).statusCode, 400);
 });
 test('status returns six safe connection summaries, never credentials', async () => {
   const { run, calls } = fixture();
@@ -65,4 +73,16 @@ test('storage consumes state in one scoped RPC and excludes tokens from lists', 
   assert.deepEqual(calls[0], ['consume_integration_oauth', { p_hash: 'hash', p_user: 'owner', p_provider: 'google', p_now: 1 }]);
   await store.list('owner');
   assert.deepEqual(calls[1], ['integration_connections', 'provider,feature,expires_at', 'user_id', 'owner']);
+});
+test('token rotation updates only the matching owner, provider, feature and previous ciphertext', async () => {
+  const calls = [];
+  const query = {
+    update(value) { calls.push(['update', value]); return this; },
+    eq(key, value) { calls.push([key, value]); return this; },
+    async select(fields) { calls.push(['select', fields]); return { data: [] }; },
+  };
+  const store = createIntegrationStore({ from: table => { calls.push(['table', table]); return query; } });
+  assert.equal(await store.rotateConnection({ userId: 'owner', provider: 'google', feature: 'email', previousSecret: 'old', secret: 'new', scopes: ['scope'], expiresAt: 100 }), false);
+  assert.deepEqual(calls, [['table', 'integration_connections'], ['update', { secret: 'new', scopes: ['scope'], expires_at: 100 }],
+    ['user_id', 'owner'], ['provider', 'google'], ['feature', 'email'], ['secret', 'old'], ['select', 'provider']]);
 });

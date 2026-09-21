@@ -24,6 +24,17 @@ export function createIntegrationStore(db) {
     async list(userId) {
       return checked(await db.from('integration_connections').select('provider,feature,expires_at').eq('user_id', userId)) || [];
     },
+    async getConnection({ userId, provider, feature }) {
+      return fromRow(checked(await db.from('integration_connections').select('user_id,provider,feature,expires_at,scopes,secret')
+        .eq('user_id', userId).eq('provider', provider).eq('feature', feature).maybeSingle()));
+    },
+    async rotateConnection({ userId, provider, feature, previousSecret, secret, expiresAt, scopes }) {
+      // Compare-and-swap, not upsert: a refresh cannot resurrect a deleted row or
+      // overwrite newer credentials after another refresh/reconnect.
+      const rows = checked(await db.from('integration_connections').update({ secret, expires_at: expiresAt, scopes })
+        .eq('user_id', userId).eq('provider', provider).eq('feature', feature).eq('secret', previousSecret).select('provider'));
+      return Boolean(rows?.length);
+    },
     async disconnect({ userId, provider, feature }) {
       checked(await db.from('integration_oauth_pending').delete().eq('user_id', userId).eq('provider', provider).eq('feature', feature));
       checked(await db.from('integration_connections').delete().eq('user_id', userId).eq('provider', provider).eq('feature', feature));

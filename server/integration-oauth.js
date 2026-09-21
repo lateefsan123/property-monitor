@@ -1,4 +1,5 @@
 import { createHash, randomBytes, createCipheriv, createDecipheriv } from 'node:crypto';
+import { includesScopes } from './integration-scopes.js';
 
 export const INTEGRATION_PROVIDERS = Object.freeze({
   google: { authorize: 'https://accounts.google.com/o/oauth2/v2/auth', token: 'https://oauth2.googleapis.com/token', scopes: {
@@ -90,7 +91,7 @@ export function createIntegrationOAuth({ configs, store, vault, fetchImpl = fetc
       if (typeof tokens.access_token !== 'string' || !tokens.access_token || tokens.token_type?.toLowerCase() !== 'bearer') throw new Error('Invalid provider token response');
       const required = spec.scopes[pending.feature].filter(scope => scope !== 'offline_access');
       const granted = typeof tokens.scope === 'string' ? tokens.scope.split(' ') : [];
-      if (!required.every(scope => granted.includes(scope))) throw new Error('Required permission was not granted');
+      if (!includesScopes(provider, granted, required)) throw new Error('Required permission was not granted');
       const expiresIn = Number(tokens.expires_in);
       if (!Number.isFinite(expiresIn) || expiresIn <= 0) throw new Error('Invalid token lifetime');
       // A refresh token is needed for a persistent connection. Do not overwrite

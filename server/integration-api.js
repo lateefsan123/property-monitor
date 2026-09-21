@@ -1,6 +1,7 @@
 import { INTEGRATION_PROVIDERS } from './integration-oauth.js';
+import { IntegrationError } from './integration-http.js';
 
-export function createIntegrationHandler({ authenticate, store, oauth, configured }) {
+export function createIntegrationHandler({ authenticate, store, oauth, configured, read }) {
   return async (req, res) => {
     const send = (status, body) => {
       res.statusCode = status;
@@ -22,7 +23,7 @@ export function createIntegrationHandler({ authenticate, store, oauth, configure
     } catch { return send(400, { error: 'Invalid request' }); }
     const { action, provider, feature } = body;
     const fields = { status: ['action'], begin: ['action', 'provider', 'feature'],
-      complete: ['action', 'provider', 'state', 'code', 'error'], disconnect: ['action', 'provider', 'feature'] };
+      complete: ['action', 'provider', 'state', 'code', 'error'], disconnect: ['action', 'provider', 'feature'], read: ['action', 'provider', 'feature', 'input'] };
     if (!Object.hasOwn(fields, action) || Object.keys(body).some(key => !fields[action].includes(key))) return send(400, { error: 'Invalid request' });
     if (action !== 'status' && (!Object.hasOwn(INTEGRATION_PROVIDERS, provider)
       || (action !== 'complete' && !Object.hasOwn(INTEGRATION_PROVIDERS[provider].scopes, feature)))) return send(400, { error: 'Unknown integration' });
@@ -38,12 +39,14 @@ export function createIntegrationHandler({ authenticate, store, oauth, configure
         return send(200, { status: 'disconnected' });
       }
       if (!configured(provider)) return send(503, { error: 'This connection is not set up yet' });
+      if (action === 'read') return send(200, await read({ userId: user.id, provider, feature, input: body.input }));
       const result = action === 'begin'
         ? await oauth.begin({ userId: user.id, provider, feature })
         : await oauth.complete({ userId: user.id, provider, state: body.state, code: body.code, error: body.error });
       return send(200, result);
-    } catch {
+    } catch (error) {
       // Never serialize provider responses, secrets, DB errors or authorization codes.
+      if (error instanceof IntegrationError) return send(error.status, { error: error.message, code: error.code });
       return send(503, { error: action === 'complete' ? 'Could not finish connecting. Please reconnect from Settings.' : 'Connections are unavailable. Please try again later.' });
     }
   };

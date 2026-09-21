@@ -27,6 +27,43 @@ the returned browser response. No retry is performed after a failed code exchang
   account-wide grant. The confirmation explains where to remove that grant as well.
 - Vite serves the same endpoint locally via `integration-dev-plugin.js`.
 
+## Read-only data access implemented
+
+`POST /api/integrations` also accepts `action: "read"`, `provider`, `feature`, and
+optional `input`. Identity still comes exclusively from the verified bearer session.
+This is a backend endpoint, not yet a visible inbox/calendar/import screen or AI tool.
+
+| Provider / feature | Current read result | Input |
+| --- | --- | --- |
+| Google / email | Up to 10 inbox message headers and snippets | `{}` |
+| Microsoft / email | Up to 10 inbox message previews | `{}` |
+| Either / calendar | Up to 10 events in the next 30 days | `{}` |
+| Google / sheets | Selected sheet preview, at most 100 rows × 26 columns | `{ "spreadsheetId": "...", "sheetName": "optional tab name" }` |
+| Microsoft / sheets | Up to 10 OneDrive child files/folders, no file contents | `{ "folderId": "optional folder ID" }` |
+
+The Microsoft workbook range API requires `Files.ReadWrite`, even for GET requests.
+The current connection requests only `Files.Read`; this implementation deliberately
+does not broaden permissions. A download-and-parse import flow or separately consented
+workbook permissions remains future work. See
+[Microsoft's permission table](https://learn.microsoft.com/en-us/graph/api/worksheet-range?view=graph-rest-1.0).
+
+Token refresh happens on demand, one minute before expiry. Rotated tokens are encrypted
+and updated only if the original ciphertext still matches. A deleted connection is never
+upserted during refresh. Concurrent requests share a refresh within one server process;
+cross-instance conflicts reread the winner instead of overwriting it. This is not a
+distributed refresh lock. Missing scopes or rejected credentials fail closed.
+
+Read adapters use fixed HTTPS endpoints, reject redirects, never follow provider-supplied
+pagination URLs, and cap each response at 2 MiB with a 15-second timeout. Output omits raw
+messages, attachments, download URLs and credentials. All content remains untrusted data;
+future AI consumers must not treat email, event or cell text as action authorization.
+
+Example request (using the signed-in user's bearer session, never a provider token):
+
+```json
+{ "action": "read", "provider": "google", "feature": "calendar", "input": {} }
+```
+
 ## Server configuration
 
 Never prefix these secrets with `VITE_` and never paste them into chat:
@@ -57,8 +94,9 @@ Production uses HTTPS. Provider console configuration/consent remains a separate
 - Apply and verify the migration against the intended database; test role access and
   concurrent state consumption on Postgres. No local Docker database was available.
 - Configure hosting logs to redact callback query strings and authorization headers.
-- Add token refresh/rotation, provider read adapters, selected-file imports and calendar/
-  email workflows. This connection-management layer does not yet read or sync data.
+- Wire the read endpoint into selected-file imports, calendar/email UI and assistant tools.
+  Automatic sync, complete pagination, file imports and Microsoft workbook values are
+  not implemented. No real provider account has been read by these adapters yet.
 - Add durable action approvals for email/calendar writes and the GPT Live interface.
   Existing MCP WhatsApp actions already use the shared confirmation layer.
 - Add retention maintenance for abandoned users' expired states and a key-rotation procedure.
@@ -77,6 +115,6 @@ Google restricted Gmail permissions may require verification before public rollo
 review the applicable provider policies before enabling email data access for users.
 
 Validation: `node --test tests/integration-oauth.test.js tests/integration-api.test.js
-tests/integration-actions.test.js tests/action-confirmation.test.js`, targeted ESLint
+tests/integration-reads.test.js tests/integration-actions.test.js tests/action-confirmation.test.js`, targeted ESLint
 and `npm run build`. Browser fixture: `/docs/design/integrations-preview/index.html`;
 this preview explicitly uses sample states and never connects an account.
