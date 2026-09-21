@@ -425,6 +425,26 @@ export function Root() {
     return <CheckoutRedirectScreen />;
   }
 
+  if (window.location.pathname.replace(/\/$/, "") === "/pricing" && !showAuth) {
+    const pricingAction = hasActiveBillingSubscription
+      ? () => window.location.assign("/")
+      : handleSubscribeFromLanding;
+    return (
+      <LandingPage
+        pricingOnly
+        hasSubscription={hasActiveBillingSubscription}
+        billingError={billingState.error}
+        billingMessage={billingState.message}
+        checkoutPending={billingState.checkoutPending || billingState.subscriptionLoading}
+        isAuthenticated={Boolean(session)}
+        onGetStarted={pricingAction}
+        onSubscribe={pricingAction}
+        onSignIn={() => openAuth()}
+        onSignOut={handleSignOutFromLanding}
+      />
+    );
+  }
+
   if (session && !welcomeDismissed && !session.user.user_metadata?.welcomed) {
     const displayName = session.user.user_metadata?.username?.trim() || "";
     return (

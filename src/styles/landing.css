@@ -567,7 +567,7 @@
   }
 
   .landing-nav a {
-    display: none;
+    display: inline-flex;
   }
 
   .landing-cta,

@@ -1,7 +1,9 @@
+import { useEffect } from "react";
 import LandingProductStory from "./LandingProductStory";
 import LandingConnectedStack from "./LandingConnectedStack";
 import LandingBrokerFeedback from "./LandingBrokerFeedback";
 import LandingClosing from "./LandingClosing";
+import LandingPricing from "./LandingPricing";
 import "./styles/landing.css";
 import "./styles/landing-overview.css";
 import "./styles/landing-product-story.css";
@@ -50,6 +52,8 @@ export default function LandingPage({
   billingMessage = null,
   checkoutPending = false,
   isAuthenticated = false,
+  pricingOnly = false,
+  hasSubscription = false,
   onGetStarted,
   onSignIn,
   onSignOut,
@@ -64,6 +68,12 @@ export default function LandingPage({
     : "Get started";
   const heroCtaAction = isAuthenticated ? onSubscribe : onGetStarted;
 
+  useEffect(() => {
+    // Public pages mount after session lookup, later than native hash scrolling.
+    const target = document.getElementById(window.location.hash.slice(1));
+    target?.scrollIntoView({ block: "start" });
+  }, [pricingOnly]);
+
   return (
     <div className="landing">
       <div className="landing-header-frame">
@@ -72,6 +82,7 @@ export default function LandingPage({
             <img src="/brand/repeat-ai-logo.png" alt="Repeat AI" className="landing-brand-logo" width="140" height="25" />
           </a>
           <nav className="landing-nav" aria-label="Account">
+            <a className="landing-nav-link" href="/pricing" aria-current={pricingOnly ? "page" : undefined}>Pricing</a>
             <button type="button" className="landing-nav-link" onClick={accountAction}>
               {accountActionLabel}
             </button>
@@ -79,6 +90,9 @@ export default function LandingPage({
         </header>
       </div>
 
+      {pricingOnly ? (
+        <LandingPricing checkoutPending={checkoutPending} billingError={billingError} billingMessage={billingMessage} hasSubscription={hasSubscription} onGetStarted={heroCtaAction} />
+      ) : <>
       <section className="landing-hero" aria-labelledby="landing-headline">
         <div className="landing-hero-copy">
           <h1 className="landing-headline" id="landing-headline">
@@ -107,9 +121,9 @@ export default function LandingPage({
         </div>
         <figure className="landing-hero-artwork">
           <img
-            src="/landing/hero-seller-follow-up-silhouette-v4.png"
+            src="/landing/hero-seller-follow-up-clean-v5.png"
             alt="Illustration of Repeat AI's seller workspace: fictional broker Omar Hassan's sample card with an anonymous suited silhouette, above a WhatsApp update on recent building transactions and an invitation to discuss selling."
-            width="1858"
+            width="1859"
             height="846"
             fetchPriority="high"
             decoding="async"
@@ -153,8 +167,11 @@ export default function LandingPage({
       <LandingProductStory />
       <LandingConnectedStack />
       <LandingBrokerFeedback />
+      </>}
 
       <LandingClosing
+        showTrial={!pricingOnly}
+        homePrefix={pricingOnly ? "/" : ""}
         billingError={billingError}
         billingMessage={billingMessage}
         checkoutPending={checkoutPending}

@@ -45,7 +45,7 @@ test("footer preserves account, legal and download destinations", () => {
   for (const href of ["/", "/privacy", "/terms", "/api/desktop/download", "#start-free", "#product-details", "#connected-stack"]) {
     assert.ok(links.includes(href));
   }
-  assert.ok(nodes.some(x => x.props.id === "pricing"));
+  assert.ok(links.includes("/pricing"));
 });
 
 test("legacy ending is removed and trial terms are retained", () => {

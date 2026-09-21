@@ -9,6 +9,8 @@ export default function LandingClosing({
   onSubscribe,
   accountAction,
   accountActionLabel = "Log in",
+  showTrial = true,
+  homePrefix = "",
 }) {
   const actionLabel = checkoutPending
     ? "Redirecting…"
@@ -16,8 +18,7 @@ export default function LandingClosing({
 
   return (
     <div className="landing-closing">
-      <section className="landing-trial" id="start-free" aria-labelledby="landing-trial-heading">
-        <span id="pricing" className="landing-trial-anchor" aria-hidden="true" />
+      {showTrial ? <section className="landing-trial" id="start-free" aria-labelledby="landing-trial-heading">
         <h2 id="landing-trial-heading">Start your<br />7-day free trial.</h2>
         <div className="landing-trial-action">
           <button
@@ -33,7 +34,7 @@ export default function LandingClosing({
           {billingError ? <p className="landing-trial-error" role="alert">{billingError}</p> : null}
           {billingMessage ? <p className="landing-trial-status" role="status">{billingMessage}</p> : null}
         </div>
-      </section>
+      </section> : null}
 
       <footer className="landing-end-footer">
         <div className="landing-end-inner">
@@ -43,19 +44,20 @@ export default function LandingClosing({
           <div className="landing-end-main">
             <nav aria-label="Product" className="landing-end-links">
               <h2>Product</h2>
-              <a href="#product-details">How it works</a>
-              <a href="#connected-stack">Connected tools</a>
-              <a href="#start-free">Free trial</a>
+              <a href={`${homePrefix}#product-details`}>How it works</a>
+              <a href={`${homePrefix}#connected-stack`}>Connected tools</a>
+              <a href="/pricing">Pricing</a>
+              <a href={`${homePrefix}#start-free`}>Free trial</a>
             </nav>
             <nav aria-label="Sellers" className="landing-end-links">
               <h2>Sellers</h2>
-              <a href="#seller-workspace">Seller workspace</a>
-              <a href="#market-activity">Market activity</a>
+              <a href={`${homePrefix}#seller-workspace`}>Seller workspace</a>
+              <a href={`${homePrefix}#market-activity`}>Market activity</a>
             </nav>
             <nav aria-label="Outreach" className="landing-end-links">
               <h2>Outreach</h2>
-              <a href="#message-templates">Message templates</a>
-              <a href="#whatsapp-follow-ups">WhatsApp follow-ups</a>
+              <a href={`${homePrefix}#message-templates`}>Message templates</a>
+              <a href={`${homePrefix}#whatsapp-follow-ups`}>WhatsApp follow-ups</a>
             </nav>
             <nav aria-label="Account" className="landing-end-links">
               <h2>Get started</h2>
