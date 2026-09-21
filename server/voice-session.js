@@ -1,4 +1,5 @@
 import { VOICE_TOOLS } from '../shared/voice-tools.js';
+import { chatItems, respondToChat } from './assistant-chat.js';
 
 export function voiceSessionConfig() {
   return {
@@ -16,6 +17,7 @@ export function createVoiceSessionHandler({ authenticate, apiKey, allowedUserIds
   // Per-instance burst protection only. Keep the private allowlist until a
   // durable per-user usage budget is installed before a public rollout.
   const starts = new Map();
+  const chats = new Map();
   return async (req, res) => {
     const send = (status, body) => {
       res.statusCode = status;
@@ -32,11 +34,24 @@ export function createVoiceSessionHandler({ authenticate, apiKey, allowedUserIds
     if (!user?.id) return send(401, { error: 'Please sign in again.' });
     let body;
     try { body = typeof req.body === 'string' ? JSON.parse(req.body) : req.body; } catch { return send(400, { error: 'Invalid voice request.' }); }
-    if (!body || Array.isArray(body) || typeof body !== 'object' || Object.keys(body).some(key => !['action', 'sdp'].includes(key))
-      || !['status', 'start'].includes(body.action) || (body.action === 'status' && body.sdp !== undefined)) return send(400, { error: 'Invalid voice request.' });
+    if (!body || Array.isArray(body) || typeof body !== 'object' || Object.keys(body).some(key => !['action', 'sdp', 'input'].includes(key))
+      || !['status', 'start', 'chat'].includes(body.action) || (body.action !== 'start' && body.sdp !== undefined)
+      || (body.action !== 'chat' && body.input !== undefined)) return send(400, { error: 'Invalid assistant request.' });
     const available = Boolean(apiKey && allowedUserIds.includes(user.id));
-    if (body.action === 'status') return send(200, { available, reason: available ? null : 'Voice is not enabled for this account yet.' });
-    if (!available) return send(503, { error: 'Voice is not enabled for this account yet.' });
+    const reason = !apiKey ? 'AI chat and voice need the dedicated Repeat AI API key configured by the account owner.' : 'AI chat and voice are not enabled for this account yet.';
+    if (body.action === 'status') return send(200, { available, reason: available ? null : reason });
+    if (!available) return send(503, { error: reason });
+    if (body.action === 'chat') {
+      let input;
+      try { input = chatItems(body.input); } catch { return send(400, { error: 'This chat is too long or invalid. Start a new chat.' }); }
+      const recent = (chats.get(user.id) || []).filter(time => now() - time < 60000);
+      if (recent.length >= 20) return send(429, { error: 'Please wait a minute before sending more messages.' });
+      chats.set(user.id, [...recent, now()]);
+      try {
+        return send(200, await respondToChat({ input, apiKey, fetchImpl,
+          instructions: voiceSessionConfig().delegation.responses.instructions + ' This is TEXT chat: write concise readable responses. Use account_profile for the signed-in identity, and workspace tools for their account data. Never infer billing or credit balances. Do not claim voice is active. Only visible confirmation controls apply changes.' }));
+      } catch { return send(502, { error: 'Chat could not respond. Check AI access and credit, then try again.' }); }
+    }
     if (typeof body.sdp !== 'string' || body.sdp.length > 64000 || !body.sdp.startsWith('v=0') || !body.sdp.includes('m=audio')) return send(400, { error: 'Invalid voice connection.' });
     const last = starts.get(user.id);
     if (last !== undefined && now() - last < 15000) return send(429, { error: 'Wait a few seconds before starting another conversation.' });

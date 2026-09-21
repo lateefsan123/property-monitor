@@ -50,6 +50,18 @@
 .app-shell .assistant-error { color: var(--error-text); }
 .repeat-assistant audio:not([hidden]) { position: absolute; bottom: 100%; right: 0; width: min(300px, 100%); }
 .assistant-matrix-orb { margin: 4px auto 12px; color: var(--text); }
+.assistant-header-actions { display: flex; gap: 8px; }
+.assistant-chat-log { display: flex; flex-direction: column; gap: 12px; }
+.assistant-chat-message { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 10px 12px; border-radius: 14px; text-align: left; }
+.assistant-chat-message.is-user { background: var(--bg-hover); align-self: flex-end; max-width: 90%; }
+.assistant-chat-message.is-assistant { align-self: stretch; padding-left: 0; }
+.assistant-speaker { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.assistant-composer { display: flex; align-items: flex-end; gap: 8px; padding: 10px; margin-bottom: 14px; border: 1px solid var(--nav-btn-border); border-radius: 16px; background: var(--bg-input); }
+.assistant-composer textarea { flex: 1; min-width: 0; max-height: 110px; resize: vertical; border: 0; background: transparent; color: var(--text); font: inherit; padding: 4px; }
+.assistant-composer textarea::placeholder { color: var(--text-muted); }
+.assistant-composer textarea:focus { outline: none; }
+.assistant-composer:focus-within { outline: 2px solid var(--text-muted); outline-offset: 2px; }
+.app-shell .assistant-composer button { flex-shrink: 0; display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border-radius: 50%; background: var(--btn-primary-bg); color: var(--btn-primary-text); }
 @media (prefers-reduced-motion: reduce) { .assistant-orb.is-active { animation: none; } }
 @media (max-width: 600px) {
   .repeat-assistant { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }

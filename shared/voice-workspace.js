@@ -7,6 +7,7 @@ export function createVoiceWorkspace({ supabase, userId, fetchPriceDrops, onChan
     if (signal?.aborted) throw new Error('Conversation ended.');
     const { data, error } = await supabase.auth.getUser();
     if (error || !userId || data?.user?.id !== userId) throw new Error('Please sign in again.');
+    return data.user;
   }
   async function result(query, signal) {
     const response = await (signal ? query.abortSignal(signal) : query);
@@ -20,7 +21,8 @@ export function createVoiceWorkspace({ supabase, userId, fetchPriceDrops, onChan
     return { auto_whatsapp_enabled: data?.auto_whatsapp_enabled !== false, monthly_reports_enabled: data?.monthly_reports_enabled === true };
   }
   async function read(name, args, signal) {
-    await identity(signal);
+    const user = await identity(signal);
+    if (name === 'account_profile') return { title: 'Your account', items: [{ name: String(user.user_metadata?.full_name || user.user_metadata?.name || 'Repeat AI account').slice(0, 120), content: user.email || '' }] };
     if (name === 'find_leads') {
       const offset = Number(args.offset);
       if (!Number.isInteger(offset) || offset < 0 || offset > 100000) throw new Error('Invalid page.');

@@ -12,7 +12,7 @@ export function integrationDevPlugin() {
       for (const [key, value] of Object.entries(env)) {
         if (/^(SUPABASE_|VITE_SUPABASE_|GOOGLE_INTEGRATION_|MICROSOFT_INTEGRATION_|INTEGRATION_ENCRYPTION_KEY|REPEAT_VOICE_)/.test(key) && !process.env[key]) process.env[key] = value;
       }
-      for (const [path, handler, limit] of [['/api/integrations', integrations, 12000], ['/api/voice', voice, 66000]]) server.middlewares.use(path, async (req, res) => {
+      for (const [path, handler, limit] of [['/api/integrations', integrations, 12000], ['/api/voice', voice, 140000]]) server.middlewares.use(path, async (req, res) => {
         let body = '';
         try {
           for await (const chunk of req) {

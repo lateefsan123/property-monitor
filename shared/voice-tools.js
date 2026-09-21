@@ -6,6 +6,7 @@ const tool = (name, description, properties) => ({
 });
 
 export const VOICE_TOOLS = [
+  tool('account_profile', 'Read the signed-in account name and email. Not billing, credits or subscription status.', {}),
   tool('lead_details', 'Read details and saved notes for a seller ID returned by find_leads. Resolve ambiguous names first.', { lead_id: text }),
   tool('prepare_lead_note', 'Draft an appended note for a seller found by find_leads. Keep existing notes. Never save until the user presses Confirm change.', { lead_id: text, note: text }),
   tool('prepare_lead_status', 'Draft a seller status change for review. May change follow-up eligibility. Use a seller returned by find_leads; resolve ambiguous names.', { lead_id: text, status: { type: 'string', enum: ['Prospect', 'Not Interested', 'Market Appraisal', 'For Sale Available'] } }),
@@ -38,7 +39,7 @@ export async function executeVoiceTool(name, args, { request, workspace, onResul
     if (typeof value !== 'string' || value.length > 8000 || (schema.enum && !schema.enum.includes(value))) throw new Error('Invalid voice action.');
   }
   if (signal?.aborted) throw new Error('Conversation ended.');
-  if (['find_leads', 'lead_details', 'price_drops', 'workspace_spreadsheets', 'message_templates', 'automation_status', 'send_activity'].includes(name)) {
+  if (['account_profile', 'find_leads', 'lead_details', 'price_drops', 'workspace_spreadsheets', 'message_templates', 'automation_status', 'send_activity'].includes(name)) {
     if (!workspace) throw new Error('Workspace unavailable.');
     const result = await workspace.read(name, args, signal);
     if (signal?.aborted) throw new Error('Conversation ended.');

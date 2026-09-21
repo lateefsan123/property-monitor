@@ -29,6 +29,15 @@ function fixture() {
   } });
   return { workspace, calls, writes: () => writes, switchUser: () => { owner = 'other'; }, changeSettings: () => { settings.monthly_reports_enabled = true; } };
 }
+test('account profile is scoped to authenticated identity and never includes auth internals', async () => {
+  const f = fixture();
+  const result = await f.workspace.read('account_profile', {});
+  assert.equal(result.title, 'Your account');
+  assert.ok(!JSON.stringify(result).includes('owner'));
+  f.switchUser();
+  await assert.rejects(f.workspace.read('account_profile', {}));
+});
+
 test('lead search is bounded, owner-scoped and strips filter punctuation', async () => {
   const f = fixture();
   const result = await f.workspace.read('find_leads', { query: 'Forte%,id.eq.other', status: '', offset: '0' });
