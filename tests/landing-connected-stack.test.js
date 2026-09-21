@@ -4,9 +4,9 @@ import test from "node:test";
 
 const source = readFileSync(new URL("../src/LandingConnectedStack.jsx", import.meta.url), "utf8");
 
-test("connected stack follows the product stories without replacing pricing", () => {
+test("connected stack follows the product stories before feedback and closing", () => {
   const page = readFileSync(new URL("../src/LandingPage.jsx", import.meta.url), "utf8");
-  assert.match(page, /<LandingProductStory \/>\s*<LandingConnectedStack \/>\s*<LandingBrokerFeedback \/>\s*<section className="landing-pricing"/);
+  assert.match(page, /<LandingProductStory \/>\s*<LandingConnectedStack \/>\s*<LandingBrokerFeedback \/>\s*<LandingClosing/);
   assert.equal((page.match(/<LandingConnectedStack \/>/g) || []).length, 1);
 });
 

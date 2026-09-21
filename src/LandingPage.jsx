@@ -1,41 +1,10 @@
-import { useState } from "react";
 import LandingProductStory from "./LandingProductStory";
 import LandingConnectedStack from "./LandingConnectedStack";
 import LandingBrokerFeedback from "./LandingBrokerFeedback";
+import LandingClosing from "./LandingClosing";
 import "./styles/landing.css";
 import "./styles/landing-overview.css";
 import "./styles/landing-product-story.css";
-
-const FAQS = [
-  {
-    q: "What is Repeat AI, and how does it work?",
-    a: "Repeat AI is a focused workspace for Dubai real estate brokers to track sellers, monitor building activity, and run follow-ups. You import or add your sellers, and the app keeps your pipeline and watched buildings in one place instead of scattered spreadsheets.",
-  },
-  {
-    q: "How does billing work?",
-    a: "Repeat AI includes a 7-day free trial, then runs on a single Professional plan at EUR 50/month through Stripe. One subscription unlocks the full workspace and mobile access.",
-  },
-  {
-    q: "How does importing spreadsheets work?",
-    a: "Drop your existing Google Sheet or Excel file in and we'll map columns to seller fields. Your data lives in Repeat AI after import, while Sheets stays available as your export if you need it.",
-  },
-  {
-    q: "What happens if I cancel?",
-    a: "Access stays active through the end of your paid period. After that, signing in takes you back to the pricing page until you start a new monthly subscription.",
-  },
-  {
-    q: "Is there a mobile app?",
-    a: "Yes - the mobile app is included with Professional. It's built for the parts of the job that happen away from your desk: checking listing alerts, logging calls, and pulling up a seller on the way to a viewing.",
-  },
-  {
-    q: "How is this different from a CRM?",
-    a: "A generic CRM tries to fit any business. Repeat AI is built around how Dubai brokers actually work - towers, seller statuses, and listing portals - so there is less to configure and more that fits immediately.",
-  },
-  {
-    q: "Is my seller data private?",
-    a: "Your data is yours. It's not shared with other users, sold to third parties, or used to train anything. You can export or delete it whenever you want.",
-  },
-];
 
 const DUBAI_TOWERS = [
   {
@@ -86,7 +55,6 @@ export default function LandingPage({
   onSignOut,
   onSubscribe,
 }) {
-  const [openFaq, setOpenFaq] = useState(null);
   const accountActionLabel = isAuthenticated ? "Sign out" : "Log in";
   const accountAction = isAuthenticated ? onSignOut : onSignIn;
   const heroCtaLabel = isAuthenticated
@@ -95,11 +63,6 @@ export default function LandingPage({
       : "Continue to Stripe"
     : "Get started";
   const heroCtaAction = isAuthenticated ? onSubscribe : onGetStarted;
-  const pricingCtaLabel = checkoutPending
-    ? "Redirecting to Stripe..."
-    : isAuthenticated
-    ? "Continue to Stripe"
-    : "Start 7-day free trial";
 
   return (
     <div className="landing">
@@ -191,138 +154,16 @@ export default function LandingPage({
       <LandingConnectedStack />
       <LandingBrokerFeedback />
 
-      <section className="landing-pricing" id="pricing">
-        <div className="landing-pricing-header">
-          <h2 className="landing-pricing-title">Simple pricing.</h2>
-          <p className="landing-pricing-sub">
-            Try the full workspace free for 7 days, then continue on one monthly plan.
-          </p>
-        </div>
-
-        <div className="landing-pricing-grid landing-pricing-grid--single">
-          <article className="landing-plan landing-plan-featured">
-            <div className="landing-plan-label">Professional</div>
-            <div className="landing-plan-price">
-              <span className="landing-plan-amount">EUR 50</span>
-              <span className="landing-plan-unit">/ month</span>
-            </div>
-            <p className="landing-plan-desc">
-              Free for 7 days, then EUR 50/month for the full web workspace, listing alerts, and mobile access.
-            </p>
-
-            <ul className="landing-plan-features">
-              <li>Seller pipeline and follow-up workspace</li>
-              <li>Spreadsheet imports and smart mapping</li>
-              <li>Listing alerts and price-drop tracking</li>
-              <li>Auto-updating Windows desktop app</li>
-              <li>Mobile app access</li>
-              <li>Monthly billing through Stripe Checkout</li>
-            </ul>
-
-            <button
-              type="button"
-              className="landing-plan-cta landing-plan-cta-primary"
-              disabled={checkoutPending}
-              onClick={onSubscribe}
-            >
-              {pricingCtaLabel}
-            </button>
-
-            {!isAuthenticated ? (
-              <p className="landing-plan-note">
-                Create your account first, then start your 7-day trial through Stripe.
-              </p>
-            ) : null}
-
-            {billingMessage ? (
-              <p className="landing-plan-status">{billingMessage}</p>
-            ) : null}
-
-            {billingError ? (
-              <p className="landing-plan-error" role="alert">{billingError}</p>
-            ) : null}
-          </article>
-        </div>
-      </section>
-
-      <section className="landing-faq" id="faq">
-        <div className="landing-faq-header">
-          <p className="landing-faq-eyebrow">Have questions?</p>
-          <h2 className="landing-faq-title">Repeat AI FAQs</h2>
-        </div>
-
-        <ul className="landing-faq-list">
-          {FAQS.map((item, index) => {
-            const isOpen = openFaq === index;
-            return (
-              <li
-                key={item.q}
-                className={`landing-faq-item ${isOpen ? "is-open" : ""}`}
-              >
-                <button
-                  type="button"
-                  className="landing-faq-question"
-                  onClick={() => setOpenFaq(isOpen ? null : index)}
-                  aria-expanded={isOpen}
-                >
-                  <span>{item.q}</span>
-                  <span className="landing-faq-icon" aria-hidden="true">
-                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5">
-                      <circle cx="10" cy="10" r="9" />
-                      <path d="M6 10h8" strokeLinecap="round" />
-                      <path d="M10 6v8" strokeLinecap="round" className="landing-faq-icon-v" />
-                    </svg>
-                  </span>
-                </button>
-                <div className="landing-faq-answer">
-                  <p>{item.a}</p>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      </section>
-
-      <section className="landing-final-cta">
-        <img
-          className="landing-final-skyline"
-          src="/landing/dubai-skyline-transparent.png"
-          alt=""
-          aria-hidden="true"
-        />
-        <div className="landing-final-cta-content">
-          <h2>Built for brokers who want a cleaner workflow.</h2>
-          <p>Manage sellers, listings, and spreadsheets from one focused workspace.</p>
-          <button type="button" className="landing-cta" onClick={heroCtaAction}>
-            {heroCtaLabel}
-          </button>
-        </div>
-      </section>
-
-      <footer className="landing-footer">
-        <div className="landing-footer-row">
-          <a className="landing-brand" href="/" aria-label="Repeat AI home">
-            <img
-              src="/brand/repeat-ai-logo.png"
-              alt="Repeat AI"
-              className="landing-brand-logo"
-              width="140"
-              height="25"
-            />
-          </a>
-          <nav className="landing-footer-nav">
-            <a href="#features">Product</a>
-            <a href="#pricing">Pricing</a>
-            <a href="/api/desktop/download">Windows app</a>
-            <button type="button" className="landing-nav-link" onClick={accountAction}>
-              {accountActionLabel}
-            </button>
-            <a href="/privacy">Privacy</a>
-            <a href="/terms">Terms</a>
-          </nav>
-        </div>
-        <p className="landing-footer-tag">seller follow-up, reimagined</p>
-      </footer>
+      <LandingClosing
+        billingError={billingError}
+        billingMessage={billingMessage}
+        checkoutPending={checkoutPending}
+        isAuthenticated={isAuthenticated}
+        onGetStarted={onGetStarted}
+        onSubscribe={onSubscribe}
+        accountAction={accountAction}
+        accountActionLabel={accountActionLabel}
+      />
     </div>
   );
 }
