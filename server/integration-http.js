@@ -1,8 +1,14 @@
+import { Buffer } from 'node:buffer';
+
 const MESSAGES = {
   invalid_input: ['Invalid integration request', 400],
   reconnect: ['Please reconnect this account in Settings', 409],
   changed: ['This connection changed. Please try again', 409],
   unavailable: ['The provider is unavailable. Please try again later', 503],
+  oauth_expired: ['This connection attempt expired or was already used. Start again from Settings.', 409],
+  oauth_exchange: ['The provider rejected the connection. Please reconnect from Settings.', 409],
+  oauth_scope: ['The required permission was not granted. Reconnect and allow the requested access.', 409],
+  oauth_offline: ['Offline access was not granted. Reconnect and allow the requested access.', 409],
 };
 export class IntegrationError extends Error {
   constructor(code) {

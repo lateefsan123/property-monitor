@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
+import { Buffer } from 'node:buffer';
 import { createIntegrationOAuth, createTokenVault } from '../server/integration-oauth.js';
 
 function fixture(provider = 'google', feature = 'calendar') {
@@ -63,4 +64,21 @@ test('vault authenticates ciphertext and binds it to user, provider and feature'
   for(const args of [['b','google','email'],['a','microsoft','email'],['a','google','calendar']]) assert.throws(()=>vault.open(encrypted,...args));
   assert.throws(()=>vault.open(encrypted.slice(0,-5)+'xxxxx','a','google','email'));
   assert.throws(()=>createTokenVault(Buffer.alloc(3)));
+});
+
+test('callback failures expose only actionable fixed error codes', async () => {
+  for (const [variant, expected] of [['expired', 'oauth_expired'], ['scope', 'oauth_scope'], ['refresh', 'oauth_offline']]) {
+    const f = fixture();
+    const url = await f.begin();
+    if (variant === 'expired') f.advance();
+    if (variant === 'scope') f.tokens.scope = '';
+    if (variant === 'refresh') delete f.tokens.refresh_token;
+    await assert.rejects(f.oauth.complete({ userId: 'a', provider: 'google', state: url.searchParams.get('state'), code: 'private-code' }), error => {
+      assert.equal(error.code, expected);
+      assert.equal(error.status, 409);
+      assert.ok(!error.message.includes('private'));
+      return true;
+    });
+    assert.equal(f.saved.length, 0);
+  }
 });

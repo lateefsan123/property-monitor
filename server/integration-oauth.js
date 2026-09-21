@@ -1,5 +1,7 @@
 import { createHash, randomBytes, createCipheriv, createDecipheriv } from 'node:crypto';
+import { Buffer } from 'node:buffer';
 import { includesScopes } from './integration-scopes.js';
+import { IntegrationError } from './integration-http.js';
 
 export const INTEGRATION_PROVIDERS = Object.freeze({
   google: { authorize: 'https://accounts.google.com/o/oauth2/v2/auth', token: 'https://oauth2.googleapis.com/token', scopes: {
@@ -77,26 +79,26 @@ export function createIntegrationOAuth({ configs, store, vault, fetchImpl = fetc
       principal(userId);
       const spec = providerFor(provider);
       const config = configuration(configs[provider]);
-      if (typeof state !== 'string' || !/^[\w-]{43}$/.test(state)) throw new Error('Invalid authorization state');
+      if (typeof state !== 'string' || !/^[\w-]{43}$/.test(state)) throw new IntegrationError('oauth_expired');
       const pending = await store.consumePending({ hash: digest(state), userId, provider, now: now() });
-      if (!pending || pending.userId !== userId || pending.provider !== provider || pending.expiresAt <= now()) throw new Error('Authorization expired or already used');
+      if (!pending || pending.userId !== userId || pending.provider !== provider || pending.expiresAt <= now()) throw new IntegrationError('oauth_expired');
       if (error) return { status: 'cancelled' };
       if (typeof code !== 'string' || !code || code.length > 8192) throw new Error('Authorization code is required');
       const secret = vault.open(pending.secret, userId, provider, pending.feature);
       if (secret.redirectUri !== config.redirectUri) throw new Error('Integration configuration changed; reconnect');
       const body = new URLSearchParams({ grant_type: 'authorization_code', client_id: config.clientId, client_secret: config.clientSecret, code, code_verifier: secret.verifier, redirect_uri: secret.redirectUri });
       const response = await fetchImpl(spec.token, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body, redirect: 'error', signal: AbortSignal.timeout(15000) });
-      if (!response.ok) throw new Error('Provider authorization failed; reconnect');
+      if (!response.ok) { await response.body?.cancel(); throw new IntegrationError('oauth_exchange'); }
       const tokens = await response.json();
       if (typeof tokens.access_token !== 'string' || !tokens.access_token || tokens.token_type?.toLowerCase() !== 'bearer') throw new Error('Invalid provider token response');
       const required = spec.scopes[pending.feature].filter(scope => scope !== 'offline_access');
       const granted = typeof tokens.scope === 'string' ? tokens.scope.split(' ') : [];
-      if (!includesScopes(provider, granted, required)) throw new Error('Required permission was not granted');
+      if (!includesScopes(provider, granted, required)) throw new IntegrationError('oauth_scope');
       const expiresIn = Number(tokens.expires_in);
       if (!Number.isFinite(expiresIn) || expiresIn <= 0) throw new Error('Invalid token lifetime');
       // A refresh token is needed for a persistent connection. Do not overwrite
       // an existing connection with an access-only response.
-      if (typeof tokens.refresh_token !== 'string' || !tokens.refresh_token) throw new Error('Offline permission is missing; reconnect with consent');
+      if (typeof tokens.refresh_token !== 'string' || !tokens.refresh_token) throw new IntegrationError('oauth_offline');
       await store.saveConnection({ userId, provider, feature: pending.feature, scopes: granted, expiresAt: now() + expiresIn * 1000,
         secret: vault.seal({ accessToken: tokens.access_token, refreshToken: tokens.refresh_token }, userId, provider, pending.feature) });
       return { status: 'connected', provider, feature: pending.feature };

@@ -122,8 +122,8 @@ Preview is not configured. Local and production currently share the same databas
 so their encryption key must stay aligned; use separate databases before isolating
 keys. Production environment changes require a deployment to take effect.
 
-Unit tests still use fake providers and mocked storage; no real provider account
-has completed consent. The live local endpoint rejects unauthenticated requests
+Unit tests use fake providers and mocked storage. Microsoft Excel has now completed
+real consent and token exchange locally. The live local endpoint rejects unauthenticated requests
 with HTTP 401.
 
 Microsoft Azure signup is complete in the owner's Default Directory. The `Repeat AI`
@@ -132,14 +132,20 @@ application supports organizational and personal Microsoft accounts. Its client 
 `https://repeatai.org/integrations/callback/microsoft`. The server secret was created
 and stored in Vercel on 2026-09-21, expiring 2027-03-20. Rotate it before expiry.
 The local callback `http://localhost:5182/integrations/callback/microsoft` is saved
-and verified in Azure. No tenant-wide admin consent or user data access was granted.
+and verified in Azure. No tenant-wide admin consent was granted.
 Local configuration checks report both providers configured and a 32-byte vault key;
 this is not proof of successful live consent or token exchange.
 The authenticated local Settings panel loads all six enabled Connect buttons. Starting
 Microsoft Excel reaches Microsoft's real sign-in screen with PKCE, the registered
-localhost callback, and `offline_access Files.Read`. The in-app browser has no Microsoft
-session; sign-in and explicit account consent remain incomplete. Restart the connection
-from Settings if the ten-minute pending authorization expires.
+localhost callback, and `offline_access Files.Read`. On 2026-09-21 the user completed
+Microsoft consent. An incorrectly captured accessibility label (`field `) in the saved
+client secret caused token exchange failures; the development and production values
+were corrected, local configuration refreshed, and the local server restarted.
+A fresh authorization successfully persisted the test user's Microsoft sheets
+connection. Google, Outlook email and Outlook Calendar consent remain outstanding.
+Callback errors now distinguish expired attempts, provider rejection, missing scopes
+and missing offline access without exposing provider responses or credentials.
+Restart the connection from Settings if the ten-minute pending authorization expires.
 
 References:
 - https://developers.google.com/identity/protocols/oauth2/web-server
