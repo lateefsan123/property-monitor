@@ -1,23 +1,21 @@
 import { useState } from "react";
 import { supabase } from "./supabase";
+import OnboardingFrame from "./OnboardingFrame";
 
 const OPTIONS = [
-  { id: "search", label: "Search engine (Google, Bing, etc.)" },
-  { id: "ai", label: "AI chat (ChatGPT, Gemini, etc.)" },
+  { id: "search", label: "Search engine" },
+  { id: "ai", label: "AI tools" },
   { id: "linkedin", label: "LinkedIn" },
-  { id: "colleague", label: "From a colleague or friend" },
-  { id: "social", label: "Social media, YouTube, or podcasts" },
-  { id: "community", label: "Real estate event or community" },
+  { id: "colleague", label: "Friend or colleague" },
+  { id: "social", label: "Social media" },
+  { id: "community", label: "Event or community" },
   { id: "other", label: "Other" },
 ];
-
-const LETTERS = ["A", "B", "C", "D", "E", "F", "G", "H"];
 
 export default function HowDidYouHearScreen({ onContinue }) {
   const [selected, setSelected] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
-  const artSrc = `${import.meta.env.BASE_URL}khalifa.png`;
 
   async function persist(referralSource) {
     setSaving(true);
@@ -39,7 +37,6 @@ export default function HowDidYouHearScreen({ onContinue }) {
   function handleSelect(id) {
     if (saving) return;
     setSelected(id);
-    void persist(id);
   }
 
   function handleSkip() {
@@ -48,8 +45,7 @@ export default function HowDidYouHearScreen({ onContinue }) {
   }
 
   return (
-    <div className="auth-split-page">
-      <div className="auth-pane auth-pane--form">
+    <OnboardingFrame step="referral">
         <div className="auth-form-container referral-container">
           <div className="auth-heading-group">
             <h1 className="auth-heading">How did you hear about us?</h1>
@@ -59,7 +55,7 @@ export default function HowDidYouHearScreen({ onContinue }) {
 
           <fieldset className="referral-options" disabled={saving}>
             <legend className="referral-legend">How did you hear about us?</legend>
-            {OPTIONS.map((option, index) => {
+            {OPTIONS.map((option) => {
               const isSelected = selected === option.id;
               return (
                 <button
@@ -69,27 +65,26 @@ export default function HowDidYouHearScreen({ onContinue }) {
                   onClick={() => handleSelect(option.id)}
                   aria-pressed={isSelected}
                 >
-                  <span className="referral-option-letter">{LETTERS[index]}</span>
                   <span className="referral-option-label">{option.label}</span>
                 </button>
               );
             })}
           </fieldset>
 
+          <div className="onboarding-actions">
           <button
             type="button"
-            className="referral-skip"
+            className="referral-skip onboarding-secondary"
             onClick={handleSkip}
             disabled={saving}
           >
             {saving && selected === null ? "Skipping..." : "Skip"}
           </button>
+          <button type="button" className="auth-submit" onClick={() => persist(selected)} disabled={saving || !selected}>
+            {saving && selected ? "Saving..." : "Continue →"}
+          </button>
+          </div>
         </div>
-      </div>
-
-      <div className="auth-pane auth-pane--art" aria-hidden="true">
-        <img src={artSrc} alt="" className="auth-art-image" />
-      </div>
-    </div>
+    </OnboardingFrame>
   );
 }

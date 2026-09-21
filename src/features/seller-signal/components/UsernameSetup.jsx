@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../../supabase";
+import OnboardingFrame from "../../../OnboardingFrame";
 
 const AVATAR_PIXELS = 96;
 const AVATAR_QUALITY = 0.7;
@@ -45,7 +46,6 @@ export default function UsernameSetup({ initialName = "", initialAvatar = "", on
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState(null);
   const fileInputRef = useRef(null);
-  const artSrc = `${import.meta.env.BASE_URL}khalifa.png`;
 
   useEffect(() => {
     setUsername(initialName);
@@ -103,12 +103,11 @@ export default function UsernameSetup({ initialName = "", initialAvatar = "", on
   }
 
   return (
-    <div className="auth-split-page">
-      <div className="auth-pane auth-pane--form">
+    <OnboardingFrame step="profile">
         <form className="auth-form-container profile-setup" onSubmit={handleSubmit}>
           <div className="auth-heading-group">
             <h1 className="auth-heading">What’s your name?</h1>
-            <p className="auth-helper">Complete your profile now.</p>
+            <p className="auth-helper">Add your name. A photo is optional.</p>
           </div>
 
           {error && <div className="auth-error">{error}</div>}
@@ -170,19 +169,16 @@ export default function UsernameSetup({ initialName = "", initialAvatar = "", on
             </div>
           </div>
 
+          <div className="onboarding-actions">
           <button
             type="submit"
             className="auth-submit"
             disabled={saving || uploading || !username.trim()}
           >
-            {saving ? "Saving..." : "Next"}
+            {saving ? "Saving..." : "Continue →"}
           </button>
+          </div>
         </form>
-      </div>
-
-      <div className="auth-pane auth-pane--art" aria-hidden="true">
-        <img src={artSrc} alt="" className="auth-art-image" />
-      </div>
-    </div>
+    </OnboardingFrame>
   );
 }

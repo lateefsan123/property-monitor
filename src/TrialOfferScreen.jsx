@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "./supabase";
+import OnboardingFrame from "./OnboardingFrame";
 
 const FEATURES = [
   {
@@ -70,7 +71,6 @@ const FEATURES = [
 export default function TrialOfferScreen({ onStartTrial, onSkip, checkoutPending = false }) {
   const [skipping, setSkipping] = useState(false);
   const [error, setError] = useState(null);
-  const artSrc = `${import.meta.env.BASE_URL}khalifa.png`;
 
   async function persistOffered() {
     const { error: updateError } = await supabase.auth.updateUser({
@@ -100,8 +100,7 @@ export default function TrialOfferScreen({ onStartTrial, onSkip, checkoutPending
   }
 
   return (
-    <div className="auth-split-page">
-      <div className="auth-pane auth-pane--form">
+    <OnboardingFrame step="trial">
         <div className="auth-form-container trial-container">
           <div className="auth-heading-group">
             <h1 className="auth-heading">Try Repeat AI Pro for free</h1>
@@ -110,8 +109,6 @@ export default function TrialOfferScreen({ onStartTrial, onSkip, checkoutPending
           <p className="trial-subtitle">
             Get the full workspace. Free for 7 days, cancel any time.
           </p>
-
-          <p className="trial-list-heading">Here’s what you get with Repeat AI Pro:</p>
 
           <ul className="trial-features">
             {FEATURES.map((feature) => (
@@ -128,6 +125,7 @@ export default function TrialOfferScreen({ onStartTrial, onSkip, checkoutPending
 
           {error && <div className="auth-error">{error}</div>}
 
+          <div className="onboarding-actions">
           <button
             type="button"
             className="auth-submit"
@@ -139,18 +137,14 @@ export default function TrialOfferScreen({ onStartTrial, onSkip, checkoutPending
 
           <button
             type="button"
-            className="trial-skip"
+            className="trial-skip onboarding-secondary"
             onClick={handleSkip}
             disabled={checkoutPending || skipping}
           >
             {skipping ? "Skipping..." : "Skip"}
           </button>
+          </div>
         </div>
-      </div>
-
-      <div className="auth-pane auth-pane--art" aria-hidden="true">
-        <img src={artSrc} alt="" className="auth-art-image" />
-      </div>
-    </div>
+    </OnboardingFrame>
   );
 }
