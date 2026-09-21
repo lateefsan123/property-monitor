@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
+import "./styles/auth-home-link.css";
 
 const RESEND_COOLDOWN_SECONDS = 30;
 
@@ -8,7 +9,7 @@ function getRedirectUrl(redirectToUrl) {
   return new URL(import.meta.env.BASE_URL, window.location.origin).toString();
 }
 
-export default function Auth({ redirectToUrl, onSignUpSuccess } = {}) {
+export default function Auth({ redirectToUrl, onSignUpSuccess, onBack } = {}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -124,6 +125,7 @@ export default function Auth({ redirectToUrl, onSignUpSuccess } = {}) {
       <div className="auth-split-page">
         <div className="auth-pane auth-pane--form">
           <div className="auth-form-container">
+            {onBack ? <button type="button" className="auth-home-link" onClick={onBack}>← Back to home</button> : null}
             <img src={brandMarkSrc} alt="Repeat AI" className="auth-brand-mark" />
             <div className="auth-heading-group">
               <h1 className="auth-heading">Check your email</h1>
@@ -178,6 +180,7 @@ export default function Auth({ redirectToUrl, onSignUpSuccess } = {}) {
     <div className="auth-split-page">
       <div className="auth-pane auth-pane--form">
         <div className="auth-form-container">
+          {onBack ? <button type="button" className="auth-home-link" onClick={onBack}>← Back to home</button> : null}
           <img src={brandMarkSrc} alt="Repeat AI" className="auth-brand-mark" />
           <div className="auth-heading-group">
             <h1 className="auth-heading">{heading}</h1>

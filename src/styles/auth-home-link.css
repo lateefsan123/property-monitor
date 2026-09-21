@@ -1,0 +1,21 @@
+.auth-form-container .auth-home-link {
+  display: block;
+  width: fit-content;
+  margin: 0 0 24px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  color: #68645d;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.auth-form-container .auth-home-link:hover {
+  color: #242320;
+}
+
+.auth-form-container .auth-home-link:focus-visible {
+  outline: 2px solid #242320;
+  outline-offset: 4px;
+}

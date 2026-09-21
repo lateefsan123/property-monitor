@@ -5,6 +5,7 @@ import "./index.css";
 import App from "./App.jsx";
 import Auth from "./Auth.jsx";
 import LandingPage from "./LandingPage.jsx";
+import { isPublicAuthLocation, publicAuthUrl } from "./public-auth-navigation.js";
 import OAuthConsentPage from "./OAuthConsentPage.jsx";
 import PolicyPage from "./PolicyPage.jsx";
 import {
@@ -92,7 +93,7 @@ export function Root() {
   const [profileOverride, setProfileOverride] = useState({ userId: null, completed: false, username: "", avatarUrl: "" });
   const [referralAskedLocally, setReferralAskedLocally] = useState({ userId: null, asked: false });
   const [trialOfferedLocally, setTrialOfferedLocally] = useState({ userId: null, offered: false });
-  const [showAuth, setShowAuth] = useState(() => Boolean(readStoredPostAuthAction()));
+  const [showAuth, setShowAuth] = useState(() => isPublicAuthLocation(window.location));
   const [postAuthAction, setPostAuthAction] = useState(() => readStoredPostAuthAction());
   const [billingState, setBillingState] = useState({
     checkoutPending: false,
@@ -127,6 +128,16 @@ export function Root() {
   const updatePostAuthAction = useCallback((action) => {
     setPostAuthAction(action);
     writeStoredPostAuthAction(action);
+  }, []);
+
+  useEffect(() => {
+    const syncPublicPage = () => setShowAuth(isPublicAuthLocation(window.location));
+    window.addEventListener("popstate", syncPublicPage);
+    window.addEventListener("hashchange", syncPublicPage);
+    return () => {
+      window.removeEventListener("popstate", syncPublicPage);
+      window.removeEventListener("hashchange", syncPublicPage);
+    };
   }, []);
 
   const handleStartCheckout = useCallback(async (options = {}) => {
@@ -349,7 +360,14 @@ export function Root() {
 
   function openAuth(action = null) {
     updatePostAuthAction(action);
+    window.history.pushState({}, "", publicAuthUrl(window.location.href, true));
     setShowAuth(true);
+  }
+
+  function returnToLanding() {
+    updatePostAuthAction(null);
+    window.history.replaceState({}, "", publicAuthUrl(window.location.href, false));
+    setShowAuth(false);
   }
 
   function handleSubscribeFromLanding() {
@@ -482,7 +500,7 @@ export function Root() {
       onSubscribe={handleSubscribeFromLanding}
     />
   ) : showAuth ? (
-    <Auth onSignUpSuccess={() => updatePostAuthAction("checkout")} />
+    <Auth onSignUpSuccess={() => updatePostAuthAction("checkout")} onBack={returnToLanding} />
   ) : (
     <LandingPage
       onGetStarted={() => openAuth("checkout")}
