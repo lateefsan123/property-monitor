@@ -90,9 +90,9 @@ export default function LandingPage({
         </div>
         <figure className="landing-hero-artwork">
           <img
-            src="/landing/hero-seller-follow-up-dubai-v1.png"
+            src="/landing/hero-seller-follow-up-clean-v2.png"
             alt="Illustration of Repeat AI's seller workspace: fictional broker Omar Hassan's sample card with an anonymous suited silhouette, above a WhatsApp update on recent building transactions and an invitation to discuss selling."
-            width="1859"
+            width="1858"
             height="846"
             fetchPriority="high"
             decoding="async"
