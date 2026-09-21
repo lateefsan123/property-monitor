@@ -1,0 +1,86 @@
+{
+  "first_pass": {
+    "input_i": "-23.61",
+    "input_tp": "-5.15",
+    "input_lra": "7.10",
+    "input_thresh": "-34.53",
+    "output_i": "-16.63",
+    "output_tp": "-1.50",
+    "output_lra": "5.70",
+    "output_thresh": "-27.25",
+    "normalization_type": "dynamic",
+    "target_offset": "0.63"
+  },
+  "voice": [
+    {
+      "name": "01-open",
+      "start": 0.35,
+      "duration": 4.535083333333334,
+      "text": "Property moves fast. Your next conversation should start with the right context.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "02-sellers",
+      "start": 5.5,
+      "duration": 4.261875,
+      "text": "Meet Repeat A I. Bring your sellers together from Google Sheets and Excel.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "03-market",
+      "start": 13.6,
+      "duration": 4.670958333333333,
+      "text": "Follow the buildings you cover, and spot asking-price changes worth a conversation.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "04-ask",
+      "start": 21.45,
+      "duration": 3.085916666666667,
+      "text": "Need an answer? Just ask Repeat. Talk, or type.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "05-request",
+      "start": 25.05,
+      "duration": 2.005708333333333,
+      "text": "Show me the latest price drops.",
+      "voice": "af_sky"
+    },
+    {
+      "name": "06-message",
+      "start": 30.45,
+      "duration": 5.390083333333333,
+      "text": "Keep it personal. Start with your own words, and turn them into a WhatsApp follow-up for each seller.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "07-schedule",
+      "start": 40.5,
+      "duration": 3.55375,
+      "text": "Then plan your week by building. Choose what to follow up, and when.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "08-tools",
+      "start": 48.25,
+      "duration": 5.767375,
+      "text": "Connect your email and calendars. And work with Claude or Chat G P T, through M C P.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "09-platforms",
+      "start": 55.4,
+      "duration": 4.481083333333333,
+      "text": "At your desk, or between viewings. Keep going across web, Windows, and mobile.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "10-close",
+      "start": 62.25,
+      "duration": 3.3549166666666665,
+      "text": "Less admin. Better conversations. Repeat A I.",
+      "voice": "af_heart"
+    }
+  ]
+}

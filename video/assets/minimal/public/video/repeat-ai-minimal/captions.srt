@@ -1,0 +1,79 @@
+1
+00:00:00,350 --> 00:00:01,484
+Property moves fast.
+
+2
+00:00:01,484 --> 00:00:04,885
+Your next conversation should start with the right context.
+
+3
+00:00:05,500 --> 00:00:06,565
+Meet Repeat AI.
+
+4
+00:00:06,565 --> 00:00:09,762
+Bring your sellers together from Google Sheets and Excel.
+
+5
+00:00:13,600 --> 00:00:18,271
+Follow the buildings you cover, and spot asking-price changes worth a conversation.
+
+6
+00:00:21,450 --> 00:00:22,479
+Need an answer?
+
+7
+00:00:22,479 --> 00:00:23,507
+Just ask Repeat.
+
+8
+00:00:23,507 --> 00:00:24,536
+Talk, or type.
+
+9
+00:00:25,050 --> 00:00:27,056
+Show me the latest price drops.
+
+10
+00:00:30,450 --> 00:00:31,348
+Keep it personal.
+
+11
+00:00:31,348 --> 00:00:35,840
+Start with your own words, and turn them into a WhatsApp follow-up for each seller.
+
+12
+00:00:40,500 --> 00:00:42,140
+Then plan your week by building.
+
+13
+00:00:42,140 --> 00:00:44,054
+Choose what to follow up, and when.
+
+14
+00:00:48,250 --> 00:00:50,468
+Connect your email and calendars.
+
+15
+00:00:50,468 --> 00:00:54,017
+And work with Claude or ChatGPT, through MCP.
+
+16
+00:00:55,400 --> 00:00:57,468
+At your desk, or between viewings.
+
+17
+00:00:57,468 --> 00:00:59,881
+Keep going across web, Windows, and mobile.
+
+18
+00:01:02,250 --> 00:01:03,368
+Less admin.
+
+19
+00:01:03,368 --> 00:01:04,487
+Better conversations.
+
+20
+00:01:04,487 --> 00:01:05,605
+Repeat AI.
