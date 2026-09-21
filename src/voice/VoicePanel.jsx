@@ -10,6 +10,7 @@ import { createVoiceWorkspace, voiceResultCards } from '../../shared/voice-works
 import { createBrowserVoiceTransport } from './voice-transport';
 import './voice.css';
 import MatrixOrb from './MatrixOrb';
+import { ASSISTANT_PROMPTS } from '../../shared/assistant-prompts.js';
 
 const sessionRequest = createVoiceRequest({ getSession: () => supabase.auth.getSession(), url: '/api/voice' });
 export default function VoicePanel({ userId, onOpenChange }) {
@@ -17,6 +18,7 @@ export default function VoicePanel({ userId, onOpenChange }) {
   const [open, setOpen] = useState(false), [captions, setCaptions] = useState(false);
   const [draft, setDraft] = useState('');
   const chatEnd = useRef(null);
+  const composer = useRef(null);
   const cache = useQueryClient();
   const workspace = useMemo(() => createVoiceWorkspace({ supabase, userId, fetchPriceDrops: fetchListingPriceDrops,
     onChanged: () => cache.invalidateQueries() }), [userId, cache]);
@@ -41,22 +43,20 @@ export default function VoicePanel({ userId, onOpenChange }) {
     {open && <section className="assistant-panel" role="dialog" aria-label="Repeat AI assistant" onKeyDown={event => { if (event.key === 'Escape') dismiss(); }}>
       <header className="assistant-header"><span>Repeat AI</span><div className="assistant-header-actions"><button type="button" disabled={voice.sending} aria-label="New chat" onClick={voice.newChat}>+</button><button ref={closeButton} type="button" aria-label="Close and end conversation" onClick={dismiss}><X size={20} /></button></div></header>
       <div className="assistant-body">
-        <MatrixOrb className="assistant-matrix-orb" size={cards.length || voice.messages.length ? 64 : 160} color="currentColor"
+        <MatrixOrb className="assistant-matrix-orb" size={cards.length || voice.messages.length ? 64 : 104} color="currentColor"
           state={voice.chatting || voice.loading || voice.sending || voice.state === 'connecting' ? 'thinking' : voice.state === 'listening' ? 'listening' : 'idle'}
           labels={{ idle: '', listening: '', thinking: '' }} aria-hidden="true" />
         <h2 role="status">{title}</h2>
-        {!voice.result && !voice.messages.length && <p className="assistant-hint">Your account, sellers and follow-ups.<br />Type a message or talk to me.</p>}
+        {!voice.result && !voice.messages.length && <p className="assistant-hint">Sales, market insights and your sellers.<br />Type a message or talk to me.</p>}
         <div className="assistant-chat-log" role="log" aria-label="Conversation">
           {voice.messages.map((message, index) => <p key={index} className={`assistant-chat-message is-${message.role}`}><span className="assistant-speaker">{message.role === 'user' ? 'You' : 'Repeat AI'}: </span>{message.content}</p>)}
           {voice.chatting && <p role="status">Thinking…</p>}
           <div ref={chatEnd} />
         </div>
-        <div className="assistant-suggestions">
-          <button disabled={voice.loading} onClick={() => voice.show('account_profile')}>My account</button>
-          <button disabled={voice.loading} onClick={() => voice.show('find_leads', { query: '', status: '', offset: '0' })}>My leads</button>
-          <button disabled={voice.loading} onClick={() => voice.show('price_drops', { building: '' })}>Price drops</button>
-          <button disabled={voice.loading} onClick={() => voice.show('automation_status')}>Automations</button>
-        </div>
+        {!voice.messages.length && !voice.result && <div className="assistant-suggestions" aria-label="Example questions">
+          {ASSISTANT_PROMPTS.map(prompt => <button key={prompt} disabled={voice.loading || voice.chatting || voice.sending || !!voice.preview}
+            onClick={() => { setDraft(prompt); composer.current?.focus(); }}>{prompt}</button>)}
+        </div>}
         {voice.loading && <p role="status">Checking your workspace…</p>}
         {voice.error && <p className="assistant-error" role="alert">{voice.error}</p>}
         {voice.notice && <p role="status">{voice.notice}</p>}
@@ -78,7 +78,7 @@ export default function VoicePanel({ userId, onOpenChange }) {
       </div>
       <footer className="assistant-footer">
         <form className="assistant-composer" onSubmit={event => { event.preventDefault(); if (draft.trim()) { void voice.sendText(draft); setDraft(''); } }}>
-          <textarea aria-label="Message Repeat AI" placeholder="Ask Repeat anything…" value={draft} maxLength={4000} rows={2}
+          <textarea ref={composer} aria-label="Message Repeat AI" placeholder="Ask Repeat anything…" value={draft} maxLength={4000} rows={2}
             disabled={voice.chatting || voice.sending || !!voice.preview} onChange={event => setDraft(event.target.value)}
             onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form.requestSubmit(); } }} />
           {voice.chatting ? <button type="button" aria-label="Stop response" onClick={voice.stopChat}><X size={20} /></button>

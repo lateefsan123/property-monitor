@@ -14,7 +14,7 @@
 .assistant-orb.is-active { animation: assistant-breathe 3s ease-in-out infinite alternate; }
 .assistant-body { flex: 1; min-height: 0; overflow-y: auto; padding: 20px; overscroll-behavior: contain; }
 .assistant-body h2 { text-align: center; font-weight: 500; font-size: 24px; letter-spacing: -.6px; margin: 8px 0; color: inherit; }
-.assistant-hint { text-align: center; color: #71727d; }
+.assistant-hint { text-align: center; color: #71727d; margin: 8px 0; }
 .assistant-suggestions { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; margin: 24px 0; }
 .assistant-suggestions button, .assistant-approval button { background: white; border: 1px solid #cdd0da; border-radius: 10px; padding: 9px 12px; color: #343743; }
 .assistant-results h3, .assistant-approval h3 { font-size: 15px; margin: 20px 0 8px; }
@@ -51,6 +51,8 @@
 .repeat-assistant audio:not([hidden]) { position: absolute; bottom: 100%; right: 0; width: min(300px, 100%); }
 .assistant-matrix-orb { margin: 4px auto 12px; color: var(--text); }
 .assistant-header-actions { display: flex; gap: 8px; }
+.assistant-suggestions { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 12px 0 0; }
+.assistant-suggestions button { text-align: left; padding: 10px 12px; white-space: normal; }
 .assistant-chat-log { display: flex; flex-direction: column; gap: 12px; }
 .assistant-chat-message { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 10px 12px; border-radius: 14px; text-align: left; }
 .assistant-chat-message.is-user { background: var(--bg-hover); align-self: flex-end; max-width: 90%; }

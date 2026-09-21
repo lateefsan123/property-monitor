@@ -12,12 +12,14 @@ import { createVoiceRequest } from '../../../shared/voice-request';
 import { useVoice } from '../../../shared/use-voice';
 import { createVoiceWorkspace, voiceResultCards } from '../../../shared/voice-workspace';
 import { createNativeVoiceTransport } from './voice-transport';
+import { ASSISTANT_PROMPTS } from '../../../shared/assistant-prompts';
 
 const sessionRequest = createVoiceRequest({ getSession: () => supabase.auth.getSession(), url: 'https://repeatai.org/api/voice' });
 export default function VoicePanel({ colors, userId }) {
   const [open, setOpen] = useState(false), [captions, setCaptions] = useState(false);
   const [draft, setDraft] = useState('');
   const scroll = useRef(null);
+  const composer = useRef(null);
   const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const cache = useQueryClient();
@@ -53,17 +55,17 @@ export default function VoicePanel({ colors, userId }) {
         <ScrollView ref={scroll} keyboardShouldPersistTaps="handled" contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 22, gap: 14 }}>
           <LinearGradient colors={['#f2f6ff', '#acbddf', '#9583b0', '#e6dfea']} start={{ x: .1, y: 0 }} end={{ x: .9, y: 1 }} style={{ alignSelf: 'center', width: cards.length ? 64 : 116, height: cards.length ? 64 : 116, borderRadius: 60, marginTop: cards.length ? 0 : 18, marginBottom: 10 }} />
           <Text accessibilityLiveRegion="polite" style={{ ...text, textAlign: 'center', fontSize: 25, lineHeight: 32, fontWeight: '500' }}>{title}</Text>
-          {!voice.result && !voice.messages.length && <Text style={{ ...muted, textAlign: 'center' }}>Your account, sellers and follow-ups. Type or talk to me.</Text>}
+          {!voice.result && !voice.messages.length && <Text style={{ ...muted, textAlign: 'center' }}>Sales, market insights and your sellers. Type or talk to me.</Text>}
           {voice.messages.map((message, index) => <View key={index} style={{ alignSelf: message.role === 'user' ? 'flex-end' : 'stretch', backgroundColor: message.role === 'user' ? colors.bgInput : 'transparent', borderRadius: 14, padding: 12 }}>
             <Text selectable accessibilityLabel={`${message.role === 'user' ? 'You' : 'Repeat AI'}: ${message.content}`} style={text}>{message.content}</Text>
           </View>)}
           {voice.chatting && <Text accessibilityLiveRegion="polite" style={muted}>Thinking…</Text>}
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 8 }}>
-            <Button colors={colors} disabled={voice.loading} onPress={() => voice.show('account_profile')}>My account</Button>
-            <Button colors={colors} disabled={voice.loading} onPress={() => voice.show('find_leads', { query: '', status: '', offset: '0' })}>My leads</Button>
-            <Button colors={colors} disabled={voice.loading} onPress={() => voice.show('price_drops', { building: '' })}>Price drops</Button>
-            <Button colors={colors} disabled={voice.loading} onPress={() => voice.show('automation_status')}>Automations</Button>
-          </View>
+          {!voice.messages.length && !voice.result && <View style={{ gap: 8 }}>
+            {ASSISTANT_PROMPTS.map(prompt => <Pressable key={prompt} accessibilityRole="button" disabled={voice.loading || voice.chatting || voice.sending || !!voice.preview}
+              onPress={() => { setDraft(prompt); composer.current?.focus(); }} style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 12, padding: 12, backgroundColor: colors.bgInput }}>
+              <Text style={text}>{prompt}</Text>
+            </Pressable>)}
+          </View>}
           {voice.loading && <Text style={muted}>Checking your workspace…</Text>}
           {voice.error ? <Text selectable accessibilityRole="alert" style={text}>{voice.error}</Text> : null}
           {voice.notice ? <Text selectable accessibilityLiveRegion="polite" style={text}>{voice.notice}</Text> : null}
@@ -89,7 +91,7 @@ export default function VoicePanel({ colors, userId }) {
         </ScrollView>
         <View style={{ padding: 18, gap: 12, borderTopWidth: .5, borderColor: colors.border }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, borderWidth: 1, borderColor: colors.border, borderRadius: 16, padding: 10, backgroundColor: colors.bgInput }}>
-            <TextInput accessibilityLabel="Message Repeat AI" placeholder="Ask Repeat anything…" placeholderTextColor={colors.textMuted}
+            <TextInput ref={composer} accessibilityLabel="Message Repeat AI" placeholder="Ask Repeat anything…" placeholderTextColor={colors.textMuted}
               value={draft} onChangeText={setDraft} multiline maxLength={4000} editable={!voice.chatting && !voice.sending && !voice.preview}
               style={{ ...text, flex: 1, minHeight: 40, maxHeight: 90 }} />
             {voice.chatting ? <Button colors={colors} onPress={voice.stopChat}>Stop</Button> : <Button colors={colors} primary disabled={!draft.trim() || voice.sending || !!voice.preview}

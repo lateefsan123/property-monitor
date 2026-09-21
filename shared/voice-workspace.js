@@ -1,8 +1,11 @@
+import { createAssistantMarket, marketResultCards } from './assistant-market.js';
+
 // The model can read account data and PREPARE changes. Only the visible UI can
 // execute a pending change; no approval capability is exposed as a model tool.
 export function createVoiceWorkspace({ supabase, userId, fetchPriceDrops, onChanged = () => {} }) {
   let pending = null;
   const knownLeads = new Set();
+  const market = createAssistantMarket({ supabase });
   async function identity(signal) {
     if (signal?.aborted) throw new Error('Conversation ended.');
     const { data, error } = await supabase.auth.getUser();
@@ -22,6 +25,7 @@ export function createVoiceWorkspace({ supabase, userId, fetchPriceDrops, onChan
   }
   async function read(name, args, signal) {
     const user = await identity(signal);
+    if (['market_locations', 'market_sales', 'market_listings'].includes(name)) return market.read(name, args, signal);
     if (name === 'account_profile') return { title: 'Your account', items: [{ name: String(user.user_metadata?.full_name || user.user_metadata?.name || 'Repeat AI account').slice(0, 120), content: user.email || '' }] };
     if (name === 'find_leads') {
       const offset = Number(args.offset);
@@ -152,6 +156,7 @@ const money = value => Number.isFinite(value) ? `AED ${value.toLocaleString('en-
 // A bounded, shared presentation contract: no raw JSON or internal IDs in cards.
 export function voiceResultCards(result) {
   if (!result) return [];
+  if (['market-locations', 'market-sales', 'market-listings'].includes(result.kind)) return marketResultCards(result);
   if (result.rows) return result.rows.slice(0, 20).map((row, i) => ({ title: `Row ${i + 1}`, detail: row.join(' · ') }));
   return (result.items || []).slice(0, 20).map(item => {
     if (result.kind === 'price-drops') return { title: item.buildingName || item.title || 'Listing', detail: `${money(item.previousPrice)} → ${money(item.price)}`, meta: item.verifiedAt ? `Recorded ${new Date(item.verifiedAt).toLocaleDateString('en-GB')}` : 'Date unavailable' };

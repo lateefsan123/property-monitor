@@ -6,6 +6,12 @@ const tool = (name, description, properties) => ({
 });
 
 export const VOICE_TOOLS = [
+  tool('market_locations', 'Find exact buildings in imported sales or locations on Bayut. Use source sales before market_sales, bayut before market_listings. Use returned keys; ask if multiple plausible towers. For an area-wide sales query use market_sales area instead of choosing one building.', { query: text, source: { type: 'string', enum: ['sales', 'bayut'] } }),
+  tool('market_sales', 'Analyze imported CSV/market-cache SALES, not asking prices. Requires a resolved building_key OR an area name. Dates YYYY-MM-DD inclusive, max one year. Empty string means no optional filter. beds is bedroom count or studio. Size bounds in sq ft find comparable candidates. Returns calculated totals, mean, median, area-weighted AED/sqft, coverage and latest 20 sales. Never aggregate the 20 displayed rows yourself. If incomplete, narrow query: totals withheld. Compare areas/periods with separate calls and explain coverage. No claim of all Dubai sales or formal valuation.', {
+    building_key: text, area: text, start_date: text, end_date: text, beds: text,
+    property_type: { type: 'string', enum: ['', 'apartment', 'villa'] }, min_area_sqft: text, max_area_sqft: text,
+  }),
+  tool('market_listings', 'Read Bayut apartment sale listing samples for a location returned by market_locations source bayut. These are ASKING prices, not achieved sales. May be cached up to one hour and incomplete. Never infer total inventory, market averages, rental yields or sale prices from this sample. beds is bedroom count, studio, or empty.', { location_key: text, beds: text }),
   tool('account_profile', 'Read the signed-in account name and email. Not billing, credits or subscription status.', {}),
   tool('lead_details', 'Read details and saved notes for a seller ID returned by find_leads. Resolve ambiguous names first.', { lead_id: text }),
   tool('prepare_lead_note', 'Draft an appended note for a seller found by find_leads. Keep existing notes. Never save until the user presses Confirm change.', { lead_id: text, note: text }),
@@ -39,7 +45,7 @@ export async function executeVoiceTool(name, args, { request, workspace, onResul
     if (typeof value !== 'string' || value.length > 8000 || (schema.enum && !schema.enum.includes(value))) throw new Error('Invalid voice action.');
   }
   if (signal?.aborted) throw new Error('Conversation ended.');
-  if (['account_profile', 'find_leads', 'lead_details', 'price_drops', 'workspace_spreadsheets', 'message_templates', 'automation_status', 'send_activity'].includes(name)) {
+  if (['market_locations', 'market_sales', 'market_listings', 'account_profile', 'find_leads', 'lead_details', 'price_drops', 'workspace_spreadsheets', 'message_templates', 'automation_status', 'send_activity'].includes(name)) {
     if (!workspace) throw new Error('Workspace unavailable.');
     const result = await workspace.read(name, args, signal);
     if (signal?.aborted) throw new Error('Conversation ended.');
