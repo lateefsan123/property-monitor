@@ -37,6 +37,23 @@ export const LANDING_PRODUCT_SECTIONS = [
     alt: "Illustrative apartment and sample listing, not a live property: a two-bedroom Forte 2 asking price falls from AED 3.1M to AED 2.9M, a reduction of AED 200K.",
   },
   {
+    id: "ask-repeat",
+    title: "Just ask Repeat.",
+    description: "Talk or type to explore sales and asking prices, find sellers, and prepare notes and follow-ups. Early access; you review changes before they happen.",
+    prompts: [
+      "What sold in Forte 2 last month?",
+      "Show me the latest price drops.",
+      "Draft a follow-up template for my sellers.",
+    ],
+    image: "product-assistant-sales-v1.png",
+    width: 1942,
+    height: 809,
+    mobileImage: "product-assistant-sales-mobile-v1.png",
+    mobileWidth: 1122,
+    mobileHeight: 1402,
+    alt: "Illustrative Ask Repeat conversation: a broker asks what sold in Forte 2 last month and receives five imported sales for August 2026, with an area-weighted AED 3,034 per square foot. Microphone and text controls show both ways to ask. This is a fixed example, not a live market quote.",
+  },
+  {
     id: "message-templates",
     title: "Your message. Made personal.",
     description: "Save your wording and broker card. Personalise each update with the seller’s name, building and transactions.",

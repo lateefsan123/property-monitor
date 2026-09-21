@@ -46,6 +46,10 @@
   --product-artwork-background: #e6dff4;
 }
 
+#ask-repeat {
+  --product-artwork-background: #e0d9f1;
+}
+
 #message-templates {
   --product-artwork-background: #dff0ea;
 }
@@ -68,6 +72,23 @@
   display: block;
 }
 
+.landing-assistant-prompts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.landing-assistant-prompts li {
+  border-top: 1px solid #ddd8e7;
+  padding-top: 16px;
+  font-size: 18px;
+  line-height: 1.5;
+  letter-spacing: -0.02em;
+}
+
 @media (max-width: 860px) {
   .landing-product-story {
     padding-bottom: 72px;
@@ -80,6 +101,11 @@
 }
 
 @media (max-width: 600px) {
+  .landing-assistant-prompts {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
   .landing-product-story {
     padding: 0 20px 64px;
     scroll-margin-top: 24px;

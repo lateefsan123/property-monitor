@@ -152,14 +152,14 @@ export default function LandingPage({
               <source media="(max-width: 600px)" srcSet="/landing/connected-workspace-mobile-v1.png" width="1060" height="1484" />
               <img
                 src="/landing/connected-workspace-v1.png"
-                alt="Excel and Google Sheets, Bayut market data, WhatsApp, and AI tools Claude and ChatGPT via MCP connect with Repeat AI for organised sellers, market activity and WhatsApp follow-ups. Email and calendar connections are planned."
+                alt="Excel and Google Sheets, Bayut market data, WhatsApp, and AI tools Claude and ChatGPT via MCP connect with Repeat AI for organised sellers, market activity and WhatsApp follow-ups."
                 width="1983"
                 height="793"
                 loading="lazy"
                 decoding="async"
               />
             </picture>
-            <figcaption>AI tools require an MCP connection. Email and calendar connections are planned.</figcaption>
+            <figcaption>Claude and ChatGPT connect via MCP. Ask Repeat is built in, with access currently limited to approved early-access accounts.</figcaption>
           </figure>
         </div>
       </section>

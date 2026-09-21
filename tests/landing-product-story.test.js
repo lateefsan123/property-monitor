@@ -5,7 +5,7 @@ import { LANDING_PRODUCT_SECTIONS } from "../src/landing-product-sections.js";
 
 test("product story covers the complete journey once, in order", () => {
   assert.deepEqual(LANDING_PRODUCT_SECTIONS.map(({ id }) => id), [
-    "product-details", "seller-workspace", "market-activity",
+    "product-details", "seller-workspace", "market-activity", "ask-repeat",
     "message-templates", "whatsapp-follow-ups",
   ]);
   for (const section of LANDING_PRODUCT_SECTIONS) {
@@ -20,10 +20,24 @@ test("fictional landing names are consistent across the Dubai seller journey", (
   for (const name of ['Ahmed Mansoori', 'Priya Shah', 'Daniel Reed', 'Omar Hassan']) {
     assert.ok(allAlt.includes(name));
   }
-  for (const section of LANDING_PRODUCT_SECTIONS.filter(section => section.id !== 'market-activity')) {
+  for (const section of LANDING_PRODUCT_SECTIONS.filter(section => !['market-activity', 'ask-repeat'].includes(section.id))) {
     assert.match(section.image, /dubai-v1\.png$/);
     assert.match(section.mobileImage, /dubai-v1\.png$/);
   }
+});
+
+test("assistant story distinguishes imported sales and limited access", () => {
+  const section = LANDING_PRODUCT_SECTIONS.find(section => section.id === 'ask-repeat');
+  assert.match(section.description, /Talk or type/);
+  assert.match(section.description, /Early access/);
+  assert.match(section.description, /review changes/);
+  assert.match(section.alt, /imported sales/);
+  assert.match(section.alt, /not a live market quote/);
+  assert.equal(section.prompts.length, 3);
+  assert.match(section.prompts.join(' '), /sold.*price drops.*template/);
+  const page = readFileSync(new URL('../src/LandingPage.jsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(page, /Email and calendar connections are planned/);
+  assert.match(page, /approved early-access accounts/);
 });
 
 test("every desktop and mobile artwork exists with accurate intrinsic dimensions", () => {

@@ -28,6 +28,11 @@ const productStory = LANDING_PRODUCT_SECTIONS.map((section) => (
           />
         </picture>
       </figure>
+      {section.prompts && (
+        <ul className="landing-assistant-prompts" aria-label="Things you can ask Repeat">
+          {section.prompts.map(prompt => <li key={prompt}>“{prompt}”</li>)}
+        </ul>
+      )}
     </div>
   </section>
 ));

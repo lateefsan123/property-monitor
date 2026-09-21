@@ -25,8 +25,9 @@ test("invalid and blocked storage cannot break the tour", () => {
   assert.doesNotThrow(() => readTourState(blocked, "a"));
   assert.doesNotThrow(() => saveTourState(blocked, "a", 1));
 });
-test("seven steps use real destinations and existing product assets", () => {
-  assert.equal(TOUR_STEPS.length, 7);
+test("nine steps use real destinations and existing product assets", () => {
+  assert.equal(TOUR_STEPS.length, 9);
+  assert.equal(new Set(TOUR_STEPS.map(step => step.id)).size, 9);
   for (const step of TOUR_STEPS) {
     assert.ok(["home", "sellers", "spreadsheets", "listing-alerts"].includes(step.page));
     assert.ok(existsSync(new URL(`../public/landing/${step.image}`, import.meta.url)));
@@ -62,9 +63,31 @@ test("Next, Back, actions, completion, restart and Escape preserve the journey",
   click('repeat-tour-link'); assert.equal(actions.at(-1), 'message-template'); assert.equal(state.open, false);
   click('repeat-tour-launcher'); assert.equal(state.step, 4);
   click('repeat-tour-next'); click('repeat-tour-link'); assert.equal(actions.at(-1), 'settings');
-  click('repeat-tour-launcher'); click('repeat-tour-next'); click('repeat-tour-next'); assert.equal(state.open, false);
+  click('repeat-tour-launcher');
+  while (state.step < TOUR_STEPS.length - 1) click('repeat-tour-next');
+  click('repeat-tour-next'); assert.equal(state.open, false);
   click('repeat-tour-launcher'); assert.equal(state.step, 0);
   render().props.onKeyDown({ key: 'Escape', stopPropagation() {} }); assert.equal(state.open, false);
+});
+
+test("assistant steps teach sources and confirmation without claiming automatic sends", () => {
+  const ask = TOUR_STEPS.find(step => step.id === 'ask-repeat');
+  const actions = TOUR_STEPS.find(step => step.id === 'assistant-actions');
+  assert.equal(ask.target, '.assistant-launcher');
+  assert.match(ask.description, /approved accounts/);
+  assert.match(ask.description, /source and dates/);
+  assert.match(actions.description, /Review the preview and confirm/);
+  assert.equal(actions.target, '.assistant-launcher');
+});
+
+test("legacy completed tours remain complete and new steps resume by stable ID", () => {
+  const storage = store();
+  storage.setItem('repeat:product-tour:v1:a', JSON.stringify({ step: 6 }));
+  assert.deepEqual(readTourState(storage, 'a'), { step: 8, open: false });
+  saveTourState(storage, 'a', 6);
+  assert.deepEqual(readTourState(storage, 'a'), { step: 6, open: false });
+  storage.setItem('repeat:product-tour:v1:a', JSON.stringify({ step: 0, stepId: 'assistant-actions' }));
+  assert.deepEqual(readTourState(storage, 'a'), { step: 7, open: false });
 });
 
 test("artwork retains its palette in dark mode and launcher uses a fixed-size icon", () => {
