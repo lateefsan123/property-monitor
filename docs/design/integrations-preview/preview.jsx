@@ -10,6 +10,10 @@ async function request({ action, provider, feature, input }) {
   if (mode === 'error' && !failed) { failed = true; throw new Error('Connections are unavailable. Please try again.'); }
   if (action === 'status') return { connections };
   if (mode === 'tools' && action === 'read') {
+    if (feature === 'calendar') return { kind: 'calendar', items: [
+      { id: 'viewing', title: 'Marina Gate viewing', start: '2026-09-22T14:00:00', timeZone: 'Asia/Dubai', location: 'Dubai Marina', allDay: false },
+      { id: 'handover', title: 'Property handover', start: '2026-09-23', location: '', allDay: true },
+    ] };
     if (provider === 'google' && feature === 'sheets' && !input.spreadsheetId) return { kind: 'file-list', items: [{ id: 'sample', name: 'Dubai sellers' }] };
     if (input.tabs) return { kind: 'worksheet-list', items: [{ name: 'Sellers' }, { name: 'Viewings' }] };
     if (feature === 'email') return { kind: 'email', items: [{ id: 'sample', subject: 'Viewing tomorrow', from: 'broker@example.com', snippet: 'Can we arrange a viewing tomorrow afternoon?' }] };

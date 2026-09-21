@@ -21,10 +21,18 @@ export default function IntegrationWorkspace({ provider, feature, connection, re
     run(async () => { const result = await request({ action: 'read', provider, feature, input }); setData(result); setQuery(''); });
   }
   function edit(key, value) { setDraft(current => ({ ...current, [key]: value })); setPreview(null); }
-  const upgradeNeeded = feature === 'email' ? !connection.canSend : provider === 'microsoft' && !connection.canReadWorkbook;
+  const upgradeNeeded = feature === 'email' ? !connection.canSend : feature === 'sheets' && provider === 'microsoft' && !connection.canReadWorkbook;
   return <section className="integration-workspace" aria-label={`${provider} ${feature} workspace`}>
     {error && <p role="alert">{error}</p>}
     {notice && <p role="status">{notice}</p>}
+    {feature === 'calendar' && <>
+      <button type="button" disabled={busy} onClick={() => read()}>Show upcoming events</button>
+      {data?.kind === 'calendar' && data.items.map(item => <article className="integration-message" key={item.id}>
+        <strong>{item.title || 'Untitled event'}</strong>
+        <p><time dateTime={item.start}>{item.start.replace('T', ' ')}</time>{item.allDay ? ' · All day' : item.timeZone ? ` · ${item.timeZone}` : ''}</p>
+        {item.location && <small>{item.location}</small>}
+      </article>)}
+    </>}
     {upgradeNeeded && <div className="integration-upgrade">
       <p>{feature === 'email' ? 'Sending needs an extra permission. Every email still requires your confirmation.' : 'Microsoft requires read/write file permission to read workbook cells. Repeat AI will only read your spreadsheet.'}</p>
       <button disabled={busy} onClick={() => upgrade(feature === 'email' ? 'send' : 'workbook')}>{feature === 'email' ? 'Enable sending' : 'Enable workbook reading'}</button>

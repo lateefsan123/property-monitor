@@ -65,7 +65,7 @@ export default function IntegrationConnectionsPanel({ request = integrationReque
         </button>
       </div>{expanded && connection?.connected && <div className="integration-detail" id={`integration-${id}`}>
         <p className="integration-access">{connection.canSend ? 'Reading and sending enabled. Every send needs your confirmation.' : 'Read-only access. Your files and events stay unchanged.'}</p>
-        {feature !== 'calendar' && <IntegrationWorkspace key={id} provider={provider} feature={feature} connection={connection} request={request} upgrade={capability => change(provider, feature, false, capability)} />}
+        <IntegrationWorkspace key={id} provider={provider} feature={feature} connection={connection} request={request} upgrade={capability => change(provider, feature, false, capability)} />
         <button className="integration-disconnect" type="button" disabled={Boolean(busy)} onClick={() => setConfirmId(id)}>Disconnect {name}</button>
         {confirmId === id && <div className="integration-confirm" role="group" aria-label={`Disconnect ${name}`}>
         <p>Disconnect {name} from Repeat AI? Your files and account stay untouched. To revoke permission too, remove Repeat AI in your {provider === 'google' ? 'Google' : 'Microsoft'} account settings.</p>
