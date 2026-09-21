@@ -1,0 +1,33 @@
+.repeat-tour { position: fixed; right: 24px; bottom: 24px; z-index: 950; color: #323338; font-family: inherit; font-size: 14px; line-height: 1.5; }
+.repeat-tour-card { width: 380px; max-height: calc(100dvh - 48px); overflow: auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 22px #0002; }
+.repeat-tour-visual { position: relative; height: 250px; overflow: hidden; background: #e2efed; border-radius: 8px 8px 0 0; }
+.repeat-tour-visual img { display: block; width: 100%; height: 100%; object-fit: contain; }
+.repeat-tour button { font: inherit; cursor: pointer; }
+.repeat-tour-close { position: absolute; top: 8px; right: 8px; border: 0; border-radius: 4px; width: 32px; height: 32px; background: #ffffffe6; color: #323338; font-size: 24px !important; }
+.repeat-tour-copy { padding: 24px; }
+.repeat-tour-copy h2 { font-size: 18px; line-height: 1.4; font-weight: 600; margin: 0 0 8px; color: #323338; }
+.repeat-tour-copy p { font-size: 14px; line-height: 1.6; margin: 0; color: #55565c; min-height: 66px; }
+.repeat-tour-controls { display: flex; align-items: center; gap: 10px; margin-top: 28px; }
+.repeat-tour-controls progress { appearance: none; width: 90px; height: 8px; border: 0; border-radius: 8px; overflow: hidden; background: #e6e7eb; }
+.repeat-tour-controls progress::-webkit-progress-bar { background: #e6e7eb; border-radius: 8px; }
+.repeat-tour-controls progress::-webkit-progress-value { background: #007f91; border-radius: 8px; }
+.repeat-tour-controls progress::-moz-progress-bar { background: #007f91; }
+.repeat-tour-count { font-size: 11px; color: #666; margin-right: auto; white-space: nowrap; }
+.repeat-tour-next { color: white; background: #007f91; border: 1px solid #007f91; padding: 9px 15px; border-radius: 4px; white-space: nowrap; }
+.repeat-tour-back, .repeat-tour-link { background: transparent; color: #323338; border: 0; padding: 8px 4px; }
+.repeat-tour-link { color: #006e80; margin-top: 10px; text-decoration: underline; text-underline-offset: 3px; }
+.repeat-tour-launcher { display: flex; align-items: center; gap: 8px; border: 1px solid #d0d4d9; border-radius: 24px; background: white; color: #323338; box-shadow: 0 3px 12px #0002; padding: 10px 16px; }
+.repeat-tour-launcher span { display: grid; place-items: center; border: 1.5px solid currentColor; border-radius: 50%; width: 20px; height: 20px; }
+.repeat-tour button:hover { filter: brightness(.94); }
+.repeat-tour button:focus-visible { outline: 2px solid #007f91; outline-offset: 3px; }
+.repeat-tour-copy h2:focus { outline: none; }
+.repeat-tour-target { outline: 3px solid #007f91 !important; outline-offset: 5px; border-radius: 4px; }
+@media (max-width: 600px) {
+  .repeat-tour { right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); }
+  .repeat-tour-card { width: min(380px, calc(100vw - 24px)); max-height: calc(100dvh - 90px); }
+  .repeat-tour-visual { height: 170px; }
+  .repeat-tour-copy { padding: 20px; }
+  .repeat-tour-controls { gap: 8px; }
+  .repeat-tour-controls progress { width: 60px; }
+}
+@media (max-height: 600px) { .repeat-tour-visual { height: 120px; } }

@@ -17,6 +17,7 @@ import CreateNewModal from "./features/home/CreateNewModal";
 import MessageTemplatesPanel from "./features/seller-signal/components/MessageTemplatesPanel";
 import { useSellerSignalMessageTemplates } from "./features/seller-signal/useSellerSignalMessageTemplates";
 import ThemeToggleButton from "./components/ThemeToggleButton";
+import ProductTour from "./components/ProductTour";
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 
 const VALID_PAGES = new Set(["home", "sellers", "listing-alerts", "spreadsheets"]);
@@ -189,6 +190,8 @@ export default function AppShell({ displayName, userId }) {
           userId={userId}
         />
       )}
+
+      {!createOpen && !messageTemplatesOpen && !settingsOpen && <ProductTour key={userId} userId={userId} onNavigate={handleNavigate} onAction={handleSidebarAction} />}
 
       <div className="app-main">
         <header className={`app-topbar${scrolled ? " app-topbar-scrolled" : ""}`}>
