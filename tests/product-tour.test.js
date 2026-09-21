@@ -6,6 +6,9 @@ import vm from "node:vm";
 import { transform } from "esbuild";
 
 function store() { const data = new Map(); return { getItem: key => data.get(key), setItem: (key, value) => data.set(key, value) }; }
+test("Listings uses listing and price-drop artwork, not seller artwork", () => {
+  assert.equal(TOUR_STEPS.find(step => step.page === "listing-alerts").image, "product-market-story-colour-v2.png");
+});
 test("new users get the tour; dismissed users resume their own step", () => {
   const storage = store();
   assert.deepEqual(readTourState(storage, "a"), { step: 0, open: true });
