@@ -1,0 +1,104 @@
+/* Reference: 1280px wide, four 302px panels, 24px gutters. */
+.landing-stack {
+  color-scheme: light;
+  color: #242320;
+  background: #fff;
+  padding: 32px 24px 112px;
+  scroll-margin-top: 32px;
+}
+
+.landing-stack-inner {
+  max-width: 1280px;
+  margin-inline: auto;
+}
+
+.landing-stack h2 {
+  margin: 0 0 24px;
+  font-size: 48px;
+  font-weight: 500;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+}
+
+.landing-stack-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 24px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.landing-stack-grid:focus-visible {
+  outline: 2px solid #242320;
+  outline-offset: 6px;
+}
+
+.landing-stack-panel {
+  min-width: 0;
+}
+
+.landing-stack-panel img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid #45433e;
+  background: #f3f0ea;
+}
+
+.landing-stack-panel h3 {
+  max-width: 270px;
+  margin: 16px auto 0;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+  .landing-stack-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    row-gap: 32px;
+  }
+}
+
+@media (max-width: 860px) {
+  .landing-stack {
+    padding-top: 24px;
+    padding-bottom: 72px;
+  }
+
+  .landing-stack h2 {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 600px) {
+  .landing-stack {
+    padding: 16px 20px 64px;
+    scroll-margin-top: 24px;
+  }
+
+  .landing-stack h2 {
+    max-width: 350px;
+    font-size: 32px;
+  }
+
+  .landing-stack-grid {
+    display: flex;
+    gap: 16px;
+    margin-inline: -20px;
+    padding: 0 20px 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: 20px;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+
+  .landing-stack-panel {
+    flex: 0 0 86%;
+    scroll-snap-align: start;
+  }
+}

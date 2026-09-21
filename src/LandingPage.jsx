@@ -1,5 +1,6 @@
 import { useState } from "react";
 import LandingProductStory from "./LandingProductStory";
+import LandingConnectedStack from "./LandingConnectedStack";
 import "./styles/landing.css";
 import "./styles/landing-overview.css";
 import "./styles/landing-product-story.css";
@@ -186,6 +187,7 @@ export default function LandingPage({
       </section>
 
       <LandingProductStory />
+      <LandingConnectedStack />
 
       <section className="landing-pricing" id="pricing">
         <div className="landing-pricing-header">
