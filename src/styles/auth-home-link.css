@@ -1,21 +1,29 @@
-.auth-form-container .auth-home-link {
-  display: block;
-  width: fit-content;
-  margin: 0 0 24px;
-  padding: 8px 0;
-  border: 0;
-  background: transparent;
-  color: #68645d;
+.auth-entry .auth-pane--form {
+  position: relative;
+  padding-top: 104px;
+}
+
+.auth-entry .auth-home-link {
+  position: absolute;
+  top: 24px;
+  left: 32px;
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--auth-control-border, #858585);
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
   font: inherit;
   font-size: 13px;
   cursor: pointer;
 }
 
-.auth-form-container .auth-home-link:hover {
-  color: #242320;
+.auth-entry .auth-home-link:hover {
+  background: var(--bg-hover);
 }
 
-.auth-form-container .auth-home-link:focus-visible {
-  outline: 2px solid #242320;
-  outline-offset: 4px;
+@media (max-width: 600px) {
+  .auth-entry .auth-home-link { top: 20px; left: 20px; }
 }

@@ -32,3 +32,18 @@ test("login and verification screens both offer an optional home action", () => 
   assert.equal((auth.match(/onClick=\{onBack\}/g) || []).length, 2);
   assert.equal((auth.match(/← Back to home/g) || []).length, 2);
 });
+
+test("home actions sit outside the centered login and verification forms", () => {
+  const auth = readFileSync(new URL("../src/Auth.jsx", import.meta.url), "utf8");
+  assert.equal((auth.match(/className="auth-pane auth-pane--form">\s*\{onBack/g) || []).length, 2);
+  assert.doesNotMatch(auth, /className="auth-form-container">\s*\{onBack/);
+});
+
+test("auth controls have visible borders and keyboard focus", () => {
+  const css = readFileSync(new URL("../src/styles/auth.css", import.meta.url), "utf8");
+  assert.match(css, /--auth-control-border: #858585/);
+  for (const selector of ["auth-google-btn", "profile-avatar-btn", "referral-option"]) {
+    assert.match(css.match(new RegExp(`\\.${selector} \\{([^}]+)\\}`))[1], /border: 1px solid var\(--auth-control-border\)/);
+  }
+  assert.match(css, /:is\(button, a, input\):focus-visible/);
+});

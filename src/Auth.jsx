@@ -122,10 +122,10 @@ export default function Auth({ redirectToUrl, onSignUpSuccess, onBack } = {}) {
 
   if (pendingEmail) {
     return (
-      <div className="auth-split-page">
+      <div className="auth-split-page auth-entry">
         <div className="auth-pane auth-pane--form">
+          {onBack ? <button type="button" className="auth-home-link" onClick={onBack}>← Back to home</button> : null}
           <div className="auth-form-container">
-            {onBack ? <button type="button" className="auth-home-link" onClick={onBack}>← Back to home</button> : null}
             <img src={brandMarkSrc} alt="Repeat AI" className="auth-brand-mark" />
             <div className="auth-heading-group">
               <h1 className="auth-heading">Check your email</h1>
@@ -177,10 +177,10 @@ export default function Auth({ redirectToUrl, onSignUpSuccess, onBack } = {}) {
   }
 
   return (
-    <div className="auth-split-page">
+    <div className="auth-split-page auth-entry">
       <div className="auth-pane auth-pane--form">
+        {onBack ? <button type="button" className="auth-home-link" onClick={onBack}>← Back to home</button> : null}
         <div className="auth-form-container">
-          {onBack ? <button type="button" className="auth-home-link" onClick={onBack}>← Back to home</button> : null}
           <img src={brandMarkSrc} alt="Repeat AI" className="auth-brand-mark" />
           <div className="auth-heading-group">
             <h1 className="auth-heading">{heading}</h1>
