@@ -206,9 +206,9 @@ export default function LandingPage({
         </div>
         <figure className="landing-hero-artwork">
           <img
-            src="/landing/hero-seller-follow-up-v1.png"
-            alt="Illustration of Repeat AI's seller workspace with sample contacts and a scheduled WhatsApp follow-up, including a sample broker introduction card above the message."
-            width="1859"
+            src="/landing/hero-seller-follow-up-v2.png"
+            alt="Illustration of Repeat AI's seller workspace: a sample broker card above a WhatsApp update on recent building transactions and an invitation to discuss selling."
+            width="1858"
             height="846"
             fetchPriority="high"
             decoding="async"

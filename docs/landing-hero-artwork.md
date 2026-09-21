@@ -1,7 +1,7 @@
 # Hero artwork: seller follow-up
 
 - Mode: built-in imagegen, using the imagegen skill.
-- Final asset: `public/landing/hero-seller-follow-up-v1.png`
+- Final asset: `public/landing/hero-seller-follow-up-v2.png`
 - Purpose: illustrative product artwork, not a live screenshot. All seller and broker identities are fictional.
 - Reference: https://www.folk.app/ (front-facing product composition, human hands, cream surface).
 - Navigation verified against `shared/navigation.js` and `src/features/seller-signal/components/AppSidebar.jsx`.
