@@ -91,9 +91,9 @@ Production uses HTTPS. Provider console configuration/consent remains a separate
 ## Remaining before live rollout
 
 - Finish Google test-user consent and real-account connection testing for both providers.
-- Save the prepared Microsoft localhost redirect after approval. Both providers' server
+- Both providers' server
   credentials and a persistent 32-byte encryption key are configured for Vercel
-  production and development, but Microsoft currently registers only the production URI.
+  production and development, with production and localhost redirects registered.
 - Test concurrent state consumption on Postgres. Catalog privilege checks passed;
   the MCP SQL connection rejected a rollback-only mutation smoke test as read-only.
 - Configure hosting logs to redact callback query strings and authorization headers.
@@ -131,10 +131,15 @@ application supports organizational and personal Microsoft accounts. Its client 
 `41b4520e-68c4-4884-8dd4-5ef196c682e9`; the production Web redirect is
 `https://repeatai.org/integrations/callback/microsoft`. The server secret was created
 and stored in Vercel on 2026-09-21, expiring 2027-03-20. Rotate it before expiry.
-The local callback `http://localhost:5182/integrations/callback/microsoft` is prepared
-in Azure but not saved yet. No tenant-wide admin consent or user data access was granted.
+The local callback `http://localhost:5182/integrations/callback/microsoft` is saved
+and verified in Azure. No tenant-wide admin consent or user data access was granted.
 Local configuration checks report both providers configured and a 32-byte vault key;
 this is not proof of successful live consent or token exchange.
+The authenticated local Settings panel loads all six enabled Connect buttons. Starting
+Microsoft Excel reaches Microsoft's real sign-in screen with PKCE, the registered
+localhost callback, and `offline_access Files.Read`. The in-app browser has no Microsoft
+session; sign-in and explicit account consent remain incomplete. Restart the connection
+from Settings if the ten-minute pending authorization expires.
 
 References:
 - https://developers.google.com/identity/protocols/oauth2/web-server
