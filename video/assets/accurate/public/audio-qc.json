@@ -1,0 +1,86 @@
+{
+  "first_pass": {
+    "input_i": "-22.84",
+    "input_tp": "-2.92",
+    "input_lra": "6.30",
+    "input_thresh": "-33.68",
+    "output_i": "-16.28",
+    "output_tp": "-1.50",
+    "output_lra": "5.10",
+    "output_thresh": "-26.91",
+    "normalization_type": "dynamic",
+    "target_offset": "0.28"
+  },
+  "voice": [
+    {
+      "name": "01-open",
+      "start": 0.6,
+      "duration": 5.512375,
+      "text": "Your buildings. Your sellers. Your next conversation. Bring them together with Repeat A I.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "02-sellers",
+      "start": 7.4,
+      "duration": 10.308708333333334,
+      "text": "Start with your seller lists. Connect Google Sheets or Excel, then find a building in your spreadsheets. Here, Imperial Avenue brings four hundred and four sellers together.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "03-market",
+      "start": 20.5,
+      "duration": 7.862541666666667,
+      "text": "Follow the buildings you cover. Open Burj Khalifa, and see the listings with asking-price drops, alongside the rest of the market.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "04-history",
+      "start": 30.2,
+      "duration": 8.771791666666667,
+      "text": "Open a listing to inspect its price history. This one dropped three hundred thousand dirhams. The activity tab shows exactly when it changed.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "05-assistant",
+      "start": 40.5,
+      "duration": 12.36175,
+      "text": "Need context? Ask Repeat a question in plain English. Here, it summarises asking prices by bedroom count, and explains the limits of the sample. You can also start a voice conversation.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "06-template",
+      "start": 56.5,
+      "duration": 11.307791666666667,
+      "text": "Then make the follow-up yours. Write a message template, and use fields for the seller's name, their building, and recent transactions. The preview shows how those details fit into your message.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "07-schedule",
+      "start": 72.5,
+      "duration": 14.78175,
+      "text": "Plan your follow-ups by day. Enable the weekly schedule, choose Monday, search for Imperial Avenue, and tick the building. Done returns you to the week. Save applies your plan. Empty days stay off, and your existing sending limits still apply.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "08-tools",
+      "start": 92.5,
+      "duration": 13.84825,
+      "text": "Your other tools fit here too. Read and reply in Gmail or Outlook, confirming every send. Connect calendars for read-only event access. Or use Repeat A I through Claude and Chat G P T with M C P.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "09-platforms",
+      "start": 108.5,
+      "duration": 6.019625,
+      "text": "Work on the web, on Windows, or on your phone. From your desk to your next viewing, keep your workspace with you.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "10-close",
+      "start": 118.1,
+      "duration": 3.351541666666667,
+      "text": "Less admin. Better conversations. Repeat A I.",
+      "voice": "af_heart"
+    }
+  ]
+}

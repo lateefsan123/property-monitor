@@ -1,0 +1,15 @@
+@font-face{font-family:FilmInter;src:url('../../assets/accurate/public/inter.woff2') format('woff2');font-weight:100 900}
+.accurate-film{background:#1f1f1e;color:#ece8df;font-family:FilmInter,Inter,Arial,sans-serif;--bg-card:#2a2a28;--bg-card-border:#3a3a37;--bg-input:#2a2a28;--bg-hover:#31312f;--text:#ece8df;--text-muted:#aaa296;--nav-btn-border:#44413d;--btn-primary-bg:#f1ece1;--btn-primary-text:#1f1f1e}
+.accurate-film *{box-sizing:border-box}
+.accurate-film h1{font-size:74px;line-height:1.1;letter-spacing:-3px;font-weight:500;margin:30px 0}
+.accurate-film button,.accurate-film input,.accurate-film textarea{font-family:inherit}
+.brand-scene{background:#1f1f1e}
+.film-caption{position:absolute;bottom:47px;left:0;right:0;text-align:center;font-size:29px;font-weight:450;letter-spacing:-.5px;color:#ece8df;text-shadow:0 2px 14px #1f1f1e;background:linear-gradient(transparent,#1f1f1e 50%);padding:28px 0 0;pointer-events:none}
+.eyebrow{font-size:18px;letter-spacing:2.5px;color:#aaa296}
+.editorial-copy{font-size:29px;line-height:1.45;letter-spacing:-.5px;color:#d7d0c5;max-width:560px}
+.accurate-film .schedule-page{font-size:16px;color-scheme:dark}
+.accurate-film .schedule-save{min-height:48px}
+.accurate-film .schedule-day{height:280px}
+.accurate-film .schedule-picker header button{border:1px solid #393936;border-radius:7px;width:54px}
+.accurate-film .schedule-picker-list{margin-bottom:10px}
+.accurate-film .schedule-picker input[type=checkbox]{margin:4px}

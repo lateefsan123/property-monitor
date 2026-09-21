@@ -1,0 +1,26 @@
+{
+  "file": "repeat-ai-explainer-accurate.mp4",
+  "duration": 123,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "frames": 3690,
+  "full_decode": "pass",
+  "black_frames": "none",
+  "optional_captions": "English, off by default",
+  "loudness": {
+    "input_i": "-16.04",
+    "input_tp": "-1.47",
+    "input_lra": "5.80",
+    "input_thresh": "-26.72",
+    "output_i": "-16.03",
+    "output_tp": "-1.50",
+    "output_lra": "4.90",
+    "output_thresh": "-26.64",
+    "normalization_type": "dynamic",
+    "target_offset": "0.03"
+  },
+  "music_credit": "Dream Culture - Kevin MacLeod (incompetech.com), CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ . Edited and mixed under narration.",
+  "sha256": "a8fc62ce89462ef467e2ad130bc0ea731ba51bf34b886b74de89ed8b3f1cb704",
+  "bytes": 9920991
+}
