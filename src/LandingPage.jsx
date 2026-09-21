@@ -1,5 +1,6 @@
 import { useState } from "react";
 import "./styles/landing.css";
+import "./styles/landing-overview.css";
 
 const FAQS = [
   {
@@ -33,14 +34,6 @@ const FAQS = [
 ];
 
 const PRODUCT_SECTIONS = [
-  {
-    id: "dashboard",
-    title: "See the day at a glance.",
-    description:
-      "The dashboard shows follow-ups due today, messages sent, and price drops across watched buildings. Open Repeat AI and know where to start.",
-    image: "/landing/home.png",
-    imageAlt: "Repeat AI dashboard showing follow-ups, sent messages, and watched-building price drops",
-  },
   {
     id: "listings",
     title: "Track listings as they change.",
@@ -205,10 +198,30 @@ export default function LandingPage({
         </ul>
       </section>
 
-      <section className="landing-features" id="features">
+      <section className="landing-overview" id="features" aria-labelledby="landing-overview-heading">
+        <div className="landing-overview-inner">
+          <h2 id="landing-overview-heading">Bring your seller data together.<br />Keep the conversation going.</h2>
+          <figure className="landing-overview-artwork">
+            <picture>
+              <source media="(max-width: 600px)" srcSet="/landing/connected-workspace-mobile-v1.png" width="1060" height="1484" />
+              <img
+                src="/landing/connected-workspace-v1.png"
+                alt="Excel and Google Sheets, Bayut market data, WhatsApp, and AI tools Claude and ChatGPT via MCP connect with Repeat AI for organised sellers, market activity and WhatsApp follow-ups. Email and calendar connections are planned."
+                width="1983"
+                height="793"
+                loading="lazy"
+                decoding="async"
+              />
+            </picture>
+            <figcaption>AI tools require an MCP connection. Email and calendar connections are planned.</figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section className="landing-features" id="product-details">
         {PRODUCT_SECTIONS.map((section, index) => (
           <article
-            className={`landing-feature-row ${index % 2 === 1 ? "is-reversed" : ""}`}
+            className={`landing-feature-row ${index % 2 === 0 ? "is-reversed" : ""}`}
             key={section.id}
           >
             <div className="landing-feature-copy">
