@@ -1,0 +1,8 @@
+/* Position intact UI fragments side by side for reference capture only. */
+body { background: #f5f5f5; }
+#root { padding: 0; }
+.product-reference { padding: 80px 48px; display: grid; grid-template-columns: minmax(0, 1fr) 640px; gap: 40px; }
+.reference-table h1 { color: var(--text-name); font-size: 28px; }
+.product-reference .lead-modal-backdrop { position: static; padding: 0; background: none; backdrop-filter: none; overflow: visible; }
+.product-reference .lead-modal { width: 640px; max-height: none; }
+.product-reference .lead-table-wrap { overflow: hidden; }

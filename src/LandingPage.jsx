@@ -1,6 +1,7 @@
 import { useState } from "react";
 import "./styles/landing.css";
 import "./styles/landing-overview.css";
+import "./styles/landing-product-story.css";
 
 const FAQS = [
   {
@@ -36,6 +37,7 @@ const FAQS = [
 const PRODUCT_SECTIONS = [
   {
     id: "listings",
+    reversed: true,
     title: "Track listings as they change.",
     description:
       "See new listings, price drops, status changes, and live units in the buildings you cover. Open a building to review the listings that need attention.",
@@ -49,14 +51,6 @@ const PRODUCT_SECTIONS = [
       "Store each seller's contact details, property, status, notes, and next follow-up together. Filter the pipeline and pick up exactly where you left off.",
     image: "/landing/sellers.png",
     imageAlt: "Repeat AI sellers page showing seller records, statuses, and follow-up actions",
-  },
-  {
-    id: "spreadsheets",
-    title: "Bring your spreadsheets with you.",
-    description:
-      "Import the spreadsheets you already use. Repeat AI maps the rows into your seller pipeline and keeps every source organised.",
-    image: "/landing/spreadsheets.png",
-    imageAlt: "Repeat AI spreadsheets page showing imported seller data sources",
   },
   {
     id: "messages",
@@ -218,10 +212,27 @@ export default function LandingPage({
         </div>
       </section>
 
-      <section className="landing-features" id="product-details">
-        {PRODUCT_SECTIONS.map((section, index) => (
+      <section className="landing-product-story" id="product-details" aria-labelledby="landing-import-heading">
+        <div className="landing-product-story-inner">
+          <h2 id="landing-import-heading">Your spreadsheets. One seller workspace.</h2>
+          <p>Import Excel or Google Sheets and keep every seller organised.</p>
+          <figure className="landing-product-artwork landing-product-artwork--import">
+            <img
+              src="/landing/product-spreadsheets-v1.png"
+              alt="Illustration based on Repeat AI's current screens, using sample records: the Add a spreadsheet panel offers URL to spreadsheet and Import Excel (.xlsx), alongside a seller table with names, buildings, bedrooms, units and follow-up statuses."
+              width="1942"
+              height="809"
+              loading="lazy"
+              decoding="async"
+            />
+          </figure>
+        </div>
+      </section>
+
+      <section className="landing-features">
+        {PRODUCT_SECTIONS.map((section) => (
           <article
-            className={`landing-feature-row ${index % 2 === 0 ? "is-reversed" : ""}`}
+            className={`landing-feature-row ${section.reversed ? "is-reversed" : ""}`}
             key={section.id}
           >
             <div className="landing-feature-copy">
