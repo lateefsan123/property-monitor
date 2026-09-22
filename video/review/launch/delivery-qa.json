@@ -1,0 +1,24 @@
+{
+  "duration": "66.200000",
+  "frames": 1986,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "bytes": 12517406,
+  "sha256": "1dafb4c58a6662b5a02cdd4665ab7f4c6ebe5129e34f64089915b929348e0e68",
+  "audio": {
+    "input_i": "-16.29",
+    "input_tp": "-1.49",
+    "input_lra": "5.40",
+    "input_thresh": "-26.42",
+    "output_i": "-16.55",
+    "output_tp": "-1.50",
+    "output_lra": "4.40",
+    "output_thresh": "-26.64",
+    "normalization_type": "dynamic",
+    "target_offset": "0.55"
+  },
+  "fullDecode": "pass",
+  "blackGaps": "none",
+  "resolve": "XML prepared, not live-imported"
+}

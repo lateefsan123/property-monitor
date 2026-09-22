@@ -38,3 +38,9 @@ ImageGen prompt:
 ## Review limitations
 
 Rendered frames, motion samples, narration transcription, timing, decode and audio measurements are checked. The runtime cannot perceptually audition music; technical audio checks are not a claim of human listening approval. Resolve's configured bridge was unavailable during this edit; the rendered film is delivered independently, with an importable timeline prepared for Resolve.
+
+## Delivered export
+
+`video/review/launch/repeat-ai-launch.mp4`: 66.200 seconds, 1920×1080, 30fps, 1,986 frames, 12,517,406 bytes. Final audio measures −16.29 LUFS and −1.49 dBTP. Full decode passed with no detected black gaps. The final encoded assistant approval and the moving Blender shot were inspected; the 11-scene Resolve XML parses and every referenced media file exists. The XML has not been imported into a running Resolve instance.
+
+The original detailed demo was checked against its prior SHA256 and is unchanged. Machine-readable final export evidence is in `video/review/launch/delivery-qa.json`; optional captions are `repeat-ai-launch.srt` beside the film.

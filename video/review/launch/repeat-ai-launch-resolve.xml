@@ -1,0 +1,260 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xmeml version="5">
+  <sequence id="repeat-launch">
+    <name>Repeat AI - Stay close to your sellers</name>
+    <duration>1986</duration>
+    <rate>
+      <timebase>30</timebase>
+      <ntsc>FALSE</ntsc>
+    </rate>
+    <media>
+      <video>
+        <format>
+          <samplecharacteristics>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <width>1920</width>
+            <height>1080</height>
+            <anamorphic>FALSE</anamorphic>
+            <pixelaspectratio>square</pixelaspectratio>
+            <fielddominance>none</fielddominance>
+          </samplecharacteristics>
+        </format>
+        <track>
+          <clipitem id="shot-0">
+            <name>Opening</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>0</start>
+            <end>210</end>
+            <in>0</in>
+            <out>210</out>
+            <file id="launch-picture">
+              <name>repeat-ai-launch.mp4</name>
+              <pathurl>file:///D:/Users/Lateef/Documents/property/video/review/launch/repeat-ai-launch.mp4</pathurl>
+              <rate>
+                <timebase>30</timebase>
+                <ntsc>FALSE</ntsc>
+              </rate>
+              <duration>1986</duration>
+              <media>
+                <video>
+                  <samplecharacteristics>
+                    <rate>
+                      <timebase>30</timebase>
+                      <ntsc>FALSE</ntsc>
+                    </rate>
+                    <width>1920</width>
+                    <height>1080</height>
+                    <anamorphic>FALSE</anamorphic>
+                    <pixelaspectratio>square</pixelaspectratio>
+                    <fielddominance>none</fielddominance>
+                  </samplecharacteristics>
+                </video>
+              </media>
+            </file>
+          </clipitem>
+          <clipitem id="shot-1">
+            <name>Brand</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>210</start>
+            <end>288</end>
+            <in>210</in>
+            <out>288</out>
+            <file id="launch-picture" />
+          </clipitem>
+          <clipitem id="shot-2">
+            <name>Import</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>288</start>
+            <end>417</end>
+            <in>288</in>
+            <out>417</out>
+            <file id="launch-picture" />
+          </clipitem>
+          <clipitem id="shot-3">
+            <name>Seller</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>417</start>
+            <end>567</end>
+            <in>417</in>
+            <out>567</out>
+            <file id="launch-picture" />
+          </clipitem>
+          <clipitem id="shot-4">
+            <name>Whatsapp</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>567</start>
+            <end>756</end>
+            <in>567</in>
+            <out>756</out>
+            <file id="launch-picture" />
+          </clipitem>
+          <clipitem id="shot-5">
+            <name>Schedule</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>756</start>
+            <end>891</end>
+            <in>756</in>
+            <out>891</out>
+            <file id="launch-picture" />
+          </clipitem>
+          <clipitem id="shot-6">
+            <name>Market</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>891</start>
+            <end>1044</end>
+            <in>891</in>
+            <out>1044</out>
+            <file id="launch-picture" />
+          </clipitem>
+          <clipitem id="shot-7">
+            <name>Assistant</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>1044</start>
+            <end>1443</end>
+            <in>1044</in>
+            <out>1443</out>
+            <file id="launch-picture" />
+          </clipitem>
+          <clipitem id="shot-8">
+            <name>Integrations</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>1443</start>
+            <end>1659</end>
+            <in>1443</in>
+            <out>1659</out>
+            <file id="launch-picture" />
+          </clipitem>
+          <clipitem id="shot-9">
+            <name>Platforms</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>1659</start>
+            <end>1860</end>
+            <in>1659</in>
+            <out>1860</out>
+            <file id="launch-picture" />
+          </clipitem>
+          <clipitem id="shot-10">
+            <name>Close</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>1860</start>
+            <end>1986</end>
+            <in>1860</in>
+            <out>1986</out>
+            <file id="launch-picture" />
+          </clipitem>
+        </track>
+      </video>
+      <audio>
+        <format>
+          <samplecharacteristics>
+            <depth>24</depth>
+            <samplerate>48000</samplerate>
+          </samplecharacteristics>
+        </format>
+        <channelcount>2</channelcount>
+        <track>
+          <clipitem id="mix-1">
+            <name>Final mix</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>0</start>
+            <end>1986</end>
+            <in>0</in>
+            <out>1986</out>
+            <file id="mix">
+              <name>mix.wav</name>
+              <pathurl>file:///D:/Users/Lateef/Documents/property/video/assets/launch/public/mix.wav</pathurl>
+              <rate>
+                <timebase>30</timebase>
+                <ntsc>FALSE</ntsc>
+              </rate>
+              <duration>1986</duration>
+              <media>
+                <audio>
+                  <channelcount>2</channelcount>
+                  <samplecharacteristics>
+                    <depth>24</depth>
+                    <samplerate>48000</samplerate>
+                  </samplecharacteristics>
+                </audio>
+              </media>
+            </file>
+            <sourcetrack>
+              <mediatype>audio</mediatype>
+              <trackindex>1</trackindex>
+            </sourcetrack>
+          </clipitem>
+        </track>
+        <track>
+          <clipitem id="mix-2">
+            <name>Final mix</name>
+            <duration>1986</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>0</start>
+            <end>1986</end>
+            <in>0</in>
+            <out>1986</out>
+            <file id="mix" />
+            <sourcetrack>
+              <mediatype>audio</mediatype>
+              <trackindex>2</trackindex>
+            </sourcetrack>
+          </clipitem>
+        </track>
+      </audio>
+    </media>
+  </sequence>
+</xmeml>

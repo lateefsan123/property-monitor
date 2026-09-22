@@ -1,0 +1,23 @@
+{
+  "file": "desk-dolly.mp4",
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "durationSeconds": 7,
+  "frames": 210,
+  "bytes": 3582215,
+  "sha256": "04DCBECAD0F1893F6F6F592509BF176435504A908C09F20FEA3430BD92B81589",
+  "renderer": "Blender 4.5.9 LTS / Cycles OptiX",
+  "animationSamples": 32,
+  "heroSamples": 96,
+  "visualChecks": [
+    "Preview inspected and phone rounded body/glass corrected",
+    "Full keyboard rebuilt with six rows, modifier widths and separate arrow keys",
+    "Final animation rendered into new frames-final directory, no mixed revisions",
+    "Final frames 1, 110 and 210 inspected at full resolution",
+    "Device screens preserve source image aspect ratios and orientation",
+    "No device cropping at camera move endpoints"
+  ],
+  "decode": "Full FFmpeg decode completed without errors",
+  "audio": "Silent shot intended for the parent film soundtrack"
+}
