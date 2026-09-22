@@ -1,0 +1,26 @@
+{
+  "import": {
+    "source": "Codex Chrome Page.startScreencast",
+    "framesCaptured": 133,
+    "recordedSeconds": 17.6,
+    "outputSeconds": 17.6,
+    "motionSpeed": 1,
+    "addedStillHold": 0
+  },
+  "templates": {
+    "source": "Codex Chrome Page.startScreencast",
+    "framesCaptured": 62,
+    "recordedSeconds": 19.161,
+    "outputSeconds": 19.161,
+    "motionSpeed": 1,
+    "addedStillHold": 0
+  },
+  "schedule": {
+    "source": "Codex Chrome Page.startScreencast",
+    "framesCaptured": 47,
+    "recordedSeconds": 20.445,
+    "outputSeconds": 21.445,
+    "motionSpeed": 1,
+    "addedStillHold": 1
+  }
+}

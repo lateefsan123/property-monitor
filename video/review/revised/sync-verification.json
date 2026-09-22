@@ -1,0 +1,46 @@
+{
+  "checks": [
+    {
+      "scene": "import",
+      "spoken_phrase": "Choose the buildings",
+      "video_time": 6.898,
+      "canonical_frame": 259,
+      "minimum_completed_frame": 238,
+      "result": "pass"
+    },
+    {
+      "scene": "templates",
+      "spoken_phrase": "The preview",
+      "video_time": 57.641,
+      "canonical_frame": 410,
+      "minimum_completed_frame": 410,
+      "result": "pass"
+    },
+    {
+      "scene": "schedule",
+      "spoken_phrase": "Here we've added",
+      "video_time": 79.088,
+      "canonical_frame": 517,
+      "minimum_completed_frame": 513,
+      "result": "pass"
+    },
+    {
+      "scene": "assistant",
+      "spoken_phrase": "Here it's prepared",
+      "video_time": 148.321,
+      "canonical_frame": 365,
+      "minimum_completed_frame": 360,
+      "result": "pass"
+    }
+  ],
+  "intro_removed": true,
+  "resolve_xml": "9 contiguous scene cuts; import not verified",
+  "manual_frame_review": [
+    "opening choices",
+    "URL completed before building selection",
+    "completed template preview",
+    "populated schedule and Saved state",
+    "MCP providers and examples",
+    "brief assistant request and distinct draft"
+  ]
+}

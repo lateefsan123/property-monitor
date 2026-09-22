@@ -5,10 +5,11 @@ const {bundle} = require('@remotion/bundler');
 const {selectComposition, renderStill, renderMedia, openBrowser} = require('@remotion/renderer');
 
 const root=path.resolve(__dirname,'../..');
-const out=path.join(root,'video/review/final');
+const edit=process.argv.includes('--fresh')?'fresh':process.argv.includes('--revised')?'revised':'final';
+const out=path.join(root,`video/review/${edit}`);
 async function main(){
  fs.mkdirSync(out,{recursive:true});
- const serveUrl=await bundle({entryPoint:path.join(root,'video/src/workflow/final-index.tsx'),publicDir:path.join(root,'video/assets/accurate/public'),webpackOverride:config=>({...config,module:{...config.module,rules:[...(config.module?.rules||[]),{test:/\.m?js$/,resolve:{fullySpecified:false}}]},resolve:{...config.resolve,alias:{...config.resolve?.alias,react:path.join(root,'video/node_modules/react'),'react-dom':path.join(root,'video/node_modules/react-dom')}}}),outDir:path.join(out,'bundle'),onProgress:p=>{if(p===100)console.log('BUNDLE READY')}});
+ const serveUrl=await bundle({entryPoint:path.join(root,`video/src/workflow/${edit}-index.tsx`),publicDir:path.join(root,'video/assets/accurate/public'),webpackOverride:config=>({...config,module:{...config.module,rules:[...(config.module?.rules||[]),{test:/\.m?js$/,resolve:{fullySpecified:false}}]},resolve:{...config.resolve,alias:{...config.resolve?.alias,react:path.join(root,'video/node_modules/react'),'react-dom':path.join(root,'video/node_modules/react-dom')}}}),outDir:path.join(out,'bundle'),onProgress:p=>{if(p===100)console.log('BUNDLE READY')}});
  const browser=await openBrowser('chrome');
  try{
   const composition=await selectComposition({serveUrl,id:'RepeatAIWorkflow',puppeteerInstance:browser});
@@ -22,7 +23,7 @@ async function main(){
   }
   if(process.argv.includes('--stills'))return;
   let last=-1;
-  await renderMedia({serveUrl,composition,puppeteerInstance:browser,codec:'h264',outputLocation:path.join(out,'repeat-ai-final-master.mp4'),crf:17,pixelFormat:'yuv420p',audioBitrate:'320k',concurrency:4,onProgress:p=>{const pc=Math.floor(p.progress*20)*5;if(pc!==last){last=pc;console.log('RENDER',pc+'%');}}});
+  await renderMedia({serveUrl,composition,puppeteerInstance:browser,codec:'h264',outputLocation:path.join(out,`repeat-ai-${edit}-master.mp4`),crf:17,pixelFormat:'yuv420p',audioBitrate:'320k',concurrency:4,onProgress:p=>{const pc=Math.floor(p.progress*20)*5;if(pc!==last){last=pc;console.log('RENDER',pc+'%');}}});
   console.log('VIDEO READY');
  }finally{await browser.close({silent:true});}
 }

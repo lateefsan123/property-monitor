@@ -1,0 +1,412 @@
+[
+  {
+    "word": "It",
+    "start": 0.0,
+    "end": 0.14
+  },
+  {
+    "word": "starts",
+    "start": 0.14,
+    "end": 0.34
+  },
+  {
+    "word": "with",
+    "start": 0.34,
+    "end": 0.56
+  },
+  {
+    "word": "your",
+    "start": 0.56,
+    "end": 0.7
+  },
+  {
+    "word": "spreadsheet.",
+    "start": 0.7,
+    "end": 1.02
+  },
+  {
+    "word": "You",
+    "start": 1.6,
+    "end": 1.6
+  },
+  {
+    "word": "can",
+    "start": 1.6,
+    "end": 1.7
+  },
+  {
+    "word": "bring",
+    "start": 1.7,
+    "end": 1.86
+  },
+  {
+    "word": "in",
+    "start": 1.86,
+    "end": 1.96
+  },
+  {
+    "word": "a",
+    "start": 1.96,
+    "end": 2.04
+  },
+  {
+    "word": "Google",
+    "start": 2.04,
+    "end": 2.2
+  },
+  {
+    "word": "Sheet",
+    "start": 2.2,
+    "end": 2.52
+  },
+  {
+    "word": "link",
+    "start": 2.52,
+    "end": 2.78
+  },
+  {
+    "word": "or",
+    "start": 2.78,
+    "end": 3.12
+  },
+  {
+    "word": "an",
+    "start": 3.12,
+    "end": 3.22
+  },
+  {
+    "word": "Excel",
+    "start": 3.22,
+    "end": 3.38
+  },
+  {
+    "word": "file.",
+    "start": 3.38,
+    "end": 3.84
+  },
+  {
+    "word": "We'll",
+    "start": 4.82,
+    "end": 4.96
+  },
+  {
+    "word": "use",
+    "start": 4.96,
+    "end": 5.14
+  },
+  {
+    "word": "the",
+    "start": 5.14,
+    "end": 5.26
+  },
+  {
+    "word": "link",
+    "start": 5.26,
+    "end": 5.44
+  },
+  {
+    "word": "here.",
+    "start": 5.44,
+    "end": 5.74
+  },
+  {
+    "word": "Choose",
+    "start": 6.5,
+    "end": 6.7
+  },
+  {
+    "word": "the",
+    "start": 6.7,
+    "end": 6.94
+  },
+  {
+    "word": "buildings",
+    "start": 6.94,
+    "end": 7.26
+  },
+  {
+    "word": "you",
+    "start": 7.26,
+    "end": 7.54
+  },
+  {
+    "word": "work",
+    "start": 7.54,
+    "end": 7.78
+  },
+  {
+    "word": "with,",
+    "start": 7.78,
+    "end": 8.04
+  },
+  {
+    "word": "and",
+    "start": 8.36,
+    "end": 8.46
+  },
+  {
+    "word": "Repeat",
+    "start": 8.46,
+    "end": 8.84
+  },
+  {
+    "word": "AI",
+    "start": 8.84,
+    "end": 9.4
+  },
+  {
+    "word": "brings",
+    "start": 9.4,
+    "end": 9.82
+  },
+  {
+    "word": "in",
+    "start": 9.82,
+    "end": 10.06
+  },
+  {
+    "word": "your",
+    "start": 10.06,
+    "end": 10.2
+  },
+  {
+    "word": "leads,",
+    "start": 10.2,
+    "end": 10.44
+  },
+  {
+    "word": "organised",
+    "start": 10.92,
+    "end": 11.06
+  },
+  {
+    "word": "by",
+    "start": 11.06,
+    "end": 11.6
+  },
+  {
+    "word": "building.",
+    "start": 11.6,
+    "end": 11.82
+  },
+  {
+    "word": "From",
+    "start": 12.6,
+    "end": 12.76
+  },
+  {
+    "word": "there,",
+    "start": 12.76,
+    "end": 13.08
+  },
+  {
+    "word": "they're",
+    "start": 13.32,
+    "end": 13.54
+  },
+  {
+    "word": "ready",
+    "start": 13.54,
+    "end": 13.78
+  },
+  {
+    "word": "to",
+    "start": 13.78,
+    "end": 13.94
+  },
+  {
+    "word": "work",
+    "start": 13.94,
+    "end": 14.12
+  },
+  {
+    "word": "with",
+    "start": 14.12,
+    "end": 14.32
+  },
+  {
+    "word": "on",
+    "start": 14.32,
+    "end": 14.56
+  },
+  {
+    "word": "the",
+    "start": 14.56,
+    "end": 14.7
+  },
+  {
+    "word": "Sellers",
+    "start": 14.7,
+    "end": 15.02
+  },
+  {
+    "word": "page.",
+    "start": 15.02,
+    "end": 15.26
+  },
+  {
+    "word": "From",
+    "start": 15.26,
+    "end": 15.26
+  },
+  {
+    "word": "there,",
+    "start": 15.26,
+    "end": 15.26
+  },
+  {
+    "word": "they're",
+    "start": 15.26,
+    "end": 15.38
+  },
+  {
+    "word": "ready",
+    "start": 15.38,
+    "end": 15.38
+  },
+  {
+    "word": "to",
+    "start": 15.38,
+    "end": 15.46
+  },
+  {
+    "word": "work",
+    "start": 15.46,
+    "end": 15.46
+  },
+  {
+    "word": "with",
+    "start": 15.46,
+    "end": 15.46
+  },
+  {
+    "word": "on",
+    "start": 15.46,
+    "end": 15.46
+  },
+  {
+    "word": "the",
+    "start": 15.46,
+    "end": 15.46
+  },
+  {
+    "word": "Sellers",
+    "start": 15.46,
+    "end": 15.46
+  },
+  {
+    "word": "page.",
+    "start": 15.46,
+    "end": 15.46
+  },
+  {
+    "word": "To",
+    "start": 15.46,
+    "end": 15.46
+  },
+  {
+    "word": "complete",
+    "start": 15.46,
+    "end": 15.46
+  },
+  {
+    "word": "a",
+    "start": 15.46,
+    "end": 15.46
+  },
+  {
+    "word": "email,",
+    "start": 15.46,
+    "end": 15.46
+  },
+  {
+    "word": "check",
+    "start": 15.46,
+    "end": 15.48
+  },
+  {
+    "word": "out",
+    "start": 15.48,
+    "end": 15.78
+  },
+  {
+    "word": "the",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "link",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "in",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "the",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "description",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "box",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "below",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "to",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "check",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "out",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "the",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "link",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "in",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "the",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "description",
+    "start": 15.78,
+    "end": 15.78
+  },
+  {
+    "word": "box.",
+    "start": 15.78,
+    "end": 15.78
+  }
+]

@@ -1,0 +1,302 @@
+[
+  {
+    "word": "For",
+    "start": 0.0,
+    "end": 0.16
+  },
+  {
+    "word": "a",
+    "start": 0.16,
+    "end": 0.22
+  },
+  {
+    "word": "quicker",
+    "start": 0.22,
+    "end": 0.36
+  },
+  {
+    "word": "way",
+    "start": 0.36,
+    "end": 0.6
+  },
+  {
+    "word": "to",
+    "start": 0.6,
+    "end": 0.7
+  },
+  {
+    "word": "get",
+    "start": 0.7,
+    "end": 0.84
+  },
+  {
+    "word": "things",
+    "start": 0.84,
+    "end": 1.04
+  },
+  {
+    "word": "done,",
+    "start": 1.04,
+    "end": 1.32
+  },
+  {
+    "word": "there's",
+    "start": 1.5,
+    "end": 1.62
+  },
+  {
+    "word": "Ask",
+    "start": 1.62,
+    "end": 1.84
+  },
+  {
+    "word": "Repeat",
+    "start": 1.84,
+    "end": 2.08
+  },
+  {
+    "word": "in",
+    "start": 2.08,
+    "end": 2.44
+  },
+  {
+    "word": "the",
+    "start": 2.44,
+    "end": 2.5
+  },
+  {
+    "word": "corner.",
+    "start": 2.5,
+    "end": 2.76
+  },
+  {
+    "word": "Type",
+    "start": 3.74,
+    "end": 3.76
+  },
+  {
+    "word": "what",
+    "start": 3.76,
+    "end": 3.96
+  },
+  {
+    "word": "you",
+    "start": 3.96,
+    "end": 4.1
+  },
+  {
+    "word": "need,",
+    "start": 4.1,
+    "end": 4.28
+  },
+  {
+    "word": "or",
+    "start": 4.62,
+    "end": 4.76
+  },
+  {
+    "word": "talk",
+    "start": 4.76,
+    "end": 5.16
+  },
+  {
+    "word": "to",
+    "start": 5.16,
+    "end": 5.34
+  },
+  {
+    "word": "it",
+    "start": 5.34,
+    "end": 5.42
+  },
+  {
+    "word": "using",
+    "start": 5.42,
+    "end": 5.62
+  },
+  {
+    "word": "voice.",
+    "start": 5.62,
+    "end": 5.96
+  },
+  {
+    "word": "It",
+    "start": 6.66,
+    "end": 6.72
+  },
+  {
+    "word": "can",
+    "start": 6.72,
+    "end": 6.88
+  },
+  {
+    "word": "find",
+    "start": 6.88,
+    "end": 7.12
+  },
+  {
+    "word": "sellers,",
+    "start": 7.12,
+    "end": 7.5
+  },
+  {
+    "word": "summarise",
+    "start": 7.94,
+    "end": 8.4
+  },
+  {
+    "word": "market",
+    "start": 8.4,
+    "end": 8.76
+  },
+  {
+    "word": "activity,",
+    "start": 8.76,
+    "end": 9.2
+  },
+  {
+    "word": "and",
+    "start": 9.7,
+    "end": 9.72
+  },
+  {
+    "word": "help",
+    "start": 9.72,
+    "end": 9.86
+  },
+  {
+    "word": "with",
+    "start": 9.86,
+    "end": 10.04
+  },
+  {
+    "word": "things",
+    "start": 10.04,
+    "end": 10.24
+  },
+  {
+    "word": "like",
+    "start": 10.24,
+    "end": 10.52
+  },
+  {
+    "word": "templates",
+    "start": 10.52,
+    "end": 10.98
+  },
+  {
+    "word": "and",
+    "start": 10.98,
+    "end": 11.32
+  },
+  {
+    "word": "scheduling.",
+    "start": 11.32,
+    "end": 11.58
+  },
+  {
+    "word": "Here,",
+    "start": 12.8,
+    "end": 12.88
+  },
+  {
+    "word": "it's",
+    "start": 13.0,
+    "end": 13.16
+  },
+  {
+    "word": "prepared",
+    "start": 13.16,
+    "end": 13.48
+  },
+  {
+    "word": "a",
+    "start": 13.48,
+    "end": 14.28
+  },
+  {
+    "word": "new",
+    "start": 14.28,
+    "end": 14.52
+  },
+  {
+    "word": "message",
+    "start": 14.52,
+    "end": 14.88
+  },
+  {
+    "word": "template.",
+    "start": 14.88,
+    "end": 15.36
+  },
+  {
+    "word": "You",
+    "start": 15.72,
+    "end": 15.72
+  },
+  {
+    "word": "can",
+    "start": 15.72,
+    "end": 15.86
+  },
+  {
+    "word": "read",
+    "start": 15.86,
+    "end": 16.06
+  },
+  {
+    "word": "it",
+    "start": 16.06,
+    "end": 16.2
+  },
+  {
+    "word": "through",
+    "start": 16.2,
+    "end": 16.42
+  },
+  {
+    "word": "and",
+    "start": 16.42,
+    "end": 16.6
+  },
+  {
+    "word": "confirm",
+    "start": 16.6,
+    "end": 16.9
+  },
+  {
+    "word": "the",
+    "start": 16.9,
+    "end": 17.16
+  },
+  {
+    "word": "change",
+    "start": 17.16,
+    "end": 17.38
+  },
+  {
+    "word": "when",
+    "start": 17.38,
+    "end": 17.6
+  },
+  {
+    "word": "you're",
+    "start": 17.6,
+    "end": 17.74
+  },
+  {
+    "word": "happy",
+    "start": 17.74,
+    "end": 17.98
+  },
+  {
+    "word": "with",
+    "start": 17.98,
+    "end": 18.18
+  },
+  {
+    "word": "it.",
+    "start": 18.18,
+    "end": 18.32
+  }
+]

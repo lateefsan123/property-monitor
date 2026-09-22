@@ -1,10 +1,11 @@
 """Package optional captions and attribution, then verify the complete exported movie."""
 from pathlib import Path
-import hashlib,json,subprocess
+import hashlib,json,subprocess,sys
 
 ROOT=Path(__file__).resolve().parents[2]
-OUT=ROOT/'video/review/final'
-ASSETS=ROOT/'video/assets/accurate/public/workflow/final'
+EDIT='fresh' if '--fresh' in sys.argv else 'revised' if '--revised' in sys.argv else 'final'
+OUT=ROOT/f'video/review/{EDIT}'
+ASSETS=ROOT/f'video/assets/accurate/public/workflow/{EDIT}'
 CREDIT='Dream Culture - Kevin MacLeod (incompetech.com), CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ . Edited and mixed under narration.'
 
 def run(args):
@@ -12,8 +13,8 @@ def run(args):
 
 def main():
  timeline=json.loads((ASSETS/'voice-timing.json').read_text());duration=timeline['duration'];frames=timeline['frames']
- movie=OUT/'repeat-ai-explainer-final.mp4'
- run(['ffmpeg','-v','error','-y','-i',str(OUT/'repeat-ai-final-master.mp4'),'-i',str(ASSETS/'mix.wav'),'-i',str(ASSETS/'captions.srt'),'-map','0:v:0','-map','1:a:0','-map','2:0','-c:v','copy','-c:a','aac','-b:a','320k','-c:s','mov_text','-t',str(duration),'-metadata:s:s:0','language=eng','-disposition:s:0','0','-metadata','title=Repeat AI - Product walkthrough','-metadata','comment=Actual Chrome recordings, captures and app presentation components; fictional example contacts demonstrate import, seller management and weekly scheduling. Captured 22 September 2026. Native mobile capture 13 September 2026.','-metadata','copyright='+CREDIT,'-movflags','+faststart',str(movie)])
+ movie=OUT/f'repeat-ai-explainer-{EDIT}.mp4'
+ run(['ffmpeg','-v','error','-y','-i',str(OUT/f'repeat-ai-{EDIT}-master.mp4'),'-i',str(ASSETS/'mix.wav'),'-i',str(ASSETS/'captions.srt'),'-map','0:v:0','-map','1:a:0','-map','2:0','-c:v','copy','-c:a','aac','-b:a','320k','-c:s','mov_text','-t',str(duration),'-metadata:s:s:0','language=eng','-disposition:s:0','0','-metadata','title=Repeat AI - Product walkthrough','-metadata','comment=Actual Chrome recordings, captures and app presentation components; fictional example contacts demonstrate import, seller management and weekly scheduling. Captured 22 September 2026. Native mobile capture 13 September 2026.','-metadata','copyright='+CREDIT,'-movflags','+faststart',str(movie)])
  probe=json.loads(run(['ffprobe','-v','error','-show_format','-show_streams','-of','json',str(movie)]).stdout)
  streams=probe['streams'];v=next(s for s in streams if s['codec_type']=='video');a=next(s for s in streams if s['codec_type']=='audio')
  assert v['width']==1920 and v['height']==1080 and v['r_frame_rate']=='30/1' and int(v['nb_frames'])==frames

@@ -10,13 +10,13 @@ const noop=()=>{};
 // Fictional example contacts. The UK 07700 900xxx range is reserved for drama.
 export const leads=[
  ['Alex Morgan','The St. Regis Residences, Downtown Dubai','Prospect','1204',2],
- ['Maya Bennett','IMPERIAL AVENUE','For Sale Available','1802',2],
- ['Sam Carter','Burj Khalifa','Market Appraisal','2601',2],
- ['Jordan Hayes','Act towers 1','Prospect','902',1],
- ['Riley Brooks','Act tower 2','For Sale Available','1403',2],
- ['Taylor Reed','Burj Vista 1, Downtown Dubai','Market Appraisal','704',1],
- ['Casey Lane','Burj Vista 2, Downtown Dubai','Prospect','1601',2],
- ['Jamie Quinn','St Regis tower 2','Market Appraisal','1105',2],
+ ['Maya Bennett','The St. Regis Residences, Downtown Dubai','For Sale Available','1802',2],
+ ['Sam Carter','The St. Regis Residences, Downtown Dubai','Market Appraisal','2601',2],
+ ['Jordan Hayes','The St. Regis Residences, Downtown Dubai','Prospect','902',1],
+ ['Riley Brooks','Burj Khalifa','For Sale Available','1403',2],
+ ['Taylor Reed','Burj Khalifa','Market Appraisal','704',1],
+ ['Casey Lane','Burj Khalifa','Prospect','1601',2],
+ ['Jamie Quinn','Burj Khalifa','Market Appraisal','1105',2],
 ].map(([name,building,statusLabel,unit,bedroom],i)=>({id:`demo-${i}`,name,building,statusLabel,status:statusLabel,unit,bedroom,phone:`+44 7700 90010${i}`,isDue:true,dueLabel:'Due today',dataQuality:{level:'trusted',label:'Complete',issues:[]}}));
 export const marketInsight={status:'ready',locationName:'The St. Regis Residences, Downtown Dubai',count:5,avg:4473378,psf:3617,min:2500000,max:6300000,recentTransactions:[{id:'public-sale-1',date:'2026-09-21',locationLabel:'The St. Regis Residences, Downtown Dubai',price:6300000,beds:2,area:1323},{id:'public-sale-2',date:'2026-09-18',locationLabel:'The St. Regis Residences, Downtown Dubai',price:5336888,beds:2,area:1349}]};
 

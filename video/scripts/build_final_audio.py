@@ -1,38 +1,57 @@
 """Assemble approved ElevenLabs stems, score, captions and the frame-accurate shot timeline."""
 from pathlib import Path
-import json, subprocess, re
+import json, subprocess, re, sys
 import numpy as np
 import soundfile as sf
 from scipy.signal import resample_poly
 
 ROOT=Path(__file__).resolve().parents[2]
-OUT=ROOT/'video/assets/accurate/public/workflow/final'
+EDIT='fresh' if '--fresh' in sys.argv else 'revised' if '--revised' in sys.argv else 'final'
+OUT=ROOT/f'video/assets/accurate/public/workflow/{EDIT}'
 SR=48000
 def run(args): return subprocess.run(args,capture_output=True,text=True,check=True)
 def stamp(t):
  m=round(t*1000)
  return f'{m//3600000:02}:{m//60000%60:02}:{m//1000%60:02},{m%1000:03}'
 def main():
- rows=json.loads((ROOT/'video/review/elevenlabs/final-narration.json').read_text())
+ manifest=ROOT/(f'video/review/{EDIT}/narration.json' if EDIT!='final' else 'video/review/elevenlabs/final-narration.json')
+ rows=json.loads(manifest.read_text(encoding='utf-8'))
  scenes=[]; stems=[]; frame=0; caps=[]
  for i,row in enumerate(rows):
-  a,sr=sf.read(OUT/'voice'/f'{i:02}.mp3',dtype='float32')
+  source=OUT.parent/row['source'] if 'source' in row else OUT/'voice'/f'{i:02}.mp3'
+  a,sr=sf.read(source,dtype='float32')
   if a.ndim>1:a=a.mean(axis=1)
   active=np.flatnonzero(abs(a)>.002)
   assert len(active)>0
-  a=a[max(0,active[0]-int(.06*sr)):min(len(a),active[-1]+int(.16*sr))]
+  trim=max(0,active[0]-int(.06*sr))/sr
+  a=a[round(trim*sr):min(len(a),active[-1]+int(.16*sr))]
   a=resample_poly(a,SR,sr)
+  for pause in reversed(row.get('pauses',[])):
+   at=round((pause['at']-trim)*SR)
+   a=np.concatenate([a[:at],np.zeros(round(pause['duration']*SR),dtype='float32'),a[at:]])
   a*=min(1.5,.76/max(abs(a)))
   duration=len(a)/SR
-  voice_offset=.55 if row['id']!='assistant' else .35
-  frames=max(round(row['minSeconds']*30),int(np.ceil((duration+voice_offset+1.0)*30)))
-  scene={**row,'from':frame,'frames':frames,'voiceStart':frame/30+voice_offset,'voiceDuration':duration}
+  voice_offset=row.get('voiceOffset',.55 if row['id']!='assistant' else .35)
+  frames=max(round(row['minSeconds']*30),int(np.ceil((duration+voice_offset+row.get('tailPadding',1.0))*30)))
+  scene={**row,'from':frame,'frames':frames,'voiceStart':frame/30+voice_offset,'voiceDuration':duration,'trimStart':trim}
   scenes.append(scene);stems.append(a);frame+=frames
-  parts=re.split(r'(?<=[.!?])\s+',row['text']);total=sum(len(x.split()) for x in parts); t=scene['voiceStart']
-  for part in parts:
-   end=t+duration*len(part.split())/total
-   # Short captions remain optional; the picture carries the product labels.
-   caps.append((t,end,part));t=end
+  if EDIT!='final':
+   from revision_cues import align_words, scene_cues
+   words=align_words(row,trim,EDIT)
+   scene['words']=words
+   scene['cues']=scene_cues(scene,words)
+   # Small caption groups follow the measured recording rather than word counts.
+   group=[]
+   for w in words:
+    group.append(w)
+    if len(group)>=9 or re.search(r'[.!?]$',w['word']):
+     caps.append((scene['from']/30+group[0]['start'],scene['from']/30+group[-1]['end'],' '.join(x['word'] for x in group)));group=[]
+   if group:caps.append((scene['from']/30+group[0]['start'],scene['from']/30+group[-1]['end'],' '.join(x['word'] for x in group)))
+  else:
+   parts=re.split(r'(?<=[.!?])\s+',row['text']);total=sum(len(x.split()) for x in parts); t=scene['voiceStart']
+   for part in parts:
+    end=t+duration*len(part.split())/total
+    caps.append((t,end,part));t=end
   print(row['id'],round(duration,2),'seconds ->',frames/30,'scene',flush=True)
  totalFrames=frame+90;n=int(totalFrames/30*SR)
  vo=np.zeros(n,dtype=np.float32);gain=np.full(n,.13,dtype=np.float32)
@@ -57,7 +76,7 @@ def main():
  params=':'.join(f'{k}={measured[v]}' for k,v in [('measured_I','input_i'),('measured_TP','input_tp'),('measured_LRA','input_lra'),('measured_thresh','input_thresh'),('offset','target_offset')])
  run(['ffmpeg','-v','error','-y','-i',str(OUT/'premix.wav'),'-af',loud+':'+params+':linear=true','-ar',str(SR),'-c:a','pcm_s24le',str(OUT/'mix.wav')])
  timeline={'frames':totalFrames,'duration':totalFrames/30,'closeFrom':frame,'scenes':scenes}
- (ROOT/'video/src/workflow/final-timeline.json').write_text(json.dumps(timeline,indent=2)+'\n')
+ (ROOT/f'video/src/workflow/{EDIT}-timeline.json').write_text(json.dumps(timeline,indent=2)+'\n',encoding='utf-8')
  (OUT/'voice-timing.json').write_text(json.dumps(timeline,indent=2)+'\n')
  (OUT/'captions.srt').write_text('\n\n'.join(f'{i}\n{stamp(a)} --> {stamp(b)}\n{s}' for i,(a,b,s) in enumerate(caps,1))+'\n',encoding='utf-8')
  print('MIX READY',totalFrames/30,flush=True)

@@ -1,0 +1,43 @@
+{
+  "capture_checks": [
+    {
+      "scene": "import",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "duration": 17.6,
+      "motion_speed": 1
+    },
+    {
+      "scene": "templates",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "duration": 19.166667,
+      "motion_speed": 1
+    },
+    {
+      "scene": "schedule",
+      "width": 1920,
+      "height": 1080,
+      "fps": 30,
+      "duration": 21.433333,
+      "motion_speed": 1
+    }
+  ],
+  "recorded_action_video_seconds": {
+    "two_spreadsheets_imported": 14.138,
+    "template_preview_complete": 57.04,
+    "schedule_four_days_complete": 77.79,
+    "schedule_save_click": 80.661
+  },
+  "checks": "pass",
+  "phones": "All seller scene contacts use fictional +44 7700 900100 through 900107 numbers. Import, template and schedule captures contain no contact phone numbers.",
+  "visible_dropdown_review": "Open source menu, source selection, building checkbox, Monday-Thursday populated board and Saved state reviewed.",
+  "exported_frame_review": {
+    "template_complete_at": 57.3,
+    "narration_exactly_at": 59.221,
+    "schedule_dropdown_at": 69.3,
+    "note": "Action-return markers can precede compositor frames. Template completion was corrected from the captured frame timestamp and checked in the final MP4. Live preview updates during the words fills those details in as you go."
+  }
+}

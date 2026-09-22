@@ -1,0 +1,2486 @@
+{
+  "frames": 4956,
+  "duration": 165.2,
+  "closeFrom": 4866,
+  "scenes": [
+    {
+      "id": "import",
+      "text": "Start by adding your spreadsheets. You can paste a Google Sheet link, or upload an Excel file. Here, we're adding one sheet for St. Regis, and another for Burj Khalifa. Each one contains the sellers for that building. Once they're imported, open Sellers to see everyone together.",
+      "minSeconds": 18,
+      "navigation": 0,
+      "baseSeconds": 14,
+      "source": "fresh/import-voice.mp3",
+      "voiceOffset": 0.4,
+      "pauses": [],
+      "capture": "workflow/fresh/import.mp4",
+      "captureFrames": 528,
+      "captureHold": "workflow/fresh/import-end.jpg",
+      "tailPadding": 0.2,
+      "transitionTo": "sellers",
+      "transitionFrom": 468,
+      "from": 0,
+      "frames": 540,
+      "voiceStart": 0.4,
+      "voiceDuration": 17.3264375,
+      "trimStart": 0.017414965986394557,
+      "words": [
+        {
+          "word": "Start",
+          "start": 0.4,
+          "end": 0.6025850340136054
+        },
+        {
+          "word": "by",
+          "start": 0.6025850340136054,
+          "end": 0.8025850340136054
+        },
+        {
+          "word": "adding",
+          "start": 0.8025850340136054,
+          "end": 1.2225850340136053
+        },
+        {
+          "word": "your",
+          "start": 1.2225850340136053,
+          "end": 1.4425850340136055
+        },
+        {
+          "word": "spreadsheets.",
+          "start": 1.4425850340136055,
+          "end": 1.9025850340136055
+        },
+        {
+          "word": "You",
+          "start": 2.5625850340136056,
+          "end": 2.6225850340136057
+        },
+        {
+          "word": "can",
+          "start": 2.6225850340136057,
+          "end": 2.7225850340136053
+        },
+        {
+          "word": "paste",
+          "start": 2.7225850340136053,
+          "end": 2.9025850340136055
+        },
+        {
+          "word": "a",
+          "start": 2.9025850340136055,
+          "end": 3.0425850340136056
+        },
+        {
+          "word": "Google",
+          "start": 3.0425850340136056,
+          "end": 3.2625850340136053
+        },
+        {
+          "word": "Sheet",
+          "start": 3.2625850340136053,
+          "end": 3.5625850340136056
+        },
+        {
+          "word": "link,",
+          "start": 3.5625850340136056,
+          "end": 3.7625850340136053
+        },
+        {
+          "word": "or",
+          "start": 4.042585034013606,
+          "end": 4.042585034013606
+        },
+        {
+          "word": "upload",
+          "start": 4.042585034013606,
+          "end": 4.382585034013606
+        },
+        {
+          "word": "an",
+          "start": 4.382585034013606,
+          "end": 4.582585034013606
+        },
+        {
+          "word": "Excel",
+          "start": 4.582585034013606,
+          "end": 4.762585034013606
+        },
+        {
+          "word": "file.",
+          "start": 4.762585034013606,
+          "end": 5.202585034013606
+        },
+        {
+          "word": "Here,",
+          "start": 6.022585034013606,
+          "end": 6.262585034013606
+        },
+        {
+          "word": "we're",
+          "start": 6.382585034013606,
+          "end": 6.542585034013606
+        },
+        {
+          "word": "adding",
+          "start": 6.542585034013606,
+          "end": 6.782585034013606
+        },
+        {
+          "word": "one",
+          "start": 6.782585034013606,
+          "end": 7.082585034013606
+        },
+        {
+          "word": "sheet",
+          "start": 7.082585034013606,
+          "end": 7.4825850340136055
+        },
+        {
+          "word": "for",
+          "start": 7.4825850340136055,
+          "end": 7.722585034013606
+        },
+        {
+          "word": "St.",
+          "start": 7.722585034013606,
+          "end": 7.922585034013606
+        },
+        {
+          "word": "Regis,",
+          "start": 8.142585034013605,
+          "end": 8.382585034013605
+        },
+        {
+          "word": "and",
+          "start": 8.742585034013604,
+          "end": 8.982585034013605
+        },
+        {
+          "word": "another",
+          "start": 8.982585034013605,
+          "end": 9.222585034013605
+        },
+        {
+          "word": "for",
+          "start": 9.222585034013605,
+          "end": 9.802585034013605
+        },
+        {
+          "word": "Burj",
+          "start": 9.802585034013605,
+          "end": 10.042585034013605
+        },
+        {
+          "word": "Khalifa.",
+          "start": 10.042585034013605,
+          "end": 10.342585034013606
+        },
+        {
+          "word": "Each",
+          "start": 11.362585034013605,
+          "end": 11.582585034013604
+        },
+        {
+          "word": "one",
+          "start": 11.582585034013604,
+          "end": 11.782585034013605
+        },
+        {
+          "word": "contains",
+          "start": 11.782585034013605,
+          "end": 12.122585034013605
+        },
+        {
+          "word": "the",
+          "start": 12.122585034013605,
+          "end": 12.422585034013604
+        },
+        {
+          "word": "sellers",
+          "start": 12.422585034013604,
+          "end": 12.642585034013605
+        },
+        {
+          "word": "for",
+          "start": 12.642585034013605,
+          "end": 13.062585034013605
+        },
+        {
+          "word": "that",
+          "start": 13.062585034013605,
+          "end": 13.202585034013605
+        },
+        {
+          "word": "building.",
+          "start": 13.202585034013605,
+          "end": 13.502585034013604
+        },
+        {
+          "word": "Once",
+          "start": 14.342585034013606,
+          "end": 14.642585034013605
+        },
+        {
+          "word": "they're",
+          "start": 14.642585034013605,
+          "end": 14.862585034013605
+        },
+        {
+          "word": "imported,",
+          "start": 14.862585034013605,
+          "end": 15.182585034013606
+        },
+        {
+          "word": "open",
+          "start": 15.182585034013606,
+          "end": 15.602585034013606
+        },
+        {
+          "word": "Sellers",
+          "start": 15.602585034013606,
+          "end": 16.102585034013604
+        },
+        {
+          "word": "to",
+          "start": 16.102585034013604,
+          "end": 16.402585034013605
+        },
+        {
+          "word": "see",
+          "start": 16.402585034013605,
+          "end": 16.542585034013605
+        },
+        {
+          "word": "everyone",
+          "start": 16.542585034013605,
+          "end": 16.902585034013605
+        },
+        {
+          "word": "together.",
+          "start": 16.902585034013605,
+          "end": 17.262585034013604
+        }
+      ],
+      "cues": [
+        [
+          0,
+          0
+        ],
+        [
+          539,
+          539
+        ]
+      ]
+    },
+    {
+      "id": "sellers",
+      "text": "This is where you can see everyone in one place: their details, their building, and where things stand. Filter by prospects, appraisals, for sale, or not interested. Sold today flags a fresh transaction in that building. Open a seller and you can see what sold, when it sold, and for how much. With WhatsApp connected, those transactions can feed into automated follow-ups, giving you something useful to share with your sellers.",
+      "minSeconds": 25.2,
+      "navigation": 0,
+      "baseSeconds": 28,
+      "source": "final/voice/02.mp3",
+      "voiceOffset": 0.55,
+      "pauses": [],
+      "outgoingImage": "workflow/fresh/import-end.jpg",
+      "from": 540,
+      "frames": 756,
+      "voiceStart": 18.55,
+      "voiceDuration": 23.594916666666666,
+      "trimStart": 0.03526077097505669,
+      "words": [
+        {
+          "word": "This",
+          "start": 0.55,
+          "end": 0.7147392290249434
+        },
+        {
+          "word": "is",
+          "start": 0.7147392290249434,
+          "end": 0.7947392290249433
+        },
+        {
+          "word": "where",
+          "start": 0.7947392290249433,
+          "end": 0.9547392290249433
+        },
+        {
+          "word": "you",
+          "start": 0.9547392290249433,
+          "end": 1.0747392290249436
+        },
+        {
+          "word": "can",
+          "start": 1.0747392290249436,
+          "end": 1.1947392290249434
+        },
+        {
+          "word": "see",
+          "start": 1.1947392290249434,
+          "end": 1.3947392290249434
+        },
+        {
+          "word": "everyone",
+          "start": 1.3947392290249434,
+          "end": 1.6547392290249432
+        },
+        {
+          "word": "in",
+          "start": 1.6547392290249432,
+          "end": 1.8747392290249434
+        },
+        {
+          "word": "one",
+          "start": 1.8747392290249434,
+          "end": 1.9947392290249433
+        },
+        {
+          "word": "place:",
+          "start": 1.9947392290249433,
+          "end": 2.3347392290249434
+        },
+        {
+          "word": "their",
+          "start": 2.3347392290249434,
+          "end": 2.7747392290249433
+        },
+        {
+          "word": "details,",
+          "start": 2.7747392290249433,
+          "end": 3.0947392290249436
+        },
+        {
+          "word": "their",
+          "start": 3.6747392290249437,
+          "end": 3.8147392290249433
+        },
+        {
+          "word": "building,",
+          "start": 3.8147392290249433,
+          "end": 4.134739229024944
+        },
+        {
+          "word": "and",
+          "start": 4.594739229024944,
+          "end": 4.934739229024943
+        },
+        {
+          "word": "where",
+          "start": 4.934739229024943,
+          "end": 5.074739229024943
+        },
+        {
+          "word": "things",
+          "start": 5.074739229024943,
+          "end": 5.254739229024944
+        },
+        {
+          "word": "stand.",
+          "start": 5.254739229024944,
+          "end": 5.614739229024943
+        },
+        {
+          "word": "Filter",
+          "start": 6.114739229024943,
+          "end": 6.314739229024943
+        },
+        {
+          "word": "by",
+          "start": 6.314739229024943,
+          "end": 6.674739229024944
+        },
+        {
+          "word": "prospects,",
+          "start": 6.674739229024944,
+          "end": 7.114739229024943
+        },
+        {
+          "word": "appraisals,",
+          "start": 7.5147392290249435,
+          "end": 8.074739229024944
+        },
+        {
+          "word": "for",
+          "start": 8.594739229024944,
+          "end": 8.634739229024943
+        },
+        {
+          "word": "sale,",
+          "start": 8.634739229024943,
+          "end": 8.894739229024944
+        },
+        {
+          "word": "or",
+          "start": 9.294739229024943,
+          "end": 9.494739229024944
+        },
+        {
+          "word": "not",
+          "start": 9.494739229024944,
+          "end": 9.794739229024943
+        },
+        {
+          "word": "interested.",
+          "start": 9.794739229024943,
+          "end": 10.074739229024944
+        },
+        {
+          "word": "Sold",
+          "start": 11.214739229024943,
+          "end": 11.274739229024943
+        },
+        {
+          "word": "today",
+          "start": 11.274739229024943,
+          "end": 11.514739229024944
+        },
+        {
+          "word": "flags",
+          "start": 11.514739229024944,
+          "end": 11.794739229024943
+        },
+        {
+          "word": "a",
+          "start": 11.794739229024943,
+          "end": 12.074739229024944
+        },
+        {
+          "word": "fresh",
+          "start": 12.074739229024944,
+          "end": 12.194739229024943
+        },
+        {
+          "word": "transaction",
+          "start": 12.194739229024943,
+          "end": 12.534739229024943
+        },
+        {
+          "word": "in",
+          "start": 12.534739229024943,
+          "end": 12.934739229024943
+        },
+        {
+          "word": "that",
+          "start": 12.934739229024943,
+          "end": 13.034739229024943
+        },
+        {
+          "word": "building.",
+          "start": 13.034739229024943,
+          "end": 13.394739229024944
+        },
+        {
+          "word": "Open",
+          "start": 13.814739229024944,
+          "end": 13.854739229024943
+        },
+        {
+          "word": "a",
+          "start": 13.854739229024943,
+          "end": 13.974739229024944
+        },
+        {
+          "word": "seller",
+          "start": 13.974739229024944,
+          "end": 14.194739229024943
+        },
+        {
+          "word": "and",
+          "start": 14.194739229024943,
+          "end": 14.534739229024943
+        },
+        {
+          "word": "you",
+          "start": 14.534739229024943,
+          "end": 14.634739229024943
+        },
+        {
+          "word": "can",
+          "start": 14.634739229024943,
+          "end": 14.774739229024943
+        },
+        {
+          "word": "see",
+          "start": 14.774739229024943,
+          "end": 14.994739229024944
+        },
+        {
+          "word": "what",
+          "start": 14.994739229024944,
+          "end": 15.154739229024944
+        },
+        {
+          "word": "sold,",
+          "start": 15.154739229024944,
+          "end": 15.394739229024944
+        },
+        {
+          "word": "when",
+          "start": 15.794739229024943,
+          "end": 15.954739229024943
+        },
+        {
+          "word": "it",
+          "start": 15.954739229024943,
+          "end": 16.054739229024943
+        },
+        {
+          "word": "sold,",
+          "start": 16.054739229024943,
+          "end": 16.234739229024942
+        },
+        {
+          "word": "and",
+          "start": 16.634739229024945,
+          "end": 16.694739229024943
+        },
+        {
+          "word": "for",
+          "start": 16.694739229024943,
+          "end": 16.834739229024944
+        },
+        {
+          "word": "how",
+          "start": 16.834739229024944,
+          "end": 16.954739229024945
+        },
+        {
+          "word": "much.",
+          "start": 16.954739229024945,
+          "end": 17.114739229024945
+        },
+        {
+          "word": "With",
+          "start": 17.954739229024945,
+          "end": 18.034739229024943
+        },
+        {
+          "word": "WhatsApp",
+          "start": 18.034739229024943,
+          "end": 18.274739229024945
+        },
+        {
+          "word": "connected,",
+          "start": 18.274739229024945,
+          "end": 18.694739229024943
+        },
+        {
+          "word": "those",
+          "start": 19.034739229024943,
+          "end": 19.094739229024942
+        },
+        {
+          "word": "transactions",
+          "start": 19.094739229024942,
+          "end": 19.474739229024944
+        },
+        {
+          "word": "can",
+          "start": 19.474739229024944,
+          "end": 19.894739229024943
+        },
+        {
+          "word": "feed",
+          "start": 19.894739229024943,
+          "end": 20.154739229024944
+        },
+        {
+          "word": "into",
+          "start": 20.154739229024944,
+          "end": 20.394739229024943
+        },
+        {
+          "word": "automated",
+          "start": 20.394739229024943,
+          "end": 20.814739229024944
+        },
+        {
+          "word": "follow-ups,",
+          "start": 20.814739229024944,
+          "end": 21.734739229024942
+        },
+        {
+          "word": "giving",
+          "start": 21.734739229024942,
+          "end": 21.934739229024945
+        },
+        {
+          "word": "you",
+          "start": 21.934739229024945,
+          "end": 22.134739229024945
+        },
+        {
+          "word": "something",
+          "start": 22.134739229024945,
+          "end": 22.354739229024943
+        },
+        {
+          "word": "useful",
+          "start": 22.354739229024943,
+          "end": 22.714739229024943
+        },
+        {
+          "word": "to",
+          "start": 22.714739229024943,
+          "end": 22.974739229024944
+        },
+        {
+          "word": "share",
+          "start": 22.974739229024944,
+          "end": 23.174739229024944
+        },
+        {
+          "word": "with",
+          "start": 23.174739229024944,
+          "end": 23.354739229024943
+        },
+        {
+          "word": "your",
+          "start": 23.354739229024943,
+          "end": 23.474739229024944
+        },
+        {
+          "word": "sellers.",
+          "start": 23.474739229024944,
+          "end": 23.694739229024943
+        }
+      ],
+      "cues": [
+        [
+          0,
+          0
+        ],
+        [
+          168,
+          110
+        ],
+        [
+          200,
+          136
+        ],
+        [
+          258,
+          204
+        ],
+        [
+          306,
+          272
+        ],
+        [
+          336,
+          295
+        ],
+        [
+          414,
+          409
+        ],
+        [
+          450,
+          499
+        ],
+        [
+          539,
+          658
+        ],
+        [
+          755,
+          839
+        ]
+      ]
+    },
+    {
+      "id": "templates",
+      "text": "You can use the default message, or make it sound more like you. In Message templates, write your own wording and drop in the seller's name, their building, and the latest transactions. The preview fills those details in as you go, so you can see exactly what the message will look like before you save it.",
+      "minSeconds": 22,
+      "navigation": 2,
+      "baseSeconds": 18,
+      "source": "final/voice/03.mp3",
+      "voiceOffset": 0.55,
+      "pauses": [],
+      "capture": "workflow/fresh/templates.mp4",
+      "captureFrames": 575,
+      "captureHold": "workflow/fresh/templates-end.jpg",
+      "from": 1296,
+      "frames": 660,
+      "voiceStart": 43.75,
+      "voiceDuration": 18.310958333333332,
+      "trimStart": 0.04895691609977324,
+      "words": [
+        {
+          "word": "You",
+          "start": 0.55,
+          "end": 0.6810430839002268
+        },
+        {
+          "word": "can",
+          "start": 0.6810430839002268,
+          "end": 0.7810430839002268
+        },
+        {
+          "word": "use",
+          "start": 0.7810430839002268,
+          "end": 0.9810430839002268
+        },
+        {
+          "word": "the",
+          "start": 0.9810430839002268,
+          "end": 1.2010430839002266
+        },
+        {
+          "word": "default",
+          "start": 1.2010430839002266,
+          "end": 1.4010430839002268
+        },
+        {
+          "word": "message,",
+          "start": 1.4010430839002268,
+          "end": 1.9210430839002268
+        },
+        {
+          "word": "or",
+          "start": 2.2410430839002267,
+          "end": 2.261043083900227
+        },
+        {
+          "word": "make",
+          "start": 2.261043083900227,
+          "end": 2.421043083900227
+        },
+        {
+          "word": "it",
+          "start": 2.421043083900227,
+          "end": 2.541043083900227
+        },
+        {
+          "word": "sound",
+          "start": 2.541043083900227,
+          "end": 2.7410430839002267
+        },
+        {
+          "word": "more",
+          "start": 2.7410430839002267,
+          "end": 3.0810430839002265
+        },
+        {
+          "word": "like",
+          "start": 3.0810430839002265,
+          "end": 3.7010430839002266
+        },
+        {
+          "word": "you.",
+          "start": 3.7010430839002266,
+          "end": 3.981043083900227
+        },
+        {
+          "word": "In",
+          "start": 5.301043083900226,
+          "end": 5.601043083900226
+        },
+        {
+          "word": "Message",
+          "start": 5.601043083900226,
+          "end": 5.781043083900227
+        },
+        {
+          "word": "templates,",
+          "start": 5.781043083900227,
+          "end": 6.241043083900227
+        },
+        {
+          "word": "write",
+          "start": 6.5810430839002265,
+          "end": 6.641043083900226
+        },
+        {
+          "word": "your",
+          "start": 6.641043083900226,
+          "end": 6.821043083900227
+        },
+        {
+          "word": "own",
+          "start": 6.821043083900227,
+          "end": 6.981043083900227
+        },
+        {
+          "word": "wording",
+          "start": 6.981043083900227,
+          "end": 7.221043083900226
+        },
+        {
+          "word": "and",
+          "start": 7.221043083900226,
+          "end": 7.641043083900226
+        },
+        {
+          "word": "drop",
+          "start": 7.641043083900226,
+          "end": 7.881043083900226
+        },
+        {
+          "word": "in",
+          "start": 7.881043083900226,
+          "end": 8.081043083900227
+        },
+        {
+          "word": "the",
+          "start": 8.081043083900227,
+          "end": 8.161043083900227
+        },
+        {
+          "word": "seller's",
+          "start": 8.161043083900227,
+          "end": 8.601043083900228
+        },
+        {
+          "word": "name,",
+          "start": 8.601043083900228,
+          "end": 8.881043083900229
+        },
+        {
+          "word": "their",
+          "start": 9.221043083900229,
+          "end": 9.421043083900228
+        },
+        {
+          "word": "building,",
+          "start": 9.421043083900228,
+          "end": 9.801043083900229
+        },
+        {
+          "word": "and",
+          "start": 10.121043083900227,
+          "end": 10.321043083900229
+        },
+        {
+          "word": "the",
+          "start": 10.321043083900229,
+          "end": 10.441043083900228
+        },
+        {
+          "word": "latest",
+          "start": 10.441043083900228,
+          "end": 10.661043083900228
+        },
+        {
+          "word": "transactions.",
+          "start": 10.661043083900228,
+          "end": 11.101043083900228
+        },
+        {
+          "word": "The",
+          "start": 12.441043083900228,
+          "end": 12.521043083900228
+        },
+        {
+          "word": "preview",
+          "start": 12.521043083900228,
+          "end": 12.741043083900228
+        },
+        {
+          "word": "fills",
+          "start": 12.741043083900228,
+          "end": 13.161043083900228
+        },
+        {
+          "word": "those",
+          "start": 13.161043083900228,
+          "end": 13.421043083900228
+        },
+        {
+          "word": "details",
+          "start": 13.421043083900228,
+          "end": 13.781043083900228
+        },
+        {
+          "word": "in",
+          "start": 13.781043083900228,
+          "end": 14.061043083900229
+        },
+        {
+          "word": "as",
+          "start": 14.061043083900229,
+          "end": 14.221043083900229
+        },
+        {
+          "word": "you",
+          "start": 14.221043083900229,
+          "end": 14.421043083900228
+        },
+        {
+          "word": "go,",
+          "start": 14.421043083900228,
+          "end": 14.661043083900228
+        },
+        {
+          "word": "so",
+          "start": 15.361043083900228,
+          "end": 15.541043083900227
+        },
+        {
+          "word": "you",
+          "start": 15.541043083900227,
+          "end": 15.701043083900228
+        },
+        {
+          "word": "can",
+          "start": 15.701043083900228,
+          "end": 15.841043083900228
+        },
+        {
+          "word": "see",
+          "start": 15.841043083900228,
+          "end": 16.021043083900228
+        },
+        {
+          "word": "exactly",
+          "start": 16.021043083900228,
+          "end": 16.401043083900227
+        },
+        {
+          "word": "what",
+          "start": 16.401043083900227,
+          "end": 16.721043083900227
+        },
+        {
+          "word": "the",
+          "start": 16.721043083900227,
+          "end": 16.82104308390023
+        },
+        {
+          "word": "message",
+          "start": 16.82104308390023,
+          "end": 17.081043083900227
+        },
+        {
+          "word": "will",
+          "start": 17.081043083900227,
+          "end": 17.32104308390023
+        },
+        {
+          "word": "look",
+          "start": 17.32104308390023,
+          "end": 17.50104308390023
+        },
+        {
+          "word": "like",
+          "start": 17.50104308390023,
+          "end": 17.721043083900227
+        },
+        {
+          "word": "before",
+          "start": 17.721043083900227,
+          "end": 18.021043083900228
+        },
+        {
+          "word": "you",
+          "start": 18.021043083900228,
+          "end": 18.201043083900228
+        },
+        {
+          "word": "save",
+          "start": 18.201043083900228,
+          "end": 18.42104308390023
+        },
+        {
+          "word": "it.",
+          "start": 18.42104308390023,
+          "end": 18.581043083900227
+        }
+      ],
+      "cues": [
+        [
+          60,
+          0
+        ],
+        [
+          659,
+          599
+        ]
+      ]
+    },
+    {
+      "id": "schedule",
+      "text": "You also decide when those follow-ups go out. Schedule lets you spread your buildings across the week, so you can organise them around the way you work. Here, we've added buildings from Monday through Thursday. Save the plan, and the weekly schedule controls which buildings get follow-ups each day. Days left empty stay off.",
+      "minSeconds": 24,
+      "navigation": 2,
+      "baseSeconds": 24,
+      "source": "final/voice/04.mp3",
+      "voiceOffset": 0.55,
+      "pauses": [
+        {
+          "at": 7.12,
+          "duration": 5
+        }
+      ],
+      "capture": "workflow/fresh/schedule.mp4",
+      "captureFrames": 643,
+      "captureHold": "workflow/fresh/schedule-end.jpg",
+      "outgoingImage": "workflow/fresh/templates-end.jpg",
+      "from": 1956,
+      "frames": 720,
+      "voiceStart": 65.75,
+      "voiceDuration": 21.075833333333332,
+      "trimStart": 0.041723356009070296,
+      "words": [
+        {
+          "word": "You",
+          "start": 0.55,
+          "end": 0.6682766439909298
+        },
+        {
+          "word": "also",
+          "start": 0.6682766439909298,
+          "end": 0.7882766439909298
+        },
+        {
+          "word": "decide",
+          "start": 0.7882766439909298,
+          "end": 1.1482766439909298
+        },
+        {
+          "word": "when",
+          "start": 1.1482766439909298,
+          "end": 1.4082766439909298
+        },
+        {
+          "word": "those",
+          "start": 1.4082766439909298,
+          "end": 1.5682766439909297
+        },
+        {
+          "word": "follow-ups",
+          "start": 1.5682766439909297,
+          "end": 2.06827664399093
+        },
+        {
+          "word": "go",
+          "start": 2.06827664399093,
+          "end": 2.2682766439909297
+        },
+        {
+          "word": "out.",
+          "start": 2.2682766439909297,
+          "end": 2.48827664399093
+        },
+        {
+          "word": "Schedule",
+          "start": 2.9082766439909298,
+          "end": 3.02827664399093
+        },
+        {
+          "word": "lets",
+          "start": 3.02827664399093,
+          "end": 3.3882766439909293
+        },
+        {
+          "word": "you",
+          "start": 3.3882766439909293,
+          "end": 3.5482766439909295
+        },
+        {
+          "word": "spread",
+          "start": 3.5482766439909295,
+          "end": 3.768276643990929
+        },
+        {
+          "word": "your",
+          "start": 3.768276643990929,
+          "end": 3.9282766439909294
+        },
+        {
+          "word": "buildings",
+          "start": 3.9282766439909294,
+          "end": 4.16827664399093
+        },
+        {
+          "word": "across",
+          "start": 4.16827664399093,
+          "end": 4.44827664399093
+        },
+        {
+          "word": "the",
+          "start": 4.44827664399093,
+          "end": 4.74827664399093
+        },
+        {
+          "word": "week,",
+          "start": 4.74827664399093,
+          "end": 4.928276643990929
+        },
+        {
+          "word": "so",
+          "start": 5.28827664399093,
+          "end": 5.32827664399093
+        },
+        {
+          "word": "you",
+          "start": 5.32827664399093,
+          "end": 5.44827664399093
+        },
+        {
+          "word": "can",
+          "start": 5.44827664399093,
+          "end": 5.5882766439909295
+        },
+        {
+          "word": "organise",
+          "start": 5.5882766439909295,
+          "end": 5.82827664399093
+        },
+        {
+          "word": "them",
+          "start": 5.82827664399093,
+          "end": 6.228276643990929
+        },
+        {
+          "word": "around",
+          "start": 6.228276643990929,
+          "end": 6.428276643990929
+        },
+        {
+          "word": "the",
+          "start": 6.428276643990929,
+          "end": 6.568276643990929
+        },
+        {
+          "word": "way",
+          "start": 6.568276643990929,
+          "end": 6.688276643990929
+        },
+        {
+          "word": "you",
+          "start": 6.688276643990929,
+          "end": 6.808276643990929
+        },
+        {
+          "word": "work.",
+          "start": 6.808276643990929,
+          "end": 7.008276643990929
+        },
+        {
+          "word": "Here,",
+          "start": 12.88827664399093,
+          "end": 13.068276643990929
+        },
+        {
+          "word": "we've",
+          "start": 13.16827664399093,
+          "end": 13.32827664399093
+        },
+        {
+          "word": "added",
+          "start": 13.32827664399093,
+          "end": 13.46827664399093
+        },
+        {
+          "word": "buildings",
+          "start": 13.46827664399093,
+          "end": 13.74827664399093
+        },
+        {
+          "word": "from",
+          "start": 13.74827664399093,
+          "end": 14.00827664399093
+        },
+        {
+          "word": "Monday",
+          "start": 14.00827664399093,
+          "end": 14.18827664399093
+        },
+        {
+          "word": "through",
+          "start": 14.18827664399093,
+          "end": 14.44827664399093
+        },
+        {
+          "word": "Thursday.",
+          "start": 14.44827664399093,
+          "end": 14.82827664399093
+        },
+        {
+          "word": "Save",
+          "start": 15.44827664399093,
+          "end": 15.52827664399093
+        },
+        {
+          "word": "the",
+          "start": 15.52827664399093,
+          "end": 15.68827664399093
+        },
+        {
+          "word": "plan,",
+          "start": 15.68827664399093,
+          "end": 15.90827664399093
+        },
+        {
+          "word": "and",
+          "start": 16.188276643990932,
+          "end": 16.34827664399093
+        },
+        {
+          "word": "the",
+          "start": 16.34827664399093,
+          "end": 16.44827664399093
+        },
+        {
+          "word": "weekly",
+          "start": 16.44827664399093,
+          "end": 16.58827664399093
+        },
+        {
+          "word": "schedule",
+          "start": 16.58827664399093,
+          "end": 17.028276643990928
+        },
+        {
+          "word": "controls",
+          "start": 17.028276643990928,
+          "end": 17.38827664399093
+        },
+        {
+          "word": "which",
+          "start": 17.38827664399093,
+          "end": 17.74827664399093
+        },
+        {
+          "word": "buildings",
+          "start": 17.74827664399093,
+          "end": 18.188276643990932
+        },
+        {
+          "word": "get",
+          "start": 18.188276643990932,
+          "end": 18.468276643990933
+        },
+        {
+          "word": "follow-ups",
+          "start": 18.468276643990933,
+          "end": 19.04827664399093
+        },
+        {
+          "word": "each",
+          "start": 19.04827664399093,
+          "end": 19.188276643990932
+        },
+        {
+          "word": "day.",
+          "start": 19.188276643990932,
+          "end": 19.508276643990932
+        },
+        {
+          "word": "Days",
+          "start": 20.38827664399093,
+          "end": 20.38827664399093
+        },
+        {
+          "word": "left",
+          "start": 20.38827664399093,
+          "end": 20.60827664399093
+        },
+        {
+          "word": "empty",
+          "start": 20.60827664399093,
+          "end": 20.84827664399093
+        },
+        {
+          "word": "stay",
+          "start": 20.84827664399093,
+          "end": 21.12827664399093
+        },
+        {
+          "word": "off.",
+          "start": 21.12827664399093,
+          "end": 21.368276643990928
+        }
+      ],
+      "cues": [
+        [
+          60,
+          0
+        ],
+        [
+          719,
+          659
+        ]
+      ]
+    },
+    {
+      "id": "market",
+      "text": "Over in Listings, you can track the buildings you cover and spot apartments that have dropped in price. Open a building, then an apartment, to get a closer look. You can follow the asking price on the chart, and check Activity to see when it changed. It's a useful bit of context before your next conversation.",
+      "minSeconds": 19,
+      "navigation": 1.8,
+      "baseSeconds": 20,
+      "source": "final/voice/05.mp3",
+      "voiceOffset": 0.55,
+      "pauses": [],
+      "outgoingImage": "workflow/fresh/schedule-end.jpg",
+      "from": 2676,
+      "frames": 570,
+      "voiceStart": 89.75,
+      "voiceDuration": 16.378791666666668,
+      "trimStart": 0.0,
+      "words": [
+        {
+          "word": "Over",
+          "start": 0.55,
+          "end": 0.77
+        },
+        {
+          "word": "in",
+          "start": 0.77,
+          "end": 0.91
+        },
+        {
+          "word": "Listings,",
+          "start": 0.91,
+          "end": 1.31
+        },
+        {
+          "word": "you",
+          "start": 1.4300000000000002,
+          "end": 1.4700000000000002
+        },
+        {
+          "word": "can",
+          "start": 1.4700000000000002,
+          "end": 1.59
+        },
+        {
+          "word": "track",
+          "start": 1.59,
+          "end": 1.85
+        },
+        {
+          "word": "the",
+          "start": 1.85,
+          "end": 2.0700000000000003
+        },
+        {
+          "word": "buildings",
+          "start": 2.0700000000000003,
+          "end": 2.33
+        },
+        {
+          "word": "you",
+          "start": 2.33,
+          "end": 2.55
+        },
+        {
+          "word": "cover",
+          "start": 2.55,
+          "end": 2.7700000000000005
+        },
+        {
+          "word": "and",
+          "start": 2.7700000000000005,
+          "end": 3.09
+        },
+        {
+          "word": "spot",
+          "start": 3.09,
+          "end": 3.29
+        },
+        {
+          "word": "apartments",
+          "start": 3.29,
+          "end": 3.55
+        },
+        {
+          "word": "that",
+          "start": 3.55,
+          "end": 3.95
+        },
+        {
+          "word": "have",
+          "start": 3.95,
+          "end": 4.09
+        },
+        {
+          "word": "dropped",
+          "start": 4.09,
+          "end": 4.31
+        },
+        {
+          "word": "in",
+          "start": 4.31,
+          "end": 4.51
+        },
+        {
+          "word": "price.",
+          "start": 4.51,
+          "end": 4.75
+        },
+        {
+          "word": "Open",
+          "start": 5.49,
+          "end": 5.59
+        },
+        {
+          "word": "a",
+          "start": 5.59,
+          "end": 5.67
+        },
+        {
+          "word": "building,",
+          "start": 5.67,
+          "end": 5.95
+        },
+        {
+          "word": "then",
+          "start": 6.25,
+          "end": 6.35
+        },
+        {
+          "word": "an",
+          "start": 6.35,
+          "end": 6.49
+        },
+        {
+          "word": "apartment,",
+          "start": 6.49,
+          "end": 6.7299999999999995
+        },
+        {
+          "word": "to",
+          "start": 7.03,
+          "end": 7.109999999999999
+        },
+        {
+          "word": "get",
+          "start": 7.109999999999999,
+          "end": 7.31
+        },
+        {
+          "word": "a",
+          "start": 7.31,
+          "end": 7.71
+        },
+        {
+          "word": "closer",
+          "start": 7.71,
+          "end": 8.05
+        },
+        {
+          "word": "look.",
+          "start": 8.05,
+          "end": 8.47
+        },
+        {
+          "word": "You",
+          "start": 9.110000000000001,
+          "end": 9.110000000000001
+        },
+        {
+          "word": "can",
+          "start": 9.110000000000001,
+          "end": 9.23
+        },
+        {
+          "word": "follow",
+          "start": 9.23,
+          "end": 9.430000000000001
+        },
+        {
+          "word": "the",
+          "start": 9.430000000000001,
+          "end": 9.73
+        },
+        {
+          "word": "asking",
+          "start": 9.73,
+          "end": 10.13
+        },
+        {
+          "word": "price",
+          "start": 10.13,
+          "end": 10.59
+        },
+        {
+          "word": "on",
+          "start": 10.59,
+          "end": 10.91
+        },
+        {
+          "word": "the",
+          "start": 10.91,
+          "end": 11.030000000000001
+        },
+        {
+          "word": "chart,",
+          "start": 11.030000000000001,
+          "end": 11.25
+        },
+        {
+          "word": "and",
+          "start": 11.530000000000001,
+          "end": 11.57
+        },
+        {
+          "word": "check",
+          "start": 11.57,
+          "end": 11.75
+        },
+        {
+          "word": "Activity",
+          "start": 11.75,
+          "end": 12.09
+        },
+        {
+          "word": "to",
+          "start": 12.09,
+          "end": 12.47
+        },
+        {
+          "word": "see",
+          "start": 12.47,
+          "end": 12.65
+        },
+        {
+          "word": "when",
+          "start": 12.65,
+          "end": 12.870000000000001
+        },
+        {
+          "word": "it",
+          "start": 12.870000000000001,
+          "end": 12.950000000000001
+        },
+        {
+          "word": "changed.",
+          "start": 12.950000000000001,
+          "end": 13.15
+        },
+        {
+          "word": "It's",
+          "start": 13.99,
+          "end": 14.05
+        },
+        {
+          "word": "a",
+          "start": 14.05,
+          "end": 14.13
+        },
+        {
+          "word": "useful",
+          "start": 14.13,
+          "end": 14.290000000000001
+        },
+        {
+          "word": "bit",
+          "start": 14.290000000000001,
+          "end": 14.530000000000001
+        },
+        {
+          "word": "of",
+          "start": 14.530000000000001,
+          "end": 14.610000000000001
+        },
+        {
+          "word": "context",
+          "start": 14.610000000000001,
+          "end": 14.870000000000001
+        },
+        {
+          "word": "before",
+          "start": 14.870000000000001,
+          "end": 15.31
+        },
+        {
+          "word": "your",
+          "start": 15.31,
+          "end": 15.55
+        },
+        {
+          "word": "next",
+          "start": 15.55,
+          "end": 15.71
+        },
+        {
+          "word": "conversation.",
+          "start": 15.71,
+          "end": 16.25
+        }
+      ],
+      "cues": [
+        [
+          54,
+          0
+        ],
+        [
+          93,
+          60
+        ],
+        [
+          165,
+          110
+        ],
+        [
+          196,
+          220
+        ],
+        [
+          273,
+          360
+        ],
+        [
+          352,
+          427
+        ],
+        [
+          414,
+          490
+        ],
+        [
+          569,
+          599
+        ]
+      ]
+    },
+    {
+      "id": "integrations",
+      "text": "Connect Gmail or Outlook to read emails and draft replies, with each send confirmed by you. Your calendar brings in upcoming events. And through MCP, you can work with your Repeat AI account from Codex, Claude or ChatGPT. Ask for a seller, check recent WhatsApp messages, or update a lead, with changes sent to you for approval. So you can keep working in the assistant you already use.",
+      "minSeconds": 26,
+      "navigation": 0,
+      "baseSeconds": 7,
+      "source": "revised/integrations.mp3",
+      "voiceOffset": 0.55,
+      "pauses": [],
+      "from": 3246,
+      "frames": 780,
+      "voiceStart": 108.75,
+      "voiceDuration": 24.046041666666667,
+      "trimStart": 0.03972789115646259,
+      "words": [
+        {
+          "word": "Connect",
+          "start": 0.55,
+          "end": 0.7302721088435374
+        },
+        {
+          "word": "Gmail",
+          "start": 0.7302721088435374,
+          "end": 0.9902721088435374
+        },
+        {
+          "word": "or",
+          "start": 0.9902721088435374,
+          "end": 1.2902721088435376
+        },
+        {
+          "word": "Outlook",
+          "start": 1.2902721088435376,
+          "end": 1.5302721088435374
+        },
+        {
+          "word": "to",
+          "start": 1.5302721088435374,
+          "end": 1.8102721088435374
+        },
+        {
+          "word": "read",
+          "start": 1.8102721088435374,
+          "end": 1.9702721088435373
+        },
+        {
+          "word": "emails",
+          "start": 1.9702721088435373,
+          "end": 2.310272108843537
+        },
+        {
+          "word": "and",
+          "start": 2.310272108843537,
+          "end": 2.5502721088435374
+        },
+        {
+          "word": "draft",
+          "start": 2.5502721088435374,
+          "end": 2.690272108843538
+        },
+        {
+          "word": "replies,",
+          "start": 2.690272108843538,
+          "end": 3.0102721088435374
+        },
+        {
+          "word": "with",
+          "start": 3.0102721088435374,
+          "end": 3.4702721088435373
+        },
+        {
+          "word": "each",
+          "start": 3.4702721088435373,
+          "end": 3.6702721088435375
+        },
+        {
+          "word": "send",
+          "start": 3.6702721088435375,
+          "end": 3.8902721088435372
+        },
+        {
+          "word": "confirmed",
+          "start": 3.8902721088435372,
+          "end": 4.2102721088435375
+        },
+        {
+          "word": "by",
+          "start": 4.2102721088435375,
+          "end": 4.6702721088435375
+        },
+        {
+          "word": "you.",
+          "start": 4.6702721088435375,
+          "end": 4.890272108843537
+        },
+        {
+          "word": "Your",
+          "start": 5.690272108843537,
+          "end": 5.910272108843538
+        },
+        {
+          "word": "calendar",
+          "start": 5.910272108843538,
+          "end": 6.190272108843537
+        },
+        {
+          "word": "brings",
+          "start": 6.190272108843537,
+          "end": 6.590272108843537
+        },
+        {
+          "word": "in",
+          "start": 6.590272108843537,
+          "end": 6.770272108843537
+        },
+        {
+          "word": "upcoming",
+          "start": 6.770272108843537,
+          "end": 6.930272108843537
+        },
+        {
+          "word": "events.",
+          "start": 6.930272108843537,
+          "end": 7.450272108843538
+        },
+        {
+          "word": "And",
+          "start": 7.450272108843538,
+          "end": 7.690272108843537
+        },
+        {
+          "word": "through",
+          "start": 7.690272108843537,
+          "end": 7.910272108843538
+        },
+        {
+          "word": "MCP,",
+          "start": 7.910272108843538,
+          "end": 8.570272108843538
+        },
+        {
+          "word": "you",
+          "start": 9.610272108843537,
+          "end": 9.630272108843537
+        },
+        {
+          "word": "can",
+          "start": 9.630272108843537,
+          "end": 9.770272108843537
+        },
+        {
+          "word": "work",
+          "start": 9.770272108843537,
+          "end": 9.950272108843537
+        },
+        {
+          "word": "with",
+          "start": 9.950272108843537,
+          "end": 10.110272108843537
+        },
+        {
+          "word": "your",
+          "start": 10.110272108843537,
+          "end": 10.270272108843537
+        },
+        {
+          "word": "Repeat",
+          "start": 10.270272108843537,
+          "end": 10.570272108843538
+        },
+        {
+          "word": "AI",
+          "start": 10.570272108843538,
+          "end": 10.990272108843538
+        },
+        {
+          "word": "account",
+          "start": 10.990272108843538,
+          "end": 11.490272108843538
+        },
+        {
+          "word": "from",
+          "start": 11.490272108843538,
+          "end": 11.910272108843538
+        },
+        {
+          "word": "Codex,",
+          "start": 11.910272108843538,
+          "end": 12.330272108843538
+        },
+        {
+          "word": "Claude",
+          "start": 12.750272108843538,
+          "end": 12.810272108843538
+        },
+        {
+          "word": "or",
+          "start": 13.090272108843537,
+          "end": 13.110272108843537
+        },
+        {
+          "word": "ChatGPT.",
+          "start": 13.110272108843537,
+          "end": 14.51027210884354
+        },
+        {
+          "word": "Ask",
+          "start": 14.51027210884354,
+          "end": 15.030272108843537
+        },
+        {
+          "word": "for",
+          "start": 15.030272108843537,
+          "end": 15.250272108843538
+        },
+        {
+          "word": "a",
+          "start": 15.250272108843538,
+          "end": 15.330272108843538
+        },
+        {
+          "word": "seller,",
+          "start": 15.330272108843538,
+          "end": 15.610272108843537
+        },
+        {
+          "word": "check",
+          "start": 16.150272108843538,
+          "end": 16.410272108843536
+        },
+        {
+          "word": "recent",
+          "start": 16.410272108843536,
+          "end": 16.830272108843538
+        },
+        {
+          "word": "WhatsApp",
+          "start": 16.830272108843538,
+          "end": 17.070272108843536
+        },
+        {
+          "word": "messages,",
+          "start": 17.070272108843536,
+          "end": 17.690272108843537
+        },
+        {
+          "word": "or",
+          "start": 18.390272108843536,
+          "end": 18.490272108843538
+        },
+        {
+          "word": "update",
+          "start": 18.490272108843538,
+          "end": 19.030272108843537
+        },
+        {
+          "word": "a",
+          "start": 19.030272108843537,
+          "end": 19.170272108843537
+        },
+        {
+          "word": "lead,",
+          "start": 19.170272108843537,
+          "end": 19.410272108843536
+        },
+        {
+          "word": "with",
+          "start": 19.410272108843536,
+          "end": 19.710272108843537
+        },
+        {
+          "word": "changes",
+          "start": 19.710272108843537,
+          "end": 19.93027210884354
+        },
+        {
+          "word": "sent",
+          "start": 19.93027210884354,
+          "end": 20.370272108843537
+        },
+        {
+          "word": "to",
+          "start": 20.370272108843537,
+          "end": 20.570272108843536
+        },
+        {
+          "word": "you",
+          "start": 20.570272108843536,
+          "end": 20.670272108843537
+        },
+        {
+          "word": "for",
+          "start": 20.670272108843537,
+          "end": 20.850272108843537
+        },
+        {
+          "word": "approval.",
+          "start": 20.850272108843537,
+          "end": 21.150272108843538
+        },
+        {
+          "word": "So",
+          "start": 21.730272108843536,
+          "end": 21.890272108843536
+        },
+        {
+          "word": "you",
+          "start": 21.890272108843536,
+          "end": 21.970272108843538
+        },
+        {
+          "word": "can",
+          "start": 21.970272108843538,
+          "end": 22.090272108843536
+        },
+        {
+          "word": "keep",
+          "start": 22.090272108843536,
+          "end": 22.250272108843536
+        },
+        {
+          "word": "working",
+          "start": 22.250272108843536,
+          "end": 22.490272108843538
+        },
+        {
+          "word": "in",
+          "start": 22.490272108843538,
+          "end": 22.890272108843536
+        },
+        {
+          "word": "the",
+          "start": 22.890272108843536,
+          "end": 23.010272108843537
+        },
+        {
+          "word": "assistant",
+          "start": 23.010272108843537,
+          "end": 23.310272108843538
+        },
+        {
+          "word": "you",
+          "start": 23.310272108843538,
+          "end": 23.570272108843536
+        },
+        {
+          "word": "already",
+          "start": 23.570272108843536,
+          "end": 23.750272108843536
+        },
+        {
+          "word": "use.",
+          "start": 23.750272108843536,
+          "end": 24.150272108843538
+        }
+      ],
+      "cues": [
+        [
+          0,
+          0
+        ],
+        [
+          224,
+          210
+        ],
+        [
+          779,
+          780
+        ]
+      ]
+    },
+    {
+      "id": "assistant",
+      "text": "For a quicker way to get things done, there's Ask Repeat in the corner. Type what you need, or talk to it using voice. It can find sellers, summarise market activity, and help with things like templates and scheduling. Here, it's prepared a new message template. You can read it through and confirm the change when you're happy with it.",
+      "minSeconds": 22,
+      "navigation": 3.1,
+      "baseSeconds": 18,
+      "source": "final/voice/07.mp3",
+      "voiceOffset": 0.35,
+      "pauses": [],
+      "from": 4026,
+      "frames": 660,
+      "voiceStart": 134.54999999999998,
+      "voiceDuration": 18.779208333333333,
+      "trimStart": 0.02895691609977324,
+      "words": [
+        {
+          "word": "For",
+          "start": 0.35,
+          "end": 0.48104308390022676
+        },
+        {
+          "word": "a",
+          "start": 0.48104308390022676,
+          "end": 0.5410430839002267
+        },
+        {
+          "word": "quicker",
+          "start": 0.5410430839002267,
+          "end": 0.6810430839002267
+        },
+        {
+          "word": "way",
+          "start": 0.6810430839002267,
+          "end": 0.9210430839002267
+        },
+        {
+          "word": "to",
+          "start": 0.9210430839002267,
+          "end": 1.0210430839002267
+        },
+        {
+          "word": "get",
+          "start": 1.0210430839002267,
+          "end": 1.1610430839002266
+        },
+        {
+          "word": "things",
+          "start": 1.1610430839002266,
+          "end": 1.3610430839002268
+        },
+        {
+          "word": "done,",
+          "start": 1.3610430839002268,
+          "end": 1.641043083900227
+        },
+        {
+          "word": "there's",
+          "start": 1.8210430839002267,
+          "end": 1.9410430839002268
+        },
+        {
+          "word": "Ask",
+          "start": 1.9410430839002268,
+          "end": 2.161043083900227
+        },
+        {
+          "word": "Repeat",
+          "start": 2.161043083900227,
+          "end": 2.401043083900227
+        },
+        {
+          "word": "in",
+          "start": 2.401043083900227,
+          "end": 2.7610430839002267
+        },
+        {
+          "word": "the",
+          "start": 2.7610430839002267,
+          "end": 2.8210430839002267
+        },
+        {
+          "word": "corner.",
+          "start": 2.8210430839002267,
+          "end": 3.0810430839002265
+        },
+        {
+          "word": "Type",
+          "start": 4.061043083900227,
+          "end": 4.0810430839002265
+        },
+        {
+          "word": "what",
+          "start": 4.0810430839002265,
+          "end": 4.281043083900227
+        },
+        {
+          "word": "you",
+          "start": 4.281043083900227,
+          "end": 4.421043083900226
+        },
+        {
+          "word": "need,",
+          "start": 4.421043083900226,
+          "end": 4.601043083900227
+        },
+        {
+          "word": "or",
+          "start": 4.941043083900227,
+          "end": 5.0810430839002265
+        },
+        {
+          "word": "talk",
+          "start": 5.0810430839002265,
+          "end": 5.481043083900227
+        },
+        {
+          "word": "to",
+          "start": 5.481043083900227,
+          "end": 5.661043083900227
+        },
+        {
+          "word": "it",
+          "start": 5.661043083900227,
+          "end": 5.741043083900227
+        },
+        {
+          "word": "using",
+          "start": 5.741043083900227,
+          "end": 5.941043083900227
+        },
+        {
+          "word": "voice.",
+          "start": 5.941043083900227,
+          "end": 6.281043083900227
+        },
+        {
+          "word": "It",
+          "start": 6.981043083900227,
+          "end": 7.0410430839002265
+        },
+        {
+          "word": "can",
+          "start": 7.0410430839002265,
+          "end": 7.201043083900227
+        },
+        {
+          "word": "find",
+          "start": 7.201043083900227,
+          "end": 7.441043083900227
+        },
+        {
+          "word": "sellers,",
+          "start": 7.441043083900227,
+          "end": 7.821043083900227
+        },
+        {
+          "word": "summarise",
+          "start": 8.261043083900228,
+          "end": 8.721043083900227
+        },
+        {
+          "word": "market",
+          "start": 8.721043083900227,
+          "end": 9.081043083900227
+        },
+        {
+          "word": "activity,",
+          "start": 9.081043083900227,
+          "end": 9.521043083900226
+        },
+        {
+          "word": "and",
+          "start": 10.021043083900226,
+          "end": 10.041043083900227
+        },
+        {
+          "word": "help",
+          "start": 10.041043083900227,
+          "end": 10.181043083900226
+        },
+        {
+          "word": "with",
+          "start": 10.181043083900226,
+          "end": 10.361043083900226
+        },
+        {
+          "word": "things",
+          "start": 10.361043083900226,
+          "end": 10.561043083900227
+        },
+        {
+          "word": "like",
+          "start": 10.561043083900227,
+          "end": 10.841043083900226
+        },
+        {
+          "word": "templates",
+          "start": 10.841043083900226,
+          "end": 11.301043083900227
+        },
+        {
+          "word": "and",
+          "start": 11.301043083900227,
+          "end": 11.641043083900227
+        },
+        {
+          "word": "scheduling.",
+          "start": 11.641043083900227,
+          "end": 11.901043083900227
+        },
+        {
+          "word": "Here,",
+          "start": 13.121043083900227,
+          "end": 13.201043083900228
+        },
+        {
+          "word": "it's",
+          "start": 13.321043083900227,
+          "end": 13.481043083900227
+        },
+        {
+          "word": "prepared",
+          "start": 13.481043083900227,
+          "end": 13.801043083900227
+        },
+        {
+          "word": "a",
+          "start": 13.801043083900227,
+          "end": 14.601043083900226
+        },
+        {
+          "word": "new",
+          "start": 14.601043083900226,
+          "end": 14.841043083900226
+        },
+        {
+          "word": "message",
+          "start": 14.841043083900226,
+          "end": 15.201043083900228
+        },
+        {
+          "word": "template.",
+          "start": 15.201043083900228,
+          "end": 15.681043083900226
+        },
+        {
+          "word": "You",
+          "start": 16.041043083900227,
+          "end": 16.041043083900227
+        },
+        {
+          "word": "can",
+          "start": 16.041043083900227,
+          "end": 16.181043083900228
+        },
+        {
+          "word": "read",
+          "start": 16.181043083900228,
+          "end": 16.381043083900227
+        },
+        {
+          "word": "it",
+          "start": 16.381043083900227,
+          "end": 16.521043083900228
+        },
+        {
+          "word": "through",
+          "start": 16.521043083900228,
+          "end": 16.74104308390023
+        },
+        {
+          "word": "and",
+          "start": 16.74104308390023,
+          "end": 16.92104308390023
+        },
+        {
+          "word": "confirm",
+          "start": 16.92104308390023,
+          "end": 17.221043083900227
+        },
+        {
+          "word": "the",
+          "start": 17.221043083900227,
+          "end": 17.48104308390023
+        },
+        {
+          "word": "change",
+          "start": 17.48104308390023,
+          "end": 17.701043083900228
+        },
+        {
+          "word": "when",
+          "start": 17.701043083900228,
+          "end": 17.92104308390023
+        },
+        {
+          "word": "you're",
+          "start": 17.92104308390023,
+          "end": 18.061043083900227
+        },
+        {
+          "word": "happy",
+          "start": 18.061043083900227,
+          "end": 18.30104308390023
+        },
+        {
+          "word": "with",
+          "start": 18.30104308390023,
+          "end": 18.50104308390023
+        },
+        {
+          "word": "it.",
+          "start": 18.50104308390023,
+          "end": 18.64104308390023
+        }
+      ],
+      "cues": [
+        [
+          93,
+          0
+        ],
+        [
+          116,
+          35
+        ],
+        [
+          122,
+          40
+        ],
+        [
+          267,
+          225
+        ],
+        [
+          325,
+          295
+        ],
+        [
+          357,
+          320
+        ],
+        [
+          386,
+          350
+        ],
+        [
+          401,
+          380
+        ],
+        [
+          659,
+          539
+        ]
+      ]
+    },
+    {
+      "id": "platforms",
+      "text": "Repeat AI is available on the web, Windows and mobile, so you can pick up where you left off.",
+      "minSeconds": 6,
+      "navigation": 0,
+      "baseSeconds": 6,
+      "source": "final/voice/08.mp3",
+      "voiceOffset": 0.55,
+      "pauses": [],
+      "from": 4686,
+      "frames": 180,
+      "voiceStart": 156.75,
+      "voiceDuration": 4.4411875,
+      "trimStart": 0.051882086167800455,
+      "words": [
+        {
+          "word": "Repeat",
+          "start": 0.55,
+          "end": 0.7581179138321996
+        },
+        {
+          "word": "AI",
+          "start": 0.7581179138321996,
+          "end": 1.0581179138321997
+        },
+        {
+          "word": "is",
+          "start": 1.0581179138321997,
+          "end": 1.3181179138321997
+        },
+        {
+          "word": "available",
+          "start": 1.3181179138321997,
+          "end": 1.4781179138321996
+        },
+        {
+          "word": "on",
+          "start": 1.4781179138321996,
+          "end": 1.7981179138321997
+        },
+        {
+          "word": "the",
+          "start": 1.7981179138321997,
+          "end": 1.8781179138321995
+        },
+        {
+          "word": "web,",
+          "start": 1.8781179138321995,
+          "end": 2.0581179138321994
+        },
+        {
+          "word": "Windows",
+          "start": 2.5381179138322,
+          "end": 2.5381179138322
+        },
+        {
+          "word": "and",
+          "start": 2.5381179138322,
+          "end": 2.8181179138321992
+        },
+        {
+          "word": "mobile,",
+          "start": 2.8181179138321992,
+          "end": 2.9781179138321994
+        },
+        {
+          "word": "so",
+          "start": 3.3381179138321997,
+          "end": 3.3581179138321993
+        },
+        {
+          "word": "you",
+          "start": 3.3581179138321993,
+          "end": 3.4381179138321993
+        },
+        {
+          "word": "can",
+          "start": 3.4381179138321993,
+          "end": 3.5381179138322
+        },
+        {
+          "word": "pick",
+          "start": 3.5381179138322,
+          "end": 3.6581179138322
+        },
+        {
+          "word": "up",
+          "start": 3.6581179138322,
+          "end": 3.7981179138321997
+        },
+        {
+          "word": "where",
+          "start": 3.7981179138321997,
+          "end": 3.9381179138321993
+        },
+        {
+          "word": "you",
+          "start": 3.9381179138321993,
+          "end": 4.0781179138322
+        },
+        {
+          "word": "left",
+          "start": 4.0781179138322,
+          "end": 4.2181179138322
+        },
+        {
+          "word": "off.",
+          "start": 4.2181179138322,
+          "end": 4.478117913832199
+        }
+      ],
+      "cues": [
+        [
+          0,
+          0
+        ],
+        [
+          179,
+          179
+        ]
+      ]
+    }
+  ]
+}
