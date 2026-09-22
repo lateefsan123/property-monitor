@@ -1,0 +1,114 @@
+{
+  "first_pass": {
+    "input_i": "-23.06",
+    "input_tp": "-2.50",
+    "input_lra": "8.10",
+    "input_thresh": "-33.73",
+    "output_i": "-16.40",
+    "output_tp": "-1.50",
+    "output_lra": "5.40",
+    "output_thresh": "-26.82",
+    "normalization_type": "dynamic",
+    "target_offset": "0.40"
+  },
+  "voice": [
+    {
+      "name": "01-open",
+      "start": 0.5,
+      "duration": 3.944375,
+      "text": "Turn your seller list into better conversations. Meet Repeat A I.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "02-import",
+      "start": 5.4,
+      "duration": 12.084375,
+      "text": "Start by importing your leads. Paste a Google Sheet link, or choose an Excel file. Repeat A I brings your sellers into one workspace, organised by building, with their contact details and status.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "03-sellers",
+      "start": 21.5,
+      "duration": 14.406583333333334,
+      "text": "Now open Sellers. See who is a prospect, who is at market appraisal, and who is available for sale. Filter the list to focus on the conversations that matter. Not interested keeps opted-out sellers out of automated follow-ups.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "04-context",
+      "start": 36.4,
+      "duration": 13.137333333333334,
+      "text": "Sold today highlights fresh transaction data in a seller's building. Open their record to see their details, then Market data for the latest sales, prices, and dates. That gives your next message a reason to exist.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "05-automation-v2",
+      "start": 49.8,
+      "duration": 6.473458333333333,
+      "text": "Connect WhatsApp for personalised, automated transaction updates, following your schedule and sending limits.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "06-template",
+      "start": 58.4,
+      "duration": 11.83875,
+      "text": "Happy with the default message? You're ready. Want your own wording? Create a custom template. Name, building, and transaction fields personalise it for each seller, and the preview shows the result.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "07-schedule-a",
+      "start": 73.5,
+      "duration": 6.542166666666667,
+      "text": "Then decide which buildings get follow-ups on which days. Choose a day, pick a spreadsheet, and select its buildings.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "07-schedule-b",
+      "start": 82,
+      "duration": 6.674333333333333,
+      "text": "Give Monday both Act towers, Tuesday Saint Regis, Wednesday the Burj buildings, and Thursday Imperial Avenue.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "07-schedule-c",
+      "start": 92,
+      "duration": 5.548916666666667,
+      "text": "Review the whole week, then save. Empty days stay off while weekly scheduling is enabled.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "08-market",
+      "start": 99.5,
+      "duration": 13.581208333333333,
+      "text": "You can also watch the buildings you cover for asking-price drops. Open Burj Khalifa, choose an apartment, and inspect the price chart. The activity history shows when it was listed, and exactly when the asking price changed.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "09-tools",
+      "start": 119.4,
+      "duration": 5.8905,
+      "text": "Keep your everyday tools connected: Google Sheets, Excel, Gmail, Outlook, and your calendars.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "10-assistant",
+      "start": 128.5,
+      "duration": 16.278166666666667,
+      "text": "And you don't have to do every step by hand. Ask Repeat is your smart assistant. Type, or talk with voice. Ask for a market summary, find sellers, or prepare a template or schedule change. Here, it drafts a new message template. Review the change, then confirm.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "11-platforms",
+      "start": 151.4,
+      "duration": 4.79125,
+      "text": "At your desk or between viewings. Keep working across the web, Windows, and mobile.",
+      "voice": "af_heart"
+    },
+    {
+      "name": "12-close",
+      "start": 159.5,
+      "duration": 3.354875,
+      "text": "Less admin. Better conversations. Repeat A I.",
+      "voice": "af_heart"
+    }
+  ]
+}

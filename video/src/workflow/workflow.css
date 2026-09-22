@@ -1,0 +1,29 @@
+.workflow-film{font-family:FilmInter,Inter,Arial,sans-serif}
+.workflow-film .app-shell{font-size:16px;display:block}
+.workflow-film .wf-app-header{height:56px;display:flex;align-items:center;gap:24px;padding:8px 30px;width:100%;font-size:16px;color:var(--text);background:var(--bg-page);position:absolute;top:0;z-index:2}
+.wf-app-header>span{color:var(--text-faint)}
+.workflow-film .wf-download{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1px solid var(--nav-btn-border);border-radius:8px;background:var(--bg-hover);color:var(--text);font:inherit}
+.workflow-film .wf-search{display:flex;align-items:center;justify-content:space-between;border:1px solid var(--bg-card-border);border-radius:6px;padding:9px 12px;font-size:14px;color:var(--text-faint);background:var(--bg-input)}
+.workflow-film .seller-record-surface{min-height:340px}
+.workflow-film .seller-filter-chip{white-space:nowrap}
+.workflow-film .lead-cell-phone{white-space:nowrap}
+.workflow-film .lead-row td{height:69px}
+.workflow-film .lead-table{table-layout:auto}
+.workflow-film .lead-name-wrap{min-width:110px}
+.workflow-film .lead-cell-building{max-width:240px}
+.workflow-film .lead-cell-status{min-width:156px}
+.workflow-film .lead-detail-panel-title{letter-spacing:normal}
+.workflow-film .btn-sm{border:1px solid var(--border);border-radius:7px;color:var(--text);background:var(--bg-hover);font-family:inherit;display:inline-flex;align-items:center;gap:6px}
+.workflow-film .btn-sm.btn-primary{background:var(--btn-primary-bg);color:var(--btn-primary-text)}
+.workflow-film .btn-sm.btn-wa{background:#e6f4ea;color:#0b8a5b;border-color:#e6f4ea}
+.workflow-film .wf-imported-row{display:flex;align-items:center;gap:30px;padding:26px 16px;border-bottom:1px solid var(--bg-card-border);font-size:22px}
+.workflow-film .schedule-page{font-size:16px;color-scheme:dark}
+.workflow-film .schedule-picker{box-sizing:border-box}
+.workflow-film .schedule-picker input[type=checkbox]{margin:4px}
+.workflow-film .schedule-picker-list{max-height:240px}
+.workflow-film .schedule-day{min-height:280px;height:auto}
+.workflow-film .schedule-building{min-height:54px;font-size:14px;padding:8px 2px 8px 12px}
+.workflow-film .schedule-day h2{margin-bottom:24px}
+.workflow-film .film-caption{z-index:1100;bottom:26px}
+
+.workflow-film .btn-sm:disabled{opacity:.5}
