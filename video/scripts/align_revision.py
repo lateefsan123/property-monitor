@@ -4,7 +4,7 @@ import json,sys
 from faster_whisper import WhisperModel
 
 ROOT=Path(__file__).resolve().parents[2]
-EDIT='fresh' if '--fresh' in sys.argv else 'revised'
+EDIT='whatsapp' if '--whatsapp' in sys.argv else 'fresh' if '--fresh' in sys.argv else 'revised'
 OUT=ROOT/f'video/review/{EDIT}'
 OUT.mkdir(parents=True,exist_ok=True)
 rows=json.loads((OUT/'narration.json').read_text(encoding='utf-8'))

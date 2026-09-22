@@ -9,6 +9,7 @@ import {Intro,Market,Platforms,Close} from './SharedScenes';
 import {asset,Cursor,Screenshot,tween} from './primitives';
 import timeline from './final-timeline.json';
 import {RevisedIntegrations} from './RevisedIntegrations';
+import {WhatsAppDelivery} from './WhatsAppDelivery';
 
 const components:Record<string,React.FC>={intro:Intro,import:ImportScene,sellers:Sellers,templates:Templates,schedule:Schedule,market:Market,integrations:Integrations,assistant:()=> <Assistant contextual/>,platforms:Platforms};
 const targets:Record<string,string>={import:'Spreadsheets',sellers:'Sellers',templates:'Message template',schedule:'Schedule',market:'Listings'};
@@ -46,6 +47,7 @@ function Navigation({id,frames,outgoingImage}:{id:string;frames:number;outgoingI
 }
 function Scene({row}:{row:any}){
  const f=useCurrentFrame(),SceneComponent=components[row.id],nav=row.navigation*30,body=row.frames-nav;
+ if(row.id==='whatsapp')return <WhatsAppDelivery/>;
  if(row.transitionTo&&f>=row.transitionFrom)return <Sequence from={row.transitionFrom}><Navigation id={row.transitionTo} frames={row.frames-row.transitionFrom} outgoingImage={row.captureHold}/></Sequence>;
  if(f<nav)return <Navigation id={row.id} frames={nav} outgoingImage={row.outgoingImage}/>;
  if(row.capture){const local=f-nav;return <Sequence from={nav}>{local<row.captureFrames?<OffthreadVideo src={asset(row.capture)} muted style={{width:1920,height:1080}}/>:<Img src={asset(row.captureHold)} style={{width:1920,height:1080}}/>}</Sequence>}

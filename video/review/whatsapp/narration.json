@@ -1,0 +1,112 @@
+[
+  {
+    "id": "import",
+    "text": "Start by adding your spreadsheets. You can paste a Google Sheet link, or upload an Excel file. Here, we're adding one sheet for St. Regis, and another for Burj Khalifa. Each one contains the sellers for that building. Once they're imported, open Sellers to see everyone together.",
+    "minSeconds": 18,
+    "navigation": 0,
+    "baseSeconds": 14,
+    "source": "fresh/import-voice.mp3",
+    "voiceOffset": 0.4,
+    "pauses": [],
+    "capture": "workflow/fresh/import.mp4",
+    "captureFrames": 528,
+    "captureHold": "workflow/fresh/import-end.jpg",
+    "tailPadding": 0.2,
+    "transitionTo": "sellers",
+    "transitionFrom": 468
+  },
+  {
+    "id": "sellers",
+    "text": "This is where you can see everyone in one place: their details, their building, and where things stand. Filter by prospects, appraisals, for sale, or not interested. Sold today flags a fresh transaction in that building. Open a seller and you can see what sold, when it sold, and for how much. With WhatsApp connected, those transactions can feed into automated follow-ups, giving you something useful to share with your sellers.",
+    "minSeconds": 25.2,
+    "navigation": 0,
+    "baseSeconds": 28,
+    "source": "final/voice/02.mp3",
+    "voiceOffset": 0.55,
+    "pauses": [],
+    "outgoingImage": "workflow/fresh/import-end.jpg"
+  },
+  {
+    "id": "templates",
+    "text": "You can use the default message, or make it sound more like you. In Message templates, write your own wording and drop in the seller's name, their building, and the latest transactions. The preview fills those details in as you go, so you can see exactly what the message will look like before you save it.",
+    "minSeconds": 22,
+    "navigation": 2,
+    "baseSeconds": 18,
+    "source": "final/voice/03.mp3",
+    "voiceOffset": 0.55,
+    "pauses": [],
+    "capture": "workflow/fresh/templates.mp4",
+    "captureFrames": 575,
+    "captureHold": "workflow/fresh/templates-end.jpg"
+  },
+  {
+    "id": "whatsapp",
+    "text": "You can attach an image too, like your broker card. Here's how the update looks on WhatsApp: your image, followed by a message with the seller's name, building and recent sales already filled in.",
+    "minSeconds": 12,
+    "navigation": 0,
+    "baseSeconds": 12,
+    "source": "whatsapp/message-voice.mp3",
+    "voiceOffset": 0.4,
+    "pauses": []
+  },
+  {
+    "id": "schedule",
+    "text": "You also decide when those follow-ups go out. Schedule lets you spread your buildings across the week, so you can organise them around the way you work. Here, we've added buildings from Monday through Thursday. Save the plan, and the weekly schedule controls which buildings get follow-ups each day. Days left empty stay off.",
+    "minSeconds": 24,
+    "navigation": 2,
+    "baseSeconds": 24,
+    "source": "final/voice/04.mp3",
+    "voiceOffset": 0.55,
+    "pauses": [
+      {
+        "at": 7.12,
+        "duration": 5
+      }
+    ],
+    "capture": "workflow/fresh/schedule.mp4",
+    "captureFrames": 643,
+    "captureHold": "workflow/fresh/schedule-end.jpg",
+    "outgoingImage": "workflow/fresh/templates-end.jpg"
+  },
+  {
+    "id": "market",
+    "text": "Over in Listings, you can track the buildings you cover and spot apartments that have dropped in price. Open a building, then an apartment, to get a closer look. You can follow the asking price on the chart, and check Activity to see when it changed. It's a useful bit of context before your next conversation.",
+    "minSeconds": 19,
+    "navigation": 1.8,
+    "baseSeconds": 20,
+    "source": "final/voice/05.mp3",
+    "voiceOffset": 0.55,
+    "pauses": [],
+    "outgoingImage": "workflow/fresh/schedule-end.jpg"
+  },
+  {
+    "id": "integrations",
+    "text": "Connect Gmail or Outlook to read emails and draft replies, with each send confirmed by you. Your calendar brings in upcoming events. And through MCP, you can work with your Repeat AI account from Codex, Claude or ChatGPT. Ask for a seller, check recent WhatsApp messages, or update a lead, with changes sent to you for approval. So you can keep working in the assistant you already use.",
+    "minSeconds": 26,
+    "navigation": 0,
+    "baseSeconds": 7,
+    "source": "revised/integrations.mp3",
+    "voiceOffset": 0.55,
+    "pauses": []
+  },
+  {
+    "id": "assistant",
+    "text": "For a quicker way to get things done, there's Ask Repeat in the corner. Type what you need, or talk to it using voice. It can find sellers, summarise market activity, and help with things like templates and scheduling. Here, it's prepared a new message template. You can read it through and confirm the change when you're happy with it.",
+    "minSeconds": 22,
+    "navigation": 3.1,
+    "baseSeconds": 18,
+    "source": "final/voice/07.mp3",
+    "voiceOffset": 0.35,
+    "pauses": []
+  },
+  {
+    "id": "platforms",
+    "text": "Repeat AI is available on the web, Windows and mobile, so you can pick up where you left off.",
+    "minSeconds": 6,
+    "navigation": 0,
+    "baseSeconds": 6,
+    "source": "final/voice/08.mp3",
+    "voiceOffset": 0.55,
+    "pauses": []
+  }
+]

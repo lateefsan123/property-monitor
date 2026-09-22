@@ -6,7 +6,7 @@ import soundfile as sf
 from scipy.signal import resample_poly
 
 ROOT=Path(__file__).resolve().parents[2]
-EDIT='fresh' if '--fresh' in sys.argv else 'revised' if '--revised' in sys.argv else 'final'
+EDIT='whatsapp' if '--whatsapp' in sys.argv else 'fresh' if '--fresh' in sys.argv else 'revised' if '--revised' in sys.argv else 'final'
 OUT=ROOT/f'video/assets/accurate/public/workflow/{EDIT}'
 SR=48000
 def run(args): return subprocess.run(args,capture_output=True,text=True,check=True)

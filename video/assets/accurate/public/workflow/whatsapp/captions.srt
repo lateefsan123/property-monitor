@@ -1,0 +1,267 @@
+1
+00:00:00,400 --> 00:00:01,903
+Start by adding your spreadsheets.
+
+2
+00:00:02,563 --> 00:00:04,383
+You can paste a Google Sheet link, or upload
+
+3
+00:00:04,383 --> 00:00:05,203
+an Excel file.
+
+4
+00:00:06,023 --> 00:00:07,923
+Here, we're adding one sheet for St.
+
+5
+00:00:08,143 --> 00:00:10,343
+Regis, and another for Burj Khalifa.
+
+6
+00:00:11,363 --> 00:00:13,503
+Each one contains the sellers for that building.
+
+7
+00:00:14,343 --> 00:00:17,263
+Once they're imported, open Sellers to see everyone together.
+
+8
+00:00:18,550 --> 00:00:19,995
+This is where you can see everyone in one
+
+9
+00:00:19,995 --> 00:00:23,615
+place: their details, their building, and where things stand.
+
+10
+00:00:24,115 --> 00:00:28,075
+Filter by prospects, appraisals, for sale, or not interested.
+
+11
+00:00:29,215 --> 00:00:31,395
+Sold today flags a fresh transaction in that building.
+
+12
+00:00:31,815 --> 00:00:33,395
+Open a seller and you can see what sold,
+
+13
+00:00:33,795 --> 00:00:35,115
+when it sold, and for how much.
+
+14
+00:00:35,955 --> 00:00:38,815
+With WhatsApp connected, those transactions can feed into automated
+
+15
+00:00:38,815 --> 00:00:41,475
+follow-ups, giving you something useful to share with your
+
+16
+00:00:41,475 --> 00:00:41,695
+sellers.
+
+17
+00:00:43,750 --> 00:00:45,741
+You can use the default message, or make it
+
+18
+00:00:45,741 --> 00:00:47,181
+sound more like you.
+
+19
+00:00:48,501 --> 00:00:51,081
+In Message templates, write your own wording and drop
+
+20
+00:00:51,081 --> 00:00:53,861
+in the seller's name, their building, and the latest
+
+21
+00:00:53,861 --> 00:00:54,301
+transactions.
+
+22
+00:00:55,641 --> 00:00:57,861
+The preview fills those details in as you go,
+
+23
+00:00:58,561 --> 00:01:00,521
+so you can see exactly what the message will
+
+24
+00:01:00,521 --> 00:01:01,781
+look like before you save it.
+
+25
+00:01:05,600 --> 00:01:07,280
+You can attach an image too, like your broker
+
+26
+00:01:07,280 --> 00:01:07,680
+card.
+
+27
+00:01:08,260 --> 00:01:10,340
+Here's how the update looks on WhatsApp: your image,
+
+28
+00:01:10,560 --> 00:01:12,780
+followed by a message with the seller's name, building
+
+29
+00:01:12,780 --> 00:01:14,780
+and recent sales already filled in.
+
+30
+00:01:17,750 --> 00:01:19,688
+You also decide when those follow-ups go out.
+
+31
+00:01:20,108 --> 00:01:22,128
+Schedule lets you spread your buildings across the week,
+
+32
+00:01:22,488 --> 00:01:24,008
+so you can organise them around the way you
+
+33
+00:01:24,008 --> 00:01:24,208
+work.
+
+34
+00:01:30,088 --> 00:01:32,028
+Here, we've added buildings from Monday through Thursday.
+
+35
+00:01:32,648 --> 00:01:34,948
+Save the plan, and the weekly schedule controls which
+
+36
+00:01:34,948 --> 00:01:36,708
+buildings get follow-ups each day.
+
+37
+00:01:37,588 --> 00:01:38,568
+Days left empty stay off.
+
+38
+00:01:41,750 --> 00:01:43,750
+Over in Listings, you can track the buildings you
+
+39
+00:01:43,750 --> 00:01:45,950
+cover and spot apartments that have dropped in price.
+
+40
+00:01:46,690 --> 00:01:48,910
+Open a building, then an apartment, to get a
+
+41
+00:01:48,910 --> 00:01:49,670
+closer look.
+
+42
+00:01:50,310 --> 00:01:52,450
+You can follow the asking price on the chart,
+
+43
+00:01:52,730 --> 00:01:54,350
+and check Activity to see when it changed.
+
+44
+00:01:55,190 --> 00:01:56,910
+It's a useful bit of context before your next
+
+45
+00:01:56,910 --> 00:01:57,450
+conversation.
+
+46
+00:02:00,750 --> 00:02:02,890
+Connect Gmail or Outlook to read emails and draft
+
+47
+00:02:02,890 --> 00:02:05,090
+replies, with each send confirmed by you.
+
+48
+00:02:05,890 --> 00:02:07,650
+Your calendar brings in upcoming events.
+
+49
+00:02:07,650 --> 00:02:10,770
+And through MCP, you can work with your Repeat
+
+50
+00:02:10,770 --> 00:02:14,710
+AI account from Codex, Claude or ChatGPT.
+
+51
+00:02:14,710 --> 00:02:18,690
+Ask for a seller, check recent WhatsApp messages, or
+
+52
+00:02:18,690 --> 00:02:21,050
+update a lead, with changes sent to you for
+
+53
+00:02:21,050 --> 00:02:21,350
+approval.
+
+54
+00:02:21,930 --> 00:02:23,770
+So you can keep working in the assistant you
+
+55
+00:02:23,770 --> 00:02:24,350
+already use.
+
+56
+00:02:26,550 --> 00:02:28,141
+For a quicker way to get things done, there's
+
+57
+00:02:28,141 --> 00:02:29,281
+Ask Repeat in the corner.
+
+58
+00:02:30,261 --> 00:02:32,141
+Type what you need, or talk to it using
+
+59
+00:02:32,141 --> 00:02:32,481
+voice.
+
+60
+00:02:33,181 --> 00:02:36,381
+It can find sellers, summarise market activity, and help
+
+61
+00:02:36,381 --> 00:02:38,101
+with things like templates and scheduling.
+
+62
+00:02:39,321 --> 00:02:41,881
+Here, it's prepared a new message template.
+
+63
+00:02:42,241 --> 00:02:43,901
+You can read it through and confirm the change
+
+64
+00:02:43,901 --> 00:02:44,841
+when you're happy with it.
+
+65
+00:02:48,750 --> 00:02:51,018
+Repeat AI is available on the web, Windows and
+
+66
+00:02:51,018 --> 00:02:52,418
+mobile, so you can pick up where you left
+
+67
+00:02:52,418 --> 00:02:52,678
+off.

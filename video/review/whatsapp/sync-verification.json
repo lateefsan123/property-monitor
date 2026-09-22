@@ -1,0 +1,30 @@
+{
+  "whatsapp": {
+    "from": 65.2,
+    "to": 77.2,
+    "broker_card_settled": 68.13333333333334,
+    "message_fully_visible": 68.33333333333334,
+    "double_delivery_check": 69.03333333333333,
+    "narration_whatsapp": 69.36,
+    "phone_numbers": "none",
+    "source_art": "public/landing/product-templates-story-dubai-v1.png",
+    "view": "Illustrative broker-side conversation; outgoing image and caption in one bubble"
+  },
+  "continuity": {
+    "seller": "Alex Morgan",
+    "building": "St. Regis",
+    "sale": "2 bed, AED 6.3M, 1323 sqft",
+    "template_wording": "Matches the newly created Building update template, with variables filled for Alex."
+  },
+  "unchanged_footage": {
+    "import_templates": "Same as fresh cut; no playback speed changes",
+    "schedule_shift_seconds": 12,
+    "schedule_save_click": 92.661
+  },
+  "visual_review": "Broker-card crop, card-to-phone transition, complete message and double check frames reviewed before full export.",
+  "exported_movie_review": {
+    "phone_message": 69.3,
+    "return_to_template_before_schedule": 77.3,
+    "result": "Both frames reviewed in the exported MP4. Image and caption are readable; returning navigation starts from the saved template."
+  }
+}
