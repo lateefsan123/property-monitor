@@ -1,0 +1,19 @@
+This is Repeat AI. Let’s walk through importing your sellers, setting up their follow-ups, and checking what’s happening in the buildings you cover.
+
+Open the menu and choose Spreadsheets. You can import a Google Sheet link or an Excel file. Here, we’ll use the link. Select the buildings you want to bring in, then add them. Each building gets its own spreadsheet entry.
+
+Next, open Sellers from the same menu. This brings your contacts together, with their building, unit, phone number and current status. Use the filters to see prospects, market appraisals, sellers available for sale, or people who aren’t interested.
+
+Sold today highlights fresh transaction data in a seller’s building. Click the seller, then open Market data to see the recent sales, including the prices and dates. With WhatsApp connected, eligible sellers can receive automated updates using those transactions, following your schedule and sending limits.
+
+To change the wording, open Message template in the menu. You can keep the default or create your own. Give it a name, write your message, and insert the name, building and transaction fields. The preview shows how those details will appear for the seller. Save it when you’re happy with it.
+
+Now close the editor and open Schedule. This controls which buildings get follow-ups on each day. Choose a day, pick the spreadsheet, and select the building. Here, we’re filling Monday through Thursday. Once the week is set up, save the plan. Empty days stay off while weekly scheduling is enabled.
+
+For asking-price changes, open Listings. You can keep track of the buildings you cover and check which apartments have dropped in price. Let’s open Burj Khalifa and choose an apartment. The chart shows the asking price over time. Open Activity to see when the listing appeared and when the price changed.
+
+You can also bring in your existing tools, including Google Sheets, Excel, Gmail, Outlook and calendars.
+
+Finally, click Ask Repeat in the bottom corner. You can type a request or use voice. Ask it to find a seller, summarise market activity, or prepare a change, such as a message template or a weekly schedule. Here, it’s prepared a template. Read through the draft, then confirm when it looks right.
+
+You can use Repeat AI on the web, Windows and mobile.
