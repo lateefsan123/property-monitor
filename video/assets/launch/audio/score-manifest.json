@@ -1,0 +1,111 @@
+{
+  "title": "Close to the Market",
+  "composer": "Original procedural composition for Repeat AI",
+  "duration_seconds": 70.0,
+  "bpm": 100,
+  "sample_rate": 48000,
+  "channels": 2,
+  "format": "24-bit PCM WAV",
+  "peak_dbfs": -7,
+  "musical_events": [
+    {
+      "time": 0.0,
+      "bar": 1,
+      "chord": "Dm9"
+    },
+    {
+      "time": 4.8,
+      "bar": 3,
+      "chord": "Bbmaj9"
+    },
+    {
+      "time": 9.6,
+      "bar": 5,
+      "chord": "Dm9"
+    },
+    {
+      "time": 14.4,
+      "bar": 7,
+      "chord": "Bbmaj9"
+    },
+    {
+      "time": 19.2,
+      "bar": 9,
+      "chord": "Fmaj9"
+    },
+    {
+      "time": 24.0,
+      "bar": 11,
+      "chord": "Cadd9"
+    },
+    {
+      "time": 28.8,
+      "bar": 13,
+      "chord": "Dm9"
+    },
+    {
+      "time": 33.6,
+      "bar": 15,
+      "chord": "Bbmaj9"
+    },
+    {
+      "time": 38.4,
+      "bar": 17,
+      "chord": "Fmaj9"
+    },
+    {
+      "time": 43.2,
+      "bar": 19,
+      "chord": "Cadd9"
+    },
+    {
+      "time": 48.0,
+      "bar": 21,
+      "chord": "Bbmaj9"
+    },
+    {
+      "time": 52.8,
+      "bar": 23,
+      "chord": "Cadd9"
+    },
+    {
+      "time": 57.6,
+      "bar": 25,
+      "chord": "Dm9"
+    },
+    {
+      "time": 62.4,
+      "bar": 27,
+      "chord": "Fmaj9"
+    }
+  ],
+  "structure": [
+    {
+      "start": 0,
+      "end": 9.6,
+      "role": "spacious opening"
+    },
+    {
+      "start": 9.6,
+      "end": 48,
+      "role": "gentle rhythmic body"
+    },
+    {
+      "start": 48,
+      "end": 52.8,
+      "role": "breathing space"
+    },
+    {
+      "start": 52.8,
+      "end": 64.8,
+      "role": "final lift"
+    },
+    {
+      "start": 64.8,
+      "end": 70,
+      "role": "settled close and tail"
+    }
+  ],
+  "rights": "No external samples, compositions, recordings, or licensed sample libraries used.",
+  "audition": "Not perceptually auditioned by the generating agent; measurable QA only."
+}

@@ -1,0 +1,14 @@
+# Reproducible intermediates. Source narration, generated property art, score,
+# packed Blender scene, reusable shots and final mix are retained.
+public/premix.wav
+public/voice.wav
+public/music.wav
+public/effects.wav
+blender/frames/
+blender/frames-final/
+blender/hero-preview.png
+blender/*.blend1
+audio/launch-harmony.wav
+audio/launch-pulse.wav
+audio/launch-percussion.wav
+audio/launch-motif.wav

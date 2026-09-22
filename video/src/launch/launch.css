@@ -1,0 +1,8 @@
+.launch-film{font-family:FilmInter,Inter,Arial,sans-serif;background:#f1eee7;color:#202623}
+.launch-film *{box-sizing:border-box}
+.launch-sheet-grid{display:grid;grid-template-columns:1.1fr 1fr 1.1fr;font-size:27px;margin-top:18px}
+.launch-sheet-grid>*{padding:20px 10px;border-bottom:1px solid #e1e4db;white-space:nowrap}
+.launch-sheet-grid b{font-size:20px;font-weight:500;color:#7c8972}
+.launch-whatsapp-crop>div{background:transparent!important}
+.launch-icon{width:178px;height:178px;border-radius:36px;background:#faf9f3;border:1px solid #dedfd4;display:grid;place-items:center;box-shadow:0 18px 30px #28391a08}
+.launch-import .ss-list-name{font-size:21px}.launch-import .ss-list-count{font-size:18px}.launch-import .ss-list-row{min-height:92px}.launch-import .ss-list-search input,.launch-import .ss-list-add{font-size:17px}

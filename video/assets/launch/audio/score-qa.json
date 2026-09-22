@@ -1,0 +1,23 @@
+{
+  "duration_seconds": 70.0,
+  "sample_rate": 48000,
+  "channels": 2,
+  "subtype": "PCM_24",
+  "integrated_loudness_lufs": -19.8,
+  "true_peak_dbfs": -7.0,
+  "loudness_range_lu": 2.1,
+  "rms_dbfs": -21.452,
+  "stereo_correlation": 0.86344,
+  "max_absolute_dc_offset": 5.01e-8,
+  "all_samples_finite": true,
+  "full_ffmpeg_decode": "passed",
+  "spectral_energy_fraction": {
+    "0_to_30_hz": 0.0002,
+    "30_to_150_hz": 0.4341,
+    "150_to_500_hz": 0.4537,
+    "500_to_2000_hz": 0.1117,
+    "2000_to_6000_hz": 0.0002,
+    "6000_to_24000_hz": 0.0001
+  },
+  "perceptual_audition": "Not performed; no listening capability was available to the generating agent."
+}
