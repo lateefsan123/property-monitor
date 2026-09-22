@@ -36,3 +36,13 @@ Cloud archives excluded supabase/functions/_shared/building-schedule.js, now imp
 - Android preview f737ea00-57bc-4bf2-b84a-60b1c826dc6e is FINISHED with no build error. Installable APK: https://expo.dev/artifacts/eas/U2UzWQzRZ4tM_b4m5oU5-Q17bi9jKNopQ4DIIGlGeyI.apk .
 - Both completed native builds include the global bottom-right Ask Repeat button, mobile bottom sheet, chat UI and voice controls. Users must install the new Android APK or TestFlight build 27; OTA updates are not configured.
 - Deployment and build delivery are complete. Live AI activation, real-device microphone/playback verification and authenticated production UI verification remain outside the evidence collected here.
+
+## Fullscreen and spreadsheet follow-up
+
+- Change commit: 1af92bc. Mobile assistant now opens fullscreen with safe-area padding and keyboard avoidance. Replaced the gradient orb with a native animated dot matrix, respecting reduced motion and app backgrounding. Desktop opens a full-height right drawer; narrow web screens use fullscreen.
+- Mobile schedule now selects a spreadsheet before showing that spreadsheet's imported building names. Other spreadsheet and unlinked rows are excluded from the picker; existing scheduled buildings remain intact.
+- Shared schedule hooks now resolve the native app's React Query installation, fixing a provider mismatch reproduced in the component preview. Added a Metro regression test.
+- Targeted ESLint and 29 schedule/Metro tests passed after the final dependency fix. Android, iOS and web Expo exports passed. Earlier assistant suite and web production build passed.
+- At 390 x 844, the component preview verified fullscreen, dot orb, close/reopen and input retention. Spreadsheet switching showed only Marina Gate for the Marina fixture and Forte 2 for Downtown, preserving the existing Monday selection and excluding an unlinked row. Browser error log was empty. These are Expo web component checks, not native device/audio tests.
+- Desktop drawer measured viewport height and right alignment in the local preview. Production deployment dpl_CPk1g7tDKNHsgoKgHKz71L1Hmz2c is READY at https://repeatai.org; served CSS verifies top:0, right:0, bottom:0 and height:100dvh.
+- iOS build 28 and Android preview are being uploaded. API-key activation remains outstanding.

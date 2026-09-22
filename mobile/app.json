@@ -23,7 +23,7 @@
       "entitlements": {
         "aps-environment": "production"
       },
-      "buildNumber": "27"
+      "buildNumber": "28"
     },
     "android": {
       "package": "com.lateefsan.sellersignal",
