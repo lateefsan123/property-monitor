@@ -1,0 +1,106 @@
+{
+  "frames": 4740,
+  "duration": 158.0,
+  "closeFrom": 4650,
+  "scenes": [
+    {
+      "id": "intro",
+      "text": "This is Repeat AI. Here's how it fits into your day.",
+      "minSeconds": 5,
+      "navigation": 0,
+      "baseSeconds": 3,
+      "from": 0,
+      "frames": 150,
+      "voiceStart": 0.55,
+      "voiceDuration": 2.9858541666666665
+    },
+    {
+      "id": "import",
+      "text": "It starts with your spreadsheet. You can bring in a Google Sheet link or an Excel file. We'll use the link here. Choose the buildings you work with, and Repeat AI brings in your leads, organised by building. From there, they're ready to work with on the Sellers page.",
+      "minSeconds": 20,
+      "navigation": 4,
+      "baseSeconds": 14,
+      "from": 150,
+      "frames": 600,
+      "voiceStart": 5.55,
+      "voiceDuration": 15.756395833333332
+    },
+    {
+      "id": "sellers",
+      "text": "This is where you can see everyone in one place: their details, their building, and where things stand. Filter by prospects, appraisals, for sale, or not interested. Sold today flags a fresh transaction in that building. Open a seller and you can see what sold, when it sold, and for how much. With WhatsApp connected, those transactions can feed into automated follow-ups, giving you something useful to share with your sellers.",
+      "minSeconds": 27,
+      "navigation": 3,
+      "baseSeconds": 28,
+      "from": 750,
+      "frames": 810,
+      "voiceStart": 25.55,
+      "voiceDuration": 23.594916666666666
+    },
+    {
+      "id": "templates",
+      "text": "You can use the default message, or make it sound more like you. In Message templates, write your own wording and drop in the seller's name, their building, and the latest transactions. The preview fills those details in as you go, so you can see exactly what the message will look like before you save it.",
+      "minSeconds": 22,
+      "navigation": 3,
+      "baseSeconds": 18,
+      "from": 1560,
+      "frames": 660,
+      "voiceStart": 52.55,
+      "voiceDuration": 18.310958333333332
+    },
+    {
+      "id": "schedule",
+      "text": "You also decide when those follow-ups go out. Schedule lets you spread your buildings across the week, so you can organise them around the way you work. Here, we've added buildings from Monday through Thursday. Save the plan, and the weekly schedule controls which buildings get follow-ups each day. Days left empty stay off.",
+      "minSeconds": 21,
+      "navigation": 3,
+      "baseSeconds": 24,
+      "from": 2220,
+      "frames": 630,
+      "voiceStart": 74.55,
+      "voiceDuration": 16.075833333333332
+    },
+    {
+      "id": "market",
+      "text": "Over in Listings, you can track the buildings you cover and spot apartments that have dropped in price. Open a building, then an apartment, to get a closer look. You can follow the asking price on the chart, and check Activity to see when it changed. It's a useful bit of context before your next conversation.",
+      "minSeconds": 22,
+      "navigation": 3,
+      "baseSeconds": 20,
+      "from": 2850,
+      "frames": 660,
+      "voiceStart": 95.55,
+      "voiceDuration": 16.378791666666668
+    },
+    {
+      "id": "integrations",
+      "text": "And you can connect the tools you already use, from spreadsheets to email and calendars.",
+      "minSeconds": 7,
+      "navigation": 0,
+      "baseSeconds": 7,
+      "from": 3510,
+      "frames": 210,
+      "voiceStart": 117.55,
+      "voiceDuration": 4.462666666666666
+    },
+    {
+      "id": "assistant",
+      "text": "For a quicker way to get things done, there's Ask Repeat in the corner. Type what you need, or talk to it using voice. It can find sellers, summarise market activity, and help with things like templates and scheduling. Here, it's prepared a new message template. You can read it through and confirm the change when you're happy with it.",
+      "minSeconds": 23,
+      "navigation": 3,
+      "baseSeconds": 18,
+      "from": 3720,
+      "frames": 690,
+      "voiceStart": 124.35,
+      "voiceDuration": 18.779208333333333
+    },
+    {
+      "id": "platforms",
+      "text": "Repeat AI is available on the web, Windows and mobile, so you can pick up where you left off.",
+      "minSeconds": 8,
+      "navigation": 0,
+      "baseSeconds": 6,
+      "from": 4410,
+      "frames": 240,
+      "voiceStart": 147.55,
+      "voiceDuration": 4.4411875
+    }
+  ]
+}

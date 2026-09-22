@@ -1,0 +1,123 @@
+1
+00:00:00,550 --> 00:00:01,636
+This is Repeat AI.
+
+2
+00:00:01,636 --> 00:00:03,536
+Here's how it fits into your day.
+
+3
+00:00:05,550 --> 00:00:07,158
+It starts with your spreadsheet.
+
+4
+00:00:07,158 --> 00:00:11,017
+You can bring in a Google Sheet link or an Excel file.
+
+5
+00:00:11,017 --> 00:00:12,624
+We'll use the link here.
+
+6
+00:00:12,624 --> 00:00:17,769
+Choose the buildings you work with, and Repeat AI brings in your leads, organised by building.
+
+7
+00:00:17,769 --> 00:00:21,306
+From there, they're ready to work with on the Sellers page.
+
+8
+00:00:25,550 --> 00:00:31,532
+This is where you can see everyone in one place: their details, their building, and where things stand.
+
+9
+00:00:31,532 --> 00:00:34,523
+Filter by prospects, appraisals, for sale, or not interested.
+
+10
+00:00:34,523 --> 00:00:37,514
+Sold today flags a fresh transaction in that building.
+
+11
+00:00:37,514 --> 00:00:42,831
+Open a seller and you can see what sold, when it sold, and for how much.
+
+12
+00:00:42,831 --> 00:00:49,145
+With WhatsApp connected, those transactions can feed into automated follow-ups, giving you something useful to share with your sellers.
+
+13
+00:00:52,550 --> 00:00:56,801
+You can use the default message, or make it sound more like you.
+
+14
+00:00:56,801 --> 00:01:03,013
+In Message templates, write your own wording and drop in the seller's name, their building, and the latest transactions.
+
+15
+00:01:03,013 --> 00:01:10,861
+The preview fills those details in as you go, so you can see exactly what the message will look like before you save it.
+
+16
+00:01:14,550 --> 00:01:16,932
+You also decide when those follow-ups go out.
+
+17
+00:01:16,932 --> 00:01:22,588
+Schedule lets you spread your buildings across the week, so you can organise them around the way you work.
+
+18
+00:01:22,588 --> 00:01:24,970
+Here, we've added buildings from Monday through Thursday.
+
+19
+00:01:24,970 --> 00:01:29,137
+Save the plan, and the weekly schedule controls which buildings get follow-ups each day.
+
+20
+00:01:29,137 --> 00:01:30,626
+Days left empty stay off.
+
+21
+00:01:35,550 --> 00:01:40,815
+Over in Listings, you can track the buildings you cover and spot apartments that have dropped in price.
+
+22
+00:01:40,815 --> 00:01:44,032
+Open a building, then an apartment, to get a closer look.
+
+23
+00:01:44,032 --> 00:01:49,004
+You can follow the asking price on the chart, and check Activity to see when it changed.
+
+24
+00:01:49,004 --> 00:01:51,929
+It's a useful bit of context before your next conversation.
+
+25
+00:01:57,550 --> 00:02:02,013
+And you can connect the tools you already use, from spreadsheets to email and calendars.
+
+26
+00:02:04,350 --> 00:02:08,732
+For a quicker way to get things done, there's Ask Repeat in the corner.
+
+27
+00:02:08,732 --> 00:02:11,862
+Type what you need, or talk to it using voice.
+
+28
+00:02:11,862 --> 00:02:16,556
+It can find sellers, summarise market activity, and help with things like templates and scheduling.
+
+29
+00:02:16,556 --> 00:02:18,747
+Here, it's prepared a new message template.
+
+30
+00:02:18,747 --> 00:02:23,129
+You can read it through and confirm the change when you're happy with it.
+
+31
+00:02:27,550 --> 00:02:31,991
+Repeat AI is available on the web, Windows and mobile, so you can pick up where you left off.

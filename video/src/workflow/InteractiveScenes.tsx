@@ -7,7 +7,7 @@ import {DEFAULT_MESSAGE_TEMPLATE} from '../../../src/features/seller-signal/insi
 import {ASSISTANT_PROMPTS} from '../../../shared/assistant-prompts';
 import {AppHeader,leads} from './SellerScenes';
 import {typed,TypedField} from './typing';
-import {pos,tween,Cursor} from './primitives';
+import {pos,tween,Cursor,Screenshot} from './primitives';
 const noop=()=>{};
 
 // Frame-controlled equivalent of NewSpreadsheetModal.UrlTab; the app owns the CSS.
@@ -60,16 +60,16 @@ export function Templates(){
 const request='Create a new template named Viewing follow-up: Hi {{name}}, here are the latest transactions in {{building}}. {{transactions}} Would you like an updated valuation? Prepare it for my review.';
 // MatrixOrb's dot geometry, evaluated on Remotion time rather than requestAnimationFrame.
 function Orb({frame}:{frame:number}){const size=104,half=5,spacing=size*.74/10;return <svg className="assistant-matrix-orb" width={size} height={size} style={{display:'block'}}>{Array.from({length:121},(_,i)=>{const x=i%11,y=Math.floor(i/11),d=Math.hypot((x-half)/half,(y-half)/half),scale=.88;const r=spacing*.6*Math.exp(-d*d*1.7)*(.62+.12*Math.sin(frame/30*1.05-d*2.4))*scale;return d<=1.12&&r>=.5?<circle key={i} cx={size/2+(x-half)*spacing*scale} cy={size/2+(y-half)*spacing*scale} r={r} fill="currentColor"/>:null})}</svg>}
-export function Assistant(){
+export function Assistant({contextual=false}:{contextual?:boolean}){
  const f=useCurrentFrame(),sent=f>=320,review=f>=350;
  const body=useRef<HTMLDivElement>(null);
  useLayoutEffect(()=>{if(body.current)body.current.scrollTop=Math.max(0,body.current.scrollHeight-body.current.clientHeight)*tween(f,355,380);},[f]);
  const draft=sent?'':typed(request,f,40,1);
- return <AbsoluteFill className="app-shell"><div style={{...pos(170,365),width:620}}><h1 style={{fontSize:64,margin:0}}>Ask Repeat</h1><p style={{fontSize:28,lineHeight:1.7,color:'var(--text-muted)'}}>Find sellers<br/>Check market data<br/>Prepare changes</p></div>
- <div className="repeat-assistant is-open" style={{position:'absolute',left:1040,top:65,right:'auto',bottom:'auto',transform:'scale(1.35)',transformOrigin:'top left'}}><section className="assistant-panel"><header className="assistant-header"><span>Repeat AI</span><div className="assistant-header-actions"><button>+</button><button><X size={20}/></button></div></header>
+ return <AbsoluteFill className="app-shell">{contextual&&<><Screenshot name="01-buildings.png"/><AppHeader page="Listings"/><div style={{position:"absolute",top:56,left:0,right:0,bottom:0,background:"#0005"}}/></>}{!contextual&&<div style={{...pos(170,365),width:620}}><h1 style={{fontSize:64,margin:0}}>Ask Repeat</h1><p style={{fontSize:28,lineHeight:1.7,color:'var(--text-muted)'}}>Find sellers<br/>Check market data<br/>Prepare changes</p></div>}
+ <div className="repeat-assistant is-open" style={{position:'absolute',left:contextual?tween(f,0,20,1920,1299):1040,top:contextual?0:65,height:contextual?800:undefined,right:'auto',bottom:'auto',opacity:contextual?tween(f,0,7):1,transform:'scale(1.35)',transformOrigin:'top left'}}><section className="assistant-panel"><header className="assistant-header"><span>Repeat AI</span><div className="assistant-header-actions"><button>+</button><button><X size={20}/></button></div></header>
  <div className="assistant-body" ref={body}>{!sent?<><Orb frame={f}/><h2>What can I help with?</h2><p className="assistant-hint">Sales, market insights and your sellers.<br/>Type a message or talk to me.</p><div className="assistant-suggestions">{ASSISTANT_PROMPTS.map(p=><button key={p}>{p}</button>)}</div></>:<><div className="assistant-chat-log"><p className="assistant-chat-message is-user">{request}</p>{!review?<p>Thinking…</p>:<p className="assistant-chat-message is-assistant">Ready for review below. Nothing has been changed or sent yet.</p>}</div>{review&&<div className="assistant-approval" style={{opacity:tween(f,350,360)}}><h3>Create template “Viewing follow-up”?</h3><p>{'Hi {{name}}, here are the latest transactions in {{building}}. {{transactions}} Would you like an updated valuation?\n\nSaved as a new template. Your default template and broker image remain unchanged. No message is sent.'}</p><button>Confirm change</button><button>Discard</button></div>}</>}
  </div><footer className="assistant-footer"><div className={`assistant-composer${f>=35&&!sent?' wf-is-typing':''}`}><TypedField multiline value={draft} active={f>=35&&!sent} placeholder="Ask Repeat anything…" className="wf-assistant-draft"/><button disabled={!draft||sent}><ArrowUp size={20}/></button></div><div className="assistant-controls"><button><Captions size={22}/></button><button className="assistant-start" disabled={review}><Mic size={20}/>Let’s talk<ArrowUp size={18}/></button></div><small>AI assistant · Messages and requested app details shared with OpenAI.</small></footer>
  </section></div>
- {f>=295&&f<329&&<Cursor x={tween(f,295,315,1330,1530)} y={815} click={Math.max(0,1-Math.abs(f-320)/6)}/>}
+ {f>=295&&f<329&&<Cursor x={tween(f,295,315,1330,contextual?1858:1530)} y={contextual?894:815} click={Math.max(0,1-Math.abs(f-320)/6)}/>}
  </AbsoluteFill>;
 }

@@ -1,8 +1,6 @@
-# Next cut: fuller explanation and visible navigation
+# Final cut: fuller explanation and visible navigation
 
-Status: script and navigation plan prepared; ElevenLabs voice selection is pending from the user. No new voice has been generated and the previous finished video is unchanged. Final durations will follow the selected narration, with space for navigation and reading.
-
-`voiceover-draft.txt` contains narration only, ready to paste into ElevenLabs. Delivery: conversational, engaged and unhurried, with natural pauses at paragraph breaks. Avoid a flat tutorial cadence or an exaggerated advert voice. Final voice choice belongs to the user.
+Implemented in `../final/` with the selected Brady voice. `final-narration.json` and the nine downloaded audio stems replace the previous step-by-step draft. The 2:38 timeline follows the narration with visible menu transitions. See the final export verification for delivery status.
 
 ## Navigation to show
 
@@ -27,4 +25,4 @@ The menu must open over the outgoing page before the destination appears. Keep t
 - `VoicePanel.jsx`: **Ask Repeat** is a bottom-right launcher; it is not a main-menu page.
 - `NewSpreadsheetModal.jsx`: URL import includes scanning and selecting buildings; each building becomes a source entry.
 
-Keep the Remotion typing, actual component styles, source-consistent demo contacts, full weekly plan and the recorded building-price walkthrough from the current cut. Final audio, subtitles and scene timings will be rebuilt after the ElevenLabs voice is chosen. The spoken script is a draft, not an already generated recording.
+Keep the Remotion typing, actual component styles, source-consistent demo contacts, full weekly plan and the recorded building-price walkthrough from the current cut. Audio, subtitles and timings are rebuilt by `build_final_audio.py` from the ElevenLabs stems.
