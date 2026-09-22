@@ -2,7 +2,7 @@
 from pathlib import Path
 import json,sys,xml.etree.ElementTree as E
 ROOT=Path(__file__).resolve().parents[2]
-EDIT='whatsapp' if '--whatsapp' in sys.argv else 'fresh' if '--fresh' in sys.argv else 'revised' if '--revised' in sys.argv else 'final'
+EDIT='polished' if '--polished' in sys.argv else 'whatsapp' if '--whatsapp' in sys.argv else 'fresh' if '--fresh' in sys.argv else 'revised' if '--revised' in sys.argv else 'final'
 OUT=ROOT/f'video/review/{EDIT}'
 t=json.loads((ROOT/f'video/src/workflow/{EDIT}-timeline.json').read_text())
 def tag(parent,name,text=None,**attrs):

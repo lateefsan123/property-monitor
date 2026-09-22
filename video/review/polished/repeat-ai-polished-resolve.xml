@@ -1,0 +1,256 @@
+<?xml version='1.0' encoding='utf-8'?>
+<xmeml version="5">
+  <sequence id="repeat-final">
+    <name>Repeat AI - Polished ElevenLabs</name>
+    <duration>5316</duration>
+    <rate>
+      <timebase>30</timebase>
+      <ntsc>FALSE</ntsc>
+    </rate>
+    <timecode>
+      <rate>
+        <timebase>30</timebase>
+        <ntsc>FALSE</ntsc>
+      </rate>
+      <string>00:00:00:00</string>
+      <frame>0</frame>
+      <displayformat>NDF</displayformat>
+    </timecode>
+    <media>
+      <video>
+        <format>
+          <samplecharacteristics>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <width>1920</width>
+            <height>1080</height>
+            <anamorphic>FALSE</anamorphic>
+            <pixelaspectratio>square</pixelaspectratio>
+            <fielddominance>none</fielddominance>
+          </samplecharacteristics>
+        </format>
+        <track>
+          <clipitem id="shot-0">
+            <name>Import</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>0</start>
+            <end>540</end>
+            <in>0</in>
+            <out>540</out>
+            <file id="visual-master">
+              <name>repeat-ai-polished-master.mp4</name>
+              <pathurl>file:///D:/Users/Lateef/Documents/property/video/review/polished/repeat-ai-polished-master.mp4</pathurl>
+              <rate>
+                <timebase>30</timebase>
+                <ntsc>FALSE</ntsc>
+              </rate>
+              <duration>5316</duration>
+              <media>
+                <video>
+                  <samplecharacteristics>
+                    <rate>
+                      <timebase>30</timebase>
+                      <ntsc>FALSE</ntsc>
+                    </rate>
+                    <width>1920</width>
+                    <height>1080</height>
+                    <anamorphic>FALSE</anamorphic>
+                    <pixelaspectratio>square</pixelaspectratio>
+                    <fielddominance>none</fielddominance>
+                  </samplecharacteristics>
+                </video>
+              </media>
+            </file>
+          </clipitem>
+          <clipitem id="shot-1">
+            <name>Sellers</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>540</start>
+            <end>1296</end>
+            <in>540</in>
+            <out>1296</out>
+            <file id="visual-master" />
+          </clipitem>
+          <clipitem id="shot-2">
+            <name>Templates</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>1296</start>
+            <end>1956</end>
+            <in>1296</in>
+            <out>1956</out>
+            <file id="visual-master" />
+          </clipitem>
+          <clipitem id="shot-3">
+            <name>Whatsapp</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>1956</start>
+            <end>2316</end>
+            <in>1956</in>
+            <out>2316</out>
+            <file id="visual-master" />
+          </clipitem>
+          <clipitem id="shot-4">
+            <name>Schedule</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>2316</start>
+            <end>3036</end>
+            <in>2316</in>
+            <out>3036</out>
+            <file id="visual-master" />
+          </clipitem>
+          <clipitem id="shot-5">
+            <name>Market</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>3036</start>
+            <end>3606</end>
+            <in>3036</in>
+            <out>3606</out>
+            <file id="visual-master" />
+          </clipitem>
+          <clipitem id="shot-6">
+            <name>Integrations</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>3606</start>
+            <end>4386</end>
+            <in>3606</in>
+            <out>4386</out>
+            <file id="visual-master" />
+          </clipitem>
+          <clipitem id="shot-7">
+            <name>Assistant</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>4386</start>
+            <end>5046</end>
+            <in>4386</in>
+            <out>5046</out>
+            <file id="visual-master" />
+          </clipitem>
+          <clipitem id="shot-8">
+            <name>Platforms</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>5046</start>
+            <end>5226</end>
+            <in>5046</in>
+            <out>5226</out>
+            <file id="visual-master" />
+          </clipitem>
+          <clipitem id="shot-9">
+            <name>Close</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>5226</start>
+            <end>5316</end>
+            <in>5226</in>
+            <out>5316</out>
+            <file id="visual-master" />
+          </clipitem>
+        </track>
+      </video>
+      <audio>
+        <format>
+          <samplecharacteristics>
+            <depth>24</depth>
+            <samplerate>48000</samplerate>
+          </samplecharacteristics>
+        </format>
+        <channelcount>2</channelcount>
+        <track>
+          <clipitem id="mix-1">
+            <name>Narration and music</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>0</start>
+            <end>5316</end>
+            <in>0</in>
+            <out>5316</out>
+            <file id="final-mix">
+              <name>mix.wav</name>
+              <pathurl>file:///D:/Users/Lateef/Documents/property/video/assets/accurate/public/workflow/polished/mix.wav</pathurl>
+              <rate>
+                <timebase>30</timebase>
+                <ntsc>FALSE</ntsc>
+              </rate>
+              <duration>5316</duration>
+              <media>
+                <audio>
+                  <channelcount>2</channelcount>
+                  <samplecharacteristics>
+                    <depth>24</depth>
+                    <samplerate>48000</samplerate>
+                  </samplecharacteristics>
+                </audio>
+              </media>
+            </file>
+            <sourcetrack>
+              <mediatype>audio</mediatype>
+              <trackindex>1</trackindex>
+            </sourcetrack>
+          </clipitem>
+        </track>
+        <track>
+          <clipitem id="mix-2">
+            <name>Narration and music</name>
+            <duration>5316</duration>
+            <rate>
+              <timebase>30</timebase>
+              <ntsc>FALSE</ntsc>
+            </rate>
+            <start>0</start>
+            <end>5316</end>
+            <in>0</in>
+            <out>5316</out>
+            <file id="final-mix" />
+            <sourcetrack>
+              <mediatype>audio</mediatype>
+              <trackindex>2</trackindex>
+            </sourcetrack>
+          </clipitem>
+        </track>
+      </audio>
+    </media>
+  </sequence>
+</xmeml>

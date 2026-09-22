@@ -1,0 +1,40 @@
+{
+  "integration_narration": {
+    "transcript_matches_script": true,
+    "hosts": [
+      "Claude",
+      "ChatGPT"
+    ],
+    "claude_absolute_seconds": 132.05,
+    "edit": "Removed Codex at a quiet boundary; 15 ms crossfade; re-aligned full integration narration."
+  },
+  "assistant": {
+    "typing_complete_seconds": 152.487,
+    "send_click_seconds": 158.1,
+    "response_visible_seconds": 159.067,
+    "approval_settled_seconds": 159.567,
+    "cursor_target_1080p": [
+      1788,
+      1029
+    ],
+    "reference_sources": [
+      "src/voice/VoicePanel.jsx",
+      "src/voice/voice.css",
+      "mobile/src/workspace/voice-panel.js"
+    ],
+    "visual_check": "Voice waveform next to composer; send arrow inside; no obsolete secondary controls; full prompt and approval remain readable."
+  },
+  "all_scene_boundaries_unchanged": true,
+  "rendered_frames_reviewed": [
+    3970,
+    4635,
+    4730,
+    4860
+  ],
+  "exported_movie_review": {
+    "integration_logos_seconds": 132.3,
+    "send_action_seconds": 158.07,
+    "approval_seconds": 162,
+    "result": "Inspected frames extracted from the final MP4; two host logos and current composer layout are visible, and the template approval is fully readable."
+  }
+}

@@ -5,7 +5,7 @@ const {bundle} = require('@remotion/bundler');
 const {selectComposition, renderStill, renderMedia, openBrowser} = require('@remotion/renderer');
 
 const root=path.resolve(__dirname,'../..');
-const edit=process.argv.includes('--whatsapp')?'whatsapp':process.argv.includes('--fresh')?'fresh':process.argv.includes('--revised')?'revised':'final';
+const edit=process.argv.includes('--polished')?'polished':process.argv.includes('--whatsapp')?'whatsapp':process.argv.includes('--fresh')?'fresh':process.argv.includes('--revised')?'revised':'final';
 const out=path.join(root,`video/review/${edit}`);
 async function main(){
  fs.mkdirSync(out,{recursive:true});

@@ -3,7 +3,7 @@ from pathlib import Path
 import hashlib,json,subprocess,sys
 
 ROOT=Path(__file__).resolve().parents[2]
-EDIT='whatsapp' if '--whatsapp' in sys.argv else 'fresh' if '--fresh' in sys.argv else 'revised' if '--revised' in sys.argv else 'final'
+EDIT='polished' if '--polished' in sys.argv else 'whatsapp' if '--whatsapp' in sys.argv else 'fresh' if '--fresh' in sys.argv else 'revised' if '--revised' in sys.argv else 'final'
 OUT=ROOT/f'video/review/{EDIT}'
 ASSETS=ROOT/f'video/assets/accurate/public/workflow/{EDIT}'
 CREDIT='Dream Culture - Kevin MacLeod (incompetech.com), CC BY 4.0 https://creativecommons.org/licenses/by/4.0/ . Edited and mixed under narration.'

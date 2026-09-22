@@ -1,0 +1,10 @@
+{
+  "claude": {
+    "url": "https://claude.com/",
+    "source": "Orange starburst path in official Claude wordmark; unchanged path and fill."
+  },
+  "chatgpt": {
+    "source": "Existing Tabler IconBrandOpenai blossom; displayed as ChatGPT",
+    "reference": "https://openai.com/brand/"
+  }
+}

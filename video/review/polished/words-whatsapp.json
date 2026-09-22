@@ -1,0 +1,172 @@
+[
+  {
+    "word": "You",
+    "start": 0.0,
+    "end": 0.16
+  },
+  {
+    "word": "can",
+    "start": 0.16,
+    "end": 0.28
+  },
+  {
+    "word": "attach",
+    "start": 0.28,
+    "end": 0.5
+  },
+  {
+    "word": "an",
+    "start": 0.5,
+    "end": 0.66
+  },
+  {
+    "word": "image",
+    "start": 0.66,
+    "end": 0.84
+  },
+  {
+    "word": "too,",
+    "start": 0.84,
+    "end": 1.1
+  },
+  {
+    "word": "like",
+    "start": 1.26,
+    "end": 1.32
+  },
+  {
+    "word": "your",
+    "start": 1.32,
+    "end": 1.48
+  },
+  {
+    "word": "broker",
+    "start": 1.48,
+    "end": 1.68
+  },
+  {
+    "word": "card.",
+    "start": 1.68,
+    "end": 2.08
+  },
+  {
+    "word": "Here's",
+    "start": 2.66,
+    "end": 2.76
+  },
+  {
+    "word": "how",
+    "start": 2.76,
+    "end": 2.86
+  },
+  {
+    "word": "the",
+    "start": 2.86,
+    "end": 2.96
+  },
+  {
+    "word": "update",
+    "start": 2.96,
+    "end": 3.24
+  },
+  {
+    "word": "looks",
+    "start": 3.24,
+    "end": 3.54
+  },
+  {
+    "word": "on",
+    "start": 3.54,
+    "end": 3.76
+  },
+  {
+    "word": "WhatsApp,",
+    "start": 3.76,
+    "end": 4.02
+  },
+  {
+    "word": "your",
+    "start": 4.38,
+    "end": 4.44
+  },
+  {
+    "word": "image,",
+    "start": 4.44,
+    "end": 4.74
+  },
+  {
+    "word": "followed",
+    "start": 4.96,
+    "end": 5.1
+  },
+  {
+    "word": "by",
+    "start": 5.1,
+    "end": 5.36
+  },
+  {
+    "word": "a",
+    "start": 5.36,
+    "end": 5.48
+  },
+  {
+    "word": "message",
+    "start": 5.48,
+    "end": 5.8
+  },
+  {
+    "word": "with",
+    "start": 5.8,
+    "end": 6.1
+  },
+  {
+    "word": "the",
+    "start": 6.1,
+    "end": 6.2
+  },
+  {
+    "word": "seller's",
+    "start": 6.2,
+    "end": 6.6
+  },
+  {
+    "word": "name,",
+    "start": 6.6,
+    "end": 6.8
+  },
+  {
+    "word": "building",
+    "start": 6.84,
+    "end": 7.18
+  },
+  {
+    "word": "and",
+    "start": 7.18,
+    "end": 7.54
+  },
+  {
+    "word": "recent",
+    "start": 7.54,
+    "end": 7.7
+  },
+  {
+    "word": "sales",
+    "start": 7.7,
+    "end": 8.2
+  },
+  {
+    "word": "already",
+    "start": 8.2,
+    "end": 8.64
+  },
+  {
+    "word": "filled",
+    "start": 8.64,
+    "end": 8.94
+  },
+  {
+    "word": "in.",
+    "start": 8.94,
+    "end": 9.18
+  }
+]
