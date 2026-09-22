@@ -1,0 +1,100 @@
+[
+  {
+    "name": "clean-open",
+    "start": 0.3,
+    "duration": 1.440625,
+    "text": "This is Repeat A I.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-import",
+    "start": 3.2,
+    "duration": 7.07625,
+    "text": "You can import a Google Sheet link or an Excel file. Here, we'll use the link. Choose the buildings, then add the spreadsheet.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-sellers",
+    "start": 17.4,
+    "duration": 5.91675,
+    "text": "On Sellers, you can filter by status: prospect, market appraisal, for sale, or not interested.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-context",
+    "start": 26.0,
+    "duration": 6.447625,
+    "text": "Sold today shows fresh transactions in that building. Open a seller to see the sales, dates and prices.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-automation",
+    "start": 35.2,
+    "duration": 5.58675,
+    "text": "With WhatsApp connected, eligible sellers get automated updates using those transactions.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-template",
+    "start": 45.3,
+    "duration": 8.060791666666667,
+    "text": "You can use the default message or write your own. Here, we'll add a name, a building and recent sales. The preview updates as you type.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-schedule-a",
+    "start": 63.4,
+    "duration": 7.4093333333333335,
+    "text": "Next, choose which buildings get messages on each day. Pick a spreadsheet, select its building, and repeat for the other days.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-schedule-b",
+    "start": 77,
+    "duration": 4.707125,
+    "text": "We've filled Monday through Thursday. Now save the plan. Empty days stay off.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-market",
+    "start": 87.4,
+    "duration": 5.737125,
+    "text": "To track price drops, open a building and choose an apartment. The chart shows the asking price.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-market-activity",
+    "start": 99.5,
+    "duration": 2.4125,
+    "text": "Open Activity to see when that price changed.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-tools",
+    "start": 107.4,
+    "duration": 2.7799583333333335,
+    "text": "Connect your spreadsheets, email and calendars.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-assistant-v2",
+    "start": 114.4,
+    "duration": 7.6258333333333335,
+    "text": "You can also type or speak to Ask Repeat. It can find sellers, summarise the market, and prepare changes, like a new template.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-review",
+    "start": 127.5,
+    "duration": 1.7765416666666667,
+    "text": "Check the draft, then confirm.",
+    "voice": "af_heart"
+  },
+  {
+    "name": "clean-platforms",
+    "start": 132.4,
+    "duration": 2.8501666666666665,
+    "text": "Repeat A I works on web, Windows and mobile.",
+    "voice": "af_heart"
+  }
+]

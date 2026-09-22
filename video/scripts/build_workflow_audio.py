@@ -7,24 +7,24 @@ from scipy.signal import resample_poly
 from kokoro import KPipeline
 
 ROOT=Path(__file__).resolve().parents[2]
-OUT=ROOT/'video/assets/accurate/public/workflow'
+OUT=ROOT/'video/assets/accurate/public/workflow/clean'
 SR=48000
-DURATION=164
+DURATION=141
 LINES=[
- ('01-open',.5,"Turn your seller list into better conversations. Meet Repeat A I.",'af_heart'),
- ('02-import',5.4,"Start by importing your leads. Paste a Google Sheet link, or choose an Excel file. Repeat A I brings your sellers into one workspace, organised by building, with their contact details and status.",'af_heart'),
- ('03-sellers',21.5,"Now open Sellers. See who is a prospect, who is at market appraisal, and who is available for sale. Filter the list to focus on the conversations that matter. Not interested keeps opted-out sellers out of automated follow-ups.",'af_heart'),
- ('04-context',36.4,"Sold today highlights fresh transaction data in a seller's building. Open their record to see their details, then Market data for the latest sales, prices, and dates. That gives your next message a reason to exist.",'af_heart'),
- ('05-automation-v2',49.8,"Connect WhatsApp for personalised, automated transaction updates, following your schedule and sending limits.",'af_heart'),
- ('06-template',58.4,"Happy with the default message? You're ready. Want your own wording? Create a custom template. Name, building, and transaction fields personalise it for each seller, and the preview shows the result.",'af_heart'),
- ('07-schedule-a',73.5,"Then decide which buildings get follow-ups on which days. Choose a day, pick a spreadsheet, and select its buildings.",'af_heart'),
- ('07-schedule-b',82,"Give Monday both Act towers, Tuesday Saint Regis, Wednesday the Burj buildings, and Thursday Imperial Avenue.",'af_heart'),
- ('07-schedule-c',92,"Review the whole week, then save. Empty days stay off while weekly scheduling is enabled.",'af_heart'),
- ('08-market',99.5,"You can also watch the buildings you cover for asking-price drops. Open Burj Khalifa, choose an apartment, and inspect the price chart. The activity history shows when it was listed, and exactly when the asking price changed.",'af_heart'),
- ('09-tools',119.4,"Keep your everyday tools connected: Google Sheets, Excel, Gmail, Outlook, and your calendars.",'af_heart'),
- ('10-assistant',128.5,"And you don't have to do every step by hand. Ask Repeat is your smart assistant. Type, or talk with voice. Ask for a market summary, find sellers, or prepare a template or schedule change. Here, it drafts a new message template. Review the change, then confirm.",'af_heart'),
- ('11-platforms',151.4,"At your desk or between viewings. Keep working across the web, Windows, and mobile.",'af_heart'),
- ('12-close',159.5,"Less admin. Better conversations. Repeat A I.",'af_heart'),
+ ('clean-open',.3,"This is Repeat A I.",'af_heart'),
+ ('clean-import',3.2,"You can import a Google Sheet link or an Excel file. Here, we'll use the link. Choose the buildings, then add the spreadsheet.",'af_heart'),
+ ('clean-sellers',17.4,"On Sellers, you can filter by status: prospect, market appraisal, for sale, or not interested.",'af_heart'),
+ ('clean-context',26.0,"Sold today shows fresh transactions in that building. Open a seller to see the sales, dates and prices.",'af_heart'),
+ ('clean-automation',35.2,"With WhatsApp connected, eligible sellers get automated updates using those transactions.",'af_heart'),
+ ('clean-template',45.3,"You can use the default message or write your own. Here, we'll add a name, a building and recent sales. The preview updates as you type.",'af_heart'),
+ ('clean-schedule-a',63.4,"Next, choose which buildings get messages on each day. Pick a spreadsheet, select its building, and repeat for the other days.",'af_heart'),
+ ('clean-schedule-b',77,"We've filled Monday through Thursday. Now save the plan. Empty days stay off.",'af_heart'),
+ ('clean-market',87.4,"To track price drops, open a building and choose an apartment. The chart shows the asking price.",'af_heart'),
+ ('clean-market-activity',99.5,"Open Activity to see when that price changed.",'af_heart'),
+ ('clean-tools',107.4,"Connect your spreadsheets, email and calendars.",'af_heart'),
+ ('clean-assistant-v2',114.4,"You can also type or speak to Ask Repeat. It can find sellers, summarise the market, and prepare changes, like a new template.",'af_heart'),
+ ('clean-review',127.5,"Check the draft, then confirm.",'af_heart'),
+ ('clean-platforms',132.4,"Repeat A I works on web, Windows and mobile.",'af_heart'),
 ]
 
 def stamp(t):
@@ -63,12 +63,12 @@ def main():
   for part in parts:
    end=t+row['duration']*len(part.split())/total
    caps.append((t,end,part));t=end
- subprocess.run(['ffmpeg','-v','error','-y','-ss','8','-i',str(OUT.parent/'dream-culture.mp3'),'-t',str(DURATION),'-ar',str(SR),'-ac','2',str(OUT/'score.wav')],check=True)
+ subprocess.run(['ffmpeg','-v','error','-y','-ss','8','-i',str(OUT.parents[1]/'dream-culture.mp3'),'-t',str(DURATION),'-ar',str(SR),'-ac','2',str(OUT/'score.wav')],check=True)
  music,_=sf.read(OUT/'score.wav',dtype='float32');music=music[:n]
  music*=gain[:,None];music[:SR]*=np.linspace(0,1,SR)[:,None];music[-2*SR:]*=np.linspace(1,0,2*SR)[:,None]
  fx=np.zeros((n,2),dtype=np.float32)
  # Tiny, original tactile ticks at actual UI interaction points. No stock swoosh on every cut.
- for when,hz in [(8,580),(28,650),(39,650),(44,580),(75.5,580),(83,650),(88,650),(94,650),(102.667,650),(107,580)]:
+ for when,hz in [(10.27,580),(14,650),(49.83,650),(53.33,580),(54.33,580),(60.17,650),(82.38,650),(94.33,580)]:
   dur=int(.055*SR);t=np.arange(dur)/SR;wave=np.sin(2*np.pi*hz*t)*np.exp(-t*90)*.032
   at=int(when*SR);fx[at:at+dur]+=wave[:,None]
  premix=np.repeat(vo[:,None],2,axis=1)+music+fx

@@ -2,6 +2,8 @@
 
 164 seconds · 1920 × 1080 · 30 fps · stereo · optional English captions.
 
+This is the previous cut, preserved for comparison. The current revision is in `../clean`. The production sources and commands below describe commit `c3ab658`; the current scripts render the newer cut.
+
 Watch `repeat-ai-explainer-workflow.mp4`. The story follows the order requested in the review: import → Sellers → templates → weekly scheduling → building price drops → integration icons → Ask Repeat → cross-platform close.
 
 | Time | Demonstration |

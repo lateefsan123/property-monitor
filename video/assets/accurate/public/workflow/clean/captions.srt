@@ -1,0 +1,95 @@
+1
+00:00:00,300 --> 00:00:01,741
+This is Repeat AI.
+
+2
+00:00:03,200 --> 00:00:06,584
+You can import a Google Sheet link or an Excel file.
+
+3
+00:00:06,584 --> 00:00:08,123
+Here, we'll use the link.
+
+4
+00:00:08,123 --> 00:00:10,276
+Choose the buildings, then add the spreadsheet.
+
+5
+00:00:17,400 --> 00:00:23,317
+On Sellers, you can filter by status: prospect, market appraisal, for sale, or not interested.
+
+6
+00:00:26,000 --> 00:00:28,866
+Sold today shows fresh transactions in that building.
+
+7
+00:00:28,866 --> 00:00:32,448
+Open a seller to see the sales, dates and prices.
+
+8
+00:00:35,200 --> 00:00:40,787
+With WhatsApp connected, eligible sellers get automated updates using those transactions.
+
+9
+00:00:45,300 --> 00:00:48,400
+You can use the default message or write your own.
+
+10
+00:00:48,400 --> 00:00:51,501
+Here, we'll add a name, a building and recent sales.
+
+11
+00:00:51,501 --> 00:00:53,361
+The preview updates as you type.
+
+12
+00:01:03,400 --> 00:01:06,575
+Next, choose which buildings get messages on each day.
+
+13
+00:01:06,575 --> 00:01:10,809
+Pick a spreadsheet, select its building, and repeat for the other days.
+
+14
+00:01:17,000 --> 00:01:18,810
+We've filled Monday through Thursday.
+
+15
+00:01:18,810 --> 00:01:20,259
+Now save the plan.
+
+16
+00:01:20,259 --> 00:01:21,707
+Empty days stay off.
+
+17
+00:01:27,400 --> 00:01:31,112
+To track price drops, open a building and choose an apartment.
+
+18
+00:01:31,112 --> 00:01:33,137
+The chart shows the asking price.
+
+19
+00:01:39,500 --> 00:01:41,912
+Open Activity to see when that price changed.
+
+20
+00:01:47,400 --> 00:01:50,180
+Connect your spreadsheets, email and calendars.
+
+21
+00:01:54,400 --> 00:01:57,384
+You can also type or speak to Ask Repeat.
+
+22
+00:01:57,384 --> 00:02:02,026
+It can find sellers, summarise the market, and prepare changes, like a new template.
+
+23
+00:02:07,500 --> 00:02:09,277
+Check the draft, then confirm.
+
+24
+00:02:12,400 --> 00:02:15,250
+Repeat AI works on web, Windows and mobile.
