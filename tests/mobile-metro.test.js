@@ -40,3 +40,11 @@ test('other modules retain Expo platform-aware resolution', () => {
   } };
   assert.equal(resolver.resolveRequest(context, './voice-transport', 'ios'), expected);
 });
+
+test('shared schedule hooks use the native QueryClient provider installation', () => {
+  for (const platform of ['ios', 'android', 'web']) {
+    const result = resolver.resolveRequest({}, '@tanstack/react-query', platform);
+    assert.equal(result.filePath, nativeRequire.resolve('@tanstack/react-query'));
+    assert.ok(result.filePath.startsWith(path.join(mobileRoot, 'node_modules')));
+  }
+});

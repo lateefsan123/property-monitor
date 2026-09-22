@@ -1,10 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AppState, Pressable, ScrollView, Text, TextInput, View, useWindowDimensions } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { AppState, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
-import BottomSheet from '../components/BottomSheet';
+import MatrixOrb from './matrix-orb';
 import { integrationRequest } from './integration-client';
 import { fetchListingPriceDrops } from './home-insights';
 import { Button, Icon } from './ui';
@@ -20,7 +19,6 @@ export default function VoicePanel({ colors, userId }) {
   const [draft, setDraft] = useState('');
   const scroll = useRef(null);
   const composer = useRef(null);
-  const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const cache = useQueryClient();
   const workspace = useMemo(() => createVoiceWorkspace({ supabase, userId, fetchPriceDrops: fetchListingPriceDrops,
@@ -41,19 +39,23 @@ export default function VoicePanel({ colors, userId }) {
   return <>
     <Pressable accessibilityRole="button" accessibilityLabel="Open Repeat AI assistant" onPress={() => setOpen(true)}
       style={{ position: 'absolute', right: 20, bottom: Math.max(insets.bottom, 16) + 8, height: 52, borderRadius: 26, backgroundColor: colors.bgCard, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', gap: 10, borderWidth: 1, borderColor: colors.border, boxShadow: '0 4px 20px #0003' }}>
-      <LinearGradient colors={['#ecf2ff', '#99a4d3', '#83759e']} style={{ width: 24, height: 24, borderRadius: 12 }} /><Text style={{ color: colors.text, fontWeight: '600' }}>Ask Repeat</Text>
+      <MatrixOrb size={28} color={colors.text} animated={false} /><Text style={{ color: colors.text, fontWeight: '600' }}>Ask Repeat</Text>
     </Pressable>
-    <BottomSheet visible={open} onClose={close} colors={colors}>
-      <View style={{ height: Math.min(700, height * .77) }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 22, paddingBottom: 8 }}>
+    <Modal visible={open} presentationStyle="fullScreen" animationType="slide" onRequestClose={close} statusBarTranslucent navigationBarTranslucent>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1, backgroundColor: colors.bgCard, paddingTop: insets.top, paddingBottom: insets.bottom }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 22, paddingVertical: 10, borderBottomWidth: .5, borderColor: colors.border }}>
           <Text style={{ ...text, fontWeight: '600' }}>Repeat AI</Text>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             <Pressable accessibilityRole="button" accessibilityLabel="New chat" disabled={voice.sending} onPress={voice.newChat} style={{ padding: 12 }}><Text style={text}>+</Text></Pressable>
             <Pressable accessibilityRole="button" accessibilityLabel="Close and end conversation" onPress={close} style={{ padding: 12, borderRadius: 24, backgroundColor: colors.bgInput }}><Icon name="close" color={colors.text} /></Pressable>
           </View>
         </View>
-        <ScrollView ref={scroll} keyboardShouldPersistTaps="handled" contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 22, gap: 14 }}>
-          <LinearGradient colors={['#f2f6ff', '#acbddf', '#9583b0', '#e6dfea']} start={{ x: .1, y: 0 }} end={{ x: .9, y: 1 }} style={{ alignSelf: 'center', width: cards.length ? 64 : 116, height: cards.length ? 64 : 116, borderRadius: 60, marginTop: cards.length ? 0 : 18, marginBottom: 10 }} />
+        <ScrollView ref={scroll} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" contentInsetAdjustmentBehavior="never" contentContainerStyle={{ padding: 22, gap: 14 }}>
+          <View style={{ alignSelf: 'center', marginTop: cards.length || voice.messages.length ? 0 : 18, marginBottom: 10 }}>
+            <MatrixOrb size={cards.length || voice.messages.length ? 64 : 116} color={colors.text} animated={open}
+              state={voice.chatting || voice.loading || voice.sending || voice.state === 'connecting' ? 'thinking' : voice.state === 'listening' ? 'listening' : 'idle'} />
+          </View>
           <Text accessibilityLiveRegion="polite" style={{ ...text, textAlign: 'center', fontSize: 25, lineHeight: 32, fontWeight: '500' }}>{title}</Text>
           {!voice.result && !voice.messages.length && <Text style={{ ...muted, textAlign: 'center' }}>Sales, market insights and your sellers. Type or talk to me.</Text>}
           {voice.messages.map((message, index) => <View key={index} style={{ alignSelf: message.role === 'user' ? 'flex-end' : 'stretch', backgroundColor: message.role === 'user' ? colors.bgInput : 'transparent', borderRadius: 14, padding: 12 }}>
@@ -106,7 +108,7 @@ export default function VoicePanel({ colors, userId }) {
           </View>
           <Text style={{ ...muted, fontSize: 10, textAlign: 'center' }}>{voice.sending ? 'Applying your approved action…' : active ? 'Connected until you end. Five-minute limit.' : 'AI assistant · Messages and requested app details shared with OpenAI.'}</Text>
         </View>
-      </View>
-    </BottomSheet>
+      </KeyboardAvoidingView>
+    </Modal>
   </>;
 }
