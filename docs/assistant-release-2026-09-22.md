@@ -24,3 +24,15 @@ Cloud archives excluded supabase/functions/_shared/building-schedule.js, now imp
 - Replacement iOS build 27: 9a9dd671-8a3e-4c6d-8d16-ebd53c623011. Replacement Android preview: f737ea00-57bc-4bf2-b84a-60b1c826dc6e. In progress at this checkpoint; iOS JavaScript bundling passed.
 - Vercel production environment listing confirms no REPEAT_VOICE_OPENAI_API_KEY or REPEAT_VOICE_USER_IDS. Live text/voice remains disabled. No credentials or billing were changed.
 - Authenticated production UI verification awaits the user's existing Repeat AI account choice. No Android device attached.
+
+## Apple upload completed
+
+- iOS build 27 finished successfully: https://expo.dev/artifacts/eas/BvQLJSfTr-HVXz9Sy15_94EhBl80p_JA4CLcxgqrOyE.ipa .
+- Submission 2f4d7aef-87af-42ef-a49d-4c0e0b4ead40 succeeded; EAS confirms the binary was uploaded to App Store Connect and is being processed by Apple. TestFlight tester availability is not yet verified; the App Store Connect browser session requires sign-in. No public App Store review/release was submitted.
+- Mobile fixture also passed close/reopen and draft retention, with no browser errors. Production Vercel deployment was independently inspected as Ready and aliased to repeatai.org and www.repeatai.org.
+
+## Android artifact completed
+
+- Android preview f737ea00-57bc-4bf2-b84a-60b1c826dc6e is FINISHED with no build error. Installable APK: https://expo.dev/artifacts/eas/U2UzWQzRZ4tM_b4m5oU5-Q17bi9jKNopQ4DIIGlGeyI.apk .
+- Both completed native builds include the global bottom-right Ask Repeat button, mobile bottom sheet, chat UI and voice controls. Users must install the new Android APK or TestFlight build 27; OTA updates are not configured.
+- Deployment and build delivery are complete. Live AI activation, real-device microphone/playback verification and authenticated production UI verification remain outside the evidence collected here.
