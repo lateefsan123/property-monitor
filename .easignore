@@ -8,7 +8,10 @@
 /docs/
 /tests/
 /services/
-/supabase/
+/supabase/.temp/
+/supabase/migrations/
+/supabase/tests/
+/supabase/config.toml
 /api/
 /server/
 /.git/
