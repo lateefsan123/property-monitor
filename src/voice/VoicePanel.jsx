@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Mic, MicOff, X, Captions, ArrowUp, AudioLines } from 'lucide-react';
+import { Mic, MicOff, X, Plus, Square, ArrowUp, AudioLines } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
 import { integrationRequest } from '../integration-client';
@@ -10,12 +10,11 @@ import { createVoiceWorkspace, voiceResultCards } from '../../shared/voice-works
 import { createBrowserVoiceTransport } from './voice-transport';
 import './voice.css';
 import MatrixOrb from './MatrixOrb';
-import { ASSISTANT_PROMPTS } from '../../shared/assistant-prompts.js';
 
 const sessionRequest = createVoiceRequest({ getSession: () => supabase.auth.getSession(), url: '/api/voice' });
 export default function VoicePanel({ userId, onOpenChange }) {
   const audio = useRef(null), launcher = useRef(null), closeButton = useRef(null);
-  const [open, setOpen] = useState(false), [captions, setCaptions] = useState(false);
+  const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const chatEnd = useRef(null);
   const composer = useRef(null);
@@ -35,28 +34,24 @@ export default function VoicePanel({ userId, onOpenChange }) {
   function dismiss() { voice.end(); setOpen(false); onOpenChange?.(false); }
   const active = voice.state !== 'idle';
   const cards = voiceResultCards(voice.result);
+  const empty = !voice.messages.length && !voice.result;
   const title = { connecting: 'Connecting', listening: 'I’m listening', muted: 'Microphone muted', ending: 'Ending conversation' }[voice.state] || 'What can I help with?';
   return <div className={`repeat-assistant${open ? ' is-open' : ''}`}>
-    <audio ref={audio} autoPlay controls={active} hidden={!active} aria-label="Assistant audio" />
+    <audio ref={audio} autoPlay hidden aria-label="Assistant audio" />
     {!open && <button ref={launcher} className="assistant-launcher" type="button" aria-label="Open Repeat AI assistant" aria-expanded={false}
       onClick={() => { setOpen(true); onOpenChange?.(true); }}><AudioLines size={23} /><span>Ask Repeat</span></button>}
     {open && <section className="assistant-panel" role="dialog" aria-label="Repeat AI assistant" onKeyDown={event => { if (event.key === 'Escape') dismiss(); }}>
-      <header className="assistant-header"><span>Repeat AI</span><div className="assistant-header-actions"><button type="button" disabled={voice.sending} aria-label="New chat" onClick={voice.newChat}>+</button><button ref={closeButton} type="button" aria-label="Close and end conversation" onClick={dismiss}><X size={20} /></button></div></header>
-      <div className="assistant-body">
-        <MatrixOrb className="assistant-matrix-orb" size={cards.length || voice.messages.length ? 64 : 104} color="currentColor"
+      <header className="assistant-header"><span>Repeat AI</span><div className="assistant-header-actions"><button type="button" disabled={voice.sending} aria-label="New chat" onClick={() => { voice.newChat(); setDraft(''); }}><Plus size={26} /></button><button ref={closeButton} type="button" aria-label="Close and end conversation" onClick={dismiss}><X size={24} /></button></div></header>
+      <div className={`assistant-body${empty && !voice.error && !voice.notice ? ' is-empty' : ''}`}>
+        {(empty || active) && <><MatrixOrb className="assistant-matrix-orb" size={148} color="currentColor"
           state={voice.chatting || voice.loading || voice.sending || voice.state === 'connecting' ? 'thinking' : voice.state === 'listening' ? 'listening' : 'idle'}
           labels={{ idle: '', listening: '', thinking: '' }} aria-hidden="true" />
-        <h2 role="status">{title}</h2>
-        {!voice.result && !voice.messages.length && <p className="assistant-hint">Sales, market insights and your sellers.<br />Type a message or talk to me.</p>}
+        <h2 role="status">{title}</h2></>}
         <div className="assistant-chat-log" role="log" aria-label="Conversation">
           {voice.messages.map((message, index) => <p key={index} className={`assistant-chat-message is-${message.role}`}><span className="assistant-speaker">{message.role === 'user' ? 'You' : 'Repeat AI'}: </span>{message.content}</p>)}
           {voice.chatting && <p role="status">Thinking…</p>}
           <div ref={chatEnd} />
         </div>
-        {!voice.messages.length && !voice.result && <div className="assistant-suggestions" aria-label="Example questions">
-          {ASSISTANT_PROMPTS.map(prompt => <button key={prompt} disabled={voice.loading || voice.chatting || voice.sending || !!voice.preview}
-            onClick={() => { setDraft(prompt); composer.current?.focus(); }}>{prompt}</button>)}
-        </div>}
         {voice.loading && <p role="status">Checking your workspace…</p>}
         {voice.error && <p className="assistant-error" role="alert">{voice.error}</p>}
         {voice.notice && <p role="status">{voice.notice}</p>}
@@ -74,23 +69,20 @@ export default function VoicePanel({ userId, onOpenChange }) {
           <button disabled={voice.sending} onClick={voice.confirm}>{voice.preview.kind ? 'Confirm change' : 'Confirm and send'}</button>
           <button disabled={voice.sending} onClick={voice.reject}>Discard</button>
         </div>}
-        {captions && <div className="assistant-captions"><p>{voice.captions.you}</p><p>{voice.captions.assistant}</p></div>}
+        {active && (voice.captions.you || voice.captions.assistant) && <div className="assistant-captions"><p>{voice.captions.you}</p><p>{voice.captions.assistant}</p></div>}
+        {voice.sending && <p role="status">Applying change…</p>}
       </div>
       <footer className="assistant-footer">
         <form className="assistant-composer" onSubmit={event => { event.preventDefault(); if (draft.trim()) { void voice.sendText(draft); setDraft(''); } }}>
-          <textarea ref={composer} aria-label="Message Repeat AI" placeholder="Ask Repeat anything…" value={draft} maxLength={4000} rows={2}
+          <textarea ref={composer} aria-label="Message Repeat AI" placeholder="Message Repeat" value={draft} maxLength={4000} rows={1}
             disabled={voice.chatting || voice.sending || !!voice.preview} onChange={event => setDraft(event.target.value)}
             onKeyDown={event => { if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); event.currentTarget.form.requestSubmit(); } }} />
-          {voice.chatting ? <button type="button" aria-label="Stop response" onClick={voice.stopChat}><X size={20} /></button>
-            : <button type="submit" aria-label="Send message" disabled={!draft.trim() || voice.sending || !!voice.preview}><ArrowUp size={20} /></button>}
+          {voice.chatting ? <button type="button" aria-label="Stop response" onClick={voice.stopChat}><Square size={20} /></button>
+            : draft.trim() ? <button type="submit" aria-label="Send message" disabled={voice.sending || !!voice.preview}><ArrowUp size={22} /></button> : null}
         </form>
-        <div className="assistant-controls">
-        <button type="button" aria-label="Toggle captions" aria-pressed={captions} onClick={() => setCaptions(!captions)}><Captions size={22} /></button>
-        {!active ? <button className="assistant-start" type="button" disabled={voice.sending || !!voice.preview} onClick={voice.start}><Mic size={20} />Let’s talk<ArrowUp size={18} /></button> : <>
-          <button type="button" aria-label={voice.state === 'muted' ? 'Unmute microphone' : 'Mute microphone'} disabled={!['listening', 'muted'].includes(voice.state)} onClick={voice.mute}>{voice.state === 'muted' ? <MicOff size={23} /> : <Mic size={23} />}</button>
-          <button type="button" className="assistant-end" aria-label="End conversation" disabled={voice.state === 'ending'} onClick={voice.end}><X size={22} /></button>
-        </>}
-      </div><small>{voice.sending ? 'Applying your approved action…' : active ? 'Connected until you end. Five-minute limit.' : 'AI assistant · Messages and requested app details shared with OpenAI.'}</small></footer>
+        {active && <button className="assistant-mute" type="button" aria-label={voice.state === 'muted' ? 'Unmute microphone' : 'Mute microphone'} disabled={!['listening', 'muted'].includes(voice.state)} onClick={voice.mute}>{voice.state === 'muted' ? <MicOff size={24} /> : <Mic size={24} />}</button>}
+        <button className="assistant-voice-toggle" type="button" aria-label={active ? 'End conversation' : 'Start voice conversation'} disabled={voice.sending || !!voice.preview || voice.chatting || voice.state === 'ending'} onClick={active ? voice.end : voice.start}>{active ? <Square size={22} /> : <AudioLines size={24} />}</button>
+      </footer>
     </section>}
   </div>;
 }
