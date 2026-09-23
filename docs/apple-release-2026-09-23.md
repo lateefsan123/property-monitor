@@ -24,6 +24,8 @@ The user approved responding to Apple's Guideline 2.3.2 rejection and preparing 
 
 Production iOS build 29 completed successfully on EAS: `e6273827-427c-48fc-a1c6-e1ac3bd3bfa8`. The initial automatic submission rejected the optional TestFlight changelog because Expo restricts that option to Enterprise plans. Retried the same successful build without the changelog; submission `abba2280-b082-4534-8dd2-4ccca56c9fb1` was scheduled, and App Store Connect visibly listed build 29 as Processing at 7:54 PM. No second build was needed.
 
+Apple subsequently marked the upload Complete. The build detail page is `https://appstoreconnect.apple.com/teams/0260906b-3976-4873-aa36-fbccd13e900b/apps/6762112437/testflight/ios/7e89e6d2-1d5e-47e4-92dc-0edf9141c469`; Team (Expo), the existing internal group, has access with one tester. Added the keyboard and screenshot testing instructions through App Store Connect and verified Saved. The build is ready for internal iPhone testing. App Review resubmission and final screenshot upload are still pending the native checks and captures.
+
 The user confirmed they can check the replacement build on their iPhone. Install build 29 once TestFlight makes it available, then:
 
 1. Open Continue with email. Type an email, use Next to enter the password, switch between both fields, and try Password AutoFill. Check for flickering, unwanted dismissal, and covered inputs or buttons.
