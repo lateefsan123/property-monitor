@@ -61,7 +61,8 @@ export default function VoicePanel({ colors, userId }) {
           </View>
           <Text accessibilityLiveRegion="polite" style={{ ...text, textAlign: 'center', fontSize: 25, lineHeight: 32, fontWeight: '500' }}>{title}</Text>
           </>}
-          {voice.messages.map((message, index) => <View key={index} style={{ alignSelf: message.role === 'user' ? 'flex-end' : 'stretch', backgroundColor: message.role === 'user' ? colors.bgInput : 'transparent', borderRadius: 14, padding: 12 }}>
+          {voice.messages.map((message, index) => <View key={index} style={{ alignSelf: message.role === 'user' ? 'flex-end' : 'stretch', maxWidth: message.role === 'user' ? '88%' : '100%', backgroundColor: message.role === 'user' ? (colors.isDark ? '#303030' : '#eef0ed') : 'transparent', borderRadius: 18, padding: message.role === 'user' ? 16 : 0, marginTop: message.role === 'user' ? 0 : 10, gap: 8 }}>
+            <Text style={{ ...muted, fontWeight: '600', color: message.role === 'user' ? colors.textMuted : colors.text }}>{message.role === 'user' ? 'You' : 'Repeat AI'}</Text>
             <Text selectable accessibilityLabel={`${message.role === 'user' ? 'You' : 'Repeat AI'}: ${message.content}`} style={text}>{message.content}</Text>
           </View>)}
           {voice.chatting && <Text accessibilityLiveRegion="polite" style={muted}>Thinking…</Text>}
