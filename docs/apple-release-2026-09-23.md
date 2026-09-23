@@ -18,7 +18,7 @@ The user approved responding to Apple's Guideline 2.3.2 rejection and preparing 
 - Next moves directly from username to email to password without blurring first. Password remains secure. Styles are created once outside the component.
 - Targeted ESLint passed. iOS Hermes export (1,322 modules) and web export passed. Existing Metro, assistant market, voice request, conversation and workspace tests passed: 37/37.
 - Browser verification at 390 × 600 confirmed retained sample input, email-to-password and username-to-email focus, secure password display, signup autocomplete, and reset form behavior. No authentication, signup or reset request was submitted.
-- Native keyboard animation and iOS Password AutoFill require verification on the new TestFlight build; browser checks do not establish that the iPhone flicker is resolved.
+- Browser checks alone did not establish that the iPhone flicker was resolved. After installing the TestFlight build, the user confirmed “yh it works.” This is user-reported confirmation of the login keyboard fix; individual signup, reset and AutoFill cases were not separately reported.
 
 ## Device verification and captures
 
@@ -26,7 +26,7 @@ Production iOS build 29 completed successfully on EAS: `e6273827-427c-48fc-a1c6-
 
 Apple subsequently marked the upload Complete. The build detail page is `https://appstoreconnect.apple.com/teams/0260906b-3976-4873-aa36-fbccd13e900b/apps/6762112437/testflight/ios/7e89e6d2-1d5e-47e4-92dc-0edf9141c469`; Team (Expo), the existing internal group, has access with one tester. Added the keyboard and screenshot testing instructions through App Store Connect and verified Saved. The build is ready for internal iPhone testing. App Review resubmission and final screenshot upload are still pending the native checks and captures.
 
-The user confirmed they can check the replacement build on their iPhone. Install build 29 once TestFlight makes it available, then:
+The user has confirmed the keyboard fix works on their iPhone. Native screenshot captures are still pending. The device check and capture checklist is:
 
 1. Open Continue with email. Type an email, use Next to enter the password, switch between both fields, and try Password AutoFill. Check for flickering, unwanted dismissal, and covered inputs or buttons.
 2. Check Sign Up and Forgot password field focus without creating an account or requesting a reset unless needed.
