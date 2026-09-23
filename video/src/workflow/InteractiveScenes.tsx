@@ -48,7 +48,7 @@ export function Templates(){
    <aside className="message-template-live-preview"><h2 className="message-template-preview-head">Preview (WhatsApp)</h2><div className="message-template-chat-bubble"><p>{preview||'Your message preview will appear here.'}</p></div></aside>
   </div></div><footer className="message-template-actions"><div>{saved&&<p className="message-template-notice">Template saved.</p>}</div><button className="message-template-save">{f>=455&&f<480?'Saving…':!fresh||saved?'Save changes':'Create template'}</button></footer>
  </section></div>
- {f<45&&<Cursor x={tween(f,0,30,1120,385)} y={235} click={Math.max(0,1-Math.abs(f-35)/6)}/>}
+ {f<38&&<Cursor x={tween(f,0,30,1120,385)} y={235} click={Math.max(0,1-Math.abs(f-35)/6)}/>}
  {f>=38&&f<50&&<Cursor x={tween(f,38,45,385,780)} y={265} click={Math.max(0,1-Math.abs(f-45)/5)}/>}
  {f>=100&&f<122&&<Cursor x={800} y={420} click={Math.max(0,1-Math.abs(f-110)/5)}/>}
  {[145,250,280].map((t,i)=>f>=t-12&&f<t+10?<Cursor key={t} x={[640,748,882][i]} y={686} click={Math.max(0,1-Math.abs(f-t)/6)}/>:null)}

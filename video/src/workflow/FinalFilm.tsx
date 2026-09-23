@@ -34,12 +34,12 @@ function Outgoing({id,closed=false,imageName}:{id:string;closed?:boolean;imageNa
 function ImportLanding(){return <AbsoluteFill className="app-shell"><AppHeader page="Spreadsheets"/><div style={{position:'absolute',left:390,top:150,width:1140}}><div className="ss-list-toolbar"><label className="ss-list-search"><input placeholder="Search spreadsheets" readOnly/></label><button className="ss-list-add"><IconPlus size={18}/>Add spreadsheet</button></div><div style={{borderTop:'1px solid var(--border)',marginTop:24,padding:80,textAlign:'center',color:'var(--text-muted)'}}>No spreadsheets yet</div></div></AbsoluteFill>}
 function Navigation({id,frames,outgoingImage}:{id:string;frames:number;outgoingImage?:string}){
  const raw=useCurrentFrame();const f=raw*90/frames;const modal=id==='templates'||id==='schedule';const closed=!modal||f>=13;
- if(id==='assistant')return <AbsoluteFill className="app-shell"><Outgoing id={id}/><div className="repeat-assistant" style={{position:'absolute',right:24,bottom:24}}><button className="assistant-launcher"><AudioLines size={23}/><span>Ask Repeat</span></button></div><Cursor x={tween(f,12,62,1460,1800)} y={tween(f,12,62,720,1030)} click={Math.max(0,1-Math.abs(f-68)/6)}/></AbsoluteFill>;
+ if(id==='assistant')return <AbsoluteFill className="app-shell"><AbsoluteFill className="wf-outgoing"><Outgoing id={id}/></AbsoluteFill><div className="repeat-assistant" style={{position:'absolute',right:24,bottom:24}}><button className="assistant-launcher"><AudioLines size={23}/><span>Ask Repeat</span></button></div><Cursor x={tween(f,12,62,1460,1800)} y={tween(f,12,62,720,1030)} click={Math.max(0,1-Math.abs(f-68)/6)}/></AbsoluteFill>;
  const menuEnd=id==='import'?67:84;
  const selected=navItems.findIndex(([label])=>label===targets[id]);
  const rowY=56+164+selected*42+20;
  return <AbsoluteFill className="app-shell">
-  {id==='import'&&f>=menuEnd?<ImportLanding/>:<Outgoing id={id} closed={closed} imageName={outgoingImage}/>}
+  {id==='import'&&f>=menuEnd?<ImportLanding/>:<AbsoluteFill className="wf-outgoing"><Outgoing id={id} closed={closed} imageName={outgoingImage}/></AbsoluteFill>}
   {modal&&!closed&&<Cursor x={id==='templates'?1462:1621} y={id==='templates'?159:141} click={Math.max(0,1-Math.abs(f-10)/4)}/>}
   {closed&&f<menuEnd&&<><div style={{position:'absolute',inset:56,background:'transparent'}}/>{f>=20&&<Sidebar target={targets[id]} frame={f}/>}<Cursor x={f<30?tween(f,14,19,220,32):tween(f,32,55,32,150)} y={f<30?tween(f,14,19,120,26):tween(f,32,55,26,rowY)} click={Math.max(0,1-Math.abs(f-(f<30?20:62))/5)}/></>}
   {id==='import'&&f>=menuEnd&&<Cursor x={tween(f,67,84,150,1435)} y={tween(f,67,84,rowY,175)} click={Math.max(0,1-Math.abs(f-88)/3)}/>}

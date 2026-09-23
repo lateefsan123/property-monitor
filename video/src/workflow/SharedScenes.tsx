@@ -10,9 +10,8 @@ export function Intro(){const f=useCurrentFrame();return <AbsoluteFill className
 export function Market(){const f=useCurrentFrame();return <AbsoluteFill>
  <Focus scale={f<440?tween(f,0,35,1,1.08):tween(f,440,490,1.08,1.65)} x={f<440?960:tween(f,440,490,960,780)} y={f<440?tween(f,0,35,540,530):tween(f,440,490,530,500)}>
  {f<60?<Screenshot name="01-buildings.png"/>:f<360?<Sequence from={60}><Clip name="burj-listings.mp4" frames={300} hold="12-burj-detail.png"/></Sequence>:<Sequence from={360}><Clip name="price-history.mp4" frames={173} hold="13-price-activity.png"/></Sequence>}
- {f>=75&&f<117&&<Cursor x={tween(f,75,105,1030,905)} y={tween(f,75,105,420,272)} click={tween(f,108,110,0,1)}/>}
- {f>=195&&f<230&&<Cursor x={tween(f,195,220,1250,1100)} y={tween(f,195,220,580,425)} click={tween(f,218,220,0,1)}/>}
- {f>=395&&f<439&&<Cursor x={tween(f,395,423,1250,1600)} y={tween(f,395,423,540,413)} click={tween(f,423,427,0,1)}/>}
+ {f>=190&&f<216&&<Cursor x={tween(f,190,208,1370,1100)} y={tween(f,190,208,510,340)} click={Math.max(0,1-Math.abs(f-210)/5)}/>}
+ {f>=395&&f<439&&<Cursor x={tween(f,395,423,1250,1600)} y={tween(f,395,423,540,413)} click={Math.max(0,1-Math.abs(f-427)/5)}/>}
  </Focus>
 
  </AbsoluteFill>}

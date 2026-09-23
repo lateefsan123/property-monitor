@@ -1,4 +1,5 @@
 .workflow-film{font-family:FilmInter,Inter,Arial,sans-serif}
+.workflow-film .wf-outgoing .wf-cursor{visibility:hidden}
 .workflow-film .app-shell{font-size:16px;display:block}
 .workflow-film .wf-app-header{height:56px;display:flex;align-items:center;gap:24px;padding:8px 30px;width:100%;font-size:16px;color:var(--text);background:var(--bg-page);position:absolute;top:0;z-index:2}
 .wf-app-header>span{color:var(--text-faint)}
