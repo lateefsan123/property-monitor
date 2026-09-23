@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Fictional brochure for screenshot preview</title>
+<style>body{margin:32px;background:#eee;font:16px Arial}canvas{display:block;width:600px;max-width:100%;margin-bottom:20px}</style>
+<canvas width="1200" height="720" aria-label="Fictional company brochure: ALDER Properties. Downtown, considered."></canvas>
+<a download="alder-fictional-brochure.png">Download sample brochure</a>
+<script>
+const canvas = document.querySelector('canvas');
+const ctx = canvas.getContext('2d', { alpha: false });
+ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, 1200, 720);
+ctx.fillStyle = '#222b28'; ctx.font = '500 32px Arial';
+ctx.fillText('A L D E R', 80, 105);
+ctx.fillStyle = '#8a938e'; ctx.font = '18px Arial';
+ctx.fillText('P R O P E R T I E S', 82, 140);
+ctx.fillStyle = '#222b28'; ctx.font = '52px Georgia';
+ctx.fillText('Downtown,', 80, 320); ctx.fillText('considered.', 80, 384);
+ctx.fillStyle = '#747c76'; ctx.font = '22px Arial';
+ctx.fillText('Local insight. Personal service.', 82, 451);
+ctx.fillStyle = '#f4f5f2'; ctx.fillRect(725, 72, 395, 576);
+ctx.strokeStyle = '#bac3b8'; ctx.lineWidth = 2;
+[[780,295,75,285],[855,200,85,380],[940,265,60,315],[1000,340,65,240]].forEach(([x,y,w,h]) => {
+  ctx.strokeRect(x,y,w,h);
+  for(let line=y+24;line<y+h;line+=30){ctx.beginPath();ctx.moveTo(x+12,line);ctx.lineTo(x+w-12,line);ctx.stroke();}
+});
+ctx.beginPath();ctx.moveTo(897,200);ctx.lineTo(897,150);ctx.stroke();
+ctx.strokeStyle = '#e5e8e2'; ctx.beginPath();ctx.moveTo(80,555);ctx.lineTo(640,555);ctx.stroke();
+ctx.fillStyle = '#747c76';ctx.font = '17px Arial';
+ctx.fillText('DUBAI  /  DOWNTOWN',80,600);
+ctx.fillStyle = '#a0a6a1';ctx.font = '14px Arial';
+ctx.fillText('FICTIONAL COMPANY · SAMPLE BROCHURE',80,643);
+canvas.toBlob(blob => { document.querySelector('a').href = URL.createObjectURL(blob); }, 'image/png');
+</script></html>
