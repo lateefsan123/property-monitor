@@ -6,6 +6,12 @@ Open `http://127.0.0.1:5175/docs/app-store-preview-2026-09-23/` with the existin
 
 Current ready-to-review PNG exports are `exports/repeat-ai-v2-*.png`, generated using the preview's download links in Chrome. The earlier dark versions are retained for comparison.
 
+### Expanded set (in progress)
+
+Added `exports/repeat-ai-v3-04-price-history.png` using the real iPhone capture `outputs/native-screenshots/IMG_7411.png`, copied unchanged to `assets/price-history.png`. Export inspected at 1242 × 2688 opaque RGB; targeted lint passed.
+
+Ask Repeat, Message templates and Schedule are planned in the preview with headings, clearly marked as pending captures. No suitable iPhone captures of these screens were found locally. The existing mobile templates image is a web capture, not an iPhone capture. A local Expo web release export is served at `http://localhost:8082/` for a real-UI draft capture, but the browser is signed out and user sign-in is pending. Native iPhone captures representative of the build submitted to Apple are still needed for final upload; in particular, do not assume the new assistant UI is present in the previously selected build 23. No new native build or submission was started.
+
 ## FighterCenter visual reference
 
 The second revision follows the existing FighterCenter artwork in `D:/Users/Lateef/Documents/fightercenter-complete/fightercenter/apps/mobile/fastlane/metadata/ios/en-US/images/iphoneScreenshots/01-dashboard.png` and `03-pro-replays.png`: pale diagonal grid, centred bold two-line headline, generous spacing, and a large metallic iPhone frame. The frame is recreated in editable canvas code in `frame.js`; it is not the original raster frame. Subscription disclosure remains beneath each headline.

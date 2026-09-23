@@ -4,6 +4,10 @@ const screens = {
   listings: ['Track your buildings', 'in one place'],
   home: ['Stay on top of', 'every follow-up'],
   sellers: ['Keep your sellers', 'within reach'],
+  'price-history': ['Follow every', 'price change'],
+  assistant: ['Ask Repeat.', 'Keep work moving.'],
+  templates: ['Your message.', 'Ready to reuse.'],
+  schedule: ['Plan your week', 'by building'],
 };
 
 // Add a disclosure above each real capture; never redraw or invent app UI.
