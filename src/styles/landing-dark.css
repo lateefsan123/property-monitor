@@ -22,6 +22,18 @@
   box-shadow: 0 1px 0 var(--border);
 }
 
+/* Continue the hero frame to the page top only while the header is at rest. */
+.landing-dark .landing-header-frame:not(.is-scrolled)::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  box-sizing: border-box;
+  width: min(100%, 1680px);
+  margin-inline: auto;
+  border-inline: 1px solid var(--border);
+  pointer-events: none;
+}
+
 .landing-dark :is(.landing-header .landing-brand-logo,
   .landing-end-brand img, .landing-building-grid img) {
   filter: brightness(0) invert(1);
