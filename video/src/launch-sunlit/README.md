@@ -1,7 +1,0 @@
-# Repeat AI launch film — Sunlit mix
-
-This edition keeps the picture and shot order from `video/review/launch/repeat-ai-launch.mp4`. The original export is untouched. Its shots are conformed scene by scene to the checked, full-length female commercial narration from the refined cut. The soundtrack uses the existing project track `public/video/repeat-ai-storyboard/sunlit-walkthrough.mp3` (metadata: Sunlit Walkthrough, lateefsanusifgc).
-
-The narration is the already recorded Emma read. It names Excel/Google Sheets, recorded sales, a connected WhatsApp message and optional broker card, spreadsheet-scoped scheduled buildings, asking-price changes, Ask Repeat early access and review, bounded inbox/calendar reads, and seller lookup through ChatGPT or Claude. The previous feature audit is `../launch-refined/FEATURE-AUDIT.md`. This cut retains the earlier film's original visual designs, including its desktop Ask Repeat demonstration; the narration also mentions phone use, which is represented in the later cross-platform shot.
-
-Run `python video/src/launch-sunlit/build.py` from the repository root with FFmpeg on PATH. It renders the conformed picture, ducks and loudness-normalises the Sunlit mix, muxes the final MP4, copies captions, and writes objective delivery checks. The reproducible source assets are already in the repository. Output: `video/review/launch-sunlit/repeat-ai-launch-sunlit.mp4`.

@@ -1,0 +1,38 @@
+{
+  "sourceVideo": "video\\review\\polished\\repeat-ai-explainer-polished.mp4",
+  "music": "public\\video\\repeat-ai-storyboard\\sunlit-walkthrough.mp3",
+  "voice": "video\\assets\\accurate\\public\\workflow\\polished\\voice.wav",
+  "duration": 177.2,
+  "frames": 5316,
+  "resolution": "1920x1080",
+  "pictureHash": "MD5=bb91b01d6f80125a60d7e7f3e90ce929",
+  "pictureUnchanged": true,
+  "fullDecode": "pass",
+  "blackGaps": "none",
+  "audio": {
+    "input_i": "-16.08",
+    "input_tp": "-1.41",
+    "input_lra": "6.10",
+    "input_thresh": "-26.29",
+    "output_i": "-16.01",
+    "output_tp": "-1.50",
+    "output_lra": "5.60",
+    "output_thresh": "-26.15",
+    "normalization_type": "dynamic",
+    "target_offset": "0.01"
+  },
+  "mixAnalysis": {
+    "input_i": "-23.79",
+    "input_tp": "-4.89",
+    "input_lra": "6.70",
+    "input_thresh": "-34.07",
+    "output_i": "-16.24",
+    "output_tp": "-1.50",
+    "output_lra": "5.90",
+    "output_thresh": "-26.41",
+    "normalization_type": "dynamic",
+    "target_offset": "0.24"
+  },
+  "bytes": 11321911,
+  "sha256": "e59c6cbd1430d71d93bd0a762df360812c9f327e3a91cbe11bc6cb088557395d"
+}
