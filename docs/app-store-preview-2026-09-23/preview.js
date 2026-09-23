@@ -1,7 +1,9 @@
+import { drawBackground, drawPhone } from './frame.js';
+
 const screens = {
-  listings: ['Track your', 'buildings.'],
-  home: ['Your day,', 'at a glance.'],
-  sellers: ['Keep every', 'follow-up in view.'],
+  listings: ['Track your buildings', 'in one place'],
+  home: ['Stay on top of', 'every follow-up'],
+  sellers: ['Keep your sellers', 'within reach'],
 };
 
 // Add a disclosure above each real capture; never redraw or invent app UI.
@@ -12,24 +14,19 @@ async function renderScreen(figure) {
   await capture.decode();
   const canvas = figure.querySelector('canvas');
   const context = canvas.getContext('2d', { alpha: false });
-  context.fillStyle = '#111111';
-  context.fillRect(0, 0, canvas.width, canvas.height);
+  context.save();
+  context.scale(canvas.width / 1320, canvas.height / 2868);
+  drawBackground(context);
   context.textBaseline = 'alphabetic';
-  context.fillStyle = '#adbbb7';
-  context.font = '500 36px Arial';
-  context.fillText('Repeat AI', 108, 84);
-  context.fillStyle = '#f4f4f0';
-  context.font = '600 84px Arial';
-  screens[name].forEach((line, index) => context.fillText(line, 108, 192 + index * 94));
-  context.fillStyle = '#86dfcf';
-  context.font = '500 46px Arial';
-  context.fillText('Paid subscription required', 108, 367);
-  const width = 1026;
-  const height = capture.naturalHeight * width / capture.naturalWidth;
-  context.strokeStyle = '#383b3b';
-  context.lineWidth = 2;
-  context.strokeRect(107, 431, width + 2, height + 2);
-  context.drawImage(capture, 108, 432, width, height);
+  context.textAlign = 'center';
+  context.fillStyle = '#17202b';
+  context.font = '700 62px Arial';
+  screens[name].forEach((line, index) => context.fillText(line, 660, 306 + index * 64));
+  context.fillStyle = '#526172';
+  context.font = '400 34px Arial';
+  context.fillText('Paid subscription required', 660, 444);
+  drawPhone(context, capture);
+  context.restore();
   const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));
   figure.querySelector('a').href = URL.createObjectURL(blob);
   figure.dataset.ready = 'true';

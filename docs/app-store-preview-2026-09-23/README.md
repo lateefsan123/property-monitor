@@ -4,13 +4,19 @@ Local draft for user review. Do not upload or resubmit until approved.
 
 Open `http://127.0.0.1:5175/docs/app-store-preview-2026-09-23/` with the existing Vite dev server running. Each screenshot has a download link that exports an opaque 1242 × 2688 PNG. The description is in `description.txt`.
 
-Ready-to-review PNG exports are saved in `exports/`, generated using the preview's download links in Chrome.
+Current ready-to-review PNG exports are `exports/repeat-ai-v2-*.png`, generated using the preview's download links in Chrome. The earlier dark versions are retained for comparison.
+
+## FighterCenter visual reference
+
+The second revision follows the existing FighterCenter artwork in `D:/Users/Lateef/Documents/fightercenter-complete/fightercenter/apps/mobile/fastlane/metadata/ios/en-US/images/iphoneScreenshots/01-dashboard.png` and `03-pro-replays.png`: pale diagonal grid, centred bold two-line headline, generous spacing, and a large metallic iPhone frame. The frame is recreated in editable canvas code in `frame.js`; it is not the original raster frame. Subscription disclosure remains beneath each headline.
+
+The reference's 1320 × 2868 composition is fitted to the existing Repeat AI 1242 × 2688 upload size. App captures retain their aspect ratio inside the device, with rounded outer corners and an island over the empty central status area. No app controls or data are replaced.
 
 ## Verified source
 
 App Store Connect app 6762112437, iOS 1.0, selected build 23, English (U.S.), was inspected live on 23 September. The submission is rejected under Guideline 2.3.2 because paid features need clearer identification in the description and screenshots. Current screenshot order is listings, home, sellers; this preview preserves that order.
 
-Sources are byte-for-byte copies of `outputs/native-screenshots/store-selection/iphone-6.5/03-listings.png`, `01-home.png`, and `02-sellers.png`. Existing seller privacy redactions are retained. No app UI or data was generated. Canvas adds a separate title/disclosure area and scales the complete original capture proportionally without cropping.
+Sources are byte-for-byte copies of `outputs/native-screenshots/store-selection/iphone-6.5/03-listings.png`, `01-home.png`, and `02-sellers.png`. Existing seller privacy redactions are retained. No app UI or data was generated. Canvas adds the title/disclosure area and device frame around each capture.
 
 The proposed description puts the paid-subscription requirement before the feature list, labels that list as paid, and retains the current subscription price, trial eligibility, billing, renewal, cancellation, EULA and privacy information.
 
@@ -23,6 +29,7 @@ Apple reference: https://developer.apple.com/app-store/review/guidelines/#2.3.2
 - Source copies retain their original SHA-256 hashes and privacy redactions.
 - Description is 1,643 characters, below App Store Connect's 4,000-character limit.
 - JavaScript syntax check and targeted ESLint passed. This standalone documentation preview does not change the app bundle.
+- Revision 2: visually compared against both FighterCenter reference images; inspected the rendered gallery and exported artwork; all three new PNGs remain opaque RGB at 1242 × 2688; targeted ESLint passed for both canvas modules.
 
 ## Proposed review response (not sent)
 
