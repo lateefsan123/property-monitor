@@ -1,0 +1,14 @@
+.assistant-art-reference {
+  --bg-hover: #f1f1f1;
+  --text-muted: #71727d;
+  font-family: "Inter", system-ui, sans-serif;
+}
+.assistant-art-reference .repeat-assistant {
+  position: relative;
+  inset: auto;
+  height: 704px;
+  width: 520px;
+  font-size: 17px;
+}
+.assistant-art-reference .assistant-panel { width: 100%; }
+.assistant-art-reference .assistant-approval { margin-top: 24px; }
