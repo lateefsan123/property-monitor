@@ -91,8 +91,8 @@ export default function LandingPage({
         </div>
         <figure className="landing-hero-artwork">
           <img
-            src="/landing/hero-ask-repeat-template-v1.png"
-            alt="Illustrative Repeat AI seller workspace with Ask Repeat drafting a WhatsApp follow-up for fictional seller Ahmed in Forte 2. The draft preview places fictional broker Omar Hassan's image above the message, with Confirm change and Discard controls."
+            src="/landing/hero-ask-repeat-template-dubai-v2.png"
+            alt="Illustrative Repeat AI workspace: Ask Repeat is asked to update Forte 2 leads with the latest transactions and create a WhatsApp template. A draft personalised for fictional seller Ahmed shows fictional broker Omar Hassan's navy-and-gold Dubai card and portrait above the message, with Confirm change and Discard controls."
             width="1859"
             height="846"
             fetchPriority="high"

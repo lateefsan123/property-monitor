@@ -19,8 +19,8 @@ createRoot(document.getElementById("root")).render(
         </header>
         <div className="assistant-body">
           <div className="assistant-chat-log">
-            <p className="assistant-chat-message is-user">Draft a WhatsApp follow-up for Ahmed in Forte 2.</p>
-            <p className="assistant-chat-message is-assistant">Here’s a draft you can review.</p>
+            <p className="assistant-chat-message is-user">Update my Forte 2 leads with the latest transactions and create a WhatsApp template.</p>
+            <p className="assistant-chat-message is-assistant">Here’s a draft template for your Forte 2 leads.</p>
           </div>
           <div className="assistant-approval">
             <h3>Create template “Forte 2 follow-up”?</h3>
