@@ -1,6 +1,6 @@
 # Repeat AI App Store metadata preview — 23 September 2026
 
-Local draft for user review. Do not upload or resubmit until approved.
+The user approved the seven-screen direction and requested a replacement iOS build. Screenshot upload remains pending matching native captures. The description has been saved and Apple has been replied to; current release progress is recorded in [the release log](../apple-release-2026-09-23.md). The sections below document how the preview was prepared.
 
 Open `http://127.0.0.1:5175/docs/app-store-preview-2026-09-23/` with the existing Vite dev server running. Each screenshot has a download link that exports an opaque 1242 × 2688 PNG. The description is in `description.txt`.
 
