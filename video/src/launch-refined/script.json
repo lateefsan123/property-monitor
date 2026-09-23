@@ -1,0 +1,13 @@
+[
+  {"id":"opening","minimum":6.2,"text":"A recent sale. A relevant update. A better reason to follow up."},
+  {"id":"brand","minimum":2.0,"text":"That's Repeat AI."},
+  {"id":"import","minimum":5.5,"text":"Import Excel or Google Sheets. Keep names, contact details, and buildings in one place."},
+  {"id":"seller","minimum":5.8,"text":"See recorded sales in each seller's building, so your next follow-up has useful context."},
+  {"id":"whatsapp","minimum":6.8,"text":"Connect WhatsApp. Choose your message and broker card. Share a personal update with recent sales."},
+  {"id":"schedule","minimum":5.8,"text":"Choose buildings from your spreadsheet. Set the days for automatic WhatsApp follow-ups."},
+  {"id":"market","minimum":5.5,"text":"Watch listings in the buildings you cover, and see how their asking prices change."},
+  {"id":"assistant","minimum":15.0,"text":"Meet Ask Repeat, in early access. Find sellers, check recorded sales, or draft a new message template. On your phone, talk or type. Review the draft before you save."},
+  {"id":"integrations","minimum":9.0,"text":"Connect your inbox and calendar to read emails and upcoming events. You can also find your sellers through ChatGPT or Claude."},
+  {"id":"platforms","minimum":3.4,"text":"At your desk. On your phone."},
+  {"id":"close","minimum":6.0,"text":"Repeat AI. Stay close to your sellers. Get started at Repeat A I dot org."}
+]

@@ -1,0 +1,10 @@
+*
+!.gitignore
+!repeat-ai-refined.mp4
+!repeat-ai-refined.srt
+!delivery-qa.json
+!audio-boundary-qa.json
+!narration-alignment.json
+!encoded-transcript.json
+!final-review.json
+!cover.png

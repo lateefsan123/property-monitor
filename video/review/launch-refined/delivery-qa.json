@@ -1,0 +1,24 @@
+{
+  "duration": 73.533333,
+  "frames": 2206,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "bytes": 13277474,
+  "sha256": "8776a2b3a8271bda9c027347381fd28258dcfbc499c17fed331b0ffac6b3433c",
+  "fullDecode": "pass",
+  "blackGaps": "none",
+  "audio": {
+    "input_i": "-16.00",
+    "input_tp": "-1.49",
+    "input_lra": "3.20",
+    "input_thresh": "-26.50",
+    "output_i": "-16.22",
+    "output_tp": "-1.50",
+    "output_lra": "3.70",
+    "output_thresh": "-26.65",
+    "normalization_type": "dynamic",
+    "target_offset": "0.22"
+  },
+  "originalLaunchPreserved": true
+}

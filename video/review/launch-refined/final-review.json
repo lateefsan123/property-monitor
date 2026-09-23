@@ -1,0 +1,28 @@
+{
+  "scriptWordCount": 155,
+  "normalizedScriptMatchesEncodedTranscript": true,
+  "normalizations": [
+    "URL spelling",
+    "ChatGPT tokenization",
+    "their/they're homophone",
+    "follow-up/follow-ups ASR number variation"
+  ],
+  "sourceSamplesTrimmed": 0,
+  "visualReview": "Independent reviewer passed corrected stills and sampled encoded transitions/actions.",
+  "visualSamples": [
+    430,
+    560,
+    1140,
+    1330,
+    1360,
+    1430,
+    1510,
+    1603,
+    1612,
+    1625,
+    1710,
+    1830
+  ],
+  "audioPerceptuallyAuditioned": false,
+  "captions": "Timed from final encoded word timestamps; homophone/spelling cleanup only."
+}

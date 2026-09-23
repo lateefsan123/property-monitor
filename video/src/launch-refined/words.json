@@ -1,0 +1,772 @@
+[
+  {
+    "word": "A",
+    "start": 0.0,
+    "end": 0.2
+  },
+  {
+    "word": "recent",
+    "start": 0.2,
+    "end": 0.46
+  },
+  {
+    "word": "sale.",
+    "start": 0.46,
+    "end": 0.88
+  },
+  {
+    "word": "A",
+    "start": 1.34,
+    "end": 1.54
+  },
+  {
+    "word": "relevant",
+    "start": 1.54,
+    "end": 1.94
+  },
+  {
+    "word": "update.",
+    "start": 1.94,
+    "end": 2.48
+  },
+  {
+    "word": "A",
+    "start": 3.18,
+    "end": 3.3
+  },
+  {
+    "word": "better",
+    "start": 3.3,
+    "end": 3.5
+  },
+  {
+    "word": "reason",
+    "start": 3.5,
+    "end": 3.84
+  },
+  {
+    "word": "to",
+    "start": 3.84,
+    "end": 4.06
+  },
+  {
+    "word": "follow",
+    "start": 4.06,
+    "end": 4.22
+  },
+  {
+    "word": "up.",
+    "start": 4.22,
+    "end": 4.58
+  },
+  {
+    "word": "That's",
+    "start": 5.16,
+    "end": 5.5
+  },
+  {
+    "word": "repeat",
+    "start": 5.5,
+    "end": 5.84
+  },
+  {
+    "word": "AI.",
+    "start": 5.84,
+    "end": 6.32
+  },
+  {
+    "word": "Import",
+    "start": 7.02,
+    "end": 7.38
+  },
+  {
+    "word": "Excel",
+    "start": 7.38,
+    "end": 7.78
+  },
+  {
+    "word": "or",
+    "start": 7.78,
+    "end": 8.3
+  },
+  {
+    "word": "Google",
+    "start": 8.3,
+    "end": 8.78
+  },
+  {
+    "word": "Sheets.",
+    "start": 8.78,
+    "end": 9.28
+  },
+  {
+    "word": "Keep",
+    "start": 9.88,
+    "end": 10.06
+  },
+  {
+    "word": "names,",
+    "start": 10.06,
+    "end": 10.4
+  },
+  {
+    "word": "contact",
+    "start": 10.7,
+    "end": 10.92
+  },
+  {
+    "word": "details,",
+    "start": 10.92,
+    "end": 11.32
+  },
+  {
+    "word": "and",
+    "start": 11.48,
+    "end": 11.66
+  },
+  {
+    "word": "buildings",
+    "start": 11.66,
+    "end": 11.94
+  },
+  {
+    "word": "in",
+    "start": 11.94,
+    "end": 12.14
+  },
+  {
+    "word": "one",
+    "start": 12.14,
+    "end": 12.32
+  },
+  {
+    "word": "place.",
+    "start": 12.32,
+    "end": 12.6
+  },
+  {
+    "word": "See",
+    "start": 13.44,
+    "end": 13.64
+  },
+  {
+    "word": "recorded",
+    "start": 13.64,
+    "end": 14.1
+  },
+  {
+    "word": "sales",
+    "start": 14.1,
+    "end": 14.44
+  },
+  {
+    "word": "in",
+    "start": 14.44,
+    "end": 14.7
+  },
+  {
+    "word": "each",
+    "start": 14.7,
+    "end": 15.04
+  },
+  {
+    "word": "seller's",
+    "start": 15.04,
+    "end": 15.44
+  },
+  {
+    "word": "building",
+    "start": 15.44,
+    "end": 15.72
+  },
+  {
+    "word": "so",
+    "start": 15.72,
+    "end": 16.28
+  },
+  {
+    "word": "your",
+    "start": 16.28,
+    "end": 16.4
+  },
+  {
+    "word": "next",
+    "start": 16.4,
+    "end": 16.64
+  },
+  {
+    "word": "follow",
+    "start": 16.64,
+    "end": 16.9
+  },
+  {
+    "word": "-up",
+    "start": 16.9,
+    "end": 17.04
+  },
+  {
+    "word": "has",
+    "start": 17.04,
+    "end": 17.26
+  },
+  {
+    "word": "useful",
+    "start": 17.26,
+    "end": 17.72
+  },
+  {
+    "word": "context.",
+    "start": 17.72,
+    "end": 18.28
+  },
+  {
+    "word": "Connect",
+    "start": 19.18,
+    "end": 19.26
+  },
+  {
+    "word": "WhatsApp.",
+    "start": 19.26,
+    "end": 19.62
+  },
+  {
+    "word": "Choose",
+    "start": 20.28,
+    "end": 20.38
+  },
+  {
+    "word": "your",
+    "start": 20.38,
+    "end": 20.58
+  },
+  {
+    "word": "message",
+    "start": 20.58,
+    "end": 20.88
+  },
+  {
+    "word": "and",
+    "start": 20.88,
+    "end": 21.16
+  },
+  {
+    "word": "broker",
+    "start": 21.16,
+    "end": 21.34
+  },
+  {
+    "word": "card.",
+    "start": 21.34,
+    "end": 21.7
+  },
+  {
+    "word": "Share",
+    "start": 22.28,
+    "end": 22.44
+  },
+  {
+    "word": "a",
+    "start": 22.44,
+    "end": 23.08
+  },
+  {
+    "word": "personal",
+    "start": 23.08,
+    "end": 23.08
+  },
+  {
+    "word": "update",
+    "start": 23.08,
+    "end": 23.48
+  },
+  {
+    "word": "with",
+    "start": 23.48,
+    "end": 23.72
+  },
+  {
+    "word": "recent",
+    "start": 23.72,
+    "end": 24.04
+  },
+  {
+    "word": "sales.",
+    "start": 24.04,
+    "end": 24.42
+  },
+  {
+    "word": "Choose",
+    "start": 24.92,
+    "end": 25.16
+  },
+  {
+    "word": "buildings",
+    "start": 25.16,
+    "end": 25.5
+  },
+  {
+    "word": "from",
+    "start": 25.5,
+    "end": 25.74
+  },
+  {
+    "word": "your",
+    "start": 25.74,
+    "end": 25.9
+  },
+  {
+    "word": "spreadsheet.",
+    "start": 25.9,
+    "end": 26.26
+  },
+  {
+    "word": "Set",
+    "start": 26.94,
+    "end": 27.16
+  },
+  {
+    "word": "the",
+    "start": 27.16,
+    "end": 27.32
+  },
+  {
+    "word": "days",
+    "start": 27.32,
+    "end": 27.5
+  },
+  {
+    "word": "for",
+    "start": 27.5,
+    "end": 27.74
+  },
+  {
+    "word": "automatic",
+    "start": 27.74,
+    "end": 28.2
+  },
+  {
+    "word": "WhatsApp",
+    "start": 28.2,
+    "end": 28.6
+  },
+  {
+    "word": "follow",
+    "start": 28.6,
+    "end": 28.86
+  },
+  {
+    "word": "-ups.",
+    "start": 28.86,
+    "end": 29.08
+  },
+  {
+    "word": "Watch",
+    "start": 29.08,
+    "end": 30.0
+  },
+  {
+    "word": "listings",
+    "start": 30.0,
+    "end": 30.36
+  },
+  {
+    "word": "in",
+    "start": 30.36,
+    "end": 30.62
+  },
+  {
+    "word": "the",
+    "start": 30.62,
+    "end": 30.7
+  },
+  {
+    "word": "buildings",
+    "start": 30.7,
+    "end": 30.94
+  },
+  {
+    "word": "you",
+    "start": 30.94,
+    "end": 31.16
+  },
+  {
+    "word": "cover",
+    "start": 31.16,
+    "end": 31.44
+  },
+  {
+    "word": "and",
+    "start": 31.44,
+    "end": 31.9
+  },
+  {
+    "word": "see",
+    "start": 31.9,
+    "end": 32.14
+  },
+  {
+    "word": "how",
+    "start": 32.14,
+    "end": 32.32
+  },
+  {
+    "word": "they're",
+    "start": 32.32,
+    "end": 32.5
+  },
+  {
+    "word": "asking",
+    "start": 32.5,
+    "end": 32.82
+  },
+  {
+    "word": "prices",
+    "start": 32.82,
+    "end": 33.2
+  },
+  {
+    "word": "change.",
+    "start": 33.2,
+    "end": 33.76
+  },
+  {
+    "word": "Meet",
+    "start": 34.54,
+    "end": 34.56
+  },
+  {
+    "word": "Ask",
+    "start": 34.56,
+    "end": 34.92
+  },
+  {
+    "word": "Repeat",
+    "start": 34.92,
+    "end": 35.28
+  },
+  {
+    "word": "in",
+    "start": 35.28,
+    "end": 35.84
+  },
+  {
+    "word": "early",
+    "start": 35.84,
+    "end": 36.16
+  },
+  {
+    "word": "access.",
+    "start": 36.16,
+    "end": 36.6
+  },
+  {
+    "word": "Find",
+    "start": 37.22,
+    "end": 37.48
+  },
+  {
+    "word": "sellers,",
+    "start": 37.48,
+    "end": 37.78
+  },
+  {
+    "word": "check",
+    "start": 38.28,
+    "end": 38.48
+  },
+  {
+    "word": "recorded",
+    "start": 38.48,
+    "end": 38.82
+  },
+  {
+    "word": "sales,",
+    "start": 38.82,
+    "end": 39.28
+  },
+  {
+    "word": "or",
+    "start": 39.58,
+    "end": 39.9
+  },
+  {
+    "word": "draft",
+    "start": 39.9,
+    "end": 40.16
+  },
+  {
+    "word": "a",
+    "start": 40.16,
+    "end": 40.32
+  },
+  {
+    "word": "new",
+    "start": 40.32,
+    "end": 40.46
+  },
+  {
+    "word": "message",
+    "start": 40.46,
+    "end": 40.74
+  },
+  {
+    "word": "template.",
+    "start": 40.74,
+    "end": 41.2
+  },
+  {
+    "word": "On",
+    "start": 42.0,
+    "end": 42.1
+  },
+  {
+    "word": "your",
+    "start": 42.1,
+    "end": 42.24
+  },
+  {
+    "word": "phone,",
+    "start": 42.24,
+    "end": 42.56
+  },
+  {
+    "word": "talk",
+    "start": 42.86,
+    "end": 43.18
+  },
+  {
+    "word": "or",
+    "start": 43.18,
+    "end": 43.36
+  },
+  {
+    "word": "type.",
+    "start": 43.36,
+    "end": 43.68
+  },
+  {
+    "word": "Review",
+    "start": 44.14,
+    "end": 44.38
+  },
+  {
+    "word": "the",
+    "start": 44.38,
+    "end": 44.56
+  },
+  {
+    "word": "draft",
+    "start": 44.56,
+    "end": 44.78
+  },
+  {
+    "word": "before",
+    "start": 44.78,
+    "end": 45.02
+  },
+  {
+    "word": "you",
+    "start": 45.02,
+    "end": 45.2
+  },
+  {
+    "word": "save.",
+    "start": 45.2,
+    "end": 45.5
+  },
+  {
+    "word": "Connect",
+    "start": 46.12,
+    "end": 46.36
+  },
+  {
+    "word": "your",
+    "start": 46.36,
+    "end": 46.56
+  },
+  {
+    "word": "inbox",
+    "start": 46.56,
+    "end": 46.88
+  },
+  {
+    "word": "and",
+    "start": 46.88,
+    "end": 47.16
+  },
+  {
+    "word": "calendar",
+    "start": 47.16,
+    "end": 47.48
+  },
+  {
+    "word": "to",
+    "start": 47.48,
+    "end": 47.74
+  },
+  {
+    "word": "read",
+    "start": 47.74,
+    "end": 47.92
+  },
+  {
+    "word": "emails",
+    "start": 47.92,
+    "end": 48.28
+  },
+  {
+    "word": "and",
+    "start": 48.28,
+    "end": 48.58
+  },
+  {
+    "word": "upcoming",
+    "start": 48.58,
+    "end": 48.96
+  },
+  {
+    "word": "events.",
+    "start": 48.96,
+    "end": 49.46
+  },
+  {
+    "word": "You",
+    "start": 50.08,
+    "end": 50.18
+  },
+  {
+    "word": "can",
+    "start": 50.18,
+    "end": 50.32
+  },
+  {
+    "word": "also",
+    "start": 50.32,
+    "end": 50.52
+  },
+  {
+    "word": "find",
+    "start": 50.52,
+    "end": 50.82
+  },
+  {
+    "word": "your",
+    "start": 50.82,
+    "end": 51.0
+  },
+  {
+    "word": "sellers",
+    "start": 51.0,
+    "end": 51.3
+  },
+  {
+    "word": "through",
+    "start": 51.3,
+    "end": 51.6
+  },
+  {
+    "word": "ChatGPT",
+    "start": 51.6,
+    "end": 52.2
+  },
+  {
+    "word": "or",
+    "start": 52.2,
+    "end": 52.64
+  },
+  {
+    "word": "Clod",
+    "start": 52.64,
+    "end": 52.96
+  },
+  {
+    "word": "at",
+    "start": 52.96,
+    "end": 53.6
+  },
+  {
+    "word": "your",
+    "start": 53.6,
+    "end": 53.76
+  },
+  {
+    "word": "desk.",
+    "start": 53.76,
+    "end": 54.02
+  },
+  {
+    "word": "On",
+    "start": 54.68,
+    "end": 54.78
+  },
+  {
+    "word": "your",
+    "start": 54.78,
+    "end": 54.92
+  },
+  {
+    "word": "phone,",
+    "start": 54.92,
+    "end": 55.2
+  },
+  {
+    "word": "repeat",
+    "start": 56.18,
+    "end": 56.18
+  },
+  {
+    "word": "AI.",
+    "start": 56.18,
+    "end": 56.68
+  },
+  {
+    "word": "Stay",
+    "start": 57.34,
+    "end": 57.52
+  },
+  {
+    "word": "close",
+    "start": 57.52,
+    "end": 57.78
+  },
+  {
+    "word": "to",
+    "start": 57.78,
+    "end": 58.02
+  },
+  {
+    "word": "your",
+    "start": 58.02,
+    "end": 58.16
+  },
+  {
+    "word": "sellers.",
+    "start": 58.16,
+    "end": 58.42
+  },
+  {
+    "word": "Get",
+    "start": 58.42,
+    "end": 59.2
+  },
+  {
+    "word": "started",
+    "start": 59.2,
+    "end": 59.54
+  },
+  {
+    "word": "at",
+    "start": 59.54,
+    "end": 59.78
+  },
+  {
+    "word": "repeatai",
+    "start": 59.78,
+    "end": 60.38
+  },
+  {
+    "word": ".org.",
+    "start": 60.38,
+    "end": 60.96
+  }
+]

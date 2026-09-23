@@ -1,0 +1,60 @@
+{
+  "sourceSamples": 2950374,
+  "retainedSamples": 2950374,
+  "trimmedSamples": 0,
+  "timeStretch": false,
+  "voiceGainFades": false,
+  "quietBoundaries": [
+    {
+      "before": "brand",
+      "sourceTime": 4.886,
+      "windowRmsDb": -87.9267895419928
+    },
+    {
+      "before": "import",
+      "sourceTime": 6.82,
+      "windowRmsDb": -88.12635344756744
+    },
+    {
+      "before": "seller",
+      "sourceTime": 13.152,
+      "windowRmsDb": -89.00327456007288
+    },
+    {
+      "before": "whatsapp",
+      "sourceTime": 18.494,
+      "windowRmsDb": -85.70839833028857
+    },
+    {
+      "before": "schedule",
+      "sourceTime": 24.644,
+      "windowRmsDb": -84.3141328352821
+    },
+    {
+      "before": "market",
+      "sourceTime": 29.09,
+      "windowRmsDb": -67.71738168304933
+    },
+    {
+      "before": "assistant",
+      "sourceTime": 34.088,
+      "windowRmsDb": -88.56968890940004
+    },
+    {
+      "before": "integrations",
+      "sourceTime": 45.688,
+      "windowRmsDb": -87.15390112360092
+    },
+    {
+      "before": "platforms",
+      "sourceTime": 53.146,
+      "windowRmsDb": -88.99216834052453
+    },
+    {
+      "before": "close",
+      "sourceTime": 55.598,
+      "windowRmsDb": -83.60521051847024
+    }
+  ],
+  "duration": 73.53333333333333
+}
