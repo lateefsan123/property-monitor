@@ -1,0 +1,105 @@
+/* Public landing theme; product artwork retains its original colours. */
+.landing-dark {
+  --bg: #111214;
+  --surface: #1b1d20;
+  --ink: #f4f1eb;
+  --ink-soft: #b4b1ab;
+  --border: #34363a;
+  --cta: #f4f1eb;
+  --cta-ink: #171819;
+}
+
+.landing-dark :is(.landing-header-frame, .landing-hero, .landing-buildings,
+  .landing-overview, .landing-product-story, .landing-stack,
+  .landing-feedback, .landing-closing) {
+  background: var(--bg);
+  color: var(--ink);
+  color-scheme: dark;
+}
+
+.landing-dark .landing-header-frame.is-scrolled {
+  background: var(--surface);
+  box-shadow: 0 1px 0 var(--border);
+}
+
+.landing-dark :is(.landing-header .landing-brand-logo,
+  .landing-end-brand img, .landing-building-grid img) {
+  filter: brightness(0) invert(1);
+}
+
+.landing-dark :is(.landing-header .landing-nav-link,
+  .landing-end-links h2, .landing-end-legal) {
+  color: var(--ink);
+}
+
+.landing-dark .landing-header .landing-nav-link:hover {
+  color: var(--ink-soft);
+}
+
+.landing-dark :is(.landing-sub, .landing-hero-note,
+  .landing-overview-artwork figcaption, .landing-product-story p,
+  .landing-feedback-draft, .landing-feedback-quote figcaption span,
+  .landing-trial-terms, .landing-trial-status, .landing-end-bottom) {
+  color: var(--ink-soft);
+}
+
+.landing-dark :is(.landing-hero::before, .landing-buildings,
+  .landing-building-grid, .landing-building-grid li,
+  .landing-product-artwork, .landing-assistant-prompts li,
+  .landing-stack-panel img, .landing-feedback-quote,
+  .landing-trial, .landing-end-footer) {
+  border-color: var(--border);
+}
+
+.landing-dark :is(.landing-building-grid li, .landing-feedback-quote,
+  .landing-trial) {
+  background: var(--surface);
+}
+
+.landing-dark :is(.landing-hero .landing-cta, .landing-trial-button) {
+  background: var(--cta);
+  color: var(--cta-ink);
+}
+
+.landing-dark :is(.landing-hero .landing-cta, .landing-trial-button):hover:not(:disabled) {
+  background: #fff;
+}
+
+.landing-dark :is(a, button, .landing-stack-grid):focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 5px;
+}
+
+.landing-dark .landing-hero-artwork {
+  width: min(1280px, 100%);
+  margin-top: 40px;
+  border: 1px solid var(--border);
+  border-bottom: 0;
+  border-radius: 16px 16px 0 0;
+}
+
+.landing-dark .landing-hero-artwork img {
+  mask-image: none;
+}
+
+.landing-dark .landing-overview-artwork picture {
+  overflow: hidden;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.landing-dark .landing-feedback-quote mark {
+  background: #493956;
+}
+
+.landing-dark .landing-feedback-quote:nth-child(2) mark {
+  background: #34462e;
+}
+
+.landing-dark .landing-feedback-quote:nth-child(3) mark {
+  background: #29454e;
+}
+
+.landing-dark .landing-trial-error {
+  color: #ffaaa5;
+}

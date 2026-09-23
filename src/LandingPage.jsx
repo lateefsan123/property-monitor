@@ -8,6 +8,7 @@ import LandingBuildings from "./LandingBuildings";
 import "./styles/landing.css";
 import "./styles/landing-overview.css";
 import "./styles/landing-product-story.css";
+import "./styles/landing-dark.css";
 
 export default function LandingPage({
   billingError = null,
@@ -44,7 +45,7 @@ export default function LandingPage({
   }, [pricingOnly]);
 
   return (
-    <div className="landing">
+    <div className={`landing${pricingOnly ? "" : " landing-dark"}`}>
       <div className={`landing-header-frame${headerScrolled || pricingOnly ? " is-scrolled" : ""}`}>
         <header className="landing-header">
           <a className="landing-brand" href="/" aria-label="Repeat AI home">
