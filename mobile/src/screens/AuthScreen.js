@@ -1,5 +1,5 @@
 /* global require */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -68,6 +68,8 @@ async function createSessionFromUrl(url) {
 }
 
 export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
+  const emailInput = useRef(null);
+  const passwordInput = useRef(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
@@ -210,8 +212,6 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
     }
   }
 
-  const s = styles();
-
   if (showEmailForm) {
     const screenTitle = isForgotPassword
       ? "Reset your password"
@@ -222,6 +222,14 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
 
     return (
       <SafeAreaView style={[s.container, { backgroundColor: "#111" }]}>
+        <ScrollView
+          contentContainerStyle={s.emailScrollContent}
+          automaticallyAdjustKeyboardInsets={Platform.OS === "ios"}
+          contentInsetAdjustmentBehavior="never"
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="interactive"
+          showsVerticalScrollIndicator={false}
+        >
         <View style={s.emailTopArea}>
           {/* Header Row */}
           <View style={s.emailHeaderRow}>
@@ -263,12 +271,21 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
               <View style={s.inputContainer}>
                 <Text style={s.inputLabel}>Username</Text>
                 <TextInput
+                  accessibilityLabel="Username"
                   style={s.inputField}
                   placeholder="johndoe"
                   placeholderTextColor="#666"
                   value={username}
                   onChangeText={setUsername}
                   autoCapitalize="none"
+                  autoCorrect={false}
+                  spellCheck={false}
+                  textContentType={Platform.OS === "ios" ? "nickname" : undefined}
+                  autoComplete={Platform.OS !== "ios" ? "nickname" : undefined}
+                  keyboardAppearance="dark"
+                  returnKeyType="next"
+                  submitBehavior="submit"
+                  onSubmitEditing={() => emailInput.current?.focus()}
                 />
               </View>
             )}
@@ -276,6 +293,8 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
             <View style={s.inputContainer}>
               <Text style={s.inputLabel}>Email</Text>
               <TextInput
+                ref={emailInput}
+                accessibilityLabel="Email"
                 style={s.inputField}
                 placeholder="user@example.com"
                 placeholderTextColor="#666"
@@ -283,6 +302,14 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
                 onChangeText={setEmail}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                autoCorrect={false}
+                spellCheck={false}
+                textContentType={Platform.OS === "ios" ? (isForgotPassword ? "emailAddress" : "username") : undefined}
+                autoComplete={Platform.OS !== "ios" ? (isForgotPassword ? "email" : "username") : undefined}
+                keyboardAppearance="dark"
+                returnKeyType={isForgotPassword ? "done" : "next"}
+                submitBehavior={isForgotPassword ? "blurAndSubmit" : "submit"}
+                onSubmitEditing={() => { if (!isForgotPassword) passwordInput.current?.focus(); }}
               />
             </View>
 
@@ -290,12 +317,22 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
               <View style={s.inputContainer}>
                 <Text style={s.inputLabel}>Password</Text>
                 <TextInput
+                  ref={passwordInput}
+                  accessibilityLabel="Password"
                   style={s.inputField}
                   placeholder="••••••••"
                   placeholderTextColor="#666"
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  spellCheck={false}
+                  textContentType={Platform.OS === "ios" ? (isSignUp ? "newPassword" : "password") : undefined}
+                  autoComplete={Platform.OS !== "ios" ? (isSignUp ? "new-password" : "current-password") : undefined}
+                  keyboardAppearance="dark"
+                  returnKeyType="done"
+                  submitBehavior="blurAndSubmit"
                 />
               </View>
             )}
@@ -348,10 +385,7 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
         </View>
 
         {/* Bottom Continue Button */}
-        <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
-          style={s.bottomActionContainer}
-        >
+        <View style={s.bottomActionContainer}>
           <Pressable
             style={({ pressed }) => [s.bottomContinueBtn, pressed && s.btnPressed, loading && s.btnDisabled]}
             onPress={handleEmailAuth}
@@ -363,7 +397,8 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
               <Text style={s.bottomContinueBtnText}>{ctaLabel}</Text>
             )}
           </Pressable>
-        </KeyboardAvoidingView>
+        </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
@@ -511,8 +546,7 @@ const gStyles = StyleSheet.create({
   },
 });
 
-const styles = () =>
-  StyleSheet.create({
+const s = StyleSheet.create({
     container: {
       flex: 1,
       backgroundColor: "#111", // Fallback dark bg
@@ -662,6 +696,9 @@ const styles = () =>
     btnDisabled: { opacity: 0.5 },
     
     // NEW EMAIL FORM STYLES
+    emailScrollContent: {
+      flexGrow: 1,
+    },
     emailTopArea: {
       paddingHorizontal: 24,
       paddingTop: 16,
