@@ -4,7 +4,7 @@
   --surface: #1b1d20;
   --ink: #f4f1eb;
   --ink-soft: #b4b1ab;
-  --border: #34363a;
+  --border: #777b82;
   --cta: #f4f1eb;
   --cta-ink: #171819;
 }
@@ -43,7 +43,8 @@
   color: var(--ink-soft);
 }
 
-.landing-dark :is(.landing-hero::before, .landing-buildings,
+.landing-dark .landing-hero::before,
+.landing-dark :is(.landing-buildings,
   .landing-building-grid, .landing-building-grid li,
   .landing-product-artwork, .landing-assistant-prompts li,
   .landing-stack-panel img, .landing-feedback-quote,
