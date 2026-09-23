@@ -11,7 +11,7 @@
 
 .landing-dark :is(.landing-header-frame, .landing-hero, .landing-buildings,
   .landing-overview, .landing-product-story, .landing-stack,
-  .landing-feedback, .landing-closing) {
+  .landing-feedback, .landing-closing, .repeat-pricing) {
   background: var(--bg);
   color: var(--ink);
   color-scheme: dark;
@@ -51,7 +51,9 @@
 .landing-dark :is(.landing-sub, .landing-hero-note,
   .landing-overview-artwork figcaption, .landing-product-story p,
   .landing-feedback-draft, .landing-feedback-quote figcaption span,
-  .landing-trial-terms, .landing-trial-status, .landing-end-bottom) {
+  .landing-trial-terms, .landing-trial-status, .landing-end-bottom,
+  .repeat-pricing-context, .repeat-pricing-billing, .repeat-pricing-features p,
+  .repeat-pricing-features li, .repeat-pricing-trial, .repeat-pricing-status) {
   color: var(--ink-soft);
 }
 
@@ -60,25 +62,29 @@
   .landing-building-grid, .landing-building-grid li,
   .landing-product-artwork, .landing-assistant-prompts li,
   .landing-stack-panel img, .landing-feedback-quote,
-  .landing-trial, .landing-end-footer) {
+  .landing-trial, .landing-end-footer, .repeat-pricing-plan,
+  .repeat-pricing-features) {
   border-color: var(--border);
 }
 
 .landing-dark :is(.landing-building-grid li, .landing-feedback-quote,
-  .landing-trial) {
+  .landing-trial, .repeat-pricing-plan) {
   background: var(--surface);
 }
 
-.landing-dark :is(.landing-hero .landing-cta, .landing-trial-button) {
+.landing-dark :is(.landing-hero .landing-cta, .landing-trial-button,
+  .repeat-pricing-button, .repeat-pricing-features li span) {
   background: var(--cta);
   color: var(--cta-ink);
 }
 
-.landing-dark :is(.landing-hero .landing-cta, .landing-trial-button):hover:not(:disabled) {
+.landing-dark :is(.landing-hero .landing-cta, .landing-trial-button,
+  .repeat-pricing-button):hover:not(:disabled) {
   background: #fff;
 }
 
-.landing-dark :is(a, button, .landing-stack-grid):focus-visible {
+.landing-dark :is(a, button, .landing-stack-grid):focus-visible,
+.landing-dark .repeat-pricing-button:focus-visible {
   outline: 2px solid var(--ink);
   outline-offset: 5px;
 }
@@ -105,6 +111,6 @@
   background: #29454e;
 }
 
-.landing-dark .landing-trial-error {
+.landing-dark :is(.landing-trial-error, .repeat-pricing-error) {
   color: #ffaaa5;
 }

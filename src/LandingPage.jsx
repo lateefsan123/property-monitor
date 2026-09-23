@@ -45,7 +45,7 @@ export default function LandingPage({
   }, [pricingOnly]);
 
   return (
-    <div className={`landing${pricingOnly ? "" : " landing-dark"}`}>
+    <div className="landing landing-dark">
       <div className={`landing-header-frame${headerScrolled || pricingOnly ? " is-scrolled" : ""}`}>
         <header className="landing-header">
           <a className="landing-brand" href="/" aria-label="Repeat AI home">
