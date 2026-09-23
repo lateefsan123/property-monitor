@@ -10,7 +10,15 @@ Current ready-to-review PNG exports are `exports/repeat-ai-v2-*.png`, generated 
 
 Added `exports/repeat-ai-v3-04-price-history.png` using the real iPhone capture `outputs/native-screenshots/IMG_7411.png`, copied unchanged to `assets/price-history.png`. Export inspected at 1242 × 2688 opaque RGB; targeted lint passed.
 
-Ask Repeat, Message templates and Schedule are planned in the preview with headings, clearly marked as pending captures. No suitable iPhone captures of these screens were found locally. The existing mobile templates image is a web capture, not an iPhone capture. A local Expo web release export is served at `http://localhost:8082/` for a real-UI draft capture, but the browser is signed out and user sign-in is pending. Native iPhone captures representative of the build submitted to Apple are still needed for final upload; in particular, do not assume the new assistant UI is present in the previously selected build 23. No new native build or submission was started.
+Cards 5–7 now show authenticated mobile web captures of Ask Repeat, Message templates and Schedule, at 1170 × 2532 (390 × 844 at 3x). Their exports are `exports/repeat-ai-v4-*-draft.png`, each 1242 × 2688 opaque RGB. They are explicitly marked as mobile web drafts in the gallery. Suitable native iPhone captures representative of the submitted build are still required before upload; do not assume the newer assistant UI is present in the previously selected build 23.
+
+The user completed sign-in at `http://localhost:8082/`. The older `dist-assistant-release-check` export reproduced a React Query provider error on Schedule; the existing newer `dist-assistant-minimal-check` export contains the previously implemented fix and rendered successfully. All three final captures use that newer export and the real account UI, with no fabricated application UI or assistant reply.
+
+- Ask Repeat: an actual request to draft a template returned `Failed to fetch` from this local web session. Its conversation was cleared; the screenshot shows the shorter unsent prompt “Draft a WhatsApp update for my Forte 2 leads.” No successful response, save, or send is implied.
+- Templates: existing Transaction update template, untouched. No template or attachment changes were saved.
+- Schedule: temporary unsaved Monday selections from the account's imported building list. Weekly scheduling stayed off, Save was never pressed, and the draft was discarded by reloading after capture.
+- Device frame: additional top inset on web captures keeps the frame's island clear of actual app navigation. No synthetic iOS status bar was added.
+- Verified seven rendered cards, no gallery horizontal overflow, three opaque RGB exports at the required dimensions, and targeted ESLint. No native build, upload or submission was started.
 
 ## FighterCenter visual reference
 

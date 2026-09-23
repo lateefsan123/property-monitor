@@ -21,7 +21,7 @@ function rounded(context, x, y, width, height, radius, fill) {
   context.fill();
 }
 
-export function drawPhone(context, capture) {
+export function drawPhone(context, capture, { webPreview = false } = {}) {
   const metal = context.createLinearGradient(180, 0, 1140, 0);
   [[0, '#343c4b'], [0.006, '#b9c2cf'], [0.015, '#455269'], [0.029, '#151c29'],
     [0.05, '#68788f'], [0.1, '#0b0d13'], [0.9, '#151c28'], [0.965, '#8b9bb1'],
@@ -46,9 +46,11 @@ export function drawPhone(context, capture) {
   context.save();
   context.clip();
   // Preserve aspect ratio and all UI, with only the empty outer corners masked by the device.
-  const width = Math.min(906, 1943 * capture.naturalWidth / capture.naturalHeight);
+  const topInset = webPreview ? 145 : 0;
+  const availableHeight = 1943 - topInset;
+  const width = Math.min(906, availableHeight * capture.naturalWidth / capture.naturalHeight);
   const height = capture.naturalHeight * width / capture.naturalWidth;
-  context.drawImage(capture, 207 + (906 - width) / 2, 635 + (1943 - height) / 2, width, height);
+  context.drawImage(capture, 207 + (906 - width) / 2, 635 + topInset + (availableHeight - height) / 2, width, height);
   context.restore();
   rounded(context, 522, 674, 276, 79, 40, '#000000');
   const lens = context.createRadialGradient(758, 711, 2, 758, 713, 15);
