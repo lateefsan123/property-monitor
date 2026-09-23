@@ -1,5 +1,9 @@
 # Repeat AI App Store metadata preview — 23 September 2026
 
+## Submitted
+
+All seven corrected images were uploaded to the English (U.S.) iPhone 6.5-inch set and ordered 01–07. Version 1.0 now uses build 29. Apple received the combined app, subscription and subscription-group resubmission on 23 September 2026 at 8:27 PM; all three items were visibly verified as Waiting for Review. A follow-up reply confirms the completed paid-access corrections. Earlier preparation notes below describe the state before upload.
+
 The user explicitly requested corrections to the existing captures rather than taking replacement screenshots. The complete corrected set is in `exports/corrected/`, with all seven images bundled in `exports/repeat-ai-corrected-seven.zip`. Every image now says “Requires Repeat AI Pro · Paid subscription.” The description has been saved and Apple has been replied to; current release progress is recorded in [the release log](../apple-release-2026-09-23.md).
 
 All seven exports were checked at 1242 × 2688, opaque RGB. Existing captures were reused without changing their app UI: four iPhone captures, followed by three mobile web captures. The latter retain their actual source labels in the gallery; they are not newly captured native iPhone screenshots. Ask Repeat retains its actual transaction response, Templates retains the anonymous Alder Properties brochure, and Schedule retains its unsaved selection preview. The historical notes below describe earlier revisions; their requests for replacement captures are superseded by the user's instruction to correct the existing set. The corrected set has not been uploaded to App Store Connect.

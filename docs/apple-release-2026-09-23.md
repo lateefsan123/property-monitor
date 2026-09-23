@@ -1,5 +1,19 @@
 # Repeat AI iOS review follow-up — 23 September 2026
 
+## Final submission status
+
+Submitted on 23 September 2026 at 8:27 PM. App Store Connect visibly confirmed all three items are **Waiting for Review**:
+
+- iOS App 1.0, build 1.0.0 (29).
+- Repeat AI Pro Monthly subscription.
+- Repeat AI Pro subscription group.
+
+Replaced the three old English (U.S.) iPhone 6.5-inch images with all seven files from `app-store-preview-2026-09-23/exports/corrected/`. Verified seven uploaded screenshot filenames in the intended order: Listings, Home, Sellers, Price history, Ask Repeat, Templates, Schedule. Selected and saved build 29, preserved the previously saved subscription disclosure and existing review information, and sent a follow-up reply explaining the completed Guideline 2.3.2 corrections. Messages increased from three to four, and the reply was visible at 8:27 PM. Used Update Review, then Resubmit to App Review for the combined three-item submission.
+
+Submission: https://appstoreconnect.apple.com/apps/6762112437/distribution/reviewsubmissions/details/51b6ef38-ca37-46f4-83f6-81e13b1fa19f
+
+This confirms receipt for review, not approval or public release. Existing backend access restrictions were not changed or independently verified for the review account. Historical preparation notes follow.
+
 ## Authorized scope
 
 The user approved responding to Apple's Guideline 2.3.2 rejection and preparing a new iOS build with all seven screenshot concepts. Before building, they asked to fix intermittent keyboard flicker during login.
