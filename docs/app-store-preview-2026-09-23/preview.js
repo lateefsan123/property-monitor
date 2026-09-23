@@ -28,7 +28,7 @@ async function renderScreen(figure) {
   screens[name].forEach((line, index) => context.fillText(line, 660, 306 + index * 64));
   context.fillStyle = '#526172';
   context.font = '400 34px Arial';
-  context.fillText('Paid subscription required', 660, 444);
+  context.fillText('Requires Repeat AI Pro · Paid subscription', 660, 444);
   drawPhone(context, capture, { webPreview: figure.dataset.source === 'web' });
   context.restore();
   const blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/png'));

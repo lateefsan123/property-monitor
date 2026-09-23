@@ -1,6 +1,8 @@
 # Repeat AI App Store metadata preview — 23 September 2026
 
-The user approved the seven-screen direction and requested a replacement iOS build. Screenshot upload remains pending matching native captures. The description has been saved and Apple has been replied to; current release progress is recorded in [the release log](../apple-release-2026-09-23.md). The sections below document how the preview was prepared.
+The user explicitly requested corrections to the existing captures rather than taking replacement screenshots. The complete corrected set is in `exports/corrected/`, with all seven images bundled in `exports/repeat-ai-corrected-seven.zip`. Every image now says “Requires Repeat AI Pro · Paid subscription.” The description has been saved and Apple has been replied to; current release progress is recorded in [the release log](../apple-release-2026-09-23.md).
+
+All seven exports were checked at 1242 × 2688, opaque RGB. Existing captures were reused without changing their app UI: four iPhone captures, followed by three mobile web captures. The latter retain their actual source labels in the gallery; they are not newly captured native iPhone screenshots. Ask Repeat retains its actual transaction response, Templates retains the anonymous Alder Properties brochure, and Schedule retains its unsaved selection preview. The historical notes below describe earlier revisions; their requests for replacement captures are superseded by the user's instruction to correct the existing set. The corrected set has not been uploaded to App Store Connect.
 
 Open `http://127.0.0.1:5175/docs/app-store-preview-2026-09-23/` with the existing Vite dev server running. Each screenshot has a download link that exports an opaque 1242 × 2688 PNG. The description is in `description.txt`.
 

@@ -34,3 +34,7 @@ The user has confirmed the keyboard fix works on their iPhone. Native screenshot
 4. For Ask Repeat, ask: “Show the 3 latest recorded Forte 2 sales: date, price and size.” Capture its real response and records. For Templates, use the fictional Alder Properties brochure rather than the personal portrait. Schedule should show building/day selection without saving changes just for a screenshot.
 
 Ask Repeat currently has an account allowlist in the backend. Verify availability for the App Review account before making it part of the final submitted showcase; this release does not broaden backend access.
+
+## Existing screenshot correction
+
+The user clarified that the screenshots had already been captured and explicitly requested correcting those files. Reused all seven existing captures, made the paid Repeat AI Pro requirement explicit on each, and exported the complete set under `app-store-preview-2026-09-23/exports/corrected/`, also bundled as `exports/repeat-ai-corrected-seven.zip`. The preview no longer asks for replacement captures. Its provenance remains accurate: the first four images use iPhone captures and the last three use mobile web captures. These corrections do not turn the web captures into native device screenshots. No App Store upload or resubmission was performed during this artwork correction.
