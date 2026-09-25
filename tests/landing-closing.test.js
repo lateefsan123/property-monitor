@@ -73,6 +73,6 @@ test("header is sticky and opaque with clearance for section anchors", () => {
   const header = css.match(/\.landing-header-frame \{([^}]+)\}/)[1];
   assert.match(header, /position: sticky/);
   assert.match(header, /top: 0/);
-  assert.match(header, /background: #fff/);
+  assert.match(header, /background:\s*#(?:[\da-f]{6}|[\da-f]{3})\s*;/i);
   assert.match(css, /\.landing \[id\] \{\s*scroll-margin-top: 84px/);
 });

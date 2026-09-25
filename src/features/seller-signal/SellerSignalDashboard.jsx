@@ -51,8 +51,12 @@ function SourcePickerMenu({ activeId, options, onSelect }) {
 }
 
 export default function SellerSignalDashboard({
+  billingPortalError,
+  billingPortalPending = false,
+  onCancelPlan,
   onCloseSettings,
   settingsOpen = false,
+  subscription,
   userId,
 }) {
   const dashboard = useSellerSignalPage(userId);
@@ -133,15 +137,19 @@ export default function SellerSignalDashboard({
         automationEnabled={dashboard.automation.enabled}
         automationLoading={dashboard.automation.loading}
         automationSaving={dashboard.automation.saving}
+        billingPortalError={billingPortalError}
+        billingPortalPending={billingPortalPending}
         connecting={dashboard.connectingWhatsAppAccount}
         monthlyReportsEnabled={dashboard.automation.monthlyReportsEnabled}
         sendActivity={dashboard.sendActivity.data}
         sendActivityLoading={dashboard.sendActivity.loading}
         onConnect={dashboard.actions.connectWhatsAppAccount}
         onAutomationChange={dashboard.automation.setEnabled}
+        onCancelPlan={onCancelPlan}
         onClose={onCloseSettings}
         onMonthlyReportsChange={dashboard.automation.setMonthlyReportsEnabled}
         open={settingsOpen}
+        subscription={subscription}
       />
       {dashboard.sourceOptions?.length > 0 && (
         <div className="source-tabs-row">

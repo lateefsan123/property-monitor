@@ -1,3 +1,4 @@
+import { TOP_NAVIGATION, MAIN_NAVIGATION } from '../../../../shared/navigation';
 import {
   IconBuildingEstate,
   IconCalendarWeek,
@@ -24,19 +25,11 @@ function getSourceNameValue(source) {
   return label || buildingName || "";
 }
 
-const TOP_GROUP = [
-  { id: "home", label: "Home", Icon: IconHome, kind: "nav", accent: "blue" },
-  { id: "search", label: "Search", Icon: IconSearch, kind: "disabled", accent: "purple" },
-  { id: "new", label: "New", Icon: IconPlus, kind: "action", accent: "emerald" },
-];
-
-const MAIN_GROUP = [
-  { id: "sellers", label: "Sellers", Icon: IconUsers, kind: "nav", accent: "indigo" },
-  { id: "listing-alerts", label: "Listings", Icon: IconBuildingEstate, kind: "nav", accent: "rose" },
-  { id: "spreadsheets", label: "Spreadsheets", Icon: IconTable, kind: "nav", accent: "emerald" },
-  { id: "message-template", label: "Message template", Icon: IconMessage, kind: "action", accent: "emerald" },
-  { id: "schedule", label: "Schedule", Icon: IconCalendarWeek, kind: "nav" },
-];
+const ICONS = { home: IconHome, search: IconSearch, plus: IconPlus, users: IconUsers, building: IconBuildingEstate, table: IconTable, message: IconMessage };
+const ACCENTS = { home: 'blue', search: 'purple', new: 'emerald', sellers: 'indigo', 'listing-alerts': 'rose', spreadsheets: 'emerald', 'message-template': 'emerald' };
+const toSidebarItem = item => ({ ...item, Icon: ICONS[item.icon], accent: ACCENTS[item.id] });
+const TOP_GROUP = TOP_NAVIGATION.map(toSidebarItem);
+const MAIN_GROUP = [...MAIN_NAVIGATION.map(toSidebarItem), { id: "schedule", label: "Schedule", Icon: IconCalendarWeek, kind: "nav" }];
 
 function SidenavItem({ item, currentPage, onNavigate, onAction, onPrefetch }) {
   const Icon = item.Icon;

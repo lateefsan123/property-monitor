@@ -84,7 +84,7 @@ function clearCheckoutRedirect() {
 }
 
 export function Root() {
-  const publicPolicyPath = ["/privacy", "/terms", "/data-deletion"].includes(window.location.pathname)
+  const publicPolicyPath = ["/privacy", "/terms", "/data-deletion", "/support"].includes(window.location.pathname)
     ? window.location.pathname
     : null;
   const isOAuthConsentPath = window.location.pathname === "/oauth/consent";
@@ -230,13 +230,16 @@ export function Root() {
 
     let ignore = false;
 
-    async function loadBillingSubscription() {
+    let loading = false;
+    async function loadBillingSubscription(background = false) {
+      if (loading) return;
+      loading = true;
       setBillingState((currentState) => ({
         ...currentState,
         error: null,
-        initialized: false,
+        initialized: background ? currentState.initialized : false,
         subscription: currentState.userId === sessionUserId ? currentState.subscription : null,
-        subscriptionLoading: true,
+        subscriptionLoading: !background,
         userId: sessionUserId,
       }));
 
@@ -262,13 +265,22 @@ export function Root() {
           subscriptionLoading: false,
           userId: sessionUserId,
         }));
+      } finally {
+        loading = false;
       }
     }
 
     void loadBillingSubscription();
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") void loadBillingSubscription(true);
+    };
+    const refreshTimer = window.setInterval(refreshWhenVisible, 60_000);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
 
     return () => {
       ignore = true;
+      window.clearInterval(refreshTimer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
   }, [sessionUserId]);
 
@@ -287,7 +299,8 @@ export function Root() {
       }));
 
       try {
-        const subscription = await syncCheckoutSession(pendingCheckoutSessionId);
+        await syncCheckoutSession(pendingCheckoutSessionId);
+        const subscription = await fetchBillingSubscription();
         if (ignore) return;
 
         setBillingState((currentState) => ({
@@ -504,10 +517,11 @@ export function Root() {
         />
       );
     }
+
   }
 
   if (session && hasActiveBillingSubscription) {
-    return <App session={session} />;
+    return <App session={session} subscription={billingState.subscription} />;
   }
 
   return session ? (

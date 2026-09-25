@@ -120,7 +120,7 @@ export default function TrialOfferScreen({ onStartTrial, onSkip, checkoutPending
           </ul>
 
           <p className="trial-caveat">
-            <strong>EUR 50/month after your trial.</strong> Cancel anytime. Your renewal date is shown before you confirm.
+            <strong>EUR 25/month after your trial.</strong> Cancel anytime. Your renewal date is shown before you confirm.
           </p>
 
           {error && <div className="auth-error">{error}</div>}

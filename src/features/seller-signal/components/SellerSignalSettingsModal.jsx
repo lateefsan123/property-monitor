@@ -4,9 +4,11 @@ import {
   IconChevronRight,
   IconBolt,
   IconBrandWhatsapp,
+  IconCreditCard,
   IconPlug,
   IconX,
 } from "@tabler/icons-react";
+import BillingSettingsPanel from "./BillingSettingsPanel";
 import "../../../styles/settings-connection-first.css";
 import SendActivityPanel from "./SendActivityPanel";
 import WhatsAppConnectionPanel from "./WhatsAppConnectionPanel";
@@ -16,6 +18,7 @@ const TABS = [
   { id: "automations", label: "Automations", icon: IconBolt },
   { id: "whatsapp", label: "WhatsApp", icon: IconBrandWhatsapp },
   { id: "activity", label: "Send activity", icon: null },
+  { id: "billing", label: "Billing", icon: IconCreditCard },
   { id: "integrations", label: "Integrations", icon: IconPlug },
 ];
 
@@ -56,15 +59,19 @@ export default function SellerSignalSettingsModal({
   automationEnabled,
   automationLoading,
   automationSaving,
+  billingPortalError,
+  billingPortalPending,
   connecting,
   monthlyReportsEnabled,
   onAutomationChange,
+  onCancelPlan,
   onClose,
   onConnect,
   onMonthlyReportsChange,
   open,
   sendActivity,
   sendActivityLoading,
+  subscription,
 }) {
   const [activeTab, setActiveTab] = useState("automations");
 
@@ -135,7 +142,9 @@ export default function SellerSignalSettingsModal({
                     ? "Automations"
                     : activeTab === "whatsapp"
                       ? "WhatsApp"
-                      : activeTab === "integrations" ? "Integrations" : "Send activity"}
+                      : activeTab === "activity"
+                        ? "Send activity"
+                        : activeTab === "integrations" ? "Integrations" : "Billing"}
                 </h2>
                 {activeTab === "automations" ? (
                   <div className="seller-settings-automation-pane">
@@ -179,8 +188,15 @@ export default function SellerSignalSettingsModal({
                   </div>
                 ) : activeTab === "integrations" ? (
                   <IntegrationConnectionsPanel key={userId} userId={userId} />
-                ) : (
+                ) : activeTab === "activity" ? (
                   <SendActivityPanel activity={sendActivity} loading={sendActivityLoading} />
+                ) : (
+                  <BillingSettingsPanel
+                    error={billingPortalError}
+                    onCancelPlan={onCancelPlan}
+                    pending={billingPortalPending}
+                    subscription={subscription}
+                  />
                 )}
               </div>
             </div>

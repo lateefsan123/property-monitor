@@ -1,8 +1,18 @@
 import "./styles/policy.css";
 
-const UPDATED_AT = "June 23, 2026";
+const UPDATED_AT = "September 12, 2026";
 
 const POLICIES = {
+  "/support": {
+    eyebrow: "Support",
+    title: "Repeat AI Support",
+    intro: "Help with your account, subscription, seller records, and listings.",
+    sections: [
+      { title: "Contact Us", body: "Email lateefsanusiit@gmail.com with a description of the issue, your device model, and app version. Do not include your password or other people’s contact details." },
+      { title: "Subscriptions", body: "In the app, open Settings → Billing to manage your subscription. For an Apple subscription, you can also use your device Settings → your name → Subscriptions. If you have already paid, use Restore purchases on the app subscription screen." },
+      { title: "Account Deletion", body: "In the app, open Settings → Account → Delete account. You can also request deletion by emailing lateefsanusiit@gmail.com from your account email. Deleting an account does not automatically cancel an App Store subscription." },
+    ],
+  },
   "/privacy": {
     eyebrow: "Privacy",
     title: "Privacy Policy",
@@ -22,7 +32,7 @@ const POLICIES = {
       {
         title: "WhatsApp Data",
         body:
-          "If you connect WhatsApp, Repeat AI uses approved WhatsApp Business Platform APIs to send messages you initiate or automate, receive message and delivery events, and associate those events with the relevant account or lead. We do not sell WhatsApp message data.",
+          "If you connect WhatsApp, Repeat AI processes connection credentials, messages you initiate or automate, and message and delivery events to provide messaging features and associate activity with the relevant account or seller. Connections may use a linked-device session or WhatsApp Business Platform integration. We do not sell WhatsApp message data.",
       },
       {
         title: "Sharing",

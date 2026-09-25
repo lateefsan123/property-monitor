@@ -23,6 +23,7 @@ import ThemeToggleButton from "./components/ThemeToggleButton";
 import ProductTour from "./components/ProductTour";
 import VoicePanel from "./voice/VoicePanel";
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
+import { createBillingPortalSession } from "./billing";
 
 const VALID_PAGES = new Set(["home", "sellers", "listing-alerts", "spreadsheets", "schedule"]);
 const THEME_STORAGE_KEY = "property:theme";
@@ -88,15 +89,16 @@ function MessageTemplatesModal({ onClose, userId }) {
   );
 }
 
-export default function AppShell({ displayName, userId }) {
+export default function AppShell({ displayName, subscription, userId }) {
   const prefetchPage = usePagePrefetch(userId);
   const [currentPage, setCurrentPage] = useState(readPageFromHash);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
   const [messageTemplatesOpen, setMessageTemplatesOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [billingPortalState, setBillingPortalState] = useState({ error: null, pending: false });
   const [theme, setTheme] = useState(readInitialTheme);
 
   useEffect(() => {
@@ -172,6 +174,31 @@ export default function AppShell({ displayName, userId }) {
 
   function handleToggleTheme() {
     setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
+  }
+
+  async function handleCancelPlan() {
+    setBillingPortalState({ error: null, pending: true });
+
+    try {
+      if (["app_store", "play_store"].includes(subscription?.source)) {
+        window.location.assign(subscription.source === "app_store"
+          ? "https://apps.apple.com/account/subscriptions"
+          : "https://play.google.com/store/account/subscriptions");
+        return;
+      }
+      const returnUrl = new URL(import.meta.env.BASE_URL, window.location.origin);
+      returnUrl.searchParams.set("billing", "updated");
+      returnUrl.hash = "/sellers";
+      const { portalUrl } = await createBillingPortalSession({
+        returnUrl: returnUrl.toString(),
+      });
+      window.location.assign(portalUrl);
+    } catch (error) {
+      setBillingPortalState({
+        error: error instanceof Error ? error.message : "Could not open Stripe billing",
+        pending: false,
+      });
+    }
   }
 
   return (
@@ -265,7 +292,11 @@ export default function AppShell({ displayName, userId }) {
           />
         ) : currentPage === "sellers" ? (
           <SellerSignalDashboard
+            billingPortalError={billingPortalState.error}
+            billingPortalPending={billingPortalState.pending}
+            onCancelPlan={handleCancelPlan}
             userId={userId}
+            subscription={subscription}
             settingsOpen={settingsOpen}
             onCloseSettings={() => setSettingsOpen(false)}
           />

@@ -1,28 +1,29 @@
 import { supabase } from "./supabase";
+import {
+  ACTIVE_SUBSCRIPTION_STATUSES,
+  hasActiveSubscription,
+} from "./billing-access";
 
-export const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
+export { ACTIVE_SUBSCRIPTION_STATUSES, hasActiveSubscription };
 export const TRIAL_PERIOD_DAYS = 7;
 
-export function hasActiveSubscription(subscription) {
-  if (!subscription || !ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status)) {
-    return false;
-  }
-
-  if (!subscription.current_period_end) {
-    return true;
-  }
-
-  const currentPeriodEnd = Date.parse(subscription.current_period_end);
-  return Number.isNaN(currentPeriodEnd) || currentPeriodEnd > Date.now();
-}
-
 export async function fetchBillingSubscription() {
-  const { data, error } = await supabase
-    .from("billing_subscriptions")
-    .select("status, current_period_end, cancel_at_period_end")
-    .maybeSingle();
+  const { data, error } = await supabase.functions.invoke("get-billing-access", { body: {} });
 
   if (error) throw error;
+  return data?.subscription ?? null;
+}
+
+export async function createBillingPortalSession({ returnUrl } = {}) {
+  const { data, error } = await supabase.functions.invoke("create-billing-portal-session", {
+    body: { returnUrl },
+  });
+
+  if (error) {
+    const payload = await error.context?.clone?.().json().catch(() => null);
+    throw new Error(payload?.error || error.message);
+  }
+  if (!data?.portalUrl) throw new Error("Stripe billing portal URL was not returned");
   return data;
 }
 

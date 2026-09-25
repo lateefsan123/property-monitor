@@ -1,0 +1,88 @@
+import { normalizeBuildingAliasKey } from "../src/features/seller-signal/building-utils";
+export function createBuildingReferenceServices(supabase) {
+  function mapBuildingAliasRow(row) {
+    return {
+      id: row.id,
+      userId: row.user_id,
+      aliasName: row.alias_name || "",
+      aliasKey: row.alias_key || "",
+      canonicalName: row.canonical_name || "",
+      isGlobal: Boolean(row.is_global),
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    };
+  }
+
+  function isMissingAliasTableError(error) {
+    return (
+      error?.code === "42P01" ||
+      String(error?.message || "").includes("building_aliases")
+    );
+  }
+
+  async function fetchBuildingAliases(userId) {
+    if (!userId) return [];
+
+    const { data, error } = await supabase
+      .from("building_aliases")
+      .select("*")
+      .or(`is_global.eq.true,user_id.eq.${userId}`)
+      .order("alias_name");
+
+    if (isMissingAliasTableError(error)) return [];
+    if (error) throw new Error(error.message);
+
+    return (data || []).map(mapBuildingAliasRow);
+  }
+
+  async function upsertBuildingAlias({ userId, aliasName, canonicalName }) {
+    const cleanedAlias = String(aliasName || "").trim();
+    const cleanedCanonical = String(canonicalName || "").trim();
+    const aliasKey = normalizeBuildingAliasKey(cleanedAlias);
+
+    if (!userId) throw new Error("Sign in required.");
+    if (!cleanedAlias) throw new Error("Building alias is missing.");
+    if (!cleanedCanonical) throw new Error("Pick a building match first.");
+    if (!aliasKey) throw new Error("Building alias is not valid.");
+
+    const payload = {
+      user_id: userId,
+      alias_name: cleanedAlias,
+      alias_key: aliasKey,
+      canonical_name: cleanedCanonical,
+      is_global: false,
+    };
+
+    const { data, error } = await supabase
+      .from("building_aliases")
+      .upsert(payload, { onConflict: "user_id,alias_key" })
+      .select("*")
+      .single();
+
+    if (error) throw new Error(error.message);
+    return mapBuildingAliasRow(data);
+  }
+
+  function isMissingBuildingCacheError(error) {
+    return (
+      error?.code === "42P01" ||
+      String(error?.message || "").includes("buildings")
+    );
+  }
+
+  async function fetchCachedBuildings() {
+    if (!supabase) return [];
+
+    const { data, error } = await supabase
+      .from("buildings")
+      .select("key, search_name, location_name, location_id")
+      .order("search_name");
+
+    if (isMissingBuildingCacheError(error)) return [];
+    if (error) throw new Error(error.message);
+
+    return data || [];
+  }
+
+  return { fetchBuildingAliases, upsertBuildingAlias, fetchCachedBuildings };
+}
