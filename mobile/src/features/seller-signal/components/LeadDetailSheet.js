@@ -413,32 +413,21 @@ export default function LeadDetailSheet({
                 <MessageIcon size={13} color={c.textMuted} />
                 <Text style={{ fontSize: 11, fontWeight: "600", color: c.textMuted, letterSpacing: 0.5 }}>MESSAGE</Text>
               </View>
-              {messageTemplateImagePath && !customImage ? (
-                <Pressable
-                  accessibilityRole="checkbox"
-                  accessibilityLabel="Include image with this message"
-                  accessibilityState={{ checked: Boolean(selectedImagePath), disabled: followUp || !whatsappConnected }}
-                  disabled={followUp || !whatsappConnected}
-                  onPress={() => setImageIncluded(value => !value)}
-                  style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10 }}
-                >
-                  {messageTemplateImageUrl ? <Image source={{ uri: messageTemplateImageUrl }} resizeMode="contain" style={{ width: 80, height: 54, borderRadius: 6, opacity: selectedImagePath ? 1 : 0.4 }} /> : null}
-                  <View style={{ flex: 1, gap: 3 }}>
-                    <Text style={{ color: c.text, fontSize: 13, fontWeight: "600" }}>Message image</Text>
-                    <Text style={{ color: c.textMuted, fontSize: 12 }}>{followUp ? "Image omitted on follow-ups" : !whatsappConnected ? "Connect WhatsApp to send images" : selectedImagePath ? "Included · tap to remove" : "Not included · tap to add"}</Text>
+              <View style={{ padding: 14, borderRadius: 14, borderWidth: 1, borderColor: c.border, gap: 12 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+                  {customImage?.uri || (selectedImagePath && messageTemplateImageUrl) ? <Image accessibilityLabel="Message attachment preview" source={{ uri: customImage?.uri || messageTemplateImageUrl }} resizeMode="contain" style={{ width: 72, height: 72, borderRadius: 8, backgroundColor: c.bgInput }} /> : null}
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Text style={{ color: c.text, fontSize: 15, fontWeight: '600' }}>{customImage || selectedImagePath ? 'Message image' : 'Add an image'}</Text>
+                    <Text style={{ color: c.textMuted, fontSize: 12, lineHeight: 18 }}>{customImage ? 'For this seller’s next message only' : selectedImagePath ? 'Using your template image' : 'Optional · for this message only'}</Text>
                   </View>
-                  <View style={{ width: 22, height: 22, borderRadius: 5, borderWidth: 1, borderColor: c.textMuted, alignItems: "center", justifyContent: "center" }}>
-                    {selectedImagePath ? <CheckIcon size={16} color={c.text} /> : null}
-                  </View>
-                </Pressable>
-              ) : null}
-              {customImage ? <View style={{ gap: 8 }}>
-                <Image source={{ uri: customImage.uri }} resizeMode="contain" style={{ width: '100%', height: 160, borderRadius: 10 }} />
-                <Text style={{ color: c.textMuted, fontSize: 12 }}>Attached to this seller’s next message only.</Text>
-                <Pressable accessibilityRole="button" disabled={messageBusy} onPress={() => { setCustomImage(null); setImageIncluded(false); }} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: c.errorText }}>Remove image</Text></Pressable>
-              </View> : null}
-              <Pressable accessibilityRole="button" disabled={messageBusy || !whatsappConnected} onPress={chooseImage} style={{ minHeight: 44, justifyContent: 'center', opacity: messageBusy || !whatsappConnected ? 0.45 : 1 }}><Text style={{ color: c.text, fontWeight: '600' }}>{messageBusy ? 'Please wait…' : customImage ? 'Change image' : 'Add image for this seller'}</Text></Pressable>
-              {!whatsappConnected ? <Text style={{ color: c.textMuted, fontSize: 12 }}>Connect WhatsApp to send image attachments.</Text> : null}
+                </View>
+                <View style={{ flexDirection: 'row', gap: 12 }}>
+                  <Pressable accessibilityRole="button" disabled={messageBusy} onPress={chooseImage} style={{ flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: c.bgBadge, opacity: messageBusy ? 0.45 : 1 }}><Text style={{ color: c.text, fontWeight: '600' }}>{messageBusy ? 'Please wait…' : customImage || selectedImagePath ? 'Change image' : 'Add image'}</Text></Pressable>
+                  {customImage || selectedImagePath ? <Pressable accessibilityRole="button" disabled={messageBusy} onPress={() => { setCustomImage(null); setImageIncluded(false); setMessageError(''); }} style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: 'center', opacity: messageBusy ? 0.45 : 1 }}><Text style={{ color: c.errorText }}>Remove image</Text></Pressable> : null}
+                </View>
+                {messageTemplateImagePath && !followUp && (customImage || !imageIncluded) ? <Pressable accessibilityRole="button" disabled={messageBusy} onPress={() => { setCustomImage(null); setImageIncluded(true); setMessageError(''); }} style={{ minHeight: 44, justifyContent: 'center', opacity: messageBusy ? 0.45 : 1 }}><Text style={{ color: c.textMuted, textAlign: 'center' }}>Use template image</Text></Pressable> : null}
+                {!whatsappConnected ? <Text style={{ color: c.textMuted, fontSize: 12 }}>Connect WhatsApp to send image attachments.</Text> : null}
+              </View>
               {messageError ? <Text accessibilityRole="alert" style={{ color: c.errorText }}>{messageError}</Text> : null}
               <Text style={{ fontSize: 14, color: c.text, lineHeight: 20, backgroundColor: c.bgMsg, padding: 12, borderRadius: 10 }}>{message}</Text>
             </View>}
