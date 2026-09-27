@@ -30,7 +30,7 @@ export default function LandingClosing({
           >
             {actionLabel}
           </button>
-          <p className="landing-trial-terms">7 days free, then EUR 25/month.</p>
+          <p className="landing-trial-terms">7 days free, then EUR 35/month.</p>
           {billingError ? <p className="landing-trial-error" role="alert">{billingError}</p> : null}
           {billingMessage ? <p className="landing-trial-status" role="status">{billingMessage}</p> : null}
         </div>

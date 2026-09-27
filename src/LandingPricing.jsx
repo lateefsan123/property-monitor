@@ -24,7 +24,7 @@ export default function LandingPricing({
         <div className="repeat-pricing-context"><span>Monthly</span><span>Price in EUR</span></div>
         <section className="repeat-pricing-plan" aria-labelledby="pro-heading">
           <h2 id="pro-heading">Pro</h2>
-          <p className="repeat-pricing-price">€25 <span>/month</span></p>
+          <p className="repeat-pricing-price">€35 <span>/month</span></p>
           <p className="repeat-pricing-billing">Billed monthly · Cancel anytime</p>
           <div className="repeat-pricing-features">
             <p>Included</p>
@@ -33,7 +33,7 @@ export default function LandingPricing({
           <button type="button" className="repeat-pricing-button" onClick={onGetStarted} disabled={checkoutPending} aria-busy={checkoutPending}>
             {checkoutPending ? "Redirecting…" : hasSubscription ? "Open your workspace" : "Try for free"}
           </button>
-          {!hasSubscription ? <p className="repeat-pricing-trial">7 days free, then €25/month.</p> : null}
+          {!hasSubscription ? <p className="repeat-pricing-trial">7 days free, then €35/month.</p> : null}
           {billingError ? <p className="repeat-pricing-error" role="alert">{billingError}</p> : null}
           {billingMessage ? <p className="repeat-pricing-status" role="status">{billingMessage}</p> : null}
         </section>

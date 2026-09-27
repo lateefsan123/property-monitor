@@ -53,7 +53,7 @@ test("legacy ending is removed and trial terms are retained", () => {
   const css = readFileSync(new URL("../src/styles/landing.css", import.meta.url), "utf8");
   assert.doesNotMatch(page, /FAQS|openFaq|landing-pricing|landing-faq|landing-final-cta|landing-footer|dubai-skyline/);
   assert.doesNotMatch(css, /landing-pricing|landing-plan|landing-faq|landing-final-cta|landing-footer/);
-  assert.match(source, /7 days free, then EUR 25\/month/);
+  assert.match(source, /7 days free, then EUR 35\/month/);
   assert.doesNotMatch(source, /14-day|No credit card/);
 });
 

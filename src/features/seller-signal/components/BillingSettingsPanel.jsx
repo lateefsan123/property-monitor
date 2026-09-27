@@ -27,7 +27,7 @@ export default function BillingSettingsPanel({ error, onCancelPlan, pending, sub
   const priceLabel = provider !== "Stripe" ? `Billed by ${provider}`
     : typeof subscription?.amount === "number" && subscription?.currency
       ? new Intl.NumberFormat("en-IE", { style: "currency", currency: subscription.currency }).format(subscription.amount / 100)
-      : "EUR 25";
+      : "EUR 35";
 
   return (
     <div className="seller-billing-pane">
