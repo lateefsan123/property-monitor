@@ -410,7 +410,7 @@ export function Root() {
     updatePostAuthAction(null);
     postAuthCheckoutUserRef.current = null;
     setShowAuth(false);
-    void supabase.auth.signOut();
+    void supabase.auth.signOut({ scope: "local" });
   }
 
   if (publicPolicyPath) {

@@ -134,7 +134,7 @@ export default function OAuthConsentPage({ session }) {
   }
 
   async function handleChangeAccount() {
-    await supabase.auth.signOut();
+    await supabase.auth.signOut({ scope: "local" });
   }
 
   if (loading) {

@@ -214,7 +214,7 @@ export default function AppShell({ displayName, subscription, userId }) {
         userId={userId}
         onNavigate={handleNavigate}
         onAction={handleSidebarAction}
-        onSignOut={() => supabase.auth.signOut()}
+        onSignOut={() => supabase.auth.signOut({ scope: "local" })}
         collapsed={sidebarCollapsed}
         onToggleCollapsed={() => setSidebarCollapsed((v) => !v)}
       />
