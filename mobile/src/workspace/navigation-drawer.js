@@ -4,7 +4,6 @@ import {
   Animated,
   BackHandler,
   Modal,
-  Image,
   Platform,
   PanResponder,
   Pressable,
@@ -13,6 +12,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
+import { Image, useImage } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   MAIN_NAVIGATION as BASE_MAIN_NAVIGATION,
@@ -39,6 +39,11 @@ export default function NavigationDrawer({
 }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
+  // Decode both themed variants before the drawer opens, retaining native image
+  // references so opening the modal or changing theme does not reload the logo.
+  const lightLogo = useImage(require("../../assets/repeat-ai-logo.png"), { maxWidth: 540, tintColor: "#111111" });
+  const darkLogo = useImage(require("../../assets/repeat-ai-logo.png"), { maxWidth: 540, tintColor: "#ffffff" });
+  const logo = colors.isDark ? darkLogo : lightLogo;
   const drawerWidth = Math.min(320, width * 0.86);
   const [open, setOpen] = useState(false);
   const pendingAction = useRef(null);
@@ -249,7 +254,8 @@ export default function NavigationDrawer({
                 paddingHorizontal: 18,
               }}
             >
-              <Image source={require("../../assets/repeat-ai-logo.png")} accessibilityLabel="Repeat AI" resizeMode="contain" style={{ width: 180, height: 34, backgroundColor: "#000", borderRadius: 4 }} />
+              {logo ? <Image source={logo} tintColor={Platform.OS === "web" ? (colors.isDark ? "#ffffff" : "#111111") : undefined} accessibilityLabel="Repeat AI" contentFit="contain" transition={0} style={{ width: 180, height: 34 }} /> :
+                <Text accessibilityLabel="Repeat AI" style={{ width: 180, height: 34, lineHeight: 34, fontSize: 23, fontWeight: "700", letterSpacing: 1, color: colors.isDark ? "#ffffff" : "#111111" }}>REPEAT AI</Text>}
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Close navigation"
