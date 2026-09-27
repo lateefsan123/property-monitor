@@ -23,6 +23,7 @@ import {
 } from "../../../shared/navigation";
 import { Icon } from "./ui";
 const MAIN_NAVIGATION = [...BASE_MAIN_NAVIGATION, { id: "schedule", label: "Schedule", icon: "calendar", kind: "nav" }];
+const NAVIGATION_LOGO = require("../../assets/repeat-ai-logo.png");
 
 // Same native drawer pattern as FighterCenter: edge swipe, scrim, animated panel,
 // accessible menu trigger and Android Back dismissal. Repeat AI supplies the menu.
@@ -42,8 +43,8 @@ export default function NavigationDrawer({
   const insets = useSafeAreaInsets();
   // Decode both themed variants before the drawer opens, retaining native image
   // references so opening the modal or changing theme does not reload the logo.
-  const lightLogo = useImage(require("../../assets/repeat-ai-logo.png"), { maxWidth: 540, tintColor: "#111111" });
-  const darkLogo = useImage(require("../../assets/repeat-ai-logo.png"), { maxWidth: 540, tintColor: "#ffffff" });
+  const lightLogo = useImage(NAVIGATION_LOGO, { maxWidth: 540, tintColor: "#111111" });
+  const darkLogo = useImage(NAVIGATION_LOGO, { maxWidth: 540, tintColor: "#ffffff" });
   const logo = colors.isDark ? darkLogo : lightLogo;
   const drawerWidth = Math.min(320, width * 0.86);
   const [open, setOpen] = useState(false);
@@ -248,8 +249,14 @@ export default function NavigationDrawer({
                 paddingHorizontal: 18,
               }}
             >
-              {logo ? <Image source={logo} tintColor={Platform.OS === "web" ? (colors.isDark ? "#ffffff" : "#111111") : undefined} accessibilityLabel="Repeat AI" contentFit="contain" transition={0} style={{ width: 180, height: 34 }} /> :
-                <Text accessibilityLabel="Repeat AI" style={{ width: 180, height: 34, lineHeight: 34, fontSize: 23, fontWeight: "700", letterSpacing: 1, color: colors.isDark ? "#ffffff" : "#111111" }}>REPEAT AI</Text>}
+              <Image
+                source={logo ?? NAVIGATION_LOGO}
+                tintColor={colors.isDark ? "#ffffff" : "#111111"}
+                accessibilityLabel="Repeat AI"
+                contentFit="contain"
+                transition={0}
+                style={{ width: 180, height: 34, flexShrink: 0 }}
+              />
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Close navigation"
