@@ -35,5 +35,13 @@ export function createBuildingScheduleServices(client) {
       if (error) throw new Error("Could not save your schedule. Your edits are still here; please retry.");
       return schedule;
     },
+    async savePreferences(userId, preferences) {
+      if (!userId) throw new Error("Sign in to save your schedule.");
+      const flags = { enabled: preferences.enabled === true, fill_unused: preferences.fill_unused === true };
+      const { error } = await client.from("seller_signal_building_schedules")
+        .upsert({ user_id: userId, ...flags }, { onConflict: "user_id" });
+      if (error) throw new Error("Could not save schedule settings. Please retry.");
+      return flags;
+    },
   };
 }

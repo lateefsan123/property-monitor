@@ -3,61 +3,57 @@ import { FlatList, Pressable, ScrollView, Text, TextInput, View } from 'react-na
 import { SCHEDULE_DAYS, scheduleBuildingKey } from '../../../supabase/functions/_shared/building-schedule';
 import BottomSheet from '../components/BottomSheet';
 import AppIcon from '../components/AppIcon';
-import { SettingsToggle } from '../components/SettingsLayout';
 import { Button, Feedback } from './ui';
 
-function BuildingDays({ name, state, colors, blocked }) {
-  const selected = SCHEDULE_DAYS.filter(day => state.value.days[day].some(item => scheduleBuildingKey(item) === scheduleBuildingKey(name)));
-  return <View style={{ padding: 16, gap: 16, borderRadius: 16, backgroundColor: colors.bgCard }}>
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}><AppIcon name="building" size={19} color={colors.textMuted} /><Text style={{ flex: 1, color: colors.text, fontSize: 16, fontWeight: '600', lineHeight: 22 }}>{name}</Text></View>
-    <View style={{ flexDirection: 'row', gap: 4 }}>{SCHEDULE_DAYS.map(day => {
-      const checked = selected.includes(day);
-      return <Pressable key={day} accessibilityRole="checkbox" accessibilityLabel={`${name}, ${day}`} accessibilityState={{ checked, disabled: blocked }} disabled={blocked} onPress={() => state.toggleBuilding(day, name)} style={({ pressed }) => ({ flex: 1, minHeight: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: checked ? colors.btnPrimaryBg : colors.bgBadge, opacity: blocked ? 0.5 : pressed ? 0.65 : 1 })}><Text style={{ color: checked ? colors.btnPrimaryText : colors.textMuted, fontSize: 12, fontWeight: '600' }}>{day.slice(0, 2)}</Text></Pressable>;
-    })}</View>
-    {!selected.length ? <Text style={{ color: colors.textMuted, fontSize: 12 }}>Choose sending days</Text> : null}
-  </View>;
-}
+const daysFor = (value, name) => SCHEDULE_DAYS.filter(day => value.days[day].some(item => scheduleBuildingKey(item) === scheduleBuildingKey(name)));
 
 export default function ScheduleEditor({ state, spreadsheets, colors }) {
   const [search, setSearch] = useState('');
-  const [choosingSource, setChoosingSource] = useState(false);
+  const [sheet, setSheet] = useState(null);
+  const [editing, setEditing] = useState(null);
+  const [selectedDays, setSelectedDays] = useState([]);
   const blocked = state.loading || Boolean(state.loadError) || state.saving;
   const source = spreadsheets.sources.find(item => item.id === spreadsheets.sourceId);
   const scheduled = [...new Map(SCHEDULE_DAYS.flatMap(day => state.value.days[day]).map(name => [scheduleBuildingKey(name), name])).values()];
-  const sourceKeys = new Set(state.buildings.map(scheduleBuildingKey));
-  const otherBuildings = scheduled.filter(name => !sourceKeys.has(scheduleBuildingKey(name)));
-  const matches = name => name.toLowerCase().includes(search.trim().toLowerCase());
-  const visibleBuildings = state.buildings.filter(matches);
-  const visibleOtherBuildings = otherBuildings.filter(matches);
+  const editingExisting = scheduled.some(name => scheduleBuildingKey(name) === scheduleBuildingKey(editing));
+  const available = state.buildings.filter(name => !scheduled.some(item => scheduleBuildingKey(item) === scheduleBuildingKey(name)) && name.toLowerCase().includes(search.trim().toLowerCase()));
   const text = { color: colors.text, fontSize: 15 };
   const muted = { color: colors.textMuted, fontSize: 13, lineHeight: 19 };
+  function edit(name) { setEditing(name); setSelectedDays(daysFor(state.value, name)); setSheet('edit'); }
+  function done() {
+    state.change(current => ({ days: Object.fromEntries(SCHEDULE_DAYS.map(day => {
+      const remaining = current.days[day].filter(name => scheduleBuildingKey(name) !== scheduleBuildingKey(editing));
+      return [day, selectedDays.includes(day) ? [...remaining, editing] : remaining];
+    })) }));
+    setSheet(null);
+  }
   return <View style={{ flex: 1 }}>
-    <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 16, gap: 24, paddingBottom: 24 }}>
-      <View style={{ backgroundColor: colors.bgCard, borderRadius: 16, padding: 16, gap: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><View style={{ flex: 1, gap: 5 }}><Text style={{ ...text, fontWeight: '600' }}>Weekly schedule</Text><Text style={muted}>Repeats every week · Dubai time</Text></View><SettingsToggle colors={colors} accessibilityLabel="Weekly schedule" disabled={blocked} value={state.value.enabled} onValueChange={enabled => state.change({ enabled })} /></View>
-        {!state.loading && !state.value.enabled ? <Text style={muted}>Off uses your account-wide automation.</Text> : null}
-      </View>
+    <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 88 }}>
       <Feedback colors={colors} error={state.loadError} loading={state.loading} onRetry={state.retry} />
-      <View style={{ gap: 10 }}>
-        <Text accessibilityRole="header" style={muted}>Spreadsheet</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="Choose spreadsheet" disabled={state.loading || state.saving} onPress={() => setChoosingSource(true)} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, minHeight: 56, borderRadius: 14, backgroundColor: colors.bgCard, opacity: pressed ? 0.6 : 1 })}><AppIcon name="table" size={20} color={colors.textMuted} /><Text style={{ ...text, flex: 1 }}>{source?.label || 'Choose a spreadsheet'}</Text><AppIcon name="chevron" size={17} color={colors.textMuted} /></Pressable>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Choose spreadsheet" disabled={blocked} onPress={() => setSheet('source')} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 }}><Text numberOfLines={1} style={{ ...muted, flexShrink: 1 }}>{source?.label || 'Choose spreadsheet'}</Text><AppIcon name="chevron" size={14} color={colors.textMuted} /></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Add building to schedule" disabled={blocked} onPress={() => { setSearch(''); setSheet(source ? 'add' : 'source'); }} style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgCard }}><AppIcon name="plus" color={colors.text} /></Pressable>
       </View>
-      {source ? <View style={{ gap: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}><Text accessibilityRole="header" style={{ ...text, fontWeight: '600' }}>Buildings</Text><Text style={muted}>{state.buildings.length}</Text></View>
-        <View style={{ backgroundColor: colors.bgCard, borderRadius: 12, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 12, gap: 8 }}><AppIcon name="search" size={18} color={colors.textMuted} /><TextInput accessibilityLabel="Search buildings" placeholder="Search buildings" placeholderTextColor={colors.textMuted} value={search} onChangeText={setSearch} style={{ ...text, flex: 1, minHeight: 46 }} /></View>
-        {visibleBuildings.map(name => <BuildingDays key={scheduleBuildingKey(name)} name={name} state={state} colors={colors} blocked={blocked} />)}
-        {!visibleBuildings.length && !state.loading ? <Text style={{ ...muted, paddingVertical: 20, textAlign: 'center' }}>{state.buildings.length ? 'No matching buildings.' : 'This spreadsheet has no building names yet.'}</Text> : null}
-      </View> : !scheduled.length && !state.loading ? <View style={{ alignItems: 'center', gap: 12, paddingVertical: 24 }}><AppIcon name="calendar" size={32} color={colors.textFaint} /><Text style={{ ...text, fontWeight: '600' }}>Plan your weekly outreach</Text><Text style={{ ...muted, textAlign: 'center' }}>Choose a spreadsheet, then set days for each building.</Text></View> : null}
-      {visibleOtherBuildings.length ? <View style={{ gap: 12 }}><Text accessibilityRole="header" style={muted}>{source ? 'Other scheduled buildings' : 'Scheduled buildings'}</Text>{visibleOtherBuildings.map(name => <BuildingDays key={scheduleBuildingKey(name)} name={name} state={state} colors={colors} blocked={blocked} />)}</View> : null}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, padding: 16, backgroundColor: colors.bgCard, borderRadius: 16 }}><View style={{ flex: 1, gap: 5 }}><Text style={text}>Fill unused slots</Text><Text style={muted}>Use other buildings when needed. Empty days stay off.</Text></View><SettingsToggle colors={colors} accessibilityLabel="Fill unused slots from other buildings" disabled={blocked} value={state.value.fill_unused} onValueChange={fill_unused => state.change({ fill_unused })} /></View>
+      {scheduled.map(name => <Pressable key={scheduleBuildingKey(name)} accessibilityRole="button" accessibilityLabel={`Edit schedule for ${name}`} disabled={blocked} onPress={() => edit(name)} style={({ pressed }) => ({ padding: 16, gap: 12, borderRadius: 16, backgroundColor: colors.bgCard, boxShadow: '0 4px 16px rgba(0,0,0,0.04)', opacity: pressed ? 0.65 : 1 })}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Text style={{ flex: 1, color: colors.text, fontSize: 17, fontWeight: '600' }}>{name}</Text><AppIcon name="edit" size={18} color={colors.text} /><AppIcon name="checkCircle" size={20} color={colors.badgeOkText} /></View>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>{daysFor(state.value, name).map(day => <View key={day} style={{ paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20, backgroundColor: colors.bgBadge }}><Text style={{ color: colors.text, fontSize: 12 }}>{day.slice(0, 3)}</Text></View>)}</View>
+      </Pressable>)}
+      {!scheduled.length && !state.loading ? <View style={{ paddingVertical: 40, gap: 12, alignItems: 'center' }}><AppIcon name="calendar" size={30} color={colors.textFaint} /><Text style={{ ...text, fontWeight: '600' }}>No buildings scheduled</Text><Text style={{ ...muted, textAlign: 'center' }}>Add a building and choose its sending days.</Text><Button colors={colors} onPress={() => setSheet(source ? 'add' : 'source')} disabled={blocked}>Add building</Button></View> : null}
     </ScrollView>
-    <View style={{ padding: 16, paddingTop: 12, gap: 8, borderTopWidth: 0.5, borderTopColor: colors.border, backgroundColor: colors.bg }}>
+    <View style={{ padding: 16, paddingTop: 12, gap: 8, backgroundColor: colors.bg }}>
       {state.error ? <Text accessibilityRole="alert" style={{ ...muted, color: colors.errorText }}>{state.error.message}</Text> : null}
-      <Button colors={colors} primary disabled={blocked || !state.dirty} onPress={state.save} style={{ minHeight: 52, borderRadius: 12 }}>{state.saving ? 'Saving…' : state.saved ? 'Saved' : 'Save schedule'}</Button>
+      <Button colors={colors} primary disabled={blocked || !state.dirty} onPress={state.save} style={{ minHeight: 52, borderRadius: 26 }}>{state.saving ? 'Saving…' : state.saved ? 'Saved' : 'Save schedule'}</Button>
     </View>
-    <BottomSheet visible={choosingSource} onClose={() => setChoosingSource(false)} colors={colors}>
-      <View style={{ padding: 20, paddingBottom: 12 }}><Text accessibilityRole="header" style={{ color: colors.text, fontSize: 20, fontWeight: '600' }}>Choose spreadsheet</Text></View>
-      <FlatList style={{ flexShrink: 1 }} contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20 }} data={spreadsheets.sources} keyExtractor={item => item.id} renderItem={({ item }) => <Pressable accessibilityRole="radio" accessibilityState={{ checked: item.id === spreadsheets.sourceId }} onPress={() => { spreadsheets.setSourceId(item.id); setSearch(''); setChoosingSource(false); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 18, borderBottomWidth: 0.5, borderColor: colors.border }}><AppIcon name="table" color={colors.textMuted} /><Text style={{ ...text, flex: 1 }}>{item.label}</Text>{item.id === spreadsheets.sourceId ? <AppIcon name="check" color={colors.text} /> : null}</Pressable>} ListEmptyComponent={<Text style={{ ...muted, paddingVertical: 24 }}>Import a spreadsheet to choose its buildings.</Text>} />
+    <BottomSheet visible={Boolean(sheet)} onClose={() => setSheet(null)} colors={colors}>
+      <View style={{ paddingHorizontal: 20, paddingBottom: 20, gap: 8 }}><Text accessibilityRole="header" style={{ color: colors.text, fontSize: 24, fontWeight: '700' }}>{sheet === 'edit' ? (editingExisting ? 'Edit schedule' : 'New schedule') : sheet === 'add' ? 'Add building' : 'Choose spreadsheet'}</Text>{sheet === 'edit' ? <Text style={muted}>{editing}</Text> : null}</View>
+      {sheet === 'edit' ? <View style={{ paddingHorizontal: 16, paddingBottom: 24, gap: 28 }}>
+        <View style={{ flexDirection: 'row', gap: 2 }}>{SCHEDULE_DAYS.map(day => { const checked = selectedDays.includes(day); return <Pressable key={day} accessibilityRole="checkbox" accessibilityLabel={`${editing}, ${day}`} accessibilityState={{ checked, disabled: blocked }} disabled={blocked} onPress={() => setSelectedDays(previous => previous.includes(day) ? previous.filter(item => item !== day) : [...previous, day])} style={{ flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center' }}><View style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: checked ? colors.btnPrimaryBg : colors.bgBadge, alignItems: 'center', justifyContent: 'center' }}><Text style={{ fontSize: 14, fontWeight: '600', color: checked ? colors.btnPrimaryText : colors.text }}>{day.slice(0, 2)}</Text></View></Pressable>; })}</View>
+        {!selectedDays.length ? <Text style={{ ...muted, textAlign: 'center' }}>{editingExisting ? 'No days selected. Done removes this building from the schedule.' : 'Choose the days to send.'}</Text> : null}
+        <View style={{ flexDirection: 'row', gap: 10 }}>{editingExisting ? <Button colors={colors} disabled={blocked} onPress={() => { state.removeBuilding(editing); setSheet(null); }} style={{ flex: 1, minHeight: 50, borderRadius: 25, backgroundColor: colors.errorBg, borderColor: colors.errorBg }}>Remove</Button> : null}<Button colors={colors} primary disabled={blocked || (!editingExisting && !selectedDays.length)} onPress={done} style={{ flex: 1, minHeight: 50, borderRadius: 25 }}>Done</Button></View>
+      </View> : <>
+        {sheet === 'add' ? <View style={{ paddingHorizontal: 20, paddingBottom: 12 }}><TextInput accessibilityLabel="Search buildings" placeholder="Search buildings" placeholderTextColor={colors.textMuted} value={search} onChangeText={setSearch} style={{ ...text, minHeight: 46, borderRadius: 12, backgroundColor: colors.bgBadge, paddingHorizontal: 12 }} /></View> : null}
+        <FlatList style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }} data={sheet === 'source' ? spreadsheets.sources : available} keyExtractor={item => typeof item === 'string' ? scheduleBuildingKey(item) : item.id} renderItem={({ item }) => <Pressable accessibilityRole="button" disabled={blocked} onPress={() => { if (sheet === 'source') { spreadsheets.setSourceId(item.id); setSearch(''); setSheet('add'); } else edit(item); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 58, borderBottomWidth: 0.5, borderColor: colors.border }}><Text style={{ ...text, flex: 1 }}>{typeof item === 'string' ? item : item.label}</Text><AppIcon name={sheet === 'source' ? 'chevron' : 'plus'} size={18} color={colors.textMuted} /></Pressable>} ListEmptyComponent={<Text style={{ ...muted, paddingVertical: 24 }}>{sheet === 'source' ? 'Import a spreadsheet to choose its buildings.' : state.loading ? 'Loading buildings…' : search ? 'No matching buildings.' : 'No more buildings to add from this spreadsheet.'}</Text>} />
+      </>}
     </BottomSheet>
   </View>;
 }

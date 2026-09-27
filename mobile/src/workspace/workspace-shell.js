@@ -136,7 +136,7 @@ export default function WorkspaceShell({
           )}
         </View>
       ))}
-      <VoicePanel key={userId} userId={userId} colors={colors} hideLauncher={page === "settings"} />
+      <VoicePanel key={userId} userId={userId} colors={colors} hideLauncher={page === "settings"} launcherBottom={page === "schedule" ? 92 : 16} />
       <BottomSheet
         visible={createOpen}
         onDismiss={finishShortcutDismiss}

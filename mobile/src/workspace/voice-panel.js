@@ -3,6 +3,7 @@ import { AppState, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
+import AssistantLauncher from './assistant-launcher';
 import MatrixOrb from './matrix-orb';
 import { integrationRequest } from './integration-client';
 import { fetchListingPriceDrops } from './home-insights';
@@ -18,7 +19,7 @@ export default function VoicePanel(props) {
   return canUsePrivateAssistant(props.userId) ? <PrivateVoicePanel key={props.userId} {...props} /> : null;
 }
 
-function PrivateVoicePanel({ colors, userId, hideLauncher = false }) {
+function PrivateVoicePanel({ colors, userId, hideLauncher = false, launcherBottom = 16 }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const scroll = useRef(null);
@@ -43,12 +44,7 @@ function PrivateVoicePanel({ colors, userId, hideLauncher = false }) {
   const title = { connecting: 'Connecting', listening: 'I’m listening', muted: 'Microphone muted', ending: 'Ending conversation' }[voice.state] || 'What can I help with?';
   function close() { voice.end(); setOpen(false); }
   return <>
-    {!hideLauncher && <View style={{ alignItems: 'flex-end', paddingHorizontal: 16, paddingVertical: 8, backgroundColor: colors.bg }}>
-    <Pressable accessibilityRole="button" accessibilityLabel="Open Repeat AI assistant" onPress={() => setOpen(true)}
-      style={{ height: 56, borderRadius: 28, backgroundColor: colors.bgCard, paddingLeft: 8, paddingRight: 18, flexDirection: 'row', alignItems: 'center', gap: 6, borderWidth: 1, borderColor: colors.border }}>
-      <MatrixOrb size={44} color={colors.text} animated={false} /><Text style={{ color: colors.text, fontWeight: '600' }}>Ask Repeat</Text>
-    </Pressable>
-    </View>}
+    {!hideLauncher && <AssistantLauncher colors={colors} bottom={launcherBottom} onPress={() => setOpen(true)} />}
     <Modal visible={open} presentationStyle="fullScreen" animationType="slide" onRequestClose={close} statusBarTranslucent navigationBarTranslucent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: colors.bgCard, paddingTop: insets.top, paddingBottom: insets.bottom }}>

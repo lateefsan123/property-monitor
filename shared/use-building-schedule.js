@@ -12,22 +12,32 @@ export function useBuildingSchedule(client, userId, spreadsheetBuildings) {
   const query = useQuery(options.schedule);
   const buildings = useQuery({ ...options.buildings, enabled: options.buildings.enabled && !spreadsheetBuildings });
   const [draft, setDraft] = useState(null);
-  const value = draft?.userId === userId ? draft.value : query.data || emptySchedule();
+  const value = { ...(query.data || emptySchedule()), ...(draft?.userId === userId ? draft.patch : {}) };
   const mutation = useMutation({
     mutationFn: (next) => services.save(userId, next),
     onSuccess: (saved) => { cache.setQueryData(key, saved); setDraft(null); },
   });
   function change(patch) {
     mutation.reset();
-    setDraft({ userId, value: { ...value, ...patch } });
+    setDraft(previous => {
+      const edits = previous?.userId === userId ? previous.patch : {};
+      const current = { ...(query.data || emptySchedule()), ...edits };
+      return { userId, patch: { ...edits, ...(typeof patch === 'function' ? patch(current) : patch) } };
+    });
   }
   function toggleBuilding(day, name) {
-    const items = value.days[day];
-    const exists = items.some(item => scheduleBuildingKey(item) === scheduleBuildingKey(name));
-    change({ days: { ...value.days, [day]: exists ? items.filter(item => scheduleBuildingKey(item) !== scheduleBuildingKey(name)) : [...items, name] } });
+    change(current => {
+      const items = current.days[day];
+      const exists = items.some(item => scheduleBuildingKey(item) === scheduleBuildingKey(name));
+      return { days: { ...current.days, [day]: exists ? items.filter(item => scheduleBuildingKey(item) !== scheduleBuildingKey(name)) : [...items, name] } };
+    });
+  }
+  function removeBuilding(name) {
+    change(current => ({ days: Object.fromEntries(Object.entries(current.days).map(([day, items]) =>
+      [day, items.filter(item => scheduleBuildingKey(item) !== scheduleBuildingKey(name))])) }));
   }
   return {
-    value, change, toggleBuilding, buildings: spreadsheetBuildings?.buildings || buildings.data || [],
+    value, change, toggleBuilding, removeBuilding, buildings: spreadsheetBuildings?.buildings || buildings.data || [],
     loading: query.isPending || (spreadsheetBuildings ? spreadsheetBuildings.loading : buildings.isPending),
     loadError: query.error || (spreadsheetBuildings ? spreadsheetBuildings.error : buildings.error),
     error: mutation.error, saving: mutation.isPending,

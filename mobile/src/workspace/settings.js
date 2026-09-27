@@ -9,12 +9,14 @@ import SendActivitySummary from './send-activity-summary';
 import WhatsAppPanel from "./whatsapp-panel";
 import AccountSettings from "../screens/SettingsScreen";
 import EditProfileScreen from "../screens/edit-profile-screen";
+import ScheduleSettings from './schedule-settings';
 import Integrations from './integrations';
 import { Feedback } from "./ui";
 import { SettingsGroup, SettingsItem, SettingsProfile, SettingsToggle, settingsBackground } from "../components/SettingsLayout";
 
 const SETTINGS_PAGES = [
   ["Automations", "flash"],
+  ["Schedule", "calendar"],
   ["WhatsApp", "whatsapp"],
   ["Send activity", "activity"],
   ["Integrations", "link"],
@@ -106,6 +108,7 @@ export default function WorkspaceSettings({ userId, colors, active = true, onHea
         <SettingsItem label="Help & legal" icon="document" colors={colors} last onPress={() => setPage("Help & legal")} />
       </SettingsGroup>
     </> : page === "Automations" ? <Automations userId={userId} colors={colors} />
+      : page === "Schedule" ? <ScheduleSettings userId={userId} colors={colors} />
       : page === "WhatsApp" ? <WhatsAppPanel userId={userId} colors={colors} active={active} />
         : page === "Send activity" ? <SendActivity userId={userId} colors={colors} active={active} />
           : page === "Integrations" ? <Integrations key={userId} userId={userId} colors={colors} /> : null}
