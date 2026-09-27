@@ -88,3 +88,9 @@ body:has(.message-template-overlay) { overflow: hidden; }
   .message-template-actions { padding: 16px 20px; border-top: 1px solid var(--bg-card-border, #e6e6e8); }
   .message-template-save { padding: 12px 18px; font-size: 15px; }
 }
+.template-ai-draft { border-bottom: 1px solid var(--bg-card-border); padding-bottom: 12px; }
+.template-ai-draft summary { cursor: pointer; font-weight: 600; padding: 8px 0; }
+.template-ai-draft .message-template-body-field { margin-top: 10px; }
+.template-ai-draft .muted { font-size: 12px; margin: 8px 0; }
+.template-ai-preview { margin-top: 12px; padding: 12px; background: var(--bg); border-radius: 8px; }
+.template-ai-preview p { white-space: pre-wrap; font-size: 13px; }

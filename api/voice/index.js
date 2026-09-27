@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import process from 'node:process';
 import { createVoiceSessionHandler } from '../../server/voice-session.js';
+import { PRIVATE_ASSISTANT_USER_ID } from '../../shared/assistant-access.js';
 
 let handler;
 export default async function voice(req, res) {
@@ -12,7 +13,7 @@ export default async function voice(req, res) {
       handler = createVoiceSessionHandler({
         // Intentionally never fall back to OPENAI_API_KEY or other app credentials.
         apiKey: env.REPEAT_VOICE_OPENAI_API_KEY,
-        allowedUserIds: (env.REPEAT_VOICE_USER_IDS || '').split(',').map(value => value.trim()).filter(Boolean),
+        allowedUserIds: [PRIVATE_ASSISTANT_USER_ID],
         authenticate: async token => {
           const { data, error } = await db.auth.getUser(token);
           return error ? null : data.user;

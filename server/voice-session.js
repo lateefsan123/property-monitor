@@ -2,6 +2,7 @@ import { VOICE_TOOLS } from '../shared/voice-tools.js';
 import { chatItems, respondToChat } from './assistant-chat.js';
 import { marketInstructions } from '../shared/assistant-prompts.js';
 import { SCHEDULE_INSTRUCTIONS } from '../shared/voice-schedule.js';
+import { canUsePrivateAssistant } from '../shared/assistant-access.js';
 
 export function voiceSessionConfig() {
   const config = {
@@ -43,9 +44,11 @@ export function createVoiceSessionHandler({ authenticate, apiKey, allowedUserIds
     if (!body || Array.isArray(body) || typeof body !== 'object' || Object.keys(body).some(key => !['action', 'sdp', 'input'].includes(key))
       || !['status', 'start', 'chat'].includes(body.action) || (body.action !== 'start' && body.sdp !== undefined)
       || (body.action !== 'chat' && body.input !== undefined)) return send(400, { error: 'Invalid assistant request.' });
-    const available = Boolean(apiKey && allowedUserIds.includes(user.id));
+    const permitted = canUsePrivateAssistant(user.id) && allowedUserIds.includes(user.id);
+    const available = Boolean(apiKey && permitted);
     const reason = !apiKey ? 'AI chat and voice need the dedicated Repeat AI API key configured by the account owner.' : 'AI chat and voice are not enabled for this account yet.';
     if (body.action === 'status') return send(200, { available, reason: available ? null : reason });
+    if (!permitted) return send(403, { error: 'Repeat AI chat and voice are currently private.' });
     if (!available) return send(503, { error: reason });
     if (body.action === 'chat') {
       let input;

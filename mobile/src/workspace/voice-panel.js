@@ -11,9 +11,14 @@ import { createVoiceRequest } from '../../../shared/voice-request';
 import { useVoice } from '../../../shared/use-voice';
 import { createVoiceWorkspace, voiceResultCards } from '../../../shared/voice-workspace';
 import { createNativeVoiceTransport } from './voice-transport';
+import { canUsePrivateAssistant } from '../../../shared/assistant-access';
 
 const sessionRequest = createVoiceRequest({ getSession: () => supabase.auth.getSession(), url: 'https://repeatai.org/api/voice' });
-export default function VoicePanel({ colors, userId }) {
+export default function VoicePanel(props) {
+  return canUsePrivateAssistant(props.userId) ? <PrivateVoicePanel key={props.userId} {...props} /> : null;
+}
+
+function PrivateVoicePanel({ colors, userId }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const scroll = useRef(null);

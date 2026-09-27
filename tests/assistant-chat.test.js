@@ -34,7 +34,7 @@ test('chat stays authenticated, allowlisted and cannot choose a model or another
     return res;
   }
   assert.equal((await call({ action: 'chat', input: [{ role: 'user', content: 'hi' }] }, '')).statusCode, 401);
-  assert.equal((await call({ action: 'chat', input: [{ role: 'user', content: 'hi' }] }, 'other')).statusCode, 503);
+  assert.equal((await call({ action: 'chat', input: [{ role: 'user', content: 'hi' }] }, 'other')).statusCode, 403);
   assert.equal((await call({ action: 'chat', input: [], model: 'expensive' }, 'owner')).statusCode, 400);
   assert.equal(calls, 0);
 });

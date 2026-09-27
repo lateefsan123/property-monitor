@@ -7,6 +7,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { DEFAULT_MESSAGE_TEMPLATE } from "../insight-utils";
+import TemplateDraftControl from './TemplateDraftControl';
 import {
   MESSAGE_TEMPLATE_IMAGE_MAX_BYTES,
   MESSAGE_TEMPLATE_IMAGE_TYPES,
@@ -247,6 +248,7 @@ export default function MessageTemplatesPanel({
                 ))}
               </nav>
               <div className="message-template-editor">
+                <TemplateDraftControl key={selectedId} disabled={saving} onApply={draft => { setName(draft.name); setContent(draft.content); setNotice('AI draft added. Review it before saving.'); }} />
                 <div className="message-template-name-row">
                   <label className="message-template-name-field">
                     <span>Template name</span>

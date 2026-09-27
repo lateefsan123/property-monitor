@@ -13,6 +13,7 @@ import {
 } from "./message-templates";
 import BottomSheet from "../components/BottomSheet";
 import { Button, Feedback, Icon } from "./ui";
+import TemplateDraftControl from './template-draft-control';
 
 function Editor({ templates, initial, userId, colors }) {
   const client = useQueryClient();
@@ -158,6 +159,8 @@ function Editor({ templates, initial, userId, colors }) {
         </Pressable>
         <Feedback colors={colors} error={error} />
         {notice ? <Text accessibilityRole="alert" style={{ color: colors.badgeOkText }}>{notice}</Text> : null}
+        <TemplateDraftControl key={selected?.id || 'new'} colors={colors} disabled={busy}
+          onApply={draft => { setName(draft.name); setContent(draft.content); setDirty(true); setNotice('AI draft added. Review it before saving.'); }} />
         <View style={{ gap: 6 }}>
           <Text style={{ color: colors.textMuted, fontSize: 13 }}>Name</Text>
           <TextInput

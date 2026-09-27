@@ -2,12 +2,13 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createVoiceSessionHandler, voiceSessionConfig } from '../server/voice-session.js';
 import { executeVoiceTool, VOICE_TOOLS } from '../shared/voice-tools.js';
+import { PRIVATE_ASSISTANT_USER_ID } from '../shared/assistant-access.js';
 
 const offer = 'v=0\r\nm=audio 9 UDP/TLS/RTP/SAVPF 111\r\n';
 function fixture(overrides = {}) {
   const requests = [];
-  const handler = createVoiceSessionHandler({ apiKey: 'test-private-key', allowedUserIds: ['owner'],
-    authenticate: async token => token === 'owner-token' ? { id: 'owner' } : { id: 'other' },
+  const handler = createVoiceSessionHandler({ apiKey: 'test-private-key', allowedUserIds: [PRIVATE_ASSISTANT_USER_ID],
+    authenticate: async token => token === 'owner-token' ? { id: PRIVATE_ASSISTANT_USER_ID } : { id: 'other' },
     fetchImpl: async (url, options) => { requests.push({ url, options }); return new Response(JSON.stringify({ session: { id: 'live_test', private: 'hidden' }, transport: { sdp: offer }, secret: 'hidden' })); }, ...overrides });
   return { requests, call: async (body, token = 'owner-token', method = 'POST') => {
     const res = { headers: {}, setHeader(key, value) { this.headers[key] = value; }, end(value) { this.body = JSON.parse(value); } };
@@ -18,7 +19,7 @@ function fixture(overrides = {}) {
 test('voice requires server-verified identity and a private account allowlist', async () => {
   const f = fixture();
   assert.equal((await f.call({ action: 'start', sdp: offer }, '')).statusCode, 401);
-  assert.equal((await f.call({ action: 'start', sdp: offer }, 'other')).statusCode, 503);
+  assert.equal((await f.call({ action: 'start', sdp: offer }, 'other')).statusCode, 403);
   assert.equal((await f.call({ action: 'start', sdp: offer, userId: 'owner' })).statusCode, 400);
   assert.equal((await f.call({ action: 'start', sdp: offer }, 'owner-token', 'GET')).statusCode, 405);
   assert.equal(f.requests.length, 0);

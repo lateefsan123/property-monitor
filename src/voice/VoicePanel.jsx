@@ -10,9 +10,14 @@ import { createVoiceWorkspace, voiceResultCards } from '../../shared/voice-works
 import { createBrowserVoiceTransport } from './voice-transport';
 import './voice.css';
 import MatrixOrb from './MatrixOrb';
+import { canUsePrivateAssistant } from '../../shared/assistant-access.js';
 
 const sessionRequest = createVoiceRequest({ getSession: () => supabase.auth.getSession(), url: '/api/voice' });
-export default function VoicePanel({ userId, onOpenChange }) {
+export default function VoicePanel(props) {
+  return canUsePrivateAssistant(props.userId) ? <PrivateVoicePanel key={props.userId} {...props} /> : null;
+}
+
+function PrivateVoicePanel({ userId, onOpenChange }) {
   const audio = useRef(null), launcher = useRef(null), closeButton = useRef(null);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
