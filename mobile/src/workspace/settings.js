@@ -7,14 +7,13 @@ import WhatsAppPanel from "./whatsapp-panel";
 import AccountSettings from "../screens/SettingsScreen";
 import Integrations from './integrations';
 import { Button, Feedback, Icon } from "./ui";
+import { SettingsGroup, SettingsItem, SettingsProfile, settingsBackground } from "../components/SettingsLayout";
 
 const SETTINGS_PAGES = [
-  ["General", "settings"],
-  ["Automations", "filter"],
-  ["WhatsApp", "message"],
-  ["Send activity", "table"],
-  ["Integrations", "table"],
-  ["Accounts", "users"],
+  ["Automations", "flash"],
+  ["WhatsApp", "whatsapp"],
+  ["Send activity", "activity"],
+  ["Integrations", "link"],
 ];
 
 function SettingsRow({ label, colors, onPress, children, icon }) {
@@ -127,16 +126,26 @@ export default function WorkspaceSettings({ userId, colors, active = true, onHea
     return () => subscription.remove();
   }, [active, page, backToSettings, onExit]);
 
-  if (page === "Accounts") return <AccountSettings {...accountProps} embedded hideAppearance />;
+  if (page === "Account" || page === "Help & legal") return <AccountSettings {...accountProps} embedded hideAppearance section={page === "Account" ? "account" : "support"} />;
 
-  return <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40 }}>
-    {!page ? SETTINGS_PAGES.map(([label, icon]) => (
-      <SettingsRow key={label} label={label} icon={icon} colors={colors} onPress={() => setPage(label)} />
-    )) : page === "General" ? (
-      <SettingsRow label="Dark mode" icon="moon" colors={colors}>
-        <Switch accessibilityLabel="Dark mode" value={accountProps.theme === "dark"} onValueChange={accountProps.onToggleTheme} />
-      </SettingsRow>
-    ) : page === "Automations" ? <Automations userId={userId} colors={colors} />
+  return <ScrollView style={{ backgroundColor: settingsBackground(colors) }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 40 }}>
+    {!page ? <>
+      <SettingsProfile displayName={accountProps.displayName} colors={colors} onPress={() => setPage("Account")} />
+      {accountProps.onManageSubscription ? <SettingsGroup title="Account" colors={colors}>
+        <SettingsItem label="Manage subscription" icon="card" colors={colors} last value={accountProps.manageSubscriptionPending ? "Opening…" : accountProps.subscriptionStoreLabel} disabled={accountProps.manageSubscriptionPending} onPress={accountProps.onManageSubscription} />
+      </SettingsGroup> : null}
+      <SettingsGroup title="Workspace" colors={colors}>
+        {SETTINGS_PAGES.map(([label, icon], index) => <SettingsItem key={label} label={label} icon={icon} colors={colors} last={index === SETTINGS_PAGES.length - 1} onPress={() => setPage(label)} />)}
+      </SettingsGroup>
+      <SettingsGroup title="Preferences" colors={colors}>
+        <SettingsItem label="Dark mode" icon="moon" colors={colors} last>
+          <Switch accessibilityLabel="Dark mode" value={accountProps.theme === "dark"} onValueChange={accountProps.onToggleTheme} trackColor={{ false: colors.border, true: "#3478f6" }} thumbColor="#ffffff" />
+        </SettingsItem>
+      </SettingsGroup>
+      <SettingsGroup title="Support" colors={colors}>
+        <SettingsItem label="Help & legal" icon="document" colors={colors} last onPress={() => setPage("Help & legal")} />
+      </SettingsGroup>
+    </> : page === "Automations" ? <Automations userId={userId} colors={colors} />
       : page === "WhatsApp" ? <WhatsAppPanel userId={userId} colors={colors} active={active} />
         : page === "Send activity" ? <SendActivity userId={userId} colors={colors} active={active} />
           : page === "Integrations" ? <Integrations key={userId} userId={userId} colors={colors} /> : null}
