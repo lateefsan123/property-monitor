@@ -11,13 +11,13 @@ import { ActivityIndicator, FlatList, PanResponder, Pressable, ScrollView, Style
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import BottomSheet from "../components/BottomSheet";
 import AddSellerSheet from "../features/seller-signal/components/AddSellerSheet";
-import LeadImportEmptyState from "../features/seller-signal/components/LeadImportEmptyState";
+import CollectionEmptyState from "../components/CollectionEmptyState";
 import LeadDetailSheet from "../features/seller-signal/components/LeadDetailSheet";
 import Pagination from "../features/seller-signal/components/Pagination";
 import { useSellerSignalPage } from "../features/seller-signal/useSellerSignalPage";
 import { getTheme } from "../theme";
 
-export default function DashboardScreen({ onBack, theme, userId, embedded = false, request, onSendBarHeightChange }) {
+export default function DashboardScreen({ onBack, theme, userId, embedded = false, request, onSendBarHeightChange, onNavigate }) {
   const d = useSellerSignalPage(userId);
   const colors = getTheme(theme);
   const s = styles(colors);
@@ -94,14 +94,10 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
             <AppIcon name="back" size={22} color={colors.text} />
           </Pressable>
         ) : null}
-        <LeadImportEmptyState
-          error={d.error}
-          importing={d.importing}
-          onImport={d.actions.importFromSheet}
-          onSheetUrlChange={d.actions.updateSheetUrl}
-          sheetUrl={d.sheetUrl}
-          colors={colors}
-        />
+        <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: "center", paddingBottom: 88 }}>
+          <CollectionEmptyState kind="sellers" colors={colors} title="Add your first sellers" description="Add a spreadsheet to bring your sellers into Repeat AI." actionLabel="Add spreadsheet" onAction={() => onNavigate?.("spreadsheets", { add: true })} />
+          {d.error ? <Text accessibilityRole="alert" style={{ color: colors.errorText, textAlign: "center", paddingHorizontal: 24 }}>{d.error}</Text> : null}
+        </ScrollView>
       </SafeAreaView>
     );
   }

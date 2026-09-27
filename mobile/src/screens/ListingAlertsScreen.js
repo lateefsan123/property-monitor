@@ -1,3 +1,4 @@
+import CollectionEmptyState from "../components/CollectionEmptyState";
 import { getRecentPriceDrop } from "../../../src/features/listing-alerts/price-drop-utils";
 import AppIcon from "../components/AppIcon";
 import { useQuery } from '@tanstack/react-query';
@@ -810,16 +811,14 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
                 <Button colors={colors} onPress={() => allListings ? dropsQuery.refetch() : alerts.actions.refresh()}>Try again</Button>
               </View>
             ) : (
-              <View style={s.emptyWrap}>
-                <Text style={s.emptyTitle}>
-                  {viewTab === "buildings" ? (searchTerm ? watchingOnly ? "No watched buildings match" : "No buildings found" : "Watch a building") : "No listings found"}
-                </Text>
-                <Text style={s.emptyText}>
-                  {viewTab === "buildings"
-                    ? (searchTerm ? watchingOnly ? "Turn off Watching only in view options to see other buildings." : "Try another building name." : "Search above, then tap Watch to follow its listings.")
-                    : allListings ? "No price drops in the last 14 days." : "Try changing your filters or checking again later."}
-                </Text>
-              </View>
+              <CollectionEmptyState
+                kind="listings"
+                colors={colors}
+                title={viewTab === "buildings" ? (searchTerm ? "No matching buildings" : "Watch your first building") : allListings ? "No recent price drops" : trackedOnly || priceChangedOnly || priceFilter !== "all" || trackedStatusFilter !== "all" ? "No matching listings" : "No listings yet"}
+                description={viewTab === "buildings" ? (searchTerm ? "Try another name or search all buildings." : "Find a building to follow its listings and price changes.") : allListings ? "New price drops will appear here when the market moves." : "Listings will appear here as they become available. You can also check your filters."}
+                actionLabel={viewTab === "buildings" ? (searchTerm ? "Search again" : "Find a building") : allListings ? undefined : "View filters"}
+                onAction={viewTab === "buildings" ? clearSearchSelection : allListings ? undefined : () => setSheetOpen(true)}
+              />
             )
           }
         />
