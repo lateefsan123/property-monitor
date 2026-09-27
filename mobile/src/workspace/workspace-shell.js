@@ -92,9 +92,9 @@ export default function WorkspaceShell({
   return (
     <NavigationDrawer
       page={page}
-      headerTitle={page === "schedule" ? "Schedule" : contextualHeader?.title}
+      headerTitle={page === "schedule" ? "Schedule" : page === "message-template" ? "Templates" : contextualHeader?.title}
       onHeaderBack={contextualHeader?.onBack}
-      hideCreate={page === "settings" || page === "spreadsheets" || page === "schedule" || Boolean(contextualHeader?.onBack)}
+      hideCreate={page === "message-template" || page === "settings" || page === "spreadsheets" || page === "schedule" || Boolean(contextualHeader?.onBack)}
       colors={colors}
       onNavigate={navigate}
       onAction={action}
@@ -136,7 +136,7 @@ export default function WorkspaceShell({
           )}
         </View>
       ))}
-      <VoicePanel key={userId} userId={userId} colors={colors} hideLauncher={page === "settings"} launcherBottom={page === "schedule" ? 92 : 16} />
+      <VoicePanel key={userId} userId={userId} colors={colors} hideLauncher={page === "settings" || page === "message-template"} launcherBottom={page === "schedule" ? 92 : 16} />
       <BottomSheet
         visible={createOpen}
         onDismiss={finishShortcutDismiss}

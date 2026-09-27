@@ -17,6 +17,7 @@ const names = {
   download: "download-outline", notification: "notifications-outline", card: "card-outline",
   refresh: "refresh-outline", trash: "trash-outline", link: "link-outline",
   more: "ellipsis-horizontal-outline",
+  tag: "pricetag-outline",
   edit: "create-outline",
 };
 
