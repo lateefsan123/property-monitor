@@ -112,6 +112,7 @@ function AppInner() {
     void bootstrapApp();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      if (_event === "PASSWORD_RECOVERY") setIsRecoveringPassword(true);
       syncCacheAccount(nextSession?.user.id);
       setSession(nextSession);
     });
@@ -145,6 +146,7 @@ function AppInner() {
   }
 
   async function handleOnboardingComplete(destination) {
+    if (!sessionUserId) throw new Error("Sign in to finish setup.");
     await AsyncStorage.setItem(ONBOARDING_KEY, "true");
     setOnboardingStart({ userId: sessionUserId, destination: destination || { page: "home" } });
     setGateState((currentState) => ({ ...currentState, onboardingCompleted: true }));
@@ -202,46 +204,30 @@ function AppInner() {
     );
   }
 
-  if (!session) {
-    return (
-      <SafeAreaProvider>
-        <AuthScreen
-          theme={theme}
-          onPasswordRecovery={() => setIsRecoveringPassword(true)}
-        />
-        <StatusBar style={theme === "dark" ? "light" : "dark"} />
-      </SafeAreaProvider>
-    );
-  }
-
-  if (isRecoveringPassword) {
-    return (
-      <SafeAreaProvider>
-        <ResetPasswordScreen onComplete={() => setIsRecoveringPassword(false)} />
-        <StatusBar style="light" />
-      </SafeAreaProvider>
-    );
-  }
-
-  if (!displayName) {
-    return (
-      <SafeAreaProvider>
-        <UsernameSetupScreen
-          onComplete={(value) => setDisplayNameOverride({ userId: session.user.id, value })}
-          theme={theme}
-        />
-        <StatusBar style={theme === "dark" ? "light" : "dark"} />
-      </SafeAreaProvider>
-    );
+  if (isRecoveringPassword && session) {
+    return <SafeAreaProvider><ResetPasswordScreen onComplete={() => setIsRecoveringPassword(false)} /><StatusBar style="light" /></SafeAreaProvider>;
   }
 
   if (!gateState.onboardingCompleted) {
-    return (
-      <SafeAreaProvider>
-        <OnboardingScreen theme={theme} onComplete={handleOnboardingComplete} />
-        <StatusBar barStyle="dark-content" />
-      </SafeAreaProvider>
-    );
+    return <SafeAreaProvider>
+      <OnboardingScreen session={session} displayName={displayName} onComplete={handleOnboardingComplete}
+        onPasswordRecovery={() => setIsRecoveringPassword(true)}
+        onSaveUsername={async (value) => {
+          if (!sessionUserId) throw new Error('Sign in to continue.');
+          const { error } = await supabase.auth.updateUser({ data: { username: value } });
+          if (error) throw error;
+          setDisplayNameOverride({ userId: sessionUserId, value });
+        }} />
+      <StatusBar style="dark" />
+    </SafeAreaProvider>;
+  }
+
+  if (!session) {
+    return <SafeAreaProvider><AuthScreen onReplayOnboarding={handleReplayOnboarding} onPasswordRecovery={() => setIsRecoveringPassword(true)} /><StatusBar style="light" /></SafeAreaProvider>;
+  }
+
+  if (!displayName) {
+    return <SafeAreaProvider><UsernameSetupScreen onComplete={(value) => setDisplayNameOverride({ userId: session.user.id, value })} theme={theme} /></SafeAreaProvider>;
   }
 
   if (subscription.isLoading) {

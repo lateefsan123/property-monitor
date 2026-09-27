@@ -67,13 +67,13 @@ async function createSessionFromUrl(url) {
   return { ok: true, isRecovery: params.type === "recovery" };
 }
 
-export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
+export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery, embedded = false, initialSignUp = false, preview = false, onPreviewComplete }) {
   const emailInput = useRef(null);
   const passwordInput = useRef(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(initialSignUp);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -86,7 +86,7 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
   const incomingUrl = Linking.useURL();
 
   useEffect(() => {
-    if (!incomingUrl) return;
+    if (!incomingUrl || preview) return;
 
     createSessionFromUrl(incomingUrl)
       .then((result) => {
@@ -95,7 +95,7 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
       .catch((err) => {
         setError(err.message || "Sign-in failed");
       });
-  }, [incomingUrl, onPasswordRecovery]);
+  }, [incomingUrl, onPasswordRecovery, preview]);
 
   useEffect(() => {
     if (Platform.OS !== "ios") return;
@@ -105,10 +105,12 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
   }, []);
 
   async function handleEmailAuth() {
+    if (preview) { onPreviewComplete?.(); return; }
     setLoading(true);
     setError(null);
     setMessage(null);
 
+    try {
     if (isForgotPassword) {
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
@@ -128,10 +130,12 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
       if (signInError) setError(signInError.message);
     }
 
-    setLoading(false);
+    } catch (err) { setError(err.message || "Could not connect. Please try again."); }
+    finally { setLoading(false); }
   }
 
   async function handleGoogleAuth() {
+    if (preview) { onPreviewComplete?.(); return; }
     setGoogleLoading(true);
     setError(null);
     setMessage(null);
@@ -166,6 +170,7 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
   }
 
   async function handleAppleAuth() {
+    if (preview) { onPreviewComplete?.(); return; }
     setAppleLoading(true);
     setError(null);
     setMessage(null);
@@ -210,6 +215,31 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery }) {
     } finally {
       setAppleLoading(false);
     }
+  }
+
+  if (embedded) {
+    const pending = loading || googleLoading || appleLoading;
+    const authButton = (label, onPress, primary = false, disabled = pending) => <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [a.button, primary && a.primary, { opacity: disabled ? 0.45 : pressed ? 0.7 : 1 }]}><Text style={[a.buttonText, primary && { color: '#FFF' }]}>{label}</Text></Pressable>;
+    return <ScrollView style={{ flex: 1 }} contentContainerStyle={a.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets showsVerticalScrollIndicator={false}>
+      <View style={{ flex: 1, justifyContent: 'center', gap: 12 }}>
+        {!showEmailForm || isForgotPassword ? <Text style={a.description}>{isForgotPassword ? 'We’ll email you a reset link.' : isSignUp ? 'Keep your sellers and conversations together.' : 'Welcome back. Pick up where you left off.'}</Text> : null}
+        {error ? <Text accessibilityRole="alert" style={a.error}>{error}</Text> : null}
+        {message ? <Text accessibilityRole="alert" style={a.description}>{message}</Text> : null}
+        {showEmailForm ? <>
+          <TextInput accessibilityLabel="Email" style={a.input} placeholder="Email address" placeholderTextColor="#888" value={email} onChangeText={setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" autoComplete="email" />
+          {!isForgotPassword ? <TextInput accessibilityLabel="Password" style={a.input} placeholder={isSignUp ? 'Create a password' : 'Password'} placeholderTextColor="#888" value={password} onChangeText={setPassword} autoCapitalize="none" autoCorrect={false} secureTextEntry textContentType={isSignUp ? 'newPassword' : 'password'} /> : null}
+          {authButton(loading ? 'Please wait…' : isForgotPassword ? 'Send reset link' : isSignUp ? 'Create account' : 'Log in', handleEmailAuth, true, pending || (!preview && (!email.trim() || (!isForgotPassword && !password))))}
+          {!isSignUp && !isForgotPassword ? <Pressable accessibilityRole="button" disabled={pending} onPress={() => { setIsForgotPassword(true); setError(null); setMessage(null); }} style={a.link}><Text style={a.description}>Forgot password?</Text></Pressable> : null}
+          <Pressable accessibilityRole="button" disabled={pending} onPress={() => { setShowEmailForm(false); setIsForgotPassword(false); setError(null); setMessage(null); }} style={a.link}><Text style={a.description}>Other sign-in options</Text></Pressable>
+        </> : <>
+          {authButton(googleLoading ? 'Connecting…' : 'Continue with Google', handleGoogleAuth)}
+          {appleAvailable ? authButton(appleLoading ? 'Connecting…' : 'Continue with Apple', handleAppleAuth) : null}
+          {authButton('Continue with email', () => setShowEmailForm(true), true)}
+        </>}
+        <Pressable accessibilityRole="button" disabled={pending} onPress={() => { setIsSignUp(!isSignUp); setIsForgotPassword(false); setError(null); setMessage(null); }} style={a.link}><Text style={a.description}>{isSignUp ? 'Already have an account? Log in' : 'New to Repeat AI? Sign up'}</Text></Pressable>
+      </View>
+      <View style={a.legal}><Pressable accessibilityRole="link" onPress={() => Linking.openURL(PRIVACY_URL)}><Text style={a.small}>Privacy policy</Text></Pressable><Pressable accessibilityRole="link" onPress={() => Linking.openURL(TERMS_URL)}><Text style={a.small}>Terms of service</Text></Pressable></View>
+    </ScrollView>;
   }
 
   if (showEmailForm) {
@@ -528,6 +558,18 @@ function GoogleLogo() {
   );
 }
 
+const a = StyleSheet.create({
+  content: { flexGrow: 1, paddingHorizontal: 24, paddingBottom: 16, gap: 20 },
+  description: { color: '#666', textAlign: 'center', fontSize: 14, lineHeight: 21, marginBottom: 8 },
+  button: { minHeight: 54, borderWidth: 1, borderColor: '#DDD', borderRadius: 5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  primary: { backgroundColor: '#000', borderColor: '#000' },
+  buttonText: { color: '#111', fontSize: 15, fontWeight: '600' },
+  input: { minHeight: 54, borderWidth: 1, borderColor: '#DDD', borderRadius: 8, paddingHorizontal: 16, color: '#111', fontSize: 16 },
+  error: { color: '#B42318', textAlign: 'center', fontSize: 13 },
+  link: { paddingVertical: 8 },
+  legal: { flexDirection: 'row', justifyContent: 'center', gap: 24 },
+  small: { fontSize: 12, color: '#777' },
+});
 const gStyles = StyleSheet.create({
   wrap: {
     width: 28,
