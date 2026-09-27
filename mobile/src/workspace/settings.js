@@ -67,8 +67,8 @@ function SendActivity({ userId, colors, active }) {
   </View>;
 }
 
-export default function WorkspaceSettings({ userId, colors, active = true, onHeaderChange, onExit, ...accountProps }) {
-  const [page, setPage] = useState(null);
+export default function WorkspaceSettings({ userId, colors, active = true, onHeaderChange, onExit, request, ...accountProps }) {
+  const [page, setPage] = useState(() => ["Integrations", "WhatsApp"].includes(request?.section) ? request.section : null);
   const [previewOnboarding, setPreviewOnboarding] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const backToSettings = useCallback(() => setPage(null), []);

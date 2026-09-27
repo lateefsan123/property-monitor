@@ -51,6 +51,7 @@ export default function App() {
 
 function AppInner() {
   const [session, setSession] = useState(undefined);
+  const [onboardingStart, setOnboardingStart] = useState(null);
   const [loading, setLoading] = useState(true);
   const [startupError, setStartupError] = useState(null);
   const [startupAttempt, setStartupAttempt] = useState(0);
@@ -143,8 +144,9 @@ function AppInner() {
     setTheme((current) => (current === "light" ? "dark" : "light"));
   }
 
-  async function handleOnboardingComplete() {
+  async function handleOnboardingComplete(destination) {
     await AsyncStorage.setItem(ONBOARDING_KEY, "true");
+    setOnboardingStart({ userId: sessionUserId, destination: destination || { page: "home" } });
     setGateState((currentState) => ({ ...currentState, onboardingCompleted: true }));
   }
 
@@ -237,7 +239,7 @@ function AppInner() {
     return (
       <SafeAreaProvider>
         <OnboardingScreen theme={theme} onComplete={handleOnboardingComplete} />
-        <StatusBar barStyle="light-content" />
+        <StatusBar barStyle="dark-content" />
       </SafeAreaProvider>
     );
   }
@@ -272,7 +274,7 @@ function AppInner() {
   }
 
   return (<SafeAreaProvider>
-    <WorkspaceShell key={session.user.id} userId={session.user.id} displayName={displayName} theme={theme} onToggleTheme={toggleTheme}
+    <WorkspaceShell key={session.user.id} initialDestination={onboardingStart?.userId === session.user.id ? onboardingStart.destination : undefined} userId={session.user.id} displayName={displayName} theme={theme} onToggleTheme={toggleTheme}
       avatarUrl={session.user.user_metadata?.avatar_url || ''}
       manageSubscriptionPending={subscription.action === "manage"}
       onManageSubscription={handleManageSubscription}

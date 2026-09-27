@@ -28,13 +28,14 @@ export default function WorkspaceShell({
   displayName,
   theme,
   onToggleTheme,
+  initialDestination,
   ...accountProps
 }) {
   const colors = getTheme(theme);
   // Start before Settings opens; the panel shares this account-scoped request.
   useQuery(integrationStatusOptions(userId, integrationRequest));
   const [sellerSendBarHeight, setSellerSendBarHeight] = useState(76);
-  const [page, setPage] = useState("home");
+  const [page, setPage] = useState(initialDestination?.page || "home");
   const [listingFooterHeight, setListingFooterHeight] = useState(0);
   const [listingHeader, setListingHeader] = useState(null);
   const [settingsHeader, setSettingsHeader] = useState(null);
@@ -44,8 +45,8 @@ export default function WorkspaceShell({
     pendingShortcut.current = null;
     run?.();
   }, []);
-  const [requests, setRequests] = useState({});
-  const [visited, setVisited] = useState(["home"]);
+  const [requests, setRequests] = useState(() => initialDestination?.request ? { [initialDestination.page]: { ...initialDestination.request, key: Date.now() } } : {});
+  const [visited, setVisited] = useState(() => [...new Set(["home", initialDestination?.page || "home"])]);
   const [createOpen, setCreateOpen] = useState(false);
   const [signoutOpen, setSignoutOpen] = useState(false);
   const [signoutError, setSignoutError] = useState(null);
@@ -130,6 +131,7 @@ export default function WorkspaceShell({
             <MessageTemplatesScreen {...common} />
           ) : (
             <WorkspaceSettings
+              request={requests[id]}
               onHeaderChange={setSettingsHeader}
               onExit={() => navigate("home")}
               active={page === id}
