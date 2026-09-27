@@ -1,7 +1,7 @@
 # Spreadsheet empty-state artwork
 
-Generated with the built-in image_gen tool. Asset: spreadsheets-empty.png, transparent background.
+Generated with the built-in image_gen tool. Asset: spreadsheets-empty.png. Transparent background.
 
 ## Final prompt
 
-Use case: stylized-concept. Standalone illustration for the empty Spreadsheets page in Repeat AI mobile app, matching a premium minimal onboarding illustration set. Two overlapping ivory-white spreadsheet document tiles, one upright in front with a folded top-right corner and a simple embossed three-column grid, a second slightly angled behind. Small muted sage-green circular import arrow badge at lower right. Rounded matte ceramic forms, soft studio lighting and gentle shadows, slight three-quarter perspective, compact centered composition with generous transparent margins. Restrained ivory, soft gray, charcoal and one muted sage-green accent. Actual transparent background suitable for light and dark UI. No words, letters, numbers, buildings, calendar rings, logos, confetti, or full UI. One polished raster asset.
+Create one flat 2D vector-style spreadsheet document illustration for a minimal mobile app empty state. Single front-facing sheet with a folded upper-right corner, crisp uniform charcoal outline, solid off-white fill, simple three-column grid of solid light gray cells and one muted sage-green header row. Straight-on orthographic view. Perfectly flat graphic design: no 3D, clay, ceramic, bevels, textures, gradients, shadows, perspective, stacked objects, badges, words, letters, numbers, or decoration. Compact centered document with modest transparent margins, genuine transparent background. Professional restrained icon illustration readable at 150 pixels.
