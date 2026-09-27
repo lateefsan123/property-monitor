@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
+import { followUpPending } from "../_shared/seller-follow-up.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -512,7 +513,7 @@ async function getAccountSecret(adminClient: any, accountId: string) {
 async function markLeadSent(adminClient: any, userId: string, leadId: string | number, sentAt: string) {
   const { error: leadError } = await adminClient
     .from("leads")
-    .update({ sent_at: sentAt })
+    .update({ sent_at: sentAt, next_follow_up_on: null })
     .eq("user_id", userId)
     .eq("id", leadId);
 
@@ -544,7 +545,7 @@ async function fetchScannableLeads(adminClient: any, userIds: string[], maxLeads
     // same low-id sellers in hot buildings.
     const { data, error } = await adminClient
       .from("leads")
-      .select("id, user_id, name, phone, building, sent_at, status")
+      .select("id, user_id, name, phone, building, sent_at, status, next_follow_up_on")
       .in("user_id", userIds)
       .not("phone", "is", null)
       .neq("phone", "")
@@ -1134,6 +1135,7 @@ Deno.serve(async (req) => {
       skipped: {
         alreadySentForDate: 0,
         cooldown: 0,
+        manualFollowUp: 0,
         noPhone: 0,
         noTodayTransactions: 0,
         notInterested: 0,
@@ -1156,6 +1158,11 @@ Deno.serve(async (req) => {
       if (!dryRun && summary.attempted >= maxSends) break;
 
       const leadId = Number(lead.id);
+
+      if (followUpPending(lead, startedAt)) {
+        summary.skipped.manualFollowUp += 1;
+        continue;
+      }
 
       if (isNotInterestedStatus(lead.status)) {
         summary.skipped.notInterested += 1;

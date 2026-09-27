@@ -1,5 +1,6 @@
 import {fetchLeadInsights} from '../../workspace/lead-insights';
 import { introAttachmentPath } from "../../../../supabase/functions/_shared/intro-attachment.js";
+import { saveSellerFollowUp, uploadSellerImage } from './seller-contact';
 import { fetchBuildingAliases, fetchCachedBuildings } from '../../workspace/building-reference';
 import { useWorkspacePreference } from '../../workspace/preferences';
 import { enrichLeadsWithDataQuality } from "../../../../src/features/seller-signal/lead-data-quality";
@@ -740,7 +741,8 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     try {
       const result = await sendLeadWhatsAppMessage({
         accountId: connectedWhatsAppAccount.id,
-        imagePath,
+        imagePath: options.customImage ? await uploadSellerImage(userId, lead.id, options.customImage) : imagePath,
+        customImage: Boolean(options.customImage),
         leadId: lead.id,
         message,
         phone: lead.phone,
@@ -865,6 +867,12 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     } catch (saveError) {
       setError(getErrorMessage(saveError));
     }
+  }
+
+  async function saveFollowUp(leadId, options) {
+    await saveSellerFollowUp(userId, leadId, options);
+    await reloadLeads();
+    setNotice(options.clear ? 'Default follow-up schedule restored.' : 'Follow-up saved.');
   }
 
   async function removeLead(leadId) {
@@ -1021,6 +1029,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
       persistLeadSource,
       saveLeadEdits,
       saveNotes,
+      saveFollowUp,
       selectDataQualityFilter: value => { setDataQualityFilter(value); resetPaging(); },
       selectSort: value => { setSort(value); resetPaging(); },
       selectDataFilter,

@@ -9,6 +9,8 @@ import { formatBedsLabel, formatDate, formatPrice, formatRange } from "../format
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
 import { formatBuildingLabel } from "../lead-utils";
 import { Badge } from "./LeadCard";
+import SellerFollowUpControl from './seller-follow-up-control';
+import { pickSellerImage } from '../seller-contact';
 
 const STATUS_ACTIONS = [
   { id: "prospect", label: "Prospect", value: "Prospect" },
@@ -231,6 +233,7 @@ export default function LeadDetailSheet({
   onEditFieldChange,
   onSaveEdit,
   onSaveNotes,
+  onSaveFollowUp,
   onSendWhatsApp,
   onStartEditing,
   onToggleSent,
@@ -244,6 +247,10 @@ export default function LeadDetailSheet({
   const leadNotes = lead?.notes || "";
   const [notesDraft, setNotesDraft] = useState({ leadId: null, value: "" });
   const [imageIncluded, setImageIncluded] = useState(true);
+  const [customImage, setCustomImage] = useState(null);
+  const [messageBusy, setMessageBusy] = useState(false);
+  const [messageError, setMessageError] = useState('');
+  const messageBusyRef = useRef(false);
   const notesTimerRef = useRef(null);
   const notesValue = notesDraft.leadId === leadId ? notesDraft.value : leadNotes;
 
@@ -273,14 +280,36 @@ export default function LeadDetailSheet({
   }
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
 
-  function handleWhatsApp() {
+  async function handleWhatsApp() {
+    if (messageBusyRef.current) return;
     if (!whatsappPhone) return;
+    if (customImage && !whatsappConnected) { setMessageError('Reconnect WhatsApp to send the selected image.'); return; }
     if (whatsappConnected) {
-      void onSendWhatsApp?.(lead.id, { imagePath: selectedImagePath });
+      messageBusyRef.current = true;
+      setMessageBusy(true);
+      setMessageError('');
+      try {
+        const sent = await onSendWhatsApp?.(lead.id, { imagePath: selectedImagePath, customImage });
+        if (sent) { setCustomImage(null); setImageIncluded(false); }
+        else setMessageError('Message was not sent. Your image is still selected; check the send error and try again.');
+      } catch (failure) { setMessageError(failure.message || 'Could not send this message. Your image is still selected.'); }
+      finally { messageBusyRef.current = false; setMessageBusy(false); }
       return;
     }
     Linking.openURL(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`);
     if (!isSent) void onToggleSent(lead.id);
+  }
+
+  async function chooseImage() {
+    if (messageBusyRef.current) return;
+    messageBusyRef.current = true;
+    setMessageBusy(true);
+    setMessageError('');
+    try {
+      const image = await pickSellerImage();
+      if (image) setCustomImage(image);
+    } catch (failure) { setMessageError(failure.message || 'Could not choose that image.'); }
+    finally { messageBusyRef.current = false; setMessageBusy(false); }
   }
 
   function handleDelete() {
@@ -383,6 +412,8 @@ export default function LeadDetailSheet({
               </View>
             </View>
 
+            {onSaveFollowUp ? <SellerFollowUpControl lead={lead} colors={c} onSave={onSaveFollowUp} /> : null}
+
             {insight?.status === "ready" && insight.recentTransactions?.length > 0 && (
               <View>
                 <Text style={{ fontSize: 14, fontWeight: "700", color: c.text, marginBottom: 6 }}>
@@ -435,7 +466,7 @@ export default function LeadDetailSheet({
                 <MessageIcon size={13} color={c.textMuted} />
                 <Text style={{ fontSize: 11, fontWeight: "600", color: c.textMuted, letterSpacing: 0.5 }}>MESSAGE</Text>
               </View>
-              {messageTemplateImagePath ? (
+              {messageTemplateImagePath && !customImage ? (
                 <Pressable
                   accessibilityRole="checkbox"
                   accessibilityLabel="Include image with this message"
@@ -454,6 +485,14 @@ export default function LeadDetailSheet({
                   </View>
                 </Pressable>
               ) : null}
+              {customImage ? <View style={{ gap: 8 }}>
+                <Image source={{ uri: customImage.uri }} resizeMode="contain" style={{ width: '100%', height: 160, borderRadius: 10 }} />
+                <Text style={{ color: c.textMuted, fontSize: 12 }}>Attached to this seller’s next message only.</Text>
+                <Pressable accessibilityRole="button" disabled={messageBusy} onPress={() => { setCustomImage(null); setImageIncluded(false); }} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: c.errorText }}>Remove image</Text></Pressable>
+              </View> : null}
+              <Pressable accessibilityRole="button" disabled={messageBusy || !whatsappConnected} onPress={chooseImage} style={{ minHeight: 44, justifyContent: 'center', opacity: messageBusy || !whatsappConnected ? 0.45 : 1 }}><Text style={{ color: c.text, fontWeight: '600' }}>{messageBusy ? 'Please wait…' : customImage ? 'Change image' : 'Add image for this seller'}</Text></Pressable>
+              {!whatsappConnected ? <Text style={{ color: c.textMuted, fontSize: 12 }}>Connect WhatsApp to send image attachments.</Text> : null}
+              {messageError ? <Text accessibilityRole="alert" style={{ color: c.errorText }}>{messageError}</Text> : null}
               <Text style={{ fontSize: 14, color: c.text, lineHeight: 20, backgroundColor: c.bgMsg, padding: 12, borderRadius: 10 }}>{message}</Text>
             </View>
           </>
@@ -463,9 +502,9 @@ export default function LeadDetailSheet({
       {!isEditing && (
         <View style={[s.actionBar, { paddingBottom: Math.max(insets.bottom, 16), borderTopColor: c.border }]}>
           {whatsappPhone ? (
-            <Pressable onPress={handleWhatsApp} style={[s.actionBtn, { backgroundColor: c.whatsappBg }]}>
+            <Pressable disabled={messageBusy} onPress={handleWhatsApp} style={[s.actionBtn, { backgroundColor: c.whatsappBg, opacity: messageBusy ? 0.5 : 1 }]}>
               {isSent ? <CheckIcon size={18} color={c.whatsappText} /> : <WhatsAppIcon size={18} color={c.whatsappText} />}
-              <Text style={{ fontSize: 15, fontWeight: "600", color: c.whatsappText }}>{isSent ? "Sent" : "Send via WhatsApp"}</Text>
+              <Text style={{ fontSize: 15, fontWeight: "600", color: c.whatsappText }}>{messageBusy ? 'Please wait…' : isSent ? "Send follow-up" : "Send via WhatsApp"}</Text>
             </Pressable>
           ) : (
             <Pressable onPress={() => onCopyMessage(lead.id, message)} style={[s.actionBtn, { borderWidth: 1, borderColor: c.border }]}>

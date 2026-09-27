@@ -676,7 +676,7 @@ export function getConnectedWhatsAppAccount(accounts = []) {
   return accounts.find((account) => account.connection_status === "connected") || null;
 }
 
-export async function sendLeadWhatsAppMessage({ accountId, imagePath, leadId, message, phone, sendSource = "manual" }) {
+export async function sendLeadWhatsAppMessage({ accountId, imagePath, customImage = false, leadId, message, phone, sendSource = "manual" }) {
   const to = formatPhoneForWhatsApp(phone);
   if (!to) throw new Error("Lead does not have a valid WhatsApp phone number");
 
@@ -686,8 +686,9 @@ export async function sendLeadWhatsAppMessage({ accountId, imagePath, leadId, me
       clientKind: "mobile",
       clientRequestId: randomUUID(),
       sendSource,
-      requireTodaysTransaction: true,
+      requireTodaysTransaction: !customImage,
       imagePath: imagePath || null,
+      customImage,
       leadId,
       to,
       body: message,

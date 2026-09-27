@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
+import { isSellerAttachment } from "../_shared/seller-follow-up.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -490,13 +491,14 @@ async function getAccountSecret(adminClient: any, accountId: string) {
   return data.access_token;
 }
 
-async function resolveTemplateImageUrl(adminClient: any, userId: string, rawImagePath: unknown) {
+async function resolveTemplateImageUrl(adminClient: any, userId: string, rawImagePath: unknown, customImage = false) {
   const imagePath = cleanString(rawImagePath);
   if (!imagePath) return null;
   if (!imagePath.startsWith(`${userId}/`)) {
     throw new HttpError(400, "Invalid template image path");
   }
 
+  if (!customImage) {
   const { data: template, error: templateError } = await adminClient
     .from("seller_signal_message_templates")
     .select("id")
@@ -505,6 +507,7 @@ async function resolveTemplateImageUrl(adminClient: any, userId: string, rawImag
     .maybeSingle();
   if (templateError) throw new HttpError(500, templateError.message);
   if (!template) throw new HttpError(400, "Template image was not found");
+  }
 
   const { data, error } = await adminClient.storage
     .from(TEMPLATE_IMAGE_BUCKET)
@@ -527,7 +530,7 @@ async function sendViaBaileys(account: any, to: string, body: string, imageUrl: 
 async function markLeadSent(adminClient: any, userId: string, leadId: string | number, sentAt: string) {
   const { error: leadError } = await adminClient
     .from("leads")
-    .update({ sent_at: sentAt })
+    .update({ sent_at: sentAt, next_follow_up_on: null })
     .eq("user_id", userId)
     .eq("id", leadId);
 
@@ -624,8 +627,10 @@ Deno.serve(async (req) => {
     const sendSource = USER_SEND_SOURCES.has(requestedSource) ? requestedSource : "manual";
     const initiatedVia = getInitiatedVia(input, sendSource);
     await assertNoRapidRepeat(adminClient, userId, to);
-    const isFollowUp = input.imagePath && await hasPriorWhatsAppContact(adminClient, { userId, phone: to, sentAt: lead?.sent_at });
-    const imageUrl = await resolveTemplateImageUrl(adminClient, userId, isFollowUp ? null : input.imagePath);
+    const customImage = input.customImage === true && sendSource === 'manual' && isSellerAttachment(input.imagePath, userId, lead?.id);
+    if (input.customImage === true && !customImage) throw new HttpError(400, 'Choose an image for this seller before sending.');
+    const isFollowUp = !customImage && input.imagePath && await hasPriorWhatsAppContact(adminClient, { userId, phone: to, sentAt: lead?.sent_at });
+    const imageUrl = await resolveTemplateImageUrl(adminClient, userId, isFollowUp ? null : input.imagePath, customImage);
 
     const isBaileys = account.provider === "baileys";
     const payload = isBaileys

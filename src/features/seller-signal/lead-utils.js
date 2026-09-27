@@ -1,6 +1,7 @@
 import { DEFAULT_CADENCE_DAYS, MAX_MEANINGFUL_OVERDUE_DAYS, MILLISECONDS_PER_DAY, STATUS_RULES } from "./constants";
 import { normalizeToken } from "./spreadsheet";
 import { canonicalizeBuildingName, parseBuildingAddressValue } from "./building-utils";
+import { dubaiDateKey } from '../../../supabase/functions/_shared/seller-follow-up.js';
 
 export function startOfDay(dateValue) {
   const date = new Date(dateValue);
@@ -251,7 +252,15 @@ export function mapStoredLeadRow(row, index, today) {
   lead.sourceId = row.source_id || null;
   lead.notes = row.notes || "";
   lead.sentAt = row.sent_at || null;
-  return lead;
+  return applyManualFollowUp(lead, row.next_follow_up_on, today);
+}
+
+function applyManualFollowUp(lead, dateValue, today) {
+  lead.nextFollowUpOn = dateValue || null;
+  const date = parseDateValue(dateValue);
+  if (!date || lead.statusRule?.id === 'not_interested') return lead;
+  const days = Math.round((Date.parse(formatDateInputValue(date)) - Date.parse(dubaiDateKey(today))) / MILLISECONDS_PER_DAY);
+  return { ...lead, nextDueDate: date, isDue: days <= 0, overdueDays: Math.max(0, -days), dueLabel: days > 0 ? `In ${days}d` : days === 0 ? 'Due today' : `Overdue ${-days}d` };
 }
 
 export function summarizeLeadCadence(leads) {
@@ -304,7 +313,9 @@ function buildDerivedLead(lead, overrides = {}, today = new Date()) {
   updated.id = lead.id;
   updated.rowNumber = lead.rowNumber;
   updated.sourceId = lead.sourceId || null;
-  return updated;
+  updated.notes = lead.notes || '';
+  updated.sentAt = lead.sentAt || null;
+  return applyManualFollowUp(updated, lead.nextFollowUpOn, today);
 }
 
 export function applyLeadStatus(lead, nextStatus, today = new Date()) {

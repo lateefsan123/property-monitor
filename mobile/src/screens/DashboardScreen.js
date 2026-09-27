@@ -214,6 +214,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
         onEditFieldChange={d.actions.updateLeadDraftField}
         onSaveEdit={d.actions.saveLeadEdits}
         onSaveNotes={d.actions.saveNotes}
+        onSaveFollowUp={d.actions.saveFollowUp}
         onSendWhatsApp={d.actions.sendWhatsAppLead}
         onStartEditing={d.actions.startEditingLead}
         onToggleSent={d.actions.toggleSent}
