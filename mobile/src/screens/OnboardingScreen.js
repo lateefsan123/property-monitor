@@ -6,6 +6,7 @@ import OnboardingPreview from "../components/OnboardingPreview";
 const SLIDES = [
   { title: 'Bring everything together', body: 'Connect spreadsheets, WhatsApp, and more\nfor a clearer view of your sellers' },
   { title: 'Your sellers, in one place', body: 'Import your spreadsheet and keep every\nseller and property within reach' },
+  { title: 'Follow the market', body: 'Watch your buildings and track price changes\nfor your next conversation' },
   { title: 'Stay in touch', body: 'Follow the market and stay in touch\nwith the sellers who matter' },
 ];
 
