@@ -30,12 +30,13 @@ export function ActivityDateEditor({ value, colors, onApply, onCancel }) {
     try { const next = preset === 'custom' ? range : activityRange(preset); validateActivityRange(next); onApply({ preset, range: next }); }
     catch (failure) { setError(failure.message); }
   }
-  return <ScrollView keyboardShouldPersistTaps="handled" stickyHeaderIndices={[0]} contentContainerStyle={{ padding: 20, gap: 18 }}>
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: colors.bgCard }}>
+  return <View style={{ flexShrink: 1 }}>
+    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingBottom: 8, backgroundColor: colors.bgCard }}>
       <Pressable accessibilityRole="button" onPress={onCancel} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: colors.textMuted }}>Cancel</Text></Pressable>
       <Text accessibilityRole="header" style={{ color: colors.text, fontSize: 18, fontWeight: '600' }}>Date range</Text>
-      <Pressable accessibilityRole="button" onPress={apply} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: colors.text, fontWeight: '600' }}>Apply</Text></Pressable>
+      <View style={{ width: 44 }} />
     </View>
+    <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 20, gap: 18 }}>
     {preset === 'custom' ? <Pressable accessibilityRole="button" onPress={() => setPreset('today')} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: colors.textMuted }}>Back to presets</Text></Pressable> : PRESETS.map(([key, title]) => <Pressable key={key} accessibilityRole="radio" accessibilityState={{ checked: preset === key }} onPress={() => { setPreset(key); setError(''); }} style={{ flexDirection: 'row', alignItems: 'center', minHeight: 48, gap: 12 }}>
       <View style={{ flex: 1, gap: 4 }}><Text style={{ color: colors.text, fontSize: 15 }}>{title}</Text>{key !== 'custom' && preset === key ? <Text style={{ color: colors.textMuted, fontSize: 12 }}>{activityRangeLabel(activityRange(key))}</Text> : null}</View>
       <View style={{ width: 20, height: 20, borderRadius: 10, borderWidth: preset === key ? 6 : 1, borderColor: preset === key ? colors.text : colors.textFaint }} />
@@ -51,9 +52,13 @@ export function ActivityDateEditor({ value, colors, onApply, onCancel }) {
         return <Pressable key={key} accessibilityRole="button" accessibilityLabel={key} accessibilityState={{ selected, disabled }} disabled={disabled} onPress={() => pick(key)} style={{ width: '14.2857%', height: 44, borderRadius: selected ? 10 : 0, alignItems: 'center', justifyContent: 'center', backgroundColor: selected ? colors.btnPrimaryBg : inside ? colors.bgBadge : 'transparent', opacity: disabled ? 0.25 : 1 }}><Text style={{ color: selected ? colors.btnPrimaryText : colors.text }}>{day}</Text></Pressable>;
       })}</View>
     </> : null}
-    {error ? <Text accessibilityRole="alert" style={{ color: colors.errorText }}>{error}</Text> : null}
     <Text style={{ color: colors.textMuted, fontSize: 12 }}>All dates use Dubai time.</Text>
-  </ScrollView>;
+    </ScrollView>
+    <View style={{ flexShrink: 0, padding: 20, paddingTop: 12, gap: 10, borderTopWidth: 0.5, borderTopColor: colors.border, backgroundColor: colors.bgCard }}>
+      {error ? <Text accessibilityRole="alert" style={{ color: colors.errorText }}>{error}</Text> : null}
+      <Pressable accessibilityRole="button" onPress={apply} style={({ pressed }) => ({ minHeight: 52, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.btnPrimaryBg, opacity: pressed ? 0.7 : 1 })}><Text style={{ color: colors.btnPrimaryText, fontSize: 16, fontWeight: '600' }}>Apply dates</Text></Pressable>
+    </View>
+  </View>;
 }
 export default function ActivityDateFilter({ value, colors, onApply }) {
   const [open, setOpen] = useState(false);
