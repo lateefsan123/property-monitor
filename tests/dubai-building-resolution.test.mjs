@@ -22,5 +22,24 @@ test('citywide cache resolves exact projects and rejects ambiguous unqualified n
     assert.equal(resolve('Marina Tower').canonicalName, 'Marina Tower, Dubai Marina');
     assert.equal(resolve('Studio One').canonicalName, 'Studio One, Dubai Marina');
     assert.equal(resolve('VILLA MYRA').canonicalName, 'VILLA MYRA, JUMEIRAH VILLAGE CIRCLE');
+    const { createLeadInsightServices } = await vite.ssrLoadModule('/shared/lead-insights.js');
+    const building = rows[0];
+    const db = {
+      rpc: async () => ({ data: [{ building_key: building.key }] }),
+      from: table => {
+        const q = { select: () => q, eq: () => q, order: () => q,
+          in: async () => ({ data: [building] }),
+          limit: async () => ({ data: [{ building_key: building.key, amount: 1500000, date: '2026-09-25', beds: '2', builtup_area_sqft: 1000 }] }),
+        };
+        assert.ok(['buildings', 'transactions'].includes(table));
+        return q;
+      },
+    };
+    const services = createLeadInsightServices(db);
+    const data = await services.fetchBuildingMarketData([building.key]);
+    assert.equal(data.transactionsByBuilding[building.key][0].area_sqft, 1000);
+    const result = services.computeLeadInsights([{ id: 'fixture', building: building.search_name }], data);
+    assert.equal(result.updates.fixture.recentTransactions[0].area, 1000);
+    assert.equal(result.updates.fixture.psf, 1500);
   } finally { await vite.close(); }
 });

@@ -25,6 +25,7 @@ export function createLeadInsightServices(supabase) {
       date: transactionRow.date,
       floor: transactionRow.floor,
       beds: transactionRow.beds,
+      area_sqft: transactionRow.builtup_area_sqft,
       property: {
         floor: transactionRow.floor,
         beds: transactionRow.beds,
