@@ -1,24 +1,17 @@
+import { activityRange, dubaiDateKey, validateActivityRange } from './send-activity-dates.js';
+
 // Shared by desktop and native. The authenticated client is supplied by each app.
 export function createSendActivityServices(supabase) {
   const SUCCESS_STATUSES = ["sent", "delivered", "read"];
 
-  function getDubaiDateKey(date = new Date()) {
-    const parts = new Intl.DateTimeFormat("en-CA", {
-      day: "2-digit",
-      month: "2-digit",
-      timeZone: "Asia/Dubai",
-      year: "numeric",
-    }).formatToParts(date);
-    const values = Object.fromEntries(
-      parts.map((part) => [part.type, part.value]),
-    );
-    return `${values.year}-${values.month}-${values.day}`;
-  }
-
-  function getDubaiDayBounds(dateKey) {
-    const start = new Date(`${dateKey}T00:00:00+04:00`);
-    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
-    return { start: start.toISOString(), end: end.toISOString() };
+  async function allRows(makeQuery) {
+    const rows = [];
+    for (let offset = 0; ; offset += 500) {
+      const { data, error } = await makeQuery().range(offset, offset + 499);
+      if (error) return { data: null, error };
+      rows.push(...(data || []));
+      if (!data || data.length < 500) return { data: rows, error: null };
+    }
   }
 
   function createSourceCounts(messages) {
@@ -54,12 +47,12 @@ export function createSendActivityServices(supabase) {
     return "normal";
   }
 
-  async function fetchWhatsAppSendActivity(userId) {
+  async function fetchWhatsAppSendActivity(userId, range = activityRange()) {
     if (!userId) return null;
 
-    const dateKey = getDubaiDateKey();
-    const { start, end } = getDubaiDayBounds(dateKey);
-    let { data: messages, error: messageError } = await supabase
+    const dateKey = range.startDate;
+    const { start, end } = validateActivityRange(range);
+    let { data: messages, error: messageError } = await allRows(() => supabase
       .from("whatsapp_messages")
       .select("id, lead_id, send_source, initiated_via, status, sent_at")
       .eq("user_id", userId)
@@ -67,10 +60,10 @@ export function createSendActivityServices(supabase) {
       .in("status", SUCCESS_STATUSES)
       .gte("sent_at", start)
       .lt("sent_at", end)
-      .order("sent_at", { ascending: false });
+      .order("sent_at", { ascending: false }).order("id"));
 
     if (messageError?.code === "42703") {
-      const fallback = await supabase
+      const fallback = await allRows(() => supabase
         .from("whatsapp_messages")
         .select("id, lead_id, send_source, status, sent_at")
         .eq("user_id", userId)
@@ -78,7 +71,7 @@ export function createSendActivityServices(supabase) {
         .in("status", SUCCESS_STATUSES)
         .gte("sent_at", start)
         .lt("sent_at", end)
-        .order("sent_at", { ascending: false });
+        .order("sent_at", { ascending: false }).order("id"));
       messages = (fallback.data || []).map((message) => ({
         ...message,
         initiated_via: "unknown",
@@ -88,14 +81,15 @@ export function createSendActivityServices(supabase) {
 
     if (messageError) throw new Error(messageError.message);
 
-    const { data: alerts, error: alertsError } = await supabase
+    const { data: alerts, error: alertsError } = await allRows(() => supabase
       .from("seller_signal_send_alerts")
       .select(
         "id, alert_type, severity, threshold_count, observed_count, details, created_at",
       )
       .eq("user_id", userId)
-      .eq("dubai_date", dateKey)
-      .order("created_at", { ascending: false });
+      .gte("dubai_date", range.startDate)
+      .lte("dubai_date", range.endDate)
+      .order("created_at", { ascending: false }).order("id"));
 
     if (alertsError && alertsError.code !== "42P01")
       throw new Error(alertsError.message);
@@ -103,16 +97,23 @@ export function createSendActivityServices(supabase) {
     const rows = messages || [];
     const alertRows = alerts || [];
     const sources = createSourceCounts(rows);
+    const dailyCounts = {};
+    for (const row of rows) {
+      const day = dubaiDateKey(new Date(row.sent_at));
+      dailyCounts[day] = (dailyCounts[day] || 0) + 1;
+    }
 
     return {
       alerts: alertRows,
       dateKey,
+      startDate: range.startDate,
+      endDate: range.endDate,
       distinctLeads: new Set(
         rows.map((message) => message.lead_id).filter(Boolean),
       ).size,
       origins: createOriginCounts(rows),
       sources,
-      state: getVolumeState(rows.length, alertRows),
+      state: getVolumeState(Math.max(0, ...Object.values(dailyCounts)), alertRows),
       total: rows.length,
     };
   }

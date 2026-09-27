@@ -3,6 +3,8 @@ import { BackHandler, ScrollView, Text, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAutomationSettings, saveAutomationSettings } from "./automation-settings";
 import { fetchWhatsAppSendActivity } from "./send-activity";
+import ActivityDateFilter from './activity-date-filter';
+import { activityRange } from '../../../shared/send-activity-dates';
 import SendActivitySummary from './send-activity-summary';
 import WhatsAppPanel from "./whatsapp-panel";
 import AccountSettings from "../screens/SettingsScreen";
@@ -47,13 +49,16 @@ function Automations({ userId, colors }) {
 }
 
 function SendActivity({ userId, colors, active }) {
+  const [selection, setSelection] = useState({ preset: 'today' });
+  const range = selection.preset === 'custom' ? selection.range : activityRange(selection.preset);
   const query = useQuery({
-    queryKey: ["seller-signal", "send-activity", userId],
-    queryFn: () => fetchWhatsAppSendActivity(userId),
+    queryKey: ["seller-signal", "send-activity", userId, range.startDate, range.endDate],
+    queryFn: () => fetchWhatsAppSendActivity(userId, range),
     enabled: Boolean(userId) && active,
     refetchInterval: active ? 60000 : false,
   });
   return <View style={{ gap: 20 }}>
+    <ActivityDateFilter value={{ ...selection, range }} colors={colors} onApply={setSelection} />
     <Feedback colors={colors} loading={query.isPending} error={query.error} onRetry={query.refetch} />
     {query.data ? <SendActivitySummary data={query.data} colors={colors} refreshing={query.isFetching} onRefresh={query.refetch} /> : null}
   </View>;

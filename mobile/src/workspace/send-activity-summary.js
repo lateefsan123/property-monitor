@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { dubaiDateKey } from '../../../shared/send-activity-dates';
 import AppIcon from '../components/AppIcon';
 
 const SOURCES = { auto: ['Automated', 'flash'], bulk: ['Bulk messages', 'users'], manual: ['Manual', 'message'], mcp: ['Integrations', 'link'], other: ['Other', 'more'] };
@@ -15,11 +16,12 @@ function CountRow({ title, count, icon, colors, last }) {
 }
 
 export default function SendActivitySummary({ data, colors, refreshing, onRefresh }) {
+  const isToday = !data.startDate || (data.startDate === dubaiDateKey() && data.endDate === data.startDate);
   const sources = Object.entries(data.sources).filter(([, count]) => count > 0);
   const origins = Object.entries(data.origins).filter(([, count]) => count > 0);
   return <View style={{ gap: 24 }}>
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-      <View style={{ gap: 4 }}><Text accessibilityRole="header" style={{ color: colors.text, fontSize: 17, fontWeight: '600' }}>Today</Text><Text style={{ color: colors.textMuted, fontSize: 12 }}>Dubai time</Text></View>
+      <View style={{ gap: 4 }}><Text accessibilityRole="header" style={{ color: colors.text, fontSize: 17, fontWeight: '600' }}>{data.startDate ? 'Overview' : 'Today'}</Text><Text style={{ color: colors.textMuted, fontSize: 12 }}>Dubai time</Text></View>
       <Pressable accessibilityRole="button" accessibilityLabel="Refresh activity" accessibilityState={{ disabled: refreshing, busy: refreshing }} disabled={refreshing} onPress={onRefresh} style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, backgroundColor: colors.bgCard, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.6 : 1 })}>
         {refreshing ? <ActivityIndicator size="small" color={colors.textMuted} /> : <AppIcon name="refresh" size={20} color={colors.textMuted} />}
       </Pressable>
@@ -30,7 +32,7 @@ export default function SendActivitySummary({ data, colors, refreshing, onRefres
       </View>)}
     </View>
     {data.total === 0 ? <View style={{ alignItems: 'center', paddingVertical: 36, gap: 12 }}>
-      <AppIcon name="message" size={30} color={colors.textFaint} /><Text style={{ color: colors.text, fontSize: 17, fontWeight: '600' }}>No messages sent today</Text><Text style={{ color: colors.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 21 }}>Your sending activity will appear here.</Text>
+      <AppIcon name="message" size={30} color={colors.textFaint} /><Text style={{ color: colors.text, fontSize: 17, fontWeight: '600' }}>{isToday ? 'No messages sent today' : 'No messages in this period'}</Text><Text style={{ color: colors.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 21 }}>Your sending activity will appear here.</Text>
     </View> : <>
       <View style={{ gap: 10 }}><Text accessibilityRole="header" style={{ color: colors.textMuted, fontSize: 13, marginLeft: 4 }}>Message activity</Text>
         <View style={{ backgroundColor: colors.bgCard, borderRadius: 16, overflow: 'hidden' }}>{sources.map(([key, count], index) => <CountRow key={key} title={SOURCES[key]?.[0] || label(key)} icon={SOURCES[key]?.[1] || 'message'} count={count} colors={colors} last={index === sources.length - 1} />)}</View>
