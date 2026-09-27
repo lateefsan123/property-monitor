@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { FlatList, Pressable, Text, TextInput, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
-import { fetchMessageTemplates } from "./message-templates";
+import { messageTemplatesOptions } from "./message-templates";
 import MessageTemplateEditor from "./message-template-editor";
 import { Feedback, Icon } from "./ui";
 
@@ -9,11 +9,7 @@ export default function MessageTemplatesScreen({ userId, colors }) {
   const [search, setSearch] = useState("");
   const [editor, setEditor] = useState(null);
   const [notice, setNotice] = useState("");
-  const query = useQuery({
-    queryKey: ["seller-signal", "message-templates", userId],
-    queryFn: () => fetchMessageTemplates(userId),
-    enabled: Boolean(userId),
-  });
+  const query = useQuery(messageTemplatesOptions(userId));
   const templates = query.data || [];
   const term = search.trim().toLocaleLowerCase();
   const filtered = templates.filter(template => `${template.name} ${template.content}`.toLocaleLowerCase().includes(term));
@@ -30,9 +26,11 @@ export default function MessageTemplatesScreen({ userId, colors }) {
         {search ? <Pressable accessibilityRole="button" accessibilityLabel="Clear search" onPress={() => setSearch("")} style={{ width: 44, height: 44, justifyContent: "center", alignItems: "center" }}><Icon name="closeCircle" size={19} color={colors.textMuted} /></Pressable> : null}
       </View>
       {notice ? <Text accessibilityRole="alert" style={{ color: colors.badgeOkText, paddingHorizontal: 20, paddingVertical: 8 }}>{notice}</Text> : null}
-      {query.isPending || query.error ? <View style={{ padding: 20 }}><Feedback colors={colors} error={query.error} loading={query.isPending} onRetry={query.refetch} /></View> : (
+      {query.isPending || (query.error && !query.data) ? <View style={{ padding: 20 }}><Feedback colors={colors} error={query.error} loading={query.isPending} onRetry={query.refetch} /></View> : (
         <FlatList
           data={filtered}
+          refreshing={query.isRefetching}
+          onRefresh={query.refetch}
           keyExtractor={item => String(item.id)}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
@@ -57,7 +55,7 @@ export default function MessageTemplatesScreen({ userId, colors }) {
           </View>}
         />
       )}
-      {!query.isPending && !query.error ? <Pressable accessibilityRole="button" accessibilityLabel="New template" onPress={() => openEditor(null)} style={({ pressed }) => ({ position: "absolute", right: 20, bottom: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: blue, justifyContent: "center", alignItems: "center", opacity: pressed ? 0.7 : 1, boxShadow: "0 3px 10px rgba(0,0,0,0.16)" })}><Icon name="plus" size={30} color="#FFFFFF" /></Pressable> : null}
+      {!query.isPending && Boolean(query.data) ? <Pressable accessibilityRole="button" accessibilityLabel="New template" onPress={() => openEditor(null)} style={({ pressed }) => ({ position: "absolute", right: 20, bottom: 20, width: 52, height: 52, borderRadius: 26, backgroundColor: blue, justifyContent: "center", alignItems: "center", opacity: pressed ? 0.7 : 1, boxShadow: "0 3px 10px rgba(0,0,0,0.16)" })}><Icon name="plus" size={30} color="#FFFFFF" /></Pressable> : null}
       {editor ? <MessageTemplateEditor key={editor.template?.id || "new"} templates={templates} initial={editor.template} userId={userId} colors={colors} onClose={message => { setEditor(null); if (typeof message === "string") setNotice(message); }} /> : null}
     </View>
   );

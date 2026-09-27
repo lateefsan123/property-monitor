@@ -4,8 +4,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Animated,
   BackHandler,
-  Modal,
-  Platform,
   PanResponder,
   Pressable,
   ScrollView,
@@ -25,8 +23,7 @@ import { Icon } from "./ui";
 const MAIN_NAVIGATION = [...BASE_MAIN_NAVIGATION, { id: "schedule", label: "Schedule", icon: "calendar", kind: "nav" }];
 const NAVIGATION_LOGO = require("../../assets/repeat-ai-logo.png");
 
-// Same native drawer pattern as FighterCenter: edge swipe, scrim, animated panel,
-// accessible menu trigger and Android Back dismissal. Repeat AI supplies the menu.
+// Keep the drawer in the same native view so a swipe can move it continuously.
 export default function NavigationDrawer({
   page,
   headerTitle,
@@ -55,7 +52,7 @@ export default function NavigationDrawer({
     action?.();
   }, []);
   useEffect(() => {
-    if (!open && Platform.OS !== "ios") finishDismiss();
+    if (!open) finishDismiss();
   }, [open, finishDismiss]);
   const [slide] = useState(() => new Animated.Value(-drawerWidth));
   const close = useCallback(() => {
@@ -68,14 +65,13 @@ export default function NavigationDrawer({
     });
   }, [drawerWidth, slide]);
   const show = useCallback(() => {
-    slide.setValue(-drawerWidth);
     setOpen(true);
     Animated.timing(slide, {
       toValue: 0,
       duration: 220,
       useNativeDriver: true,
     }).start();
-  }, [drawerWidth, slide]);
+  }, [slide]);
   useEffect(() => {
     if (!open) return;
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
@@ -85,28 +81,39 @@ export default function NavigationDrawer({
     return () => sub.remove();
   }, [open, close]);
   const edgeGesture = useMemo(
-    () =>
-      PanResponder.create({
-        onMoveShouldSetPanResponder: (_, g) =>
-          g.dx > 18 && Math.abs(g.dy) < Math.abs(g.dx) / 2,
-        onPanResponderRelease: (_, g) => {
-          // A detail page's edge swipe follows its back button. Only root
-          // pages open the drawer, matching the visible navigation control.
-          if (g.dx > 35 && Math.abs(g.dy) < Math.abs(g.dx) / 2) (onHeaderBack || show)();
-        },
-      }),
-    [onHeaderBack, show],
+    () => PanResponder.create({
+      onMoveShouldSetPanResponderCapture: (_, g) =>
+        !open && (!onHeaderBack || g.x0 <= 24) &&
+        g.dx > 12 && Math.abs(g.dy) < Math.abs(g.dx) / 2,
+      onPanResponderGrant: () => {
+        if (!onHeaderBack) { slide.stopAnimation(); setOpen(true); }
+      },
+      onPanResponderMove: (_, g) => {
+        if (!onHeaderBack) slide.setValue(Math.min(0, Math.max(-drawerWidth, g.dx - drawerWidth)));
+      },
+      onPanResponderRelease: (_, g) => {
+        if (onHeaderBack) {
+          if (g.dx > 35 && Math.abs(g.dy) < Math.abs(g.dx) / 2) onHeaderBack();
+        } else if (g.vx > 0.45 || (g.vx > -0.45 && g.dx > drawerWidth * 0.3)) show();
+        else close();
+      },
+      onPanResponderTerminate: () => { if (!onHeaderBack) close(); },
+      onPanResponderTerminationRequest: () => false,
+    }),
+    [open, onHeaderBack, slide, drawerWidth, show, close],
   );
   const dismissGesture = useMemo(
-    () =>
-      PanResponder.create({
-        onMoveShouldSetPanResponder: (_, g) =>
-          g.dx < -18 && Math.abs(g.dy) < Math.abs(g.dx) / 2,
-        onPanResponderRelease: (_, g) => {
-          if (g.dx < -35) close();
-        },
-      }),
-    [close],
+    () => PanResponder.create({
+      onMoveShouldSetPanResponder: (_, g) => g.dx < -12 && Math.abs(g.dy) < Math.abs(g.dx) / 2,
+      onPanResponderGrant: () => slide.stopAnimation(),
+      onPanResponderMove: (_, g) => slide.setValue(Math.max(-drawerWidth, Math.min(0, g.dx))),
+      onPanResponderRelease: (_, g) => {
+        if (g.vx < -0.45 || (g.vx < 0.45 && g.dx < -drawerWidth * 0.3)) close();
+        else show();
+      },
+      onPanResponderTerminate: show,
+    }),
+    [slide, drawerWidth, close, show],
   );
   function activate(item) {
     pendingAction.current = () => {
@@ -160,6 +167,7 @@ export default function NavigationDrawer({
   }
   return (
     <View
+      {...edgeGesture.panHandlers}
       style={{
         flex: 1,
         backgroundColor: colors.bg,
@@ -167,6 +175,7 @@ export default function NavigationDrawer({
         paddingBottom: insets.bottom,
       }}
     >
+      <View style={{ flex: 1 }} aria-hidden={open} accessibilityElementsHidden={open} importantForAccessibility={open ? "no-hide-descendants" : "auto"}>
       <View
         style={{
           minHeight: 56,
@@ -196,26 +205,15 @@ export default function NavigationDrawer({
 
       </View>
       <View style={{ flex: 1 }}>{children}</View>
-      {!open && (
-        <View
-          {...edgeGesture.panHandlers}
-          style={{
-            position: "absolute",
-            left: 0,
-            top: insets.top + 56,
-            bottom: insets.bottom,
-            width: 18,
-          }}
-        />
-      )}
-      <Modal
-        visible={open}
-        transparent
-        animationType="none"
-        onRequestClose={close}
-        onDismiss={finishDismiss}
+      </View>
+      <View
+        pointerEvents={open ? "auto" : "none"}
+        accessibilityElementsHidden={!open}
+        importantForAccessibility={open ? "yes" : "no-hide-descendants"}
+        style={{ display: open ? "flex" : "none", position: "absolute", top: 0, bottom: 0, left: 0, right: 0 }}
       >
         <View style={{ flex: 1 }}>
+          <Animated.View pointerEvents="none" style={{ position: "absolute", top: 0, right: 0, bottom: 0, left: 0, backgroundColor: "#000", opacity: slide.interpolate({ inputRange: [-drawerWidth, 0], outputRange: [0, 0.34], extrapolate: "clamp" }) }} />
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Close navigation"
@@ -226,7 +224,7 @@ export default function NavigationDrawer({
               right: 0,
               bottom: 0,
               left: 0,
-              backgroundColor: "rgba(0,0,0,0.34)",
+
             }}
           />
           <Animated.View
@@ -297,7 +295,7 @@ export default function NavigationDrawer({
             </View>
           </Animated.View>
         </View>
-      </Modal>
+      </View>
     </View>
   );
 }

@@ -81,7 +81,7 @@ export function createMessageTemplateServices(
     if (error) throw new Error(error.message);
   }
 
-  async function fetchMessageTemplates(userId) {
+  async function fetchMessageTemplates(userId, { includeImagePreviews = true } = {}) {
     if (!userId) return [];
 
     const { data, error } = await supabase
@@ -96,7 +96,7 @@ export function createMessageTemplateServices(
       throw new Error(error.message);
     }
 
-    return addTemplateImagePreviews(data || []);
+    return includeImagePreviews ? addTemplateImagePreviews(data || []) : (data || []);
   }
 
   async function saveMessageTemplate({
@@ -224,6 +224,7 @@ export function createMessageTemplateServices(
     MESSAGE_TEMPLATE_IMAGE_MAX_BYTES,
     MESSAGE_TEMPLATE_IMAGE_TYPES,
     fetchMessageTemplates,
+    addTemplateImagePreviews,
     saveMessageTemplate,
     setDefaultMessageTemplate,
     deleteMessageTemplate,

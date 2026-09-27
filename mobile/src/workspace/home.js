@@ -1,3 +1,4 @@
+import { messageTemplatesOptions } from "./message-templates";
 import ContentSkeleton from "../components/ContentSkeleton";
 import { useState } from "react";
 import { Image, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
@@ -12,6 +13,7 @@ import { formatArea, formatPrice } from "../features/listing-alerts/formatters";
 import { Feedback } from "./ui";
 
 export default function WorkspaceHome({ userId, displayName, colors, onNavigate }) {
+  useQuery(messageTemplatesOptions(userId));
   const [tab, setTab] = useState("activity");
   const [days, setDays] = useState(14);
   const [refreshing, setRefreshing] = useState(false);

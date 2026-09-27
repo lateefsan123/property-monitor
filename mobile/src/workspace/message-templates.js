@@ -6,7 +6,15 @@ export const {
   MESSAGE_TEMPLATE_IMAGE_MAX_BYTES,
   MESSAGE_TEMPLATE_IMAGE_TYPES,
   fetchMessageTemplates,
+  addTemplateImagePreviews,
   saveMessageTemplate,
   setDefaultMessageTemplate,
   deleteMessageTemplate,
 } = createMessageTemplateServices(supabase, randomUUID);
+
+export const messageTemplatesOptions = userId => ({
+  queryKey: ["seller-signal", "message-templates", userId],
+  queryFn: () => fetchMessageTemplates(userId, { includeImagePreviews: false }),
+  enabled: Boolean(userId),
+  staleTime: 5 * 60_000,
+});

@@ -3,10 +3,10 @@ import { Image, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, Scro
 import * as ImagePicker from "expo-image-picker";
 import { File } from "expo-file-system";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import { useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_MESSAGE_TEMPLATE } from "../features/seller-signal/insight-utils";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   saveMessageTemplate,
+  addTemplateImagePreviews,
   deleteMessageTemplate,
   MESSAGE_TEMPLATE_IMAGE_MAX_BYTES,
   MESSAGE_TEMPLATE_IMAGE_TYPES,
@@ -18,9 +18,9 @@ import { Button, Feedback, Icon } from "./ui";
 export default function MessageTemplateEditor({ templates, initial, userId, colors, onClose }) {
   const client = useQueryClient();
   const selected = initial;
-  const [name, setName] = useState(initial?.name || "Transaction update");
+  const [name, setName] = useState(initial?.name ?? "");
   const [content, setContent] = useState(
-    initial?.content || DEFAULT_MESSAGE_TEMPLATE,
+    initial?.content ?? "",
   );
   const [isDefault, setIsDefault] = useState(
     initial?.is_default || templates.length === 0,
@@ -112,7 +112,14 @@ export default function MessageTemplateEditor({ templates, initial, userId, colo
       "{{transactions}}",
       "- St. Regis Residences | 2 Bed | AED 4.95M | 1,410 sqft\n- St. Regis Residences | 1 Bed | AED 3.15M | 910 sqft",
     );
-  const imageUri = image?.uri || (!removeImage && selected?.image_url);
+  const attachment = useQuery({
+    queryKey: ["seller-signal", "template-image", userId, selected?.image_path],
+    queryFn: async () => (await addTemplateImagePreviews([selected]))[0].image_url,
+    enabled: Boolean(userId && selected?.image_path && !removeImage && !image),
+    staleTime: 30 * 60_000,
+  });
+  const imageUri = image?.uri || (!removeImage && attachment.data);
+  const hasImage = Boolean(image || (!removeImage && selected?.image_path));
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={requestClose}>
       <SafeAreaProvider>
@@ -163,12 +170,13 @@ export default function MessageTemplateEditor({ templates, initial, userId, colo
           <Pressable accessibilityRole="button" disabled={busy} onPress={() => openSheet("details")} style={{ minHeight: 44, flex: 1, justifyContent: "center" }}><Text style={{ color: colors.textMuted, fontSize: 14 }}>Insert details</Text></Pressable>
           <Pressable accessibilityRole="button" disabled={busy} onPress={() => openSheet("preview")} style={{ minHeight: 44, paddingLeft: 20, justifyContent: "center" }}><Text style={{ color: colors.isDark ? "#6EA8FF" : "#1769E8", fontSize: 14 }}>Preview</Text></Pressable>
         </View>
+        {hasImage && !image ? <Feedback colors={colors} error={attachment.error} loading={attachment.isLoading} onRetry={attachment.refetch} /> : null}
         <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
           {imageUri ? <Image source={{ uri: imageUri }} accessibilityLabel="Template attachment" style={{ width: 60, height: 60, borderRadius: 8 }} resizeMode="cover" /> : null}
           <Pressable accessibilityRole="button" disabled={busy} onPress={pickImage} style={{ minHeight: 44, justifyContent: "center", flex: 1 }}>
-            <Text style={{ color: colors.textName, fontSize: 15 }}>{imageUri ? "Change image" : "+ Add image"}</Text>
+            <Text style={{ color: colors.textName, fontSize: 15 }}>{hasImage ? "Change image" : "+ Add image"}</Text>
           </Pressable>
-          {imageUri ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => { setImage(null); setRemoveImage(true); setDirty(true); }} style={{ minHeight: 44, justifyContent: "center" }}>
+          {hasImage ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => { setImage(null); setRemoveImage(true); setDirty(true); }} style={{ minHeight: 44, justifyContent: "center" }}>
             <Text style={{ color: colors.textMuted, fontSize: 14 }}>Remove</Text>
           </Pressable> : null}
         </View>
