@@ -1,3 +1,4 @@
+import AddButton from '../components/AddButton';
 import AppSearchBar from "../components/AppSearchBar";
 import { useState } from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
@@ -19,7 +20,7 @@ export default function SpreadsheetLibrary({ sources, counts, colors, loading, e
   return <View style={{ gap: 12 }}>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
       <AppSearchBar colors={colors} style={{ flex: 1 }} accessibilityLabel="Search spreadsheets" placeholder="Search spreadsheets" clearLabel="Clear spreadsheet search" value={search} onChangeText={setSearch} />
-      <Pressable accessibilityRole="button" accessibilityLabel="Import spreadsheet" accessibilityState={{ disabled: busy }} disabled={busy} onPress={onImport} style={({ pressed }) => ({ width: 48, height: 48, borderRadius: 24, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.btnPrimaryBg, opacity: busy || pressed ? 0.6 : 1 })}><Icon name="plus" size={23} color={colors.btnPrimaryText} /></Pressable>
+      <AddButton colors={colors} accessibilityLabel="Import spreadsheet" disabled={busy} onPress={onImport} />
     </View>
     <View>
       {visible.map(source => <Pressable key={source.id} accessibilityRole="button" accessibilityLabel={`Open ${label(source)}`} onPress={() => onOpen(source.id)} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', paddingVertical: 18, gap: 14, borderBottomWidth: 0.5, borderBottomColor: colors.border, opacity: pressed ? 0.65 : 1 })}>

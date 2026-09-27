@@ -1,6 +1,8 @@
+import MotionScreen from '../components/MotionScreen';
+import QuickActions from './quick-actions';
 import { leadsQueryKey } from "../features/seller-signal/useHomeLeadSummary";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BackHandler, Platform, Text, View } from "react-native";
+import { BackHandler, Text, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import NavigationDrawer from "./navigation-drawer";
 import WorkspaceHome from "./home";
@@ -72,9 +74,6 @@ export default function WorkspaceShell({
       }));
   }, []);
   useEffect(() => {
-    if (!createOpen && Platform.OS !== "ios") finishShortcutDismiss();
-  }, [createOpen, finishShortcutDismiss]);
-  useEffect(() => {
     const sub = BackHandler.addEventListener("hardwareBackPress", () => {
       if (createOpen) {
         setCreateOpen(false);
@@ -116,14 +115,7 @@ export default function WorkspaceShell({
       )}
     >
       {visited.map((id) => (
-        <View
-          key={id}
-          style={{ flex: 1, display: page === id ? "flex" : "none" }}
-          accessibilityElementsHidden={page !== id}
-          importantForAccessibility={
-            page === id ? "auto" : "no-hide-descendants"
-          }
-        >
+        <MotionScreen key={id} active={page === id}>
           {id === "home" ? (
             <WorkspaceHome {...common} />
           ) : id === "sellers" ? (
@@ -146,7 +138,7 @@ export default function WorkspaceShell({
               onToggleTheme={onToggleTheme}
             />
           )}
-        </View>
+        </MotionScreen>
       ))}
       <VoicePanel key={userId} userId={userId} colors={colors} hideLauncher={page === "settings" || page === "message-template"} launcherBottom={page === "sellers" ? sellerSendBarHeight + 16 : page === "schedule" ? 92 : page === "listing-alerts" ? listingFooterHeight + 16 : 16} />
       <BottomSheet
@@ -155,30 +147,10 @@ export default function WorkspaceShell({
         onClose={() => setCreateOpen(false)}
         colors={colors}
       >
-        <View style={{ padding: 20, gap: 10 }}>
-          <Text
-            style={{ color: colors.textName, fontSize: 20, fontWeight: "700" }}
-          >
-            Quick actions
-          </Text>
-          {[
-            ["Sellers", "sellers", { add: false }],
-            ["Search listings", "listing-alerts", { search: true }],
-            ["Import spreadsheet", "spreadsheets", { add: true }],
-            ["Message template", "message-template", {}],
-          ].map(([label, destination, request]) => (
-            <Button
-              key={label}
-              colors={colors}
-              onPress={() => {
-                pendingShortcut.current = () => navigate(destination, request);
-                setCreateOpen(false);
-              }}
-            >
-              {label}
-            </Button>
-          ))}
-        </View>
+        <QuickActions colors={colors} onClose={() => setCreateOpen(false)} onAction={(destination, request) => {
+          pendingShortcut.current = () => navigate(destination, request);
+          setCreateOpen(false);
+        }} />
       </BottomSheet>
       <BottomSheet
         visible={signoutOpen}

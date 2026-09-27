@@ -1,3 +1,4 @@
+import AddButton from '../components/AddButton';
 import { useState } from 'react';
 import scheduleArt from '../../assets/schedule-empty.png';
 import { FlatList, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
@@ -31,7 +32,7 @@ export default function ScheduleEditor({ state, colors }) {
     <ScrollView contentInsetAdjustmentBehavior="automatic" keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, gap: 16, paddingBottom: 88 }}>
       <Feedback colors={colors} error={state.loadError} loading={state.loading} onRetry={state.retry} />
       {scheduled.length ? <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Add building to schedule" disabled={blocked} onPress={() => { setSearch(''); setSheet('add'); }} style={{ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgCard }}><AppIcon name="plus" color={colors.text} /></Pressable>
+        <AddButton colors={colors} accessibilityLabel="Add building to schedule" disabled={blocked} onPress={() => { setSearch(''); setSheet('add'); }} />
       </View> : null}
       {scheduled.map(name => <Pressable key={scheduleBuildingKey(name)} accessibilityRole="button" accessibilityLabel={`Edit schedule for ${name}`} disabled={blocked} onPress={() => edit(name)} style={({ pressed }) => ({ padding: 16, gap: 12, borderRadius: 16, backgroundColor: colors.bgCard, boxShadow: '0 4px 16px rgba(0,0,0,0.04)', opacity: pressed ? 0.65 : 1 })}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Text style={{ flex: 1, color: colors.text, fontSize: 17, fontWeight: '600' }}>{name}</Text><AppIcon name="edit" size={18} color={colors.text} /><AppIcon name="checkCircle" size={20} color={colors.badgeOkText} /></View>

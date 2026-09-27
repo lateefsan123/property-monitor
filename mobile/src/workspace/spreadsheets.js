@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
@@ -41,10 +41,6 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
     if (request?.sourceId) setSelectedId(request.sourceId);
     if (request?.add) setImportMode('choose');
   }, [request]);
-  useEffect(() => {
-    // Android does not emit Modal.onDismiss. Run after the hidden modal commits.
-    if (!importMode && Platform.OS !== 'ios') finishDismiss();
-  }, [importMode, finishDismiss]);
   const selected = d.leadSources.find((source) => String(source.id) === String(selectedId));
 
   function openImport() {
@@ -134,15 +130,16 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
   return (
     <View style={{ flex: 1 }}>
       <ScrollView keyboardShouldPersistTaps="handled" contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ flexGrow: 1, padding: 20, gap: 12, paddingBottom: Math.max(insets.bottom, 16) + 100 }}>
-        <Feedback colors={colors} loading={d.loading || (busy && !importMode)} error={!importMode ? error || d.error : d.error} />
+        <Feedback colors={colors} loading={d.loading} error={!importMode ? error || d.error : d.error} />
         {notice && <Text accessibilityRole="alert" style={{ color: colors.badgeOkText }}>{notice}</Text>}
         <SpreadsheetLibrary sources={d.leadSources} counts={d.sourceCounts} colors={colors} loading={d.loading} error={d.error} busy={busy} onImport={openImport} onOpen={setSelectedId} />
       </ScrollView>
       <BottomSheet visible={Boolean(importMode)} onClose={() => !busy && setImportMode(null)} onDismiss={finishDismiss} colors={colors}>
-        <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 22, gap: 18 }}>
+        <ScrollView style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 22, gap: 18 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             {importMode !== 'choose' && <Pressable accessibilityRole="button" accessibilityLabel="Back to import options" disabled={busy} onPress={() => { setError(null); setImportMode('choose'); }} style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center', marginLeft: -10 }}><Icon name="back" color={colors.textName} /></Pressable>}
             <Text style={{ color: colors.textName, fontSize: 21, fontWeight: '600', flex: 1 }}>{importMode === 'url' ? 'Import from URL' : 'Import spreadsheet'}</Text>
+            <Pressable accessibilityRole="button" accessibilityLabel="Close import" disabled={busy} onPress={() => setImportMode(null)} style={({ pressed }) => ({ width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgBadge, opacity: busy || pressed ? 0.5 : 1 })}><Icon name="close" size={20} color={colors.textMuted} /></Pressable>
           </View>
           {importMode === 'url' ? <>
             <Field colors={colors} label="Spreadsheet link" placeholder="Google Sheets, OneDrive or SharePoint link" value={url} onChangeText={setUrl} editable={!busy} autoCapitalize="none" autoCorrect={false} keyboardType="url" autoFocus />
@@ -184,10 +181,10 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
 
 function ImportOption({ colors, icon, provider, title, detail, onPress }) {
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={`${title}, ${detail}`} onPress={onPress} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 64, opacity: pressed ? 0.6 : 1 })}>
+    <Pressable accessibilityRole="button" accessibilityLabel={`${title}, ${detail}`} onPress={onPress} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 76, paddingHorizontal: 12, borderRadius: 16, backgroundColor: pressed ? colors.bgBadge : 'transparent' })}>
       <View style={{ height: 44, width: 44, borderRadius: 13, backgroundColor: colors.bgBadge, alignItems: 'center', justifyContent: 'center' }}>{provider ? <SheetProviderIcon provider={provider} /> : <Icon name={icon} color={colors.textName} size={22} />}</View>
       <View style={{ flex: 1, gap: 4 }}>
-        <Text style={{ color: colors.textName, fontSize: 16, fontWeight: '500' }}>{title}</Text>
+        <Text style={{ color: colors.textName, fontSize: 16, fontWeight: '600' }}>{title}</Text>
         <Text style={{ color: colors.textMuted, fontSize: 13 }}>{detail}</Text>
       </View>
       <Icon name="chevron" color={colors.textMuted} size={18} />

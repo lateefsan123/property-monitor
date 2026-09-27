@@ -1,3 +1,4 @@
+import AddButton from '../components/AddButton';
 /* global require */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -190,14 +191,7 @@ export default function NavigationDrawer({
         >
           {headerTitle || PAGE_LABELS[page] || "Home"}
         </Text>
-        {!hideCreate && <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Quick actions"
-          onPress={() => onAction("new")}
-          style={{ padding: 10 }}
-        >
-          <Icon name="plus" />
-        </Pressable>}
+        {!hideCreate && <AddButton colors={colors} accessibilityLabel="Quick actions" onPress={() => onAction("new")} />}
 
       </View>
       <View style={{ flex: 1 }}>{children}</View>
