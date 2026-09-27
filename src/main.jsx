@@ -24,6 +24,7 @@ import { queryClient } from "./queryClient";
 import { pageQueries } from "./page-prefetch";
 import { prefetchHomeOnStartup } from "./startup-prefetch";
 import { supabase, supabaseConfigError } from "./supabase";
+import { billingFailureState } from "./billing-state.js";
 
 const POST_AUTH_ACTION_STORAGE_KEY = "seller_signal_post_auth_action_v1";
 const IntegrationCallback = lazy(() => import('./IntegrationCallback.jsx'));
@@ -123,6 +124,7 @@ export function Root() {
       && billingReadyForSession
       && !billingState.subscriptionLoading
       && !billingState.checkoutPending
+      && !billingState.error
       && !pendingCheckoutSessionId
       && postAuthCheckoutUserRef.current !== sessionUserId
       && !hasActiveBillingSubscription,
@@ -180,10 +182,8 @@ export function Root() {
   useEffect(() => {
     if (!supabase) return undefined;
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
+    // INITIAL_SESSION is emitted after storage initialization. A separate
+    // getSession promise can arrive late and overwrite a newer auth event.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
       setSession(nextSession);
       if (event === "PASSWORD_RECOVERY") setIsRecoveringPassword(true);
@@ -245,8 +245,8 @@ export function Root() {
       loading = true;
       setBillingState((currentState) => ({
         ...currentState,
-        error: null,
         initialized: background ? currentState.initialized : false,
+        error: background ? currentState.error : null,
         subscription: currentState.userId === sessionUserId ? currentState.subscription : null,
         subscriptionLoading: !background,
         userId: sessionUserId,
@@ -259,6 +259,7 @@ export function Root() {
         setBillingState((currentState) => ({
           ...currentState,
           initialized: true,
+          error: null,
           subscription,
           subscriptionLoading: false,
           userId: sessionUserId,
@@ -266,14 +267,10 @@ export function Root() {
       } catch (error) {
         if (ignore) return;
 
-        setBillingState((currentState) => ({
-          ...currentState,
-          error: error instanceof Error ? error.message : "Could not load subscription status",
-          initialized: true,
-          subscription: null,
-          subscriptionLoading: false,
-          userId: sessionUserId,
-        }));
+        setBillingState((currentState) => billingFailureState(
+          currentState, sessionUserId,
+          error instanceof Error ? error.message : "Could not load subscription status",
+        ));
       } finally {
         loading = false;
       }
@@ -285,11 +282,13 @@ export function Root() {
     };
     const refreshTimer = window.setInterval(refreshWhenVisible, 60_000);
     document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("online", refreshWhenVisible);
 
     return () => {
       ignore = true;
       window.clearInterval(refreshTimer);
       document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("online", refreshWhenVisible);
     };
   }, [sessionUserId]);
 
@@ -356,6 +355,7 @@ export function Root() {
   useEffect(() => {
     if (!sessionUserId || postAuthAction !== "checkout") return;
     if (!billingReadyForSession || billingState.subscriptionLoading || billingState.checkoutPending) return;
+    if (billingState.error) return;
     if (pendingCheckoutSessionId) return;
     if (postAuthCheckoutUserRef.current === sessionUserId) return;
 
@@ -368,6 +368,7 @@ export function Root() {
   }, [
     billingReadyForSession,
     billingState.checkoutPending,
+    billingState.error,
     billingState.subscriptionLoading,
     hasActiveBillingSubscription,
     pendingCheckoutSessionId,
@@ -446,6 +447,19 @@ export function Root() {
 
   if (session && (billingState.checkoutPending || postAuthCheckoutWillStart)) {
     return <CheckoutRedirectScreen />;
+  }
+
+  if (session && billingState.error && !hasActiveBillingSubscription) {
+    return (
+      <main className="checkout-redirect-screen">
+        <section aria-labelledby="billing-retry-title">
+          <h1 id="billing-retry-title">You’re still signed in</h1>
+          <p role="alert">We couldn’t verify your subscription. Please try again.</p>
+          <button type="button" onClick={() => window.location.reload()}>Try again</button>
+          <button type="button" onClick={handleSignOutFromLanding}>Sign out</button>
+        </section>
+      </main>
+    );
   }
 
   if (window.location.pathname.replace(/\/$/, "") === "/pricing" && !showAuth) {
