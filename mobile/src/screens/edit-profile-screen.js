@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
-import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import AppIcon from '../components/AppIcon';
@@ -74,7 +74,9 @@ export default function EditProfileScreen({ userId, displayName = '', avatarUrl 
   }
 
   return <Modal visible animationType="slide" presentationStyle="fullScreen" onRequestClose={menu ? () => setMenu(false) : close}>
-    <SafeAreaView style={{ flex: 1, backgroundColor }}>
+    <SafeAreaProvider style={{ flex: 1, backgroundColor }}>
+    <StatusBar barStyle={colors.isDark ? 'light-content' : 'dark-content'} />
+    <SafeAreaView edges={['top', 'bottom', 'left', 'right']} style={{ flex: 1, backgroundColor }}>
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={s.header}>
           <Pressable accessibilityRole="button" disabled={busy} onPress={close} style={[s.pill, { backgroundColor: colors.bgBadge }]}><Text style={{ color: foreground }}>Cancel</Text></Pressable>
@@ -103,6 +105,7 @@ export default function EditProfileScreen({ userId, displayName = '', avatarUrl 
         </View> : null}
       </KeyboardAvoidingView>
     </SafeAreaView>
+    </SafeAreaProvider>
   </Modal>;
 }
 
