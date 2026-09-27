@@ -30,6 +30,8 @@ import {
 import { useListingAlerts } from "../features/listing-alerts/useListingAlerts";
 import { getTheme } from "../theme";
 import ListingDetailScreen from "./ListingDetailScreen";
+import BuildingExterior from "../features/listing-alerts/BuildingExterior";
+import { selectBuildingResults } from "../features/listing-alerts/building-exteriors";
 
 const PRICE_BUCKETS = [
   { id: "all", label: "All" },
@@ -198,14 +200,10 @@ function BuildingRow({ building, colors, isWatched, watchDisabled, onToggleWatch
         ? formatPriceRange(building.lowestPrice, building.highestPrice)
         : "Watch to load listings";
 
-  if (grid) return <View style={{borderWidth:1,borderColor:colors.border,borderRadius:12,overflow:'hidden',backgroundColor:colors.bgCard}}><Pressable accessibilityRole="button" accessibilityLabel={"Open building " + building.buildingName} onPress={onPress}>{building.imageUrl ? <Image source={{uri:building.imageUrl}} style={{width:'100%',height:160,backgroundColor:colors.bgBadge}} /> : <View style={{height:90,backgroundColor:colors.bgBadge,alignItems:'center',justifyContent:'center'}}><HomeIcon size={30} color={colors.textMuted} /></View>}<View style={{padding:16,gap:7}}><Text style={{color:colors.textName,fontSize:18,fontWeight:'700'}}>{building.buildingName}</Text><Text style={{color:colors.textMuted,fontSize:12}}>{building.community || 'Dubai'}</Text><View style={{flexDirection:'row',justifyContent:'space-between'}}><Text style={{color:colors.text}}>{countLine}</Text><Text style={{color:colors.text,fontWeight:'600'}}>{priceLine}</Text></View>{changeCount > 0 && <Text style={{color:colors.badgeOkText,fontSize:12}}>{changeCount} updates</Text>}</View></Pressable><View style={{padding:12,paddingTop:0,flexDirection:'row',justifyContent:'space-between'}}><WatchButton active={isWatched} disabled={watchDisabled} onPress={onToggleWatch} colors={colors}/></View></View>;
+  if (grid) return <View style={{borderWidth:1,borderColor:colors.border,borderRadius:12,overflow:'hidden',backgroundColor:colors.bgCard}}><Pressable accessibilityRole="button" accessibilityLabel={"Open building " + building.buildingName} onPress={onPress}><BuildingExterior building={building} colors={colors} grid /><View style={{padding:16,gap:7}}><Text style={{color:colors.textName,fontSize:18,fontWeight:'700'}}>{building.buildingName}</Text><Text style={{color:colors.textMuted,fontSize:12}}>{building.community || 'Dubai'}</Text><View style={{flexDirection:'row',justifyContent:'space-between'}}><Text style={{color:colors.text}}>{countLine}</Text><Text style={{color:colors.text,fontWeight:'600'}}>{priceLine}</Text></View>{changeCount > 0 && <Text style={{color:colors.badgeOkText,fontSize:12}}>{changeCount} updates</Text>}</View></Pressable><View style={{padding:12,paddingTop:0,flexDirection:'row',justifyContent:'space-between'}}><WatchButton active={isWatched} disabled={watchDisabled} onPress={onToggleWatch} colors={colors}/></View></View>;
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [{ flexDirection: "row", alignItems: "center", gap: 12 }, pressed && { opacity: 0.85 }]}>
-      {building.imageUrl ? (
-        <Image source={{ uri: building.imageUrl }} style={{ width: 64, height: 64, borderRadius: 10, backgroundColor: colors.bgBadge }} />
-      ) : (
-        <View style={{ width: 52, height: 52, borderRadius: 8, backgroundColor: colors.bgBadge }} />
-      )}
+      <BuildingExterior building={building} colors={colors} />
 
       <View style={{ flex: 1 }}>
         <Text style={{ fontSize: 17, fontWeight: "800", color: colors.textName }} numberOfLines={2}>
@@ -457,17 +455,13 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
       || selectedSearchOption;
   }, [alerts.watchedBuildings, searchResults, selectedSearchOption]);
 
-  const buildings = useMemo(() => {
-    if (watchingOnly) {
-      if (selectedSearchBuilding?.locationId) {
-        return (alerts.watchedBuildings || []).filter((building) => building.locationId === selectedSearchBuilding.locationId);
-      }
-      return alerts.watchedBuildings || [];
-    }
-    if (selectedSearchBuilding) return [selectedSearchBuilding];
-    if (alerts.usingLiveSearch) return searchResults;
-    return alerts.watchedBuildings || [];
-  }, [alerts.usingLiveSearch, alerts.watchedBuildings, searchResults, selectedSearchBuilding, watchingOnly]);
+  const buildings = useMemo(() => selectBuildingResults({
+    watchedBuildings: alerts.watchedBuildings,
+    searchResults,
+    selectedBuilding: selectedSearchBuilding,
+    searching: alerts.usingLiveSearch,
+    watchingOnly,
+  }), [alerts.usingLiveSearch, alerts.watchedBuildings, searchResults, selectedSearchBuilding, watchingOnly]);
 
   const listings = useMemo(() => {
     if (allListings) return dropsQuery.data || [];
@@ -483,10 +477,6 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
 
     if (effectiveListingBuildingFilter !== "all") {
       source = source.filter((l) => l.locationId === effectiveListingBuildingFilter);
-    }
-
-    if (watchingOnly && alerts.watchedSet?.size) {
-      source = source.filter((l) => alerts.watchedSet.has(l.locationId));
     }
 
     if (effectiveTrackedOnly) {
@@ -533,13 +523,11 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
     alerts.latestListings,
     alerts.stats.watchedBuildingCount,
     alerts.trackedListings,
-    alerts.watchedSet,
     effectiveListingBuildingFilter,
     effectiveTrackedOnly,
     priceChangedOnly,
     priceFilter,
     trackedStatusFilter,
-    watchingOnly,
   ]);
 
   const selectedBuildingOption = useMemo(
@@ -583,6 +571,7 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
 
   function handleSearchInputChange(nextValue) {
     setSelectedSearchOption(null);
+    if (nextValue.trim().length < 2) setWatchingOnly(false);
     setSearchMenuOpen(nextValue.trim().length >= 2);
     alerts.actions.setSearchTerm(nextValue);
   }
@@ -596,6 +585,7 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
   }
 
   function clearSearchSelection() {
+    setWatchingOnly(false);
     setSelectedSearchOption(null);
     setSearchMenuOpen(false);
     alerts.actions.setSearchTerm("");
@@ -793,11 +783,11 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
             ) : (
               <View style={s.emptyWrap}>
                 <Text style={s.emptyTitle}>
-                  {viewTab === "buildings" ? (searchTerm ? "No buildings found" : "Watch a building") : "No listings found"}
+                  {viewTab === "buildings" ? (searchTerm ? watchingOnly ? "No watched buildings match" : "No buildings found" : "Watch a building") : "No listings found"}
                 </Text>
                 <Text style={s.emptyText}>
                   {viewTab === "buildings"
-                    ? (searchTerm ? "Try another building name." : "Search above, then tap Watch to follow its listings.")
+                    ? (searchTerm ? watchingOnly ? "Turn off Watching only in view options to see other buildings." : "Try another building name." : "Search above, then tap Watch to follow its listings.")
                     : allListings ? "No price drops in the last 14 days." : "Try changing your filters or checking again later."}
                 </Text>
               </View>
@@ -837,7 +827,7 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
         </View>
       ) : null}
 
-      {<Pressable accessibilityRole="button" accessibilityLabel="Listing filters" style={({ pressed }) => [s.fab, pressed && { opacity: 0.85 }]} onPress={() => setSheetOpen(true)}>
+      {!allListings && <Pressable accessibilityRole="button" accessibilityLabel={viewTab === "buildings" ? "Building view options" : "Listing filters"} style={({ pressed }) => [s.fab, pressed && { opacity: 0.85 }]} onPress={() => setSheetOpen(true)}>
         <TuneIcon color={colors.bg} />
       </Pressable>}
 
@@ -845,18 +835,19 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
       <BottomSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} colors={colors}>
         <ScrollView style={s.sheetScroll} contentContainerStyle={s.sheetContent} showsVerticalScrollIndicator={false}>
           <View style={{gap:10,marginBottom:16}}><Button colors={colors} onPress={() => setSheetOpen(false)}>Done</Button>{viewTab === 'buildings' && <><Button colors={colors} onPress={() => setGrid(!grid)}>{grid ? 'List layout' : 'Grid layout'}</Button></>}</View>
-          {!selectedBuildingId ? (
-            <>
+          {viewTab === "buildings" ? (
+            alerts.usingLiveSearch ? <>
               <Text style={s.sectionLabel}>View</Text>
               <View style={s.toggleRow}>
                 <Text style={s.toggleLabel}>Watching only</Text>
                 <Switch
+                  accessibilityLabel="Watching only"
                   value={watchingOnly}
                   onValueChange={handleWatchingOnlyChange}
                   trackColor={{ false: colors.border, true: colors.tabActiveBg }}
                 />
               </View>
-            </>
+            </> : null
           ) : (
             <>
               {!autoTracking ? (

@@ -1,0 +1,1441 @@
+[
+  {
+    "name": "Boulevard Crescent Tower 1",
+    "aliases": [
+      "BLVD Crescent Tower 1",
+      "Boulevard Crescent 1",
+      "BLVD Crescent 1"
+    ],
+    "asset": "boulevard-crescent-tower-1.jpg",
+    "scope": "building",
+    "label": "Boulevard Crescent Tower 1",
+    "sourcePage": "https://www.bayut.com/buildings/boulevard-crescent-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Boulevard_Crescent_1_Cover_26_02_022960abed_4a86acfd14.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Burj Vista 1",
+    "aliases": [
+      "Burj Vista Tower 1"
+    ],
+    "asset": "burj-vista-1.jpg",
+    "scope": "building",
+    "label": "Burj Vista 1",
+    "sourcePage": "https://www.bayut.com/buildings/burj-vista-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Burj_Vista_1_Cover_d353f36750_171c431964.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Standpoint Tower A",
+    "aliases": [
+      "Standpoint A"
+    ],
+    "asset": "standpoint-tower-a.jpg",
+    "scope": "building",
+    "label": "Standpoint Tower A",
+    "sourcePage": "https://www.bayut.com/buildings/standpoint-tower-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Buildingview_Standpoint_Tower1_11022020_a44f6dcb5b_ceccd703c6.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Standpoint Tower B",
+    "aliases": [
+      "Standpoint B"
+    ],
+    "asset": "standpoint-tower-b.jpg",
+    "scope": "building",
+    "label": "Standpoint Tower B",
+    "sourcePage": "https://www.bayut.com/buildings/standpoint-tower-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Front_Cover_Standpoint_Tower2_11_Feb20_85f25e0456_bfd194c234.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Boulevard Crescent Tower 2",
+    "aliases": [
+      "BLVD Crescent Tower 2",
+      "Boulevard Crescent 2",
+      "BLVD Crescent 2"
+    ],
+    "asset": "boulevard-crescent-tower-2.jpg",
+    "scope": "building",
+    "label": "Boulevard Crescent Tower 2",
+    "sourcePage": "https://www.bayut.com/buildings/boulevard-crescent-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Boulevard_Crescent_2_Cover_27_02_d3153d62e7_f990fb6192.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Lofts West",
+    "aliases": [
+      "Lofts West"
+    ],
+    "asset": "the-lofts-west.jpg",
+    "scope": "building",
+    "label": "The Lofts West",
+    "sourcePage": "https://www.bayut.com/buildings/the-lofts-west/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Lofts_West_11272019_849d07bc2f_489a150b65.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Burj Vista 2",
+    "aliases": [
+      "Burj Vista Tower 2"
+    ],
+    "asset": "burj-vista-2.jpg",
+    "scope": "building",
+    "label": "Burj Vista 2",
+    "sourcePage": "https://www.bayut.com/buildings/burj-vista-tower-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/001_016911699a_16826bf388.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Lofts East",
+    "aliases": [
+      "Lofts East"
+    ],
+    "asset": "the-lofts-east.jpg",
+    "scope": "building",
+    "label": "The Lofts East",
+    "sourcePage": "https://www.bayut.com/buildings/the-lofts-east/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/the_lofts_east_cover_12_26_2019_abc4038ce3_0a10be9c8f.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Boulevard Central Tower 1",
+    "aliases": [
+      "Boulevard Central 1",
+      "Boulevard Central Tower A"
+    ],
+    "asset": "boulevard-central-tower-1.jpg",
+    "scope": "building",
+    "label": "Boulevard Central Tower 1",
+    "sourcePage": "https://www.bayut.com/buildings/boulevard-central-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Boulevard_Central_Tower_1_Cover_17_02_c70d1263e5_3917a208c6.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Lofts Central Tower",
+    "aliases": [
+      "Lofts Central",
+      "The Lofts Central"
+    ],
+    "asset": "the-lofts-central-tower.jpg",
+    "scope": "building",
+    "label": "The Lofts Central Tower",
+    "sourcePage": "https://www.bayut.com/buildings/the-lofts-central-tower/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Lofts_Central_Tower_18102022_6bef0e4fec_cf1b898ecc.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "City Center Residences",
+    "aliases": [
+      "City Centre Residences",
+      "City Center Residence",
+      "City Centre Residence"
+    ],
+    "asset": "city-center-residences.jpg",
+    "scope": "building",
+    "label": "City Center Residences",
+    "sourcePage": "https://en.cscec.com/CompanyNews/CorporateNews/202505/3876035.html",
+    "sourceImage": "https://en.cscec.com/CompanyNews/CorporateNews/202505/W020250530365529655724.JPG",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Imperial Avenue",
+    "aliases": [
+      "IMPERIAL AVENUE"
+    ],
+    "asset": "imperial-avenue.jpg",
+    "scope": "building",
+    "label": "Imperial Avenue",
+    "sourcePage": "https://www.shapoorjipallonji.com/project/imperial_avenue",
+    "sourceImage": "https://www.shapoorjipallonji.com/assets/Mobile/Projects/640x550/imperial_avenue1.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "BLVD Heights Tower 1",
+    "aliases": [
+      "Boulevard Heights Tower 1",
+      "BLVD Heights 1"
+    ],
+    "asset": "blvd-heights-tower-1.jpg",
+    "scope": "complex",
+    "label": "BLVD Heights complex",
+    "sourcePage": "https://www.bayut.com/buildings/blvd-heights/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/BLVD_Heights_Cover_03102022_46eae64565_207c731f80.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Boulevard Central Tower 2",
+    "aliases": [
+      "Boulevard Central 2",
+      "Boulevard Central Tower B"
+    ],
+    "asset": "boulevard-central-tower-2.jpg",
+    "scope": "building",
+    "label": "Boulevard Central Tower 2",
+    "sourcePage": "https://www.bayut.com/buildings/boulevard-central-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Front_Cover_Boulevard_Central2_10_Feb20_3727ae6add_0e192f30dd.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "29 Boulevard Tower 1",
+    "aliases": [
+      "29 Burj Boulevard Tower 1",
+      "29 Boulevard 1",
+      "29 Burj Boulevard 1"
+    ],
+    "asset": "29-boulevard-tower-1.jpg",
+    "scope": "building",
+    "label": "29 Boulevard Tower 1",
+    "sourcePage": "https://www.bayut.com/buildings/29-boulevard-1-downtown-dubai/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Front_Cover_29_Boulevard1_19_Feb20_4fd10dc1f6_f64d3e1be8.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "BLVD Heights",
+    "aliases": [
+      "Boulevard Heights",
+      "BLVD Heights Towers",
+      "Boulevard Heights Towers"
+    ],
+    "asset": "blvd-heights-tower-1.jpg",
+    "scope": "building",
+    "label": "BLVD Heights",
+    "sourcePage": "https://www.bayut.com/buildings/blvd-heights/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/BLVD_Heights_Cover_03102022_46eae64565_207c731f80.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "BLVD Heights Tower 2",
+    "aliases": [
+      "Boulevard Heights Tower 2",
+      "BLVD Heights 2"
+    ],
+    "asset": "blvd-heights-tower-2.jpg",
+    "scope": "building",
+    "label": "BLVD Heights Tower 2",
+    "sourcePage": "https://www.bayut.com/buildings/blvd-heights-tower-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/BLVD_Heights_Tower_2_Cover_8_9_22_f3b57d8545_0be3935969.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "29 Boulevard",
+    "aliases": [
+      "BD 29 BLVD PODIUM",
+      "BD 29 Boulevard PODIUM",
+      "29 Boulevard Podium"
+    ],
+    "asset": "29-boulevard.jpg",
+    "scope": "building",
+    "label": "29 Boulevard",
+    "sourcePage": "https://www.bayut.com/buildings/29-boulevard/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/29_Boulevard_18022020_7d526f0126_798bbeed78.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "29 Boulevard Tower 2",
+    "aliases": [
+      "29 Burj Boulevard Tower 2",
+      "29 Boulevard 2",
+      "29 Burj Boulevard 2"
+    ],
+    "asset": "29-boulevard-tower-2.jpg",
+    "scope": "building",
+    "label": "29 Boulevard Tower 2",
+    "sourcePage": "https://www.bayut.com/buildings/29-burj-boulevard-tower-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/29_boulevard_Tower_2_Cover_17022020_61c067f95f_88c5e6418a.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Address Downtown Hotel",
+    "aliases": [
+      "Burj Lake Hotel",
+      "Burj Lake Hotel - The Address Downtown",
+      "Address Downtown"
+    ],
+    "asset": "the-address-downtown-hotel.jpg",
+    "scope": "building",
+    "label": "The Address Downtown Hotel",
+    "sourcePage": "https://www.bayut.com/buildings/address-downtown-hotel/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Bodyc001_ae3e84eb7c_f8b2b8d43a.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "South Ridge 1",
+    "aliases": [
+      "South Ridge Tower 1"
+    ],
+    "asset": "south-ridge-1.jpg",
+    "scope": "building",
+    "label": "South Ridge 1",
+    "sourcePage": "https://www.bayut.com/buildings/south-ridge-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Front_Cover_South_Ridge1_26_Dec19_1_c84c5b1258_8fc25e4a1a.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "South Ridge 3",
+    "aliases": [
+      "South Ridge Tower 3"
+    ],
+    "asset": "south-ridge-3.jpg",
+    "scope": "building",
+    "label": "South Ridge 3",
+    "sourcePage": "https://www.bayut.com/buildings/south-ridge-3/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Building_View_South_Ridge3_19022020_e9968999d7_3476042b66.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Bellevue Tower 1",
+    "aliases": [
+      "Bellevue 1"
+    ],
+    "asset": "bellevue-tower-1.jpg",
+    "scope": "building",
+    "label": "Bellevue Tower 1",
+    "sourcePage": "https://www.bayut.com/buildings/bellevue-tower-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Bellevue_Tower_1_Cover_6_9_23_50b5a0b6bc_a110bbdc27.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Burj Views A",
+    "aliases": [
+      "Burj Views Tower A"
+    ],
+    "asset": "burj-views-a.jpg",
+    "scope": "building",
+    "label": "Burj Views A",
+    "sourcePage": "https://www.bayut.com/buildings/burj-views-a/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Burj_Views_A_75a16d2aef_045e4d2553.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Bellevue Tower 2",
+    "aliases": [
+      "Bellevue 2"
+    ],
+    "asset": "bellevue-tower-2.jpg",
+    "scope": "building",
+    "label": "Bellevue Tower 2",
+    "sourcePage": "https://www.bayut.com/buildings/bellevue-tower-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/cover_9aa20a4602.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "South Ridge 4",
+    "aliases": [
+      "South Ridge Tower 4"
+    ],
+    "asset": "south-ridge-4.jpg",
+    "scope": "building",
+    "label": "South Ridge 4",
+    "sourcePage": "https://www.bayut.com/buildings/south-ridge-4/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/South_Ridge_4_Downtown_Dubai_Cover_03_03_8e4e8f48eb_4d2b3626fb.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "South Ridge 6",
+    "aliases": [
+      "South Ridge Tower 6"
+    ],
+    "asset": "south-ridge-6.jpg",
+    "scope": "building",
+    "label": "South Ridge 6",
+    "sourcePage": "https://www.bayut.com/buildings/south-ridge-6/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Cover_South_Ridge_6_efda20ba33_95eb0ef622.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "South Ridge 5",
+    "aliases": [
+      "South Ridge Tower 5"
+    ],
+    "asset": "south-ridge-5.jpg",
+    "scope": "building",
+    "label": "South Ridge 5",
+    "sourcePage": "https://www.bayut.com/buildings/south-ridge-5/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/East_south_ridge_tower_5_building_view_16092020_479f232585_d20cee39c8.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Residence 2",
+    "aliases": [
+      "The Residences 2",
+      "Residence Tower 2"
+    ],
+    "asset": "the-residence-2.jpg",
+    "scope": "complex",
+    "label": "The Residences complex",
+    "sourcePage": "https://www.bayut.com/buildings/the-residences-downtown-dubai/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Residence_1_519de81e0b_f707851f26.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "South Ridge 2",
+    "aliases": [
+      "South Ridge Tower 2"
+    ],
+    "asset": "south-ridge-2.jpg",
+    "scope": "building",
+    "label": "South Ridge 2",
+    "sourcePage": "https://www.bayut.com/buildings/south-ridge-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/South_Ridge_2_Cover_13032020_f997696eda_6e18a8233b.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Burj Views C",
+    "aliases": [
+      "Burj Views Tower C"
+    ],
+    "asset": "burj-views-c.jpg",
+    "scope": "building",
+    "label": "Burj Views C",
+    "sourcePage": "https://www.bayut.com/buildings/burj-views-c/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Cover_Burj_View_C_6f2d21147c_0a0a3fa44f.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Residence 5",
+    "aliases": [
+      "The Residences 5",
+      "Residence Tower 5"
+    ],
+    "asset": "the-residence-5.jpg",
+    "scope": "building",
+    "label": "The Residence 5",
+    "sourcePage": "https://www.bayut.com/buildings/burj-residences-tower-5/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Residence_5_18_02_2020_d2df786c78_2284fdc981.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Burj Views B",
+    "aliases": [
+      "Burj Views Tower B"
+    ],
+    "asset": "burj-views-b.jpg",
+    "scope": "building",
+    "label": "Burj Views B",
+    "sourcePage": "https://www.bayut.com/buildings/burj-views-b/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Cover_Burj_Views_B_6944efdbf8_ceed0b0bda.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Residence 1",
+    "aliases": [
+      "The Residences 1",
+      "Residence Tower 1"
+    ],
+    "asset": "the-residence-1.jpg",
+    "scope": "building",
+    "label": "The Residence 1",
+    "sourcePage": "https://www.bayut.com/buildings/the-residence-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Residence_1_4055f761a7_ede7d4676a.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Residence 3",
+    "aliases": [
+      "The Residences 3",
+      "Residence Tower 3"
+    ],
+    "asset": "the-residence-3.jpg",
+    "scope": "building",
+    "label": "The Residence 3",
+    "sourcePage": "https://www.bayut.com/buildings/the-residence-3/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Residence_3_10072020_7fc78e0edb_582392bdc8.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Residence 4",
+    "aliases": [
+      "The Residences 4",
+      "Residence Tower 4"
+    ],
+    "asset": "the-residence-4.jpg",
+    "scope": "building",
+    "label": "The Residence 4",
+    "sourcePage": "https://www.bayut.com/buildings/the-residence-4/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Residence_4_Cover_10_08_86fa6af374_ec4752104b.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Act One",
+    "aliases": [
+      "Act One Tower"
+    ],
+    "asset": "act-one.jpg",
+    "scope": "complex",
+    "label": "Act One Act Two complex",
+    "sourcePage": "https://www.emaar.com/en/properties/act-one-act-two",
+    "sourceImage": "https://uae-cms.emaar.com/uploads/9180_property_Hero_Image_7faada8926.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Act Two",
+    "aliases": [
+      "Act Two Tower"
+    ],
+    "asset": "act-one.jpg",
+    "scope": "complex",
+    "label": "Act One Act Two complex",
+    "sourcePage": "https://www.emaar.com/en/properties/act-one-act-two",
+    "sourceImage": "https://uae-cms.emaar.com/uploads/9180_property_Hero_Image_7faada8926.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Residence 6",
+    "aliases": [
+      "The Residences 6",
+      "Residence Tower 6"
+    ],
+    "asset": "the-residence-6.jpg",
+    "scope": "building",
+    "label": "The Residence 6",
+    "sourcePage": "https://www.bayut.com/buildings/the-residence-6-downtown-dubai/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Residence_6_Downtown_Dubai_Cover_06_12_1_fd68e3333c_41ed9d4bc8.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Address Fountain Views 2",
+    "aliases": [
+      "The Address Fountain Views 2",
+      "Address Residence Fountain Views 2"
+    ],
+    "asset": "address-fountain-views-2.jpg",
+    "scope": "complex",
+    "label": "Address Fountain Views complex",
+    "sourcePage": "https://www.bayut.com/buildings/address-dubai-mall-downtown-dubai/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Address_Fountain_Views_Cover_07_08_e92bb68320_3a746001b2.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Burj Views Podium",
+    "aliases": [],
+    "asset": "burj-views-podium.jpg",
+    "scope": "building",
+    "label": "Burj Views Podium",
+    "sourcePage": "https://www.bayut.com/buildings/burj-views-podium/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Burj_Views_Podium_Cover22_06_713c875ab0_117fb91c18.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Address Fountain Views",
+    "aliases": [
+      "The Address Fountain Views",
+      "Address Residence Fountain Views",
+      "Adress Fountain Views"
+    ],
+    "asset": "address-fountain-views-2.jpg",
+    "scope": "complex",
+    "label": "Address Fountain Views complex",
+    "sourcePage": "https://www.bayut.com/buildings/address-dubai-mall-downtown-dubai/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Address_Fountain_Views_Cover_07_08_e92bb68320_3a746001b2.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Residence 8",
+    "aliases": [
+      "The Residences 8",
+      "Residence Tower 8"
+    ],
+    "asset": "the-residence-8.jpg",
+    "scope": "building",
+    "label": "The Residence 8",
+    "sourcePage": "https://www.bayut.com/buildings/the-residence-8/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Residence_8_Cover_06_07_31e523b419_ad61204157.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Address Fountain Views 1",
+    "aliases": [
+      "The Address Fountain Views 1",
+      "Address Residence Fountain Views 1"
+    ],
+    "asset": "address-fountain-views-2.jpg",
+    "scope": "complex",
+    "label": "Address Fountain Views complex",
+    "sourcePage": "https://www.bayut.com/buildings/address-dubai-mall-downtown-dubai/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Address_Fountain_Views_Cover_07_08_e92bb68320_3a746001b2.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Address Fountain Views 3",
+    "aliases": [
+      "The Address Fountain Views 3",
+      "Address Residence Fountain Views 3"
+    ],
+    "asset": "address-fountain-views-2.jpg",
+    "scope": "complex",
+    "label": "Address Fountain Views complex",
+    "sourcePage": "https://www.bayut.com/buildings/address-dubai-mall-downtown-dubai/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Address_Fountain_Views_Cover_07_08_e92bb68320_3a746001b2.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Residence 9",
+    "aliases": [
+      "The Residences 9",
+      "Residence Tower 9"
+    ],
+    "asset": "the-residence-9.jpg",
+    "scope": "building",
+    "label": "The Residence 9",
+    "sourcePage": "https://www.bayut.com/buildings/the-residence-9/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Residence_9_Cover_09_07_8057ed25ef_d6b2c6b726.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Address Sky View Tower 2",
+    "aliases": [
+      "Address Sky View Tower 2",
+      "Sky View Tower 2"
+    ],
+    "asset": "the-address-sky-view-tower-2.jpg",
+    "scope": "building",
+    "label": "The Address Sky View Tower 2",
+    "sourcePage": "https://www.bayut.com/buildings/the-address-sky-view-tower-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Address_Sky_View_Tower_2_Cover_13_07_2b90162da0_47e3e43b30.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Address Sky View Tower 1",
+    "aliases": [
+      "Address Sky View Tower 1",
+      "Sky View Tower 1"
+    ],
+    "asset": "the-address-sky-view-tower-1.jpg",
+    "scope": "building",
+    "label": "The Address Sky View Tower 1",
+    "sourcePage": "https://www.bayut.com/buildings/the-address-sky-view-tower-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Address_Sky_View_Tower_1_Cover_10_07_aafd47e979_09bafb9fee.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Burj Khalifa",
+    "aliases": [
+      "Burj Dubai"
+    ],
+    "asset": "burj-khalifa.jpg",
+    "scope": "building",
+    "label": "Burj Khalifa",
+    "sourcePage": "https://www.emaar.com/en/properties/forte",
+    "sourceImage": "https://uae-cms.emaar.com/uploads/242507_attraction_cecda9b15d.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Boulevard Point",
+    "aliases": [],
+    "asset": "boulevard-point.jpg",
+    "scope": "building",
+    "label": "Boulevard Point",
+    "sourcePage": "https://www.emaar.com/en/properties/boulevard-point",
+    "sourceImage": "https://uae-cms.emaar.com/uploads/11777_property_Hero_Image_9b25d5afb1.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Burj Royale",
+    "aliases": [],
+    "asset": "burj-royale.jpg",
+    "scope": "building",
+    "label": "Burj Royale",
+    "sourcePage": "https://www.propertyfinder.ae/en/area-insights/dubai/downtown-dubai-burj-royale",
+    "sourceImage": "https://graph-images.propertyfinder.ae/ae/building/10197/4a32c18e390a9830891e816ce42ee3d8/thumb.jpeg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Vida Residence Downtown",
+    "aliases": [
+      "Vida Residences Downtown"
+    ],
+    "asset": "vida-residence-downtown.jpg",
+    "scope": "building",
+    "label": "Vida Residence Downtown",
+    "sourcePage": "https://www.bayut.com/buildings/vida-residence-downtown/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Vida_Residence_Downtown_Cover_15_06_b05c7519c2_3b969cac32.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Grande",
+    "aliases": [
+      "Grande Signature Residences"
+    ],
+    "asset": "grande.jpg",
+    "scope": "building",
+    "label": "Grande",
+    "sourcePage": "https://www.emaar.com/en/properties/grande-signature-residences",
+    "sourceImage": "https://uae-cms.emaar.com/uploads/2798_property_Hero_Image_eadb679f2e.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "IL Primo",
+    "aliases": [
+      "Il Primo"
+    ],
+    "asset": "il-primo.jpg",
+    "scope": "building",
+    "label": "IL Primo",
+    "sourcePage": "https://www.emaar.com/en/properties/il-primo",
+    "sourceImage": "https://uae-cms.emaar.com/uploads/17350_property_Hero_Image_bb4cc2869b.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Address Dubai Mall",
+    "aliases": [
+      "The Address Dubai Mall",
+      "Address Residence Dubai Mall"
+    ],
+    "asset": "address-dubai-mall.jpg",
+    "scope": "building",
+    "label": "Address Dubai Mall",
+    "sourcePage": "https://www.bayut.com/buildings/the-address-dubai-mall/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Address_Dubai_Mall_Cover_10_08_8796246ab8_55a93749a8.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The Residence 7",
+    "aliases": [
+      "The Residences 7",
+      "Residence Tower 7"
+    ],
+    "asset": "the-residence-7.jpg",
+    "scope": "building",
+    "label": "The Residence 7",
+    "sourcePage": "https://www.bayut.com/buildings/the-residence-7/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Residence_7_Cover_03_07_837c66ce5f_ead55a8a1d.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Armani Residence",
+    "aliases": [
+      "Armani Residences",
+      "Armani Residence Burj Khalifa"
+    ],
+    "asset": "burj-khalifa.jpg",
+    "scope": "complex",
+    "label": "Burj Khalifa, home of Armani Residences",
+    "sourcePage": "https://www.bayut.com/buildings/armani-residence/",
+    "sourceImage": "https://uae-cms.emaar.com/uploads/242507_attraction_cecda9b15d.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Opera Grand",
+    "aliases": [],
+    "asset": "opera-grand.jpg",
+    "scope": "building",
+    "label": "Opera Grand",
+    "sourcePage": "https://www.bayut.com/buildings/opera-grand-downtown-dubai/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Opera_Grand_Tower_Cover_19_4_23_1f050bf07e_2539d53da8.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "DT1 Tower",
+    "aliases": [
+      "DT1"
+    ],
+    "asset": "dt1-tower.jpg",
+    "scope": "building",
+    "label": "DT1 Tower",
+    "sourcePage": "https://www.bayut.com/buildings/dt1-tower/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/DT_1_Tower_06092023_7b9ea5a251_a5afeca113.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Kempinski The Boulevard",
+    "aliases": [
+      "The Address The Blvd",
+      "Address Boulevard",
+      "The Address Boulevard"
+    ],
+    "asset": "kempinski-the-boulevard.jpg",
+    "scope": "building",
+    "label": "Kempinski The Boulevard",
+    "sourcePage": "https://www.bayut.com/buildings/the-address-the-blvd/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Address_The_Blvd_31_01_2020_1_ac0cb7bc43_c6b424dfa0.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Upper Crest",
+    "aliases": [
+      "Burjside Terrace",
+      "DAMAC Maison Upper Crest"
+    ],
+    "asset": "upper-crest.jpg",
+    "scope": "building",
+    "label": "Upper Crest",
+    "sourcePage": "https://www.bayut.com/buildings/upper-crest/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Upper_Crest_10062020_99a3cad323_31a225c52b.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Forte 1",
+    "aliases": [
+      "Forte Tower 1"
+    ],
+    "asset": "forte-1.jpg",
+    "scope": "complex",
+    "label": "Forte complex",
+    "sourcePage": "https://www.emaar.com/en/properties/forte",
+    "sourceImage": "https://uae-cms.emaar.com/uploads/10946_property_Hero_Image_1db0c1fc35.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Forte 2",
+    "aliases": [
+      "Forte Tower 2"
+    ],
+    "asset": "forte-1.jpg",
+    "scope": "complex",
+    "label": "Forte complex",
+    "sourcePage": "https://www.emaar.com/en/properties/forte",
+    "sourceImage": "https://uae-cms.emaar.com/uploads/10946_property_Hero_Image_1db0c1fc35.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Forte",
+    "aliases": [
+      "Forte Towers"
+    ],
+    "asset": "forte-1.jpg",
+    "scope": "complex",
+    "label": "Forte complex",
+    "sourcePage": "https://www.emaar.com/en/properties/forte",
+    "sourceImage": "https://uae-cms.emaar.com/uploads/10946_property_Hero_Image_1db0c1fc35.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "DAMAC Maison Distinction",
+    "aliases": [
+      "The Distinction",
+      "Distinction"
+    ],
+    "asset": "damac-maison-distinction.jpg",
+    "scope": "building",
+    "label": "DAMAC Maison Distinction",
+    "sourcePage": "https://www.bayut.com/buildings/the-distinction/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/The_Distinction_72dc1e4d51_37117d38cc.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Reehan 1",
+    "aliases": [
+      "Reehan 1"
+    ],
+    "asset": "old-town-reehan-1.jpg",
+    "scope": "building",
+    "label": "Old Town - Reehan 1",
+    "sourcePage": "https://www.bayut.com/buildings/reehan-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Reehan_1_Cover_26_04_1_7ae7dd0085_52179774ce.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Burj Al Nujoom",
+    "aliases": [],
+    "asset": "burj-al-nujoom.jpg",
+    "scope": "building",
+    "label": "Burj Al Nujoom",
+    "sourcePage": "https://www.bayut.com/buildings/burj-al-nujoom/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Cover_Burj_Al_Nujoom_7e5bd30672_09e6a6e879.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Claren Tower 1",
+    "aliases": [
+      "Claren 1"
+    ],
+    "asset": "claren-tower-1.jpg",
+    "scope": "building",
+    "label": "Claren Tower 1",
+    "sourcePage": "https://www.bayut.com/buildings/claren-tower-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Claren_Tower_1_17022020_2e9f48c833_00e5c32e89.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Claren Tower 2",
+    "aliases": [
+      "Claren 2"
+    ],
+    "asset": "claren-tower-2.jpg",
+    "scope": "building",
+    "label": "Claren Tower 2",
+    "sourcePage": "https://www.bayut.com/buildings/claren-tower-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Building_View_Claren_Tower2_11022020_a4d023d6b4_47e5b653f7.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Burj Crown",
+    "aliases": [],
+    "asset": "burj-crown.jpg",
+    "scope": "building",
+    "label": "Burj Crown",
+    "sourcePage": "https://www.propertyfinder.ae/en/area-insights/dubai/downtown-dubai-burj-crown",
+    "sourceImage": "https://graph-images.propertyfinder.ae/ae/building/10794/6cf48f9695268cc5f5a4e37c2b253635/thumb.jpeg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Bellevue Towers",
+    "aliases": [
+      "Bellevue"
+    ],
+    "asset": "bellevue-towers.jpg",
+    "scope": "building",
+    "label": "Bellevue Towers",
+    "sourcePage": "https://www.bayut.com/buildings/bellevue-towers-downtown-dubai/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Bellevue_Towers_Cover_16_8_23_a96a5e317b_a54e67392c.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Reehan 2",
+    "aliases": [
+      "Reehan 2"
+    ],
+    "asset": "old-town-reehan-2.jpg",
+    "scope": "building",
+    "label": "Old Town - Reehan 2",
+    "sourcePage": "https://www.bayut.com/buildings/reehan-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Old_Downtown_Reehan_2_Building_Images_20210624_1_81e9465898_63b5c16b91.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Reehan 4",
+    "aliases": [
+      "Reehan 4"
+    ],
+    "asset": "old-town-reehan-4.jpg",
+    "scope": "building",
+    "label": "Old Town - Reehan 4",
+    "sourcePage": "https://www.bayut.com/buildings/reehan-4/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Rehan_4_Cover_121121_d0e53c4339_e83ef9e587.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Reehan 8",
+    "aliases": [
+      "Reehan 8"
+    ],
+    "asset": "old-town-reehan-8.jpg",
+    "scope": "building",
+    "label": "Old Town - Reehan 8",
+    "sourcePage": "https://www.bayut.com/buildings/reehan-8/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Reehan_8_06052021_f62736f22a_68b49bec50.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Yansoon 2",
+    "aliases": [
+      "Yansoon 2"
+    ],
+    "asset": "old-town-yansoon-2.jpg",
+    "scope": "building",
+    "label": "Old Town - Yansoon 2",
+    "sourcePage": "https://www.propertyfinder.ae/en/area-insights/dubai/downtown-dubai-old-town-yansoon-yansoon-2",
+    "sourceImage": "https://graph-images.propertyfinder.ae/ae/building/4191/13bd77ad740b6ef044ef795116e6e494/thumb.jpeg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Reehan 3",
+    "aliases": [
+      "Reehan 3"
+    ],
+    "asset": "old-town-reehan-3.jpg",
+    "scope": "building",
+    "label": "Old Town - Reehan 3",
+    "sourcePage": "https://www.bayut.com/buildings/reehan-3/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Reehan_3_08112021_3f07605d56_f67214f43c.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Reehan 5",
+    "aliases": [
+      "Reehan 5"
+    ],
+    "asset": "old-town-reehan-5.jpg",
+    "scope": "building",
+    "label": "Old Town - Reehan 5",
+    "sourcePage": "https://www.bayut.com/buildings/reehan-5/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Reehan_5_Cover_24_03_e5e3c5fb51_24467bbfb3.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Reehan 7",
+    "aliases": [
+      "Reehan 7"
+    ],
+    "asset": "old-town-reehan-7.jpg",
+    "scope": "building",
+    "label": "Old Town - Reehan 7",
+    "sourcePage": "https://www.bayut.com/buildings/reehan-7/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Reehan_7_Old_Town_04032021_f6f34f7994_fc85b67aea.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Reehan 6",
+    "aliases": [
+      "Reehan 6"
+    ],
+    "asset": "old-town-reehan-6.jpg",
+    "scope": "building",
+    "label": "Old Town - Reehan 6",
+    "sourcePage": "https://www.bayut.com/buildings/reehan-6/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Reehan_6_Cover_04_06_760706da73_c8ea527251.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Yansoon 5",
+    "aliases": [
+      "Yansoon 5"
+    ],
+    "asset": "old-town-yansoon-5.jpg",
+    "scope": "building",
+    "label": "Old Town - Yansoon 5",
+    "sourcePage": "https://www.bayut.com/buildings/yansoon-5/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Yansoon_5_09112021_dd14f04784_47bac2e6dd.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Yansoon 4",
+    "aliases": [
+      "Yansoon 4"
+    ],
+    "asset": "old-town-yansoon-4.jpg",
+    "scope": "building",
+    "label": "Old Town - Yansoon 4",
+    "sourcePage": "https://www.bayut.com/buildings/yansoon-4/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Yansoon_4_Cover_15_02_5cf20327c9_e16f029f3d.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Yansoon 1",
+    "aliases": [
+      "Yansoon 1"
+    ],
+    "asset": "old-town-yansoon-1.jpg",
+    "scope": "building",
+    "label": "Old Town - Yansoon 1",
+    "sourcePage": "https://www.bayut.com/buildings/yansoon-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Yansoon_1_Old_Town_Cover_03_12_1_84983c4d8e_bc8c344bfb.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Yansoon 3",
+    "aliases": [
+      "Yansoon 3"
+    ],
+    "asset": "old-town-yansoon-3.jpg",
+    "scope": "building",
+    "label": "Old Town - Yansoon 3",
+    "sourcePage": "https://www.bayut.com/buildings/yansoon-3/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Yansoon_3_Cover_23_02_57f0449f3c_ec2ece8dce.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Yansoon 6",
+    "aliases": [
+      "Yansoon 6"
+    ],
+    "asset": "old-town-yansoon-6.jpg",
+    "scope": "building",
+    "label": "Old Town - Yansoon 6",
+    "sourcePage": "https://www.bayut.com/buildings/yansoon-6/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Yansoon_6_Cover_15_07_de507d6abb_828ce4c874.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Yansoon 7",
+    "aliases": [
+      "Yansoon 7"
+    ],
+    "asset": "old-town-yansoon-7.jpg",
+    "scope": "building",
+    "label": "Old Town - Yansoon 7",
+    "sourcePage": "https://www.bayut.com/buildings/yansoon-7/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Yansoon_7_Cover_30_08_7fa05b0d8a_43f2f9cc0c.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Yansoon 8",
+    "aliases": [
+      "Yansoon 8"
+    ],
+    "asset": "old-town-yansoon-8.jpg",
+    "scope": "building",
+    "label": "Old Town - Yansoon 8",
+    "sourcePage": "https://www.bayut.com/buildings/yansoon-8/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Yansoon_8_27102021_63ab42c127_ff9971b4bd.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Yansoon 9",
+    "aliases": [
+      "Yansoon 9"
+    ],
+    "asset": "old-town-yansoon-9.jpg",
+    "scope": "building",
+    "label": "Old Town - Yansoon 9",
+    "sourcePage": "https://www.bayut.com/buildings/yansoon-9/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Yansoon_9_Cover_051121_3d15e6f98b_323ac62c20.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Miska 1",
+    "aliases": [
+      "Miska 1"
+    ],
+    "asset": "old-town-miska-1.jpg",
+    "scope": "building",
+    "label": "Old Town - Miska 1",
+    "sourcePage": "https://www.bayut.com/buildings/miska-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Miska_1_Cover_17_8_23_c042f2f5be_ce76619766.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Miska 3",
+    "aliases": [
+      "Miska 3"
+    ],
+    "asset": "old-town-miska-3.jpg",
+    "scope": "building",
+    "label": "Old Town - Miska 3",
+    "sourcePage": "https://www.bayut.com/buildings/miska-3/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Miska_3_Cover_16_02_80a504c631_0fa6c050e0.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Miska 4",
+    "aliases": [
+      "Miska 4"
+    ],
+    "asset": "old-town-miska-4.jpg",
+    "scope": "building",
+    "label": "Old Town - Miska 4",
+    "sourcePage": "https://www.bayut.com/buildings/miska-4/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Miska_4_Cover_26_04_623c17544a_b758a6956a.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Miska 5",
+    "aliases": [
+      "Miska 5"
+    ],
+    "asset": "old-town-miska-5.jpg",
+    "scope": "building",
+    "label": "Old Town - Miska 5",
+    "sourcePage": "https://www.bayut.com/buildings/miska-5/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Miska_5_Cover_04_06_1a4a50c8a4_c216a44fae.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Kamoon 1",
+    "aliases": [
+      "Kamoon 1"
+    ],
+    "asset": "old-town-kamoon-1.jpg",
+    "scope": "building",
+    "label": "Old Town - Kamoon 1",
+    "sourcePage": "https://www.bayut.com/buildings/kamoon-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Kamoon1_Cover_0709_3302f23d59_a1aaa22107.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Kamoon 2",
+    "aliases": [
+      "Kamoon 2"
+    ],
+    "asset": "old-town-kamoon-2.jpg",
+    "scope": "building",
+    "label": "Old Town - Kamoon 2",
+    "sourcePage": "https://www.bayut.com/buildings/kamoon-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Kamoon_2_Cover_30_07_511b929883_55185b5d7e.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Kamoon 3",
+    "aliases": [
+      "Kamoon 3"
+    ],
+    "asset": "old-town-kamoon-3.jpg",
+    "scope": "building",
+    "label": "Old Town - Kamoon 3",
+    "sourcePage": "https://www.bayut.com/buildings/kamoon-3/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Kamoon3_Old_Town_10122020_e4ab2fa3e0_1e8e43748c.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Miska 2",
+    "aliases": [
+      "Miska 2"
+    ],
+    "asset": "old-town-miska-2.jpg",
+    "scope": "building",
+    "label": "Old Town - Miska 2",
+    "sourcePage": "https://www.bayut.com/buildings/miska-2-old-town/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Miska_2_Old_Town_Cover_11_03_c1eca18364_034b16cecb.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Kamoon 4",
+    "aliases": [
+      "Kamoon 4"
+    ],
+    "asset": "old-town-kamoon-4.jpg",
+    "scope": "building",
+    "label": "Old Town - Kamoon 4",
+    "sourcePage": "https://www.bayut.com/buildings/kamoon-4/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Buildingview_Kamoon4_24082020_9c8239686a_6d1e5b7029.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Zanzebeel 1",
+    "aliases": [
+      "Zanzebeel 1"
+    ],
+    "asset": "old-town-zanzebeel-1.jpg",
+    "scope": "complex",
+    "label": "Zanzebeel complex",
+    "sourcePage": "https://www.bayut.com/buildings/zanzebeel-old-town/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Zanzebeel_Old_Town_Cover_06_08_3f8540fe54_80a635d52c.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Zaafaran 1",
+    "aliases": [
+      "Zaafaran 1"
+    ],
+    "asset": "old-town-zaafaran-1.jpg",
+    "scope": "building",
+    "label": "Old Town - Zaafaran 1",
+    "sourcePage": "https://www.bayut.com/buildings/zaafaran-1/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Zaafaran_1_Building_Cover_30_11_d3b35c73d3_e6a2cd1976.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Zaafaran 2",
+    "aliases": [
+      "Zaafaran 2"
+    ],
+    "asset": "old-town-zaafaran-2.jpg",
+    "scope": "building",
+    "label": "Old Town - Zaafaran 2",
+    "sourcePage": "https://www.bayut.com/buildings/zaafaran-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Zaafaran_2_Cover_121121_fc72a7afc5_ee24c492d5.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Zaafaran 5",
+    "aliases": [
+      "Zaafaran 5"
+    ],
+    "asset": "old-town-zaafaran-5.jpg",
+    "scope": "building",
+    "label": "Old Town - Zaafaran 5",
+    "sourcePage": "https://www.propertyfinder.ae/en/area-insights/dubai/downtown-dubai-old-town-zaafaran-zaafaran-5",
+    "sourceImage": "https://graph-images.propertyfinder.ae/ae/building/4203/49c0a7fe3881bfccba8b0479bc36e6e6/thumb.jpeg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Zaafaran 3",
+    "aliases": [
+      "Zaafaran 3"
+    ],
+    "asset": "old-town-zaafaran-3.jpg",
+    "scope": "building",
+    "label": "Old Town - Zaafaran 3",
+    "sourcePage": "https://www.bayut.com/buildings/zaafaran-3/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Zaafaran_3_Cover_121121_ab367f49a5_371403fa52.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Zaafaran 4",
+    "aliases": [
+      "Zaafaran 4"
+    ],
+    "asset": "old-town-zaafaran-4.jpg",
+    "scope": "building",
+    "label": "Old Town - Zaafaran 4",
+    "sourcePage": "https://www.bayut.com/buildings/zaafaran-4/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Zaafaran_4_Cover_15_07_c860e2349d_45d0d56a76.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Zanzebeel 2",
+    "aliases": [
+      "Zanzebeel 2"
+    ],
+    "asset": "old-town-zanzebeel-2.jpg",
+    "scope": "building",
+    "label": "Old Town - Zanzebeel 2",
+    "sourcePage": "https://www.bayut.com/buildings/zanzebeel-2/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Zanzebeel_2_Cover_19_02_f30d9ac180_97a6facaff.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Old Town - Zanzebeel 3",
+    "aliases": [
+      "Zanzebeel 3"
+    ],
+    "asset": "old-town-zanzebeel-3.jpg",
+    "scope": "building",
+    "label": "Old Town - Zanzebeel 3",
+    "sourcePage": "https://www.bayut.com/buildings/zanzebeel-3/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Zanzebeel_3_01112021_bedcc67561_db0c9c20d3.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Binghatti Skyblade",
+    "aliases": [],
+    "asset": "binghatti-skyblade.jpg",
+    "scope": "building",
+    "label": "Binghatti Skyblade",
+    "sourcePage": "https://www.bayut.com/buildings/binghatti-skyblade/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Binghatti_Skyblade_is_in_Downtown_Dubai_caf4566ce5.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "One Residence",
+    "aliases": [],
+    "asset": "one-residence.jpg",
+    "scope": "building",
+    "label": "One Residence",
+    "sourcePage": "https://www.propertyfinder.ae/en/new-projects/ginco-properties/one-residence",
+    "sourceImage": "https://new-projects-media.propertyfinder.com/project/1aa2c8d4-f189-4021-ab6e-4db27b2b5204/gallery/image/uJ8rTt2EUID6puJ92VsB0FfznP-WiFBtRnFhV2aIcaE=/medium.webp",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Fairmont Residences Solara Tower",
+    "aliases": [
+      "Solara Tower"
+    ],
+    "asset": "fairmont-residences-solara-tower.jpg",
+    "scope": "building",
+    "label": "Fairmont Residences Solara Tower",
+    "sourcePage": "https://www.propertyfinder.ae/en/new-projects/sol-properties/fairmont-residences-solara-tower",
+    "sourceImage": "https://new-projects-media.propertyfinder.com/project/32d92cda-2e54-47bb-90e7-fe67cbf94c97/gallery/image/TaxK5kOV5e06gBTUuRUUVAqnzNH5P04xZNg7dLyGPaY=/medium.webp",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "48 Burj Gate",
+    "aliases": [],
+    "asset": "48-burj-gate.jpg",
+    "scope": "building",
+    "label": "48 Burj Gate",
+    "sourcePage": "https://www.bayut.com/buildings/48-burj-gate/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/48_Burj_Gate_18022020_0c3b75e90a_1fb97c4a79.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Ahad Residences",
+    "aliases": [
+      "Ahad Residence"
+    ],
+    "asset": "ahad-residences.jpg",
+    "scope": "building",
+    "label": "Ahad Residences",
+    "sourcePage": "https://www.propertyfinder.ae/en/new-projects/ahad-residences/ahad-residences",
+    "sourceImage": "https://new-projects-media.propertyfinder.com/project/1394373e-5f76-42d9-bbc1-6be229469430/gallery/image/9dcM929_qwLcNpOo8or_11BhK8cTXThGRN4QAr1xa_0=/medium.webp",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Aykon City",
+    "aliases": [
+      "Aykon City Tower",
+      "Aykon City Towers"
+    ],
+    "asset": "aykon-city.jpg",
+    "scope": "building",
+    "label": "Aykon City",
+    "sourcePage": "https://www.propertyfinder.ae/en/new-projects/damac-properties/aykon-city",
+    "sourceImage": "https://new-projects-media.propertyfinder.com/project/8c111a5a-64de-43a2-9e7b-3fc21ec495ab/gallery/image/B0MWWYNQltg1dB4fmqKZHbshzkTnT0GaMVP9xbXkxjs=/medium.webp",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Terraces Marasi Drive",
+    "aliases": [
+      "The Terraces Marasi Drive",
+      "Terraces Marasi"
+    ],
+    "asset": "terraces-marasi-drive.jpg",
+    "scope": "building",
+    "label": "Terraces Marasi Drive",
+    "sourcePage": "https://keymavens.com/",
+    "sourceImage": "https://keymavens.com/wp-content/uploads/2024/06/c6-1280x791.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Upper Crest (Burjside Terrace)",
+    "aliases": [],
+    "asset": "upper-crest.jpg",
+    "scope": "building",
+    "label": "Upper Crest (Burjside Terrace)",
+    "sourcePage": "https://www.bayut.com/buildings/upper-crest/",
+    "sourceImage": "https://d3ob0s3rxbjyep.cloudfront.net/content/Upper_Crest_10062020_99a3cad323_31a225c52b.jpg",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The St. Regis The Residences Tower 1",
+    "aliases": [],
+    "asset": "the-st-regis-the-residences-tower-1.jpg",
+    "scope": "complex",
+    "label": "St. Regis Residences Downtown complex",
+    "sourcePage": "https://www.propertyfinder.ae/en/new-projects/emaar-properties/st-regis-the-residences",
+    "sourceImage": "https://new-projects-media.propertyfinder.com/project/5550b458-2496-40ef-8916-0ee32ae86f0b/gallery/image/4z_VCJUAv1nZOZ_BAGHGkTMFh6aGSeuMIbs2j7PuiWg=/medium.webp",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "The St. Regis The Residences Tower 2",
+    "aliases": [],
+    "asset": "the-st-regis-the-residences-tower-1.jpg",
+    "scope": "complex",
+    "label": "St. Regis Residences Downtown complex",
+    "sourcePage": "https://www.propertyfinder.ae/en/new-projects/emaar-properties/st-regis-the-residences",
+    "sourceImage": "https://new-projects-media.propertyfinder.com/project/5550b458-2496-40ef-8916-0ee32ae86f0b/gallery/image/4z_VCJUAv1nZOZ_BAGHGkTMFh6aGSeuMIbs2j7PuiWg=/medium.webp",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Rixos Financial Center Road",
+    "aliases": [],
+    "asset": "rixos-financial-center-road.jpg",
+    "scope": "building",
+    "label": "Rixos Financial Center Road",
+    "sourcePage": "https://www.propertyfinder.ae/en/new-projects/east-and-west-properties-development/rixos-financial-center-road",
+    "sourceImage": "https://new-projects-media.propertyfinder.com/project/d89bb72f-e803-40f1-a238-c0a5195b8aa4/gallery/image/Qu25H94SH6QJ1Ni4XFgc6agrpckKgvpLkKIr7iW9bO0=/medium.webp",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Inaura Hotels & Residences",
+    "aliases": [],
+    "asset": "inaura-hotels-residences.jpg",
+    "scope": "building",
+    "label": "Inaura Hotels & Residences",
+    "sourcePage": "https://www.propertyfinder.ae/en/new-projects/arada-sale/inaura-hotels-and-residences",
+    "sourceImage": "https://new-projects-media.propertyfinder.com/project/d3b7857b-0180-4de1-8470-9c90324fdafe/gallery/image/iYLme7BRa9MIPIrl5xpf9DZ-noEB2MMk-EKjTyw64fo=/medium.webp",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "25h Heimat",
+    "aliases": [],
+    "asset": "25h-heimat.jpg",
+    "scope": "building",
+    "label": "25h Heimat",
+    "sourcePage": "https://www.propertyfinder.ae/en/new-projects/east-and-west-properties-development/25hours-heimat",
+    "sourceImage": "https://new-projects-media.propertyfinder.com/project/1da1789a-801f-459b-8f50-7d9fcd4ca61e/gallery/image/EO0CQcFwDSpyvg8y5eyYXzX2KQmJ_JL_wZnabZE7KgU=/medium.webp",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Address Grand Downtown",
+    "aliases": [],
+    "asset": "address-grand-downtown.jpg",
+    "scope": "building",
+    "label": "Address Grand Downtown",
+    "sourcePage": "https://www.propertyfinder.ae/en/new-projects/nshama/address-grand-downtown",
+    "sourceImage": "https://new-projects-media.propertyfinder.com/project/51b62002-847b-4e7d-abcb-b1f938a8d8ac/gallery/image/uDLfuJar7NlGrXjuadlj1khyNzwWoiI-81BgcwnILa0=/medium.webp",
+    "reviewedOn": "2026-09-27"
+  },
+  {
+    "name": "Elegance Tower",
+    "aliases": [],
+    "asset": "elegance-tower.jpg",
+    "scope": "building",
+    "label": "Elegance Tower",
+    "sourcePage": "https://www.propertyfinder.ae/en/new-projects/damac-properties/elegance-tower",
+    "sourceImage": "https://new-projects-media.propertyfinder.com/project/d418ebc2-a1ef-498b-9595-8361c8529c20/gallery/image/wJSKWVR64OUpDg-ZoRB2KpS8DCw9ajWj4yW2f9e-Lag=/medium.webp",
+    "reviewedOn": "2026-09-27"
+  }
+]
