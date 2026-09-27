@@ -236,7 +236,7 @@ function PinnedRow({ item, onOpen, onTogglePin }) {
 }
 
 function PinnedSection({ userId, layout, onNavigate, pinnedSheetIds, setPinnedSheetIds }) {
-  const { pinnedIds: pinnedSellerIds, togglePin: toggleSellerPin } = useSellerFavorites();
+  const { pinnedIds: pinnedSellerIds, togglePin: toggleSellerPin } = useSellerFavorites(userId);
 
   const sourcesQuery = useQuery({
     queryKey: sellerSourcesQueryKey(userId),

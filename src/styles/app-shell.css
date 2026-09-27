@@ -403,6 +403,10 @@ body {
 }
 
 .sidenav-group-favorites {
+  flex-shrink: 1;
+  min-height: 0;
+  max-height: 30vh;
+  overflow-y: auto;
   padding-top: 10px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border-light);

@@ -3,7 +3,7 @@ import { readListingNavigation, writeListingNavigation } from "./listing-navigat
 
 export function useListingNavigation(initialListingKey) {
   const [selection, setSelection] = useState(() => initialListingKey
-    ? { buildingId: initialListingKey.split(":")[0] || null, listingKey: initialListingKey }
+    ? { buildingId: initialListingKey.split(":")[0] || null, listingKey: initialListingKey.includes(":") ? initialListingKey : null }
     : readListingNavigation(typeof window === "undefined" ? null : window.history.state));
 
   useEffect(() => {
@@ -11,7 +11,7 @@ export function useListingNavigation(initialListingKey) {
     if (initialListingKey) {
       writeListingNavigation(window.history, {
         buildingId: initialListingKey.split(":")[0] || null,
-        listingKey: initialListingKey,
+        listingKey: initialListingKey.includes(":") ? initialListingKey : null,
       }, { replace: true });
     }
     function restore() {

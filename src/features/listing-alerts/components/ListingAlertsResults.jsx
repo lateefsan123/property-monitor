@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Pagination from "../../seller-signal/components/Pagination";
 import { useListingFavorites } from "../useListingFavorites";
 import {
@@ -7,6 +8,7 @@ import {
 } from "./ListingAlertsRows";
 
 export default function ListingAlertsResults({
+  userId,
   alerts,
   count,
   countLabel,
@@ -33,7 +35,10 @@ export default function ListingAlertsResults({
   viewTab,
 }) {
   const hideBuildingName = Boolean(selectedBuildingId);
-  const { favorites, pinned, toggleFavorite, togglePin } = useListingFavorites();
+  const { favorites, pinned, toggleFavorite, togglePin, remember } = useListingFavorites(userId);
+  useEffect(() => {
+    remember(items.map((item) => [viewTab === "buildings" ? `b:${item.locationId}` : `l:${item.id || item.key}`, item]));
+  }, [items, remember, viewTab]);
 
   return (
     <>
@@ -103,7 +108,7 @@ export default function ListingAlertsResults({
                 onToggleWatch: () => onToggleWatchBuilding?.(item),
                 priceDropCount,
                 favorited: favorites.has(favKey),
-                onToggleFavorite: () => toggleFavorite(favKey),
+                onToggleFavorite: () => toggleFavorite(favKey, item),
               };
               const key = String(item.locationId || item.key || index);
               return <BuildingRow key={key} {...commonProps} />;
@@ -117,8 +122,8 @@ export default function ListingAlertsResults({
               onOpenExternal: () => onOpenListingExternal(item.bayutUrl),
               favorited: favorites.has(favKey),
               pinned: pinned.has(favKey),
-              onToggleFavorite: () => toggleFavorite(favKey),
-              onTogglePin: () => togglePin(favKey),
+              onToggleFavorite: () => toggleFavorite(favKey, item),
+              onTogglePin: () => togglePin(favKey, item),
             };
             const key = String(item.key || `${item.buildingKey || ""}-${item.id || index}`);
             return layout === "grid" ? (

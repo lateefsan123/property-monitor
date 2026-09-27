@@ -637,6 +637,7 @@ export function useSellerSignalPage(userId) {
     filteredLeads,
     filteredLeadCount: filteredLeads.length,
     hasLeads: leads.length > 0,
+    leads,
     hotLeadIds,
     importing,
     importingLegacy,

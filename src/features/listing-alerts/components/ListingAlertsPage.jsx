@@ -15,6 +15,7 @@ import { consumePendingOpenListing, useOpenListingRequests } from "../open-listi
 import { getRecentPriceDrop } from "../price-drop-utils";
 import { useListingAlerts } from "../useListingAlerts";
 import { useListingNavigation } from "../useListingNavigation";
+import { useListingFavorites } from "../useListingFavorites";
 import ListingAlertsFilters from "./ListingAlertsFilters";
 import ListingAlertsResults from "./ListingAlertsResults";
 import ListingAlertsSearchBox from "./ListingAlertsSearchBox";
@@ -169,6 +170,7 @@ export default function ListingAlertsPage({ userId }) {
   // Deep links from other pages (e.g. the home price-drops card) may request a
   // listing before this page mounts; consume the pending key at first render.
   const [pendingInitialListingKey] = useState(() => consumePendingOpenListing());
+  const { entries: savedListings } = useListingFavorites(userId);
   const { selectedListingKey, selectedBuildingId, navigate } = useListingNavigation(pendingInitialListingKey);
 
   useEffect(() => {
@@ -182,7 +184,8 @@ export default function ListingAlertsPage({ userId }) {
   }, [navigate]);
 
   useOpenListingRequests((listingKey) => {
-    navigate(listingKey.split(":")[0] || null, listingKey);
+    consumePendingOpenListing();
+    navigate(listingKey.split(":")[0] || null, listingKey.includes(":") ? listingKey : null);
     setListingsPage(1);
   });
 
@@ -198,8 +201,10 @@ export default function ListingAlertsPage({ userId }) {
     if (!selectedListingKey) return null;
     return [...(alerts.latestListings || []), ...(alerts.trackedListings || [])].find(
       (item) => item.key === selectedListingKey || `${item.locationId}:${item.id}` === selectedListingKey,
+    ) || Object.values(savedListings).map((entry) => entry.payload).find(
+      (item) => item && (item.key === selectedListingKey || `${item.locationId}:${item.id}` === selectedListingKey),
     ) || null;
-  }, [alerts.latestListings, alerts.trackedListings, selectedListingKey]);
+  }, [alerts.latestListings, alerts.trackedListings, selectedListingKey, savedListings]);
 
   const selectedSearchBuilding = useMemo(() => {
     if (!selectedSearchOption?.locationId) return null;
@@ -580,6 +585,7 @@ export default function ListingAlertsPage({ userId }) {
       {alerts.watchError ? <div className="la-error-box">{alerts.watchError}</div> : null}
 
       <ListingAlertsResults
+        userId={userId}
         alerts={alerts}
         layout={layout}
         count={count}

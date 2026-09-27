@@ -12,6 +12,7 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import { useSpreadsheetFavorites, requestOpenSpreadsheet } from "../useSpreadsheetFavorites";
+import SavedSidebarItems from "./SavedSidebarItems";
 
 function isPlaceholderSourceLabel(source) {
   const label = String(source?.label || "").trim();
@@ -75,6 +76,7 @@ function FavoriteItem({ source, onOpen }) {
 }
 
 export default function AppSidebar({
+  onOpenSeller,
   onPrefetch,
   currentPage,
   onNavigate,
@@ -119,6 +121,8 @@ export default function AppSidebar({
           ))}
         </div>
       )}
+
+      <SavedSidebarItems userId={userId} onOpenSeller={onOpenSeller} onNavigate={onNavigate} />
 
       <div className="sidenav-group">
         {MAIN_GROUP.map((item) => (

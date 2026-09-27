@@ -51,6 +51,8 @@ function SourcePickerMenu({ activeId, options, onSelect }) {
 }
 
 export default function SellerSignalDashboard({
+  savedSellerId,
+  onCloseSavedSeller,
   billingPortalError,
   billingPortalPending = false,
   onCancelPlan,
@@ -63,7 +65,7 @@ export default function SellerSignalDashboard({
   const [addSellerOpen, setAddSellerOpen] = useState(false);
   const [sourceMenuOpen, setSourceMenuOpen] = useState(false);
   const sourcePickerRef = useRef(null);
-  const { favoriteIds, toggleFavorite, pinnedIds, togglePin } = useSellerFavorites();
+  const { favoriteIds, toggleFavorite, pinnedIds, togglePin } = useSellerFavorites(userId);
 
   const canAddSeller = dashboard.sourceFilter
     && dashboard.sourceFilter !== "all"
@@ -282,7 +284,8 @@ export default function SellerSignalDashboard({
             </div>
 
             {(() => {
-              const modalLead = dashboard.pagedLeads.find((l) => dashboard.expandedLeads[l.id]);
+              const modalLead = dashboard.leads.find((lead) => String(lead.id) === savedSellerId)
+                || dashboard.pagedLeads.find((l) => dashboard.expandedLeads[l.id]);
               if (!modalLead) return null;
               return (
                 <LeadModal
@@ -297,7 +300,7 @@ export default function SellerSignalDashboard({
                   lead={modalLead}
                   messageTemplate={dashboard.messageTemplates.activeTemplateContent}
                   onCancelEditing={dashboard.actions.cancelEditingLead}
-                  onClose={() => dashboard.actions.toggleLeadExpanded(modalLead.id)}
+                  onClose={() => savedSellerId ? onCloseSavedSeller() : dashboard.actions.toggleLeadExpanded(modalLead.id)}
                   onCopyMessage={dashboard.actions.copyMessage}
                   onDelete={dashboard.actions.deleteLead}
                   onEditFieldChange={dashboard.actions.updateLeadDraftField}

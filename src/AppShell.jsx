@@ -91,6 +91,7 @@ function MessageTemplatesModal({ onClose, userId }) {
 
 export default function AppShell({ displayName, subscription, userId }) {
   const [currentPage, setCurrentPage] = useState(readPageFromHash);
+  const [savedSellerId, setSavedSellerId] = useState(null);
   const prefetchPage = usePagePrefetch(userId, currentPage);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
@@ -136,6 +137,7 @@ export default function AppShell({ displayName, subscription, userId }) {
 
   function handleNavigate(pageId) {
     if (!VALID_PAGES.has(pageId)) return;
+    setSavedSellerId(null);
     prefetchPage(pageId);
     if (window.location.hash !== `#/${pageId}`) {
       window.location.hash = `/${pageId}`;
@@ -204,6 +206,8 @@ export default function AppShell({ displayName, subscription, userId }) {
   return (
     <div className="app-shell">
       <AppSidebar
+        key={userId}
+        onOpenSeller={(id) => { handleNavigate("sellers"); setSavedSellerId(id); }}
         onPrefetch={prefetchPage}
         currentPage={currentPage}
         displayName={displayName}
@@ -292,6 +296,8 @@ export default function AppShell({ displayName, subscription, userId }) {
           />
         ) : currentPage === "sellers" ? (
           <SellerSignalDashboard
+            savedSellerId={savedSellerId}
+            onCloseSavedSeller={() => setSavedSellerId(null)}
             billingPortalError={billingPortalState.error}
             billingPortalPending={billingPortalState.pending}
             onCancelPlan={handleCancelPlan}
