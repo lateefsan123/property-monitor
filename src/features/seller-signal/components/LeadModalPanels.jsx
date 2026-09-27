@@ -291,6 +291,10 @@ export function MarketPanel({ insight, lead }) {
 export function MessagePanel({
   edited,
   imageUrl,
+  hasImage = Boolean(imageUrl),
+  imageIncluded = true,
+  imageFirstMessageOnly = false,
+  onToggleImage,
   message,
   onChangeMessage,
   onResetMessage,
@@ -322,14 +326,14 @@ export function MessagePanel({
         </label>
       )}
 
-      {imageUrl && (
+      {hasImage && (
         <div className="lead-message-image">
-          <img src={imageUrl} alt="Template attachment preview" />
-          <span>
-            {whatsappConnected
-              ? "This image will be sent with the message."
-              : "Connect WhatsApp in Settings to send this image attachment."}
-          </span>
+          {imageUrl ? <img src={imageUrl} alt="Template attachment preview" style={{ opacity: imageIncluded ? 1 : 0.4 }} /> : <span>Message image</span>}
+          <label style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input type="checkbox" checked={imageIncluded} onChange={onToggleImage} disabled={imageFirstMessageOnly || !whatsappConnected} />
+            {imageFirstMessageOnly ? "Image omitted on follow-ups" : "Include image with this message"}
+          </label>
+          {!whatsappConnected && <span>Connect WhatsApp in Settings to send attachments.</span>}
         </div>
       )}
 

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { introAttachmentPath } from "../../../../supabase/functions/_shared/intro-attachment.js";
 import {
   IconBrandWhatsapp,
   IconX,
@@ -49,6 +50,7 @@ export default function LeadModal({
   const [notesSaving, setNotesSaving] = useState(false);
   const [templateChoice, setTemplateChoice] = useState("default");
   const [draftMessage, setDraftMessage] = useState(null);
+  const [imageExcluded, setImageExcluded] = useState(false);
   const notesTimerRef = useRef(null);
 
   function handleNotesChange(event) {
@@ -91,6 +93,8 @@ export default function LeadModal({
   const messageEdited = draftMessage !== null && draftMessage !== baseMessage;
   const templateImagePath = selectedTemplate?.image_path || null;
   const templateImageUrl = selectedTemplate?.image_url || null;
+  const followUp = Boolean(isSent || lead.sentAt || lead.sent_at);
+  const selectedImagePath = introAttachmentPath(templateImagePath, lead, isSent, !imageExcluded);
 
   function handleSelectTemplate(nextId) {
     setTemplateChoice(nextId);
@@ -125,7 +129,7 @@ export default function LeadModal({
         <button
           type="button"
           className="lead-modal-wa-btn"
-          onClick={() => void onSendWhatsApp?.(lead.id, { imagePath: templateImagePath, message })}
+          onClick={() => void onSendWhatsApp?.(lead.id, { imagePath: selectedImagePath, message })}
         >
           <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
           {isSent ? "Sent" : "Send via WhatsApp"}
@@ -250,6 +254,10 @@ export default function LeadModal({
                   <MessagePanel
                     edited={messageEdited}
                     imageUrl={templateImageUrl}
+                    hasImage={Boolean(templateImagePath)}
+                    imageIncluded={Boolean(selectedImagePath)}
+                    imageFirstMessageOnly={followUp}
+                    onToggleImage={() => setImageExcluded(value => !value)}
                     message={message}
                     onChangeMessage={setDraftMessage}
                     onResetMessage={() => setDraftMessage(null)}

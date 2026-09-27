@@ -1,4 +1,5 @@
 import {fetchLeadInsights} from '../../workspace/lead-insights';
+import { introAttachmentPath } from "../../../../supabase/functions/_shared/intro-attachment.js";
 import { fetchBuildingAliases, fetchCachedBuildings } from '../../workspace/building-reference';
 import { useWorkspacePreference } from '../../workspace/preferences';
 import { enrichLeadsWithDataQuality } from "../../../../src/features/seller-signal/lead-data-quality";
@@ -707,7 +708,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
   function getLeadWhatsAppPayload(lead) {
     const insight = insights[lead.id];
     return {
-      imagePath: messageTemplateImagePath,
+      imagePath: introAttachmentPath(messageTemplateImagePath, lead, sentLeads[lead.id]),
       insight,
       message: insight?.message || buildMessage(lead, insight, messageTemplate),
       phone: formatPhoneForWhatsApp(lead.phone),
@@ -718,7 +719,9 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     const lead = leads.find((item) => item.id === leadId) || pagedLeads.find((item) => item.id === leadId);
     if (!lead) return false;
 
-    const { imagePath, message, phone } = getLeadWhatsAppPayload(lead);
+    const { imagePath: defaultImagePath, message, phone } = getLeadWhatsAppPayload(lead);
+    const requestedImagePath = Object.prototype.hasOwnProperty.call(options, "imagePath") ? options.imagePath : defaultImagePath;
+    const imagePath = introAttachmentPath(requestedImagePath, lead, sentLeads[lead.id]);
     if (!phone) {
       if (message) await copyMessage(lead.id, message);
       if (!sentLeads[lead.id]) await toggleSent(lead.id);
@@ -984,6 +987,8 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     leads,
     loading,
     messageTemplate,
+    messageTemplateImagePath,
+    messageTemplateImageUrl: messageTemplateQuery.data?.image_url || null,
     notice,
     pagedLeads,
     safePage,

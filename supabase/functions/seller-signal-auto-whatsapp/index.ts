@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1249,7 +1250,8 @@ Deno.serve(async (req) => {
           cleanBuildingName(lead.building),
           template?.content,
         );
-        const imageUrl = await createTemplateImageUrl(adminClient, template?.imagePath || null);
+        const isFollowUp = template?.imagePath && await hasPriorWhatsAppContact(adminClient, { userId: lead.user_id, phone: to, sentAt: lead.sent_at });
+        const imageUrl = await createTemplateImageUrl(adminClient, isFollowUp ? null : template?.imagePath || null);
         const payload = account.provider === "baileys"
           ? buildBaileysPayload({ body, imageUrl, to })
           : buildGraphPayload({ body, imageUrl, to });

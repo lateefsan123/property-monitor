@@ -194,11 +194,14 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
       <BottomSheet visible={confirmSend} onClose={() => !sendingBulk && setConfirmSend(false)} colors={colors}><View style={{ padding: 20, gap: 12 }}><Text style={{ color: colors.text }}>Send messages to {d.sendAllCount} sellers on this page using your connected WhatsApp account?</Text><Button colors={colors} disabled={sendingBulk} onPress={async () => { setSendingBulk(true); try { await d.actions.bulkWhatsApp(); } finally { setSendingBulk(false); setConfirmSend(false); } }}>Confirm send</Button><Button colors={colors} disabled={sendingBulk} onPress={() => setConfirmSend(false)}>Cancel</Button></View></BottomSheet>
 
       <LeadDetailSheet
+        key={selectedLeadId || "no-seller"}
         visible={Boolean(selectedLeadId && selectedLead)}
         onClose={() => setSelectedLeadId(null)}
         lead={selectedLead}
         insight={selectedLead ? d.insights[selectedLead.id] : null}
         messageTemplate={d.messageTemplate}
+        messageTemplateImagePath={d.messageTemplateImagePath}
+        messageTemplateImageUrl={d.messageTemplateImageUrl}
         editDraft={selectedLead && d.editingLeadId === selectedLead.id ? d.editingLeadDraft : null}
         isSent={selectedLead ? Boolean(d.sentLeads[selectedLead.id]) : false}
         isDeleting={selectedLead ? d.deletingLeadId === selectedLead.id : false}

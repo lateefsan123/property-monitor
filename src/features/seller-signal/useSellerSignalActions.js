@@ -1,4 +1,5 @@
 import { WHATSAPP_OPEN_DELAY_MS } from "./constants";
+import { introAttachmentPath } from "../../../supabase/functions/_shared/intro-attachment.js";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
 import { applyLeadEdits, applyLeadStatus, sortLeadsByPriority } from "./lead-utils";
 import { insertLead } from "./services";
@@ -268,7 +269,7 @@ export function createSellerSignalActions(context) {
   function getLeadWhatsAppPayload(lead) {
     const insight = insights[lead.id];
     return {
-      imagePath: messageTemplateImagePath,
+      imagePath: introAttachmentPath(messageTemplateImagePath, lead, sentLeads[lead.id]),
       insight,
       message: insight?.message || buildMessage(lead, insight, messageTemplate),
       phone: formatPhoneForWhatsApp(lead.phone),
@@ -304,9 +305,10 @@ export function createSellerSignalActions(context) {
     // A one-off override from the lead modal wins over the templated message so a
     // single seller can get a tweaked script without touching the saved default.
     const message = String(options.message || "").trim() || templatedMessage;
-    const imagePath = Object.prototype.hasOwnProperty.call(options, "imagePath")
+    const requestedImagePath = Object.prototype.hasOwnProperty.call(options, "imagePath")
       ? options.imagePath
       : templatedImagePath;
+    const imagePath = introAttachmentPath(requestedImagePath, lead, sentLeads[lead.id]);
     // Hot leads send the today's-transaction message; other due leads send a
     // recent-market follow-up. With no market data there is nothing worth
     // sending automatically.

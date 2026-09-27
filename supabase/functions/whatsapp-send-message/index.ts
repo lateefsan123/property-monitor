@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -422,7 +423,7 @@ async function getLead(adminClient: any, userId: string, leadId: string | null) 
 
   const { data, error } = await adminClient
     .from("leads")
-    .select("id, user_id, name, phone, building")
+    .select("id, user_id, name, phone, building, sent_at")
     .eq("user_id", userId)
     .eq("id", leadId)
     .maybeSingle();
@@ -623,7 +624,8 @@ Deno.serve(async (req) => {
     const sendSource = USER_SEND_SOURCES.has(requestedSource) ? requestedSource : "manual";
     const initiatedVia = getInitiatedVia(input, sendSource);
     await assertNoRapidRepeat(adminClient, userId, to);
-    const imageUrl = await resolveTemplateImageUrl(adminClient, userId, input.imagePath);
+    const isFollowUp = input.imagePath && await hasPriorWhatsAppContact(adminClient, { userId, phone: to, sentAt: lead?.sent_at });
+    const imageUrl = await resolveTemplateImageUrl(adminClient, userId, isFollowUp ? null : input.imagePath);
 
     const isBaileys = account.provider === "baileys";
     const payload = isBaileys

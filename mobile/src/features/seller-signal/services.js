@@ -648,6 +648,10 @@ export async function fetchDefaultMessageTemplate(userId) {
     if (error.code === "42P01") return null;
     throw new Error(error.message);
   }
+  if (data?.image_path) {
+    const { data: preview } = await supabase.storage.from("seller-signal-template-images").createSignedUrl(data.image_path, 3600);
+    return { ...data, image_url: preview?.signedUrl || null };
+  }
   return data || null;
 }
 

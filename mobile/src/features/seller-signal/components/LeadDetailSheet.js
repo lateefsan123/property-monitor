@@ -1,7 +1,8 @@
 import AppIcon from "../../../components/AppIcon";
 import { useEffect, useRef, useState } from "react";
 import * as Linking from "expo-linking";
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { introAttachmentPath } from "../../../../../supabase/functions/_shared/intro-attachment.js";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BottomSheet from "../../../components/BottomSheet";
 import { formatBedsLabel, formatDate, formatPrice, formatRange } from "../formatters";
@@ -215,6 +216,8 @@ export default function LeadDetailSheet({
   onClose,
   lead,
   messageTemplate,
+  messageTemplateImagePath,
+  messageTemplateImageUrl,
   insight,
   editDraft,
   isDeleting,
@@ -240,6 +243,7 @@ export default function LeadDetailSheet({
   const leadId = lead?.id ?? null;
   const leadNotes = lead?.notes || "";
   const [notesDraft, setNotesDraft] = useState({ leadId: null, value: "" });
+  const [imageIncluded, setImageIncluded] = useState(true);
   const notesTimerRef = useRef(null);
   const notesValue = notesDraft.leadId === leadId ? notesDraft.value : leadNotes;
 
@@ -250,6 +254,8 @@ export default function LeadDetailSheet({
   if (!lead) return null;
 
   const message = insight?.message || buildMessage(lead, insight, messageTemplate);
+  const followUp = Boolean(isSent || lead.sentAt || lead.sent_at);
+  const selectedImagePath = introAttachmentPath(messageTemplateImagePath, lead, isSent, imageIncluded);
 
   function handleNotesChange(text) {
     setNotesDraft({ leadId, value: text });
@@ -270,7 +276,7 @@ export default function LeadDetailSheet({
   function handleWhatsApp() {
     if (!whatsappPhone) return;
     if (whatsappConnected) {
-      void onSendWhatsApp?.(lead.id);
+      void onSendWhatsApp?.(lead.id, { imagePath: selectedImagePath });
       return;
     }
     Linking.openURL(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`);
@@ -429,6 +435,25 @@ export default function LeadDetailSheet({
                 <MessageIcon size={13} color={c.textMuted} />
                 <Text style={{ fontSize: 11, fontWeight: "600", color: c.textMuted, letterSpacing: 0.5 }}>MESSAGE</Text>
               </View>
+              {messageTemplateImagePath ? (
+                <Pressable
+                  accessibilityRole="checkbox"
+                  accessibilityLabel="Include image with this message"
+                  accessibilityState={{ checked: Boolean(selectedImagePath), disabled: followUp || !whatsappConnected }}
+                  disabled={followUp || !whatsappConnected}
+                  onPress={() => setImageIncluded(value => !value)}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 10 }}
+                >
+                  {messageTemplateImageUrl ? <Image source={{ uri: messageTemplateImageUrl }} resizeMode="contain" style={{ width: 80, height: 54, borderRadius: 6, opacity: selectedImagePath ? 1 : 0.4 }} /> : null}
+                  <View style={{ flex: 1, gap: 3 }}>
+                    <Text style={{ color: c.text, fontSize: 13, fontWeight: "600" }}>Message image</Text>
+                    <Text style={{ color: c.textMuted, fontSize: 12 }}>{followUp ? "Image omitted on follow-ups" : !whatsappConnected ? "Connect WhatsApp to send images" : selectedImagePath ? "Included · tap to remove" : "Not included · tap to add"}</Text>
+                  </View>
+                  <View style={{ width: 22, height: 22, borderRadius: 5, borderWidth: 1, borderColor: c.textMuted, alignItems: "center", justifyContent: "center" }}>
+                    {selectedImagePath ? <CheckIcon size={16} color={c.text} /> : null}
+                  </View>
+                </Pressable>
+              ) : null}
               <Text style={{ fontSize: 14, color: c.text, lineHeight: 20, backgroundColor: c.bgMsg, padding: 12, borderRadius: 10 }}>{message}</Text>
             </View>
           </>
