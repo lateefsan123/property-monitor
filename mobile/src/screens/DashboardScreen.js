@@ -17,7 +17,7 @@ import { DATA_FILTER_OPTIONS, STATUS_FILTER_OPTIONS } from "../features/seller-s
 import { useSellerSignalPage } from "../features/seller-signal/useSellerSignalPage";
 import { getTheme } from "../theme";
 
-export default function DashboardScreen({ onBack, theme, userId, embedded = false, request }) {
+export default function DashboardScreen({ onBack, theme, userId, embedded = false, request, onSendBarHeightChange }) {
   const d = useSellerSignalPage(userId);
   const colors = getTheme(theme);
   const s = styles(colors);
@@ -29,7 +29,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
   const [viewsOpen, setViewsOpen] = useState(false);
   const [viewName, setViewName] = useState("");
   const bottomInset = embedded ? 0 : insets.bottom;
-  const [sendBarHeight, setSendBarHeight] = useState(68 + bottomInset);
+
   const [confirmSend, setConfirmSend] = useState(false);
   const [sendingBulk, setSendingBulk] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
@@ -135,7 +135,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
 
       </View>
 
-      <View style={s.searchBar}>
+      <View style={[s.searchBar, { flexDirection: "row", alignItems: "center", gap: 10 }]}><View style={{ flex: 1 }}>
         <AppSearchBar
           colors={colors}
           placeholder="Search sellers"
@@ -143,7 +143,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
           clearLabel="Clear seller search"
           value={d.searchTerm}
           onChangeText={d.actions.updateSearchTerm}
-        />
+        /></View><Pressable accessibilityRole="button" accessibilityLabel="Seller filters" onPress={() => setSheetOpen(true)} style={{ width: 46, height: 46, borderRadius: 12, backgroundColor: colors.bgInput, alignItems: "center", justifyContent: "center" }}><AppIcon name="filter" size={21} color={colors.text} /></Pressable>
       </View>
 
       {d.notice && (
@@ -182,15 +182,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
         />
       </View>
 
-      <View onLayout={event => setSendBarHeight(event.nativeEvent.layout.height)} style={{ padding: 12, paddingBottom: Math.max(12, bottomInset), borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bgCard }}><Button colors={colors} primary disabled={!d.connectedWhatsAppAccount || !d.sendAllCount || sendingBulk} onPress={() => setConfirmSend(true)}>{sendingBulk ? 'Sending…' : `Send messages · ${d.sendAllCount} ready`}</Button></View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel="Seller filters"
-        onPress={() => setSheetOpen(true)}
-        style={({ pressed }) => [s.fab, { bottom: sendBarHeight + 16 }, pressed && { opacity: 0.85 }]}
-      >
-        <AppIcon name="filter" size={26} color={colors.bg} />
-      </Pressable>
+      <View onLayout={event => { if (event.nativeEvent.layout.height > 0) onSendBarHeightChange?.(event.nativeEvent.layout.height); }} style={{ padding: 12, paddingBottom: Math.max(12, bottomInset), borderTopWidth: 1, borderTopColor: colors.border, backgroundColor: colors.bgCard }}><Button colors={colors} primary disabled={!d.connectedWhatsAppAccount || !d.sendAllCount || sendingBulk} onPress={() => setConfirmSend(true)}>{sendingBulk ? 'Sending…' : `Send messages · ${d.sendAllCount} ready`}</Button></View>
       <BottomSheet visible={confirmSend} onClose={() => !sendingBulk && setConfirmSend(false)} colors={colors}><View style={{ padding: 20, gap: 12 }}><Text style={{ color: colors.text }}>Send messages to {d.sendAllCount} sellers on this page using your connected WhatsApp account?</Text><Button colors={colors} disabled={sendingBulk} onPress={async () => { setSendingBulk(true); try { await d.actions.bulkWhatsApp(); } finally { setSendingBulk(false); setConfirmSend(false); } }}>Confirm send</Button><Button colors={colors} disabled={sendingBulk} onPress={() => setConfirmSend(false)}>Cancel</Button></View></BottomSheet>
 
       <LeadDetailSheet

@@ -3,7 +3,6 @@ import { useEffect, useRef, useState } from "react";
 import * as Linking from "expo-linking";
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { introAttachmentPath } from "../../../../../supabase/functions/_shared/intro-attachment.js";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BottomSheet from "../../../components/BottomSheet";
 import { formatBedsLabel, formatDate, formatPrice, formatRange } from "../formatters";
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
@@ -24,18 +23,6 @@ const EDIT_STATUS_OPTIONS = [
   { value: "Appraisal", label: "Appraisal" },
   { value: "For Sale", label: "For Sale" },
 ];
-
-function HomeIcon({ size = 15, color }) {
-  return (
-    <AppIcon name="home" size={size} color={color} />
-  );
-}
-
-function PhoneIcon({ size = 14, color }) {
-  return (
-    <AppIcon name="phone" size={size} color={color} />
-  );
-}
 
 function MessageIcon({ size = 14, color }) {
   return (
@@ -71,12 +58,6 @@ function getEditStatusOptions(currentStatus) {
     { value: currentStatus, label: `${currentStatus} (Current)` },
     ...EDIT_STATUS_OPTIONS.slice(1),
   ];
-}
-
-function MetaText({ colors, lead }) {
-  const parts = [lead.bedroom, formatDate(lead.lastContactDate)].filter(Boolean);
-  if (!parts.length) return null;
-  return <Text style={{ fontSize: 14, color: colors.textFaint, marginTop: 2 }}>{parts.join(" | ")}</Text>;
 }
 
 function EditForm({ colors, draft, isDeleting, isSaving, onCancel, onChange, onDelete, onSave }) {
@@ -241,7 +222,8 @@ export default function LeadDetailSheet({
   whatsappConnected,
   colors,
 }) {
-  const insets = useSafeAreaInsets();
+  const [tab, setTab] = useState("Details");
+  const [statusOpen, setStatusOpen] = useState(false);
   const c = colors;
   const leadId = lead?.id ?? null;
   const leadNotes = lead?.notes || "";
@@ -331,30 +313,15 @@ export default function LeadDetailSheet({
   }
 
   return (
-    <BottomSheet visible={visible} onClose={onClose} colors={colors}>
+    <BottomSheet visible={visible} onClose={() => { handleNotesBlur(); onClose(); }} colors={colors}>
       <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-        <Text style={{ fontSize: 22, fontWeight: "800", color: c.textName }}>{lead.name || "Unnamed"}</Text>
-
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 4 }}>
-          <HomeIcon size={15} color={c.textMuted} />
-          <Text style={{ fontSize: 15, color: c.textMuted }}>{formatBuildingLabel(lead.building) || "-"}</Text>
+        <View style={s.profileHeader}>
+          <View style={[s.avatar, { backgroundColor: c.bgBadge }]}><Text style={{ color: c.text, fontSize: 23, fontWeight: "600" }}>{(lead.name || "?").split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase()}</Text></View>
+          <Text style={{ fontSize: 22, fontWeight: "700", color: c.textName, textAlign: "center" }}>{lead.name || "Unnamed seller"}</Text>
+          <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center" }}>{formatBuildingLabel(lead.resolvedBuilding || lead.building) || "No building"}</Text>
+          {!isEditing && <Pressable accessibilityRole="button" onPress={() => onStartEditing?.(lead.id)} disabled={isSaving || isDeleting} style={{ minHeight: 44, justifyContent: "center" }}><Text style={{ color: c.text, fontWeight: "600" }}>Edit seller</Text></Pressable>}
         </View>
-
-        {lead.phone && (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2 }}>
-            <PhoneIcon size={14} color={c.textFaint} />
-            <Text style={{ fontSize: 14, color: c.textFaint }}>{lead.phone}</Text>
-          </View>
-        )}
-
-        <MetaText colors={c} lead={lead} />
-
-        <View style={s.badges}>
-          <Badge label={lead.statusLabel} statusId={lead.statusRule?.id} colors={c} />
-          <Badge label={lead.dueLabel} type={lead.isDue ? "due" : "ok"} colors={c} />
-          {insight?.status === "ready" && <Badge label="Enriched" type="ok" colors={c} />}
-          {lead.newTxSinceSent > 0 && <Badge label={`${lead.newTxSinceSent} new txns`} type="due" colors={c} />}
-        </View>
+        {!isEditing && <View accessibilityRole="tablist" style={[s.tabs, { backgroundColor: c.bgBadge }]}>{["Details", "Notes", "Message"].map(value => <Pressable key={value} accessibilityRole="tab" accessibilityState={{ selected: tab === value }} onPress={() => { handleNotesBlur(); setTab(value); }} style={[s.tab, tab === value && { backgroundColor: c.bgCard }]}><Text style={{ color: tab === value ? c.text : c.textMuted, fontWeight: "600" }}>{value}</Text></Pressable>)}</View>}
 
         {isEditing ? (
           <EditForm
@@ -369,28 +336,20 @@ export default function LeadDetailSheet({
           />
         ) : (
           <>
-            <View style={s.inlineActions}>
-              <Pressable
-                style={[s.secondaryAction, { borderColor: c.border, opacity: isSaving || isDeleting ? 0.6 : 1 }]}
-                disabled={isSaving || isDeleting}
-                onPress={() => onStartEditing?.(lead.id)}
-              >
-                <Text style={{ color: c.textSecondary, fontSize: 14, fontWeight: "600" }}>Edit</Text>
-              </Pressable>
-              <Pressable
-                style={[s.secondaryAction, { borderColor: c.errorBorder || c.border, backgroundColor: c.errorBg, opacity: isSaving || isDeleting ? 0.6 : 1 }]}
-                disabled={isSaving || isDeleting}
-                onPress={handleDelete}
-              >
-                <Text style={{ color: c.errorText, fontSize: 14, fontWeight: "700" }}>
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </Text>
-              </Pressable>
-            </View>
-
+            {tab === "Details" && <View style={{ gap: 20 }}>
+              <View style={[s.infoGroup, { backgroundColor: c.bgMsg }]}>
+                <Text style={{ color: c.textMuted, fontSize: 12 }}>Phone</Text>
+                <Text selectable style={{ color: c.text, fontSize: 16 }}>{lead.phone || "No phone number"}</Text>
+                <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 8 }}>Property</Text>
+                <Text style={{ color: c.text, fontSize: 15 }}>{[lead.bedroom, lead.unit ? `Unit ${lead.unit}` : null].filter(Boolean).join(" / ") || "No property details"}</Text>
+                <Text style={{ color: c.textMuted, fontSize: 12, marginTop: 8 }}>Last contact</Text>
+                <Text style={{ color: c.text, fontSize: 15 }}>{formatDate(lead.lastContactDate) || "Not contacted yet"}</Text>
+              </View>
             <View style={s.statusSection}>
-              <Text style={[s.formLabel, { color: c.textMuted }]}>Status</Text>
-              <View style={s.statusRow}>
+              <Pressable accessibilityRole="button" accessibilityLabel="Change seller status" accessibilityState={{ expanded: statusOpen }} onPress={() => setStatusOpen(value => !value)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44 }}>
+                <Text style={{ color: c.text, fontSize: 15 }}>Status</Text><View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}><Badge label={lead.statusLabel || "No status"} statusId={lead.statusRule?.id} colors={c} /><AppIcon name="chevron" size={16} color={c.textMuted} /></View>
+              </Pressable>
+              {statusOpen && <View style={s.statusRow}>
                 {STATUS_ACTIONS.map((option) => {
                   const isActive = lead.statusRule?.id === option.id;
                   return (
@@ -401,7 +360,7 @@ export default function LeadDetailSheet({
                         { backgroundColor: isActive ? c.tabActiveBg : c.bgBadge, opacity: isSaving || isDeleting ? 0.6 : 1 },
                       ]}
                       disabled={isActive || isSaving || isDeleting}
-                      onPress={() => onUpdateStatus?.(lead.id, option.value)}
+                      onPress={() => { onUpdateStatus?.(lead.id, option.value); setStatusOpen(false); }}
                     >
                       <Text style={{ color: isActive ? c.tabActiveText : c.textMuted, fontSize: 13, fontWeight: "600" }}>
                         {option.label}
@@ -409,7 +368,7 @@ export default function LeadDetailSheet({
                     </Pressable>
                   );
                 })}
-              </View>
+              </View>}
             </View>
 
             {onSaveFollowUp ? <SellerFollowUpControl lead={lead} colors={c} onSave={onSaveFollowUp} /> : null}
@@ -437,7 +396,9 @@ export default function LeadDetailSheet({
             {insight?.status === "loading" && <Text style={{ fontSize: 14, color: c.textFainter }}>Loading market data...</Text>}
             {insight?.status === "error" && <Text style={{ fontSize: 14, color: c.errorText }}>{insight.error}</Text>}
 
-            <View style={{ gap: 6 }}>
+            </View>}
+
+            {tab === "Notes" && <View style={{ gap: 6 }}>
               <Text style={{ fontSize: 11, fontWeight: "600", color: c.textFaint, letterSpacing: 0.5 }}>NOTES</Text>
               <TextInput
                 style={{
@@ -449,19 +410,19 @@ export default function LeadDetailSheet({
                   borderWidth: 1,
                   borderRadius: 10,
                   padding: 12,
-                  minHeight: 60,
+                  minHeight: 160,
                   textAlignVertical: "top",
                 }}
-                placeholder="Add notes about this lead..."
+                placeholder="Add a note about this seller..."
                 placeholderTextColor={c.textFaint}
                 value={notesValue}
                 onChangeText={handleNotesChange}
                 onBlur={handleNotesBlur}
                 multiline
               />
-            </View>
+            </View>}
 
-            <View style={{ gap: 6 }}>
+            {tab === "Message" && <View style={{ gap: 12 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
                 <MessageIcon size={13} color={c.textMuted} />
                 <Text style={{ fontSize: 11, fontWeight: "600", color: c.textMuted, letterSpacing: 0.5 }}>MESSAGE</Text>
@@ -494,20 +455,20 @@ export default function LeadDetailSheet({
               {!whatsappConnected ? <Text style={{ color: c.textMuted, fontSize: 12 }}>Connect WhatsApp to send image attachments.</Text> : null}
               {messageError ? <Text accessibilityRole="alert" style={{ color: c.errorText }}>{messageError}</Text> : null}
               <Text style={{ fontSize: 14, color: c.text, lineHeight: 20, backgroundColor: c.bgMsg, padding: 12, borderRadius: 10 }}>{message}</Text>
-            </View>
+            </View>}
           </>
         )}
       </ScrollView>
 
       {!isEditing && (
-        <View style={[s.actionBar, { paddingBottom: Math.max(insets.bottom, 16), borderTopColor: c.border }]}>
-          {whatsappPhone ? (
-            <Pressable disabled={messageBusy} onPress={handleWhatsApp} style={[s.actionBtn, { backgroundColor: c.whatsappBg, opacity: messageBusy ? 0.5 : 1 }]}>
+        <View style={[s.actionBar, { paddingBottom: 16, borderTopColor: c.border }]}>
+          {tab !== "Message" ? <Pressable accessibilityRole="button" onPress={() => { handleNotesBlur(); setTab("Message"); }} style={[s.actionBtn, { backgroundColor: c.btnPrimaryBg }]}><MessageIcon size={18} color={c.btnPrimaryText} /><Text style={{ color: c.btnPrimaryText, fontWeight: "600", fontSize: 15 }}>Preview message</Text></Pressable> : whatsappPhone ? (
+            <Pressable accessibilityRole="button" disabled={messageBusy} onPress={handleWhatsApp} style={[s.actionBtn, { backgroundColor: c.whatsappBg, opacity: messageBusy ? 0.5 : 1 }]}>
               {isSent ? <CheckIcon size={18} color={c.whatsappText} /> : <WhatsAppIcon size={18} color={c.whatsappText} />}
               <Text style={{ fontSize: 15, fontWeight: "600", color: c.whatsappText }}>{messageBusy ? 'Please wait…' : isSent ? "Send follow-up" : "Send via WhatsApp"}</Text>
             </Pressable>
           ) : (
-            <Pressable onPress={() => onCopyMessage(lead.id, message)} style={[s.actionBtn, { borderWidth: 1, borderColor: c.border }]}>
+            <Pressable accessibilityRole="button" onPress={() => onCopyMessage(lead.id, message)} style={[s.actionBtn, { borderWidth: 1, borderColor: c.border }]}>
               {copiedLeadId === lead.id ? <CheckIcon size={18} color={c.textSecondary} /> : <CopyIcon size={18} color={c.textSecondary} />}
               <Text style={{ fontSize: 15, fontWeight: "600", color: c.textSecondary }}>{copiedLeadId === lead.id ? "Copied!" : "Copy Message"}</Text>
             </Pressable>
@@ -520,7 +481,12 @@ export default function LeadDetailSheet({
 
 const s = StyleSheet.create({
   scroll: { flexShrink: 1 },
-  content: { paddingHorizontal: 24, paddingBottom: 16, gap: 10 },
+  content: { paddingHorizontal: 20, paddingBottom: 24, gap: 20 },
+  profileHeader: { alignItems: "center", gap: 6 },
+  avatar: { width: 64, height: 64, borderRadius: 32, alignItems: "center", justifyContent: "center", marginBottom: 6 },
+  tabs: { flexDirection: "row", padding: 4, borderRadius: 12 },
+  tab: { flex: 1, alignItems: "center", justifyContent: "center", minHeight: 40, borderRadius: 9 },
+  infoGroup: { padding: 16, borderRadius: 14, gap: 5 },
   badges: {
     flexDirection: "row",
     flexWrap: "wrap",

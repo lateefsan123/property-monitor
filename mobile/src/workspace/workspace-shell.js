@@ -30,6 +30,7 @@ export default function WorkspaceShell({
   const colors = getTheme(theme);
   // Start before Settings opens; the panel shares this account-scoped request.
   useQuery(integrationStatusOptions(userId, integrationRequest));
+  const [sellerSendBarHeight, setSellerSendBarHeight] = useState(76);
   const [page, setPage] = useState("home");
   const [listingHeader, setListingHeader] = useState(null);
   const [settingsHeader, setSettingsHeader] = useState(null);
@@ -115,7 +116,7 @@ export default function WorkspaceShell({
           {id === "home" ? (
             <WorkspaceHome {...common} />
           ) : id === "sellers" ? (
-            <DashboardScreen {...common} embedded request={requests[id]} />
+            <DashboardScreen {...common} embedded request={requests[id]} onSendBarHeightChange={setSellerSendBarHeight} />
           ) : id === "spreadsheets" ? (
             <WorkspaceSpreadsheets {...common} request={requests[id]} />
           ) : id === "listing-alerts" ? (
@@ -136,7 +137,7 @@ export default function WorkspaceShell({
           )}
         </View>
       ))}
-      <VoicePanel key={userId} userId={userId} colors={colors} hideLauncher={page === "settings" || page === "message-template"} launcherBottom={page === "schedule" ? 92 : 16} />
+      <VoicePanel key={userId} userId={userId} colors={colors} hideLauncher={page === "settings" || page === "message-template"} launcherBottom={page === "sellers" ? sellerSendBarHeight + 16 : page === "schedule" ? 92 : 16} />
       <BottomSheet
         visible={createOpen}
         onDismiss={finishShortcutDismiss}

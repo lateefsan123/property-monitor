@@ -28,12 +28,6 @@ function formatLeadUnit(value) {
   return `Unit ${raw}`;
 }
 
-function PhoneIcon({ size = 14, color }) {
-  return (
-    <AppIcon name="phone" size={size} color={color} />
-  );
-}
-
 function HomeIcon({ size = 15, color }) {
   return (
     <AppIcon name="home" size={size} color={color} />
@@ -156,7 +150,7 @@ export default function LeadCard({
           </Pressable>
         )}
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 17, fontWeight: "700", color: c.textName }}>{lead.name || "Unnamed"}</Text>
+          <Text style={{ fontSize: 16, fontWeight: "600", color: c.textName }}>{lead.name || "Unnamed"}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
             <HomeIcon size={14} color={c.textMuted} />
             <Text style={{ fontSize: 15, color: c.textMuted }} numberOfLines={1}>{formatBuildingLabel(lead.resolvedBuilding || lead.building) || "-"}</Text>
@@ -166,12 +160,6 @@ export default function LeadCard({
               {bedroomLabel && <Text style={{ fontSize: 13, color: c.textFaint, fontWeight: "500" }}>{bedroomLabel}</Text>}
               {bedroomLabel && unitLabel && <Text style={{ fontSize: 13, color: c.textFainter }}>·</Text>}
               {unitLabel && <Text style={{ fontSize: 13, color: c.textFaint }}>{unitLabel}</Text>}
-            </View>
-          )}
-          {lead.phone && (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
-              <PhoneIcon size={13} color={c.textFaint} />
-              <Text style={{ fontSize: 14, color: c.textFaint }}>{lead.phone}</Text>
             </View>
           )}
         </View>
@@ -189,7 +177,7 @@ export default function LeadCard({
             {lead.newTxSinceSent > 0 && <Badge label={`${lead.newTxSinceSent} new txns`} type="due" colors={c} />}
           </View>
           {whatsappPhone ? (
-            <Pressable onPress={handleWhatsApp} style={{ alignItems: "center", justifyContent: "center", backgroundColor: c.whatsappBg, width: 40, height: 40, borderRadius: 20 }}>
+            <Pressable accessibilityRole="button" accessibilityLabel={`Send WhatsApp message to ${lead.name || "seller"}`} onPress={handleWhatsApp} style={{ alignItems: "center", justifyContent: "center", backgroundColor: c.whatsappBg, width: 40, height: 40, borderRadius: 20 }}>
               {isSent ? <CheckIcon size={18} color={c.whatsappText} /> : <WhatsAppIcon size={18} color={c.whatsappText} />}
             </Pressable>
           ) : (
