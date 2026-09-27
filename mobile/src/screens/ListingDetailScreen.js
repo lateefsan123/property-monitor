@@ -1,3 +1,4 @@
+import { getRecentPriceDrop } from "../../../src/features/listing-alerts/price-drop-utils";
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -328,6 +329,7 @@ export default function ListingDetailScreen({
   const { width: screenWidth } = useWindowDimensions();
   if (!listing) return null;
 
+  const recentDrop = getRecentPriceDrop(listing);
   const isTracked = Boolean(listing.isTracked);
   const isRemoved = listing.currentStatus === "removed";
   const currentPrice = isRemoved
@@ -358,7 +360,7 @@ export default function ListingDetailScreen({
             <Text style={{ fontSize: 32, lineHeight: 38, fontWeight: "800", color: colors.textName, letterSpacing: -0.8 }}>
               {formatPrice(isRemoved ? lastKnownPrice : currentPrice)}
             </Text>
-            {!isRemoved ? <PriceDeltaChip priceDelta={listing.priceDelta} colors={colors} /> : null}
+            {!isRemoved ? <PriceDeltaChip priceDelta={recentDrop.hasDrop ? recentDrop.priceDelta : listing.priceDelta} colors={colors} /> : null}
           </View>
           <Text style={{ fontSize: 15, lineHeight: 22, color: colors.textMuted }}>{details}</Text>
           {listing.title ? <>

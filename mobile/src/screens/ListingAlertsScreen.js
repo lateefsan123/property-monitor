@@ -1,3 +1,4 @@
+import { getRecentPriceDrop } from "../../../src/features/listing-alerts/price-drop-utils";
 import AppIcon from "../components/AppIcon";
 import { useQuery } from '@tanstack/react-query';
 import { fetchListingPriceDrops } from '../workspace/home-insights';
@@ -187,7 +188,7 @@ function WatchButton({ active, disabled, onPress, colors }) {
   );
 }
 
-function BuildingRow({ building, colors, isWatched, watchDisabled, onToggleWatch, onPress, changeCount, grid }) {
+function BuildingRow({ building, colors, isWatched, watchDisabled, onToggleWatch, onPress, priceDropCount, grid }) {
   const hasListingCount = Number.isFinite(building.listingCount);
   const countLine = hasListingCount
     ? `${building.listingCount} ${building.listingCount === 1 ? "listing" : "listings"}`
@@ -200,7 +201,7 @@ function BuildingRow({ building, colors, isWatched, watchDisabled, onToggleWatch
         ? formatPriceRange(building.lowestPrice, building.highestPrice)
         : "Watch to load listings";
 
-  if (grid) return <View style={{borderWidth:1,borderColor:colors.border,borderRadius:12,overflow:'hidden',backgroundColor:colors.bgCard}}><Pressable accessibilityRole="button" accessibilityLabel={"Open building " + building.buildingName} onPress={onPress}><BuildingExterior building={building} colors={colors} grid /><View style={{padding:16,gap:7}}><Text style={{color:colors.textName,fontSize:18,fontWeight:'700'}}>{building.buildingName}</Text><Text style={{color:colors.textMuted,fontSize:12}}>{building.community || 'Dubai'}</Text><View style={{flexDirection:'row',justifyContent:'space-between'}}><Text style={{color:colors.text}}>{countLine}</Text><Text style={{color:colors.text,fontWeight:'600'}}>{priceLine}</Text></View>{changeCount > 0 && <Text style={{color:colors.badgeOkText,fontSize:12}}>{changeCount} updates</Text>}</View></Pressable><View style={{padding:12,paddingTop:0,flexDirection:'row',justifyContent:'space-between'}}><WatchButton active={isWatched} disabled={watchDisabled} onPress={onToggleWatch} colors={colors}/></View></View>;
+  if (grid) return <View style={{borderWidth:1,borderColor:colors.border,borderRadius:12,overflow:'hidden',backgroundColor:colors.bgCard}}><Pressable accessibilityRole="button" accessibilityLabel={"Open building " + building.buildingName} onPress={onPress}><BuildingExterior building={building} colors={colors} grid /><View style={{padding:16,gap:7}}><Text style={{color:colors.textName,fontSize:18,fontWeight:'700'}}>{building.buildingName}</Text><Text style={{color:colors.textMuted,fontSize:12}}>{building.community || 'Dubai'}</Text><View style={{flexDirection:'row',justifyContent:'space-between'}}><Text style={{color:colors.text}}>{countLine}</Text><Text style={{color:colors.text,fontWeight:'600'}}>{priceLine}</Text></View>{priceDropCount > 0 && <Text style={{color:colors.badgeOkText,fontSize:12}}>{priceDropCount} price {priceDropCount === 1 ? "drop" : "drops"}</Text>}</View></Pressable><View style={{padding:12,paddingTop:0,flexDirection:'row',justifyContent:'space-between'}}><WatchButton active={isWatched} disabled={watchDisabled} onPress={onToggleWatch} colors={colors}/></View></View>;
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [{ flexDirection: "row", alignItems: "center", gap: 12 }, pressed && { opacity: 0.85 }]}>
       <BuildingExterior building={building} colors={colors} />
@@ -218,11 +219,11 @@ function BuildingRow({ building, colors, isWatched, watchDisabled, onToggleWatch
         <Text style={{ fontSize: 14, color: colors.text, fontWeight: "600", marginTop: 2 }} numberOfLines={1}>
           {priceLine}
         </Text>
-        {changeCount > 0 ? (
+        {priceDropCount > 0 ? (
           <View style={{ flexDirection: "row", marginTop: 6 }}>
             <View style={{ backgroundColor: colors.badgeDueBg, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 }}>
               <Text style={{ fontSize: 11, fontWeight: "700", color: colors.badgeDueText, lineHeight: 14, includeFontPadding: false }}>
-                {changeCount} {changeCount === 1 ? "update" : "updates"}
+                {priceDropCount} price {priceDropCount === 1 ? "drop" : "drops"}
               </Text>
             </View>
           </View>
@@ -236,6 +237,7 @@ function BuildingRow({ building, colors, isWatched, watchDisabled, onToggleWatch
 
 function ListingHistoryRow({ listing, colors, onPress, onOpenExternal, showBuilding }) {
   const isTracked = Boolean(listing.isTracked);
+  const recentDrop = getRecentPriceDrop(listing);
   const isRemoved = listing.currentStatus === "removed";
   const currentPrice = isRemoved ? listing.lastKnownPrice : listing.price ?? listing.currentPrice ?? listing.lastKnownPrice;
 
@@ -261,7 +263,7 @@ function ListingHistoryRow({ listing, colors, onPress, onOpenExternal, showBuild
           <Text style={{ fontSize: 19, color: colors.textName, fontWeight: "700" }} numberOfLines={1}>
             {isRemoved ? `Last seen ${formatPrice(listing.lastKnownPrice)}` : formatPriceRange(currentPrice, currentPrice)}
           </Text>
-          {isTracked && !isRemoved ? <PriceDeltaChip priceDelta={listing.priceDelta} colors={colors} /> : null}
+          {!isRemoved && (recentDrop.hasDrop || isTracked) ? <PriceDeltaChip priceDelta={recentDrop.hasDrop ? recentDrop.priceDelta : listing.priceDelta} colors={colors} /> : null}
 
           {isRemoved ? <StatusPill listing={listing} colors={colors} /> : null}
         </View>
@@ -430,16 +432,20 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
     };
   }, []);
 
-  // Per-building change counts (so we can show a small "N updates" pill on the row)
-  const changeCountByBuilding = useMemo(() => {
-    const map = new Map();
-    for (const item of alerts.changeItems || []) {
-      const key = item.buildingKey || item.locationId;
-      if (!key) continue;
-      map.set(key, (map.get(key) || 0) + 1);
+  const recentDrops = useMemo(() => {
+    const byBuilding = new Map();
+    const keys = new Set();
+    const seen = new Set();
+    for (const listing of [...(alerts.trackedListings || []), ...(alerts.latestListings || [])]) {
+      const key = listing.key || `${listing.locationId}:${listing.id}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (listing.currentStatus === "removed" || !getRecentPriceDrop(listing).hasDrop) continue;
+      keys.add(key);
+      byBuilding.set(listing.locationId, (byBuilding.get(listing.locationId) || 0) + 1);
     }
-    return map;
-  }, [alerts.changeItems]);
+    return { byBuilding, keys };
+  }, [alerts.trackedListings, alerts.latestListings]);
 
   const selectedListing = useMemo(() => {
     if (!selectedListingKey) return externalListing;
@@ -485,7 +491,7 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
 
     if (trackedStatusFilter !== "all") {
       if (trackedStatusFilter === "price-drops") {
-        source = source.filter((l) => Number.isFinite(l.priceDelta) && l.priceDelta < 0);
+        source = source.filter((l) => l.currentStatus !== "removed" && getRecentPriceDrop(l).hasDrop);
       } else {
         source = source.filter((l) => {
           if (!l.isTracked && !l.currentStatus) return false;
@@ -516,8 +522,13 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
       });
     }
 
-    return source;
+    // Keep recent drops visible at the top before pagination.
+    return selectedBuildingId ? [...source].sort((a, b) =>
+      Number(recentDrops.keys.has(b.key || `${b.locationId}:${b.id}`)) - Number(recentDrops.keys.has(a.key || `${a.locationId}:${a.id}`)),
+    ) : source;
   }, [
+    selectedBuildingId,
+    recentDrops.keys,
     allListings,
     dropsQuery.data,
     alerts.latestListings,
@@ -622,9 +633,6 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
 
   const renderItem = ({ item }) => {
     if (viewTab === "buildings") {
-      const changeCount = changeCountByBuilding.get(item.locationId)
-        || changeCountByBuilding.get(item.key)
-        || 0;
       return (
         <BuildingRow
           grid={grid}
@@ -634,7 +642,7 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
           watchDisabled={!alerts.watchedSet?.has(item.locationId) && alerts.stats.watchedBuildingCount >= alerts.watchLimit}
           onToggleWatch={() => alerts.watchedSet?.has(item.locationId) ? alerts.actions.toggleWatch(item) : openBuildingListings(item)}
           onPress={() => openBuildingListings(item)}
-          changeCount={changeCount}
+          priceDropCount={recentDrops.byBuilding.get(item.locationId) || 0}
         />
       );
     }
@@ -759,6 +767,13 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
 
       {selectedBuildingId ? <View style={s.listingToolbar}>
         <Text style={{ color: colors.textMuted, flex: 1 }}>{listings.length} {listings.length === 1 ? "listing" : "listings"}</Text>
+        {(recentDrops.byBuilding.get(selectedBuildingId) || 0) > 0 ? <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ selected: trackedStatusFilter === "price-drops" }}
+          onPress={() => handleTrackedStatusFilterChange(trackedStatusFilter === "price-drops" ? "all" : "price-drops")}
+          style={{ paddingHorizontal: 10, paddingVertical: 10, borderRadius: 16, backgroundColor: trackedStatusFilter === "price-drops" ? colors.badgeOkBg : colors.bgCard }}>
+          <Text style={{ color: colors.badgeOkText, fontSize: 13 }}>Price drops ({recentDrops.byBuilding.get(selectedBuildingId)})</Text>
+        </Pressable> : null}
         <Pressable accessibilityRole="button" accessibilityLabel="Listing filters" style={s.filterButton} onPress={() => setSheetOpen(true)}>
           <TuneIcon color={colors.text} />
         </Pressable>
