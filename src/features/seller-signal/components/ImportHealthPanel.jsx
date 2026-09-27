@@ -18,7 +18,7 @@ function buildStats(report) {
   const missingPhone = toCount(missing.phone);
   const missingUnit = toCount(missing.unit);
   const duplicateRows = toCount(quality.duplicateRows ?? result.skippedCount);
-  const reviewBuildings = invalid + unmatched + missingBuilding;
+  const reviewBuildings = invalid + missingBuilding;
 
   return {
     duplicateRows,
@@ -42,11 +42,6 @@ function getExamples(report) {
       meta: example.reason || "Invalid",
       type: "invalid",
     })),
-    ...(building.unmatchedExamples || []).map((example) => ({
-      label: example.name,
-      meta: plural(toCount(example.count), "lead"),
-      type: "unmatched",
-    })),
   ].slice(0, 5);
 }
 
@@ -57,7 +52,7 @@ export default function ImportHealthPanel({ onReviewRows, report }) {
   const examples = getExamples(report);
   const hasReview = stats.reviewBuildings > 0 || stats.missingPhone > 0 || stats.missingUnit > 0;
   const reviewFilter = stats.reviewBuildings > 0 ? "review" : "partial";
-  const statusText = hasReview ? "Needs review" : "Clean import";
+  const statusText = hasReview ? "Needs review" : stats.unmatched ? "Building matching" : "Clean import";
 
   return (
     <section className="import-health-panel" aria-label="Import health">
@@ -110,6 +105,7 @@ export default function ImportHealthPanel({ onReviewRows, report }) {
           Review rows
         </button>
       )}
+      {stats.unmatched > 0 && <p className="import-health-meta">{plural(stats.unmatched, 'building name')} queued for Repeat AI to match. No manual mapping needed.</p>}
     </section>
   );
 }

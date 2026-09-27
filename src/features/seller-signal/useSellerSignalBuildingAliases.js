@@ -10,6 +10,7 @@ export function useSellerSignalBuildingAliases(userId) {
     enabled: Boolean(userId),
     queryFn: () => fetchBuildingAliases(userId),
     staleTime: 5 * 60 * 1000,
+    refetchInterval: 60 * 1000,
   });
 
   const upsertBuildingAliasMutation = useMutation({

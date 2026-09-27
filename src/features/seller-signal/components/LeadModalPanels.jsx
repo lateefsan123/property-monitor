@@ -198,7 +198,9 @@ export function DataQualityPanel({ lead }) {
     ? `${match.canonicalName} (${match.confidence} confidence)`
     : match?.status === "missing"
       ? "No building supplied"
-      : `Not matched: ${match?.inputName || "Unknown"}`;
+      : match?.status === "unmatched"
+        ? "Awaiting a verified match from Repeat AI"
+        : `Invalid building: ${match?.inputName || "Unknown"}`;
 
   return (
     <div className="lead-detail-panel">

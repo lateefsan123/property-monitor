@@ -11,12 +11,12 @@ import {
   parseBuildingAddressValue,
 } from "./building-utils";
 import { normalizeToken } from "./spreadsheet";
+import { automaticAliasKey } from "../../../shared/automatic-building-aliases";
 
 const REVIEW_ISSUES = new Set([
   "duplicate_lead",
   "invalid_building",
   "missing_building",
-  "unmatched_building",
 ]);
 const CACHED_BUILDING_STOP_WORDS = new Set([
   "the",
@@ -47,6 +47,7 @@ function normalizePhone(value) {
 
 function buildAliasLookup(buildingAliases) {
   const lookup = new Map();
+  lookup.automatic = new Map();
   const sortedAliases = [...(buildingAliases || [])].sort((left, right) => {
     const leftGlobal = Boolean(left?.isGlobal ?? left?.is_global);
     const rightGlobal = Boolean(right?.isGlobal ?? right?.is_global);
@@ -56,6 +57,10 @@ function buildAliasLookup(buildingAliases) {
   for (const alias of sortedAliases) {
     const aliasName = alias.aliasName ?? alias.alias_name;
     const canonicalName = String(alias.canonicalName ?? alias.canonical_name ?? "").trim();
+    if (alias.automatic) {
+      if (canonicalName) lookup.automatic.set(automaticAliasKey(aliasName), canonicalName);
+      continue;
+    }
     const key = normalizeBuildingAliasKey(aliasName);
     if (key && canonicalName) lookup.set(key, canonicalName);
   }
@@ -284,6 +289,10 @@ function findTruncatedPrefixMatch(raw, cachedIndex) {
 }
 
 function resolveBuildingMatch(raw, aliasLookup, cachedIndex) {
+  const automatic = aliasLookup.automatic.get(automaticAliasKey(raw));
+  if (automatic && !aliasLookup.has(normalizeBuildingAliasKey(raw))) {
+    return { status: 'matched', confidence: 'high', method: 'verified_automatic', inputName: raw, canonicalName: automatic };
+  }
   const sourceName = cachedIndex.sourceExact.get(normalizeToken(raw));
   if (sourceName && !aliasLookup.has(normalizeBuildingAliasKey(raw))) return { status: 'matched', confidence: 'high', method: 'cached_exact', inputName: raw, canonicalName: sourceName };
   const invalidIssue = getInvalidBuildingValueIssue(raw);
@@ -421,11 +430,13 @@ function addIssue(issues, id, label, severity = "warning") {
 
 function buildQualityLabel(issues) {
   if (issues.some((issue) => REVIEW_ISSUES.has(issue.id))) return "Needs review";
-  if (issues.length) return "Missing info";
+  if (issues.some((issue) => issue.id !== 'unmatched_building')) return "Missing info";
+  if (issues.length) return "Building matching";
   return "Complete";
 }
 
 function buildQualityLevel(label) {
+  if (label === "Building matching") return "matching";
   if (label === "Complete" || label === "Trusted") return "trusted";
   if (label === "Missing info" || label === "Partial") return "partial";
   return "review";
@@ -447,7 +458,7 @@ export function enrichLeadsWithDataQuality(leads, buildingAliases = [], cachedBu
     if (!String(leadUnit || "").trim()) addIssue(issues, "missing_unit", "Missing unit");
     if (buildingMatch.status === "missing") addIssue(issues, "missing_building", "Missing building", "error");
     if (buildingMatch.status === "invalid") addIssue(issues, "invalid_building", buildingMatch.issue?.label || "Invalid building value", "error");
-    if (buildingMatch.status === "unmatched") addIssue(issues, "unmatched_building", "Unmatched building", "error");
+    if (buildingMatch.status === "unmatched") addIssue(issues, "unmatched_building", "Awaiting a verified building match from Repeat AI", "info");
     if (duplicateLookup[lead.id]) addIssue(issues, "duplicate_lead", `${duplicateLookup[lead.id].count} duplicates`, "error");
 
     const label = buildQualityLabel(issues);

@@ -6,3 +6,7 @@ verify_jwt = false
 
 [functions.seller-signal-automation-dispatcher]
 verify_jwt = false
+
+# Internal token/service-role authentication is enforced inside the worker.
+[functions.resolve-building-names]
+verify_jwt = false

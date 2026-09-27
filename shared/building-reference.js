@@ -1,5 +1,6 @@
 import { normalizeBuildingAliasKey } from "../src/features/seller-signal/building-utils";
 import { selectCachedBuildings } from './cached-buildings.js';
+import { fetchAutomaticBuildingAliases } from './automatic-building-aliases.js';
 export function createBuildingReferenceServices(supabase) {
   function mapBuildingAliasRow(row) {
     return {
@@ -24,16 +25,16 @@ export function createBuildingReferenceServices(supabase) {
   async function fetchBuildingAliases(userId) {
     if (!userId) return [];
 
-    const { data, error } = await supabase
+    const [{ data, error }, automatic] = await Promise.all([supabase
       .from("building_aliases")
       .select("*")
       .or(`is_global.eq.true,user_id.eq.${userId}`)
-      .order("alias_name");
+      .order("alias_name"), fetchAutomaticBuildingAliases(supabase, userId)]);
 
     if (isMissingAliasTableError(error)) return [];
     if (error) throw new Error(error.message);
 
-    return (data || []).map(mapBuildingAliasRow);
+    return [...(data || []).map(mapBuildingAliasRow), ...automatic];
   }
 
   async function upsertBuildingAlias({ userId, aliasName, canonicalName }) {
