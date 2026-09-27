@@ -94,7 +94,7 @@ export default function WorkspaceShell({
       page={page}
       headerTitle={page === "schedule" ? "Schedule" : contextualHeader?.title}
       onHeaderBack={contextualHeader?.onBack}
-      hideCreate={page === "settings" || page === "spreadsheets" || Boolean(contextualHeader?.onBack)}
+      hideCreate={page === "settings" || page === "spreadsheets" || page === "schedule" || Boolean(contextualHeader?.onBack)}
       colors={colors}
       onNavigate={navigate}
       onAction={action}
