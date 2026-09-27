@@ -7,7 +7,9 @@ export function complimentaryAccess(user) {
     source: "complimentary",
     status: "active",
     unlimited: true,
-    current_period_end: null,
+    // Preserve the lifetime shape understood by already-released mobile clients.
+    current_period_end: "9999-12-31T23:59:59.000Z",
+    raw: { livemode: true },
     cancel_at_period_end: false,
     amount: 0,
   };

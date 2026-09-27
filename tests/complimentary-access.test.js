@@ -7,7 +7,8 @@ test('confirmed account receives non-expiring access without a billing record', 
   const access = complimentaryAccess({ id: '441421f9-1089-4694-a66e-ab75b5459003' });
   assert.equal(access.source, 'complimentary');
   assert.equal(access.amount, 0);
-  assert.equal(access.current_period_end, null);
+  assert.equal(access.current_period_end, '9999-12-31T23:59:59.000Z');
+  assert.equal(access.raw.livemode, true);
   assert.equal(hasActiveSubscription(access, Date.parse('2100-01-01')), true);
 });
 test('other accounts cannot obtain unlimited access through email or editable metadata', () => {
