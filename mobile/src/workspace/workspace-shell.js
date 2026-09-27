@@ -110,7 +110,7 @@ export default function WorkspaceShell({
       onNavigate={navigate}
       onAction={action}
       onToggleTheme={onToggleTheme}
-      favoriteSellers={(savedSellers.data || []).filter(seller => sellerFavorites.value.includes(String(seller.id)))}
+      favoriteSellers={(savedSellers.data?.leads || []).filter(seller => sellerFavorites.value.includes(String(seller.id)))}
       favorites={(sources.data || []).filter((source) =>
         favorites.value.includes(String(source.id)),
       )}
