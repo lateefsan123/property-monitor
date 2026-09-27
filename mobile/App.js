@@ -3,7 +3,7 @@ import "react-native-url-polyfill/auto";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, StatusBar, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Alert, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -19,6 +19,7 @@ import { registerForPushNotifications, saveTokenToSupabase } from "./src/notific
 import { useSellerSignalRealtime } from "./src/features/seller-signal/useSellerSignalRealtime";
 import { supabase } from "./src/supabase";
 import { getTheme } from "./src/theme";
+import { withStartupTimeout } from './src/startup-request';
 
 const ONBOARDING_KEY = "@seller_signal_onboarding_completed_v3";
 const queryClient = new QueryClient({
@@ -46,6 +47,8 @@ export default function App() {
 function AppInner() {
   const [session, setSession] = useState(undefined);
   const [loading, setLoading] = useState(true);
+  const [startupError, setStartupError] = useState(null);
+  const [startupAttempt, setStartupAttempt] = useState(0);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
   const [gateState, setGateState] = useState({
     hydrated: false,
@@ -72,21 +75,31 @@ function AppInner() {
     let isActive = true;
 
     async function bootstrapApp() {
-      const [storedFlags, sessionResult] = await Promise.all([
-        AsyncStorage.multiGet([ONBOARDING_KEY]),
-        supabase.auth.getSession(),
-      ]);
+      setStartupError(null);
+      setLoading(true);
+      try {
+        const [storedFlags, sessionResult] = await withStartupTimeout(() => Promise.all([
+          AsyncStorage.multiGet([ONBOARDING_KEY]),
+          supabase.auth.getSession(),
+        ]), 'Could not restore your session. Check your connection and try again.');
 
-      if (!isActive) return;
+        if (!isActive) return;
+        if (sessionResult.error) throw sessionResult.error;
 
-      const [[, onboardingValue]] = storedFlags;
+        const [[, onboardingValue]] = storedFlags;
 
-      setGateState({
-        hydrated: true,
-        onboardingCompleted: onboardingValue === "true",
-      });
-      setSession(sessionResult.data.session);
-      setLoading(false);
+        setGateState({
+          hydrated: true,
+          onboardingCompleted: onboardingValue === "true",
+        });
+        setSession(sessionResult.data.session);
+        setLoading(false);
+      } catch {
+        if (isActive) {
+          setStartupError('Could not restore your session. Check your connection and try again.');
+          setLoading(false);
+        }
+      }
     }
 
     void bootstrapApp();
@@ -99,7 +112,7 @@ function AppInner() {
       isActive = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [startupAttempt]);
 
   useEffect(() => {
     if (!sessionUserId) return;
@@ -162,6 +175,13 @@ function AppInner() {
         />
       </SafeAreaProvider>
     );
+  }
+
+  if (startupError) {
+    return <View style={[styles.loading, { backgroundColor: colors.bg, padding: 32, gap: 20 }]}>
+      <Text accessibilityRole="alert" style={{ color: colors.text, textAlign: 'center', fontSize: 16 }}>{startupError}</Text>
+      <Pressable accessibilityRole="button" onPress={() => setStartupAttempt((value) => value + 1)} style={{ padding: 16 }}><Text style={{ color: colors.text, fontWeight: '700' }}>Try again</Text></Pressable>
+    </View>;
   }
 
   if (loading || !gateState.hydrated || session === undefined) {

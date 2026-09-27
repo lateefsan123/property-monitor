@@ -2,9 +2,13 @@ import { useEffect } from "react";
 import { AppState } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../supabase";
+import { withStartupTimeout } from '../startup-request';
 
 export async function fetchSharedSubscription() {
-  const { data, error } = await supabase.functions.invoke("get-billing-access", { body: {} });
+  const { data, error } = await withStartupTimeout(
+    () => supabase.functions.invoke("get-billing-access", { body: {}, timeout: 10000 }),
+    'Could not verify your subscription. Check your connection and try again.',
+  );
   if (error) throw new Error("Could not verify your existing subscription. Please try again.");
   return data?.subscription ?? null;
 }

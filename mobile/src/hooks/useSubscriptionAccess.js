@@ -12,6 +12,7 @@ import {
   showMobileSubscriptionManagement,
 } from "../subscriptions";
 import { sharedSubscriptionIsActive, useSharedSubscription } from "./useSharedSubscription";
+import { withStartupTimeout } from '../startup-request';
 
 const EMPTY_STORE = {
   canPurchase: false,
@@ -55,7 +56,10 @@ export function useSubscriptionAccess({ userId, email, displayName }) {
       userId: requestedUserId,
     }));
     try {
-      const snapshot = await getMobileSubscriptionSnapshot(user);
+      const snapshot = await withStartupTimeout(
+        () => getMobileSubscriptionSnapshot(user),
+        'The app store took too long to respond. Please try again.',
+      );
       if (revision !== requestRevision.current || userRef.current !== requestedUserId) return null;
       setStore({ ...snapshot, error: null, loading: false, userId: requestedUserId });
       return snapshot;

@@ -1,5 +1,6 @@
 /* global process */
 import { Platform } from "react-native";
+import Constants, { ExecutionEnvironment } from 'expo-constants';
 
 export const PRO_ENTITLEMENT_ID = process.env.EXPO_PUBLIC_REVENUECAT_ENTITLEMENT_ID?.trim()
   || "seller_signal_pro";
@@ -13,6 +14,8 @@ function getPurchasesModule() {
 }
 
 function getPublicApiKey() {
+  // Expo Go has no native store. Use verified server billing access there.
+  if (Constants.executionEnvironment === ExecutionEnvironment.StoreClient) return null;
   if (Platform.OS === "ios") {
     return process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY?.trim() || null;
   }
