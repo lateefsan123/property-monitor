@@ -23,7 +23,7 @@ export default function MessageTemplatesScreen({ userId, colors }) {
     setEditor({ template });
   }
   return (
-    <View style={{ flex: 1, backgroundColor: colors.bgCard }}>
+    <View style={{ flex: 1, backgroundColor: colors.isDark ? colors.bg : colors.bgCard }}>
       <View style={{ marginHorizontal: 16, marginTop: 12, marginBottom: 8, flexDirection: "row", alignItems: "center", paddingHorizontal: 12, minHeight: 44, borderRadius: 22, backgroundColor: colors.isDark ? colors.bgHover : "#FAFAFA" }}>
         <Icon name="search" size={18} color={colors.textFaint} />
         <TextInput accessibilityLabel="Search templates" placeholder="Search…" placeholderTextColor={colors.textFaint} value={search} onChangeText={setSearch} autoCorrect={false} returnKeyType="search" style={{ flex: 1, minHeight: 44, paddingHorizontal: 8, fontSize: 16, color: colors.textName }} />

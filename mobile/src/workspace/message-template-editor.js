@@ -116,7 +116,7 @@ export default function MessageTemplateEditor({ templates, initial, userId, colo
   return (
     <Modal visible animationType="slide" presentationStyle="pageSheet" onRequestClose={requestClose}>
       <SafeAreaProvider>
-      <SafeAreaView edges={["top", "bottom", "left", "right"]} style={{ flex: 1, backgroundColor: colors.bgCard }}>
+      <SafeAreaView edges={["top", "bottom", "left", "right"]} style={{ flex: 1, backgroundColor: colors.isDark ? colors.bg : colors.bgCard }}>
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingTop: 8, paddingBottom: 4 }}>
         <Pressable accessibilityRole="button" accessibilityLabel="Close editor" disabled={busy} onPress={requestClose} style={({ pressed }) => ({ width: 44, height: 44, alignItems: "center", justifyContent: "center", borderRadius: 22, backgroundColor: colors.bgCard, opacity: pressed || busy ? 0.5 : 1, boxShadow: "0 3px 16px rgba(0,0,0,0.04)" })}>
