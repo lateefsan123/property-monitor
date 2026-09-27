@@ -1,58 +1,19 @@
-import {
-  Image,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  Text,
-  useWindowDimensions,
-  View,
-} from "react-native";
+import { useState } from "react";
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, useWindowDimensions, View } from "react-native";
 import Svg, { Line, Rect, Text as SvgText } from "react-native-svg";
 import { useQuery } from "@tanstack/react-query";
+import AppIcon from "../components/AppIcon";
 import { fetchUserLeads } from "../features/seller-signal/services";
 import { leadsQueryKey } from "../features/seller-signal/useHomeLeadSummary";
 import { summarizeLeadCadence } from "../features/seller-signal/lead-utils";
-import {
-  buildDailyMessageSeries,
-  fetchListingPriceDrops,
-  fetchWhatsAppMessageActivity,
-} from "./home-insights";
+import { buildDailyMessageSeries, fetchListingPriceDrops, fetchWhatsAppMessageActivity } from "./home-insights";
 import { formatArea, formatPrice } from "../features/listing-alerts/formatters";
-import { Button, Card, Feedback } from "./ui";
+import { Button, Feedback } from "./ui";
 
-function Stat({ label, value, colors }) {
-  return (
-    <View style={{ flex: 1, gap: 5 }}>
-      <Text
-        style={{
-          fontSize: 12,
-          color: colors.textMuted,
-          fontWeight: "700",
-        }}
-      >
-        {label}
-      </Text>
-      <Text
-        selectable
-        style={{
-          fontSize: 23,
-          color: colors.textName,
-          fontVariant: ["tabular-nums"],
-          fontWeight: "700",
-        }}
-      >
-        {value}
-      </Text>
-    </View>
-  );
-}
-export default function WorkspaceHome({
-  userId,
-  displayName,
-  colors,
-  onNavigate,
-}) {
+export default function WorkspaceHome({ userId, displayName, colors, onNavigate }) {
   const { width } = useWindowDimensions();
+  const [showActivity, setShowActivity] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const leads = useQuery({
     queryKey: leadsQueryKey(userId),
     queryFn: () => fetchUserLeads(userId),
@@ -71,77 +32,84 @@ export default function WorkspaceHome({
   const series = buildDailyMessageSeries(activity.data || []);
   const cadence = summarizeLeadCadence(leads.data?.leads);
   const total = series.reduce((sum, point) => sum + point.count, 0);
-  const busiest = series.reduce(
-    (best, point) => (point.count > best.count ? point : best),
-    series[0],
-  );
-  const chartWidth = Math.max(240, Math.min(width - 66, 660));
-  const chartHeight = 200;
+  const leadsReady = !leads.isPending && !leads.error;
+  const activityReady = !activity.isPending && !activity.error;
+  const chartWidth = Math.max(240, Math.min(width - 48, 660));
+  const chartHeight = 150;
   const max = Math.max(4, Math.ceil(Math.max(...series.map((point) => point.count)) / 4) * 4);
   const barStep = (chartWidth - 34) / series.length;
-  const loading = leads.isPending || activity.isPending || drops.isPending;
-  const refresh = () =>
-    Promise.all([leads.refetch(), activity.refetch(), drops.refetch()]);
+  async function refresh() {
+    setRefreshing(true);
+    try { await Promise.all([leads.refetch(), activity.refetch(), drops.refetch()]); }
+    finally { setRefreshing(false); }
+  }
   return (
-    <ScrollView
-      contentInsetAdjustmentBehavior="automatic"
-      refreshControl={
-        <RefreshControl refreshing={loading} onRefresh={refresh} />
-      }
-      contentContainerStyle={{ padding: 16, gap: 16, paddingBottom: 32 }}
-    >
-      <Text
-        style={{
-          color: colors.textName,
-          fontSize: 23,
-          fontWeight: "700",
-          marginTop: 8,
-          marginBottom: 8,
-        }}
-      >
-        Welcome back, {displayName || "there"}.
-      </Text>
-      <Feedback
-        error={leads.error || activity.error || drops.error}
-        colors={colors}
-        onRetry={refresh}
-      />
-      <Card colors={colors}>
-        <View style={{ flexDirection: "row", gap: 10 }}>
-          <Stat
-            label="Due today"
-            value={leads.isPending ? "—" : cadence.due}
-            colors={colors}
-          />
-          <Stat
-            label="Scheduled"
-            value={leads.isPending ? "—" : cadence.scheduled}
-            colors={colors}
-          />
-          <Stat
-            label="Sent today"
-            value={activity.isPending ? "—" : series.at(-1)?.count || 0}
-            colors={colors}
-          />
+    <ScrollView contentInsetAdjustmentBehavior="automatic"
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
+      contentContainerStyle={{ padding: 24, paddingBottom: 112, gap: 28, width: "100%", maxWidth: 720, alignSelf: "center" }}>
+      <Text style={{ color: colors.textMuted, fontSize: 15 }}>Hello{displayName ? `, ${displayName}` : ""}.</Text>
+      <Feedback error={leads.error || activity.error || drops.error} colors={colors} onRetry={refresh} />
+
+      <View style={{ gap: 20, padding: 22, borderRadius: 20, backgroundColor: colors.bgCard }}>
+        <View style={{ gap: 8 }}>
+          <Text style={{ fontSize: 13, color: colors.textMuted }}>Today</Text>
+          <Text selectable style={{ fontSize: 30, lineHeight: 36, fontWeight: "700", letterSpacing: -0.7, color: colors.textName }}>
+            {!leadsReady ? "— sellers due" : cadence.due === 0 ? "You’re all caught up" : `${cadence.due} ${cadence.due === 1 ? "seller" : "sellers"} due today`}
+          </Text>
+          {leadsReady && cadence.due === 0 ? <Text style={{ color: colors.textMuted, fontSize: 14 }}>No follow-ups due today.</Text> : null}
         </View>
-        <Button colors={colors} onPress={() => onNavigate("sellers")}>
-          Open sellers
-        </Button>
-      </Card>
-      <View style={{ flexDirection: width >= 800 ? "row" : "column", gap: 16 }}>
-        <Card colors={colors} style={width >= 800 ? { flex: 1 } : undefined}>
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <Stat
-              label="Sent · last 14 days"
-              value={activity.isPending ? "—" : total}
-              colors={colors}
-            />
-            <Stat
-              label="Busiest day"
-              value={activity.isPending || total === 0 ? "—" : `${busiest.count} · ${busiest.label}`}
-              colors={colors}
-            />
+        <Button colors={colors} primary onPress={() => onNavigate("sellers")} style={{ minHeight: 48, borderRadius: 12 }}>View sellers</Button>
+      </View>
+
+      <View style={{ flexDirection: "row", gap: 24 }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="View scheduled follow-ups" onPress={() => onNavigate("schedule")} style={{ flex: 1, gap: 6, minHeight: 44 }}>
+          <Text selectable style={{ color: colors.textName, fontSize: 20, fontWeight: "600" }}>{leadsReady ? cadence.scheduled : "—"}</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>Scheduled</Text>
+        </Pressable>
+        <View style={{ flex: 1, gap: 6 }}>
+          <Text selectable style={{ color: colors.textName, fontSize: 20, fontWeight: "600" }}>{activityReady ? series.at(-1)?.count || 0 : "—"}</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>Sent today</Text>
+        </View>
+      </View>
+
+      <View style={{ gap: 4 }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+          <View style={{ gap: 4 }}>
+            <Text style={{ color: colors.textName, fontSize: 18, fontWeight: "600" }}>Recent price drops</Text>
+            <Text style={{ color: colors.textMuted, fontSize: 12 }}>Last 14 days</Text>
           </View>
+          <Pressable accessibilityRole="button" accessibilityLabel="View all price drops" onPress={() => onNavigate("listing-alerts", { priceDrops: true })} style={{ minHeight: 44, justifyContent: "center", paddingLeft: 8 }}>
+            <Text style={{ color: colors.text, fontSize: 13 }}>View all</Text>
+          </Pressable>
+        </View>
+        {drops.isPending ? <ActivityIndicator accessibilityLabel="Loading price drops" color={colors.textMuted} style={{ padding: 20 }} /> : null}
+        {drops.data?.slice(0, 3).map((item, index) => (
+          <Pressable key={`${item.locationId}:${item.id}`} accessibilityRole="button" accessibilityLabel={`Open ${item.buildingName}, ${item.title}`}
+            onPress={() => onNavigate("listing-alerts", { listing: item })}
+            style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 16, borderBottomWidth: index < Math.min(drops.data.length, 3) - 1 ? 1 : 0, borderBottomColor: colors.borderLight, opacity: pressed ? 0.7 : 1 })}>
+            {item.coverPhoto ? <Image source={{ uri: item.coverPhoto }} resizeMode="cover" style={{ width: 48, height: 48, borderRadius: 10 }} /> : <View style={{ width: 48, height: 48, borderRadius: 10, backgroundColor: colors.bgBadge, justifyContent: "center", alignItems: "center" }}><AppIcon name="building" size={22} color={colors.textMuted} /></View>}
+            <View style={{ flex: 1, gap: 5 }}>
+              <Text numberOfLines={1} style={{ color: colors.textName, fontSize: 14, fontWeight: "600" }}>{item.buildingName}</Text>
+              <Text numberOfLines={1} style={{ color: colors.textMuted, fontSize: 12 }}>{[item.beds === 0 ? "Studio" : item.beds ? `${item.beds} bed` : null, formatArea(item.areaSqft)].filter(Boolean).join(" · ")}</Text>
+            </View>
+            <View style={{ alignItems: "flex-end", gap: 5 }}>
+              <Text style={{ color: colors.textName, fontSize: 14, fontWeight: "600" }}>{formatPrice(item.price)}</Text>
+              <Text style={{ color: colors.badgeOkText, fontSize: 12 }}>↓ {formatPrice(Math.abs(item.priceDelta || 0))}</Text>
+            </View>
+          </Pressable>
+        ))}
+        {!drops.isPending && !drops.error && !drops.data?.length ? <Text style={{ color: colors.textMuted, fontSize: 14, paddingVertical: 20 }}>No recent drops in your watched buildings.</Text> : null}
+      </View>
+
+      <View style={{ borderTopWidth: 1, borderTopColor: colors.borderLight, paddingTop: 12 }}>
+        <Pressable accessibilityRole="button" accessibilityState={{ expanded: showActivity }} onPress={() => setShowActivity(!showActivity)}
+          style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", minHeight: 48 }}>
+          <Text style={{ color: colors.text, fontSize: 14 }}>{showActivity ? "Hide activity" : "View activity"}</Text>
+          <View style={{ transform: [{ rotate: showActivity ? "-90deg" : "90deg" }] }}><AppIcon name="chevron" color={colors.textMuted} size={18} /></View>
+        </Pressable>
+        {showActivity ? <View style={{ gap: 12, paddingTop: 12 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 13 }}>{activityReady ? `${total} messages sent · last 14 days` : "Message activity unavailable"}</Text>
+          {activityReady && total > 0 ? (
           <Svg
             width="100%"
             height={chartHeight + 26}
@@ -195,103 +163,8 @@ export default function WorkspaceHome({
               </SvgText>
             ))}
           </Svg>
-          {!activity.isPending && total === 0 && (
-            <Text style={{ color: colors.textMuted, fontSize: 13 }}>
-              No messages sent in the last 14 days.
-            </Text>
-          )}
-        </Card>
-        <Card colors={colors} style={{ flex: 1 }}>
-          <Text
-            style={{
-              color: colors.textMuted,
-              fontSize: 10,
-              letterSpacing: 1,
-              fontWeight: "700",
-            }}
-          >
-            Last 14 days
-          </Text>
-          <View
-            style={{
-              flexDirection: "row",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <Text
-              style={{
-                color: colors.textName,
-                fontWeight: "700",
-                fontSize: 17,
-              }}
-            >
-              Price drops
-            </Text>
-            <Button
-              colors={colors}
-              onPress={() => onNavigate("listing-alerts", { priceDrops: true })}
-            >{`View all (${drops.data?.length || 0})`}</Button>
-          </View>
-          {drops.data?.slice(0, 4).map((item) => (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Open ${item.buildingName}, ${item.title}`}
-              key={`${item.locationId}:${item.id}`}
-              onPress={() => onNavigate("listing-alerts", { listing: item })}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                paddingVertical: 10,
-                borderBottomWidth: 1,
-                borderBottomColor: colors.borderLight,
-              }}
-            >
-              {item.coverPhoto && (
-                <Image
-                  source={{ uri: item.coverPhoto }}
-                  style={{ width: 46, height: 46, borderRadius: 9 }}
-                />
-              )}
-              <View style={{ flex: 1, gap: 3 }}>
-                <Text
-                  numberOfLines={1}
-                  style={{
-                    color: colors.textName,
-                    fontWeight: "600",
-                    fontSize: 13,
-                  }}
-                >
-                  {item.buildingName}
-                </Text>
-
-                <Text style={{ color: colors.textMuted, fontSize: 11 }}>
-                  {item.beds || "Studio"} bed · {formatArea(item.areaSqft)}
-                </Text>
-              </View>
-              <View style={{ alignItems: "flex-end", gap: 4 }}>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: colors.textName,
-                    fontWeight: "700",
-                  }}
-                >
-                  {formatPrice(item.price)}
-                </Text>
-                <Text style={{ color: colors.badgeOkText, fontSize: 11 }}>
-                  ↓ {formatPrice(Math.abs(item.priceDelta || 0))}
-                </Text>
-              </View>
-            </Pressable>
-          ))}
-          {!drops.isPending && !drops.data?.length && (
-            <Text style={{ color: colors.textMuted }}>
-              No price drops in your watched buildings.
-            </Text>
-          )}
-        </Card>
+          ) : activityReady ? <Text style={{ color: colors.textMuted, fontSize: 14 }}>No messages sent yet.</Text> : null}
+        </View> : null}
       </View>
     </ScrollView>
   );
