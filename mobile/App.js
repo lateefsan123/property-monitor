@@ -209,8 +209,8 @@ function AppInner() {
   if (!gateState.onboardingCompleted) {
     return (
       <SafeAreaProvider>
-        <OnboardingScreen onComplete={handleOnboardingComplete} />
-        <StatusBar style="dark" />
+        <OnboardingScreen theme={theme} onComplete={handleOnboardingComplete} />
+        <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} />
       </SafeAreaProvider>
     );
   }

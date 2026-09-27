@@ -1,5 +1,6 @@
+import OnboardingScreen from "../screens/OnboardingScreen";
 import { useCallback, useEffect, useState } from "react";
-import { BackHandler, ScrollView, Text, View } from "react-native";
+import { BackHandler, Modal, ScrollView, Text, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAutomationSettings, saveAutomationSettings } from "./automation-settings";
 import { fetchWhatsAppSendActivity } from "./send-activity";
@@ -68,6 +69,7 @@ function SendActivity({ userId, colors, active }) {
 
 export default function WorkspaceSettings({ userId, colors, active = true, onHeaderChange, onExit, ...accountProps }) {
   const [page, setPage] = useState(null);
+  const [previewOnboarding, setPreviewOnboarding] = useState(false);
   const [editingProfile, setEditingProfile] = useState(false);
   const backToSettings = useCallback(() => setPage(null), []);
   useEffect(() => {
@@ -105,6 +107,7 @@ export default function WorkspaceSettings({ userId, colors, active = true, onHea
         </SettingsItem>
       </SettingsGroup>
       <SettingsGroup title="Support" colors={colors}>
+        <SettingsItem label="Preview onboarding" icon="refresh" colors={colors} onPress={() => setPreviewOnboarding(true)} />
         <SettingsItem label="Help & legal" icon="document" colors={colors} last onPress={() => setPage("Help & legal")} />
       </SettingsGroup>
     </> : page === "Automations" ? <Automations userId={userId} colors={colors} />
@@ -112,5 +115,8 @@ export default function WorkspaceSettings({ userId, colors, active = true, onHea
       : page === "WhatsApp" ? <WhatsAppPanel userId={userId} colors={colors} active={active} />
         : page === "Send activity" ? <SendActivity userId={userId} colors={colors} active={active} />
           : page === "Integrations" ? <Integrations key={userId} userId={userId} colors={colors} /> : null}
+    <Modal visible={previewOnboarding} animationType="slide" onRequestClose={() => setPreviewOnboarding(false)}>
+      {previewOnboarding ? <OnboardingScreen preview theme={accountProps.theme} onClose={() => setPreviewOnboarding(false)} onComplete={() => setPreviewOnboarding(false)} /> : null}
+    </Modal>
   </ScrollView>;
 }

@@ -149,7 +149,7 @@ const CHART_PAD_RIGHT = 16;
 const CHART_PAD_TOP = 24;
 const CHART_PAD_BOTTOM = 32;
 
-function PriceChart({ priceHistory, width, colors }) {
+export function PriceChart({ priceHistory, width, colors }) {
   const points = useMemo(() => {
     if (!Array.isArray(priceHistory)) return [];
     return priceHistory
