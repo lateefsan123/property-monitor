@@ -174,7 +174,7 @@ export async function syncBayutToSupabase({ supabaseUrl, supabaseKey, buildings 
   const buildingKeys = Object.keys(buildings);
   if (!buildingKeys.length) return;
 
-  const { error: deleteError } = await supabase.from("transactions").delete().in("building_key", buildingKeys);
+  const { error: deleteError } = await supabase.from("transactions").delete().in("building_key", buildingKeys).is("source", null);
   if (deleteError) console.error("Transactions delete error:", deleteError.message);
 
   let syncedTransactions = 0;

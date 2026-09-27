@@ -1,4 +1,5 @@
 import { normalizeBuildingAliasKey } from "../src/features/seller-signal/building-utils";
+import { selectCachedBuildings } from './cached-buildings.js';
 export function createBuildingReferenceServices(supabase) {
   function mapBuildingAliasRow(row) {
     return {
@@ -66,22 +67,16 @@ export function createBuildingReferenceServices(supabase) {
   function isMissingBuildingCacheError(error) {
     return (
       error?.code === "42P01" ||
-      String(error?.message || "").includes("buildings")
+      /relation .*buildings.* does not exist/i.test(String(error?.message || ""))
     );
   }
 
   async function fetchCachedBuildings() {
-    if (!supabase) return [];
-
-    const { data, error } = await supabase
-      .from("buildings")
-      .select("key, search_name, location_name, location_id")
-      .order("search_name");
-
-    if (isMissingBuildingCacheError(error)) return [];
-    if (error) throw new Error(error.message);
-
-    return data || [];
+    try { return await selectCachedBuildings(supabase); }
+    catch (error) {
+      if (isMissingBuildingCacheError(error)) return [];
+      throw error;
+    }
   }
 
   return { fetchBuildingAliases, upsertBuildingAlias, fetchCachedBuildings };

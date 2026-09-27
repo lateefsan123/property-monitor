@@ -629,21 +629,24 @@ async function syncIntoSupabase({ buildingsByKey, envMap, dryRun, refreshBuildin
 
   const supabase = createClient(supabaseUrl, serviceRoleKey);
   const buildingKeys = Object.keys(buildingsByKey);
-  const buildingKeysToRefresh = [...new Set((refreshBuildingKeys.length ? refreshBuildingKeys : buildingKeys).filter(Boolean))];
+  let buildingKeysToRefresh = [...new Set((refreshBuildingKeys.length ? refreshBuildingKeys : buildingKeys).filter(Boolean))];
   if (!buildingKeysToRefresh.length) return { synced: true, buildingsRefreshed: 0, buildingsUpserted: 0, transactionsInserted: 0 };
 
   let buildingRows = [];
+  const sourceManagedKeys = new Set();
   if (buildingKeys.length) {
     const { data: existingBuildingRows, error: existingBuildingsError } = await supabase
       .from("buildings")
-      .select("key, location_id")
+      .select("key, location_id, source")
       .in("key", buildingKeys);
 
     if (existingBuildingsError) throw new Error(existingBuildingsError.message);
 
     const existingLocationIds = new Map((existingBuildingRows || []).map((row) => [row.key, row.location_id || null]));
+    for (const row of existingBuildingRows || []) if (row.source) sourceManagedKeys.add(row.key);
+    buildingKeysToRefresh = buildingKeysToRefresh.filter(key => !sourceManagedKeys.has(key));
 
-    buildingRows = Object.values(buildingsByKey).map((building) => ({
+    buildingRows = Object.values(buildingsByKey).filter(building => !sourceManagedKeys.has(building.key)).map((building) => ({
       key: building.key,
       search_name: building.searchName || building.key,
       location_name: building.locationName || building.searchName || null,
@@ -656,13 +659,14 @@ async function syncIntoSupabase({ buildingsByKey, envMap, dryRun, refreshBuildin
     if (buildingsError) throw new Error(buildingsError.message);
   }
 
-  const { error: deleteError } = await supabase.from("transactions").delete().in("building_key", buildingKeysToRefresh);
+  const { error: deleteError } = await supabase.from("transactions").delete().in("building_key", buildingKeysToRefresh).is("source", null);
   if (deleteError) throw new Error(deleteError.message);
 
   let insertedTransactions = 0;
   let batch = [];
 
   for (const building of Object.values(buildingsByKey)) {
+    if (sourceManagedKeys.has(building.key)) continue;
     for (const transaction of building.transactions) {
       batch.push(transaction);
       if (batch.length >= INSERT_BATCH_SIZE) {

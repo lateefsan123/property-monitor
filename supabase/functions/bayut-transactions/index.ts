@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { matchBayutLocation } from "../../../shared/bayut-location-match.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -127,21 +128,6 @@ function extractLocationName(location: any) {
   return pathParts.at(-1) || "Unknown";
 }
 
-function scoreLocation(location: any, query: string) {
-  const target = normalizeToken(query);
-  const name = extractLocationName(location);
-  const fullPath = extractFullPath(location);
-  const normalizedName = normalizeToken(name);
-  const normalizedFullPath = normalizeToken(fullPath);
-
-  let score = 0;
-  if (normalizedName === target) score += 120;
-  if (normalizedName.includes(target) || target.includes(normalizedName)) score += 70;
-  if (normalizedFullPath.includes(target)) score += 35;
-  score += Math.max(0, 20 - Math.abs(name.length - query.length));
-  return score;
-}
-
 function toList(payload: any) {
   if (Array.isArray(payload)) return payload;
   if (!payload) return [];
@@ -219,11 +205,7 @@ async function fetchTransactionsForBuilding(buildingName: string, apiKey: string
     const locations = toList(payload);
     if (!locations.length) continue;
 
-    const scored = locations
-      .map((location: any) => ({ location, score: scoreLocation(location, variant) }))
-      .sort((a: any, b: any) => b.score - a.score);
-
-    bestLocation = scored[0]?.location || null;
+    bestLocation = matchBayutLocation(locations, variant);
     if (bestLocation) break;
   }
 

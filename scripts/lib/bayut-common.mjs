@@ -1,4 +1,5 @@
 import fs from "node:fs/promises";
+import { matchBayutLocation } from '../../shared/bayut-location-match.js';
 
 export function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -221,34 +222,7 @@ export function extractLocationName(location) {
 }
 
 export function pickBestLocation(locations, buildingName) {
-  const target = normalizeToken(buildingName);
-  if (!target) return null;
-
-  let best = null;
-  let bestScore = -1;
-
-  for (const location of locations) {
-    const name = extractLocationName(location);
-    const fullPath = location?.full_name
-      || location?.path
-      || (Array.isArray(location?.location) ? location.location.join(" ") : "");
-
-    const normalizedName = normalizeToken(name);
-    const normalizedFullPath = normalizeToken(fullPath);
-
-    let score = 0;
-    if (normalizedName === target) score += 120;
-    if (normalizedName.includes(target) || target.includes(normalizedName)) score += 70;
-    if (normalizedFullPath.includes(target)) score += 35;
-    score += Math.max(0, 20 - Math.abs(name.length - buildingName.length));
-
-    if (score > bestScore) {
-      best = location;
-      bestScore = score;
-    }
-  }
-
-  return best;
+  return matchBayutLocation(locations, buildingName);
 }
 
 function parseJsonResponse(responseText) {

@@ -111,6 +111,16 @@ export function getInvalidBuildingValueIssue(raw) {
 function toCachedBuildingCandidate(row) {
   const rawKey = String(row?.key || "").trim();
   const rawSearchName = String(row?.search_name || "").trim();
+  if (row?.source === 'dld_citywide') {
+    if (!rawSearchName || !row.source_project || !row.source_area) return null;
+    return {
+      canonicalName: rawSearchName,
+      normalizedNames: [rawSearchName, row.source_project, rawKey].map(normalizeToken).filter(Boolean),
+      sourceNames: [rawSearchName, rawKey].map(normalizeToken).filter(Boolean),
+      // Do not turn a truncated tower into a broader DLD project automatically.
+      prefixKeys: [], truncatedInputKeys: [], tokens: tokenizeBuildingName(rawSearchName),
+    };
+  }
   const displayNames = [
     rawSearchName,
     row?.location_name,
@@ -144,6 +154,8 @@ function toCachedBuildingCandidate(row) {
 
 function buildCachedBuildingIndex(cachedBuildings) {
   const exact = new Map();
+  const ambiguous = new Set();
+  const sourceExact = new Map();
   const truncatedExact = new Map();
   const candidates = [];
 
@@ -151,7 +163,9 @@ function buildCachedBuildingIndex(cachedBuildings) {
     const candidate = toCachedBuildingCandidate(row);
     if (!candidate) continue;
     candidates.push(candidate);
+    for (const key of candidate.sourceNames || []) sourceExact.set(key, candidate.canonicalName);
     for (const key of candidate.normalizedNames) {
+      if (exact.has(key) && exact.get(key) !== candidate.canonicalName) ambiguous.add(key);
       if (!exact.has(key)) exact.set(key, candidate.canonicalName);
     }
     for (const key of candidate.truncatedInputKeys) {
@@ -159,13 +173,13 @@ function buildCachedBuildingIndex(cachedBuildings) {
       truncatedExact.get(key).set(candidate.canonicalName, candidate);
     }
   }
-
-  return { exact, truncatedExact, candidates };
+  for (const key of ambiguous) exact.delete(key);
+  return { exact, sourceExact, truncatedExact, candidates };
 }
 
 function findCachedBuildingMatch(raw, cachedIndex) {
   const cleaned = cleanBuildingName(raw);
-  const exactMatch = cachedIndex.exact.get(normalizeBuildingAliasKey(cleaned));
+  const exactMatch = cachedIndex.exact.get(normalizeToken(raw)) || cachedIndex.exact.get(normalizeBuildingAliasKey(cleaned));
   if (exactMatch) {
     return {
       status: "matched",
@@ -270,6 +284,8 @@ function findTruncatedPrefixMatch(raw, cachedIndex) {
 }
 
 function resolveBuildingMatch(raw, aliasLookup, cachedIndex) {
+  const sourceName = cachedIndex.sourceExact.get(normalizeToken(raw));
+  if (sourceName) return { status: 'matched', confidence: 'high', method: 'cached_exact', inputName: raw, canonicalName: sourceName };
   const invalidIssue = getInvalidBuildingValueIssue(raw);
   if (invalidIssue) {
     return {
@@ -326,7 +342,7 @@ function resolveBuildingMatch(raw, aliasLookup, cachedIndex) {
   }
 
   if (baselineMatch.status !== "matched") {
-    const cachedMatch = findCachedBuildingMatch(baselineMatch.inputName || raw, cachedIndex);
+    const cachedMatch = findCachedBuildingMatch(raw, cachedIndex);
     if (cachedMatch) {
       return canRecoverTruncatedAddress
         ? { ...cachedMatch, method: "truncated_address_cached" }

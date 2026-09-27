@@ -551,6 +551,9 @@ function computeBuildingKeyVariants(raw) {
     if (normalized) variants.add(normalized);
   };
 
+  // Source-qualified market names can legitimately contain words such as
+  // "Studio" or "Villa" that the legacy spreadsheet cleaner strips.
+  addVariant(raw);
   const known = resolveKnownBuildingName(cleaned);
   const rawVariants = new Set([
     ...getRawBuildingNameVariants(cleaned),
