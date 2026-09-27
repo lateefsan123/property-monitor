@@ -1,4 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { complimentaryAccess } from "../_shared/complimentary-access.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const corsHeaders = {
@@ -167,6 +168,9 @@ Deno.serve(async (req) => {
 
   try {
     const { adminClient, user } = await getAuthenticatedUser(req.headers.get("Authorization"));
+    if (complimentaryAccess(user)) {
+      return jsonResponse({ error: "This account has unlimited access. No payment is required." }, 409);
+    }
     const { successUrl, cancelUrl, trialPeriodDays } = await req.json().catch(() => ({}));
     const stripePriceId = requireEnv("STRIPE_MONTHLY_PRICE_ID");
 

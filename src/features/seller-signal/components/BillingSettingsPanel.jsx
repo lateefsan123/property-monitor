@@ -20,6 +20,19 @@ function getPlanStatus(subscription) {
 
 export default function BillingSettingsPanel({ error, onCancelPlan, pending, subscription }) {
   const [confirming, setConfirming] = useState(false);
+  if (subscription?.source === "complimentary" && subscription.unlimited === true) {
+    return (
+      <div className="seller-billing-pane">
+        <div className="seller-billing-heading">
+          <div><span className="seller-billing-eyebrow">Current plan</span><h3>Unlimited access</h3></div>
+          <span className="seller-billing-status">Active</span>
+        </div>
+        <div className="seller-billing-plan-card">
+          <p>Your account has unlimited access. No subscription or payment is required.</p>
+        </div>
+      </div>
+    );
+  }
   const periodEnd = formatDate(subscription?.current_period_end);
   const cancellationScheduled = Boolean(subscription?.cancel_at_period_end);
   const provider = subscription?.source === "app_store" ? "App Store"
