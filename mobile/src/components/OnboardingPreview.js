@@ -34,8 +34,8 @@ export default function OnboardingPreview({ screen, width, height }) {
   // Width-based frame: its lower edge continues behind the fixed footer.
   const phoneWidth = Math.max(0, Math.min(Math.min(width, 480) * 0.78, Math.max(Math.min(width, 480) * 0.64, (height + 64) * 1080 / 2340)));
   return <View pointerEvents="none" style={{ width, height, alignItems: 'center', overflow: 'hidden' }}>
-    <View style={{ flexShrink: 0, width: phoneWidth, aspectRatio: 1080 / 2340, borderRadius: 32, borderWidth: 4, borderColor: '#000', backgroundColor: '#FFF', padding: 2, overflow: 'hidden' }}>
-      <View style={{ flex: 1, borderRadius: 26, overflow: 'hidden', backgroundColor: '#F5F5F5' }}><Image source={screens[screen]} accessibilityLabel={`${screen} screen with example data`} contentFit="contain" style={{ width: '100%', height: '100%' }} /></View>
+    <View style={{ flexShrink: 0, width: phoneWidth, aspectRatio: 1080 / 2340, borderRadius: 32, borderWidth: 4, borderColor: '#000', backgroundColor: '#111111', padding: 2, overflow: 'hidden' }}>
+      <View style={{ flex: 1, borderRadius: 26, overflow: 'hidden', backgroundColor: '#111111' }}><Image source={screens[screen]} accessibilityLabel={`${screen} screen with example data`} contentFit="contain" style={{ width: '100%', height: '100%' }} /></View>
     </View>
   </View>;
 }

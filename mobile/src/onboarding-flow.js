@@ -3,7 +3,7 @@ export const ONBOARDING_STEPS = [
   { id: 'goal', title: 'WHAT CAN WE\nHELP YOU WITH?', body: 'Choose all that apply.' },
   { id: 'sellers', title: 'EVERY SELLER.\nONE CLEAR VIEW.', body: 'Contacts, properties and follow-ups. Ready for your next conversation.' },
   { id: 'listings', title: 'SPOT THE CHANGE.\nSTART THE CONVERSATION.', body: 'Track price changes. Find the right reason to reconnect.' },
-  { id: 'messages', title: 'MAKE EVERY\nMESSAGE RELEVANT.', body: 'Your message. Your image. Your WhatsApp.' },
+  { id: 'messages', title: 'MAKE EVERY\nMESSAGE RELEVANT.', body: 'Save your best messages. Personalise every conversation.' },
   { id: 'schedule', title: 'STAY IN TOUCH.\nON YOUR SCHEDULE.', body: 'Choose your buildings and days. Keep the conversation going.' },
   { id: 'account', title: 'MAKE IT\nYOUR WORKSPACE.', body: '' },
   { id: 'username', title: 'WHAT SHOULD WE\nCALL YOU?', body: 'Choose the name you’ll see in Repeat AI.' },
