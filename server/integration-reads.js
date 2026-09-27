@@ -1,6 +1,7 @@
 import { INTEGRATION_PROVIDERS } from './integration-oauth.js';
 import { IntegrationError, providerJson } from './integration-http.js';
 import { EXTRA_SCOPES } from './integration-scopes.js';
+import { readSpreadsheetImport } from './integration-sheet-import.js';
 
 const string = (value, limit = 500) => typeof value === 'string' ? value.slice(0, limit) : '';
 const id = value => typeof value === 'string' && /^[a-zA-Z0-9_!-]{1,200}$/.test(value);
@@ -13,6 +14,7 @@ export function createIntegrationReads({ tokens, fetchImpl = fetch, now = Date.n
     if (!userId || !Object.hasOwn(INTEGRATION_PROVIDERS, provider)
       || !Object.hasOwn(INTEGRATION_PROVIDERS[provider].scopes, feature)
       || !input || typeof input !== 'object' || Array.isArray(input)) throw new IntegrationError('invalid_input');
+    if (feature === 'sheets' && input.operation) return readSpreadsheetImport({ userId, provider, input, tokens, fetchImpl });
     const allowed = feature !== 'sheets' ? [] : provider === 'google' ? ['spreadsheetId', 'sheetName', 'query', 'pageToken', 'tabs'] : ['folderId', 'fileId', 'sheetName'];
     if (Object.keys(input).some(key => !allowed.includes(key))) throw new IntegrationError('invalid_input');
     if (feature === 'sheets') {

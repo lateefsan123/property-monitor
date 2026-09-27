@@ -6,6 +6,10 @@ import * as FileSystem from "expo-file-system/legacy";
 import { useQueryClient } from "@tanstack/react-query";
 import BottomSheet from "../components/BottomSheet";
 import SpreadsheetLibrary from "./spreadsheet-library";
+import ConnectedSpreadsheetPicker, { SheetProviderIcon } from './connected-spreadsheet-picker';
+import { integrationRequest } from './integration-client';
+import { connectIntegration } from './integration-connect';
+import { integrationStatusOptions } from '../../../src/integration-query';
 import { useSellerSignalPage, leadSourcesQueryKey } from "../features/seller-signal/useSellerSignalPage";
 import { leadsQueryKey } from "../features/seller-signal/useHomeLeadSummary";
 import { createLeadSource, replaceUserLeadsFromRows, replaceUserLeadsFromSheet } from "../features/seller-signal/services";
@@ -22,6 +26,7 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
   const [error, setError] = useState(null);
   const [notice, setNotice] = useState(null);
   const [importMode, setImportMode] = useState(null);
+  const [excelUrl, setExcelUrl] = useState('');
   const insets = useSafeAreaInsets();
   const importing = useRef(false);
   const afterDismiss = useRef(null);
@@ -43,6 +48,7 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
   const selected = d.leadSources.find((source) => String(source.id) === String(selectedId));
 
   function openImport() {
+    setExcelUrl('');
     setError(null);
     setNotice(null);
     setImportMode('choose');
@@ -54,7 +60,18 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
     setImportMode(null);
   }
 
-  async function importSpreadsheet(fromFile) {
+  function connectProvider(provider, capability) {
+    if (busy) return;
+    setBusy(true);
+    afterDismiss.current = async () => {
+      try { await connectIntegration(provider, 'sheets', capability); await client.invalidateQueries({ queryKey: integrationStatusOptions(userId, integrationRequest).queryKey }); }
+      catch (failure) { setError(failure); }
+      finally { setBusy(false); setImportMode(provider); }
+    };
+    setImportMode(null);
+  }
+
+  async function importSpreadsheet(fromFile, connected) {
     if (importing.current) return;
     importing.current = true;
     setBusy(true);
@@ -65,7 +82,12 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
       let label;
       let key;
       const sheetUrl = url.trim();
-      if (fromFile) {
+      if (connected) {
+        const { provider, file, sheetName } = connected;
+        const result = await integrationRequest({ action: 'read', provider, feature: 'sheets', input: { operation: 'rows', fileId: file.id, ...(file.driveId ? { driveId: file.driveId } : {}), sheetName } }, undefined, userId);
+        if (result.kind !== 'sheet-import' || !Array.isArray(result.rows)) throw new Error('Could not read this worksheet. Please retry.');
+        rows = result.rows; label = `${file.name} · ${sheetName}`; key = `${provider}:${file.driveId || ''}:${file.id}:${sheetName}`;
+      } else if (fromFile) {
         const picked = await DocumentPicker.getDocumentAsync({
           type: ['text/csv', 'text/comma-separated-values', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
           copyToCacheDirectory: true,
@@ -83,15 +105,15 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
         label = `Spreadsheet ${d.leadSources.length + 1}`;
         key = sheetUrl;
       }
-      const existing = !fromFile && d.leadSources.find((source) => source.sheet_url === sheetUrl);
+      const existing = !fromFile && !connected && d.leadSources.find((source) => source.sheet_url === sheetUrl);
       if (existing && existing.id !== pendingSource.current?.source.id) throw new Error('This sheet is already imported. Open it below to import it again.');
       if (pendingSource.current?.key !== key) {
         if (!d.canAddSource) throw new Error('You have reached your spreadsheet limit.');
-        const source = await createLeadSource(userId, { label, sheet_url: fromFile ? '' : sheetUrl, sort_order: d.leadSources.length });
+        const source = await createLeadSource(userId, { label, sheet_url: fromFile || connected ? '' : sheetUrl, sort_order: d.leadSources.length });
         pendingSource.current = { key, source };
       }
       const source = pendingSource.current.source;
-      if (fromFile) await replaceUserLeadsFromRows({ userId, source, rawRows: rows });
+      if (fromFile || connected) await replaceUserLeadsFromRows({ userId, source, rawRows: rows });
       else await replaceUserLeadsFromSheet({ userId, source, rawSheetUrl: sheetUrl });
       pendingSource.current = null;
       setUrl('');
@@ -119,17 +141,31 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
       <BottomSheet visible={Boolean(importMode)} onClose={() => !busy && setImportMode(null)} onDismiss={finishDismiss} colors={colors}>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 22, gap: 18 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-            {importMode === 'url' && <Pressable accessibilityRole="button" accessibilityLabel="Back to import options" disabled={busy} onPress={() => { setError(null); setImportMode('choose'); }} style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center', marginLeft: -10 }}><Icon name="back" color={colors.textName} /></Pressable>}
+            {importMode !== 'choose' && <Pressable accessibilityRole="button" accessibilityLabel="Back to import options" disabled={busy} onPress={() => { setError(null); setImportMode('choose'); }} style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center', marginLeft: -10 }}><Icon name="back" color={colors.textName} /></Pressable>}
             <Text style={{ color: colors.textName, fontSize: 21, fontWeight: '600', flex: 1 }}>{importMode === 'url' ? 'Import from URL' : 'Import spreadsheet'}</Text>
           </View>
           {importMode === 'url' ? <>
-            <Field colors={colors} label="Google Sheets link" placeholder="https://docs.google.com/spreadsheets/…" value={url} onChangeText={setUrl} editable={!busy} autoCapitalize="none" autoCorrect={false} keyboardType="url" autoFocus />
-            <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>Set sharing to “Anyone with the link” (Viewer).</Text>
+            <Field colors={colors} label="Spreadsheet link" placeholder="Google Sheets, OneDrive or SharePoint link" value={url} onChangeText={setUrl} editable={!busy} autoCapitalize="none" autoCorrect={false} keyboardType="url" autoFocus />
+            <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19 }}>Google Sheets links need Viewer access. Excel links use your connected Microsoft account.</Text>
             <Feedback colors={colors} error={error} />
-            <Button colors={colors} primary disabled={busy || !url.trim()} onPress={() => importSpreadsheet(false)}>{busy ? 'Importing…' : 'Import spreadsheet'}</Button>
+            <Button colors={colors} primary disabled={busy || !url.trim()} onPress={() => {
+              if (/^https:\/\/docs\.google\.com\/spreadsheets\/d\//.test(url.trim())) void importSpreadsheet(false);
+              else {
+                try {
+                  const link = new URL(url.trim());
+                  if (link.protocol !== 'https:' || link.username || link.password || link.port || !(link.hostname === '1drv.ms' || link.hostname === 'onedrive.live.com' || link.hostname.endsWith('.sharepoint.com'))) throw new Error();
+                  setExcelUrl(link.href); setError(null); setImportMode('microsoft');
+                } catch { setError(new Error('Paste a Google Sheets, OneDrive or SharePoint sharing link.')); }
+              }
+            }}>{busy ? 'Importing…' : 'Continue'}</Button>
+          </> : importMode === 'google' || importMode === 'microsoft' ? <>
+            <Feedback colors={colors} error={error} />
+            <ConnectedSpreadsheetPicker key={`${userId}-${importMode}`} userId={userId} provider={importMode} colors={colors} busy={busy} initialUrl={importMode === 'microsoft' ? excelUrl : ''} onConnect={capability => connectProvider(importMode, capability)} onImport={selection => importSpreadsheet(false, selection)} />
           </> : <>
             <ImportOption colors={colors} icon="table" title="Import file" detail="Excel or CSV" onPress={chooseFile} />
-            <ImportOption colors={colors} icon="table" title="Import from URL" detail="Google Sheets" onPress={() => setImportMode('url')} />
+            <ImportOption colors={colors} icon="link" title="Import from URL" detail="Google Sheets or Excel link" onPress={() => setImportMode('url')} />
+            <ImportOption colors={colors} provider="google" title="Google Sheets" detail="Choose from your account" onPress={() => setImportMode('google')} />
+            <ImportOption colors={colors} provider="microsoft" title="Microsoft Excel" detail="Choose from OneDrive" onPress={() => { setExcelUrl(''); setImportMode('microsoft'); }} />
           </>}
         </ScrollView>
       </BottomSheet>
@@ -146,10 +182,10 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
   );
 }
 
-function ImportOption({ colors, icon, title, detail, onPress }) {
+function ImportOption({ colors, icon, provider, title, detail, onPress }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${title}, ${detail}`} onPress={onPress} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 64, opacity: pressed ? 0.6 : 1 })}>
-      <View style={{ height: 44, width: 44, borderRadius: 13, backgroundColor: colors.bgBadge, alignItems: 'center', justifyContent: 'center' }}><Icon name={icon} color={colors.textName} size={22} /></View>
+      <View style={{ height: 44, width: 44, borderRadius: 13, backgroundColor: colors.bgBadge, alignItems: 'center', justifyContent: 'center' }}>{provider ? <SheetProviderIcon provider={provider} /> : <Icon name={icon} color={colors.textName} size={22} />}</View>
       <View style={{ flex: 1, gap: 4 }}>
         <Text style={{ color: colors.textName, fontSize: 16, fontWeight: '500' }}>{title}</Text>
         <Text style={{ color: colors.textMuted, fontSize: 13 }}>{detail}</Text>
