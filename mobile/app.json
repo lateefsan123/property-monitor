@@ -8,11 +8,6 @@
     "orientation": "portrait",
     "icon": "./assets/repeat-ai-icon.png",
     "userInterfaceStyle": "light",
-    "splash": {
-      "image": "./assets/repeat-ai-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#000000"
-    },
     "ios": {
       "supportsTablet": false,
       "usesAppleSignIn": true,
@@ -55,7 +50,16 @@
           "microphonePermission": "Allow Repeat AI to use your microphone for voice conversations."
         }
       ],
-      "expo-font"
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/repeat-ai-icon.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#000000",
+          "imageWidth": 200
+        }
+      ]
     ],
     "extra": {
       "eas": {
