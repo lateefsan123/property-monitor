@@ -1,4 +1,5 @@
 import { WHATSAPP_OPEN_DELAY_MS } from "./constants";
+import { saveSellerFollowUp, uploadSellerAttachment } from './seller-contact-services';
 import { introAttachmentPath } from "../../../supabase/functions/_shared/intro-attachment.js";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
 import { applyLeadEdits, applyLeadStatus, sortLeadsByPriority } from "./lead-utils";
@@ -314,7 +315,7 @@ export function createSellerSignalActions(context) {
     // sending automatically.
     const isHot = hasTodaysTransactionUpdate(lead.id);
     const canFollowUp = insight?.status === "ready" && (insight.recentTransactions?.length || 0) > 0;
-    if (!isHot && !canFollowUp) {
+    if (!isHot && !canFollowUp && !options.customImage) {
       setActionError("No market data for this building yet - copy the message and personalize it instead.");
       setActionNotice(null);
       return false;
@@ -327,6 +328,7 @@ export function createSellerSignalActions(context) {
     }
 
     if (!connectedWhatsAppAccount) {
+      if (options.customImage) { setActionError('Connect WhatsApp to send the selected image.'); return false; }
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
       window.open(url, "_blank", "noopener,noreferrer");
       if (!sentLeads[lead.id]) await toggleSent(lead.id);
@@ -338,11 +340,12 @@ export function createSellerSignalActions(context) {
 
     try {
       const result = await sendWhatsAppMessageMutation.mutateAsync({
-        imagePath,
+        imagePath: options.customImage ? await uploadSellerAttachment(userId, lead.id, options.customImage) : imagePath,
+        customImage: Boolean(options.customImage),
         lead,
         message,
         sendSource: options.sendSource || "manual",
-        requireTodaysTransaction: isHot,
+        requireTodaysTransaction: options.customImage ? false : isHot,
       });
       const sentAt = result?.sentAt || new Date().toISOString();
       markLeadSentLocally(lead.id, sentAt);
@@ -477,6 +480,10 @@ export function createSellerSignalActions(context) {
   }
 
   return {
+    saveFollowUp: async (leadId, options) => {
+      await saveSellerFollowUp(userId, leadId, options);
+      await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
+    },
     addLead,
     bulkWhatsApp,
     cancelEditingLead,

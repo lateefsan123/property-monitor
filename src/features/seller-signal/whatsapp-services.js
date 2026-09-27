@@ -125,6 +125,7 @@ export async function connectWhatsAppAccount({
 export async function sendLeadWhatsAppMessage({
   accountId,
   imagePath,
+  customImage = false,
   leadId,
   message,
   phone,
@@ -141,6 +142,7 @@ export async function sendLeadWhatsAppMessage({
       clientKind: getWhatsAppClientKind(),
       clientRequestId,
       imagePath: imagePath || null,
+      customImage,
       leadId,
       to,
       body: message,

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import SellerFollowUpControl from './SellerFollowUpControl';
 import { introAttachmentPath } from "../../../../supabase/functions/_shared/intro-attachment.js";
 import {
   IconBrandWhatsapp,
@@ -39,6 +40,7 @@ export default function LeadModal({
   onEditFieldChange,
   onSaveEdit,
   onSaveNotes,
+  onSaveFollowUp,
   onSendWhatsApp,
   onStartEditing,
   onToggleSent,
@@ -51,6 +53,12 @@ export default function LeadModal({
   const [templateChoice, setTemplateChoice] = useState("default");
   const [draftMessage, setDraftMessage] = useState(null);
   const [imageExcluded, setImageExcluded] = useState(false);
+  const [customImage, setCustomImage] = useState(null);
+  const [customPreview, setCustomPreview] = useState('');
+  const [sending, setSending] = useState(false);
+  const [attachmentError, setAttachmentError] = useState('');
+  const sendLock = useRef(false);
+  useEffect(() => () => { if (customPreview) URL.revokeObjectURL(customPreview); }, [customPreview]);
   const notesTimerRef = useRef(null);
 
   function handleNotesChange(event) {
@@ -129,10 +137,20 @@ export default function LeadModal({
         <button
           type="button"
           className="lead-modal-wa-btn"
-          onClick={() => void onSendWhatsApp?.(lead.id, { imagePath: selectedImagePath, message })}
+          disabled={sending}
+          onClick={async () => {
+            if (sendLock.current) return;
+            sendLock.current = true; setSending(true); setAttachmentError('');
+            try {
+              const sent = await onSendWhatsApp?.(lead.id, { imagePath: selectedImagePath, message, customImage });
+              if (sent) { setCustomImage(null); setImageExcluded(true); }
+              else setAttachmentError('Message was not sent. Your attachment is still selected.');
+            } catch (failure) { setAttachmentError(failure.message); }
+            finally { sendLock.current = false; setSending(false); }
+          }}
         >
           <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
-          {isSent ? "Sent" : "Send via WhatsApp"}
+          {sending ? 'Sending…' : isSent ? "Send follow-up" : "Send via WhatsApp"}
         </button>
       );
     }
@@ -240,12 +258,15 @@ export default function LeadModal({
             <div className="lead-detail-body">
               <div className="lead-detail-content">
                 {activeSection === "overview" && (
+                  <>
                   <OverviewPanel
                     action={renderWhatsAppAction()}
                     lead={lead}
                     bedroomLabel={bedroomLabel}
                     unitLabel={unitLabel}
                   />
+                  {onSaveFollowUp && <SellerFollowUpControl lead={lead} onSave={onSaveFollowUp} />}
+                  </>
                 )}
                 {activeSection === "market" && (
                   <MarketPanel insight={insight} lead={lead} />
@@ -253,11 +274,18 @@ export default function LeadModal({
                 {activeSection === "message" && (
                   <MessagePanel
                     edited={messageEdited}
-                    imageUrl={templateImageUrl}
-                    hasImage={Boolean(templateImagePath)}
-                    imageIncluded={Boolean(selectedImagePath)}
-                    imageFirstMessageOnly={followUp}
-                    onToggleImage={() => setImageExcluded(value => !value)}
+                    imageUrl={customImage ? customPreview : templateImageUrl}
+                    hasImage={Boolean(customImage || templateImagePath)}
+                    imageIncluded={Boolean(customImage || selectedImagePath)}
+                    imageFirstMessageOnly={!customImage && followUp}
+                    onToggleImage={() => { if (customImage) { setCustomImage(null); setImageExcluded(true); } else setImageExcluded(value => !value); }}
+                    attachmentError={attachmentError}
+                    attachmentBusy={sending}
+                    onChooseImage={file => {
+                      if (!file) return;
+                      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type) || file.size > 5 * 1024 * 1024) { setAttachmentError('Choose a JPG, PNG or WebP image under 5 MB.'); return; }
+                      setAttachmentError(''); setCustomImage(file); setCustomPreview(URL.createObjectURL(file));
+                    }}
                     message={message}
                     onChangeMessage={setDraftMessage}
                     onResetMessage={() => setDraftMessage(null)}

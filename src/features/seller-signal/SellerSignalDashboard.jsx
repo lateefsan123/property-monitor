@@ -306,6 +306,7 @@ export default function SellerSignalDashboard({
                   onEditFieldChange={dashboard.actions.updateLeadDraftField}
                   onSaveEdit={dashboard.actions.saveLeadEdits}
                   onSaveNotes={dashboard.actions.saveNotes}
+                  onSaveFollowUp={dashboard.actions.saveFollowUp}
                   onSendWhatsApp={dashboard.actions.sendWhatsAppLead}
                   onStartEditing={dashboard.actions.startEditingLead}
                   onToggleSent={dashboard.actions.toggleSent}

@@ -295,6 +295,9 @@ export function MessagePanel({
   imageIncluded = true,
   imageFirstMessageOnly = false,
   onToggleImage,
+  onChooseImage,
+  attachmentBusy,
+  attachmentError,
   message,
   onChangeMessage,
   onResetMessage,
@@ -343,6 +346,11 @@ export function MessagePanel({
         spellCheck={false}
         onChange={(event) => onChangeMessage(event.target.value)}
       />
+      {onChooseImage && <label style={{ display: 'grid', gap: 8, marginTop: 12 }}>Add image for this seller
+        <input type="file" accept="image/jpeg,image/png,image/webp" disabled={attachmentBusy || !whatsappConnected} onChange={event => { onChooseImage(event.target.files?.[0]); event.target.value = ''; }} />
+        <small>For this seller’s next WhatsApp message only.</small>
+      </label>}
+      {attachmentError && <p role="alert">{attachmentError}</p>}
 
       {edited && (
         <div className="lead-message-editor-foot">

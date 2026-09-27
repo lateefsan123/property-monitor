@@ -236,6 +236,7 @@ export function useSellerSignalPage(userId) {
   const sendWhatsAppMessageMutation = useMutation({
     mutationFn: ({
       imagePath,
+      customImage = false,
       lead,
       message,
       sendSource = "manual",
@@ -244,6 +245,7 @@ export function useSellerSignalPage(userId) {
       sendLeadWhatsAppMessage({
         accountId: connectedWhatsAppAccount?.id,
         imagePath,
+        customImage,
         leadId: lead.id,
         message,
         phone: lead.phone,
