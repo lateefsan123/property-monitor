@@ -1,3 +1,4 @@
+import AppIcon from "../components/AppIcon";
 import { useMemo } from "react";
 import {
   Image,
@@ -24,20 +25,13 @@ const HERO_HEIGHT = 240;
 
 function ExternalLinkIcon({ size = 16, color }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M14 3h7v7" />
-      <Path d="M10 14L21 3" />
-      <Path d="M21 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    </Svg>
+    <AppIcon name="external" size={size} color={color} />
   );
 }
 
 function ArrowIcon({ direction = "down", size = 14, color }) {
-  const d = direction === "down" ? "M12 5v14M5 12l7 7 7-7" : "M12 19V5M5 12l7-7 7 7";
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-      <Path d={d} />
-    </Svg>
+    <AppIcon name={direction === "down" ? "arrowDown" : "arrowUp"} size={size} color={color} />
   );
 }
 
@@ -183,10 +177,7 @@ function PriceChart({ priceHistory, width, colors }) {
         }}
       >
         <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.bgBadge, alignItems: "center", justifyContent: "center" }}>
-          <Svg width={18} height={18} viewBox="0 0 24 24" fill="none" stroke={colors.textMuted} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <Path d="M3 3v18h18" />
-            <Path d="M7 14l4-4 4 4 5-5" />
-          </Svg>
+          <AppIcon name="chart" size={18} color={colors.textMuted} />
         </View>
         <Text style={{ fontSize: 14, fontWeight: "700", color: colors.textName, marginTop: 4 }}>
           {points.length === 0 ? "No price history yet" : "Just one data point so far"}

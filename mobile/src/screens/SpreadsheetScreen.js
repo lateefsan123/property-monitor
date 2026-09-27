@@ -1,33 +1,25 @@
+import AppIcon from "../components/AppIcon";
 import { useState } from "react";
 import { ActivityIndicator, Alert, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Svg, Line, Path } from "react-native-svg";
 import { useSellerSignalPage } from "../features/seller-signal/useSellerSignalPage";
 import { getTheme } from "../theme";
 
 function BackIcon({ color }) {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Line x1="19" y1="12" x2="5" y2="12" />
-      <Path d="M12 19l-7-7 7-7" />
-    </Svg>
+    <AppIcon name="back" size={22} color={color} />
   );
 }
 
 function LinkIcon({ color }) {
   return (
-    <Svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71" />
-      <Path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71" />
-    </Svg>
+    <AppIcon name="link" size={14} color={color} />
   );
 }
 
 function CheckIcon({ color }) {
   return (
-    <Svg width={16} height={16} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M20 6L9 17l-5-5" />
-    </Svg>
+    <AppIcon name="check" size={16} color={color} />
   );
 }
 

@@ -1,5 +1,7 @@
 /* global process */
 import "react-native-url-polyfill/auto";
+import Ionicons from "@expo/vector-icons/Ionicons";
+import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Alert, StatusBar, StyleSheet, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -31,6 +33,9 @@ const queryClient = new QueryClient({
 });
 
 export default function App() {
+  const [iconsLoaded, iconError] = useFonts(Ionicons.font);
+  if (iconError) throw iconError;
+  if (!iconsLoaded) return <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator accessibilityLabel="Loading app" /></View>;
   return (
     <QueryClientProvider client={queryClient}>
       <AppInner />

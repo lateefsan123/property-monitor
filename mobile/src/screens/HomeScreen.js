@@ -1,3 +1,4 @@
+import AppIcon from "../components/AppIcon";
 import { createElement, useMemo } from "react";
 import {
   Pressable,
@@ -12,7 +13,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Circle,
   Line,
-  Path,
   Polyline,
   Svg,
   Text as SvgText,
@@ -40,125 +40,65 @@ function getHomeColors(theme) {
   };
 }
 
-function Icon({ children, color, size = 22, strokeWidth = 1.7 }) {
-  return (
-    <Svg
-      width={size}
-      height={size}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke={color}
-      strokeWidth={strokeWidth}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      {children}
-    </Svg>
-  );
-}
+
 
 function SunIcon({ color }) {
   return (
-    <Icon color={color}>
-      <Circle cx="12" cy="12" r="3.5" />
-      <Line x1="12" y1="2" x2="12" y2="4" />
-      <Line x1="12" y1="20" x2="12" y2="22" />
-      <Line x1="4.93" y1="4.93" x2="6.34" y2="6.34" />
-      <Line x1="17.66" y1="17.66" x2="19.07" y2="19.07" />
-      <Line x1="2" y1="12" x2="4" y2="12" />
-      <Line x1="20" y1="12" x2="22" y2="12" />
-      <Line x1="4.93" y1="19.07" x2="6.34" y2="17.66" />
-      <Line x1="17.66" y1="6.34" x2="19.07" y2="4.93" />
-    </Icon>
+    <AppIcon name="sun" size={22} color={color} />
   );
 }
 
 function MoonIcon({ color }) {
   return (
-    <Icon color={color}>
-      <Path d="M20.5 14.4A8 8 0 0 1 9.6 3.5a8 8 0 1 0 10.9 10.9Z" />
-    </Icon>
+    <AppIcon name="moon" size={22} color={color} />
   );
 }
 
 function SettingsIcon({ color }) {
   return (
-    <Icon color={color}>
-      <Circle cx="12" cy="12" r="3" />
-      <Path d="M19 12a7.1 7.1 0 0 0-.1-1l2-1.6-2-3.4-2.5 1a8.4 8.4 0 0 0-1.8-1L14.2 3h-4.4L9.4 6a8.4 8.4 0 0 0-1.8 1L5.1 6l-2 3.4 2 1.6a7.1 7.1 0 0 0 0 2l-2 1.6 2 3.4 2.5-1a8.4 8.4 0 0 0 1.8 1l.4 3h4.4l.4-3a8.4 8.4 0 0 0 1.8-1l2.5 1 2-3.4-2-1.6a7.1 7.1 0 0 0 .1-1Z" />
-    </Icon>
+    <AppIcon name="settings" size={22} color={color} />
   );
 }
 
 function HomeIcon({ color }) {
   return (
-    <Icon color={color}>
-      <Path d="m3 10 9-7 9 7" />
-      <Path d="M5 9v12h14V9" />
-      <Path d="M9 21v-7h6v7" />
-    </Icon>
+    <AppIcon name="home" size={22} color={color} />
   );
 }
 
 function LeadsIcon({ color }) {
   return (
-    <Icon color={color}>
-      <Circle cx="9" cy="8" r="3" />
-      <Path d="M3.5 20v-1.5A4.5 4.5 0 0 1 8 14h2a4.5 4.5 0 0 1 4.5 4.5V20" />
-      <Path d="M16 6.3a3 3 0 0 1 0 5.4M18 14.5a4.5 4.5 0 0 1 2.5 4V20" />
-    </Icon>
+    <AppIcon name="users" size={22} color={color} />
   );
 }
 
 function ListingsIcon({ color }) {
   return (
-    <Icon color={color}>
-      <Path d="M5 21V5l7-2v18" />
-      <Path d="M12 8h7v13H3h18" />
-      <Line x1="8" y1="8" x2="9" y2="8" />
-      <Line x1="8" y1="12" x2="9" y2="12" />
-      <Line x1="8" y1="16" x2="9" y2="16" />
-      <Line x1="15" y1="12" x2="16" y2="12" />
-      <Line x1="15" y1="16" x2="16" y2="16" />
-    </Icon>
+    <AppIcon name="building" size={22} color={color} />
   );
 }
 
 function SheetIcon({ color }) {
   return (
-    <Icon color={color}>
-      <Path d="M4 3h16v18H4z" />
-      <Line x1="4" y1="9" x2="20" y2="9" />
-      <Line x1="4" y1="15" x2="20" y2="15" />
-      <Line x1="10" y1="3" x2="10" y2="21" />
-    </Icon>
+    <AppIcon name="table" size={22} color={color} />
   );
 }
 
 function MoreIcon({ color }) {
   return (
-    <Icon color={color}>
-      <Circle cx="5" cy="12" r="1" fill={color} stroke="none" />
-      <Circle cx="12" cy="12" r="1" fill={color} stroke="none" />
-      <Circle cx="19" cy="12" r="1" fill={color} stroke="none" />
-    </Icon>
+    <AppIcon name="more" size={22} color={color} />
   );
 }
 
 function ArrowDownIcon({ color }) {
   return (
-    <Icon color={color} size={28} strokeWidth={1.8}>
-      <Line x1="12" y1="3" x2="12" y2="20" />
-      <Path d="m5 13 7 7 7-7" />
-    </Icon>
+    <AppIcon name="arrowDown" size={28} color={color} />
   );
 }
 
 function ChevronIcon({ color }) {
   return (
-    <Icon color={color} size={18}>
-      <Path d="m9 18 6-6-6-6" />
-    </Icon>
+    <AppIcon name="chevron" size={18} color={color} />
   );
 }
 

@@ -1,6 +1,6 @@
+import AppIcon from "../components/AppIcon";
 import { Alert, Linking, Pressable, ScrollView, StatusBar, StyleSheet, Switch, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Svg, Circle, Line, Path, Polyline } from "react-native-svg";
 import { supabase } from "../supabase";
 import { getTheme } from "../theme";
 
@@ -10,87 +10,55 @@ const DATA_DELETION_URL = "https://repeatai.org/data-deletion";
 
 function BackIcon({ color }) {
   return (
-    <Svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Line x1="19" y1="12" x2="5" y2="12" />
-      <Path d="M12 19l-7-7 7-7" />
-    </Svg>
+    <AppIcon name="back" size={24} color={color} />
   );
 }
 
 function PersonIcon({ color }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-      <Circle cx="12" cy="7" r="4" />
-    </Svg>
+    <AppIcon name="person" size={20} color={color} />
   );
 }
 
 function MoonIcon({ color }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-    </Svg>
+    <AppIcon name="moon" size={20} color={color} />
   );
 }
 
 function CreditCardIcon({ color }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v9A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5v-9z" />
-      <Path d="M3 10h18" />
-      <Path d="M7 15h4" />
-    </Svg>
+    <AppIcon name="card" size={20} color={color} />
   );
 }
 
 function ReplayIcon({ color }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Polyline points="1 4 1 10 7 10" />
-      <Path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-    </Svg>
+    <AppIcon name="refresh" size={20} color={color} />
   );
 }
 
 function DocumentIcon({ color }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-      <Polyline points="14 2 14 8 20 8" />
-      <Line x1="8" y1="13" x2="16" y2="13" />
-      <Line x1="8" y1="17" x2="16" y2="17" />
-    </Svg>
+    <AppIcon name="document" size={20} color={color} />
   );
 }
 
 function LogOutIcon({ color }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-      <Polyline points="16 17 21 12 16 7" />
-      <Line x1="21" y1="12" x2="9" y2="12" />
-    </Svg>
+    <AppIcon name="logout" size={20} color={color} />
   );
 }
 
 function TrashIcon({ color }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round">
-      <Polyline points="3 6 5 6 21 6" />
-      <Path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
-      <Path d="M10 11v6" />
-      <Path d="M14 11v6" />
-      <Path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-    </Svg>
+    <AppIcon name="trash" size={20} color={color} />
   );
 }
 
 function ChevronRight({ color }) {
   return (
-    <Svg width={20} height={20} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Polyline points="9 18 15 12 9 6" />
-    </Svg>
+    <AppIcon name="chevron" size={20} color={color} />
   );
 }
 

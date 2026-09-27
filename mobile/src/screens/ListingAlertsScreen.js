@@ -1,3 +1,4 @@
+import AppIcon from "../components/AppIcon";
 import { useQuery } from '@tanstack/react-query';
 import { fetchListingPriceDrops } from '../workspace/home-insights';
 import { Button } from '../workspace/ui';
@@ -18,7 +19,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Svg, Circle, Line, Path } from "react-native-svg";
 import BottomSheet from "../components/BottomSheet";
 import AppSearchBar from "../components/AppSearchBar";
 import {
@@ -52,39 +52,26 @@ const LISTINGS_PAGE_SIZE = 25;
 
 function BackIcon({ color }) {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Line x1="19" y1="12" x2="5" y2="12" />
-      <Path d="M12 19l-7-7 7-7" />
-    </Svg>
+    <AppIcon name="back" size={22} color={color} />
   );
 }
 
 function HomeIcon({ size = 14, color }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-      <Path d="M9 22V12h6v10" />
-    </Svg>
+    <AppIcon name="home" size={size} color={color} />
   );
 }
 
 function ExternalLinkIcon({ size = 18, color }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M14 3h7v7" />
-      <Path d="M10 14L21 3" />
-      <Path d="M21 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-    </Svg>
+    <AppIcon name="external" size={size} color={color} />
   );
 }
 
 function ArrowIcon({ direction = "down", size = 11, color }) {
   // Compact arrow used inline with the price delta chip.
-  const d = direction === "down" ? "M12 5v14M5 12l7 7 7-7" : "M12 19V5M5 12l7-7 7 7";
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={3} strokeLinecap="round" strokeLinejoin="round">
-      <Path d={d} />
-    </Svg>
+    <AppIcon name={direction === "down" ? "arrowDown" : "arrowUp"} size={size} color={color} />
   );
 }
 
@@ -137,26 +124,13 @@ function StatusPill({ listing, colors }) {
 
 function TuneIcon({ color }) {
   return (
-    <Svg width={26} height={26} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Line x1="4" y1="21" x2="4" y2="14" />
-      <Line x1="4" y1="10" x2="4" y2="3" />
-      <Line x1="12" y1="21" x2="12" y2="12" />
-      <Line x1="12" y1="8" x2="12" y2="3" />
-      <Line x1="20" y1="21" x2="20" y2="16" />
-      <Line x1="20" y1="12" x2="20" y2="3" />
-      <Line x1="1" y1="14" x2="7" y2="14" />
-      <Line x1="9" y1="8" x2="15" y2="8" />
-      <Line x1="17" y1="16" x2="23" y2="16" />
-    </Svg>
+    <AppIcon name="filter" size={26} color={color} />
   );
 }
 
 function LocationPinIcon({ size = 15, color }) {
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-      <Path d="M12 21s-6-4.35-6-10a6 6 0 1 1 12 0c0 5.65-6 10-6 10Z" />
-      <Circle cx="12" cy="11" r="2.5" />
-    </Svg>
+    <AppIcon name="location" size={size} color={color} />
   );
 }
 

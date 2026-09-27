@@ -1,3 +1,4 @@
+import AppIcon from "../components/AppIcon";
 import AppSearchBar from "../components/AppSearchBar";
 import LeadCard from "../features/seller-signal/components/LeadCard";
 import { getBuildingKeyVariants } from "../features/seller-signal/lead-utils";
@@ -7,7 +8,6 @@ import { useWorkspacePreference } from "../workspace/preferences";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { Svg, Line, Path } from "react-native-svg";
 import BottomSheet from "../components/BottomSheet";
 import AddSellerSheet from "../features/seller-signal/components/AddSellerSheet";
 import LeadImportEmptyState from "../features/seller-signal/components/LeadImportEmptyState";
@@ -89,10 +89,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
       <SafeAreaView style={s.page} edges={embedded ? [] : ["top"]}>
         {onBack ? (
           <Pressable style={s.emptyBackBtn} onPress={onBack} hitSlop={12}>
-            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <Line x1="19" y1="12" x2="5" y2="12" />
-              <Path d="M12 19l-7-7 7-7" />
-            </Svg>
+            <AppIcon name="back" size={22} color={colors.text} />
           </Pressable>
         ) : null}
         <LeadImportEmptyState
@@ -112,10 +109,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
       <View style={s.tabBar}>
         {onBack ? (
           <Pressable style={s.backBtn} onPress={onBack} hitSlop={12}>
-            <Svg width={22} height={22} viewBox="0 0 24 24" fill="none" stroke={colors.text} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-              <Line x1="19" y1="12" x2="5" y2="12" />
-              <Path d="M12 19l-7-7 7-7" />
-            </Svg>
+            <AppIcon name="back" size={22} color={colors.text} />
           </Pressable>
         ) : null}
 
@@ -195,9 +189,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
         onPress={() => setSheetOpen(true)}
         style={({ pressed }) => [s.fab, { bottom: sendBarHeight + 16 }, pressed && { opacity: 0.85 }]}
       >
-        <Svg width={26} height={26} viewBox="0 0 24 24" fill="none" stroke={colors.bg} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M4 21v-7m0-4V3m8 18v-9m0-4V3m8 18v-5m0-4V3M1 14h6m2-6h6m2 8h6" />
-        </Svg>
+        <AppIcon name="filter" size={26} color={colors.bg} />
       </Pressable>
       <BottomSheet visible={confirmSend} onClose={() => !sendingBulk && setConfirmSend(false)} colors={colors}><View style={{ padding: 20, gap: 12 }}><Text style={{ color: colors.text }}>Send messages to {d.sendAllCount} sellers on this page using your connected WhatsApp account?</Text><Button colors={colors} disabled={sendingBulk} onPress={async () => { setSendingBulk(true); try { await d.actions.bulkWhatsApp(); } finally { setSendingBulk(false); setConfirmSend(false); } }}>Confirm send</Button><Button colors={colors} disabled={sendingBulk} onPress={() => setConfirmSend(false)}>Cancel</Button></View></BottomSheet>
 

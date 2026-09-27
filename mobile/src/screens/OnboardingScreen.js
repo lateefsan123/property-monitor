@@ -1,3 +1,4 @@
+import AppIcon from "../components/AppIcon";
 import { useState } from "react";
 import {
   Animated,
@@ -10,7 +11,6 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import Svg, { Circle, Path, Rect } from "react-native-svg";
 
 const ACCENT = "#000";
 
@@ -109,71 +109,43 @@ function SlideIcon({ slideKey }) {
   switch (slideKey) {
     case "welcome":
       return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
-          <Path d="M9 22V12h6v10" />
-        </Svg>
+        <AppIcon name="home" size={size} color={color} />
       );
     case "how-it-works":
       return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M12 20V10M18 20V4M6 20v-4" />
-        </Svg>
+        <AppIcon name="chart" size={size} color={color} />
       );
     case "prospects":
       return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
-          <Circle cx="9" cy="7" r="4" />
-          <Path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
-        </Svg>
+        <AppIcon name="users" size={size} color={color} />
       );
     case "market-appraisals":
       return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-        </Svg>
+        <AppIcon name="activity" size={size} color={color} />
       );
     case "for-sale":
       return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-        </Svg>
+        <AppIcon name="flash" size={size} color={color} />
       );
     case "what-you-send":
       return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
-          <Path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" />
-        </Svg>
+        <AppIcon name="document" size={size} color={color} />
       );
     case "listing-alerts":
       return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M1 22V6l7-4 8 4v5" />
-          <Path d="M8 2v20M16 6v4" />
-          <Path d="M5 9.5h3M5 13h3M5 16.5h3" />
-          <Path d="M18 13v8M15 18l3 3 3-3" />
-        </Svg>
+        <AppIcon name="building" size={size} color={color} />
       );
     case "import-sheet":
       return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3" />
-        </Svg>
+        <AppIcon name="download" size={size} color={color} />
       );
     case "daily-workflow":
       return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <Rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-          <Path d="M16 2v4M8 2v4M3 10h18" />
-        </Svg>
+        <AppIcon name="calendar" size={size} color={color} />
       );
     case "reports":
       return (
-        <Svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-          <Path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0" />
-        </Svg>
+        <AppIcon name="notification" size={size} color={color} />
       );
     default:
       return null;
@@ -356,10 +328,7 @@ export default function OnboardingScreen({ onComplete }) {
           {/* Goal */}
           {slide.goal && (
             <View style={s.goalRow}>
-              <Svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ACCENT} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <Path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                <Path d="M22 4L12 14.01l-3-3" />
-              </Svg>
+              <AppIcon name="checkCircle" size={16} color={ACCENT} />
               <Text style={s.goalText}>{slide.goal}</Text>
             </View>
           )}
@@ -412,9 +381,7 @@ export default function OnboardingScreen({ onComplete }) {
           style={[s.backBtnCircle, isFirst && { opacity: 0 }]}
           disabled={isFirst}
         >
-          <Svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <Path d="M15 18l-6-6 6-6" />
-          </Svg>
+          <AppIcon name="chevronBack" size={20} color={"#000"} />
         </Pressable>
 
         <Pressable
@@ -422,9 +389,7 @@ export default function OnboardingScreen({ onComplete }) {
           onPress={handleNext}
         >
           <Text style={s.ctaBtnText}>{isLast ? "Get Started" : "Next"}</Text>
-          <Svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <Path d="M9 18l6-6-6-6" />
-          </Svg>
+          <AppIcon name="chevron" size={16} color={"#fff"} />
         </Pressable>
       </View>
     </SafeAreaView>
