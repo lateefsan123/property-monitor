@@ -35,6 +35,7 @@ export default function NavigationDrawer({
   colors,
   children,
   favorites = [],
+  favoriteSellers = [],
 }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -272,6 +273,10 @@ export default function NavigationDrawer({
                   )}
                 </View>
               )}
+              {favoriteSellers.length > 0 && <View>
+                <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: "600", paddingHorizontal: 23, paddingBottom: 4 }}>Saved sellers</Text>
+                {favoriteSellers.map(seller => row({ id: `seller:${seller.id}`, label: seller.name || "Unnamed seller", icon: "starFilled", kind: "action" }))}
+              </View>}
               <View>{MAIN_NAVIGATION.map(row)}</View>
             </ScrollView>
             <View

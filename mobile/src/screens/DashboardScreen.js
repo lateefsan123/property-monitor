@@ -37,14 +37,14 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
   const [selectedLeadId, setSelectedLeadId] = useState(null);
 
   const lastRequest = useRef(null);
-  useEffect(() => { if (lastRequest.current === request) return; lastRequest.current = request; if (request?.sourceId) d.actions.selectSourceFilter(request.sourceId); if (request?.add) setAddSellerOpen(true); }, [request, d.actions]);
+  useEffect(() => { if (lastRequest.current === request) return; lastRequest.current = request; if (request?.sourceId) d.actions.selectSourceFilter(request.sourceId); if (request?.add) setAddSellerOpen(true); if (request?.sellerId) setSelectedLeadId(String(request.sellerId)); }, [request, d.actions]);
   const toggle = (preference, id) => !preference.pending && preference.set(preference.value.includes(String(id)) ? preference.value.filter(value => value !== String(id)) : [...preference.value, String(id)]);
   const canAddSeller = d.sourceFilter && d.sourceFilter !== "all" && d.sourceFilter !== "legacy";
   const activeSourceLabel = canAddSeller
     ? (d.sourceOptions.find((option) => option.id === d.sourceFilter)?.label || "")
     : "";
   const selectedLead = useMemo(
-    () => d.leads.find((lead) => lead.id === selectedLeadId) || null,
+    () => d.leads.find((lead) => String(lead.id) === String(selectedLeadId)) || null,
     [d.leads, selectedLeadId],
   );
 

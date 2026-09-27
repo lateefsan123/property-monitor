@@ -1,3 +1,4 @@
+import { leadsQueryKey } from "../features/seller-signal/useHomeLeadSummary";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BackHandler, Platform, Text, View } from "react-native";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +11,7 @@ import WorkspaceSpreadsheets from "./spreadsheets";
 import DashboardScreen from "../screens/DashboardScreen";
 import ListingAlertsScreen from "../screens/ListingAlertsScreen";
 import BottomSheet from "../components/BottomSheet";
-import { fetchLeadSources } from "../features/seller-signal/services";
+import { fetchLeadSources, fetchUserLeads } from "../features/seller-signal/services";
 import { leadSourcesQueryKey } from "../features/seller-signal/useSellerSignalPage";
 import { useWorkspacePreference } from "./preferences";
 import { getTheme } from "../theme";
@@ -48,6 +49,12 @@ export default function WorkspaceShell({
   const [signoutError, setSignoutError] = useState(null);
   const [signingOut, setSigningOut] = useState(false);
   const favorites = useWorkspacePreference(userId, "sheet-favorites", []);
+  const sellerFavorites = useWorkspacePreference(userId, "seller-favorites", []);
+  const savedSellers = useQuery({
+    queryKey: leadsQueryKey(userId),
+    queryFn: () => fetchUserLeads(userId),
+    enabled: Boolean(userId) && sellerFavorites.value.length > 0,
+  });
   const sources = useQuery({
     queryKey: leadSourcesQueryKey(userId),
     queryFn: () => fetchLeadSources(userId),
@@ -85,6 +92,8 @@ export default function WorkspaceShell({
   function action(id) {
     if (id === "new") setCreateOpen(true);
     else if (id === "signout") setSignoutOpen(true);
+    else if (id.startsWith("seller:"))
+      navigate("sellers", { sellerId: id.slice(7) });
     else if (id.startsWith("source:"))
       navigate("spreadsheets", { sourceId: id.slice(7) });
     else navigate(id);
@@ -101,6 +110,7 @@ export default function WorkspaceShell({
       onNavigate={navigate}
       onAction={action}
       onToggleTheme={onToggleTheme}
+      favoriteSellers={(savedSellers.data || []).filter(seller => sellerFavorites.value.includes(String(seller.id)))}
       favorites={(sources.data || []).filter((source) =>
         favorites.value.includes(String(source.id)),
       )}
