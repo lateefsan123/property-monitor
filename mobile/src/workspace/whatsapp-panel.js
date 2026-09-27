@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, Text, View } from "react-native";
+import { Image, ScrollView, Text, View } from "react-native";
 import * as Clipboard from "expo-clipboard";
 import QRCode from "react-native-qrcode-svg";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchWhatsAppAccounts } from "../features/seller-signal/services";
 import { whatsappAccountsQueryKey } from "../features/seller-signal/useSellerSignalPage";
+import WhatsAppOverview from './whatsapp-overview';
 import BottomSheet from "../components/BottomSheet";
 import { connectWhatsAppAccount } from "./whatsapp";
-import { Button, Feedback, Field, Icon } from "./ui";
+import { Button, Feedback, Field } from "./ui";
 
 export default function WhatsAppPanel({ userId, colors, active = true }) {
   const client = useQueryClient();
@@ -100,27 +101,7 @@ export default function WhatsAppPanel({ userId, colors, active = true }) {
 
   return <View style={{ gap: 20 }}>
     <Feedback colors={colors} error={accounts.error || (!sheet && error)} loading={accounts.isPending} onRetry={accounts.refetch} />
-    {!accounts.isPending && connected ? (
-      <Pressable accessibilityRole="button" accessibilityLabel="Manage WhatsApp number" onPress={() => { setError(null); setSheet("manage"); }} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 18, borderBottomWidth: 0.5, borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 })}>
-        <Icon name="message" color={colors.textMuted} size={23} />
-        <View style={{ flex: 1, gap: 5 }}>
-          <Text selectable style={{ color: colors.text, fontSize: 17, fontWeight: "600" }}>{phoneLabel}</Text>
-          <Text style={{ color: colors.badgeOkText, fontSize: 13 }}>Connected</Text>
-        </View>
-        <Icon name="chevron" color={colors.textFaint} size={18} />
-      </Pressable>
-    ) : !accounts.isPending ? (
-      <>
-        <Text style={{ color: colors.textMuted, fontSize: 15, lineHeight: 22 }}>
-          {waiting ? "Finish linking your number in WhatsApp." : "Link a number to send messages to your sellers."}
-        </Text>
-        <Pressable accessibilityRole="button" onPress={openPairing} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, minHeight: 56, borderBottomWidth: 0.5, borderBottomColor: colors.border, opacity: pressed ? 0.6 : 1 })}>
-          <Icon name={waiting ? "message" : "plus"} color={colors.text} size={22} />
-          <Text style={{ flex: 1, color: colors.text, fontSize: 16, fontWeight: "600" }}>{waiting ? "Continue linking" : "Add WhatsApp number"}</Text>
-          <Icon name="chevron" color={colors.textFaint} size={18} />
-        </Pressable>
-      </>
-    ) : null}
+    {!accounts.isPending && !accounts.error ? <WhatsAppOverview colors={colors} connected={connected} phoneLabel={phoneLabel} waiting={waiting} onManage={() => { setError(null); setSheet("manage"); }} onPair={openPairing} /> : null}
 
     <BottomSheet visible={Boolean(sheet) && active} onClose={() => !busy && setSheet(null)} colors={colors}>
       <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, paddingTop: 4, gap: 18 }}>

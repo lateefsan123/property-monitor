@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useState } from "react";
-import { BackHandler, Pressable, ScrollView, Text, View } from "react-native";
+import { BackHandler, ScrollView, Text, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAutomationSettings, saveAutomationSettings } from "./automation-settings";
 import { fetchWhatsAppSendActivity } from "./send-activity";
+import SendActivitySummary from './send-activity-summary';
 import WhatsAppPanel from "./whatsapp-panel";
 import AccountSettings from "../screens/SettingsScreen";
 import Integrations from './integrations';
-import { Button, Feedback, Icon } from "./ui";
+import { Feedback } from "./ui";
 import { SettingsGroup, SettingsItem, SettingsProfile, SettingsToggle, settingsBackground } from "../components/SettingsLayout";
 
 const SETTINGS_PAGES = [
@@ -15,28 +16,6 @@ const SETTINGS_PAGES = [
   ["Send activity", "activity"],
   ["Integrations", "link"],
 ];
-
-function SettingsRow({ label, colors, onPress, children, icon }) {
-  const content = <>
-    {icon ? <Icon name={icon} color={colors.textMuted} size={21} /> : null}
-    <Text style={{ flex: 1, color: colors.text, fontSize: 16, fontWeight: "500" }}>{label}</Text>
-    {children || <Icon name="chevron" color={colors.textFaint} size={18} />}
-  </>;
-  const style = {
-    minHeight: 64,
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 0.5,
-    borderBottomColor: colors.border,
-  };
-  return onPress ? (
-    <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={onPress} style={({ pressed }) => [style, { opacity: pressed ? 0.6 : 1 }]}>
-      {content}
-    </Pressable>
-  ) : <View style={style}>{content}</View>;
-}
 
 function Automations({ userId, colors }) {
   const client = useQueryClient();
@@ -66,12 +45,6 @@ function Automations({ userId, colors }) {
   </View>;
 }
 
-const SOURCE_LABELS = { auto: "Automated", bulk: "Bulk messages", manual: "Manual", mcp: "Integrations", other: "Other" };
-function readableLabel(value) {
-  const text = String(value).replace(/[_-]/g, " ");
-  return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
 function SendActivity({ userId, colors, active }) {
   const query = useQuery({
     queryKey: ["seller-signal", "send-activity", userId],
@@ -81,30 +54,7 @@ function SendActivity({ userId, colors, active }) {
   });
   return <View style={{ gap: 20 }}>
     <Feedback colors={colors} loading={query.isPending} error={query.error} onRetry={query.refetch} />
-    {query.data ? <>
-      <View style={{ gap: 6 }}>
-        <Text style={{ color: colors.textMuted, fontSize: 14 }}>Today · Dubai time</Text>
-        <Text selectable style={{ color: colors.textName, fontSize: 32, fontWeight: "700" }}>{query.data.total} messages</Text>
-        <Text style={{ color: colors.textMuted }}>{query.data.distinctLeads} sellers contacted</Text>
-      </View>
-      {Object.entries(query.data.sources).filter(([, count]) => count > 0).map(([name, count]) => (
-        <SettingsRow key={name} label={SOURCE_LABELS[name] || readableLabel(name)} colors={colors}>
-          <Text selectable style={{ color: colors.text, fontSize: 16 }}>{count}</Text>
-        </SettingsRow>
-      ))}
-      {Object.keys(query.data.origins).length ? <View>
-        <Text style={{ color: colors.textMuted, fontSize: 13 }}>Sent from</Text>
-        {Object.entries(query.data.origins).map(([name, count]) => (
-          <SettingsRow key={name} label={readableLabel(name)} colors={colors}>
-            <Text selectable style={{ color: colors.text }}>{count}</Text>
-          </SettingsRow>
-        ))}
-      </View> : null}
-      {query.data.alerts.map((alert) => (
-        <Text key={alert.id} style={{ color: colors.errorText }}>{readableLabel(alert.alert_type)}: {alert.observed_count} ({alert.severity})</Text>
-      ))}
-    </> : null}
-    <Button colors={colors} disabled={query.isFetching} onPress={query.refetch}>Refresh activity</Button>
+    {query.data ? <SendActivitySummary data={query.data} colors={colors} refreshing={query.isFetching} onRefresh={query.refetch} /> : null}
   </View>;
 }
 
