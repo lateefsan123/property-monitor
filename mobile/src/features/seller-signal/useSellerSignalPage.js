@@ -1,3 +1,4 @@
+import { orderSellerList } from "./seller-list-order";
 import {fetchLeadInsights} from '../../workspace/lead-insights';
 import { introAttachmentPath } from "../../../../supabase/functions/_shared/intro-attachment.js";
 import { saveSellerFollowUp, uploadSellerImage } from './seller-contact';
@@ -138,6 +139,8 @@ function formatImportErrorMessage(label, message) {
 
 export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
   const pins = useWorkspacePreference(userId, 'seller-pins', []);
+  const favorites = useWorkspacePreference(userId, 'seller-favorites', []);
+  const [favoritesOnly, setFavoritesOnly] = useState(false);
   const legacySheetStorageKey = userId ? `seller-signal:legacy-sheet-url:${userId}` : null;
   const queryClient = useQueryClient();
   useAutoSheetSync(userId);
@@ -375,7 +378,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
   const marketQuery = useQuery({ queryKey: ['seller-signal', 'market-availability', userId, leads.map(lead => lead.building).join('|')], queryFn: () => fetchMarketAvailability(leads), enabled: Boolean(userId) && dataFilter !== 'all' && leads.length > 0, staleTime: 600000 });
   const filteredLeads = useMemo(
     () =>
-      filterLeads({
+      orderSellerList(filterLeads({
         activeLeads: (Array.isArray(statusFilter) ? statusFilter.includes('not_interested') : statusFilter === 'not_interested') ? [...activeLeads, ...leads.filter(lead => lead.statusRule?.id === 'not_interested')] : activeLeads,
         doneLeads,
         dataFilter,
@@ -386,8 +389,8 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
         sourceFilter: effectiveSourceFilter,
         statusFilter,
         viewTab,
-      }).sort((a,b) => Number(pins.value.includes(String(b.id))) - Number(pins.value.includes(String(a.id))) || (sort === "alpha" ? String(a.name).localeCompare(String(b.name)) : 0)),
-    [activeLeads, dataFilter, dataQualityFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, showDueOnly, statusFilter, viewTab, leads, marketQuery.data, sort, pins.value],
+      }), { pins: pins.value, favorites: favorites.value, favoritesOnly, sort }),
+    [activeLeads, dataFilter, dataQualityFilter, deferredSearchTerm, doneLeads, effectiveSourceFilter, insights, showDueOnly, statusFilter, viewTab, leads, marketQuery.data, sort, pins.value, favorites.value, favoritesOnly],
   );
 
   const { totalPages, safePage, pagedLeads } = useMemo(
@@ -969,6 +972,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     copiedLeadId,
     dataFilter,
     dataQualityFilter,
+    favoritesOnly,
     sort,
     addingSource,
     canAddSource,
@@ -1027,6 +1031,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
       saveNotes,
       saveFollowUp,
       selectDataQualityFilter: value => { setDataQualityFilter(value); resetPaging(); },
+      selectFavoritesOnly: value => { setFavoritesOnly(value); resetPaging(); },
       selectSort: value => { setSort(value); resetPaging(); },
       selectDataFilter,
       selectSourceFilter,

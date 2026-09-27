@@ -3,6 +3,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 const names = {
   calendar: "calendar-outline", menu: "menu-outline", close: "close-outline",
   closeCircle: "close-circle", home: "home-outline", search: "search-outline",
+  pinFilled: "pin", starFilled: "star",
   pin: "pin-outline", plus: "add-outline", voice: "pulse-outline",
   arrowUp: "arrow-up-outline", arrowDown: "arrow-down-outline", stop: "stop",
   mic: "mic-outline", micOff: "mic-off-outline", users: "people-outline",

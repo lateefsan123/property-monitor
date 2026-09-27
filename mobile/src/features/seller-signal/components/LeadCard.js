@@ -163,7 +163,7 @@ export default function LeadCard({
             </View>
           )}
         </View>
-      <View style={{flexDirection:'row',justifyContent:'flex-end'}}>{[[onPin,pinned,'pin','Pin seller'],[onFavorite,favorite,'star','Favorite seller']].map(([action,selected,icon,label]) => <Pressable key={icon} accessibilityRole="button" accessibilityLabel={label} accessibilityState={{selected}} onPress={event=>{event.stopPropagation();action?.();}} style={{padding:8}}><Icon name={icon} size={16} color={selected ? c.statValue : c.textFaint}/></Pressable>)}</View>
+      <View style={{flexDirection:'row',justifyContent:'flex-end'}}>{[[onPin,pinned,'pin','Pin seller'],[onFavorite,favorite,'star','Add to favourites']].map(([action,selected,icon,label]) => <Pressable key={icon} accessibilityRole="button" accessibilityLabel={selected ? (icon === "pin" ? "Unpin seller" : "Remove favourite") : label} accessibilityState={{selected}} onPress={event=>{event.stopPropagation();action?.();}} style={{padding:10, borderRadius:12, backgroundColor:selected ? c.bgBadge : "transparent"}}><Icon name={selected ? `${icon}Filled` : icon} size={16} color={selected ? c.statValue : c.textFaint}/></Pressable>)}</View>
       </View>
 
 

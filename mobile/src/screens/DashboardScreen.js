@@ -1,3 +1,4 @@
+import SellerFilters from "../features/seller-signal/components/SellerFilters";
 import AppIcon from "../components/AppIcon";
 import AppSearchBar from "../components/AppSearchBar";
 import LeadCard from "../features/seller-signal/components/LeadCard";
@@ -6,14 +7,13 @@ import buildingImages from "../data/building-images.json";
 import { Button, Field } from "../workspace/ui";
 import { useWorkspacePreference } from "../workspace/preferences";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, PanResponder, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import BottomSheet from "../components/BottomSheet";
 import AddSellerSheet from "../features/seller-signal/components/AddSellerSheet";
 import LeadImportEmptyState from "../features/seller-signal/components/LeadImportEmptyState";
 import LeadDetailSheet from "../features/seller-signal/components/LeadDetailSheet";
 import Pagination from "../features/seller-signal/components/Pagination";
-import { DATA_FILTER_OPTIONS, STATUS_FILTER_OPTIONS } from "../features/seller-signal/constants";
 import { useSellerSignalPage } from "../features/seller-signal/useSellerSignalPage";
 import { getTheme } from "../theme";
 
@@ -21,12 +21,12 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
   const d = useSellerSignalPage(userId);
   const colors = getTheme(theme);
   const s = styles(colors);
+  const filterCount = [d.statusFilter !== "all", d.sourceFilter !== "all", d.dataFilter !== "all", d.dataQualityFilter !== "all", d.favoritesOnly].filter(Boolean).length;
   const insets = useSafeAreaInsets();
 
   const favorites = useWorkspacePreference(userId, "seller-favorites", []);
   const pins = useWorkspacePreference(userId, "seller-pins", []);
   const views = useWorkspacePreference(userId, "seller-views", []);
-  const [viewsOpen, setViewsOpen] = useState(false);
   const [viewName, setViewName] = useState("");
   const bottomInset = embedded ? 0 : insets.bottom;
 
@@ -54,6 +54,8 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
     d.actions.selectViewTab(filters.viewTab || "active");
     d.actions.selectDataFilter(filters.dataFilter || "all");
     d.actions.selectDataQualityFilter(filters.dataQualityFilter || "all");
+    d.actions.selectFavoritesOnly(Boolean(filters.favoritesOnly));
+    d.actions.selectSort(filters.sort || "priority");
     d.actions.updateSearchTerm(filters.searchTerm || "");
     setSheetOpen(false);
   }
@@ -143,8 +145,10 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
           clearLabel="Clear seller search"
           value={d.searchTerm}
           onChangeText={d.actions.updateSearchTerm}
-        /></View><Pressable accessibilityRole="button" accessibilityLabel="Seller filters" onPress={() => setSheetOpen(true)} style={{ width: 46, height: 46, borderRadius: 12, backgroundColor: colors.bgInput, alignItems: "center", justifyContent: "center" }}><AppIcon name="filter" size={21} color={colors.text} /></Pressable>
+        /></View><Pressable accessibilityRole="button" accessibilityLabel={`Seller filters${filterCount ? `, ${filterCount} active` : ""}`} onPress={() => setSheetOpen(true)} style={{ width: 46, height: 46, borderRadius: 12, backgroundColor: colors.bgInput, alignItems: "center", justifyContent: "center" }}><AppIcon name="filter" size={21} color={colors.text} />{filterCount > 0 && <View style={{ position: "absolute", top: -3, right: -3, minWidth: 18, height: 18, borderRadius: 9, backgroundColor: colors.btnPrimaryBg, alignItems: "center", justifyContent: "center" }}><Text style={{ color: colors.btnPrimaryText, fontSize: 10 }}>{filterCount}</Text></View>}</Pressable>
       </View>
+
+      {(favorites.error || pins.error) && <Text accessibilityRole="alert" style={{ color: colors.errorText, paddingHorizontal: 16 }}>Could not save seller preferences. Please try again.</Text>}
 
       {d.notice && (
         <View style={s.successBox}>
@@ -226,70 +230,14 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
       />
 
       <BottomSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} colors={colors}>
-        <ScrollView keyboardShouldPersistTaps="handled" style={s.sheetScroll} contentContainerStyle={s.sheetContent} showsVerticalScrollIndicator={false}>
-          <View style={{flexDirection:'row',gap:8,marginBottom:16}}><Button colors={colors} onPress={() => setSheetOpen(false)}>Done</Button><Button colors={colors} onPress={() => {d.actions.selectStatusFilter('all');d.actions.selectDataFilter('all');d.actions.selectDataQualityFilter('all');}}>Reset filters</Button></View><Button colors={colors} onPress={() => d.actions.selectSort(d.sort === 'alpha' ? 'priority' : 'alpha')}>{d.sort === 'alpha' ? 'Name A–Z' : 'Priority order'}</Button><Button colors={colors} primary={d.dataQualityFilter === 'review'} onPress={() => d.actions.selectDataQualityFilter(d.dataQualityFilter === 'review' ? 'all' : 'review')}>Needs review</Button><Text style={s.sectionLabel}>Status</Text>
-          <View style={s.chipRow}>
-            {STATUS_FILTER_OPTIONS.map((option) => (
-              <Pressable
-                key={option.id}
-                style={[s.chip, (Array.isArray(d.statusFilter) ? d.statusFilter.includes(option.id) : d.statusFilter === option.id) && s.chipActive]}
-                onPress={() => {const selected = Array.isArray(d.statusFilter) ? d.statusFilter : d.statusFilter === 'all' ? [] : [d.statusFilter]; const next = selected.includes(option.id) ? selected.filter(id=>id!==option.id) : [...selected,option.id];d.actions.selectStatusFilter(next.length ? next : 'all');}}
-              >
-                <Text style={[s.chipText, (Array.isArray(d.statusFilter) ? d.statusFilter.includes(option.id) : d.statusFilter === option.id) && s.chipTextActive]}>{option.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-
-          {d.sourceOptions.length ? (
-            <>
-              <Text style={s.sectionLabel}>Spreadsheet</Text>
-              <View style={s.chipRow}>
-                <Pressable
-                  style={[s.chip, d.sourceFilter === "all" && s.chipActive]}
-                  onPress={() => d.actions.selectSourceFilter("all")}
-                >
-                  <Text style={[s.chipText, d.sourceFilter === "all" && s.chipTextActive]}>All</Text>
-                </Pressable>
-                {d.sourceOptions.map((option) => (
-                  <Pressable
-                    key={option.id}
-                    style={[s.chip, d.sourceFilter === option.id && s.chipActive]}
-                    onPress={() => d.actions.selectSourceFilter(option.id)}
-                  >
-                    <Text style={[s.chipText, d.sourceFilter === option.id && s.chipTextActive]}>{option.label}</Text>
-                  </Pressable>
-                ))}
-              </View>
-            </>
-          ) : null}
-
-          <Text style={s.sectionLabel}>Data</Text>
-          <View style={s.chipRow}>
-            {DATA_FILTER_OPTIONS.map((option) => (
-              <Pressable
-                key={option.id}
-                style={[s.chip, d.dataFilter === option.id && s.chipActive]}
-                onPress={() => d.actions.selectDataFilter(option.id)}
-              >
-                <Text style={[s.chipText, d.dataFilter === option.id && s.chipTextActive]}>{option.label}</Text>
-              </Pressable>
-            ))}
-          </View>
-
-          <Button colors={colors} onPress={() => setViewsOpen(!viewsOpen)}>
-            {viewsOpen ? "Hide saved views" : "Saved views"}
-          </Button>
-          {viewsOpen ? (
-            <View style={{ gap: 10 }}>
-              {[
-                ["All due", {}],
-                ["Needs review", { dataQualityFilter: "review" }],
-                ["Has market data", { dataFilter: "with_data" }],
-                ["Appraisals", { statusFilter: "market_appraisal" }],
-                ["Scheduled", { viewTab: "done" }],
-              ].map(([name, filters]) => (
-                <Button key={name} colors={colors} onPress={() => restoreView(filters)}>{name}</Button>
-              ))}
+        <SellerFilters data={d} colors={colors} onClose={() => setSheetOpen(false)} onReset={() => {
+          d.actions.selectStatusFilter('all');
+          d.actions.selectSourceFilter('all');
+          d.actions.selectDataFilter('all');
+          d.actions.selectDataQualityFilter('all');
+          d.actions.selectFavoritesOnly(false);
+          d.actions.selectSort('priority');
+        }} savedViews={<View style={{ gap: 10 }}>
               {views.value.map(view => (
                 <View key={view.id} style={{ flexDirection: "row", gap: 8 }}>
                   <Button colors={colors} style={{ flex: 1 }} onPress={() => restoreView(view.filters)}>{view.name}</Button>
@@ -302,6 +250,8 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
                   id: String(Date.now()),
                   name: viewName.trim(),
                   filters: {
+                    favoritesOnly: d.favoritesOnly,
+                    sort: d.sort,
                     sourceFilter: d.sourceFilter,
                     statusFilter: d.statusFilter,
                     dataFilter: d.dataFilter,
@@ -313,10 +263,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
                 setViewName("");
               }}>Save current view</Button>
               {views.error ? <Text style={{ color: colors.errorText }}>{views.error.message}</Text> : null}
-            </View>
-          ) : null}
-
-        </ScrollView>
+        </View>} />
       </BottomSheet>
     </SafeAreaView>
   );
