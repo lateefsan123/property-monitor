@@ -94,7 +94,7 @@ export default function WorkspaceShell({
       page={page}
       headerTitle={page === "schedule" ? "Schedule" : contextualHeader?.title}
       onHeaderBack={contextualHeader?.onBack}
-      hideCreate={page === "spreadsheets" || Boolean(contextualHeader?.onBack)}
+      hideCreate={page === "settings" || page === "spreadsheets" || Boolean(contextualHeader?.onBack)}
       colors={colors}
       onNavigate={navigate}
       onAction={action}
@@ -136,7 +136,7 @@ export default function WorkspaceShell({
           )}
         </View>
       ))}
-      <VoicePanel key={userId} userId={userId} colors={colors} />
+      <VoicePanel key={userId} userId={userId} colors={colors} hideLauncher={page === "settings"} />
       <BottomSheet
         visible={createOpen}
         onDismiss={finishShortcutDismiss}

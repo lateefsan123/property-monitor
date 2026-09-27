@@ -82,10 +82,12 @@ export default function NavigationDrawer({
         onMoveShouldSetPanResponder: (_, g) =>
           g.dx > 18 && Math.abs(g.dy) < Math.abs(g.dx) / 2,
         onPanResponderRelease: (_, g) => {
-          if (g.dx > 35) show();
+          // A detail page's edge swipe follows its back button. Only root
+          // pages open the drawer, matching the visible navigation control.
+          if (g.dx > 35 && Math.abs(g.dy) < Math.abs(g.dx) / 2) (onHeaderBack || show)();
         },
       }),
-    [show],
+    [onHeaderBack, show],
   );
   const dismissGesture = useMemo(
     () =>
