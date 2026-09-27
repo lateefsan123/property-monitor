@@ -6,6 +6,7 @@ import { fetchWhatsAppSendActivity } from "./send-activity";
 import SendActivitySummary from './send-activity-summary';
 import WhatsAppPanel from "./whatsapp-panel";
 import AccountSettings from "../screens/SettingsScreen";
+import EditProfileScreen from "../screens/edit-profile-screen";
 import Integrations from './integrations';
 import { Feedback } from "./ui";
 import { SettingsGroup, SettingsItem, SettingsProfile, SettingsToggle, settingsBackground } from "../components/SettingsLayout";
@@ -60,6 +61,7 @@ function SendActivity({ userId, colors, active }) {
 
 export default function WorkspaceSettings({ userId, colors, active = true, onHeaderChange, onExit, ...accountProps }) {
   const [page, setPage] = useState(null);
+  const [editingProfile, setEditingProfile] = useState(false);
   const backToSettings = useCallback(() => setPage(null), []);
   useEffect(() => {
     if (!onHeaderChange) return;
@@ -76,11 +78,14 @@ export default function WorkspaceSettings({ userId, colors, active = true, onHea
     return () => subscription.remove();
   }, [active, page, backToSettings, onExit]);
 
-  if (page === "Account" || page === "Help & legal") return <AccountSettings {...accountProps} embedded hideAppearance section={page === "Account" ? "account" : "support"} />;
+  if (page === "Account" || page === "Help & legal") return <>
+    <AccountSettings {...accountProps} onEditProfile={() => setEditingProfile(true)} embedded hideAppearance section={page === "Account" ? "account" : "support"} />
+    {editingProfile ? <EditProfileScreen userId={userId} displayName={accountProps.displayName} avatarUrl={accountProps.avatarUrl} colors={colors} onClose={() => setEditingProfile(false)} /> : null}
+  </>;
 
   return <ScrollView style={{ backgroundColor: settingsBackground(colors) }} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 8, paddingBottom: 40 }}>
     {!page ? <>
-      <SettingsProfile displayName={accountProps.displayName} colors={colors} onPress={() => setPage("Account")} />
+      <SettingsProfile displayName={accountProps.displayName} avatarUrl={accountProps.avatarUrl} colors={colors} onPress={() => setPage("Account")} />
       {accountProps.onManageSubscription ? <SettingsGroup title="Account" colors={colors}>
         <SettingsItem label="Manage subscription" icon="card" colors={colors} last value={accountProps.manageSubscriptionPending ? "Opening…" : accountProps.subscriptionStoreLabel} disabled={accountProps.manageSubscriptionPending} onPress={accountProps.onManageSubscription} />
       </SettingsGroup> : null}

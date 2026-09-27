@@ -45,6 +45,13 @@
       ],
       "expo-image",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Repeat AI to choose your profile photo.",
+          "cameraPermission": "Allow Repeat AI to take your profile photo."
+        }
+      ],
+      [
         "@config-plugins/react-native-webrtc",
         {
           "microphonePermission": "Allow Repeat AI to use your microphone for voice conversations."

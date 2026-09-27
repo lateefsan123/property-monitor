@@ -246,6 +246,7 @@ function AppInner() {
 
   return (<SafeAreaProvider>
     <WorkspaceShell key={session.user.id} userId={session.user.id} displayName={displayName} theme={theme} onToggleTheme={toggleTheme}
+      avatarUrl={session.user.user_metadata?.avatar_url || ''}
       manageSubscriptionPending={subscription.action === "manage"}
       onManageSubscription={handleManageSubscription}
       onReplayOnboarding={handleReplayOnboarding}

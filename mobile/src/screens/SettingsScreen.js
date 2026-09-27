@@ -12,6 +12,8 @@ const DATA_DELETION_URL = "https://repeatai.org/data-deletion";
 export default function SettingsScreen({
   hideAppearance = false, embedded = false, section = "all",
   displayName,
+  avatarUrl,
+  onEditProfile,
   manageSubscriptionPending = false,
   onBack,
   onManageSubscription,
@@ -71,10 +73,11 @@ export default function SettingsScreen({
 
       <ScrollView contentContainerStyle={s.list} showsVerticalScrollIndicator={false}>
         {section !== "support" && <>
-          <SettingsProfile displayName={displayName} colors={colors} />
-          {onManageSubscription ? <SettingsGroup title="Account" colors={colors}>
-            <SettingsItem icon="card" label="Manage subscription" value={manageSubscriptionPending ? "Opening..." : subscriptionStoreLabel} disabled={manageSubscriptionPending} onPress={onManageSubscription} colors={colors} last />
-          </SettingsGroup> : null}
+          <SettingsProfile displayName={displayName} avatarUrl={avatarUrl} colors={colors} onPress={onEditProfile} />
+          <SettingsGroup title="Account" colors={colors}>
+            {onEditProfile ? <SettingsItem icon="person" label="Edit profile" onPress={onEditProfile} colors={colors} last={!onManageSubscription} /> : null}
+            {onManageSubscription ? <SettingsItem icon="card" label="Manage subscription" value={manageSubscriptionPending ? "Opening..." : subscriptionStoreLabel} disabled={manageSubscriptionPending} onPress={onManageSubscription} colors={colors} last /> : null}
+          </SettingsGroup>
           {!hideAppearance && <SettingsGroup title="Preferences" colors={colors}>
             <SettingsItem icon="moon" label="Dark mode" colors={colors} last>
               <SettingsToggle colors={colors} accessibilityLabel="Dark mode" value={isDark} onValueChange={onToggleTheme} />

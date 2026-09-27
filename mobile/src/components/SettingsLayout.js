@@ -1,4 +1,4 @@
-import { Platform, Pressable, StyleSheet, Switch, Text, View } from "react-native";
+import { Image, Platform, Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import AppIcon from "./AppIcon";
 
 export function settingsBackground(colors) {
@@ -34,12 +34,12 @@ export function SettingsItem({ label, icon, colors, onPress, children, value, la
   return onPress ? <Pressable accessibilityRole="button" accessibilityLabel={value ? `${label}, ${value}` : label} accessibilityState={{ disabled }} disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.row, { opacity: disabled ? 0.5 : pressed ? 0.55 : 1 }]}>{content}</Pressable> : <View style={styles.row}>{content}</View>;
 }
 
-export function SettingsProfile({ displayName, colors, onPress }) {
+export function SettingsProfile({ displayName, avatarUrl, colors, onPress }) {
   const name = displayName?.trim() || "Your account";
   const initials = name.split(/\s+/).slice(0, 2).map(part => Array.from(part)[0]).join("").toUpperCase();
   const content = <>
     <View style={[styles.avatar, { backgroundColor: colors.bgBadge }]}>
-      <Text style={[styles.initials, { color: colors.text }]}>{initials}</Text>
+      {avatarUrl ? <Image source={{ uri: avatarUrl }} style={styles.avatar} accessibilityLabel="Profile photo" /> : <Text style={[styles.initials, { color: colors.text }]}>{initials}</Text>}
     </View>
     <View style={{ flex: 1, gap: 5 }}>
       <Text numberOfLines={2} style={[styles.name, { color: colors.text }]}>{name}</Text>
