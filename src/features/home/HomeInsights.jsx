@@ -49,24 +49,26 @@ function PipelineCard({ userId, onNavigate }) {
     return series[series.length - 1]?.count || 0;
   }, [activityQuery.data]);
 
-  if (leadsQuery.isPending || leadsQuery.error) return null;
+  const pipelineReady = Boolean(leadsQuery.data);
+  const activityReady = Boolean(activityQuery.data);
 
   return (
-    <section className="home-insight-card home-pipeline-card" aria-label="Seller pipeline">
+    <section className="home-insight-card home-pipeline-card" aria-label="Seller pipeline" aria-busy={leadsQuery.isPending}>
       <div className="home-pipeline-stats">
         <div className="ld-chart-stat">
           <Eyebrow>Due today</Eyebrow>
-          <div className="ld-chart-stat-value">{cadence.due}</div>
+          <div className="ld-chart-stat-value">{pipelineReady ? cadence.due : "—"}</div>
         </div>
         <div className="ld-chart-stat">
           <Eyebrow>Scheduled</Eyebrow>
-          <div className="ld-chart-stat-value">{cadence.scheduled}</div>
+          <div className="ld-chart-stat-value">{pipelineReady ? cadence.scheduled : "—"}</div>
         </div>
         <div className="ld-chart-stat">
           <Eyebrow>Sent today</Eyebrow>
-          <div className="ld-chart-stat-value">{sentToday}</div>
+          <div className="ld-chart-stat-value">{activityReady ? sentToday : "—"}</div>
         </div>
       </div>
+      {!pipelineReady && <div role="status">{leadsQuery.error ? "Could not load seller totals." : "Loading seller totals…"}</div>}
       <button
         type="button"
         className="home-insight-link"
@@ -120,7 +122,7 @@ function MessagesSentCard({ userId }) {
       <div className="home-insight-head">
         <div className="ld-chart-stat">
           <Eyebrow>Sent - last {MESSAGE_WINDOW_DAYS} days</Eyebrow>
-          <div className="ld-chart-stat-value">{stats.totalSent}</div>
+          <div className="ld-chart-stat-value">{activityQuery.data ? stats.totalSent : "—"}</div>
         </div>
         <div className="ld-chart-stat center">
           <Eyebrow>Busiest day</Eyebrow>
@@ -130,7 +132,7 @@ function MessagesSentCard({ userId }) {
         </div>
         <div className="ld-chart-stat end">
           <Eyebrow>Today</Eyebrow>
-          <div className="ld-chart-stat-value">{stats.todayCount}</div>
+          <div className="ld-chart-stat-value">{activityQuery.data ? stats.todayCount : "—"}</div>
         </div>
       </div>
 

@@ -90,8 +90,8 @@ function MessageTemplatesModal({ onClose, userId }) {
 }
 
 export default function AppShell({ displayName, subscription, userId }) {
-  const prefetchPage = usePagePrefetch(userId);
   const [currentPage, setCurrentPage] = useState(readPageFromHash);
+  const prefetchPage = usePagePrefetch(userId, currentPage);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);

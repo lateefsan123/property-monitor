@@ -21,6 +21,8 @@ import HowDidYouHearScreen from "./HowDidYouHearScreen.jsx";
 import TrialOfferScreen from "./TrialOfferScreen.jsx";
 import UsernameSetup from "./features/seller-signal/components/UsernameSetup.jsx";
 import { queryClient } from "./queryClient";
+import { pageQueries } from "./page-prefetch";
+import { prefetchHomeOnStartup } from "./startup-prefetch";
 import { supabase, supabaseConfigError } from "./supabase";
 
 const POST_AUTH_ACTION_STORAGE_KEY = "seller_signal_post_auth_action_v1";
@@ -213,6 +215,13 @@ export function Root() {
 
     clearCheckoutRedirect();
   }, []);
+
+  useEffect(() => {
+    // Subscription verification and account data are independent network reads.
+    // Start the home requests now so rendering can reuse their in-flight cache.
+    if (!sessionUserId) return;
+    void prefetchHomeOnStartup(queryClient, sessionUserId, window.location, pageQueries(sessionUserId).home);
+  }, [sessionUserId]);
 
   useEffect(() => {
     if (!sessionUserId) {

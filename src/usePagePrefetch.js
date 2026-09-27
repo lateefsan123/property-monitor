@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { pageQueries } from "./page-prefetch";
 
-export function usePagePrefetch(userId) {
+export function usePagePrefetch(userId, currentPage) {
   const cache = useQueryClient();
   const pages = useMemo(() => pageQueries(userId), [userId]);
   const prefetch = useCallback(page => {
@@ -22,9 +22,14 @@ export function usePagePrefetch(userId) {
         await cache.prefetchQuery(queue.shift());
       }
     }
-    const timer = window.setTimeout(() => { void worker(); void worker(); }, 250);
+    async function warmOtherPages() {
+      // Join the visible page's reads before using connections on other pages.
+      await Promise.all((pages[currentPage] || []).map(options => cache.prefetchQuery(options)));
+      if (!cancelled) { void worker(); void worker(); }
+    }
+    const timer = window.setTimeout(() => { void warmOtherPages(); }, 250);
     return () => { cancelled = true; window.clearTimeout(timer); };
-  }, [cache, pages, userId]);
+  }, [cache, currentPage, pages, userId]);
 
   return prefetch;
 }

@@ -2,6 +2,7 @@ import { supabase } from "../../supabase";
 import { PAGE_SIZE, STATUS_RULES } from "./constants";
 import { mapStoredLeadRow, startOfDay, sortLeadsByPriority } from "./lead-utils";
 import { normalizeStatusFilter } from "./status-filter-utils";
+import { selectCountedRows } from "../../../shared/select-counted-rows.js";
 
 const SUPABASE_PAGE_SIZE = 1000;
 const EMPTY_PAGE = { leads: [], sentMap: {}, totalCount: 0, sourceCounts: {} };
@@ -26,8 +27,8 @@ export async function selectAllRows(buildQuery, pageSize = SUPABASE_PAGE_SIZE) {
 
 export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
   const [leadRows, sentLeadRows] = await Promise.all([
-    selectAllRows(() => supabase.from("leads").select("*").eq("user_id", userId).order("id")),
-    selectAllRows(() => supabase.from("sent_leads").select("lead_id, sent_at").eq("user_id", userId).order("lead_id")),
+    selectCountedRows((count) => supabase.from("leads").select("*", count ? { count: "exact" } : {}).eq("user_id", userId).order("id")),
+    selectCountedRows((count) => supabase.from("sent_leads").select("lead_id, sent_at", count ? { count: "exact" } : {}).eq("user_id", userId).order("lead_id").order("id")),
   ]);
 
   const sentMap = {};
