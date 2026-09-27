@@ -210,7 +210,7 @@ function AppInner() {
     return (
       <SafeAreaProvider>
         <OnboardingScreen theme={theme} onComplete={handleOnboardingComplete} />
-        <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} />
+        <StatusBar barStyle="light-content" />
       </SafeAreaProvider>
     );
   }
