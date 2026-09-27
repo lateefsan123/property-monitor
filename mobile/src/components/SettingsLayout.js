@@ -1,8 +1,18 @@
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Switch, Text, View } from "react-native";
 import AppIcon from "./AppIcon";
 
 export function settingsBackground(colors) {
-  return colors.isDark ? "#111111" : "#f6f6f9";
+  return colors.bg;
+}
+
+export function SettingsToggle({ colors, value, ...props }) {
+  const thumbColor = value && colors.isDark ? "#222222" : "#ffffff";
+  return <Switch {...props} value={value}
+    trackColor={{ false: colors.border, true: colors.isDark ? "#e0e0e0" : "#222222" }}
+    thumbColor={thumbColor}
+    ios_backgroundColor={colors.border}
+    {...(Platform.OS === "web" ? { activeThumbColor: thumbColor } : {})}
+  />;
 }
 
 export function SettingsGroup({ title, colors, children }) {
@@ -28,7 +38,7 @@ export function SettingsProfile({ displayName, colors, onPress }) {
   const name = displayName?.trim() || "Your account";
   const initials = name.split(/\s+/).slice(0, 2).map(part => Array.from(part)[0]).join("").toUpperCase();
   const content = <>
-    <View style={[styles.avatar, { backgroundColor: colors.isDark ? "#393743" : "#e7e5f0" }]}>
+    <View style={[styles.avatar, { backgroundColor: colors.bgBadge }]}>
       <Text style={[styles.initials, { color: colors.text }]}>{initials}</Text>
     </View>
     <View style={{ flex: 1, gap: 5 }}>
@@ -37,7 +47,7 @@ export function SettingsProfile({ displayName, colors, onPress }) {
     </View>
     {onPress ? <AppIcon name="chevron" size={18} color={colors.textMuted} /> : null}
   </>;
-  const style = [styles.profile, { backgroundColor: colors.isDark ? "#24232b" : "#eeedf5" }];
+  const style = [styles.profile, { backgroundColor: colors.bgCard }];
   return onPress ? <Pressable accessibilityRole="button" accessibilityLabel={`Manage account for ${name}`} onPress={onPress} style={({ pressed }) => [...style, { opacity: pressed ? 0.65 : 1 }]}>{content}</Pressable> : <View style={style}>{content}</View>;
 }
 

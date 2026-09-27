@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { BackHandler, Pressable, ScrollView, Switch, Text, View } from "react-native";
+import { BackHandler, Pressable, ScrollView, Text, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAutomationSettings, saveAutomationSettings } from "./automation-settings";
 import { fetchWhatsAppSendActivity } from "./send-activity";
@@ -7,7 +7,7 @@ import WhatsAppPanel from "./whatsapp-panel";
 import AccountSettings from "../screens/SettingsScreen";
 import Integrations from './integrations';
 import { Button, Feedback, Icon } from "./ui";
-import { SettingsGroup, SettingsItem, SettingsProfile, settingsBackground } from "../components/SettingsLayout";
+import { SettingsGroup, SettingsItem, SettingsProfile, SettingsToggle, settingsBackground } from "../components/SettingsLayout";
 
 const SETTINGS_PAGES = [
   ["Automations", "flash"],
@@ -57,7 +57,7 @@ function Automations({ userId, colors }) {
           <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>{label}</Text>
           <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{description}</Text>
         </View>
-        <Switch accessibilityLabel={label} value={Boolean(query.data?.[id])} disabled={!query.data || mutation.isPending} onValueChange={(value) => mutation.mutate({ ...query.data, [id]: value })} />
+        <SettingsToggle colors={colors} accessibilityLabel={label} value={Boolean(query.data?.[id])} disabled={!query.data || mutation.isPending} onValueChange={(value) => mutation.mutate({ ...query.data, [id]: value })} />
       </View>
     ))}
     <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 20 }}>
@@ -139,7 +139,7 @@ export default function WorkspaceSettings({ userId, colors, active = true, onHea
       </SettingsGroup>
       <SettingsGroup title="Preferences" colors={colors}>
         <SettingsItem label="Dark mode" icon="moon" colors={colors} last>
-          <Switch accessibilityLabel="Dark mode" value={accountProps.theme === "dark"} onValueChange={accountProps.onToggleTheme} trackColor={{ false: colors.border, true: "#3478f6" }} thumbColor="#ffffff" />
+          <SettingsToggle colors={colors} accessibilityLabel="Dark mode" value={accountProps.theme === "dark"} onValueChange={accountProps.onToggleTheme} />
         </SettingsItem>
       </SettingsGroup>
       <SettingsGroup title="Support" colors={colors}>

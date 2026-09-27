@@ -1,6 +1,6 @@
 import AppIcon from "../components/AppIcon";
-import { SettingsGroup, SettingsItem, SettingsProfile, settingsBackground } from "../components/SettingsLayout";
-import { Alert, Linking, Pressable, ScrollView, StatusBar, StyleSheet, Switch, Text, View } from "react-native";
+import { SettingsGroup, SettingsItem, SettingsProfile, SettingsToggle, settingsBackground } from "../components/SettingsLayout";
+import { Alert, Linking, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { supabase } from "../supabase";
 import { getTheme } from "../theme";
@@ -77,7 +77,7 @@ export default function SettingsScreen({
           </SettingsGroup> : null}
           {!hideAppearance && <SettingsGroup title="Preferences" colors={colors}>
             <SettingsItem icon="moon" label="Dark mode" colors={colors} last>
-              <Switch accessibilityLabel="Dark mode" value={isDark} onValueChange={onToggleTheme} trackColor={{ false: colors.border, true: "#3478f6" }} thumbColor="#fff" />
+              <SettingsToggle colors={colors} accessibilityLabel="Dark mode" value={isDark} onValueChange={onToggleTheme} />
             </SettingsItem>
           </SettingsGroup>}
         </>}
