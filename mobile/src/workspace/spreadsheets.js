@@ -1,11 +1,11 @@
-/* global require */
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Image, Platform, Pressable, ScrollView, Text, View } from "react-native";
+import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as DocumentPicker from "expo-document-picker";
 import * as FileSystem from "expo-file-system/legacy";
 import { useQueryClient } from "@tanstack/react-query";
 import BottomSheet from "../components/BottomSheet";
+import SpreadsheetLibrary from "./spreadsheet-library";
 import { useSellerSignalPage, leadSourcesQueryKey } from "../features/seller-signal/useSellerSignalPage";
 import { leadsQueryKey } from "../features/seller-signal/useHomeLeadSummary";
 import { createLeadSource, replaceUserLeadsFromRows, replaceUserLeadsFromSheet } from "../features/seller-signal/services";
@@ -41,7 +41,6 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
     if (!importMode && Platform.OS !== 'ios') finishDismiss();
   }, [importMode, finishDismiss]);
   const selected = d.leadSources.find((source) => String(source.id) === String(selectedId));
-  const hasSpreadsheets = d.leadSources.length > 0 || d.sourceCounts.legacy > 0;
 
   function openImport() {
     setError(null);
@@ -115,39 +114,8 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
       <ScrollView keyboardShouldPersistTaps="handled" contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ flexGrow: 1, padding: 20, gap: 12, paddingBottom: Math.max(insets.bottom, 16) + 100 }}>
         <Feedback colors={colors} loading={d.loading || (busy && !importMode)} error={!importMode ? error || d.error : d.error} />
         {notice && <Text accessibilityRole="alert" style={{ color: colors.badgeOkText }}>{notice}</Text>}
-        {!hasSpreadsheets && !d.loading && (
-          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingVertical: 32 }}>
-            <EmptySpreadsheets />
-            <Text style={{ color: colors.textName, fontSize: 21, fontWeight: '600', textAlign: 'center' }}>Your spreadsheets, here</Text>
-            <Text style={{ color: colors.textMuted, fontSize: 15, lineHeight: 22, textAlign: 'center', maxWidth: 260 }}>Tap + to import a file or Google Sheets link.</Text>
-          </View>
-        )}
-        {d.leadSources.map((source) => (
-          <Pressable key={source.id} accessibilityRole="button" accessibilityLabel={`Open ${source.label || source.building_name || 'Spreadsheet'}`} onPress={() => setSelectedId(source.id)} style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', paddingVertical: 16, gap: 14, borderBottomWidth: 1, borderBottomColor: colors.border, opacity: pressed ? 0.65 : 1 })}>
-            <View style={{ width: 42, height: 46, borderRadius: 12, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bgBadge }}>
-              <Icon name="table" size={21} color={colors.textMuted} />
-            </View>
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ color: colors.textName, fontSize: 16, fontWeight: '500' }}>{source.label || source.building_name || 'Spreadsheet'}</Text>
-              <Text style={{ color: colors.textMuted, fontSize: 13 }}>{d.sourceCounts[source.id] || 0} sellers</Text>
-            </View>
-            <Icon name="chevron" size={18} color={colors.textMuted} />
-          </Pressable>
-        ))}
-        {d.sourceCounts.legacy > 0 && <Button colors={colors} onPress={() => setSelectedId('legacy')}>Older imports</Button>}
+        <SpreadsheetLibrary sources={d.leadSources} counts={d.sourceCounts} colors={colors} loading={d.loading} error={d.error} busy={busy} onImport={openImport} onOpen={setSelectedId} />
       </ScrollView>
-      {!importMode && !selectedId && (
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Import spreadsheet"
-          accessibilityState={{ disabled: busy }}
-          disabled={busy}
-          onPress={openImport}
-          style={({ pressed }) => ({ position: 'absolute', right: 22, bottom: Math.max(insets.bottom, 16) + 18 - insets.bottom, width: 56, height: 56, borderRadius: 28, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.btnPrimaryBg, boxShadow: '0 6px 18px rgba(0,0,0,0.16)', opacity: pressed || busy ? 0.7 : 1 })}
-        >
-          {busy ? <ActivityIndicator color={colors.btnPrimaryText} /> : <Icon name="plus" size={24} color={colors.btnPrimaryText} />}
-        </Pressable>
-      )}
       <BottomSheet visible={Boolean(importMode)} onClose={() => !busy && setImportMode(null)} onDismiss={finishDismiss} colors={colors}>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 22, gap: 18 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
@@ -188,16 +156,5 @@ function ImportOption({ colors, icon, title, detail, onPress }) {
       </View>
       <Icon name="chevron" color={colors.textMuted} size={18} />
     </Pressable>
-  );
-}
-
-function EmptySpreadsheets() {
-  return (
-    <Image
-      source={require("../../assets/empty-spreadsheets.png")}
-      accessible={false}
-      resizeMode="contain"
-      style={{ width: 240, height: 240 }}
-    />
   );
 }
