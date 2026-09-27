@@ -14,7 +14,7 @@ export default function BuildingExterior({ building, colors, grid }) {
         <Image
           source={source}
           accessibilityLabel={exterior.label}
-          resizeMode="contain"
+          resizeMode="cover"
           style={{ width: '100%', height: '100%' }}
           onError={() => setFailedAsset(exterior.asset)}
         />

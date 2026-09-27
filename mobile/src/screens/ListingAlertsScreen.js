@@ -299,7 +299,7 @@ function ListingHistoryRow({ listing, colors, onPress, onOpenExternal, showBuild
 
 // ---------- Main screen ----------
 
-export default function ListingAlertsScreen({ onBack, theme, userId, embedded = false, request, active = true, onExit, onHeaderChange }) {
+export default function ListingAlertsScreen({ onBack, theme, userId, embedded = false, request, active = true, onExit, onHeaderChange, onFooterHeightChange }) {
   const colors = getTheme(theme);
   const s = styles(colors);
   const alerts = useListingAlerts();
@@ -560,6 +560,9 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
   }, [active, hasDetail, hasBuilding, headerTitle, onHeaderChange]);
   const listingTotalPages = Math.max(1, Math.ceil(listings.length / LISTINGS_PAGE_SIZE));
   const listingSafePage = Math.min(listingsPage, listingTotalPages);
+  useEffect(() => {
+    if (!selectedListing && (viewTab !== "listings" || listingTotalPages <= 1)) onFooterHeightChange?.(0);
+  }, [selectedListing, viewTab, listingTotalPages, onFooterHeightChange]);
   const pagedListings = useMemo(() => {
     const startIndex = (listingSafePage - 1) * LISTINGS_PAGE_SIZE;
     return listings.slice(startIndex, startIndex + LISTINGS_PAGE_SIZE);
@@ -606,6 +609,7 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
   if (selectedListing) {
     return (
       <ListingDetailScreen
+        onFooterHeightChange={onFooterHeightChange}
         embeddedHeader={embedded && Boolean(onHeaderChange)}
         onBack={() => { setSelectedListingKey(null); setExternalListing(null); }}
         listing={selectedListing}
@@ -746,9 +750,19 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
                 </View>
               ) : null}
             </View>
+            <Pressable accessibilityRole="button" accessibilityLabel="Building view options" style={s.filterButton} onPress={() => setSheetOpen(true)}>
+              <TuneIcon color={colors.text} />
+            </Pressable>
           </View>
         </>
       )}
+
+      {selectedBuildingId ? <View style={s.listingToolbar}>
+        <Text style={{ color: colors.textMuted, flex: 1 }}>{listings.length} {listings.length === 1 ? "listing" : "listings"}</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Listing filters" style={s.filterButton} onPress={() => setSheetOpen(true)}>
+          <TuneIcon color={colors.text} />
+        </Pressable>
+      </View> : null}
 
       {alerts.searchError && !selectedBuildingId ? (
         <View style={s.errorBox}>
@@ -798,7 +812,7 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
 
       {/* FAB — filter bottom sheet */}
       {viewTab === "listings" && listingTotalPages > 1 ? (
-        <View style={s.paginationBar}>
+        <View style={s.paginationBar} onLayout={(event) => onFooterHeightChange?.(event.nativeEvent.layout.height)}>
           <Pressable
             disabled={listingSafePage <= 1}
             onPress={() => setListingsPage((page) => Math.max(1, page - 1))}
@@ -827,9 +841,7 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
         </View>
       ) : null}
 
-      {!allListings && <Pressable accessibilityRole="button" accessibilityLabel={viewTab === "buildings" ? "Building view options" : "Listing filters"} style={({ pressed }) => [s.fab, pressed && { opacity: 0.85 }]} onPress={() => setSheetOpen(true)}>
-        <TuneIcon color={colors.bg} />
-      </Pressable>}
+
 
       {/* Mobile filters stay out of the results list. */}
       <BottomSheet visible={sheetOpen} onClose={() => setSheetOpen(false)} colors={colors}>
@@ -962,11 +974,15 @@ const styles = (c) =>
 
     // Search
     searchBar: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
       paddingHorizontal: 16,
       paddingVertical: 8,
       zIndex: 20,
     },
     searchBox: {
+      flex: 1,
       position: "relative",
     },
     searchDropdown: {
@@ -1074,24 +1090,15 @@ const styles = (c) =>
       lineHeight: 18,
     },
 
-    // FAB
-    fab: {
-      position: "absolute",
-      bottom: 44,
-      right: 20,
-      width: 60,
-      height: 60,
-      borderRadius: 30,
-      zIndex: 10,
-      backgroundColor: c.textName,
+    filterButton: {
+      width: 48,
+      height: 48,
       alignItems: "center",
       justifyContent: "center",
-      shadowColor: "#000",
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.25,
-      shadowRadius: 12,
-      elevation: 8,
+      borderRadius: 24,
+      backgroundColor: c.bgCard,
     },
+    listingToolbar: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingVertical: 4 },
 
     paginationBar: {
       flexDirection: "row",

@@ -1,5 +1,13 @@
 # Mobile Listings: building images and view options
 
+Follow-up: building images now fill their frames with cover cropping as requested.
+View options sit beside building search; apartment filters sit in a top toolbar.
+The assistant clears the measured listing action/pagination bar. Apartment details
+lead with price and property facts; marketing text and activity are expandable.
+Price history uses a single quiet empty-state line and omits high/low/range cards.
+Verified with targeted lint, the four registry/filter tests, both native exports,
+and a React Native Web preview including the actual assistant launcher and footer.
+
 The normal Listings building view already contains only watched buildings. Its
 view sheet now keeps the grid/list switch and offers Watching only during a
 building search. That switch intersects the current search results with the

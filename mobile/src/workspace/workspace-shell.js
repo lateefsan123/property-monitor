@@ -32,6 +32,7 @@ export default function WorkspaceShell({
   useQuery(integrationStatusOptions(userId, integrationRequest));
   const [sellerSendBarHeight, setSellerSendBarHeight] = useState(76);
   const [page, setPage] = useState("home");
+  const [listingFooterHeight, setListingFooterHeight] = useState(0);
   const [listingHeader, setListingHeader] = useState(null);
   const [settingsHeader, setSettingsHeader] = useState(null);
   const pendingShortcut = useRef(null);
@@ -120,7 +121,7 @@ export default function WorkspaceShell({
           ) : id === "spreadsheets" ? (
             <WorkspaceSpreadsheets {...common} request={requests[id]} />
           ) : id === "listing-alerts" ? (
-            <ListingAlertsScreen {...common} onHeaderChange={setListingHeader} active={page === id} onExit={() => navigate("home")} embedded request={requests[id]} />
+            <ListingAlertsScreen {...common} onFooterHeightChange={setListingFooterHeight} onHeaderChange={setListingHeader} active={page === id} onExit={() => navigate("home")} embedded request={requests[id]} />
           ) : id === "schedule" ? (
             <ScheduleScreen {...common} />
           ) : id === "message-template" ? (
@@ -137,7 +138,7 @@ export default function WorkspaceShell({
           )}
         </View>
       ))}
-      <VoicePanel key={userId} userId={userId} colors={colors} hideLauncher={page === "settings" || page === "message-template"} launcherBottom={page === "sellers" ? sellerSendBarHeight + 16 : page === "schedule" ? 92 : 16} />
+      <VoicePanel key={userId} userId={userId} colors={colors} hideLauncher={page === "settings" || page === "message-template"} launcherBottom={page === "sellers" ? sellerSendBarHeight + 16 : page === "schedule" ? 92 : page === "listing-alerts" ? listingFooterHeight + 16 : 16} />
       <BottomSheet
         visible={createOpen}
         onDismiss={finishShortcutDismiss}

@@ -1,5 +1,5 @@
 import AppIcon from "../components/AppIcon";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Image,
   Pressable,
@@ -162,31 +162,7 @@ function PriceChart({ priceHistory, width, colors }) {
   }, [priceHistory]);
 
   if (points.length < 2) {
-    return (
-      <View
-        style={{
-          height: CHART_HEIGHT,
-          backgroundColor: colors.bgCard,
-          borderRadius: 20,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: colors.bgCardBorder,
-          alignItems: "center",
-          justifyContent: "center",
-          padding: 28,
-          gap: 8,
-        }}
-      >
-        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: colors.bgBadge, alignItems: "center", justifyContent: "center" }}>
-          <AppIcon name="chart" size={18} color={colors.textMuted} />
-        </View>
-        <Text style={{ fontSize: 14, fontWeight: "700", color: colors.textName, marginTop: 4 }}>
-          {points.length === 0 ? "No price history yet" : "Just one data point so far"}
-        </Text>
-        <Text style={{ fontSize: 12, color: colors.textMuted, textAlign: "center", lineHeight: 17 }}>
-          Price changes will appear here after the next watchlist refresh.
-        </Text>
-      </View>
-    );
+    return <Text style={{ fontSize: 14, color: colors.textMuted }}>{points.length ? "No price changes yet." : "No price history yet."}</Text>;
   }
 
   const innerWidth = Math.max(1, width - CHART_PAD_LEFT - CHART_PAD_RIGHT);
@@ -253,32 +229,6 @@ function PriceChart({ priceHistory, width, colors }) {
         overflow: "hidden",
       }}
     >
-      {/* Chart header — high / low / range */}
-      <View
-        style={{
-          flexDirection: "row",
-          paddingHorizontal: 18,
-          paddingTop: 16,
-          paddingBottom: 4,
-          justifyContent: "space-between",
-        }}
-      >
-        <View style={{ gap: 3 }}>
-          <Eyebrow color={colors.textFaint}>HIGH</Eyebrow>
-          <Text style={{ fontSize: 13, fontWeight: "800", color: colors.textName }}>{formatPrice(maxPrice)}</Text>
-        </View>
-        <View style={{ gap: 3, alignItems: "center" }}>
-          <Eyebrow color={colors.textFaint}>RANGE</Eyebrow>
-          <Text style={{ fontSize: 13, fontWeight: "800", color: colors.textName }}>
-            {formatPrice(maxPrice - minPrice)}
-          </Text>
-        </View>
-        <View style={{ gap: 3, alignItems: "flex-end" }}>
-          <Eyebrow color={colors.textFaint}>LOW</Eyebrow>
-          <Text style={{ fontSize: 13, fontWeight: "800", color: colors.textName }}>{formatPrice(minPrice)}</Text>
-        </View>
-      </View>
-
       <Svg width="100%" height={CHART_HEIGHT} viewBox={`0 0 ${width} ${CHART_HEIGHT}`} accessibilityLabel={`Price history in AED. Lowest ${minPrice.toLocaleString()}, highest ${maxPrice.toLocaleString()}. ${firstDate} to ${lastDate}.`}>
         {gridLines.map((y, i) => (
           <SvgText key={`value-${i}`} x={CHART_PAD_LEFT - 8} y={y + 4} textAnchor="end" fontSize={10} fill={labelColor}>
@@ -369,8 +319,12 @@ export default function ListingDetailScreen({
   onOpenExternal,
   onToggleTracking,
   embeddedHeader = false,
+  onFooterHeightChange,
 }) {
   const insets = useSafeAreaInsets();
+  const [showDetails, setShowDetails] = useState(false);
+  const [showActivity, setShowActivity] = useState(false);
+  useEffect(() => () => onFooterHeightChange?.(0), [onFooterHeightChange]);
   const { width: screenWidth } = useWindowDimensions();
   if (!listing) return null;
 
@@ -391,7 +345,7 @@ export default function ListingDetailScreen({
       {!embeddedHeader && <Pressable accessibilityRole="button" accessibilityLabel="Back to listings" onPress={onBack} style={{ padding: 16 }}><Text style={{ color: colors.text, fontWeight: "600" }}>← {listing.buildingName || "Listings"}</Text></Pressable>}
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingBottom: 140 + insets.bottom }}
+        contentContainerStyle={{ paddingBottom: 180 + insets.bottom }}
         showsVerticalScrollIndicator={false}
       >
         {hasCover ? (
@@ -406,11 +360,13 @@ export default function ListingDetailScreen({
             </Text>
             {!isRemoved ? <PriceDeltaChip priceDelta={listing.priceDelta} colors={colors} /> : null}
           </View>
-          <Text style={{ fontSize: 15, lineHeight: 22, color: colors.text }}>{details}</Text>
-          {listing.title ? <Text style={{ fontSize: 14, lineHeight: 21, color: colors.textMuted }}>{listing.title}</Text> : null}
-          {Number.isFinite(listing.previousPrice) && listing.previousPrice !== currentPrice && !isRemoved ? (
-            <Text style={{ fontSize: 13, color: colors.textMuted }}>Previously {formatPrice(listing.previousPrice)}</Text>
-          ) : null}
+          <Text style={{ fontSize: 15, lineHeight: 22, color: colors.textMuted }}>{details}</Text>
+          {listing.title ? <>
+            <Pressable accessibilityRole="button" accessibilityState={{ expanded: showDetails }} onPress={() => setShowDetails(!showDetails)} style={{ alignSelf: "flex-start", paddingVertical: 8 }}>
+              <Text style={{ fontSize: 13, color: colors.textMuted }}>{showDetails ? "Hide details" : "More details"}</Text>
+            </Pressable>
+            {showDetails ? <Text style={{ fontSize: 14, lineHeight: 21, color: colors.textMuted }}>{listing.title}</Text> : null}
+          </> : null}
         </View>
 
         {/* CHART --------------------------------------------------- */}
@@ -421,30 +377,17 @@ export default function ListingDetailScreen({
           <PriceChart priceHistory={listing.priceHistory} width={chartWidth} colors={colors} />
         </View>
 
-        {/* TIMELINE ------------------------------------------------ */}
-        <View style={{ paddingHorizontal: 24, marginTop: 36, gap: 16 }}>
-          <Eyebrow color={colors.textFaint}>Activity</Eyebrow>
-          {isTracked && reversedHistory.length > 0 ? (
-            <View>
-              {reversedHistory.map((event, index) => (
-                <TimelineEvent
-                  key={`${event.type}-${event.at || index}-${index}`}
-                  event={event}
-                  colors={colors}
-                  isLast={index === reversedHistory.length - 1}
-                />
-              ))}
-            </View>
-          ) : (
-            <Text style={{ fontSize: 14, color: colors.textMuted, lineHeight: 20 }}>
-              {isTracked ? "No price changes yet." : "Track this listing to follow price changes."}
-            </Text>
-          )}
-        </View>
+        {isTracked && reversedHistory.length > 1 ? <View style={{ paddingHorizontal: 24, marginTop: 24, gap: 16 }}>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: showActivity }} onPress={() => setShowActivity(!showActivity)} style={{ paddingVertical: 8 }}>
+            <Text style={{ fontSize: 14, color: colors.textMuted }}>{showActivity ? "Hide activity" : "View activity"}</Text>
+          </Pressable>
+          {showActivity ? <View>{reversedHistory.map((event, index) => <TimelineEvent key={`${event.type}-${event.at || index}-${index}`} event={event} colors={colors} isLast={index === reversedHistory.length - 1} />)}</View> : null}
+        </View> : null}
       </ScrollView>
 
-      {/* STICKY BOTTOM BAR ---------------------------------------- */}
+      {/* Keep the assistant above the measured action bar. */}
       <View
+        onLayout={(event) => onFooterHeightChange?.(event.nativeEvent.layout.height)}
         style={{
           position: "absolute",
           left: 0,
@@ -461,6 +404,7 @@ export default function ListingDetailScreen({
         }}
       >
         <Pressable
+          accessibilityRole="button"
           onPress={onToggleTracking}
           style={({ pressed }) => [
             {
@@ -490,6 +434,8 @@ export default function ListingDetailScreen({
 
         {listing.bayutUrl ? (
           <Pressable
+            accessibilityRole="link"
+            accessibilityLabel="Open on Bayut"
             onPress={onOpenExternal}
             style={({ pressed }) => [
               {
