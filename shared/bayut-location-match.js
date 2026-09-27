@@ -10,6 +10,7 @@ export function locationLabel(location) {
 // An unrelated result must never win just because its label has a similar length.
 // Require one exact named location. Duplicate names in different areas are ambiguous.
 export function matchBayutLocation(locations, name) {
+  if (/^(?:(?:the\s+)?(?:tower|building|block|residence)\s*)?[a-z0-9]$/i.test(String(name || '').trim())) return null;
   const target = token(name);
   if (!target) return null;
   const matches = new Map();

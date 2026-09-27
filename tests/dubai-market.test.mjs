@@ -60,6 +60,7 @@ test('Bayut rejects unrelated, parent, numbered sibling and ambiguous matches', 
   assert.equal(matchBayutLocation([{ id: 1, name: 'Madinat Hind 4' }], 'ZAABEEL ONE'), null);
   assert.equal(matchBayutLocation([{ id: 1, name: 'Burj Views', path: 'Dubai | Burj Views' }], 'Burj Views Tower C'), null);
   assert.equal(matchBayutLocation([{ id: 1, name: 'Forte 2' }], 'Forte 1'), null);
+  assert.equal(matchBayutLocation([{ id: 1, name: 'Tower C' }], 'Tower C'), null);
   assert.equal(matchBayutLocation([{ id: 1, name: 'Tower C' }, { id: 2, name: 'Tower C' }], 'Tower C'), null);
   assert.equal(matchBayutLocation([{ id: 7, location: ['Dubai', 'Marina', 'Marina Tower'] }], 'Marina Tower').id, 7);
 });

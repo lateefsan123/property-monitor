@@ -285,7 +285,7 @@ function findTruncatedPrefixMatch(raw, cachedIndex) {
 
 function resolveBuildingMatch(raw, aliasLookup, cachedIndex) {
   const sourceName = cachedIndex.sourceExact.get(normalizeToken(raw));
-  if (sourceName) return { status: 'matched', confidence: 'high', method: 'cached_exact', inputName: raw, canonicalName: sourceName };
+  if (sourceName && !aliasLookup.has(normalizeBuildingAliasKey(raw))) return { status: 'matched', confidence: 'high', method: 'cached_exact', inputName: raw, canonicalName: sourceName };
   const invalidIssue = getInvalidBuildingValueIssue(raw);
   if (invalidIssue) {
     return {
