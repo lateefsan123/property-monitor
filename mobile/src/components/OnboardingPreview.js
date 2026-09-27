@@ -26,7 +26,7 @@ const artwork = [null, sellersHero, listingsHero, scheduleHero];
 export default function OnboardingPreview({ step, width, height }) {
   const scale = Math.min(width / 390, height / 490);
   if (step > 0) return <View pointerEvents="none" aria-hidden accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ width, height, overflow: 'hidden', backgroundColor: '#000' }}>
-    <Image source={artwork[step]} accessible={false} contentFit="cover" contentPosition="center" transition={120} style={{ position: 'absolute', width, height: height * 1.25, top: -height * 0.25 }} />
+    <Image source={artwork[step]} accessible={false} contentFit="contain" contentPosition="center" transition={120} style={{ width: Math.min(width - 40, 340), height: '100%', alignSelf: 'center' }} />
     <LinearGradient colors={['transparent', '#000']} style={{ position: 'absolute', bottom: 0, width, height: 32 }} />
   </View>;
   return <LinearGradient colors={['#000000', '#121013']} style={{ width, height, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
