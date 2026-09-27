@@ -144,10 +144,10 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
   const legacySheetStorageKey = userId ? `seller-signal:legacy-sheet-url:${userId}` : null;
   const queryClient = useQueryClient();
   useAutoSheetSync(userId);
-  const [leads, setLeads] = useState([]);
-  const [leadSources, setLeadSources] = useState([]);
+  const [leads, setLeads] = useState(() => enrichLeadsWithDataQuality(queryClient.getQueryData(leadsQueryKey(userId))?.leads || [], queryClient.getQueryData(['seller-signal','building-aliases',userId]), queryClient.getQueryData(['seller-signal','cached-buildings'])));
+  const [leadSources, setLeadSources] = useState(() => queryClient.getQueryData(leadSourcesQueryKey(userId)) || []);
   const [insights, setInsights] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(() => !queryClient.getQueryData(leadsQueryKey(userId)) || !queryClient.getQueryData(leadSourcesQueryKey(userId)));
   const [addingSource, setAddingSource] = useState(false);
   const [importing, setImporting] = useState(false);
   const [importingSourceId, setImportingSourceId] = useState(null);
@@ -162,7 +162,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
   const [statusFilter, setStatusFilter] = useState("all");
   const [sourceFilter, setSourceFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
-  const [sentLeads, setSentLeads] = useState({});
+  const [sentLeads, setSentLeads] = useState(() => queryClient.getQueryData(leadsQueryKey(userId))?.sentMap || {});
   const [legacySheetUrl, setLegacySheetUrl] = useState("");
   const [sheetUrl, setSheetUrl] = useState("");
   const [showImport, setShowImport] = useState(false);

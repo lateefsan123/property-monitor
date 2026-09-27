@@ -1,5 +1,6 @@
+import ContentSkeleton from "../components/ContentSkeleton";
 import { useState } from "react";
-import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
+import { Image, Pressable, RefreshControl, ScrollView, Text, View } from "react-native";
 import HomeActivity from "./home-activity";
 import { useQuery } from "@tanstack/react-query";
 import AppIcon from "../components/AppIcon";
@@ -31,8 +32,8 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
   });
   const series = buildDailyMessageSeries(activity.data || []);
   const cadence = summarizeLeadCadence(leads.data?.leads);
-  const leadsReady = !leads.isPending && !leads.error;
-  const activityReady = !activity.isPending && !activity.error;
+  const leadsReady = leads.data !== undefined;
+  const activityReady = activity.data !== undefined;
   const metrics = [
     { label: "Due today", value: leadsReady ? cadence.due : "—", action: () => onNavigate("sellers") },
     { label: "Scheduled", value: leadsReady ? cadence.scheduled : "—", action: () => onNavigate("schedule") },
@@ -83,7 +84,7 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
             <Text style={{ color: colors.text, fontSize: 13 }}>View all</Text>
           </Pressable>
         </View>
-        {drops.isPending ? <ActivityIndicator accessibilityLabel="Loading price drops" color={colors.textMuted} style={{ padding: 20 }} /> : null}
+        {drops.isPending ? <ContentSkeleton colors={colors} rows={3} label="Loading price drops" /> : null}
         {drops.data?.slice(0, 5).map((item, index) => (
           <Pressable key={`${item.locationId}:${item.id}`} accessibilityRole="button" accessibilityLabel={`Open ${item.buildingName}, ${item.title}`}
             onPress={() => onNavigate("listing-alerts", { listing: item })}

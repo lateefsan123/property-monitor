@@ -1,3 +1,4 @@
+import ContentSkeleton from "../components/ContentSkeleton";
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Button } from './ui';
@@ -143,7 +144,7 @@ export default function Integrations({ userId, colors }) {
   </View> : null;
   return <View style={{ paddingTop: 8, gap: 22 }}>
     {!selectedApp && feedback}
-    {!connections && status.isFetching ? <View accessibilityLabel="Loading connections" style={{ padding: 24, alignItems: 'center', gap: 12 }}><ActivityIndicator color={colors.textMuted} /><Text style={{ color: colors.textMuted }}>Loading connections...</Text></View> : null}
+    {!connections && status.isFetching ? <ContentSkeleton colors={colors} rows={4} label="Loading connections" /> : null}
     {connections ? <IntegrationList connections={connections} colors={colors} busy={busy} pendingId={pendingId} onOpen={setOpen} onConnect={(provider, feature) => change(provider, feature)} /> : null}
     <BottomSheet visible={Boolean(selectedApp && selectedConnection?.connected)} onClose={() => setOpen('')} colors={colors}>
       {selectedApp && selectedConnection?.connected ? <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, gap: 22, paddingBottom: 32 }}>

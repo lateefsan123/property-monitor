@@ -1,10 +1,10 @@
 import {
-  ActivityIndicator,
   Pressable,
   Text,
   TextInput,
   View,
 } from "react-native";
+import ContentSkeleton from "../components/ContentSkeleton";
 import AppIcon from "../components/AppIcon";
 
 export const Icon = AppIcon;
@@ -111,11 +111,7 @@ export function Field({ label, colors, ...props }) {
 export function Feedback({ error, loading, onRetry, colors }) {
   if (loading)
     return (
-      <ActivityIndicator
-        accessibilityLabel="Loading"
-        style={{ margin: 24 }}
-        color={colors.textMuted}
-      />
+      <ContentSkeleton colors={colors} />
     );
   if (!error) return null;
   return (

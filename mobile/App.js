@@ -3,10 +3,10 @@ import "react-native-url-polyfill/auto";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, AppState, Platform, Alert, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useThemePreference } from "./src/hooks/useThemePreference";
 import { useSubscriptionAccess } from "./src/hooks/useSubscriptionAccess";
 import WorkspaceShell from './src/workspace/workspace-shell';
@@ -21,19 +21,24 @@ import { supabase } from "./src/supabase";
 import { getTheme } from "./src/theme";
 import { withStartupTimeout } from './src/startup-request';
 
+import { createAccountCacheGuard, mobileQueryDefaults } from "./src/query-cache";
+
 const ONBOARDING_KEY = "@seller_signal_onboarding_completed_v3";
 const queryClient = new QueryClient({
   defaultOptions: {
-    queries: {
-      staleTime: 60_000,
-      gcTime: 5 * 60_000,
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
+    queries: mobileQueryDefaults,
   },
 });
 
+const syncCacheAccount = createAccountCacheGuard(queryClient);
+
 export default function App() {
+  useEffect(() => {
+    if (Platform.OS === "web") return undefined;
+    focusManager.setFocused(AppState.currentState === "active");
+    const listener = AppState.addEventListener("change", state => focusManager.setFocused(state === "active"));
+    return () => listener.remove();
+  }, []);
   const [iconsLoaded, iconError] = useFonts(Ionicons.font);
   if (iconError) throw iconError;
   if (!iconsLoaded) return <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator accessibilityLabel="Loading app" /></View>;
@@ -92,6 +97,7 @@ function AppInner() {
           hydrated: true,
           onboardingCompleted: onboardingValue === "true",
         });
+        syncCacheAccount(sessionResult.data.session?.user.id);
         setSession(sessionResult.data.session);
         setLoading(false);
       } catch {
@@ -105,6 +111,7 @@ function AppInner() {
     void bootstrapApp();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
+      syncCacheAccount(nextSession?.user.id);
       setSession(nextSession);
     });
 

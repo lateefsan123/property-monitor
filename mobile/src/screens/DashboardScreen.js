@@ -1,3 +1,4 @@
+import ContentSkeleton from "../components/ContentSkeleton";
 import SellerFilters from "../features/seller-signal/components/SellerFilters";
 import AppIcon from "../components/AppIcon";
 import AppSearchBar from "../components/AppSearchBar";
@@ -7,7 +8,7 @@ import buildingImages from "../data/building-images.json";
 import { Button, Field } from "../workspace/ui";
 import { useWorkspacePreference } from "../workspace/preferences";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { FlatList, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import BottomSheet from "../components/BottomSheet";
 import AddSellerSheet from "../features/seller-signal/components/AddSellerSheet";
@@ -78,10 +79,8 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
 
   if (d.loading) {
     return (
-      <SafeAreaView style={s.page}>
-        <View style={s.centered}>
-          <ActivityIndicator size="large" color={colors.textMuted} />
-        </View>
+      <SafeAreaView style={s.page} edges={embedded ? [] : ["top"]}>
+        <ContentSkeleton colors={colors} rows={5} label="Loading sellers" style={{ padding: 20 }} />
       </SafeAreaView>
     );
   }

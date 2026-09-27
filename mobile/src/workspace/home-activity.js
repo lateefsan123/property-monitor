@@ -1,5 +1,6 @@
+import ContentSkeleton from "../components/ContentSkeleton";
 import { useState } from "react";
-import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import Svg, { Line, Rect, Text as SvgText } from "react-native-svg";
 
 export default function HomeActivity({ series, days, onDaysChange, ready, loading, colors }) {
@@ -24,7 +25,7 @@ export default function HomeActivity({ series, days, onDaysChange, ready, loadin
         </Pressable>)}
       </View>
     </View>
-    {loading ? <ActivityIndicator accessibilityLabel="Loading message activity" color={colors.textMuted} style={{ height: height + 26 }} /> : ready ? <View style={{ gap: 12 }}>
+    {loading ? <ContentSkeleton colors={colors} rows={2} label="Loading message activity" /> : ready ? <View style={{ gap: 12 }}>
       <Svg width="100%" height={height + 26} viewBox={`0 0 ${chartWidth} ${height + 26}`} accessibilityLabel={`${total} messages sent in the last ${days} days`}>
         {[0, 0.5, 1].map(ratio => <Line key={ratio} x1={0} x2={chartWidth - 28} y1={8 + ratio * (height - 20)} y2={8 + ratio * (height - 20)} stroke={colors.border} strokeDasharray={ratio === 1 ? undefined : "3 5"} />)}
         {[0, 0.5, 1].map(ratio => <SvgText key={ratio} x={chartWidth} y={12 + ratio * (height - 20)} fontSize={10} fill={colors.textMuted} textAnchor="end">{max * (1 - ratio)}</SvgText>)}

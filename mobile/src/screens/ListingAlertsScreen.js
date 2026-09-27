@@ -1,3 +1,4 @@
+import ContentSkeleton from "../components/ContentSkeleton";
 import CollectionEmptyState from "../components/CollectionEmptyState";
 import { getRecentPriceDrop } from "../../../src/features/listing-alerts/price-drop-utils";
 import AppIcon from "../components/AppIcon";
@@ -6,7 +7,6 @@ import { fetchListingPriceDrops } from '../workspace/home-insights';
 import { Button } from '../workspace/ui';
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
-  ActivityIndicator,
   BackHandler,
   Alert,
   FlatList,
@@ -610,9 +610,7 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
   if (!alerts.hydrated) {
     return (
       <SafeAreaView style={s.page} edges={embedded ? [] : ["top"]}>
-        <View style={s.centered}>
-          <ActivityIndicator size="large" color={colors.textMuted} />
-        </View>
+        <ContentSkeleton colors={colors} variant="cards" rows={2} label="Loading listings" style={{ padding: 20 }} />
       </SafeAreaView>
     );
   }
@@ -801,10 +799,7 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
           ItemSeparatorComponent={() => <View style={[s.separator, { backgroundColor: colors.textFainter }]} />}
           ListEmptyComponent={
             (selectedBuildingId ? alerts.watchedLoading : allListings ? dropsQuery.isPending : alerts.searchLoading) ? (
-              <View style={s.emptyWrap}>
-                <ActivityIndicator size="small" color={colors.textMuted} />
-                <Text style={s.emptyText}>{selectedBuildingId || allListings ? "Loading listings…" : "Searching buildings…"}</Text>
-              </View>
+              <ContentSkeleton colors={colors} variant={selectedBuildingId || allListings ? "cards" : "list"} rows={2} label={selectedBuildingId || allListings ? "Loading listings" : "Searching buildings"} />
             ) : (selectedBuildingId && (alerts.watchError || selectedBuildingOption?.fetchError)) || (allListings && dropsQuery.error) ? (
               <View style={s.emptyWrap}>
                 <Text style={s.emptyTitle}>Could not load listings</Text>
