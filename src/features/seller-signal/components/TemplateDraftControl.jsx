@@ -7,7 +7,7 @@ export default function TemplateDraftControl({ disabled, onApply }) {
   const [draft, setDraft] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const active = useRef(true), lock = useRef(false);
+  const active = useRef(true), lock = useRef(false), details = useRef(null);
   useEffect(() => { active.current = true; return () => { active.current = false; }; }, []);
   async function generate() {
     if (lock.current) return;
@@ -18,7 +18,7 @@ export default function TemplateDraftControl({ disabled, onApply }) {
     } catch (failure) { if (active.current) setError(failure.message); }
     finally { lock.current = false; if (active.current) setBusy(false); }
   }
-  return <details className="template-ai-draft">
+  return <details ref={details} className="template-ai-draft">
     <summary>Draft with AI</summary>
     <label className="message-template-body-field"><span>What should the message say?</span>
       <textarea value={brief} onChange={event => setBrief(event.target.value)} maxLength={600} rows={2}
@@ -28,7 +28,7 @@ export default function TemplateDraftControl({ disabled, onApply }) {
     <button type="button" className="btn-sm" disabled={disabled || busy || brief.trim().length < 5} onClick={generate}>{busy ? 'Drafting…' : 'Generate draft'}</button>
     {error && <p role="alert">{error}</p>}
     {draft && <div className="template-ai-preview"><strong>{draft.name}</strong><p>{draft.content}</p>
-      <button type="button" className="btn-sm" disabled={disabled || busy} onClick={() => { onApply(draft); setDraft(null); }}>Use draft in editor</button>
+      <button type="button" className="btn-sm" disabled={disabled || busy} onClick={() => { onApply(draft); setDraft(null); details.current.open = false; details.current.querySelector('summary').focus(); }}>Use draft in editor</button>
     </div>}
   </details>;
 }

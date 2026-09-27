@@ -10,7 +10,7 @@ test('template action rejects history, model overrides, owner injection and unbo
 test('drafts require usable transaction placeholders and reject malformed provider output', () => {
   const good = { name: 'Update', content: 'Hi {{name}}, recent sales in {{building}}:\n{{transactions}}' };
   assert.deepEqual(validateTemplateDraft(good), good);
-  for (const draft of [{}, { name: 'Test', content: 'No transactions' }, { name: 'Test', content: '{{transactions}} {{unknown}}' },
+  for (const draft of [{}, { name: 'Test', content: 'No transactions' }, { name: 'Test', content: '{{transactions}} {{transactions}}' }, { name: 'Test', content: '{{transactions}} {{unknown}}' },
     { name: 'x'.repeat(81), content: '{{transactions}}' }, { name: 'Test', content: '{{transactions}}' + 'x'.repeat(2401) }]) assert.throws(() => validateTemplateDraft(draft));
 });
 test('template generation is one bounded mini request without tools, history or storage', async () => {
