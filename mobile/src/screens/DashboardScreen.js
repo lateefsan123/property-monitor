@@ -7,7 +7,7 @@ import buildingImages from "../data/building-images.json";
 import { Button, Field } from "../workspace/ui";
 import { useWorkspacePreference } from "../workspace/preferences";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, FlatList, PanResponder, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, FlatList, PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import BottomSheet from "../components/BottomSheet";
 import AddSellerSheet from "../features/seller-signal/components/AddSellerSheet";

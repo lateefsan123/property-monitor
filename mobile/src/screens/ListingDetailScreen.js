@@ -324,7 +324,7 @@ export default function ListingDetailScreen({
 }) {
   const insets = useSafeAreaInsets();
   const [showDetails, setShowDetails] = useState(false);
-  const [showActivity, setShowActivity] = useState(false);
+  const [historyTab, setHistoryTab] = useState("price");
   useEffect(() => () => onFooterHeightChange?.(0), [onFooterHeightChange]);
   const { width: screenWidth } = useWindowDimensions();
   if (!listing) return null;
@@ -347,12 +347,13 @@ export default function ListingDetailScreen({
       {!embeddedHeader && <Pressable accessibilityRole="button" accessibilityLabel="Back to listings" onPress={onBack} style={{ padding: 16 }}><Text style={{ color: colors.text, fontWeight: "600" }}>← {listing.buildingName || "Listings"}</Text></Pressable>}
       <ScrollView
         style={{ flex: 1 }}
+        stickyHeaderIndices={[2]}
         contentContainerStyle={{ paddingBottom: 180 + insets.bottom }}
         showsVerticalScrollIndicator={false}
       >
-        {hasCover ? (
+        <View>{hasCover ? (
           <Image source={{ uri: listing.coverPhoto }} style={{ height: HERO_HEIGHT, width: "100%", backgroundColor: colors.bgCard }} resizeMode="cover" />
-        ) : null}
+        ) : null}</View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 24, gap: 10 }}>
           {isRemoved ? <Text style={{ color: colors.errorText, fontSize: 13, fontWeight: "600" }}>Off market · Last known price</Text> : null}
@@ -371,20 +372,20 @@ export default function ListingDetailScreen({
           </> : null}
         </View>
 
-        {/* CHART --------------------------------------------------- */}
-        <View style={{ paddingHorizontal: 16, marginTop: 32, gap: 12 }}>
-          <View style={{ paddingHorizontal: 8 }}>
-            <Eyebrow color={colors.textFaint}>Price history</Eyebrow>
+        <View style={{ backgroundColor: colors.bg, paddingHorizontal: 20, paddingTop: 16 }}>
+          <View accessibilityRole="tablist" style={{ flexDirection: "row", borderBottomWidth: 1, borderBottomColor: colors.border }}>
+            {[{ id: "price", label: "Price history" }, { id: "activity", label: "Activity" }].map(tab => (
+              <Pressable key={tab.id} accessibilityRole="tab" accessibilityState={{ selected: historyTab === tab.id }} onPress={() => setHistoryTab(tab.id)} style={{ flex: 1, minHeight: 48, alignItems: "center", justifyContent: "center", borderBottomWidth: 2, borderBottomColor: historyTab === tab.id ? colors.text : "transparent" }}>
+                <Text style={{ fontSize: 15, fontWeight: "600", color: historyTab === tab.id ? colors.text : colors.textMuted }}>{tab.label}</Text>
+              </Pressable>
+            ))}
           </View>
-          <PriceChart priceHistory={listing.priceHistory} width={chartWidth} colors={colors} />
         </View>
-
-        {isTracked && reversedHistory.length > 1 ? <View style={{ paddingHorizontal: 24, marginTop: 24, gap: 16 }}>
-          <Pressable accessibilityRole="button" accessibilityState={{ expanded: showActivity }} onPress={() => setShowActivity(!showActivity)} style={{ paddingVertical: 8 }}>
-            <Text style={{ fontSize: 14, color: colors.textMuted }}>{showActivity ? "Hide activity" : "View activity"}</Text>
-          </Pressable>
-          {showActivity ? <View>{reversedHistory.map((event, index) => <TimelineEvent key={`${event.type}-${event.at || index}-${index}`} event={event} colors={colors} isLast={index === reversedHistory.length - 1} />)}</View> : null}
-        </View> : null}
+        <View style={{ paddingHorizontal: historyTab === "price" ? 16 : 24, paddingTop: 24, minHeight: 260 }}>
+          {historyTab === "price" ? <PriceChart priceHistory={listing.priceHistory} width={chartWidth} colors={colors} /> : reversedHistory.length ? (
+            <View>{reversedHistory.map((event, index) => <TimelineEvent key={`${event.type}-${event.at || index}-${index}`} event={event} colors={colors} isLast={index === reversedHistory.length - 1} />)}</View>
+          ) : <Text style={{ fontSize: 14, color: colors.textMuted }}>No activity recorded yet.</Text>}
+        </View>
       </ScrollView>
 
       {/* Keep the assistant above the measured action bar. */}
