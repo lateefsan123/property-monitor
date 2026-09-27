@@ -2,9 +2,10 @@ import { supabase } from '../supabase';
 
 // Provider credentials never leave the server. Every request uses the current
 // Repeat AI session; signing out cannot retain another user's connection state.
-export async function integrationRequest(body, signal) {
+export async function integrationRequest(body, signal, expectedUserId) {
   const { data, error } = await supabase.auth.getSession();
   if (error || !data.session?.access_token) throw new Error('Sign in to use your integrations.');
+  if (expectedUserId && data.session.user.id !== expectedUserId) throw new Error('Your account changed. Please reopen integrations.');
   const response = await fetch('https://repeatai.org/api/integrations', {
     method: 'POST', signal,
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${data.session.access_token}` },

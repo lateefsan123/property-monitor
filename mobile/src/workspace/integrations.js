@@ -7,6 +7,8 @@ import { connectIntegration } from './integration-connect';
 import { Image } from 'expo-image';
 import AppIcon from '../components/AppIcon';
 import BottomSheet from '../components/BottomSheet';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { integrationStatusOptions } from '../../../src/integration-query';
 
 const LOGOS = {
   'google-sheets': 'https://www.gstatic.com/images/branding/product/2x/sheets_48dp.png',
@@ -109,10 +111,11 @@ export function IntegrationList({ connections, colors, busy = false, pendingId =
 }
 
 export default function Integrations({ userId, colors }) {
-  const [connections, setConnections] = useState(null);
+  const cache = useQueryClient();
+  const status = useQuery(integrationStatusOptions(userId, integrationRequest));
+  const connections = status.data;
   const [error, setError] = useState('');
   const [open, setOpen] = useState('');
-  const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
   const [pendingId, setPendingId] = useState('');
   const lock = useRef(false);
@@ -120,29 +123,27 @@ export default function Integrations({ userId, colors }) {
     if (lock.current) return;
     lock.current = true; setBusy(true); setPendingId(`${provider}-${feature}`); setError('');
     try {
-      if (disconnect) await integrationRequest({ action: 'disconnect', provider, feature });
+      if (disconnect) await integrationRequest({ action: 'disconnect', provider, feature }, undefined, userId);
       else await connectIntegration(provider, feature, capability);
-      setOpen(''); setAttempt(value => value + 1);
+      setOpen('');
+      const queryKey = integrationStatusOptions(userId, integrationRequest).queryKey;
+      await cache.cancelQueries({ queryKey, exact: true });
+      if (disconnect) cache.setQueryData(queryKey, previous => previous?.map(item =>
+        item.provider === provider && item.feature === feature ? { ...item, connected: false } : item));
+      await cache.invalidateQueries({ queryKey, exact: true });
     } catch (error) { setError(error.message); }
     finally { lock.current = false; setBusy(false); setPendingId(''); }
   }
-  useEffect(() => {
-    const controller = new AbortController();
-    integrationRequest({ action: 'status' }, controller.signal).then(result => {
-      if (!controller.signal.aborted) setConnections(result.connections);
-    }).catch(error => { if (!controller.signal.aborted) setError(error.message); });
-    return () => controller.abort();
-  }, [userId, attempt]);
   const selectedApp = APPS.find(app => `${app[0]}-${app[1]}` === open);
   const selectedConnection = selectedApp && connections?.find(item => item.provider === selectedApp[0] && item.feature === selectedApp[1]);
-  const feedback = error ? <View style={{ gap: 10 }}>
-    <Text selectable accessibilityRole="alert" style={{ color: colors.errorText, fontSize: 14, lineHeight: 20 }}>{error}</Text>
-    <Button colors={colors} disabled={busy} onPress={() => { setError(''); setAttempt(value => value + 1); }}>Try again</Button>
+  const message = error || status.error?.message;
+  const feedback = message ? <View style={{ gap: 10 }}>
+    <Text selectable accessibilityRole="alert" style={{ color: colors.errorText, fontSize: 14, lineHeight: 20 }}>{message}</Text>
+    <Button colors={colors} disabled={busy || status.isFetching} onPress={() => { setError(''); void status.refetch(); }}>Try again</Button>
   </View> : null;
   return <View style={{ paddingTop: 8, gap: 22 }}>
-    <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 21 }}>Connect your email, calendars and spreadsheets.</Text>
     {!selectedApp && feedback}
-    {!connections && !error ? <View accessibilityLabel="Loading connections" style={{ padding: 24, alignItems: 'center', gap: 12 }}><ActivityIndicator color={colors.textMuted} /><Text style={{ color: colors.textMuted }}>Loading connections...</Text></View> : null}
+    {!connections && status.isFetching ? <View accessibilityLabel="Loading connections" style={{ padding: 24, alignItems: 'center', gap: 12 }}><ActivityIndicator color={colors.textMuted} /><Text style={{ color: colors.textMuted }}>Loading connections...</Text></View> : null}
     {connections ? <IntegrationList connections={connections} colors={colors} busy={busy} pendingId={pendingId} onOpen={setOpen} onConnect={(provider, feature) => change(provider, feature)} /> : null}
     <BottomSheet visible={Boolean(selectedApp && selectedConnection?.connected)} onClose={() => setOpen('')} colors={colors}>
       {selectedApp && selectedConnection?.connected ? <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, gap: 22, paddingBottom: 32 }}>

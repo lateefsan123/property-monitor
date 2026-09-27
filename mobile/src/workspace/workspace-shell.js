@@ -17,6 +17,8 @@ import { getTheme } from "../theme";
 import { supabase } from "../supabase";
 import { Button, Feedback } from "./ui";
 import VoicePanel from './voice-panel';
+import { integrationStatusOptions } from '../../../src/integration-query';
+import { integrationRequest } from './integration-client';
 
 export default function WorkspaceShell({
   userId,
@@ -26,6 +28,8 @@ export default function WorkspaceShell({
   ...accountProps
 }) {
   const colors = getTheme(theme);
+  // Start before Settings opens; the panel shares this account-scoped request.
+  useQuery(integrationStatusOptions(userId, integrationRequest));
   const [page, setPage] = useState("home");
   const [listingHeader, setListingHeader] = useState(null);
   const [settingsHeader, setSettingsHeader] = useState(null);
