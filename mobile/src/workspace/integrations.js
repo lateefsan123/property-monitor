@@ -1,18 +1,20 @@
 import { useEffect, useRef, useState } from 'react';
-import { Alert, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Button } from './ui';
 import { integrationRequest } from './integration-client';
 import IntegrationMail from './integration-mail';
 import { connectIntegration } from './integration-connect';
 import { Image } from 'expo-image';
+import AppIcon from '../components/AppIcon';
+import BottomSheet from '../components/BottomSheet';
 
 const LOGOS = {
   'google-sheets': 'https://www.gstatic.com/images/branding/product/2x/sheets_48dp.png',
-  'google-email': 'https://www.gstatic.com/images/branding/product/2x/gmail_48dp.png',
-  'google-calendar': 'https://www.gstatic.com/images/branding/product/2x/calendar_48dp.png',
-  'microsoft-sheets': 'https://res.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/brand-icons/product/svg/excel_48x1.svg',
-  'microsoft-email': 'https://res.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/brand-icons/product/svg/outlook_48x1.svg',
-  'microsoft-calendar': 'https://res.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/brand-icons/product/svg/outlook_48x1.svg',
+  'google-email': 'https://www.gstatic.com/images/branding/product/2x/gmail_2020q4_48dp.png',
+  'google-calendar': 'https://www.gstatic.com/images/branding/product/2x/calendar_2020q4_48dp.png',
+  'microsoft-sheets': 'https://res.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/brand-icons/product/png/excel_48x1.png',
+  'microsoft-email': 'https://res.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/brand-icons/product/png/outlook_48x1.png',
+  'microsoft-calendar': 'https://res.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/brand-icons/product/png/outlook_48x1.png',
 };
 
 const APPS = [
@@ -75,22 +77,54 @@ function Workspace({ app, connection, colors, upgrade }) {
   </View>;
 }
 
+export function IntegrationList({ connections, colors, busy = false, pendingId = '', onOpen, onConnect }) {
+  const apps = APPS.map(app => ({ app, connection: connections.find(item => item.provider === app[0] && item.feature === app[1]) }));
+  const groups = [
+    ['Connected', apps.filter(item => item.connection?.connected)],
+    ['Not connected', apps.filter(item => !item.connection?.connected)],
+  ];
+  return <View style={{ gap: 24 }}>
+    {groups.filter(([, items]) => items.length).map(([title, items]) => <View key={title} style={{ gap: 9 }}>
+      <Text accessibilityRole="header" style={{ color: colors.textMuted, fontSize: 13, marginLeft: 4 }}>{title}</Text>
+      <View>
+        {items.map(({ app, connection }, index) => {
+          const [provider, feature, name] = app;
+          const id = `${provider}-${feature}`;
+          const connected = Boolean(connection?.connected);
+          const disabled = busy || (!connected && !connection?.configured);
+          const pending = pendingId === id;
+          return <Pressable key={id} accessibilityRole="button" accessibilityLabel={`${name}, ${connected ? 'connected, open' : connection?.configured ? 'connect' : 'setup needed'}`} accessibilityState={{ disabled, busy: pending }} disabled={disabled}
+            onPress={() => connected ? onOpen(id) : onConnect(provider, feature)}
+            style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', paddingLeft: 4, gap: 12, opacity: pressed || busy ? 0.55 : 1 })}>
+            <Image source={LOGOS[id]} contentFit="contain" accessible={false} style={{ width: 25, height: 25 }} />
+            <View style={{ flex: 1, minHeight: 60, paddingVertical: 12, paddingRight: 4, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: index === items.length - 1 ? 0 : StyleSheet.hairlineWidth, borderBottomColor: colors.border }}>
+              <Text style={{ color: colors.text, fontSize: 15, lineHeight: 21, flex: 1 }}>{name}</Text>
+              {pending ? <ActivityIndicator size="small" color={colors.textMuted} /> : connected ? <AppIcon name="chevron" size={18} color={colors.textFaint} /> : <Text style={{ color: connection?.configured ? colors.textMuted : colors.textFaint, fontSize: 13 }}>{connection?.configured ? 'Connect' : 'Setup needed'}</Text>}
+            </View>
+          </Pressable>;
+        })}
+      </View>
+    </View>)}
+  </View>;
+}
+
 export default function Integrations({ userId, colors }) {
   const [connections, setConnections] = useState(null);
   const [error, setError] = useState('');
   const [open, setOpen] = useState('');
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
+  const [pendingId, setPendingId] = useState('');
   const lock = useRef(false);
   async function change(provider, feature, capability, disconnect = false) {
     if (lock.current) return;
-    lock.current = true; setBusy(true); setError('');
+    lock.current = true; setBusy(true); setPendingId(`${provider}-${feature}`); setError('');
     try {
       if (disconnect) await integrationRequest({ action: 'disconnect', provider, feature });
       else await connectIntegration(provider, feature, capability);
       setOpen(''); setAttempt(value => value + 1);
     } catch (error) { setError(error.message); }
-    finally { lock.current = false; setBusy(false); }
+    finally { lock.current = false; setBusy(false); setPendingId(''); }
   }
   useEffect(() => {
     const controller = new AbortController();
@@ -99,21 +133,31 @@ export default function Integrations({ userId, colors }) {
     }).catch(error => { if (!controller.signal.aborted) setError(error.message); });
     return () => controller.abort();
   }, [userId, attempt]);
-  return <View style={{ gap: 14 }}>
-    <Text style={{ color: colors.textMuted }}>Your tools, connected to Repeat AI.</Text>
-    {error ? <><Text selectable accessibilityRole="alert" style={{ color: colors.text }}>{error}</Text><Button colors={colors} onPress={() => { setError(''); setConnections(null); setOpen(''); setAttempt(value => value + 1); }}>Try again</Button></> : !connections ? <Text style={{ color: colors.text }}>Loading connections…</Text> : null}
-    {connections ? APPS.map(app => {
-      const [provider, feature, title, description] = app;
-      const id = `${provider}-${feature}`;
-      const connection = connections.find(item => item.provider === provider && item.feature === feature);
-      return <View key={id} style={{ padding: 16, borderRadius: 14, borderCurve: 'continuous', borderWidth: 1, borderColor: colors.border, gap: 12 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}><Image source={LOGOS[id]} contentFit="contain" style={{ width: 36, height: 36, backgroundColor: '#fff', borderRadius: 8 }} /><Text style={{ color: colors.text, fontSize: 16, fontWeight: '600', flex: 1 }}>{title}</Text>{connection?.connected ? <Text style={{ color: colors.textMuted, fontSize: 11 }}>Connected</Text> : null}</View>
-        <Text style={{ color: colors.textMuted, lineHeight: 20 }}>{description}</Text>
-        {connection?.connected ? <><Button colors={colors} disabled={busy} onPress={() => setOpen(open === id ? '' : id)}>{open === id ? 'Close' : 'Open'}</Button>{open === id ? <>
-          <Workspace key={`${userId}-${id}`} app={app} connection={connection} colors={colors} upgrade={capability => change(provider, feature, capability)} />
-          <Button colors={colors} disabled={busy} onPress={() => Alert.alert(`Disconnect ${title}?`, 'Your files and emails stay untouched. You can revoke access separately in your provider account.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Disconnect', style: 'destructive', onPress: () => change(provider, feature, undefined, true) }])}>Disconnect</Button>
-        </> : null}</> : <Button colors={colors} disabled={busy || !connection?.configured} onPress={() => change(provider, feature)}>{connection?.configured ? 'Connect' : 'Setup needed'}</Button>}
-      </View>;
-    }) : null}
+  const selectedApp = APPS.find(app => `${app[0]}-${app[1]}` === open);
+  const selectedConnection = selectedApp && connections?.find(item => item.provider === selectedApp[0] && item.feature === selectedApp[1]);
+  const feedback = error ? <View style={{ gap: 10 }}>
+    <Text selectable accessibilityRole="alert" style={{ color: colors.errorText, fontSize: 14, lineHeight: 20 }}>{error}</Text>
+    <Button colors={colors} disabled={busy} onPress={() => { setError(''); setAttempt(value => value + 1); }}>Try again</Button>
+  </View> : null;
+  return <View style={{ paddingTop: 8, gap: 22 }}>
+    <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 21 }}>Connect your email, calendars and spreadsheets.</Text>
+    {!selectedApp && feedback}
+    {!connections && !error ? <View accessibilityLabel="Loading connections" style={{ padding: 24, alignItems: 'center', gap: 12 }}><ActivityIndicator color={colors.textMuted} /><Text style={{ color: colors.textMuted }}>Loading connections...</Text></View> : null}
+    {connections ? <IntegrationList connections={connections} colors={colors} busy={busy} pendingId={pendingId} onOpen={setOpen} onConnect={(provider, feature) => change(provider, feature)} /> : null}
+    <BottomSheet visible={Boolean(selectedApp && selectedConnection?.connected)} onClose={() => setOpen('')} colors={colors}>
+      {selectedApp && selectedConnection?.connected ? <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 20, gap: 22, paddingBottom: 32 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+          <Image source={LOGOS[open]} contentFit="contain" style={{ width: 36, height: 36 }} />
+          <View style={{ flex: 1, gap: 4 }}><Text accessibilityRole="header" style={{ color: colors.text, fontSize: 19, fontWeight: '600' }}>{selectedApp[2]}</Text><Text style={{ color: colors.textMuted, fontSize: 13 }}>Connected</Text></View>
+          <Pressable accessibilityRole="button" accessibilityLabel="Close integration" onPress={() => setOpen('')} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 22, backgroundColor: colors.bgBadge }}><AppIcon name="close" color={colors.text} size={22} /></Pressable>
+        </View>
+        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 21 }}>{selectedApp[3]}</Text>
+        {feedback}
+        <Workspace key={`${userId}-${open}`} app={selectedApp} connection={selectedConnection} colors={colors} upgrade={capability => change(selectedApp[0], selectedApp[1], capability)} />
+        <Pressable accessibilityRole="button" accessibilityLabel={`Disconnect ${selectedApp[2]}`} accessibilityState={{ disabled: busy }} disabled={busy} style={{ minHeight: 48, justifyContent: 'center', alignItems: 'center', borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, opacity: busy ? 0.5 : 1 }} onPress={() => Alert.alert(`Disconnect ${selectedApp[2]}?`, 'Your files and emails stay untouched. You can revoke access separately in your provider account.', [{ text: 'Cancel', style: 'cancel' }, { text: 'Disconnect', style: 'destructive', onPress: () => change(selectedApp[0], selectedApp[1], undefined, true) }])}>
+          <Text style={{ color: colors.errorText, fontSize: 14 }}>Disconnect</Text>
+        </Pressable>
+      </ScrollView> : null}
+    </BottomSheet>
   </View>;
 }
