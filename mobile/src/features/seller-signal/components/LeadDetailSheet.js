@@ -60,7 +60,7 @@ function getEditStatusOptions(currentStatus) {
   ];
 }
 
-function EditForm({ colors, draft, isDeleting, isSaving, onCancel, onChange, onDelete, onSave }) {
+function EditForm({ colors, draft, onChange }) {
   const c = colors;
   const statusOptions = getEditStatusOptions(draft?.status);
 
@@ -161,35 +161,26 @@ function EditForm({ colors, draft, isDeleting, isSaving, onCancel, onChange, onD
         />
       </View>
 
-      <View style={s.editActions}>
-        <Pressable
-          style={[s.primaryAction, { backgroundColor: c.btnPrimaryBg, opacity: isSaving || isDeleting ? 0.6 : 1 }]}
-          disabled={isSaving || isDeleting}
-          onPress={() => onSave?.()}
-        >
-          <Text style={{ color: c.btnPrimaryText, fontSize: 14, fontWeight: "700" }}>
-            {isSaving ? "Saving..." : "Save"}
-          </Text>
-        </Pressable>
 
-        <Pressable
-          style={[s.secondaryAction, { borderColor: c.border, opacity: isSaving || isDeleting ? 0.6 : 1 }]}
-          disabled={isSaving || isDeleting}
-          onPress={onCancel}
-        >
-          <Text style={{ color: c.textSecondary, fontSize: 14, fontWeight: "600" }}>Cancel</Text>
-        </Pressable>
+    </View>
+  );
+}
 
-        <Pressable
-          style={[s.secondaryAction, { borderColor: c.errorBorder || c.border, backgroundColor: c.errorBg, opacity: isSaving || isDeleting ? 0.6 : 1 }]}
-          disabled={isSaving || isDeleting}
-          onPress={onDelete}
-        >
-          <Text style={{ color: c.errorText, fontSize: 14, fontWeight: "700" }}>
-            {isDeleting ? "Deleting..." : "Delete"}
-          </Text>
+function EditActions({ colors: c, isDeleting, isSaving, onCancel, onDelete, onSave }) {
+  const busy = isSaving || isDeleting;
+  return (
+    <View style={[s.actionBar, { borderTopColor: c.border, paddingBottom: 16, gap: 8 }]}>
+      <View style={{ flexDirection: "row", gap: 10 }}>
+        <Pressable accessibilityRole="button" disabled={busy} onPress={onCancel} style={[s.secondaryAction, { flex: 1, borderColor: c.border, opacity: busy ? 0.5 : 1 }]}>
+          <Text style={{ color: c.textSecondary, fontWeight: "600" }}>Cancel</Text>
+        </Pressable>
+        <Pressable accessibilityRole="button" disabled={busy} onPress={onSave} style={[s.primaryAction, { flex: 1, backgroundColor: c.btnPrimaryBg, opacity: busy ? 0.5 : 1 }]}>
+          <Text style={{ color: c.btnPrimaryText, fontWeight: "700" }}>{isSaving ? "Saving..." : "Save changes"}</Text>
         </Pressable>
       </View>
+      <Pressable accessibilityRole="button" disabled={busy} onPress={onDelete} style={{ minHeight: 44, alignItems: "center", justifyContent: "center", opacity: busy ? 0.5 : 1 }}>
+        <Text style={{ color: c.errorText, fontWeight: "600" }}>{isDeleting ? "Deleting..." : "Delete seller"}</Text>
+      </Pressable>
     </View>
   );
 }
@@ -314,25 +305,20 @@ export default function LeadDetailSheet({
 
   return (
     <BottomSheet visible={visible} onClose={() => { handleNotesBlur(); onClose(); }} colors={colors}>
-      <ScrollView style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
-        <View style={s.profileHeader}>
+      <ScrollView keyboardShouldPersistTaps="handled" style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
+        {isEditing ? <Text style={{ fontSize: 22, fontWeight: "700", color: c.text }}>Edit seller</Text> : <View style={s.profileHeader}>
           <View style={[s.avatar, { backgroundColor: c.bgBadge }]}><Text style={{ color: c.text, fontSize: 23, fontWeight: "600" }}>{(lead.name || "?").split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase()}</Text></View>
           <Text style={{ fontSize: 22, fontWeight: "700", color: c.textName, textAlign: "center" }}>{lead.name || "Unnamed seller"}</Text>
           <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center" }}>{formatBuildingLabel(lead.resolvedBuilding || lead.building) || "No building"}</Text>
           {!isEditing && <Pressable accessibilityRole="button" onPress={() => onStartEditing?.(lead.id)} disabled={isSaving || isDeleting} style={{ minHeight: 44, justifyContent: "center" }}><Text style={{ color: c.text, fontWeight: "600" }}>Edit seller</Text></Pressable>}
-        </View>
+        </View>}
         {!isEditing && <View accessibilityRole="tablist" style={[s.tabs, { backgroundColor: c.bgBadge }]}>{["Details", "Notes", "Message"].map(value => <Pressable key={value} accessibilityRole="tab" accessibilityState={{ selected: tab === value }} onPress={() => { handleNotesBlur(); setTab(value); }} style={[s.tab, tab === value && { backgroundColor: c.bgCard }]}><Text style={{ color: tab === value ? c.text : c.textMuted, fontWeight: "600" }}>{value}</Text></Pressable>)}</View>}
 
         {isEditing ? (
           <EditForm
             colors={c}
             draft={editDraft}
-            isDeleting={isDeleting}
-            isSaving={isSaving}
-            onCancel={onCancelEditing}
             onChange={onEditFieldChange}
-            onDelete={handleDelete}
-            onSave={() => onSaveEdit?.(lead.id)}
           />
         ) : (
           <>
@@ -394,7 +380,7 @@ export default function LeadDetailSheet({
               <Text style={{ fontSize: 14, color: c.textMuted }}>No priced sales found in this period.</Text>
             )}
             {insight?.status === "loading" && <Text style={{ fontSize: 14, color: c.textFainter }}>Loading market data...</Text>}
-            {insight?.status === "error" && <Text style={{ fontSize: 14, color: c.errorText }}>{insight.error}</Text>}
+            {insight?.status === "error" && insight.error !== "Property market data is not available yet." && <Text style={{ fontSize: 14, color: c.errorText }}>{insight.error}</Text>}
 
             </View>}
 
@@ -460,7 +446,7 @@ export default function LeadDetailSheet({
         )}
       </ScrollView>
 
-      {!isEditing && (
+      {isEditing ? <EditActions colors={c} isDeleting={isDeleting} isSaving={isSaving} onCancel={onCancelEditing} onDelete={handleDelete} onSave={() => onSaveEdit?.(lead.id)} /> : (
         <View style={[s.actionBar, { paddingBottom: 16, borderTopColor: c.border }]}>
           {tab !== "Message" ? <Pressable accessibilityRole="button" onPress={() => { handleNotesBlur(); setTab("Message"); }} style={[s.actionBtn, { backgroundColor: c.btnPrimaryBg }]}><MessageIcon size={18} color={c.btnPrimaryText} /><Text style={{ color: c.btnPrimaryText, fontWeight: "600", fontSize: 15 }}>Preview message</Text></Pressable> : whatsappPhone ? (
             <Pressable accessibilityRole="button" disabled={messageBusy} onPress={handleWhatsApp} style={[s.actionBtn, { backgroundColor: c.whatsappBg, opacity: messageBusy ? 0.5 : 1 }]}>

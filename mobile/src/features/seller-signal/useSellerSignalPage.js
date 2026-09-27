@@ -316,14 +316,12 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     });
 
     let anyChunkHadTargets = false;
-    let totalMatched = 0;
 
     try {
       for (let index = 0; index < targetLeads.length; index += ENRICH_CHUNK_SIZE) {
         const chunk = targetLeads.slice(index, index + ENRICH_CHUNK_SIZE);
-        const { hasTargets, matched, updates } = await fetchLeadInsights(chunk, messageTemplate);
+        const { hasTargets, updates } = await fetchLeadInsights(chunk, messageTemplate);
         if (hasTargets) anyChunkHadTargets = true;
-        totalMatched += matched;
         setInsights((previousInsights) => ({ ...previousInsights, ...updates }));
       }
 
@@ -337,9 +335,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
         return;
       }
 
-      if (totalMatched === 0) {
-        setError("Property market data is not available for these buildings yet.");
-      }
+      // Missing market coverage is expected and should not interrupt seller actions.
     } catch (enrichmentError) {
       const message = getErrorMessage(enrichmentError);
       setError(message);
