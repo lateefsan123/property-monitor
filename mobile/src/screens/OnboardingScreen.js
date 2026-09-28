@@ -1,14 +1,15 @@
 import SubscriptionScreen from './SubscriptionScreen';
 import { useEffect, useRef, useState } from 'react';
-import { BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppIcon from '../components/AppIcon';
 import MotionScreen from '../components/MotionScreen';
 import OnboardingPreview from '../components/OnboardingPreview';
 import { ONBOARDING_GOALS, ONBOARDING_STEPS, onboardingDestination, toggleOnboardingGoal } from '../onboarding-flow';
 import AuthScreen from './AuthScreen';
+import AccessVerificationScreen from './AccessVerificationScreen';
 
-export default function OnboardingScreen({ onComplete, onClose, preview = false, session, displayName = '', onSaveUsername, onPasswordRecovery, subscription }) {
+export default function OnboardingScreen({ onComplete, onClose, onLogin, preview = false, session, displayName = '', onSaveUsername, onPasswordRecovery, subscription }) {
   const { height, width } = useWindowDimensions();
   const compact = height < 740 || width < 360;
   const insets = useSafeAreaInsets();
@@ -31,7 +32,7 @@ export default function OnboardingScreen({ onComplete, onClose, preview = false,
   useEffect(() => {
     if (account && authenticated) {
       setUsername(displayName);
-      setStep(ONBOARDING_STEPS.findIndex(item => item.id === 'username'));
+      setStep(ONBOARDING_STEPS.findIndex(item => item.id === (displayName ? 'finish' : 'username')));
     }
   }, [account, authenticated, displayName]);
   function back() {
@@ -72,20 +73,22 @@ export default function OnboardingScreen({ onComplete, onClose, preview = false,
     else if (final) void finish(onboardingDestination(goalIds));
     else { if (step === 0) setLogin(false); setError(''); setStep(value => value + 1); }
   }
-  if (final) return <SubscriptionScreen onboarding preview={preview} hasAccess={subscription?.hasAccess}
+  if (final && !preview && subscription?.isLoading) return <View style={[s.page, { justifyContent: 'center' }]}><ActivityIndicator accessibilityLabel="Checking your access" color="#111" /></View>;
+  if (final && !preview && subscription?.verificationError) return <AccessVerificationScreen error={subscription.verificationError} onRetry={subscription.refresh} />;
+  if (final && (preview || !subscription?.hasAccess)) return <SubscriptionScreen onboarding preview={preview} hasAccess={subscription?.hasAccess}
     action={busy ? 'finish' : subscription?.action} canPurchase={subscription?.canPurchase} storeConfigured={subscription?.storeConfigured}
     priceString={subscription?.priceString || (preview ? '€35.00' : null)} trialEligible={subscription?.trialEligible}
     error={error || subscription?.error} onPurchase={subscription?.purchase} onRestore={subscription?.restore} onRefresh={subscription?.refresh}
     onBack={back} onContinue={() => finish(onboardingDestination(goalIds))} />;
   if (account) return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.page, { paddingTop: insets.top }]}>
     <StatusBar barStyle="dark-content" backgroundColor="#F2F3F5" />
-    <AuthScreen embedded initialSignUp={!login} heading={heading} preview={preview} onBack={back} onClose={preview ? onClose : undefined} onPreviewComplete={() => setPreviewAuthenticated(true)} onPasswordRecovery={onPasswordRecovery} />
+    <AuthScreen embedded initialSignUp={!login} heading={heading} preview={preview} onBack={back} onClose={onClose} onPreviewComplete={() => setPreviewAuthenticated(true)} onPasswordRecovery={onPasswordRecovery} />
   </KeyboardAvoidingView>;
   return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.page, { paddingTop: insets.top }]}>
     <StatusBar barStyle="dark-content" backgroundColor="#F2F3F5" />
     <View style={s.header}>
       <Pressable accessibilityRole="button" accessibilityLabel="Go back" disabled={busy || step === 0} onPress={back} style={[s.headerButton, { opacity: step === 0 ? 0 : busy ? 0.4 : 1 }]}><AppIcon name="chevronBack" size={25} color="#000" /></Pressable>
-      {preview ? <Pressable accessibilityRole="button" accessibilityLabel="Close onboarding preview" disabled={busy} onPress={onClose || (() => finish())} style={s.headerButton}><AppIcon name="close" size={23} color="#000" /></Pressable> : <View style={s.headerButton} />}
+      {onClose ? <Pressable accessibilityRole="button" accessibilityLabel="Close onboarding" disabled={busy} onPress={onClose} style={s.headerButton}><AppIcon name="close" size={23} color="#000" /></Pressable> : <View style={s.headerButton} />}
     </View>
     <MotionScreen key={slide.id} active>
       <View style={[s.content, compact && { paddingTop: 10, gap: 12 }]}>
@@ -104,7 +107,7 @@ export default function OnboardingScreen({ onComplete, onClose, preview = false,
       {!choice && !final && !account && !nameStep ? <Text style={[s.note, body, compact && { paddingVertical: 2 }]}>{slide.body}</Text> : null}
       {error ? <Text accessibilityRole="alert" style={[s.error, body]}>{error}</Text> : null}
       {!account ? <Pressable accessibilityRole="button" disabled={busy} accessibilityState={{ disabled: busy }} onPress={next} style={({ pressed }) => [s.primary, { opacity: busy ? 0.5 : pressed ? 0.85 : 1 }]}><Text style={[s.primaryText, button]}>{busy ? 'Saving…' : final ? preview ? 'Finish preview' : goal?.cta || 'Open Repeat AI' : step === 0 ? 'Let’s get started' : 'Next'}</Text></Pressable> : null}
-      {step === 0 && !session && !preview ? <Pressable accessibilityRole="button" onPress={() => { setLogin(true); setStep(ONBOARDING_STEPS.findIndex(item => item.id === 'account')); }} style={s.secondary}><Text style={[s.choiceBody, button]}>Already have an account? Log in</Text></Pressable> : null}
+      {step === 0 && !session && !preview ? <Pressable accessibilityRole="button" onPress={onLogin || onClose} style={s.secondary}><Text style={[s.choiceBody, button]}>Already have an account? Log in</Text></Pressable> : null}
       {final && !preview ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => finish({ page: 'home' })} style={s.secondary}><Text style={[s.choiceBody, button]}>Explore on my own</Text></Pressable> : null}
     </View>
   </KeyboardAvoidingView>;

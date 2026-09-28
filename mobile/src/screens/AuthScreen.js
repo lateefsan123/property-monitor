@@ -519,7 +519,7 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery, emb
               style={({ pressed }) => [s.btn, s.btnOutline, pressed && s.btnPressed]}
               onPress={onReplayOnboarding}
             >
-              <Text style={s.btnOutlineText}>Replay Onboarding</Text>
+              <Text style={s.btnOutlineText}>New to Repeat AI? Get started</Text>
             </Pressable>
           )}
 

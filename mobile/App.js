@@ -5,7 +5,6 @@ import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, AppState, Platform, Alert, Pressable, StatusBar, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { focusManager, QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useThemePreference } from "./src/hooks/useThemePreference";
 import { useSubscriptionAccess } from "./src/hooks/useSubscriptionAccess";
@@ -22,8 +21,9 @@ import { getTheme } from "./src/theme";
 import { withStartupTimeout } from './src/startup-request';
 
 import { createAccountCacheGuard, mobileQueryDefaults } from "./src/query-cache";
+import { shouldShowOnboarding } from './src/onboarding-flow';
+import AccessVerificationScreen from './src/screens/AccessVerificationScreen';
 
-const ONBOARDING_KEY = "@seller_signal_onboarding_completed_v3";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: mobileQueryDefaults,
@@ -56,10 +56,7 @@ function AppInner() {
   const [startupError, setStartupError] = useState(null);
   const [startupAttempt, setStartupAttempt] = useState(0);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
-  const [gateState, setGateState] = useState({
-    hydrated: false,
-    onboardingCompleted: false,
-  });
+  const [onboardingUserId, setOnboardingUserId] = useState(undefined);
   const [displayNameOverride, setDisplayNameOverride] = useState({
     userId: null,
     value: "",
@@ -84,20 +81,12 @@ function AppInner() {
       setStartupError(null);
       setLoading(true);
       try {
-        const [storedFlags, sessionResult] = await withStartupTimeout(() => Promise.all([
-          AsyncStorage.multiGet([ONBOARDING_KEY]),
-          supabase.auth.getSession(),
-        ]), 'Could not restore your session. Check your connection and try again.');
+        const sessionResult = await withStartupTimeout(() => supabase.auth.getSession(),
+          'Could not restore your session. Check your connection and try again.');
 
         if (!isActive) return;
         if (sessionResult.error) throw sessionResult.error;
 
-        const [[, onboardingValue]] = storedFlags;
-
-        setGateState({
-          hydrated: true,
-          onboardingCompleted: onboardingValue === "true",
-        });
         syncCacheAccount(sessionResult.data.session?.user.id);
         setSession(sessionResult.data.session);
         setLoading(false);
@@ -113,6 +102,7 @@ function AppInner() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, nextSession) => {
       if (_event === "PASSWORD_RECOVERY") setIsRecoveringPassword(true);
+      setOnboardingUserId(current => current === (nextSession?.user.id ?? null) ? current : undefined);
       syncCacheAccount(nextSession?.user.id);
       setSession(nextSession);
     });
@@ -147,14 +137,12 @@ function AppInner() {
 
   async function handleOnboardingComplete(destination) {
     if (!sessionUserId) throw new Error("Sign in to finish setup.");
-    await AsyncStorage.setItem(ONBOARDING_KEY, "true");
     setOnboardingStart({ userId: sessionUserId, destination: destination || { page: "home" } });
-    setGateState((currentState) => ({ ...currentState, onboardingCompleted: true }));
+    setOnboardingUserId(undefined);
   }
 
-  async function handleReplayOnboarding() {
-    await AsyncStorage.removeItem(ONBOARDING_KEY);
-    setGateState((currentState) => ({ ...currentState, onboardingCompleted: false }));
+  function handleReplayOnboarding() {
+    setOnboardingUserId(sessionUserId);
   }
 
   async function handleManageSubscription() {
@@ -195,7 +183,7 @@ function AppInner() {
     </View>;
   }
 
-  if (loading || !gateState.hydrated || session === undefined) {
+  if (loading || session === undefined) {
     return (
       <View style={[styles.loading, { backgroundColor: colors.bg }]}>
         <ActivityIndicator size="large" color={colors.textMuted} />
@@ -208,9 +196,10 @@ function AppInner() {
     return <SafeAreaProvider><ResetPasswordScreen onComplete={() => setIsRecoveringPassword(false)} /><StatusBar style="light" /></SafeAreaProvider>;
   }
 
-  if (!gateState.onboardingCompleted) {
+  if (shouldShowOnboarding(onboardingUserId, sessionUserId)) {
     return <SafeAreaProvider>
       <OnboardingScreen subscription={subscription} session={session} displayName={displayName} onComplete={handleOnboardingComplete}
+        onClose={() => setOnboardingUserId(undefined)} onLogin={() => setOnboardingUserId(undefined)}
         onPasswordRecovery={() => setIsRecoveringPassword(true)}
         onSaveUsername={async (value) => {
           if (!sessionUserId) throw new Error('Sign in to continue.');
@@ -240,6 +229,10 @@ function AppInner() {
   }
 
   if (!subscription.hasAccess) {
+    if (subscription.verificationError) {
+      return <SafeAreaProvider><AccessVerificationScreen error={subscription.verificationError}
+        onRetry={subscription.refresh} onSignOut={() => supabase.auth.signOut({ scope: 'local' })} /></SafeAreaProvider>;
+    }
     return (
       <SafeAreaProvider>
         <SubscriptionScreen
