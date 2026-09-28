@@ -19,16 +19,20 @@ export default function VoicePanel(props) {
   return canUsePrivateAssistant(props.userId) ? <PrivateVoicePanel key={props.userId} {...props} /> : null;
 }
 
-function PrivateVoicePanel({ colors, userId, hideLauncher = false, launcherBottom = 16 }) {
+function PrivateVoicePanel({ colors, userId, hideLauncher = false, launcherBottom = 16, request }) {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
+  const [handledRequest, setHandledRequest] = useState(null);
+  if (request && request !== handledRequest) {
+    setHandledRequest(request); setDraft(request.prompt); setOpen(true);
+  }
   const scroll = useRef(null);
   const composer = useRef(null);
   const insets = useSafeAreaInsets();
   const cache = useQueryClient();
   const workspace = useMemo(() => createVoiceWorkspace({ supabase, userId, fetchPriceDrops: fetchListingPriceDrops,
     onChanged: () => cache.invalidateQueries() }), [cache, userId]);
-  const voice = useVoice({ makeTransport: createNativeVoiceTransport, sessionRequest, integrationRequest, workspace });
+  const voice = useVoice({ makeTransport: createNativeVoiceTransport, sessionRequest, integrationRequest, workspace, onApplied: () => cache.invalidateQueries({ queryKey: ['calendar-today', userId] }) });
   const end = useRef(voice.end);
   useEffect(() => { end.current = voice.end; });
   useEffect(() => {
@@ -85,7 +89,7 @@ function PrivateVoicePanel({ colors, userId, hideLauncher = false, launcherBotto
             <Text style={{ ...text, fontWeight: '600' }}>{voice.preview.preview.subject}</Text>
             {voice.preview.preview.to && <Text selectable style={text}>To: {voice.preview.preview.to}</Text>}
             <Text selectable style={text}>{voice.preview.preview.body}</Text>
-            <Button colors={colors} disabled={voice.sending} onPress={voice.confirm}>{voice.preview.kind ? 'Confirm change' : 'Confirm and send'}</Button>
+            <Button colors={colors} disabled={voice.sending} onPress={voice.confirm}>{voice.preview.feature === 'calendar' ? 'Add to calendar' : voice.preview.kind ? 'Confirm change' : 'Confirm and send'}</Button>
             <Button colors={colors} disabled={voice.sending} onPress={voice.reject}>Discard</Button>
           </View>}
           {active && (voice.captions.you || voice.captions.assistant) ? <View style={{ gap: 12 }}><Text selectable style={muted}>{voice.captions.you}</Text><Text selectable style={text}>{voice.captions.assistant}</Text></View> : null}

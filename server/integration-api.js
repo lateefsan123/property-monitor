@@ -2,7 +2,7 @@ import { INTEGRATION_PROVIDERS } from './integration-oauth.js';
 import { IntegrationError } from './integration-http.js';
 import { includesScopes, EXTRA_SCOPES } from './integration-scopes.js';
 
-export function createIntegrationHandler({ authenticate, store, oauth, configured, read, mail, summaries }) {
+export function createIntegrationHandler({ authenticate, store, oauth, configured, read, mail, calendar, summaries }) {
   return async (req, res) => {
     const send = (status, body) => {
       res.statusCode = status;
@@ -24,6 +24,7 @@ export function createIntegrationHandler({ authenticate, store, oauth, configure
     } catch { return send(400, { error: 'Invalid request' }); }
     const { action, provider, feature } = body;
     const fields = { status: ['action'], email_summary: ['action'], email_summary_run: ['action'], email_summary_configure: ['action', 'enabled'], begin: ['action', 'provider', 'feature', 'capability', 'client'],
+      prepare_calendar: ['action', 'provider', 'feature', 'input'], confirm_calendar: ['action', 'provider', 'feature', 'confirmation'],
       prepare_email: ['action', 'provider', 'feature', 'input'], confirm_email: ['action', 'provider', 'feature', 'confirmation'],
       complete: ['action', 'provider', 'state', 'code', 'error'], disconnect: ['action', 'provider', 'feature'], read: ['action', 'provider', 'feature', 'input'] };
     if (!Object.hasOwn(fields, action) || Object.keys(body).some(key => !fields[action].includes(key))) return send(400, { error: 'Invalid request' });
@@ -42,6 +43,7 @@ export function createIntegrationHandler({ authenticate, store, oauth, configure
           Object.keys(spec.scopes).map(feature => ({ provider, feature, configured: configured(provider),
             connected: rows.some(row => row.provider === provider && row.feature === feature),
             canBrowse: provider === 'google' && feature === 'sheets' && rows.some(row => row.provider === provider && row.feature === feature && includesScopes(provider, row.scopes, EXTRA_SCOPES.google.browse)),
+            canWriteCalendar: feature === 'calendar' && rows.some(row => row.provider === provider && row.feature === feature && includesScopes(provider, row.scopes, EXTRA_SCOPES[provider].events)),
             canSend: feature === 'email' && rows.some(row => row.provider === provider && row.feature === feature && includesScopes(provider, row.scopes, EXTRA_SCOPES[provider].send)),
             canReadWorkbook: feature === 'sheets' && (provider === 'google' || rows.some(row => row.provider === provider && row.feature === feature && includesScopes(provider, row.scopes, EXTRA_SCOPES.microsoft.workbook))) }))) });
       }
@@ -51,6 +53,10 @@ export function createIntegrationHandler({ authenticate, store, oauth, configure
       }
       if (!configured(provider)) return send(503, { error: 'This connection is not set up yet' });
       if (action === 'read') return send(200, await read({ userId: user.id, provider, feature, input: body.input }));
+      if (action === 'prepare_calendar' || action === 'confirm_calendar') {
+        if (feature !== 'calendar' || !calendar) throw new IntegrationError('invalid_input');
+        return send(200, await (action === 'prepare_calendar' ? calendar.prepare({ userId: user.id, provider, input: body.input }) : calendar.confirm({ userId: user.id, provider, confirmation: body.confirmation })));
+      }
       if (action === 'prepare_email' || action === 'confirm_email') {
         if (feature !== 'email') throw new IntegrationError('invalid_input');
         return send(200, await (action === 'prepare_email' ? mail.prepare({ userId: user.id, provider, input: body.input }) : mail.confirm({ userId: user.id, provider, confirmation: body.confirmation })));

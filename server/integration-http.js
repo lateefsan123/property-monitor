@@ -1,6 +1,7 @@
 import { Buffer } from 'node:buffer';
 
 const MESSAGES = {
+  calendar_uncertain: ['Calendar saving could not be confirmed. Check your calendar before trying again.', 503],
   invalid_input: ['Invalid integration request', 400],
   reconnect: ['Please reconnect this account in Settings', 409],
   changed: ['This connection changed. Please try again', 409],

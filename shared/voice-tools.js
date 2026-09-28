@@ -30,9 +30,10 @@ export const VOICE_TOOLS = [
   tool('send_activity', 'Show recent outbound WhatsApp status. Queued is not sent or delivered.', {}),
   tool('prepare_automation', 'PREPARE enable or pause of existing account-wide follow-ups/reports for visible confirmation. No immediate batch send. For recurring building/day assignments use prepare_schedule instead. This never applies changes itself.', { automation: { type: 'string', enum: ['followups', 'reports'] }, action: { type: 'string', enum: ['enable', 'pause'] } }),
   tool('connected_apps', 'List this user’s connected apps and permissions before accessing data.', {}),
-  tool('read_connected_app', 'Read connected email, calendar or spreadsheets. input_json is a JSON object: {} for inbox/calendar/OneDrive root; Google file search {query}; Google tabs {spreadsheetId,tabs:true}; Google rows {spreadsheetId,sheetName}; Excel folder {folderId}, tabs {fileId}, rows {fileId,sheetName}. Use IDs returned by tools, never ask users to find IDs. Rows are a bounded preview, not the entire workbook.', {
+  tool('read_connected_app', 'Read connected email, calendar or spreadsheets. input_json is a JSON object: {} for inbox/upcoming calendar/OneDrive root; calendar date window {start,end} uses ISO timestamps with explicit offset, max 31 days; Google file search {query}; Google tabs {spreadsheetId,tabs:true}; Google rows {spreadsheetId,sheetName}; Excel folder {folderId}, tabs {fileId}, rows {fileId,sheetName}. Use IDs returned by tools, never ask users to find IDs. Rows are a bounded preview, not the entire workbook.', {
     provider, feature: { type: 'string', enum: ['email', 'calendar', 'sheets'] }, input_json: text,
   }),
+  tool('prepare_calendar', 'Prepare a single calendar appointment for visible confirmation. Check connected_apps and canWriteCalendar first. Ask for missing date/time/duration; start/end must be ISO timestamps with explicit UTC offset. Use IANA time_zone, default Asia/Dubai. reminder_minutes is an integer string, default 15, 0 means at start. No attendees, recurrence, edits or task-list entries. Never claims saved before confirmation.', { provider, title: text, start: text, end: text, time_zone: text, location: text, reminder_minutes: text }),
   tool('prepare_email', 'Prepare an email or reply for on-screen review. This NEVER sends. The user must press Confirm and send. For replies supply reply_to_id from inbox and leave to/subject empty; otherwise leave reply_to_id empty.', {
     provider, to: text, subject: text, body: text, reply_to_id: text,
   }),
@@ -74,6 +75,14 @@ export async function executeVoiceTool(name, args, { request, workspace, onResul
     if (signal?.aborted) throw new Error('Conversation ended.');
     onResult(result);
     return result;
+  }
+  if (name === 'prepare_calendar') {
+    if (!/^\d{1,5}$/.test(args.reminder_minutes)) throw new Error('Invalid reminder.');
+    const prepared = await request({ action: 'prepare_calendar', provider: args.provider, feature: 'calendar', input: { title: args.title, start: args.start, end: args.end, timeZone: args.time_zone, location: args.location, reminderMinutes: Number(args.reminder_minutes) } }, signal);
+    if (signal?.aborted) throw new Error('Conversation ended.');
+    if (!prepared?.confirmation || !prepared?.preview) throw new Error('Calendar preview unavailable.');
+    onPreview({ ...prepared, provider: args.provider, feature: 'calendar' });
+    return { status: 'awaiting_user_confirmation', preview: prepared.preview, message: 'Not saved. Review the appointment and press Add to calendar.' };
   }
   const input = args.reply_to_id ? { replyToId: args.reply_to_id, body: args.body } : { to: args.to, subject: args.subject, body: args.body };
   const prepared = await request({ action: 'prepare_email', provider: args.provider, feature: 'email', input }, signal);

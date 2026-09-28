@@ -35,6 +35,7 @@ export default function WorkspaceShell({
   // Start before Settings opens; the panel shares this account-scoped request.
   useQuery(integrationStatusOptions(userId, integrationRequest));
   const [sellerSendBarHeight, setSellerSendBarHeight] = useState(76);
+  const [assistantRequest, setAssistantRequest] = useState(null);
   const [page, setPage] = useState(initialDestination?.page || "home");
   const [listingFooterHeight, setListingFooterHeight] = useState(0);
   const [listingHeader, setListingHeader] = useState(null);
@@ -98,7 +99,7 @@ export default function WorkspaceShell({
       navigate("spreadsheets", { sourceId: id.slice(7) });
     else navigate(id);
   }
-  const common = { userId, displayName, theme, colors, onNavigate: navigate };
+  const common = { userId, displayName, theme, colors, onNavigate: navigate, onAskRepeat: prompt => setAssistantRequest({ prompt, key: Date.now() }) };
   const contextualHeader = page === "listing-alerts" ? listingHeader : page === "settings" ? settingsHeader : null;
   return (
     <NavigationDrawer
@@ -143,7 +144,7 @@ export default function WorkspaceShell({
           )}
         </MotionScreen>
       ))}
-      <VoicePanel key={userId} userId={userId} colors={colors} hideLauncher={page === "settings" || page === "message-template"} launcherBottom={page === "sellers" ? sellerSendBarHeight + 16 : page === "schedule" ? 92 : page === "listing-alerts" ? listingFooterHeight + 16 : 16} />
+      <VoicePanel request={assistantRequest} key={userId} userId={userId} colors={colors} hideLauncher={page === "settings" || page === "message-template"} launcherBottom={page === "sellers" ? sellerSendBarHeight + 16 : page === "schedule" ? 92 : page === "listing-alerts" ? listingFooterHeight + 16 : 16} />
       <BottomSheet
         visible={createOpen}
         onDismiss={finishShortcutDismiss}

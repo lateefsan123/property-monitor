@@ -28,7 +28,7 @@ export default function HomeConnectionPrompt({ feature, colors, userId, connecti
     pending.current = null;
     if (!provider) return;
     try {
-      const result = await connectIntegration(provider, feature, undefined, userId);
+      const result = await connectIntegration(provider, feature, feature === 'calendar' ? 'events' : undefined, userId);
       if (result.status === 'cancelled') return;
       await Promise.all([
         cache.invalidateQueries({ queryKey: ['integration-connections', userId], exact: true }),

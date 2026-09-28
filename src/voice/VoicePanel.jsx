@@ -71,7 +71,7 @@ function PrivateVoicePanel({ userId, onOpenChange }) {
           <h3>{voice.preview.preview.subject}</h3>
           {voice.preview.preview.to && <p>To: {voice.preview.preview.to}</p>}
           <p>{voice.preview.preview.body}</p>
-          <button disabled={voice.sending} onClick={voice.confirm}>{voice.preview.kind ? 'Confirm change' : 'Confirm and send'}</button>
+          <button disabled={voice.sending} onClick={voice.confirm}>{voice.preview.feature === 'calendar' ? 'Add to calendar' : voice.preview.kind ? 'Confirm change' : 'Confirm and send'}</button>
           <button disabled={voice.sending} onClick={voice.reject}>Discard</button>
         </div>}
         {active && (voice.captions.you || voice.captions.assistant) && <div className="assistant-captions"><p>{voice.captions.you}</p><p>{voice.captions.assistant}</p></div>}

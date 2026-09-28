@@ -4,6 +4,7 @@ import { createIntegrationOAuth, createTokenVault } from './integration-oauth.js
 import { createIntegrationStore } from './integration-store.js';
 import { createIntegrationTokens } from './integration-tokens.js';
 import { createIntegrationReads } from './integration-reads.js';
+import { createIntegrationCalendar } from './integration-calendar.js';
 import { createIntegrationMail } from './integration-mail.js';
 import { createEmailSummaryStore } from './email-summary-store.js';
 import { createSummaryReader } from './email-summary-reader.js';
@@ -26,6 +27,7 @@ export function createIntegrationRuntime(env) {
     store, configured,
     oauth: vault ? createIntegrationOAuth({ configs, store, vault }) : null,
     read: tokens ? createIntegrationReads({ tokens }) : null,
+    calendar: tokens ? createIntegrationCalendar({ tokens, store, vault }) : null,
     mail: tokens ? createIntegrationMail({ tokens, store, vault }) : null,
     summaries: tokens ? createEmailSummaryService({ store: createEmailSummaryStore(db), reader: createSummaryReader({ tokens }), apiKey: env.REPEAT_VOICE_OPENAI_API_KEY }) : null,
     authenticate: async token => {

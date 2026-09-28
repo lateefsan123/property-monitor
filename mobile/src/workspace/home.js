@@ -15,10 +15,10 @@ import { integrationStatusOptions } from '../../../src/integration-query';
 import { integrationRequest } from './integration-client';
 import { useEmailSummary } from '../../../shared/use-email-summary';
 import EmailSummaryCard from './email-summary-card';
-import CalendarPreview from './calendar-preview';
+import CalendarToday from './calendar-today';
 import HomeConnectionPrompt from './home-connection-prompt';
 
-export default function WorkspaceHome({ userId, displayName, colors, onNavigate }) {
+export default function WorkspaceHome({ userId, displayName, colors, onNavigate, onAskRepeat }) {
   useQuery(messageTemplatesOptions(userId));
   const [tab, setTab] = useState("activity");
   const [days, setDays] = useState(14);
@@ -29,7 +29,6 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
   const activeTab = tab;
   const emailConnected = connections.data ? hasEmail : emailSummary.data?.connected;
   const emailReady = connections.data !== undefined || emailSummary.data !== undefined;
-  const hasCalendar = connections.data?.some(item => item.feature === 'calendar' && item.connected) || false;
   const leads = useQuery({
     queryKey: leadsQueryKey(userId),
     queryFn: () => fetchUserLeads(userId),
@@ -89,7 +88,7 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
             <Text style={{ fontSize: 14, fontWeight: activeTab === id ? "600" : "400", color: activeTab === id ? colors.textName : colors.textMuted }}>{label}</Text>
           </Pressable>)}
         </View>
-        {activeTab === 'calendar' ? <CalendarPreview colors={colors} connected={hasCalendar} ready={connections.data !== undefined} userId={userId} connections={connections.data} /> : activeTab === "email" ? (
+        {activeTab === 'calendar' ? <CalendarToday colors={colors} userId={userId} connections={connections.data} connectionError={connections.error} retryConnections={connections.refetch} onAskRepeat={onAskRepeat} /> : activeTab === "email" ? (
           emailReady && !emailConnected ? <HomeConnectionPrompt feature="email" colors={colors} userId={userId} connections={connections.data} /> : <EmailSummaryCard key={userId} query={emailSummary} colors={colors} connectedProviders={connections.data ? connections.data.filter(item => item.feature === 'email' && item.connected).map(item => item.provider) : emailSummary.data?.providers || []} />
         ) : activeTab === "activity" ? <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} colors={colors} /> : (
       <View style={{ gap: 4 }}>

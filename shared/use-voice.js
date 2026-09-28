@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createVoiceConversation } from './voice-conversation.js';
 import { runAssistantChat } from './assistant-chat.js';
 
-export function useVoice({ makeTransport, sessionRequest, integrationRequest, workspace }) {
+export function useVoice({ makeTransport, sessionRequest, integrationRequest, workspace, onApplied }) {
   const [state, setState] = useState('idle');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -93,14 +93,15 @@ export function useVoice({ makeTransport, sessionRequest, integrationRequest, wo
     sendLock.current = true; setSending(true); setError('');
     card.current = null; setPreview(null); // Never reuse a consumed/uncertain approval.
     try {
-      const applied = selected.kind ? await workspace.confirm() : await integrationRequest({ action: 'confirm_email', provider: selected.provider, feature: 'email', confirmation: selected.confirmation });
+      const applied = selected.kind ? await workspace.confirm() : await integrationRequest({ action: selected.feature === 'calendar' ? 'confirm_calendar' : 'confirm_email', provider: selected.provider, feature: selected.feature || 'email', confirmation: selected.confirmation });
       if (current !== generation.current) return;
-      const message = selected.kind ? applied.message : 'Accepted by your email provider. Delivery is not yet confirmed.';
+      onApplied?.();
+      const message = selected.kind || selected.feature === 'calendar' ? applied.message : 'Accepted by your email provider. Delivery is not yet confirmed.';
       setNotice(message); call.current?.notify(message);
       history.current.push({ role: 'assistant', content: message });
       setMessages(items => [...items, { role: 'assistant', content: message }]);
     } catch {
-      if (current === generation.current) setError('The action could not be confirmed. Check the current settings or Sent folder before trying again.');
+      if (current === generation.current) setError('The action could not be confirmed. Check your calendar, current settings or Sent folder before trying again.');
     } finally {
       sendLock.current = false;
       if (current === generation.current) setSending(false);

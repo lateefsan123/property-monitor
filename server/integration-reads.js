@@ -15,7 +15,7 @@ export function createIntegrationReads({ tokens, fetchImpl = fetch, now = Date.n
       || !Object.hasOwn(INTEGRATION_PROVIDERS[provider].scopes, feature)
       || !input || typeof input !== 'object' || Array.isArray(input)) throw new IntegrationError('invalid_input');
     if (feature === 'sheets' && input.operation) return readSpreadsheetImport({ userId, provider, input, tokens, fetchImpl });
-    const allowed = feature !== 'sheets' ? [] : provider === 'google' ? ['spreadsheetId', 'sheetName', 'query', 'pageToken', 'tabs'] : ['folderId', 'fileId', 'sheetName'];
+    const allowed = feature === 'calendar' ? ['start', 'end'] : feature !== 'sheets' ? [] : provider === 'google' ? ['spreadsheetId', 'sheetName', 'query', 'pageToken', 'tabs'] : ['folderId', 'fileId', 'sheetName'];
     if (Object.keys(input).some(key => !allowed.includes(key))) throw new IntegrationError('invalid_input');
     if (feature === 'sheets') {
       if (provider === 'google' && ((input.spreadsheetId !== undefined && !id(input.spreadsheetId))
@@ -58,12 +58,13 @@ export function createIntegrationReads({ tokens, fetchImpl = fetch, now = Date.n
         from: string(item.from?.emailAddress?.address), date: string(item.receivedDateTime), snippet: string(item.bodyPreview) })), hasMore: Boolean(data['@odata.nextLink']) };
     }
     if (feature === 'calendar') {
-      const start = new Date(now()).toISOString();
-      const end = new Date(now() + 30 * 86400000).toISOString();
+      const start = input.start || new Date(now()).toISOString();
+      const end = input.end || new Date(now() + 30 * 86400000).toISOString();
+      if (![start, end].every(value => typeof value === 'string' && /(?:Z|[+-]\d\d:\d\d)$/.test(value) && Number.isFinite(Date.parse(value))) || Date.parse(end) <= Date.parse(start) || Date.parse(end) - Date.parse(start) > 31 * 86400000) throw new IntegrationError('invalid_input');
       const data = provider === 'google'
-        ? await get('https://www.googleapis.com/calendar/v3/calendars/primary/events', { timeMin: start, timeMax: end, singleEvents: 'true', orderBy: 'startTime', maxResults: '10' })
-        : await get('https://graph.microsoft.com/v1.0/me/calendarView', { startDateTime: start, endDateTime: end, '$top': '10', '$orderby': 'start/dateTime', '$select': 'id,subject,start,end,location,isAllDay' });
-      const items = list(provider === 'google' ? data.items : data.value).map(item => ({
+        ? await get('https://www.googleapis.com/calendar/v3/calendars/primary/events', { timeMin: start, timeMax: end, singleEvents: 'true', orderBy: 'startTime', maxResults: '100' })
+        : await get('https://graph.microsoft.com/v1.0/me/calendarView', { startDateTime: start, endDateTime: end, '$top': '100', '$orderby': 'start/dateTime', '$select': 'id,subject,start,end,location,isAllDay,isCancelled' });
+      const items = (provider === 'google' ? data.items || [] : data.value || []).slice(0, 100).filter(item => item.status !== 'cancelled' && !item.isCancelled).map(item => ({
         id: string(item.id), title: string(provider === 'google' ? item.summary : item.subject),
         start: string(item.start?.dateTime || item.start?.date), end: string(item.end?.dateTime || item.end?.date),
         timeZone: string(item.start?.timeZone), allDay: provider === 'google' ? Boolean(item.start?.date) : Boolean(item.isAllDay),
