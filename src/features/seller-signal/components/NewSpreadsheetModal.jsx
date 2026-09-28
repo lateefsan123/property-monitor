@@ -289,16 +289,27 @@ export default function NewSpreadsheetModal({
 
   return (
     <div className="si-backdrop" onClick={locked ? undefined : onClose}>
-      <div className="si-modal" role="dialog" aria-modal="true" aria-labelledby="si-title" onClick={(event) => event.stopPropagation()}>
-        <header className="si-header">
+      <div
+        className="si-modal"
+        role="dialog"
+        aria-modal="true"
+        {...(mode ? { "aria-label": `Import spreadsheet: ${TITLES[mode]}` } : { "aria-labelledby": "si-title" })}
+        onClick={(event) => event.stopPropagation()}
+      >
+        {/* Steps show only back and close; the step content names itself. */}
+        <header className={`si-header${mode ? " is-step" : ""}`}>
           {mode ? (
             <button type="button" className="si-icon-btn" disabled={locked} onClick={() => go(null)} aria-label="Back to import options">
               <IconArrowLeft size={18} stroke={2} aria-hidden="true" />
             </button>
           ) : null}
           <div className="si-heading">
-            <h2 id="si-title">{mode ? TITLES[mode] : "Import spreadsheet"}</h2>
-            {!mode && <p>Bring your sellers in from a file, a link or a connected account.</p>}
+            {!mode && (
+              <>
+                <h2 id="si-title">Import spreadsheet</h2>
+                <p>Bring your sellers in from a file, a link or a connected account.</p>
+              </>
+            )}
           </div>
           <button type="button" className="si-icon-btn" onClick={onClose} disabled={locked} aria-label="Close">
             <IconX size={18} stroke={2} aria-hidden="true" />

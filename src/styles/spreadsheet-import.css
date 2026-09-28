@@ -14,6 +14,7 @@
 @media (prefers-reduced-motion: reduce) { .si-backdrop, .si-modal { animation: none; } }
 
 .si-header { flex: none; display: flex; align-items: flex-start; gap: 10px; padding: 22px 18px 16px 24px; }
+.si-header.is-step { align-items: center; padding: 14px 14px 10px 16px; }
 .si-heading { flex: 1; min-width: 0; padding-top: 4px; }
 .si-heading h2 { margin: 0; color: var(--text-name); font-size: 20px; font-weight: 700; letter-spacing: -0.3px; }
 .si-heading p { margin: 6px 0 0; color: var(--text-muted); font-size: 14px; line-height: 1.45; }
