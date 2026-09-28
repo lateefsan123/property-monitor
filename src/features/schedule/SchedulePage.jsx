@@ -1,58 +1,233 @@
 import { useEffect, useRef, useState } from "react";
-import { IconPlus, IconX } from "@tabler/icons-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { IconCircleCheckFilled, IconPencil, IconPlus, IconSettings, IconX } from "@tabler/icons-react";
 import { supabase } from "../../supabase";
 import { useBuildingSchedule } from "../../../shared/use-building-schedule.js";
+import { createBuildingScheduleServices } from "../../../shared/building-schedule-services.js";
+import { buildingScheduleOptions } from "../../../shared/building-schedule-queries.js";
 import { useSpreadsheetBuildings } from "./useSpreadsheetBuildings";
 import SearchField from "../../components/SearchField";
-import { SCHEDULE_DAYS, scheduleBuildingKey } from "../../../supabase/functions/_shared/building-schedule.js";
+import { SCHEDULE_DAYS, emptySchedule, scheduleBuildingKey } from "../../../supabase/functions/_shared/building-schedule.js";
+import scheduleArt from "../../../mobile/assets/schedule-empty.png";
 import "./schedule.css";
+
+// Same layout as the mobile schedule (mobile/src/workspace/schedule-editor.js):
+// one card per scheduled building with its days, an editor with seven day
+// buttons, an Add building picker, and a Save bar only when there are edits.
+// The Weekly schedule / Fill unused switches (mobile Settings → Schedule)
+// sit behind the settings button and save on their own, like mobile.
+const daysFor = (value, name) => SCHEDULE_DAYS.filter((day) => value.days[day].some((item) => scheduleBuildingKey(item) === scheduleBuildingKey(name)));
+
+const PREFERENCES = [
+  ["enabled", "Weekly schedule", "Use the days chosen for each building. Off returns to account-wide automation."],
+  ["fill_unused", "Fill unused slots", "Use other buildings when selected buildings run out. Empty days stay off."],
+];
+
+function Sheet({ title, subtitle, onClose, children, footer }) {
+  const panel = useRef(null);
+  useEffect(() => {
+    const previous = document.activeElement;
+    panel.current?.querySelector("input, button:not(.sch-sheet-close)")?.focus();
+    function onKey(event) { if (event.key === "Escape") onClose(); }
+    document.addEventListener("keydown", onKey);
+    return () => { document.removeEventListener("keydown", onKey); previous?.focus?.(); };
+  }, [onClose]);
+  return (
+    <div className="sch-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
+      <div ref={panel} className="sch-sheet" role="dialog" aria-modal="true" aria-labelledby="sch-sheet-title">
+        <header className="sch-sheet-head">
+          <div>
+            <h2 id="sch-sheet-title">{title}</h2>
+            {subtitle ? <p>{subtitle}</p> : null}
+          </div>
+          <button type="button" className="sch-sheet-close" onClick={onClose} aria-label="Close"><IconX size={18} stroke={1.8} aria-hidden="true" /></button>
+        </header>
+        <div className="sch-sheet-body">{children}</div>
+        {footer ? <footer className="sch-sheet-foot">{footer}</footer> : null}
+      </div>
+    </div>
+  );
+}
+
+function SchedulePreferences({ userId, client, value }) {
+  const cache = useQueryClient();
+  const options = buildingScheduleOptions(client, userId).schedule;
+  const mutation = useMutation({
+    mutationFn: (next) => createBuildingScheduleServices(client).savePreferences(userId, next),
+    onSuccess: (flags) => cache.setQueryData(options.queryKey, (previous) => ({ ...(previous || emptySchedule()), ...flags })),
+  });
+  const current = { enabled: value.enabled, fill_unused: value.fill_unused, ...(mutation.isPending ? mutation.variables : {}) };
+  return (
+    <div className="sch-prefs">
+      {PREFERENCES.map(([key, title, description]) => (
+        <label key={key} className="sch-pref">
+          <span>
+            <strong>{title}</strong>
+            <small>{description}</small>
+          </span>
+          <input type="checkbox" role="switch" className="sch-switch" checked={Boolean(current[key])} disabled={mutation.isPending}
+            onChange={(event) => mutation.mutate({ ...current, [key]: event.target.checked })} />
+        </label>
+      ))}
+      <p className="sch-note" aria-live="polite">
+        {mutation.error ? <span className="sch-error">{mutation.error.message}</span> : mutation.isPending ? "Saving…" : "Changes save automatically. All schedules use Dubai time."}
+      </p>
+    </div>
+  );
+}
 
 export default function SchedulePage({ userId, client = supabase }) {
   const spreadsheets = useSpreadsheetBuildings(userId);
   const state = useBuildingSchedule(client, userId, spreadsheets);
-  const [day, setDay] = useState(null);
+  const [sheet, setSheet] = useState(null);
   const [search, setSearch] = useState("");
-  const dialog = useRef(null);
-  useEffect(() => {
-    if (day) dialog.current?.showModal();
-    else dialog.current?.close();
-  }, [day]);
+  const [editing, setEditing] = useState(null);
+  const [selectedDays, setSelectedDays] = useState([]);
   const blocked = state.loading || Boolean(state.loadError) || state.saving;
+
+  const scheduled = [...new Map(SCHEDULE_DAYS.flatMap((day) => state.value.days[day]).map((name) => [scheduleBuildingKey(name), name])).values()];
+  const editingExisting = scheduled.some((name) => scheduleBuildingKey(name) === scheduleBuildingKey(editing));
+  const available = state.buildings.filter((name) => !scheduled.some((item) => scheduleBuildingKey(item) === scheduleBuildingKey(name))
+    && name.toLowerCase().includes(search.trim().toLowerCase()));
+
+  function openAdd() { setSearch(""); setSheet("add"); }
+  function edit(name) { setEditing(name); setSelectedDays(daysFor(state.value, name)); setSheet("edit"); }
+  function toggleDay(day) { setSelectedDays((previous) => previous.includes(day) ? previous.filter((item) => item !== day) : [...previous, day]); }
+  function done() {
+    // Keep a building where it is on days it already had, so cards don't jump.
+    state.change((current) => ({ days: Object.fromEntries(SCHEDULE_DAYS.map((day) => {
+      const items = current.days[day];
+      const has = items.some((name) => scheduleBuildingKey(name) === scheduleBuildingKey(editing));
+      if (selectedDays.includes(day)) return [day, has ? items : [...items, editing]];
+      return [day, items.filter((name) => scheduleBuildingKey(name) !== scheduleBuildingKey(editing))];
+    })) }));
+    setSheet(null);
+  }
+  const close = () => setSheet(null);
+
   return (
-    <main className="schedule-page" aria-label="Schedule">
-      <header className="schedule-heading">
-        <div className="schedule-heading-actions"><button className="schedule-save" disabled={blocked || !state.dirty} onClick={state.save}>{state.saving ? "Saving…" : state.saved ? "Saved" : "Save"}</button></div>
-      </header>
-      {state.loadError ? <div role="alert" className="schedule-feedback">{state.loadError.message} <button onClick={state.retry}>Retry</button></div> : null}
-      {state.error ? <p role="alert" className="schedule-feedback">{state.error.message}</p> : null}
-      <div role="status" className="schedule-sr-only">{state.loading ? "Loading your schedule…" : state.saved ? "Schedule saved" : state.dirty ? "Unsaved changes" : ""}</div>
-      <fieldset disabled={blocked} className="schedule-controls">
-        <label className="schedule-enable" title="Repeats weekly in Dubai time. Turning this off restores account-wide automation; it does not pause sending."><input type="checkbox" checked={state.value.enabled} onChange={event => state.change({ enabled: event.target.checked })} />Weekly schedule</label>
-        <div className="schedule-board" aria-label="Weekly building schedule">
-          {SCHEDULE_DAYS.map(name => <section key={name} className="schedule-day" aria-label={name}>
-            <h2>{name}</h2>
-            <div className="schedule-buildings">
-              {state.value.days[name].map(building => <div className="schedule-building" key={building}><span>{building}</span><button aria-label={`Remove ${building} from ${name}`} onClick={() => state.toggleBuilding(name, building)}><IconX size={15} /></button></div>)}
-              {!state.value.days[name].length ? <p className="schedule-off">No sends</p> : null}
-            </div>
-            <button className="schedule-add" aria-label={`Add buildings to ${name}`} onClick={() => { setSearch(""); setDay(name); }}><IconPlus size={16} />Add buildings</button>
-          </section>)}
+    <main className="sch-page" aria-label="Schedule">
+      <div className="sch-toolbar">
+        <span className={`sch-state${state.value.enabled ? " is-on" : ""}`}>{state.value.enabled ? "Schedule on" : "Schedule off"}</span>
+        <button type="button" className="sch-icon-btn" onClick={() => setSheet("settings")} aria-label="Schedule settings" data-tooltip="Settings" disabled={state.loading || Boolean(state.loadError)}>
+          <IconSettings size={19} stroke={1.7} aria-hidden="true" />
+        </button>
+        {scheduled.length ? (
+          <button type="button" className="sch-add" onClick={openAdd} disabled={blocked}>
+            <IconPlus size={17} stroke={2} aria-hidden="true" />Add building
+          </button>
+        ) : null}
+      </div>
+
+      {state.loading ? <p className="sch-status" role="status">Loading your schedule…</p> : null}
+      {state.loadError ? (
+        <div className="sch-status is-error" role="alert">{state.loadError.message} <button type="button" onClick={state.retry}>Retry</button></div>
+      ) : null}
+
+      {scheduled.length ? (
+        <ul className="sch-list">
+          {scheduled.map((name) => (
+            <li key={scheduleBuildingKey(name)}>
+              <button type="button" className="sch-card" disabled={blocked} onClick={() => edit(name)} aria-label={`Edit schedule for ${name}`}>
+                <span className="sch-card-top">
+                  <strong>{name}</strong>
+                  <IconPencil size={17} stroke={1.8} aria-hidden="true" />
+                  <IconCircleCheckFilled className="sch-card-check" size={20} aria-hidden="true" />
+                </span>
+                <span className="sch-days">
+                  {daysFor(state.value, name).map((day) => <span key={day}>{day.slice(0, 3)}</span>)}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : !state.loading && !state.loadError ? (
+        <section className="sch-empty">
+          <img src={scheduleArt} alt="" />
+          <h2>Plan your first send</h2>
+          <p>Choose a building and the days to reach its sellers.</p>
+          <button type="button" className="sch-primary" onClick={openAdd} disabled={blocked}>Add building</button>
+        </section>
+      ) : null}
+
+      {state.dirty ? (
+        <div className="sch-savebar">
+          {state.error ? <p role="alert" className="sch-error">{state.error.message}</p> : null}
+          <button type="button" className="sch-primary is-round" disabled={blocked || !state.dirty} onClick={state.save}>
+            {state.saving ? "Saving…" : state.saved ? "Saved" : "Save schedule"}
+          </button>
         </div>
-        <label className="schedule-fallback" title="Use other buildings when selected buildings run out. Empty days stay off; existing sending limits still apply."><input type="checkbox" checked={state.value.fill_unused} onChange={event => state.change({ fill_unused: event.target.checked })} /><span>Fill unused slots from other buildings</span></label>
-      </fieldset>
-      <dialog ref={dialog} className="schedule-picker" onCancel={() => setDay(null)} onClose={() => setDay(null)} onClick={event => { if (event.target === dialog.current) setDay(null); }}>
-        <header><h2>{day} buildings</h2><button aria-label="Close building picker" onClick={() => setDay(null)}><IconX size={20} /></button></header>
-        <label className="schedule-source">Spreadsheet<select aria-label="Spreadsheet" value={spreadsheets.sourceId} onChange={event => { spreadsheets.setSourceId(event.target.value); setSearch(""); }}>
-          <option value="">{spreadsheets.sources.length ? "Choose a spreadsheet" : "No spreadsheets yet"}</option>
-          {spreadsheets.sources.map(source => <option key={source.id} value={source.id}>{source.label}</option>)}
-        </select></label>
-        <SearchField className="is-full" placeholder="Search spreadsheet buildings" value={search} onChange={event => setSearch(event.target.value)} onClear={() => setSearch("")} />
-        <div className="schedule-picker-list">
-          {state.buildings.filter(name => name.toLowerCase().includes(search.toLowerCase())).map(name => <label key={name}><input type="checkbox" checked={Boolean(day && state.value.days[day].some(item => scheduleBuildingKey(item) === scheduleBuildingKey(name)))} onChange={() => state.toggleBuilding(day, name)} /><span>{name}</span></label>)}
-          {!spreadsheets.sourceId ? <p>Choose a spreadsheet to see its buildings.</p> : !state.buildings.length ? <p>This spreadsheet has no sellers with building names yet.</p> : !state.buildings.some(name => name.toLowerCase().includes(search.toLowerCase())) ? <p>No matching buildings.</p> : null}
-        </div>
-        <button className="schedule-save" onClick={() => setDay(null)}>Done</button>
-      </dialog>
+      ) : null}
+
+      {sheet === "add" && (
+        <Sheet title="Add building" onClose={close}>
+          <label className="sch-source">
+            <span>Spreadsheet</span>
+            <select value={spreadsheets.sourceId} onChange={(event) => { spreadsheets.setSourceId(event.target.value); setSearch(""); }}>
+              <option value="">{spreadsheets.sources.length ? "Choose a spreadsheet" : "No spreadsheets yet"}</option>
+              {spreadsheets.sources.map((source) => <option key={source.id} value={source.id}>{source.label}</option>)}
+            </select>
+          </label>
+          {spreadsheets.sourceId ? (
+            <SearchField className="is-full" placeholder="Search buildings" value={search} onChange={(event) => setSearch(event.target.value)} onClear={() => setSearch("")} />
+          ) : null}
+          <ul className="sch-pick">
+            {available.map((name) => (
+              <li key={scheduleBuildingKey(name)}>
+                <button type="button" disabled={blocked} onClick={() => edit(name)}>
+                  <span>{name}</span>
+                  <IconPlus size={17} stroke={1.8} aria-hidden="true" />
+                </button>
+              </li>
+            ))}
+          </ul>
+          {!available.length ? (
+            <p className="sch-note is-center">
+              {!spreadsheets.sourceId ? "Choose a spreadsheet to see its buildings."
+                : search ? "No matching buildings."
+                  : state.buildings.length ? "All of this spreadsheet’s buildings are already scheduled."
+                    : "This spreadsheet has no sellers with building names yet."}
+            </p>
+          ) : null}
+        </Sheet>
+      )}
+
+      {sheet === "edit" && (
+        <Sheet
+          title={editingExisting ? "Edit schedule" : "New schedule"}
+          subtitle={editing}
+          onClose={close}
+          footer={(
+            <>
+              {editingExisting ? (
+                <button type="button" className="sch-danger" disabled={blocked} onClick={() => { state.removeBuilding(editing); close(); }}>Remove</button>
+              ) : null}
+              <button type="button" className="sch-primary is-round" disabled={blocked || (!editingExisting && !selectedDays.length)} onClick={done}>Done</button>
+            </>
+          )}
+        >
+          <div className="sch-day-picker" role="group" aria-label="Days to send">
+            {SCHEDULE_DAYS.map((day) => {
+              const checked = selectedDays.includes(day);
+              return (
+                <button key={day} type="button" role="checkbox" aria-checked={checked} aria-label={day} disabled={blocked}
+                  className={checked ? "is-on" : ""} onClick={() => toggleDay(day)}>
+                  {day.slice(0, 2)}
+                </button>
+              );
+            })}
+          </div>
+          {!selectedDays.length ? (
+            <p className="sch-note is-center">{editingExisting ? "No days selected. Done removes this building from the schedule." : "Choose the days to send."}</p>
+          ) : null}
+        </Sheet>
+      )}
+
+      {sheet === "settings" && (
+        <Sheet title="Schedule settings" onClose={close}>
+          <SchedulePreferences userId={userId} client={client} value={state.value} />
+        </Sheet>
+      )}
     </main>
   );
 }
