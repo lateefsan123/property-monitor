@@ -18,6 +18,7 @@ import {
 } from "../useSpreadsheetFavorites";
 import SpreadsheetDetailModal from "./SpreadsheetDetailModal";
 import NewSpreadsheetModal from "./NewSpreadsheetModal";
+import { peekSpreadsheetImport, takeSpreadsheetImport } from "../../../integration-resume";
 
 function isPlaceholderSourceLabel(source) {
   const label = String(source?.label || "").trim();
@@ -241,7 +242,11 @@ function SelectionBar({ count, total, onSelectAll, onClear, onCopyLink, onPin, o
 export default function SpreadsheetsPage({ userId }) {
   const page = useSpreadsheetsPage(userId);
   const [openSourceId, setOpenSourceId] = useState(null);
-  const [newSheetOpen, setNewSheetOpen] = useState(false);
+  // Returning from a Google/Microsoft sign-in started in the import modal
+  // reopens the modal on that provider.
+  const [newSheetMode, setNewSheetMode] = useState(() => peekSpreadsheetImport());
+  const [newSheetOpen, setNewSheetOpen] = useState(() => Boolean(peekSpreadsheetImport()));
+  useEffect(() => { takeSpreadsheetImport(); }, []);
   const [sort, setSort] = useState(loadInitialSort);
   const [query, setQuery] = useState("");
   const { favoriteIds: favorites, toggle: toggleFavorite } = useSpreadsheetFavorites(userId);
@@ -331,6 +336,7 @@ export default function SpreadsheetsPage({ userId }) {
 
   function handleOpenNewSheet() {
     if (!page.canAddSource || page.addingSource) return;
+    setNewSheetMode(null);
     setNewSheetOpen(true);
   }
 
@@ -446,9 +452,12 @@ export default function SpreadsheetsPage({ userId }) {
 
       {newSheetOpen && (
         <NewSpreadsheetModal
+          userId={userId}
+          initialMode={newSheetMode}
           onClose={() => setNewSheetOpen(false)}
           onSubmit={handleCreateFromUrl}
           onImportFile={page.actions.importFile}
+          onImportRows={page.actions.importRows}
           submitting={page.addingSource || Boolean(page.importingSourceId)}
           maxSelections={page.remainingSourceSlots}
         />

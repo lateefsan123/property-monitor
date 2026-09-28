@@ -258,7 +258,18 @@ export function useSpreadsheetsPage(userId) {
     }
   }
 
-  async function importFile(file, rawRows) {
+  function importFile(file, rawRows) {
+    return importRows({
+      key: `${file.name}:${file.size}:${file.lastModified}`,
+      label: file.name.replace(/\.(xlsx|xls|csv)$/i, ""),
+      rawRows,
+    });
+  }
+
+  // One-time import of already-read rows (uploaded file or a connected
+  // Google/Excel worksheet). A retry with the same key reuses the source it
+  // created, so a failed import never leaves duplicate spreadsheets.
+  async function importRows({ key: rowsKey, label, rawRows }) {
     if (fileImportBusy.current) return false;
     if (!userId) throw new Error("Sign in required.");
     fileImportBusy.current = true;
@@ -266,11 +277,11 @@ export function useSpreadsheetsPage(userId) {
     setActionError(null);
     setActionNotice(null);
     try {
-      const key = `${userId}:${file.name}:${file.size}:${file.lastModified}`;
+      const key = `${userId}:${rowsKey}`;
       if (pendingFileSource.current?.key !== key) {
         if (!canAddSource) throw new Error("You can have up to 10 spreadsheets.");
         const source = await createLeadSource(userId, {
-          label: file.name.replace(/\.(xlsx|xls|csv)$/i, ""),
+          label,
           sheet_url: null,
           sort_order: getNextLeadSourceSortOrder(leadSources),
         });
@@ -424,6 +435,7 @@ export function useSpreadsheetsPage(userId) {
     legacyError: legacyFeedback.error,
     actions: {
       importFile,
+      importRows,
       addSource,
       clearSource,
       importFromSheet,
