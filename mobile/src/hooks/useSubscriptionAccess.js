@@ -11,7 +11,8 @@ import {
   restoreMobilePurchases,
   showMobileSubscriptionManagement,
 } from "../subscriptions";
-import { sharedSubscriptionIsActive, useSharedSubscription } from "./useSharedSubscription";
+import { useSharedSubscription } from "./useSharedSubscription";
+import { resolveSubscriptionAccess } from '../subscription-access';
 import { withStartupTimeout } from '../startup-request';
 
 const EMPTY_STORE = {
@@ -90,16 +91,12 @@ export function useSubscriptionAccess({ userId, email, displayName }) {
     return () => listener.remove();
   }, [refreshStore, refetchShared, userId]);
 
-  const storeBelongsToUser = Boolean(userId && store.userId === userId);
-  const storeIsPro = storeBelongsToUser && store.isPro;
-  const sharedIsActive = sharedSubscriptionIsActive(sharedSubscription);
-  const hasAccess = Boolean(storeIsPro || sharedIsActive);
+  const { storeBelongsToUser, storeIsPro, sharedIsActive, hasAccess, isLoading, verificationError } = resolveSubscriptionAccess({
+    userId, store, sharedSubscription, sharedLoading, sharedError,
+  });
   const source = storeIsPro
     ? (getSubscriptionStoreLabel() === "App Store" ? "app_store" : "play_store")
     : sharedIsActive ? sharedSubscription?.source : null;
-  const isLoading = Boolean(userId)
-    && !hasAccess
-    && (!storeBelongsToUser || store.loading || sharedLoading);
   const storeLabel = source === "stripe"
     ? "Web billing"
     : source === "app_store"
@@ -167,6 +164,7 @@ export function useSubscriptionAccess({ userId, email, displayName }) {
       ? "Could not verify your subscription. Check your connection and try again."
       : null),
     hasAccess,
+    verificationError,
     isLoading,
     manage,
     priceString: storeBelongsToUser ? store.priceString : null,

@@ -26,3 +26,8 @@ export function onboardingDestination(goalId) {
   const goal = ONBOARDING_GOALS.find(item => item.id === goalId) || ONBOARDING_GOALS[0];
   return { page: goal.page, request: goal.request };
 }
+// Onboarding is explicitly opened for the current session, never an install flag.
+// Signing in or switching accounts leaves the tour and runs the normal access gate.
+export function shouldShowOnboarding(requestedUserId, currentUserId) {
+  return requestedUserId !== undefined && requestedUserId === currentUserId;
+}

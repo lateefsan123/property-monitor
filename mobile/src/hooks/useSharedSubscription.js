@@ -3,20 +3,17 @@ import { AppState } from "react-native";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "../supabase";
 import { withStartupTimeout } from '../startup-request';
+import { createBillingRequest } from '../../../src/billing-request';
+
+const requestBilling = createBillingRequest(supabase);
 
 export async function fetchSharedSubscription() {
-  const { data, error } = await withStartupTimeout(
-    () => supabase.functions.invoke("get-billing-access", { body: {}, timeout: 10000 }),
+  const data = await withStartupTimeout(
+    () => requestBilling('get-billing-access'),
     'Could not verify your subscription. Check your connection and try again.',
   );
-  if (error) throw new Error("Could not verify your existing subscription. Please try again.");
+  if (!data || !Object.hasOwn(data, 'subscription')) throw new Error('Could not verify your subscription. Please try again.');
   return data?.subscription ?? null;
-}
-
-export function sharedSubscriptionIsActive(subscription, now = Date.now()) {
-  return subscription?.raw?.livemode === true
-    && ["active", "trialing"].includes(subscription.status)
-    && Date.parse(subscription.current_period_end) > now;
 }
 
 export function useSharedSubscription(userId) {
