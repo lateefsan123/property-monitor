@@ -18,7 +18,9 @@ const PROMPT_IDEAS = [
 export default function TemplateAiDialog({ message, disabled, onClose, onApply }) {
   const [mode, setMode] = useState(message.trim() ? "polish" : "prompt");
   const [prompt, setPrompt] = useState("");
-  const [draft, setDraft] = useState(null);
+  // Each tab keeps its own result, so switching tabs never discards a draft.
+  const [drafts, setDrafts] = useState({ polish: null, prompt: null });
+  const draft = drafts[mode];
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const dialogRef = useRef(null);
@@ -48,12 +50,12 @@ export default function TemplateAiDialog({ message, disabled, onClose, onApply }
   async function run() {
     if (lock.current || !canRun) return;
     lock.current = true;
+    const runMode = mode;
     setBusy(true);
     setError("");
-    setDraft(null);
     try {
       const next = await requestTemplateDraft(supabase, brief);
-      if (active.current) setDraft(next);
+      if (active.current) setDrafts((current) => ({ ...current, [runMode]: next }));
     } catch (failure) {
       if (active.current) setError(failure.message);
     } finally {
@@ -65,7 +67,6 @@ export default function TemplateAiDialog({ message, disabled, onClose, onApply }
   function switchMode(next) {
     if (busy) return;
     setMode(next);
-    setDraft(null);
     setError("");
   }
 

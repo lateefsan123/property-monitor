@@ -279,8 +279,8 @@ export default function MessageTemplatesPanel({
                   <div className="message-template-field-head">
                     <label htmlFor="message-template-content">Message</label>
                     <button type="button" className="message-template-ai-btn" disabled={saving} onClick={() => setAiOpen(true)}
-                      aria-haspopup="dialog" title="Polish or write this message with AI">
-                      <IconSparkles size={15} stroke={1.8} aria-hidden="true" /> AI
+                      aria-haspopup="dialog" aria-label="Write with AI" data-tooltip="AI">
+                      <IconSparkles size={19} stroke={1.8} aria-hidden="true" />
                     </button>
                   </div>
                   <textarea id="message-template-content" ref={textareaRef} value={content} maxLength={4000} rows={9} disabled={saving}
