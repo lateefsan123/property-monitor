@@ -31,21 +31,21 @@ import "./settings-page.css";
 // pages and Help & legal, in Base44's full-page layout (Mobbin d9d0498f).
 const GROUPS = [
   { label: null, items: [
-    { id: "general", label: "General", icon: IconAdjustmentsHorizontal, description: "How Repeat AI looks and behaves on this browser." },
+    { id: "general", label: "General", icon: IconAdjustmentsHorizontal },
   ] },
   { label: "Account", items: [
-    { id: "account", label: "Account", icon: IconUserCircle, description: "Your profile and sign-in." },
-    { id: "billing", label: "Billing", icon: IconCreditCard, description: "Your plan, payment and invoices." },
+    { id: "account", label: "Account", icon: IconUserCircle },
+    { id: "billing", label: "Billing", icon: IconCreditCard },
   ] },
   { label: "Workspace", items: [
-    { id: "automations", label: "Automations", icon: IconBolt, description: "What Repeat AI sends for you automatically." },
-    { id: "schedule", label: "Schedule", icon: IconCalendarWeek, description: "How your weekly building schedule is used." },
-    { id: "whatsapp", label: "WhatsApp", icon: IconBrandWhatsapp, description: "The number your seller messages are sent from." },
-    { id: "activity", label: "Send activity", icon: IconActivity, description: "Messages sent from your WhatsApp number." },
-    { id: "integrations", label: "Integrations", icon: IconPlug, description: "Spreadsheets, email and calendars you’ve connected." },
+    { id: "automations", label: "Automations", icon: IconBolt },
+    { id: "schedule", label: "Schedule", icon: IconCalendarWeek },
+    { id: "whatsapp", label: "WhatsApp", icon: IconBrandWhatsapp },
+    { id: "activity", label: "Send activity", icon: IconActivity },
+    { id: "integrations", label: "Integrations", icon: IconPlug },
   ] },
   { label: "Support", items: [
-    { id: "help", label: "Help & legal", icon: IconHelpCircle, description: "Policies and account data." },
+    { id: "help", label: "Help & legal", icon: IconHelpCircle },
   ] },
 ];
 const SECTIONS = GROUPS.flatMap((group) => group.items);
@@ -95,7 +95,6 @@ export default function SettingsPage({
       <main className="st-content settings-connection-first" aria-labelledby="st-title">
         <header className="st-head">
           <h2 id="st-title">{current.label}</h2>
-          <p>{current.description}</p>
         </header>
 
         {section === "general" && (

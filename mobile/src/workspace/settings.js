@@ -63,7 +63,7 @@ function SendActivity({ userId, colors, active }) {
   return <View style={{ gap: 20 }}>
     <ActivityDateFilter value={{ ...selection, range }} colors={colors} onApply={setSelection} />
     <Feedback colors={colors} loading={query.isPending} error={query.error} onRetry={query.refetch} />
-    {query.data ? <SendActivitySummary data={query.data} colors={colors} refreshing={query.isFetching} onRefresh={query.refetch} /> : null}
+    {query.data ? <SendActivitySummary data={query.data} colors={colors} /> : null}
   </View>;
 }
 
