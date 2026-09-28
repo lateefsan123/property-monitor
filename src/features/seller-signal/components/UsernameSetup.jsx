@@ -1,9 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../../supabase";
 import OnboardingFrame from "../../../OnboardingFrame";
-
-const AVATAR_PIXELS = 96;
-const AVATAR_QUALITY = 0.7;
+import { AVATAR_PIXELS, AVATAR_QUALITY, saveAvatarProfile } from '../../../../shared/profile-avatar';
 
 function getInitial(value) {
   const trimmed = String(value || "").trim();
@@ -20,8 +18,9 @@ function downscaleImageToDataUrl(file) {
       image.onerror = () => reject(new Error("That file isn’t a supported image."));
       image.onload = () => {
         const canvas = document.createElement("canvas");
-        canvas.width = AVATAR_PIXELS;
-        canvas.height = AVATAR_PIXELS;
+        const outputSide = Math.min(AVATAR_PIXELS, image.width, image.height);
+        canvas.width = outputSide;
+        canvas.height = outputSide;
         const ctx = canvas.getContext("2d");
         if (!ctx) {
           reject(new Error("Could not process the image."));
@@ -30,7 +29,8 @@ function downscaleImageToDataUrl(file) {
         const minSide = Math.min(image.width, image.height);
         const sx = (image.width - minSide) / 2;
         const sy = (image.height - minSide) / 2;
-        ctx.drawImage(image, sx, sy, minSide, minSide, 0, 0, AVATAR_PIXELS, AVATAR_PIXELS);
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(image, sx, sy, minSide, minSide, 0, 0, outputSide, outputSide);
         resolve(canvas.toDataURL("image/jpeg", AVATAR_QUALITY));
       };
       image.src = String(reader.result);
@@ -84,22 +84,20 @@ export default function UsernameSetup({ initialName = "", initialAvatar = "", on
     setSaving(true);
     setError(null);
 
-    const { error: updateError } = await supabase.auth.updateUser({
-      data: {
+    try {
+      const user = await saveAvatarProfile(supabase, null, {
         username: trimmed,
         avatar_url: avatarDataUrl || null,
         profile_completed: true,
-      },
-    });
-
-    if (updateError) {
+      });
+      onComplete?.({ username: trimmed, avatarDataUrl: user.user_metadata?.avatar_url || "" });
+    } catch (updateError) {
       setError(updateError.message);
       setSaving(false);
       return;
     }
 
     setSaving(false);
-    onComplete?.({ username: trimmed, avatarDataUrl: avatarDataUrl || "" });
   }
 
   return (

@@ -1,3 +1,5 @@
+import { saveAvatarProfile } from '../../../shared/profile-avatar.js';
+
 export function profileUpdates(name, avatarUrl) {
   const trimmed = name.trim();
   if (!trimmed) throw new Error('Please enter your name.');
@@ -7,10 +9,6 @@ export function profileUpdates(name, avatarUrl) {
 
 export async function saveProfile(client, userId, name, avatarUrl) {
   const updates = profileUpdates(name, avatarUrl);
-  const { data: current, error: authError } = await client.auth.getUser();
-  if (authError) throw authError;
-  if (!userId || current.user?.id !== userId) throw new Error('Your account changed. Please reopen your profile.');
-  const { data, error } = await client.auth.updateUser({ data: updates });
-  if (error) throw error;
-  return data.user;
+  if (!userId) throw new Error('Your account changed. Please reopen your profile.');
+  return saveAvatarProfile(client, userId, updates);
 }

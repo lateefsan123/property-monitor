@@ -6,6 +6,7 @@ import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import AppIcon from '../components/AppIcon';
 import { supabase } from '../supabase';
 import { saveProfile } from '../workspace/profile-service';
+import { AVATAR_PIXELS, AVATAR_QUALITY } from '../../../shared/profile-avatar';
 
 export default function EditProfileScreen({ userId, displayName = '', avatarUrl = '', colors, onClose }) {
   const [name, setName] = useState(displayName);
@@ -45,9 +46,9 @@ export default function EditProfileScreen({ userId, displayName = '', avatarUrl 
       const side = Math.min(asset.width, asset.height);
       const resized = await manipulateAsync(asset.uri, [
         { crop: { originX: (asset.width - side) / 2, originY: (asset.height - side) / 2, width: side, height: side } },
-        { resize: { width: 96, height: 96 } },
-      ], { format: SaveFormat.JPEG, compress: 0.7, base64: true });
-      if (!resized.base64 || resized.base64.length > 16000) throw new Error('Please choose a simpler photo or crop it more closely.');
+        { resize: { width: Math.min(side, AVATAR_PIXELS), height: Math.min(side, AVATAR_PIXELS) } },
+      ], { format: SaveFormat.JPEG, compress: AVATAR_QUALITY, base64: true });
+      if (!resized.base64) throw new Error('Could not process that photo.');
       setPhoto(`data:image/jpeg;base64,${resized.base64}`);
     } catch (failure) {
       setError(failure.message || 'Could not open that photo. Please try again.');
