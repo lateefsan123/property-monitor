@@ -4,7 +4,7 @@ Mobile Home shows an Email tab when Gmail or Outlook is connected. Users explici
 
 ## Design references
 
-The card was refined using Mobbin MCP screen references: [Spark Mail's labelled summary](https://mobbin.com/screens/a3a32838-87bc-408f-86a7-e5d6651d665c) informed the separate summary surface; [Fabric's recap settings](https://mobbin.com/screens/066ac96f-d59b-4e75-a187-4fb3d2258fef) informed separating the enable switch from the content header. The card keeps Repeat's theme and expandable email details. Fictional preview text appears until a real summary is available. Mobbin searches did not return a matching ChatGPT scheduled-task screen.
+The flat summary follows the heading, short description and muted metadata at the top of [Finimize's daily brief](https://mobbin.com/screens/5d326d90-9cdc-44c6-9572-1a45f22cfb64), found and inspected through Mobbin MCP. It sits directly on Home's background with Repeat's typography and a small schedule toggle. Individual email rows and nested cards are removed. Fictional preview text appears until a real summary is available.
 
 The daily window is the 24 hours ending at 08:00 Asia/Dubai. The reader selects up to 10 recent inbox emails across both providers, excludes attachments, and bounds text to 30,000 characters total. Truncated messages are labelled as excerpts. GPT-5.6 Luna returns an overview and a sentence per email. The server reuses `REPEAT_VOICE_OPENAI_API_KEY`; the key never enters the mobile bundle.
 
