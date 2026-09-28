@@ -84,7 +84,7 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
             <Text style={{ fontSize: 16, fontWeight: activeTab === id ? "600" : "400", color: activeTab === id ? colors.textName : colors.textMuted }}>{label}</Text>
           </Pressable>)}
         </View>
-        {activeTab === "email" ? <EmailSummaryCard key={userId} query={emailSummary} colors={colors} /> : activeTab === "activity" ? <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} colors={colors} /> : (
+        {activeTab === "email" ? <EmailSummaryCard key={userId} query={emailSummary} colors={colors} connectedProviders={(connections.data || []).filter(item => item.feature === 'email' && item.connected).map(item => item.provider)} /> : activeTab === "activity" ? <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} colors={colors} /> : (
       <View style={{ gap: 4 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
           <View style={{ gap: 4 }}>
