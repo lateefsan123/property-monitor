@@ -274,13 +274,12 @@ export async function updateLead({ userId, leadId, updates }) {
   if (Object.prototype.hasOwnProperty.call(updates || {}, "lastContact")) payload.last_contact = updates?.lastContact || null;
   if (Object.prototype.hasOwnProperty.call(updates || {}, "notes")) payload.notes = updates?.notes?.trim() || null;
 
+  if (Object.prototype.hasOwnProperty.call(updates || {}, "message_draft")) payload.message_draft = updates.message_draft;
+
   if (!Object.keys(payload).length) return;
 
-  const { error } = await supabase
-    .from("leads")
-    .update(payload)
-    .eq("user_id", userId)
-    .eq("id", leadId);
+  const query = supabase.from("leads").update(payload).eq("user_id", userId).eq("id", leadId);
+  const { error } = await (Object.prototype.hasOwnProperty.call(payload, "message_draft") ? query.select("id").single() : query);
 
   if (error) throw new Error(error.message);
 }

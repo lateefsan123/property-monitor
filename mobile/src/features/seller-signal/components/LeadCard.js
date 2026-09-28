@@ -1,3 +1,5 @@
+import { useState } from "react";
+import * as Clipboard from "expo-clipboard";
 import AppIcon from "../../../components/AppIcon";
 import { Icon } from "../../../workspace/ui";
 import * as Linking from "expo-linking";
@@ -117,8 +119,9 @@ export default function LeadCard({
   onToggleSent,
   whatsappConnected,
 }) {
+  const [copyStatus, setCopyStatus] = useState("");
   const c = colors;
-  const message = insight?.message || buildMessage(lead, insight, messageTemplate);
+  const message = lead.message_draft ?? (insight?.message || buildMessage(lead, insight, messageTemplate));
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
   const bedroomLabel = formatLeadBedroom(lead.bedroom);
   const unitLabel = formatLeadUnit(lead.unit || extractUnitFromBuilding(lead.building));
@@ -156,6 +159,7 @@ export default function LeadCard({
       </View>
 
 
+      {lead.phone ? <Pressable accessibilityRole="button" accessibilityLabel={`Copy phone number for ${lead.name || "seller"}`} onPress={async event => { event.stopPropagation(); try { await Clipboard.setStringAsync(String(lead.phone)); setCopyStatus("Copied"); } catch { setCopyStatus("Could not copy. Try again."); } }} style={{ flexDirection: "row", alignItems: "center", gap: 8, minHeight: 44 }}><CopyIcon size={15} color={c.textMuted} /><Text style={{ color: c.textMuted, fontSize: 13 }}>{lead.phone}</Text>{copyStatus ? <Text accessibilityLiveRegion="polite" style={{ color: c.textMuted, fontSize: 12 }}>{copyStatus}</Text> : null}</Pressable> : null}
       {/* Badges + action button */}
       {(
         <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>

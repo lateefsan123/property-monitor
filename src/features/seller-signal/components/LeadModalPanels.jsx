@@ -289,6 +289,7 @@ export function MarketPanel({ insight, lead }) {
 }
 
 export function MessagePanel({
+  onSaveMessage, savingMessage, saveStatus, saveError,
   edited,
   imageUrl,
   hasImage = Boolean(imageUrl),
@@ -342,6 +343,8 @@ export function MessagePanel({
 
       <textarea
         className="lead-message-editor"
+        aria-label="Seller message"
+        disabled={savingMessage}
         value={message}
         spellCheck={false}
         onChange={(event) => onChangeMessage(event.target.value)}
@@ -352,10 +355,13 @@ export function MessagePanel({
       </label>}
       {attachmentError && <p role="alert">{attachmentError}</p>}
 
+      <button type="button" className="btn-sm btn-primary" disabled={savingMessage || !message.trim()} onClick={onSaveMessage}>{savingMessage ? "Saving…" : "Save message"}</button>
+      {saveStatus && <p role="status">{saveStatus}</p>}
+      {saveError && <p role="alert">{saveError}</p>}
       {edited && (
         <div className="lead-message-editor-foot">
           <span>Edited for this seller</span>
-          <button type="button" className="btn-sm" onClick={onResetMessage}>
+          <button type="button" className="btn-sm" disabled={savingMessage} onClick={onResetMessage}>
             Reset to template
           </button>
         </div>

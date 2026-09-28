@@ -40,6 +40,7 @@ export default function LeadModal({
   onEditFieldChange,
   onSaveEdit,
   onSaveNotes,
+  onSaveMessage,
   onSaveFollowUp,
   onSendWhatsApp,
   onStartEditing,
@@ -52,6 +53,15 @@ export default function LeadModal({
   const [notesSaving, setNotesSaving] = useState(false);
   const [templateChoice, setTemplateChoice] = useState("default");
   const [draftMessage, setDraftMessage] = useState(null);
+  const [savingMessage, setSavingMessage] = useState(false);
+  const [messageSaveStatus, setMessageSaveStatus] = useState("");
+  const [messageSaveError, setMessageSaveError] = useState("");
+  async function saveMessage(value) {
+    setSavingMessage(true); setMessageSaveStatus(""); setMessageSaveError("");
+    try { await onSaveMessage(lead.id, value); setDraftMessage(null); setTemplateChoice("default"); setMessageSaveStatus(value === null ? "Template restored" : "Message saved"); }
+    catch (error) { setMessageSaveError(error.message || "Could not save. Try again."); }
+    finally { setSavingMessage(false); }
+  }
   const [imageExcluded, setImageExcluded] = useState(false);
   const [customImage, setCustomImage] = useState(null);
   const [customPreview, setCustomPreview] = useState('');
@@ -79,8 +89,8 @@ export default function LeadModal({
     }
   }
 
-  // "default" keeps the saved default script; picking another template or typing
-  // in the box only affects this seller's next send.
+  // Saved seller text takes priority over the default template.
+  // Unsaved edits still apply to the next send; Save persists them.
   const defaultTemplate = templates.find((template) => template.is_default) || null;
   const defaultTemplateName = defaultTemplate?.name;
   const templateOptions = [
@@ -97,7 +107,7 @@ export default function LeadModal({
   const baseMessage = chosenTemplate
     ? buildMessage(lead, insight, chosenTemplate.content)
     : (insight?.message || buildMessage(lead, insight, messageTemplate));
-  const message = draftMessage ?? baseMessage;
+  const message = draftMessage ?? (templateChoice === "default" ? lead.message_draft : null) ?? baseMessage;
   const messageEdited = draftMessage !== null && draftMessage !== baseMessage;
   const templateImagePath = selectedTemplate?.image_path || null;
   const templateImageUrl = selectedTemplate?.image_url || null;
@@ -273,7 +283,8 @@ export default function LeadModal({
                 )}
                 {activeSection === "message" && (
                   <MessagePanel
-                    edited={messageEdited}
+                    edited={messageEdited || Boolean(lead.message_draft)}
+                    onSaveMessage={() => saveMessage(message)} savingMessage={savingMessage} saveStatus={messageSaveStatus} saveError={messageSaveError}
                     imageUrl={customImage ? customPreview : templateImageUrl}
                     hasImage={Boolean(customImage || templateImagePath)}
                     imageIncluded={Boolean(customImage || selectedImagePath)}
@@ -287,8 +298,8 @@ export default function LeadModal({
                       setAttachmentError(''); setCustomImage(file); setCustomPreview(URL.createObjectURL(file));
                     }}
                     message={message}
-                    onChangeMessage={setDraftMessage}
-                    onResetMessage={() => setDraftMessage(null)}
+                    onChangeMessage={value => { setDraftMessage(value); setMessageSaveStatus(""); }}
+                    onResetMessage={() => saveMessage(null)}
                     onSelectTemplate={handleSelectTemplate}
                     selectedTemplateId={templateChoice}
                     templateOptions={templateOptions}

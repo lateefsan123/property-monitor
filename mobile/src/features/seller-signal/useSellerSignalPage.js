@@ -710,7 +710,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     return {
       imagePath: introAttachmentPath(messageTemplateImagePath, lead, sentLeads[lead.id]),
       insight,
-      message: insight?.message || buildMessage(lead, insight, messageTemplate),
+      message: lead.message_draft ?? (insight?.message || buildMessage(lead, insight, messageTemplate)),
       phone: formatPhoneForWhatsApp(lead.phone),
     };
   }
@@ -719,7 +719,8 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     const lead = leads.find((item) => item.id === leadId) || pagedLeads.find((item) => item.id === leadId);
     if (!lead) return false;
 
-    const { imagePath: defaultImagePath, message, phone } = getLeadWhatsAppPayload(lead);
+    const { imagePath: defaultImagePath, message: savedMessage, phone } = getLeadWhatsAppPayload(lead);
+    const message = options.message ?? savedMessage;
     const requestedImagePath = Object.prototype.hasOwnProperty.call(options, "imagePath") ? options.imagePath : defaultImagePath;
     const imagePath = introAttachmentPath(requestedImagePath, lead, sentLeads[lead.id]);
     if (!phone) {
@@ -856,6 +857,13 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     } finally {
       setSavingLeadId(null);
     }
+  }
+
+  async function saveMessage(leadId, message) {
+    if (!userId || !leadId) throw new Error("Please sign in again.");
+    await updateLead({ userId, leadId, updates: { message_draft: message } });
+    setLeads(current => current.map(lead => lead.id === leadId ? { ...lead, message_draft: message } : lead));
+    queryClient.setQueryData(leadsQueryKey(userId), current => current ? { ...current, leads: current.leads.map(lead => lead.id === leadId ? { ...lead, message_draft: message } : lead) } : current);
   }
 
   async function saveNotes(leadId, notes) {
@@ -1029,6 +1037,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
       persistLeadSource,
       saveLeadEdits,
       saveNotes,
+      saveMessage,
       saveFollowUp,
       selectDataQualityFilter: value => { setDataQualityFilter(value); resetPaging(); },
       selectFavoritesOnly: value => { setFavoritesOnly(value); resetPaging(); },

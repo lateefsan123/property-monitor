@@ -194,6 +194,12 @@ export function createSellerSignalActions(context) {
     }
   }
 
+  async function saveMessage(leadId, message) {
+    if (!userId || !leadId) throw new Error("Please sign in again.");
+    await updateLeadMutation.mutateAsync({ leadId, updates: { message_draft: message } });
+    queryClient.setQueryData(sellerLeadsQueryKey(userId), current => current ? { ...current, leads: current.leads.map(lead => lead.id === leadId ? { ...lead, message_draft: message } : lead) } : current);
+  }
+
   async function saveNotes(leadId, notes) {
     if (!leadId) return;
     try {
@@ -272,7 +278,7 @@ export function createSellerSignalActions(context) {
     return {
       imagePath: introAttachmentPath(messageTemplateImagePath, lead, sentLeads[lead.id]),
       insight,
-      message: insight?.message || buildMessage(lead, insight, messageTemplate),
+      message: lead.message_draft ?? (insight?.message || buildMessage(lead, insight, messageTemplate)),
       phone: formatPhoneForWhatsApp(lead.phone),
     };
   }
@@ -315,7 +321,7 @@ export function createSellerSignalActions(context) {
     // sending automatically.
     const isHot = hasTodaysTransactionUpdate(lead.id);
     const canFollowUp = insight?.status === "ready" && (insight.recentTransactions?.length || 0) > 0;
-    if (!isHot && !canFollowUp && !options.customImage) {
+    if (!isHot && !canFollowUp && !options.customImage && !lead.message_draft?.trim() && !String(options.message || "").trim()) {
       setActionError("No market data for this building yet - copy the message and personalize it instead.");
       setActionNotice(null);
       return false;
@@ -494,6 +500,7 @@ export function createSellerSignalActions(context) {
     saveBuildingAlias,
     saveLeadEdits,
     saveNotes,
+    saveMessage,
     sendWhatsAppLead,
     startEditingLead,
     toggleSent,

@@ -1,4 +1,6 @@
+import { useState } from "react";
 import {
+  IconCopy,
   IconBrandWhatsapp,
   IconPinned,
   IconPinnedFilled,
@@ -52,7 +54,8 @@ export default function LeadCard({
   pinned,
   whatsappConnected,
 }) {
-  const message = insight?.message || null;
+  const [copyStatus, setCopyStatus] = useState("");
+  const message = lead.message_draft ?? insight?.message ?? null;
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
   const displayBuildingLabel = insight?.locationName
     || formatBuildingLabel(lead.resolvedBuilding || lead.building)
@@ -73,10 +76,11 @@ export default function LeadCard({
   const hasTodaySale = insight?.status === "ready"
     && (insight.hasTodaysTransactions || insight.todaysRecentTransactions?.length > 0);
   const canFollowUp = insight?.status === "ready" && (insight.recentTransactions?.length || 0) > 0;
+  const hasSavedMessage = Boolean(lead.message_draft?.trim());
   const insightPending = !insight || insight.status === "loading";
   const sendLabel = isSent
     ? "Sent"
-    : insightPending || hasTodaySale
+    : hasSavedMessage || insightPending || hasTodaySale
       ? "Send"
       : canFollowUp
         ? "Follow up"
@@ -86,7 +90,7 @@ export default function LeadCard({
     <button
       type="button"
       className="btn-sm btn-wa"
-      disabled={!isSent && (insightPending || (!hasTodaySale && !canFollowUp))}
+      disabled={!isSent && !hasSavedMessage && (insightPending || (!hasTodaySale && !canFollowUp))}
       title={sendLabel === "No data" ? "No market data for this building yet" : ""}
       onClick={(event) => {
         event.stopPropagation();
@@ -198,7 +202,7 @@ export default function LeadCard({
         )}
       </td>
       <td className="lead-cell-phone">
-        {lead.phone || <span className="text-muted">—</span>}
+        {lead.phone ? <button type="button" className="btn-sm" aria-label={`Copy phone number for ${lead.name || "seller"}`} onClick={async event => { event.stopPropagation(); try { await navigator.clipboard.writeText(String(lead.phone)); setCopyStatus("Copied"); } catch { setCopyStatus("Could not copy. Try again."); } }}><IconCopy size={14} aria-hidden="true" /> {lead.phone}<span role="status">{copyStatus}</span></button> : <span className="text-muted">—</span>}
       </td>
       <td className="lead-cell-action" onClick={(e) => e.stopPropagation()}>
         {sendButton}

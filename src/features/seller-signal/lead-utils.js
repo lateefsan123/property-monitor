@@ -251,6 +251,7 @@ export function mapStoredLeadRow(row, index, today) {
   lead.id = row.id;
   lead.sourceId = row.source_id || null;
   lead.notes = row.notes || "";
+  lead.message_draft = row.message_draft ?? null;
   lead.sentAt = row.sent_at || null;
   return applyManualFollowUp(lead, row.next_follow_up_on, today);
 }

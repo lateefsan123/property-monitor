@@ -208,6 +208,7 @@ export default function LeadDetailSheet({
   onEditFieldChange,
   onSaveEdit,
   onSaveNotes,
+  onSaveMessage,
   onSaveFollowUp,
   onSendWhatsApp,
   onStartEditing,
@@ -216,6 +217,10 @@ export default function LeadDetailSheet({
   whatsappConnected,
   colors,
 }) {
+  const [draftMessage, setDraftMessage] = useState(null);
+  const [savingMessage, setSavingMessage] = useState(false);
+  const [saveStatus, setSaveStatus] = useState("");
+  const [saveError, setSaveError] = useState("");
   const [tab, setTab] = useState("Details");
   const [statusOpen, setStatusOpen] = useState(false);
   const c = colors;
@@ -236,7 +241,14 @@ export default function LeadDetailSheet({
 
   if (!lead) return null;
 
-  const message = insight?.message || buildMessage(lead, insight, messageTemplate);
+  const baseMessage = insight?.message || buildMessage(lead, insight, messageTemplate);
+  const message = draftMessage ?? lead.message_draft ?? baseMessage;
+  async function saveMessage(value) {
+    setSavingMessage(true); setSaveError(""); setSaveStatus("");
+    try { await onSaveMessage(lead.id, value); setDraftMessage(null); setSaveStatus(value === null ? "Template restored" : "Message saved"); }
+    catch (error) { setSaveError(error.message || "Could not save. Try again."); }
+    finally { setSavingMessage(false); }
+  }
   const followUp = Boolean(isSent || lead.sentAt || lead.sent_at);
   const selectedImagePath = introAttachmentPath(messageTemplateImagePath, lead, isSent, imageIncluded);
 
@@ -265,7 +277,7 @@ export default function LeadDetailSheet({
       setMessageBusy(true);
       setMessageError('');
       try {
-        const sent = await onSendWhatsApp?.(lead.id, { imagePath: selectedImagePath, customImage });
+        const sent = await onSendWhatsApp?.(lead.id, { imagePath: selectedImagePath, customImage, message });
         if (sent) { setCustomImage(null); setImageIncluded(false); }
         else setMessageError('Message was not sent. Your image is still selected; check the send error and try again.');
       } catch (failure) { setMessageError(failure.message || 'Could not send this message. Your image is still selected.'); }
@@ -432,7 +444,14 @@ export default function LeadDetailSheet({
                 {!whatsappConnected ? <Text style={{ color: c.textMuted, fontSize: 12 }}>Connect WhatsApp to send image attachments.</Text> : null}
               </View>
               {messageError ? <Text accessibilityRole="alert" style={{ color: c.errorText }}>{messageError}</Text> : null}
-              <Text style={{ fontSize: 14, color: c.text, lineHeight: 20, backgroundColor: c.bgMsg, padding: 12, borderRadius: 10 }}>{message}</Text>
+              <TextInput accessibilityLabel="Seller message" multiline editable={!savingMessage} value={message} onChangeText={value => { setDraftMessage(value); setSaveStatus(""); }} style={{ fontSize: 14, color: c.text, lineHeight: 20, backgroundColor: c.bgMsg, padding: 12, borderRadius: 10, minHeight: 160, textAlignVertical: "top" }} />
+              <Text style={{ color: c.textMuted, fontSize: 12 }}>Saved for this seller’s manual messages. Templates stay unchanged.</Text>
+              <View style={{ flexDirection: "row", gap: 12 }}>
+                <Pressable accessibilityRole="button" disabled={savingMessage || !message.trim()} onPress={() => saveMessage(message)} style={{ padding: 14, borderRadius: 12, backgroundColor: c.btnPrimaryBg, opacity: savingMessage || !message.trim() ? 0.5 : 1 }}><Text style={{ color: c.btnPrimaryText, fontWeight: "600" }}>{savingMessage ? "Saving…" : "Save message"}</Text></Pressable>
+                <Pressable accessibilityRole="button" disabled={savingMessage} onPress={() => saveMessage(null)} style={{ padding: 14 }}><Text style={{ color: c.textMuted }}>Use template</Text></Pressable>
+              </View>
+              {saveStatus ? <Text accessibilityLiveRegion="polite" style={{ color: c.textMuted }}>{saveStatus}</Text> : null}
+              {saveError ? <Text accessibilityRole="alert" style={{ color: c.errorText }}>{saveError}</Text> : null}
             </View>}
           </>
         )}
