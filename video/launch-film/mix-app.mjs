@@ -1,52 +1,72 @@
-// node mix-app.mjs  ->  out/mix-app-film.wav
-// Places each voiceover line (one ElevenLabs take, lines split by its pauses)
-// on its picture cue, ducks the score under the voice, and masters to -14 LUFS.
+// node video/launch-film/mix-app.mjs
+// Preserve phrases, leave explicit breathing gaps, and master voice/music/SFX.
 import { spawnSync } from 'node:child_process';
+import { writeFileSync } from 'node:fs';
 import path from 'node:path';
-
+import { DURATION } from './app-pacing.mjs';
 const out = path.join(import.meta.dirname, 'out');
-const VO = path.join(out, 'vo-brady-confident.mp3');
-const SCORE = path.join(out, 'score-app-film.wav');
-const MIX = path.join(out, 'mix-app-film.wav');
-
-// [start, end] of each line in the take (from silencedetect), and its cue in the film.
-const LINES = [
-  [0, 3.855, 0.15],          // Two thousand sellers. One question: who needs you today?
-  [6.562, 8.892, 3.9],       // Repeat AI puts the answer right in front of you.
-  [11.122, 13.297, 8.5],     // Import your spreadsheet. Your pipeline is ready.
-  [15.569, 18.544, 15.5],    // Every seller due today. One clear list.
-  [20.658, 25.777, 19.5],    // Repeat sends forty timely WhatsApp updates every day...
-  [27.895, 31.098, 27.8],    // Want to step in? Tap once and send it yourself.
-  [33.211, 36.206, 32.9],    // The update lands in WhatsApp. Read. Replied.
-  [38.3, 40.733, 39],        // Every message is personal: seller, property, building.
-  [42.7, 45.412, 44.8],      // Open any apartment and see exactly how its price has moved.
-  [47.446, 50.421, 51.2],    // Choose the days for each building. Repeat handles the schedule.
-  [52.352, 54.297, 57.4],    // Need an answer? Ask Repeat.
-  [56.35, 58.592, 61.6],     // Connect Sheets, Excel, Gmail, and your calendar.
-  [60.527, 63.423, 66],      // Every seller. Every signal. Right on time.
-  [65.398, 66.51, 69.7],     // Repeat AI.
+const file = name => path.join(out, name);
+function ff(args) {
+  const result = spawnSync('ffmpeg', ['-hide_banner', '-y', ...args], { encoding: 'utf8', maxBuffer: 16e6 });
+  if (result.status !== 0) throw new Error(result.stderr);
+  return result.stderr;
+}
+// Source, source start/end, film cue, pitch-preserving tempo, script.
+// 0: previous ElevenLabs take; 1: the new conversational pickups.
+// Trims include consonant lead-in and tails, verified against the transcript.
+const lines = [
+  [0, 0, 4.015, 0.25, 0.92, "Two thousand sellers. One question: who needs you today?"],
+  [1, 0, 3.86, 5.95, 1, "Meet Repeat AI. Here's what needs your attention today."],
+  [1, 5.52, 9.49, 11.05, 0.87, 'Start with your spreadsheet. Bring your sellers in, and keep them in one place.'],
+  [0, 15.42, 18.70, 19.05, 0.94, 'Every seller due today. One clear list.'],
+  [1, 11.25, 16.90, 23.85, 0.96, 'Repeat sends up to forty WhatsApp updates a day, based on recent sales in each building.'],
+  [0, 27.74, 31.26, 33.10, 0.91, 'Want to step in? Tap once and send it yourself.'],
+  [0, 33.06, 36.37, 38.50, 0.95, 'The update lands in WhatsApp. Read. Replied.'],
+  [1, 18.65, 24.77, 45.60, 1, 'Each message uses their name and their building, so the update feels relevant.'],
+  [0, 42.55, 45.57, 53.25, 0.75, 'Open any apartment and see exactly how its price has moved.'],
+  [1, 26.71, 31.75, 60.15, 0.98, 'Choose the days for each building. Then let Repeat take care of the follow-up.'],
+  [0, 52.20, 54.46, 67.45, 0.96, 'Need an answer? Ask Repeat.'],
+  [0, 56.20, 58.75, 72.70, 0.82, 'Connect Sheets, Excel, Gmail, and your calendar.'],
+  [0, 60.38, 63.59, 77.80, 0.94, 'Every seller. Every signal. Right on time.'],
+  [0, 65.24, 66.51, 82.65, 0.95, 'Repeat AI.'],
 ];
+const timing = lines.map(([source, start, end, cue, tempo, text], i) => ({
+  line: i + 1, source, start, end, cue, tempo, text,
+  finish: +(cue + (end - start) / tempo).toFixed(3),
+}));
+for (let i = 1; i < timing.length; i++) {
+  const gap = timing[i].cue - timing[i - 1].finish;
+  if (gap < 0.8) throw new Error(`Line ${i + 1} needs breathing room: ${gap.toFixed(3)}s`);
+  timing[i].gapBefore = +gap.toFixed(3);
+}
+if (timing.at(-1).finish > DURATION - 1.5) throw new Error('Closing voice has no tail');
 
-const pre = 0.05, post = 0.18;
-const voice = LINES.map(([a, b, cue], i) => {
-  const delay = Math.round((cue - pre) * 1000);
-  return `[1:a]atrim=${Math.max(0, a - pre)}:${b + post},asetpts=PTS-STARTPTS,afade=t=in:d=0.03,afade=t=out:st=${(b + post - Math.max(0, a - pre) - 0.06).toFixed(3)}:d=0.06,adelay=${delay}|${delay}[v${i}]`;
+const voiceGraph = lines.map(([src, a, b, cue, speed], i) => {
+  const duration = (b - a) / speed;
+  return `[${src}:a]atrim=${a}:${b},asetpts=PTS-STARTPTS,atempo=${speed},highpass=f=75,` +
+    `afade=t=in:d=0.008,afade=t=out:st=${duration - 0.045}:d=0.045,` +
+    `loudnorm=I=-18:TP=-3:LRA=9,aresample=48000,asetpts=PTS-STARTPTS,adelay=${Math.round(cue * 1000)}:all=1[v${i}]`;
 });
-const graph = [
-  ...voice,
-  `${LINES.map((_, i) => `[v${i}]`).join('')}amix=inputs=${LINES.length}:normalize=0,aformat=channel_layouts=stereo,asplit[vo][key]`,
-  // Music sits under the voice: -8 dB bed, then ducked a further ~6 dB under the voice.
-  '[0:a]volume=-8dB[bed]',
-  '[bed][key]sidechaincompress=threshold=0.02:ratio=5:attack=15:release=380:makeup=1[ducked]',
-  '[ducked][vo]amix=inputs=2:normalize=0,apad,atrim=0:73[mixed]',
-];
+voiceGraph.push(`${lines.map((_, i) => `[v${i}]`).join('')}amix=inputs=${lines.length}:normalize=0,apad,atrim=0:${DURATION},aformat=channel_layouts=stereo[voice]`);
+ff(['-i', file('vo-brady-confident.mp3'), '-i', file('vo-brady-conversation-pickups.mp3'),
+  '-filter_complex', voiceGraph.join(';'), '-map', '[voice]', '-c:a', 'pcm_s24le', file('voice-app-film.wav')]);
 
-const inputs = ['-hide_banner', '-y', '-i', SCORE, '-i', VO, '-filter_complex'];
-const target = 'I=-14:TP=-2:LRA=11';
-// Pass 1 measures loudness; pass 2 applies it linearly so the mix doesn't pump.
-const probe = spawnSync('ffmpeg', [...inputs, `${graph.join(';')};[mixed]loudnorm=${target}:print_format=json[o]`, '-map', '[o]', '-f', 'null', '-'], { encoding: 'utf8' });
-const m = JSON.parse(probe.stderr.slice(probe.stderr.lastIndexOf('{'), probe.stderr.lastIndexOf('}') + 1));
-const apply = `loudnorm=${target}:linear=true:measured_I=${m.input_i}:measured_TP=${m.input_tp}:measured_LRA=${m.input_lra}:measured_thresh=${m.input_thresh}:offset=${m.target_offset}`;
-const run = spawnSync('ffmpeg', [...inputs, `${graph.join(';')};[mixed]${apply},aresample=48000[o]`, '-map', '[o]', '-c:a', 'pcm_s16le', MIX], { encoding: 'utf8' });
-if (run.status !== 0) throw new Error(run.stderr.slice(-1500));
-console.log(`wrote ${path.relative(process.cwd(), MIX)} (measured ${m.input_i} LUFS before mastering)`);
+// Continuous passage from Andrew Ev's Vastness, licensed from Mixkit for web video.
+ff(['-i', file('music-vastness-andrew-ev.mp3'), '-af',
+  `atrim=18:${18 + DURATION},asetpts=PTS-STARTPTS,highpass=f=70,lowpass=f=11500,equalizer=f=2200:t=q:w=0.8:g=-3,loudnorm=I=-27:TP=-8:LRA=9,afade=t=in:d=2,afade=t=out:st=${DURATION - 4.5}:d=4.5,aresample=48000`,
+  '-c:a', 'pcm_s24le', file('score-app-film.wav')]);
+const mixGraph = [
+  '[0:a]asplit[voice][key]',
+  '[1:a][key]sidechaincompress=threshold=0.035:ratio=3:attack=100:release=700:makeup=1[bed]',
+  '[2:a]highpass=f=150,lowpass=f=6000,volume=-16dB[fx]',
+  `[voice][bed][fx]amix=inputs=3:normalize=0,atrim=0:${DURATION}[premix]`,
+].join(';');
+const inputs = ['-i', file('voice-app-film.wav'), '-i', file('score-app-film.wav'), '-i', file('sfx-app-film.wav'), '-filter_complex'];
+const target = 'I=-16:TP=-2:LRA=9';
+const stderr = ff([...inputs, `${mixGraph};[premix]loudnorm=${target}:print_format=json[o]`, '-map', '[o]', '-f', 'null', '-']);
+const measured = JSON.parse(stderr.slice(stderr.lastIndexOf('{'), stderr.lastIndexOf('}') + 1));
+const normalize = `loudnorm=${target}:linear=true:measured_I=${measured.input_i}:measured_TP=${measured.input_tp}:measured_LRA=${measured.input_lra}:measured_thresh=${measured.input_thresh}:offset=${measured.target_offset}`;
+ff([...inputs, `${mixGraph};[premix]${normalize},aresample=48000[o]`, '-map', '[o]', '-c:a', 'pcm_s24le', file('mix-app-film.wav')]);
+writeFileSync(file('audio-timing.json'), JSON.stringify({ duration: DURATION, timing, measured }, null, 2));
+console.table(timing.map(({ line, cue, finish, gapBefore }) => ({ line, cue, finish, gapBefore })));
+console.log('Wrote 86-second mix; all inter-line gaps >= 0.8 seconds.');

@@ -4,12 +4,13 @@ import { flushSync } from 'react-dom';
 import './app-film.css';
 import wordmark from '../../mobile/assets/repeat-ai-logo.png';
 import { CARD, HEAVY, UI, clamp, lerp, spring } from './motion';
+import { DURATION, sourceTime } from './app-pacing.mjs';
 
-// Mobile app film, ~73 s at 120 BPM. The phone shows stills of the real app
+// Mobile app film: original 73-second animation re-timed to 86 seconds.
+// The phone shows stills of the real app
 // (captured by app-takes.mjs from film mode with demo data) plus one drawn
 // WhatsApp chat; captions and taps are pure functions of t; screens are never zoomed.
-// Section lengths follow the voiceover lines in mix-app.mjs.
-const DURATION = 73;
+// app-pacing.mjs is shared with the narration conform and sound effects.
 const params = new URLSearchParams(location.search);
 const LANDSCAPE = params.get('format') === '16x9';
 const W = LANDSCAPE ? 1920 : 1080;
@@ -253,7 +254,8 @@ function Close({ t }) {
   </>;
 }
 
-function Film({ t }) {
+function Film({ t: playbackTime }) {
+  const t = sourceTime(playbackTime);
   return <div className="stage" style={{ width: W, height: H }}>
     <div className="glow" style={{ transform: `translate(${Math.sin(t * 0.3) * 140}px, ${Math.cos(t * 0.23) * 110}px)` }} />
     {t < 3.4 && <Hook t={t} />}
