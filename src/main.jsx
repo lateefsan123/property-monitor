@@ -25,6 +25,7 @@ import { pageQueries } from "./page-prefetch";
 import { prefetchHomeOnStartup } from "./startup-prefetch";
 import { supabase, supabaseConfigError } from "./supabase";
 import { billingFailureState } from "./billing-state.js";
+import StartupStatus from './StartupStatus.jsx';
 
 const POST_AUTH_ACTION_STORAGE_KEY = "seller_signal_post_auth_action_v1";
 const IntegrationCallback = lazy(() => import('./IntegrationCallback.jsx'));
@@ -430,7 +431,7 @@ export function Root() {
   }
 
   if (session === undefined) {
-    return <div className="page"><div className="empty">Loading...</div></div>;
+    return <StartupStatus key="session" phase="session" />;
   }
 
   if (isOAuthConsentPath) {
@@ -442,7 +443,7 @@ export function Root() {
   }
 
   if (session && !billingReadyForSession) {
-    return <div className="page"><div className="empty">Loading...</div></div>;
+    return <StartupStatus key="billing" phase="billing" />;
   }
 
   if (session && (billingState.checkoutPending || postAuthCheckoutWillStart)) {

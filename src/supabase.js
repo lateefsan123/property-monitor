@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import { createAuthFetch } from './auth-fetch.js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -15,5 +16,6 @@ export const supabaseConfigError = missingConfig.length
 export const supabase = supabaseConfigError
   ? null
   : createClient(supabaseUrl, supabaseAnonKey, {
+    global: { fetch: createAuthFetch() },
     auth: { detectSessionInUrl: !window.location.pathname.startsWith('/integrations/callback/') },
   });
