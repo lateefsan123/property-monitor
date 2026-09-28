@@ -7,7 +7,7 @@ import AppIcon from '../components/AppIcon';
 import useReducedMotion from '../components/use-reduced-motion';
 
 const Stack = createNativeStackNavigator();
-const titles = { Providers: 'MAKE IT\nYOUR WORKSPACE.', Signup: 'CREATE YOUR\nACCOUNT.', Login: 'WELCOME\nBACK.', Reset: 'RESET YOUR\nPASSWORD.', CheckEmail: 'CHECK YOUR\nEMAIL.' };
+const titles = { Providers: 'Create your account', Signup: 'Sign up with email', Login: 'Welcome back', Reset: 'Reset your password', CheckEmail: 'Check your email' };
 
 function Button({ children, onPress, disabled, primary = false }) {
   return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [s.button, primary && s.primary, { opacity: disabled ? 0.45 : pressed ? 0.7 : 1 }]}><Text style={[s.buttonText, primary && { color: '#FFF' }]}>{children}</Text></Pressable>;
@@ -40,25 +40,25 @@ function AccountPage({ navigation, route, auth }) {
     </View>
     <Text accessibilityRole="header" style={[s.title, auth.heading]}>{titles[name]}</Text>
     <ScrollView contentContainerStyle={[s.content, { paddingBottom: Math.max(16, insets.bottom) }]} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets showsVerticalScrollIndicator={false}>
-      <View style={{ flex: 1, gap: 14, paddingTop: 24 }}>
+      <View style={{ gap: 14, paddingTop: 24 }}>
         {auth.error ? <Text accessibilityRole="alert" style={s.error}>{auth.error}</Text> : null}
         {name === 'Providers' ? <>
           <Text style={s.body}>Keep your sellers and conversations together.</Text>
-          <View style={{ flex: 1 }} />
+          <View style={{ height: 10 }} />
           <Button disabled={auth.pending} onPress={auth.onGoogle}>Continue with Google</Button>
           {auth.appleAvailable ? <Button disabled={auth.pending} onPress={auth.onApple}>Continue with Apple</Button> : null}
           <Button primary disabled={auth.pending} onPress={() => go(auth.initialSignUp ? 'Signup' : 'Login')}>Continue with email</Button>
-          <Button disabled={auth.pending} onPress={() => go(auth.initialSignUp ? 'Login' : 'Signup')}>{auth.initialSignUp ? 'Already have an account? Log in' : 'New to Repeat AI? Sign up'}</Button>
+          {!auth.initialSignUp ? <Button disabled={auth.pending} onPress={() => go('Signup')}>New to Repeat AI? Sign up</Button> : null}
         </> : form ? <>
           <Text style={s.body}>{reset ? 'Enter your email and we’ll send a reset link.' : signup ? 'Sign up with your email address.' : 'Log in with your email address.'}</Text>
           <TextInput accessibilityLabel="Email" style={s.input} placeholder="Email address" placeholderTextColor="#888" value={auth.email} onChangeText={auth.setEmail} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" autoComplete="email" />
           {!reset ? <TextInput accessibilityLabel="Password" style={s.input} placeholder={signup ? 'Create a password' : 'Password'} placeholderTextColor="#888" value={auth.password} onChangeText={auth.setPassword} autoCapitalize="none" autoCorrect={false} secureTextEntry textContentType={signup ? 'newPassword' : 'password'} /> : null}
           {name === 'Login' ? <Pressable accessibilityRole="button" disabled={auth.pending} onPress={() => go('Reset')} style={s.link}><Text style={s.body}>Forgot password?</Text></Pressable> : null}
-          <View style={{ flex: 1 }} />
+          <View style={{ height: 10 }} />
           <Button primary disabled={auth.pending || (!auth.preview && (!auth.email.trim() || (!reset && !auth.password)))} onPress={submit}>{auth.pending ? 'Please wait…' : reset ? 'Send reset link' : signup ? 'Create account' : 'Log in'}</Button>
         </> : <>
           <Text style={s.body}>{route.params?.notice}</Text>
-          <View style={{ flex: 1 }} />
+          <View style={{ height: 10 }} />
           <Button primary onPress={() => { auth.clearError(); navigation.reset({ index: 1, routes: [{ name: 'Providers' }, { name: 'Login' }] }); }}>Back to log in</Button>
         </>}
       </View>
@@ -70,18 +70,18 @@ function AccountPage({ navigation, route, auth }) {
 export default function OnboardingAccountNavigator(props) {
   const reduced = useReducedMotion();
   return <NavigationIndependentTree><NavigationContainer>
-    <Stack.Navigator initialRouteName="Providers" screenOptions={{ headerShown: false, animation: reduced ? 'none' : 'slide_from_right', contentStyle: { backgroundColor: '#EEECE6' }, gestureEnabled: !props.pending }}>
+    <Stack.Navigator initialRouteName="Providers" screenOptions={{ headerShown: false, animation: reduced ? 'none' : 'slide_from_right', contentStyle: { backgroundColor: '#F2F3F5' }, gestureEnabled: !props.pending }}>
       {Object.keys(titles).map(name => <Stack.Screen key={name} name={name}>{screenProps => <AccountPage {...screenProps} auth={props} />}</Stack.Screen>)}
     </Stack.Navigator>
   </NavigationContainer></NavigationIndependentTree>;
 }
 
 const s = StyleSheet.create({
-  page: { flex: 1, backgroundColor: '#EEECE6' },
+  page: { flex: 1, backgroundColor: '#F2F3F5' },
   header: { height: 48, paddingHorizontal: 10, flexDirection: 'row', justifyContent: 'space-between' },
   icon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  title: { paddingHorizontal: 22, paddingTop: 10, color: '#000', fontSize: 28, lineHeight: 30, textAlign: 'center', letterSpacing: -0.8 },
-  content: { flexGrow: 1, paddingHorizontal: 24, gap: 24 },
+  title: { paddingHorizontal: 22, paddingTop: 10, color: '#000', fontSize: 28, lineHeight: 34, fontWeight: '700', textAlign: 'center', letterSpacing: -0.5 },
+  content: { paddingHorizontal: 24, gap: 24 },
   body: { color: '#666', fontSize: 14, lineHeight: 21, textAlign: 'center' },
   input: { minHeight: 54, borderWidth: 1, borderColor: '#CCC', borderRadius: 8, paddingHorizontal: 16, color: '#111', fontSize: 16 },
   button: { minHeight: 54, borderWidth: 1, borderColor: '#CCC', borderRadius: 5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },

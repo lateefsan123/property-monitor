@@ -1,10 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFonts } from 'expo-font';
-import headingFont from '../../assets/fonts/Outfit-Black.ttf';
-import bodyFont from '../../assets/fonts/Inter-Regular.ttf';
-import buttonFont from '../../assets/fonts/Inter-SemiBold.ttf';
 import AppIcon from '../components/AppIcon';
 import MotionScreen from '../components/MotionScreen';
 import OnboardingPreview from '../components/OnboardingPreview';
@@ -15,7 +11,6 @@ export default function OnboardingScreen({ onComplete, onClose, preview = false,
   const { height, width } = useWindowDimensions();
   const compact = height < 740 || width < 360;
   const insets = useSafeAreaInsets();
-  const [fontsLoaded] = useFonts({ OnboardingHeading: headingFont, OnboardingBody: bodyFont, OnboardingButton: buttonFont });
   const [artSize, setArtSize] = useState({ width: 0, height: 0 });
   const [step, setStep] = useState(0);
   const [goalIds, setGoalIds] = useState([]);
@@ -42,9 +37,9 @@ export default function OnboardingScreen({ onComplete, onClose, preview = false,
     setError('');
     setStep(value => account && login ? 0 : Math.max(0, value - (nameStep && authenticated ? 2 : 1)));
   }
-  const heading = fontsLoaded ? { fontFamily: 'OnboardingHeading', fontWeight: 'normal' } : { fontWeight: '900' };
-  const body = fontsLoaded ? { fontFamily: 'OnboardingBody' } : {};
-  const button = fontsLoaded ? { fontFamily: 'OnboardingButton' } : { fontWeight: '600' };
+  const heading = { fontWeight: '700' };
+  const body = {};
+  const button = { fontWeight: '600' };
   useEffect(() => {
     const listener = BackHandler.addEventListener('hardwareBackPress', () => {
       if (account) return false;
@@ -77,21 +72,21 @@ export default function OnboardingScreen({ onComplete, onClose, preview = false,
     else { if (step === 0) setLogin(false); setError(''); setStep(value => value + 1); }
   }
   if (account) return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.page, { paddingTop: insets.top }]}>
-    <StatusBar barStyle="dark-content" backgroundColor="#EEECE6" />
+    <StatusBar barStyle="dark-content" backgroundColor="#F2F3F5" />
     <AuthScreen embedded initialSignUp={!login} heading={heading} preview={preview} onBack={back} onClose={preview ? onClose : undefined} onPreviewComplete={() => setPreviewAuthenticated(true)} onPasswordRecovery={onPasswordRecovery} />
   </KeyboardAvoidingView>;
   return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.page, { paddingTop: insets.top }]}>
-    <StatusBar barStyle="dark-content" backgroundColor="#EEECE6" />
+    <StatusBar barStyle="dark-content" backgroundColor="#F2F3F5" />
     <View style={s.header}>
       <Pressable accessibilityRole="button" accessibilityLabel="Go back" disabled={busy || step === 0} onPress={back} style={[s.headerButton, { opacity: step === 0 ? 0 : busy ? 0.4 : 1 }]}><AppIcon name="chevronBack" size={25} color="#000" /></Pressable>
       {preview ? <Pressable accessibilityRole="button" accessibilityLabel="Close onboarding preview" disabled={busy} onPress={onClose || (() => finish())} style={s.headerButton}><AppIcon name="close" size={23} color="#000" /></Pressable> : <View style={s.headerButton} />}
     </View>
     <MotionScreen key={slide.id} active>
       <View style={[s.content, compact && { paddingTop: 10, gap: 12 }]}>
-        <Text accessibilityRole="header" style={[s.title, heading, compact && { fontSize: 26, lineHeight: 28 }]}>{slide.title}</Text>
+        <Text accessibilityRole="header" style={[s.title, heading, compact && { fontSize: 26, lineHeight: 31 }]}>{slide.title}</Text>
         {nameStep ? <View style={{ flex: 1, paddingHorizontal: 24, gap: 24, paddingTop: 16 }}><Text style={[s.body, body]}>{slide.body}</Text><TextInput accessibilityLabel="Username" value={username} onChangeText={setUsername} placeholder="Your username" placeholderTextColor="#888" autoCapitalize="none" autoCorrect={false} maxLength={60} textContentType="nickname" returnKeyType="done" onSubmitEditing={next} style={{ minHeight: 58, borderWidth: 1, borderColor: '#DDD', borderRadius: 8, paddingHorizontal: 18, fontSize: 17, color: '#111' }} /></View> : choice ? <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 22, paddingBottom: 12, gap: compact ? 12 : 20 }} showsVerticalScrollIndicator={false}>
           <Text style={[s.body, body]}>{slide.body}</Text>
-          {ONBOARDING_GOALS.map(item => <Pressable key={item.id} accessibilityRole="checkbox" accessibilityState={{ checked: goalIds.includes(item.id) }} aria-checked={goalIds.includes(item.id)} accessibilityLabel={item.title} onPress={() => setGoalIds(values => toggleOnboardingGoal(values, item.id))} style={({ pressed }) => [s.choice, compact && { padding: 12, minHeight: 72 }, { borderColor: goalIds.includes(item.id) ? '#000' : '#E7E7E7', backgroundColor: goalIds.includes(item.id) ? '#E3E1DA' : '#F5F3EE', opacity: pressed ? 0.7 : 1 }]}>
+          {ONBOARDING_GOALS.map(item => <Pressable key={item.id} accessibilityRole="checkbox" accessibilityState={{ checked: goalIds.includes(item.id) }} aria-checked={goalIds.includes(item.id)} accessibilityLabel={item.title} onPress={() => setGoalIds(values => toggleOnboardingGoal(values, item.id))} style={({ pressed }) => [s.choice, compact && { padding: 12, minHeight: 72 }, { borderColor: goalIds.includes(item.id) ? '#000' : '#E7E7E7', backgroundColor: goalIds.includes(item.id) ? '#E4E6E9' : '#FFFFFF', opacity: pressed ? 0.7 : 1 }]}>
             <AppIcon name={item.icon} size={25} color="#000" /><Text style={[s.choiceTitle, button, { flex: 1 }]}>{item.title}</Text><View style={{ width: 22, height: 22, borderRadius: 5, borderWidth: 1.5, borderColor: goalIds.includes(item.id) ? '#000' : '#CCC', backgroundColor: goalIds.includes(item.id) ? '#000' : '#FFF', alignItems: 'center', justifyContent: 'center' }}>{goalIds.includes(item.id) ? <AppIcon name="check" size={16} color="#FFF" /> : null}</View>
           </Pressable>)}
         </ScrollView> : final ? <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 28, paddingHorizontal: 40 }}><View style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: '#F2F7F3', alignItems: 'center', justifyContent: 'center' }}><AppIcon name="check" size={40} color="#298048" /></View><Text style={[s.body, body]}>{slide.body}</Text></View> : <View style={s.art} onLayout={({ nativeEvent: { layout } }) => setArtSize(previous => previous.width === layout.width && previous.height === layout.height ? previous : { width: layout.width, height: layout.height })}>
@@ -109,14 +104,14 @@ export default function OnboardingScreen({ onComplete, onClose, preview = false,
   </KeyboardAvoidingView>;
 }
 const s = StyleSheet.create({
-  page: { flex: 1, backgroundColor: '#EEECE6' },
+  page: { flex: 1, backgroundColor: '#F2F3F5' },
   header: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 },
   headerButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   content: { flex: 1, minHeight: 0, paddingTop: 18, gap: 20 },
-  title: { paddingHorizontal: 22, color: '#000', fontSize: 32, lineHeight: 33, letterSpacing: -0.9, textAlign: 'center' },
+  title: { paddingHorizontal: 22, color: '#000', fontSize: 30, lineHeight: 36, letterSpacing: -0.5, textAlign: 'center' },
   art: { flex: 1, minHeight: 0, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
   body: { color: '#666', fontSize: 14, lineHeight: 21, textAlign: 'center' },
-  footer: { paddingHorizontal: 18, paddingTop: 12, gap: 10, backgroundColor: '#EEECE6' },
+  footer: { paddingHorizontal: 18, paddingTop: 12, gap: 10, backgroundColor: '#F2F3F5' },
   note: { color: '#777', fontSize: 12, lineHeight: 18, textAlign: 'center', paddingVertical: 8 },
   primary: { minHeight: 54, borderRadius: 5, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
   primaryText: { color: '#FFF', fontSize: 15 },
