@@ -37,7 +37,7 @@ Open `http://127.0.0.1:4190/video/launch-film/film.html` for a live preview (`&f
 
 ## Mobile app film (`app-film`)
 
-A ~61 s film (9:16 and 16:9) of the real Expo app, in the website palette (#0b0b0d, cream #f4efe8, orange #f28a5c, Geist). It covers Home, spreadsheet import, due today, 40 automated messages a day, manual WhatsApp sends from a row, templates, an apartment's price history, multi-day building schedules, Ask Repeat and integrations. The demo account uses the Ask Repeat pilot user ID so the assistant shows; its chat reply is scripted in `fake-supabase.js`.
+A ~73 s film (9:16 and 16:9) of the real Expo app, in the app's own dark palette (near-black, off-white, grey, and teal only where the app's charts use it; Geist). It covers Home, spreadsheet import, due today, 40 automated messages a day, manual WhatsApp sends from a row, templates, an apartment's price history, multi-day building schedules, Ask Repeat and integrations. One beat is not a capture: a WhatsApp-style chat drawn in `app-film.jsx` shows the app's default template reaching a seller, the read ticks and a fictional reply. The demo account uses the Ask Repeat pilot user ID so the assistant shows; its chat reply is scripted in `fake-supabase.js`.
 
 The app runs in **film mode**: `EXPO_PUBLIC_FILM=1` makes `mobile/metro.config.js` resolve `mobile/src/supabase.js` to `mobile/film/fake-supabase.js`, an in-memory backend seeded from `mobile/film/fixtures.js`. Every seller, number and listing is fictional, and nothing touches a real account. It is dev-only and never enabled in EAS builds.
 
@@ -54,6 +54,6 @@ node render.mjs 9x16 --film app-film      # out/repeat-ai-app-film-9x16.mp4
 node render.mjs 16x9 --film app-film      # out/repeat-ai-app-film-16x9.mp4
 ```
 
-The voiceover is one ElevenLabs take (voice "Bella - Professional, Bright, Warm", Multilingual v2) saved as `out/vo-bella.mp3`, with `<break time="1.5s" />` between lines. `mix-app.mjs` holds each line's position in the take and its cue in the film, so a new take only needs those numbers re-measured (`ffmpeg -i out/vo-bella.mp3 -af silencedetect=noise=-40dB:d=0.7 -f null -`). `render.mjs` uses the mix when it exists.
+The voiceover is one ElevenLabs take (voice "Bella - Professional, Bright, Warm", Multilingual v2, speed 0.9, style 27%) saved as `out/vo-bella.mp3`, with `<break time="2s" />` between lines. `mix-app.mjs` holds each line's position in the take and its cue in the film, so a new take only needs those numbers re-measured (`ffmpeg -i out/vo-bella.mp3 -af silencedetect=noise=-40dB:d=1.2 -f null -`). `render.mjs` uses the mix when it exists.
 
-`node app-takes.mjs ask schedule` recaptures only the named takes. `app-step.mjs`, `app-explore.mjs` and `app-probe.mjs` are helpers for finding new screens to capture. Screen and tap timings in `app-film.jsx` and cue times in `music-app.mjs` must move together. Run renders one at a time.
+`node app-takes.mjs ask schedule` recaptures only the named takes. `app-step.mjs`, `app-explore.mjs` and `app-probe.mjs` are helpers for finding new screens to capture. Section lengths in `app-film.jsx` follow the voiceover lines in `mix-app.mjs`; screen, tap, zoom and caption times move together with those cues. Run renders one at a time.

@@ -124,9 +124,16 @@ export const WHATSAPP_MESSAGES = DAILY.flatMap((count, day) => Array.from({ leng
 }));
 
 // Watched buildings and fictional listings (bundled exterior photos).
+// The listing gallery only shows absolute http(s) URLs, so resolve the bundled
+// asset against the dev server origin.
 const photo = (file) => {
-  try { return Asset.fromModule(buildingExteriorAssets[file]).uri; } catch { return ''; }
+  try {
+    const uri = Asset.fromModule(buildingExteriorAssets[file]).uri;
+    return typeof location === 'undefined' ? uri : new URL(uri, location.origin).href;
+  } catch { return ''; }
 };
+// Fictional listing links: shown as the Open on Bayut button, never opened in the film.
+const bayutUrl = (id) => `https://www.bayut.com/property/details-film-${id}.html`;
 const WATCHED = [
   { locationId: 21733, buildingName: 'Act One', file: 'act-one.jpg' },
   { locationId: 3694, buildingName: 'Burj Khalifa', file: 'burj-khalifa.jpg' },
@@ -148,7 +155,7 @@ export const WATCH_BUILDINGS = WATCHED.map((building, b) => {
   const specs = LISTING_SPECS.map((_, i) => LISTING_SPECS[(i + b) % LISTING_SPECS.length]);
   const listings = specs.map(([beds, baths, areaSqft, price, drop, daysAgo, title], i) => ({
     id: 900000 + b * 100 + i, title, price: price + b * 150000, beds, baths, areaSqft,
-    bayutUrl: '', coverPhoto: photo(building.file), verifiedAt: iso(daysAgo, 11), cluster: '', community: 'Downtown Dubai',
+    bayutUrl: bayutUrl(900000 + b * 100 + i), coverPhoto: photo(building.file), verifiedAt: iso(daysAgo, 11), cluster: '', community: 'Downtown Dubai',
     _drop: drop, _daysAgo: daysAgo + (i === 0 ? 0 : b),
   }));
   return {
@@ -162,7 +169,7 @@ const history = {};
 WATCH_BUILDINGS.forEach((building) => building.listings.forEach((listing) => {
   const previousPrice = listing.price + listing._drop;
   history[`${building.locationId}:${listing.id}`] = {
-    id: listing.id, locationId: building.locationId, buildingName: building.buildingName, title: listing.title, bayutUrl: '',
+    id: listing.id, locationId: building.locationId, buildingName: building.buildingName, title: listing.title, bayutUrl: listing.bayutUrl,
     coverPhoto: listing.coverPhoto, beds: listing.beds, baths: listing.baths, areaSqft: listing.areaSqft,
     currentStatus: 'active', currentPrice: listing.price, lastKnownPrice: listing.price, previousPrice, priceDelta: -listing._drop,
     firstSeenAt: iso(60), lastSeenAt: iso(0, 9), lastChangeAt: iso(listing._daysAgo, 11), lastChangeType: 'price_drop', dropsCount: 1, totalChanges: 1, seenCount: 40,
