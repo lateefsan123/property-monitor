@@ -5,6 +5,31 @@ import { billingFailureState } from '../src/billing-state.js';
 import { hasActiveSubscription } from '../src/billing-access.js';
 
 const failure = (status) => ({ error: { context: { status } } });
+test('stalled access check times out, aborts transport and allows a later recovery', async () => {
+  let calls = 0;
+  let signal;
+  const request = createBillingRequest({
+    functions: { invoke: async (_, options) => {
+      calls++;
+      signal = options.signal;
+      return calls === 1 ? new Promise(() => {}) : { data: { subscription: null } };
+    } },
+  }, 10);
+  await assert.rejects(request('get-billing-access'), /couldn’t connect/);
+  assert.equal(signal.aborted, true);
+  assert.equal(calls, 1);
+  assert.deepEqual(await request('get-billing-access'), { subscription: null });
+  assert.equal(signal.aborted, false);
+});
+test('a timed-out checkout is never automatically replayed', async () => {
+  let calls = 0;
+  const request = createBillingRequest({
+    auth: { refreshSession: () => assert.fail('must not refresh on timeout') },
+    functions: { invoke: async () => { calls++; return new Promise(() => {}); } },
+  }, 10);
+  await assert.rejects(request('create-checkout-session'), /couldn’t connect/);
+  assert.equal(calls, 1);
+});
 test('expired billing token refreshes once and uses the new token', async () => {
   const calls = [];
   let refreshes = 0;
