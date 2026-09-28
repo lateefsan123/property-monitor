@@ -3,8 +3,8 @@ import {
   IconArrowLeft,
   IconChevronRight,
   IconCloudUpload,
-  IconFileSpreadsheet,
   IconLink,
+  IconTable,
   IconX,
 } from "@tabler/icons-react";
 import SearchField from "../../../components/SearchField";
@@ -19,7 +19,7 @@ import "../../../styles/spreadsheet-import.css";
 // Import spreadsheet: the same four choices as the mobile app (file, link,
 // Google Sheets account, Microsoft Excel account), each a one-screen step.
 const OPTIONS = [
-  { id: "file", title: "Import file", detail: "Excel or CSV from your computer", icon: IconFileSpreadsheet },
+  { id: "file", title: "Import file", detail: "Excel or CSV from your computer", icon: IconTable },
   { id: "url", title: "Import from link", detail: "Google Sheets, OneDrive or SharePoint link", icon: IconLink },
   { id: "google", title: "Google Sheets", detail: "Choose from your Google account", provider: "google" },
   { id: "microsoft", title: "Microsoft Excel", detail: "Choose from OneDrive", provider: "microsoft" },
@@ -193,13 +193,13 @@ function FileStep({ onImportFile, onClose, submitting, onBusyChange }) {
           onChange={(event) => { pick(event.target.files?.[0]); event.target.value = ""; }} />
         {file ? (
           <>
-            <span className="si-drop-icon is-file" aria-hidden="true"><IconFileSpreadsheet size={24} stroke={1.6} /></span>
+            <span className="si-drop-icon is-file" aria-hidden="true"><IconTable size={28} stroke={1.5} /></span>
             <strong>{file.name}</strong>
             <span>{(file.size / 1024 / 1024).toFixed(file.size > 1024 * 1024 ? 1 : 2)} MB · click to choose a different file</span>
           </>
         ) : (
           <>
-            <span className="si-drop-icon" aria-hidden="true"><IconCloudUpload size={24} stroke={1.6} /></span>
+            <span className="si-drop-icon" aria-hidden="true"><IconCloudUpload size={28} stroke={1.5} /></span>
             <strong>Drop your spreadsheet here</strong>
             <span>or <u>browse your computer</u> · Excel or CSV, one worksheet, up to 10 MB</span>
           </>
@@ -321,7 +321,7 @@ export default function NewSpreadsheetModal({
             <ul className="si-options">
               {OPTIONS.map((option) => (
                 <li key={option.id}>
-                  <button type="button" onClick={() => go(option.id)}>
+                  <button type="button" className="si-option" onClick={() => go(option.id)}>
                     <span className={`si-option-icon${option.provider ? " is-logo" : ""}`} aria-hidden="true">
                       {option.provider ? <SheetProviderIcon provider={option.provider} size={26} /> : <option.icon size={22} stroke={1.7} />}
                     </span>

@@ -1,13 +1,13 @@
 import { useEffect, useRef } from "react";
-import { IconBuildingSkyscraper, IconChevronRight, IconFileSpreadsheet, IconMessage, IconUserPlus, IconX } from "@tabler/icons-react";
+import { IconBuildingEstate, IconChevronRight, IconMessage, IconTable, IconUsers, IconX } from "@tabler/icons-react";
 import "../../styles/create-new-modal.css";
 
-// "Create new" from the top bar: one clean list, styled like the spreadsheet
-// import modal (icon tile, title, one line, chevron).
+// "Create new" from the top bar: one clean list using the sidebar's icons for
+// each page (plain icon, title, one line, chevron).
 const OPTIONS = [
-  { id: "seller", icon: IconUserPlus, title: "Seller", description: "Add a seller to follow up with." },
-  { id: "listing-search", icon: IconBuildingSkyscraper, title: "Listing search", description: "Watch a building for new listings and price drops." },
-  { id: "spreadsheet", icon: IconFileSpreadsheet, title: "Spreadsheet", description: "Import sellers from a file, a link, Google Sheets or Excel." },
+  { id: "seller", icon: IconUsers, title: "Seller", description: "Add a seller to follow up with." },
+  { id: "listing-search", icon: IconBuildingEstate, title: "Listing search", description: "Watch a building for new listings and price drops." },
+  { id: "spreadsheet", icon: IconTable, title: "Spreadsheet", description: "Import sellers from a file, a link, Google Sheets or Excel." },
   { id: "message-template", icon: IconMessage, title: "Message template", description: "Write the WhatsApp message your sellers receive." },
 ];
 
@@ -45,8 +45,8 @@ export default function CreateNewModal({ onClose, onSelect }) {
         <ul ref={listRef} className="cn-list">
           {OPTIONS.map((option) => (
             <li key={option.id}>
-              <button type="button" onClick={() => onSelect?.(option.id)}>
-                <span className="cn-icon" aria-hidden="true"><option.icon size={21} stroke={1.7} /></span>
+              <button type="button" className="cn-option" onClick={() => onSelect?.(option.id)}>
+                <option.icon className="cn-icon" size={20} stroke={1.8} aria-hidden="true" />
                 <span className="cn-text"><strong>{option.title}</strong><span>{option.description}</span></span>
                 <IconChevronRight className="cn-chevron" size={18} stroke={1.8} aria-hidden="true" />
               </button>

@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { IconDots, IconFileSpreadsheet, IconPinned, IconStar, IconStarFilled } from "@tabler/icons-react";
+import { IconDots, IconPinned, IconStar, IconStarFilled, IconTable } from "@tabler/icons-react";
 
 export default function SpreadsheetListRow({ name, count, favorited, pinned, selected, selectionActive, onClick, onToggleSelect, onToggleFavorite, onTogglePin }) {
   const menu = useRef(null);
@@ -29,7 +29,7 @@ export default function SpreadsheetListRow({ name, count, favorited, pinned, sel
     <div className={`ss-list-row${selected ? " is-selected" : ""}`}>
       {selectionActive && <input type="checkbox" checked={selected} onChange={onToggleSelect} aria-label={`Select ${name}`} />}
       <button type="button" className="ss-list-open" onClick={onClick}>
-        <IconFileSpreadsheet size={24} stroke={1.4} aria-hidden="true" />
+        <IconTable size={24} stroke={1.4} aria-hidden="true" />
         <span className="ss-list-name">{name}{pinned && <IconPinned size={14} aria-label="Pinned" />}</span>
         <span className="ss-list-count">{count} seller{count === 1 ? "" : "s"}</span>
       </button>
@@ -39,8 +39,8 @@ export default function SpreadsheetListRow({ name, count, favorited, pinned, sel
       <details className="ss-list-more" ref={menu}>
         <summary className="ss-list-action" aria-label={`More actions for ${name}`}><IconDots size={20} aria-hidden="true" /></summary>
         <div className="ss-list-menu">
-          <button type="button" onClick={() => action(onTogglePin)}>{pinned ? "Unpin" : "Pin"}</button>
-          <button type="button" onClick={() => action(onToggleSelect)}>{selected ? "Deselect" : "Select"}</button>
+          <button type="button" className="ss-list-menu-item" onClick={() => action(onTogglePin)}>{pinned ? "Unpin" : "Pin"}</button>
+          <button type="button" className="ss-list-menu-item" onClick={() => action(onToggleSelect)}>{selected ? "Deselect" : "Select"}</button>
         </div>
       </details>
     </div>

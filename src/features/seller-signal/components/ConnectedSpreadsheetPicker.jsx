@@ -137,7 +137,7 @@ export default function ConnectedSpreadsheetPicker({ userId, provider, busy, onC
           {files.data?.kind === "resolved-file" && (
             <ul className="si-list">
               <li>
-                <button type="button" disabled={busy} onClick={() => setFile(files.data.file)}>
+                <button type="button" className="si-list-item" disabled={busy} onClick={() => setFile(files.data.file)}>
                   <IconFileSpreadsheet size={18} stroke={1.7} aria-hidden="true" />
                   <span>{files.data.file.name}</span>
                   <IconChevronRight size={16} stroke={1.8} aria-hidden="true" />
@@ -149,7 +149,7 @@ export default function ConnectedSpreadsheetPicker({ userId, provider, busy, onC
             <ul className="si-list" aria-busy={files.isFetching}>
               {items.map((item) => (
                 <li key={item.id || item.name}>
-                  <button type="button" disabled={busy || files.isFetching} onClick={() => choose(item)}>
+                  <button type="button" className="si-list-item" disabled={busy || files.isFetching} onClick={() => choose(item)}>
                     {file ? <IconTable size={18} stroke={1.7} aria-hidden="true" />
                       : item.folder ? <IconFolder size={18} stroke={1.7} aria-hidden="true" />
                         : <IconFileSpreadsheet size={18} stroke={1.7} aria-hidden="true" />}

@@ -87,7 +87,7 @@ export default function SchedulePage({ userId, client = supabase }) {
 
       {state.loading ? <p className="sch-status" role="status">Loading your schedule…</p> : null}
       {state.loadError ? (
-        <div className="sch-status is-error" role="alert">{state.loadError.message} <button type="button" onClick={state.retry}>Retry</button></div>
+        <div className="sch-status is-error" role="alert">{state.loadError.message} <button type="button" className="sch-retry" onClick={state.retry}>Retry</button></div>
       ) : null}
 
       {scheduled.length ? (
@@ -140,7 +140,7 @@ export default function SchedulePage({ userId, client = supabase }) {
           <ul className="sch-pick">
             {available.map((name) => (
               <li key={scheduleBuildingKey(name)}>
-                <button type="button" disabled={blocked} onClick={() => edit(name)}>
+                <button type="button" className="sch-pick-item" disabled={blocked} onClick={() => edit(name)}>
                   <span>{name}</span>
                   <IconPlus size={17} stroke={1.8} aria-hidden="true" />
                 </button>

@@ -32,8 +32,7 @@
 }
 .si-options button:hover { background: var(--bg-hover); }
 .si-options button > svg { flex: none; color: var(--text-faint); }
-.si-option-icon { flex: none; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px; background: var(--bg-badge); color: var(--text-secondary); }
-.si-option-icon.is-logo { background: var(--bg-msg); }
+.si-option-icon { flex: none; display: grid; place-items: center; width: 28px; color: var(--text-secondary); }
 .si-option-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .si-option-text strong { color: var(--text-name); font-size: 15px; font-weight: 600; }
 .si-option-text span { color: var(--text-muted); font-size: 13px; }
@@ -85,9 +84,9 @@
 .si-drop:focus-within { outline: 2px solid var(--text-name); outline-offset: 2px; }
 .si-drop strong { color: var(--text-name); font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
 .si-drop u { text-underline-offset: 3px; }
-.si-drop-icon { display: grid; place-items: center; width: 48px; height: 48px; margin-bottom: 4px; border-radius: 14px; background: var(--bg-card); border: 1px solid var(--border); color: var(--text-secondary); }
-.si-drop-icon.is-file { background: #e6f4ea; border-color: transparent; color: #1e7e45; }
-[data-theme="dark"] .si-drop-icon.is-file { background: #0d2a18; color: #6fd394; }
+.si-drop-icon { display: grid; place-items: center; margin-bottom: 6px; color: var(--text-muted); }
+.si-drop-icon.is-file { color: #1e7e45; }
+[data-theme="dark"] .si-drop-icon.is-file { color: #6fd394; }
 
 /* Building checklist (Google link) */
 .si-buildings { display: flex; flex-direction: column; gap: 10px; }
@@ -132,7 +131,7 @@
 .si-list button span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .si-pager { display: flex; justify-content: center; gap: 8px; }
 .si-confirm { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px 14px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; }
-.si-confirm-icon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--bg-badge); color: var(--text-secondary); }
+.si-confirm-icon { display: grid; place-items: center; color: var(--text-secondary); }
 .si-confirm div { display: flex; flex-direction: column; gap: 3px; }
 .si-confirm strong { color: var(--text-name); font-size: 15px; }
 .si-confirm div span { color: var(--text-muted); font-size: 13px; line-height: 1.45; }

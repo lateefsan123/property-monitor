@@ -267,7 +267,7 @@ export default function MessageTemplatesPanel({
                     <details className="message-template-more" ref={actionsRef}>
                       <summary aria-label="Template actions"><IconDots size={22} aria-hidden="true" /></summary>
                       <div className="message-template-more-menu">
-                        <button type="button" disabled={saving || selectedTemplate.is_default} onClick={setAsDefault}>
+                        <button type="button" className="message-template-menu-item" disabled={saving || selectedTemplate.is_default} onClick={setAsDefault}>
                           {selectedTemplate.is_default ? "Default template" : "Use as default"}
                         </button>
                         <button type="button" disabled={saving} className="message-template-delete" onClick={deleteTemplate}>Delete template</button>
@@ -290,7 +290,7 @@ export default function MessageTemplatesPanel({
                   <span>Insert variable</span>
                   <div className="message-template-token-row">
                     {["{{name}}", "{{building}}", "{{transactions}}"].map((token) => (
-                      <button key={token} type="button" disabled={saving} onClick={() => insertToken(token)}>{token}</button>
+                      <button key={token} type="button" className="message-template-token" disabled={saving} onClick={() => insertToken(token)}>{token}</button>
                     ))}
                   </div>
                 </div>
@@ -304,8 +304,8 @@ export default function MessageTemplatesPanel({
                     <div className="message-template-bubble-image">
                       <img src={imagePreviewUrl} alt="Template image, sent with the first message" />
                       <div className="message-template-bubble-image-actions">
-                        <button type="button" disabled={saving} onClick={() => imageInputRef.current?.click()}>Replace</button>
-                        <button type="button" disabled={saving} onClick={clearImage}>Remove</button>
+                        <button type="button" className="message-template-image-action" disabled={saving} onClick={() => imageInputRef.current?.click()}>Replace</button>
+                        <button type="button" className="message-template-image-action" disabled={saving} onClick={clearImage}>Remove</button>
                       </div>
                     </div>
                   ) : (

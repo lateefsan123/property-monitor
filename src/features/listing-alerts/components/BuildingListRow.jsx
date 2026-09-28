@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { IconArrowDown, IconBuildingSkyscraper } from '@tabler/icons-react';
+import { IconArrowDown, IconBuildingEstate } from '@tabler/icons-react';
 import { getBuildingImage } from '../building-images';
 import { formatPriceRange } from '../formatters';
 
@@ -21,7 +21,7 @@ export default function BuildingListRow({ building, isWatched, onPress, priceDro
           {image && failedImage !== image.src ? (
             <img src={image.src} alt="" width="64" height="64" loading="lazy" decoding="async"
               style={{ objectPosition: image.position }} onError={() => setFailedImage(image.src)} />
-          ) : <IconBuildingSkyscraper size={24} stroke={1.8} />}
+          ) : <IconBuildingEstate size={24} stroke={1.8} />}
         </span>
         <span className="la-building-name">{building.buildingName}</span>
         <span className="la-building-count">{countLine}</span>

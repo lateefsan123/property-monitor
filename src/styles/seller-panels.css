@@ -404,14 +404,7 @@
 
 .sheet-row-icon {
   flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  background: var(--bg-hover);
   color: var(--text-secondary);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
 }
 
 .sheet-row-name {

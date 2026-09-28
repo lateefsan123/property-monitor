@@ -3,7 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   IconBookmark,
   IconBookmarkFilled,
-  IconBuildingSkyscraper,
+  IconBuildingEstate,
   IconChevronLeft,
   IconChevronRight,
 } from "@tabler/icons-react";
@@ -40,7 +40,7 @@ function PhotoGallery({ photos, buildingName }) {
   if (!visible.length) {
     return (
       <div className="lp-gallery is-empty" aria-label="No photos available">
-        <IconBuildingSkyscraper size={32} stroke={1.5} aria-hidden="true" />
+        <IconBuildingEstate size={32} stroke={1.5} aria-hidden="true" />
         <span>No photos for this listing</span>
       </div>
     );
@@ -59,11 +59,11 @@ function PhotoGallery({ photos, buildingName }) {
       />
       {visible.length > 1 && (
         <div className="lp-gallery-nav">
-          <button type="button" aria-label="Previous photo" disabled={current === 0} onClick={() => go(current - 1)}>
+          <button type="button" className="lp-gallery-arrow" aria-label="Previous photo" disabled={current === 0} onClick={() => go(current - 1)}>
             <IconChevronLeft size={18} stroke={2} aria-hidden="true" />
           </button>
           <span aria-live="polite">{current + 1} / {visible.length}</span>
-          <button type="button" aria-label="Next photo" disabled={current === visible.length - 1} onClick={() => go(current + 1)}>
+          <button type="button" className="lp-gallery-arrow" aria-label="Next photo" disabled={current === visible.length - 1} onClick={() => go(current + 1)}>
             <IconChevronRight size={18} stroke={2} aria-hidden="true" />
           </button>
         </div>

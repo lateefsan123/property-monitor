@@ -17,7 +17,7 @@ export default function SearchField({ value, onChange, onClear, label, placehold
         {...inputProps}
       />
       {value && onClear ? (
-        <button type="button" aria-label={`Clear ${(label || placeholder || "search").toLowerCase()}`} onClick={onClear}>
+        <button type="button" className="app-search-clear" aria-label={`Clear ${(label || placeholder || "search").toLowerCase()}`} onClick={onClear}>
           <IconX size={15} stroke={2} aria-hidden="true" />
         </button>
       ) : null}

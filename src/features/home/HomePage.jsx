@@ -10,7 +10,7 @@ import {
   IconPinnedFilled,
   IconPlus,
   IconTable,
-  IconUser,
+  IconUsers,
 } from "@tabler/icons-react";
 import { SellerPreviewThumb, SheetPreviewThumb } from "../../components/SeededPreviewThumb";
 import HomeInsights from "./HomeInsights";
@@ -64,12 +64,12 @@ function PinIcon({ filled }) {
   return <Icon size={16} stroke={1.8} aria-hidden="true" />;
 }
 
-function SheetMetaIcon() {
-  return <IconTable className="sheet-card-meta-icon" size={14} stroke={1.8} aria-hidden="true" />;
+function SheetMetaIcon({ className = "sheet-card-meta-icon", size = 14 }) {
+  return <IconTable className={className} size={size} stroke={1.8} aria-hidden="true" />;
 }
 
-function SellerMetaIcon() {
-  return <IconUser className="sheet-card-meta-icon" size={14} stroke={1.8} aria-hidden="true" />;
+function SellerMetaIcon({ className = "sheet-card-meta-icon", size = 14 }) {
+  return <IconUsers className={className} size={size} stroke={1.8} aria-hidden="true" />;
 }
 
 function TopbarActionsPortal({ children }) {
@@ -158,9 +158,9 @@ function PinnedRow({ item, onOpen, onTogglePin }) {
       onClick={onOpen}
       onKeyDown={handleKey}
     >
-      <span className="sheet-row-icon" aria-hidden>
-        {item.kind === "sheet" ? <SheetMetaIcon /> : <SellerMetaIcon />}
-      </span>
+      {item.kind === "sheet"
+        ? <SheetMetaIcon className="sheet-row-icon" size={18} />
+        : <SellerMetaIcon className="sheet-row-icon" size={18} />}
       <span className="sheet-row-name">{item.name}</span>
       <span className="sheet-row-count">{item.meta}</span>
       <span className="sheet-row-actions" onClick={(e) => e.stopPropagation()}>

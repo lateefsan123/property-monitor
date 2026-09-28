@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import {
-  IconBuildingSkyscraper,
   IconCheck,
   IconDots,
   IconPlus,
@@ -458,12 +457,10 @@ export default function ListingAlertsPage({ userId }) {
           }}
           title={`Back to ${crumbBuilding.name}`}
         >
-          <IconBuildingSkyscraper size={16} stroke={1.8} aria-hidden="true" />
           <span className="app-crumb-label">{crumbBuilding.name}</span>
         </button>
       ) : (
         <span className="app-crumb-sub">
-          <IconBuildingSkyscraper size={16} stroke={1.8} aria-hidden="true" />
           <span className="app-crumb-label" title={crumbBuilding.name}>{crumbBuilding.name}</span>
         </span>
       )}

@@ -122,7 +122,7 @@ export default function TemplateAiDialog({ message, disabled, onClose, onApply }
                 <ul>
                   {PROMPT_IDEAS.map((idea) => (
                     <li key={idea.text}>
-                      <button type="button" disabled={busy} onClick={() => setPrompt(idea.text)}>
+                      <button type="button" className="template-ai-idea" disabled={busy} onClick={() => setPrompt(idea.text)}>
                         <idea.icon size={17} stroke={1.7} aria-hidden="true" />
                         <span>{idea.text}</span>
                       </button>

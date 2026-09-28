@@ -74,7 +74,7 @@ function EditProfileDialog({ userId, name: initialName, avatarUrl: initialAvatar
           </button>
           {menu ? (
             <div className="st-photo-menu" role="menu">
-              <button type="button" role="menuitem" onClick={() => fileRef.current?.click()}>Choose Photo</button>
+              <button type="button" role="menuitem" className="st-photo-menu-item" onClick={() => fileRef.current?.click()}>Choose Photo</button>
               {photo ? <button type="button" role="menuitem" className="is-danger" onClick={() => { setPhoto(""); setMenu(false); }}>Remove Photo</button> : null}
             </div>
           ) : null}

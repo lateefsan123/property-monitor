@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { IconBuildingSkyscraper, IconChevronRight, IconX } from "@tabler/icons-react";
+import { IconBuildingEstate, IconChevronRight, IconX } from "@tabler/icons-react";
 import { formatArea, formatPrice } from "../listing-alerts/formatters";
 import { requestOpenListing } from "../listing-alerts/open-listing-request";
 import { fetchUserLeads } from "../seller-signal/services";
@@ -23,7 +23,7 @@ function DropRow({ item, onOpen }) {
   return (
     <button type="button" className="home-drop" onClick={() => onOpen(item)} aria-label={`Open ${item.buildingName}, ${item.title || "listing"}`}>
       <span className="home-drop-thumb" aria-hidden="true">
-        {item.coverPhoto ? <img src={item.coverPhoto} alt="" loading="lazy" /> : <IconBuildingSkyscraper size={22} stroke={1.7} />}
+        {item.coverPhoto ? <img src={item.coverPhoto} alt="" loading="lazy" /> : <IconBuildingEstate size={22} stroke={1.7} />}
       </span>
       <span className="home-drop-text"><strong>{item.buildingName}</strong><span className="home-muted home-small">{meta.join(" · ")}</span></span>
       <span className="home-drop-price"><strong>{formatPrice(item.price)}</strong><span className="home-drop-delta">↓ {formatPrice(Math.abs(item.priceDelta || 0))}</span></span>

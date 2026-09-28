@@ -1,7 +1,7 @@
 import {
   IconArrowDown,
   IconArrowUp,
-  IconBuildingSkyscraper,
+  IconBuildingEstate,
   IconExternalLink,
   IconEye,
   IconEyeFilled,
@@ -97,7 +97,7 @@ function RowHoverActions({ favorited, pinned, onToggleFavorite, onTogglePin, wat
 }
 
 function BuildingIcon({ size = 20 }) {
-  return <IconBuildingSkyscraper size={size} stroke={1.8} aria-hidden="true" />;
+  return <IconBuildingEstate size={size} stroke={1.8} aria-hidden="true" />;
 }
 
 function PriceDeltaChip({ priceDelta }) {

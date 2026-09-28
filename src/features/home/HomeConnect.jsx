@@ -46,7 +46,7 @@ export function HomeConnectionPrompt({ feature, connections = [] }) {
           {HOME_PROVIDERS[feature].map((provider) => {
             const configured = connections.some((item) => item.provider === provider.id && item.feature === feature && item.configured);
             return (
-              <button key={provider.id} type="button" disabled={!configured || Boolean(busy)} onClick={() => connect(provider.id)} aria-label={`Connect ${provider.name}`}>
+              <button key={provider.id} type="button" className="home-connect-option" disabled={!configured || Boolean(busy)} onClick={() => connect(provider.id)} aria-label={`Connect ${provider.name}`}>
                 <img src={provider.icon} alt="" width={28} height={28} />
                 <span>{provider.name}</span>
                 <span className="home-muted home-small">{!configured ? "Unavailable" : busy === provider.id ? "Connecting…" : ""}</span>
