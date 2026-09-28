@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { IconSparkles, IconX } from "@tabler/icons-react";
+import { IconBolt, IconCalendarStats, IconMoodSmile, IconSparkles, IconX } from "@tabler/icons-react";
 import { supabase } from "../../../supabase";
 import { requestTemplateDraft } from "../../../../shared/template-draft";
 
@@ -9,10 +9,11 @@ import { requestTemplateDraft } from "../../../../shared/template-draft";
 // brief, so polishing sends the message inside that brief.
 const BRIEF_LIMIT = 600;
 const POLISH_PREFIX = "Polish this template. Keep its meaning, tone and placeholders; tighten the wording:\n\n";
+// Suggestions as a plain divided list (after Sana AI, Mobbin 5e7e65c9).
 const PROMPT_IDEAS = [
-  "A friendly monthly sales update",
-  "Short and direct, ask if they’d sell",
-  "Warm intro for a first message",
+  { icon: IconCalendarStats, text: "A friendly monthly sales update" },
+  { icon: IconBolt, text: "Short and direct, ask if they’d sell" },
+  { icon: IconMoodSmile, text: "A warm intro for a first message" },
 ];
 
 export default function TemplateAiDialog({ message, disabled, onClose, onApply }) {
@@ -111,15 +112,23 @@ export default function TemplateAiDialog({ message, disabled, onClose, onApply }
                 value={prompt}
                 onChange={(event) => setPrompt(event.target.value)}
                 maxLength={BRIEF_LIMIT}
-                rows={3}
+                rows={4}
                 disabled={busy}
                 placeholder="What should the message say?"
                 aria-label="Describe the message"
               />
               <div className="template-ai-ideas">
-                {PROMPT_IDEAS.map((idea) => (
-                  <button key={idea} type="button" disabled={busy} onClick={() => setPrompt(idea)}>{idea}</button>
-                ))}
+                <span className="template-ai-label">Try</span>
+                <ul>
+                  {PROMPT_IDEAS.map((idea) => (
+                    <li key={idea.text}>
+                      <button type="button" disabled={busy} onClick={() => setPrompt(idea.text)}>
+                        <idea.icon size={17} stroke={1.7} aria-hidden="true" />
+                        <span>{idea.text}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
             </>
           )}
