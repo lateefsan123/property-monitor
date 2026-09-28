@@ -23,22 +23,21 @@ export default function EmailSummaryCard({ query, colors }) {
   const source = (data?.providers || []).map(provider => names[provider]).join(' + ');
   const error = query.error || query.configure.error || query.generate.error;
   return <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 18, borderCurve: 'continuous', backgroundColor: colors.bgCard, overflow: 'hidden' }}>
-    <View style={{ padding: 18, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-      <View style={{ width: 40, height: 40, borderRadius: 12, backgroundColor: colors.bgHover, alignItems: 'center', justifyContent: 'center' }}><AppIcon name="calendar" color={colors.textName} size={21} /></View>
-      <View style={{ flex: 1, gap: 5 }}>
-        <Text accessibilityRole="header" style={{ color: colors.textName, fontSize: 16, fontWeight: '600' }}>Your daily email briefing</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 12 }}>Daily · 8:00 AM Dubai</Text>
+    <View style={{ padding: 18, gap: 8 }}>
+      <Text accessibilityRole="header" style={{ color: colors.textName, fontSize: 20, fontWeight: '600', letterSpacing: -0.4 }}>Your email briefing</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <AppIcon name="calendar" color={colors.textMuted} size={14} />
+        <Text style={{ color: colors.textMuted, fontSize: 12 }}>Every day at 8:00 AM Dubai</Text>
       </View>
-      {data ? <Switch accessibilityLabel="Daily email summaries" value={data.enabled} disabled={query.configure.isPending || (!data.available && !data.enabled)} onValueChange={value => query.configure.mutate(value)} /> : null}
     </View>
     <View style={{ padding: 18, paddingTop: 0, gap: 14 }}>
       <Feedback colors={colors} loading={query.isPending} error={error} onRetry={query.retry} />
       {data && !data.available ? <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 21 }}>Email summaries are not available yet. Please try again later.</Text> : null}
-      {data && !data.enabled ? <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 21 }}>Turn on a short AI briefing of up to 10 recent emails from {source}. Their text is sent to OpenAI to prepare your summary.</Text> : null}
       {working ? <Text accessibilityLiveRegion="polite" style={{ color: colors.textMuted, fontSize: 14 }}>Preparing your briefing…</Text> : null}
       {data?.error ? <Text accessibilityRole="alert" style={{ color: colors.textMuted, fontSize: 14, lineHeight: 21 }}>{data.error}</Text> : null}
       {summary ? <>
-        <View style={{ gap: 9 }}>
+        <View style={{ gap: 10, padding: 16, borderRadius: 12, backgroundColor: colors.bgHover }}>
+          <Text style={{ color: colors.textName, fontSize: 12, fontWeight: '600' }}>Summary</Text>
           <Text style={{ color: colors.textMuted, fontSize: 12 }}>{isSample ? 'Sample preview · 3 fictional emails' : `${new Date(`${summary.day}T04:00:00Z`).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', timeZone: 'Asia/Dubai' })} · ${summary.emailCount} ${summary.emailCount === 1 ? 'email' : 'emails'} · ${source}`}</Text>
           <Text selectable style={{ color: colors.textName, fontSize: 16, lineHeight: 25 }}>{summary.overview}</Text>
           <Text style={{ color: colors.textMuted, fontSize: 12, lineHeight: 18 }}>{isSample ? 'Your own briefing will appear here once it’s ready.' : `24 hours ending 8 AM Dubai${summary.hasMore ? ' · Showing the 10 most recent emails' : ''} · Attachments excluded`}</Text>
@@ -55,5 +54,15 @@ export default function EmailSummaryCard({ query, colors }) {
         </View>) : null}
       </> : null}
     </View>
+    {data ? <View style={{ padding: 18, borderTopWidth: 1, borderTopColor: colors.borderLight, gap: 10 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
+        <View style={{ flex: 1, gap: 4 }}>
+          <Text style={{ color: colors.textName, fontSize: 14, fontWeight: '500' }}>Daily summaries</Text>
+          <Text style={{ color: colors.textMuted, fontSize: 12 }}>{data.enabled ? `On · ${source}` : 'Off · Turn on your daily briefing'}</Text>
+        </View>
+        <Switch accessibilityLabel="Daily email summaries" value={data.enabled} disabled={query.configure.isPending || (!data.available && !data.enabled)} onValueChange={value => query.configure.mutate(value)} />
+      </View>
+      {!data.enabled ? <Text style={{ color: colors.textMuted, fontSize: 12, lineHeight: 18 }}>Summarizes up to 10 recent emails from {source}. Email text is sent to OpenAI to prepare your briefing.</Text> : null}
+    </View> : null}
   </View>;
 }
