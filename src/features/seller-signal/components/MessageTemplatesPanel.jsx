@@ -280,32 +280,27 @@ export default function MessageTemplatesPanel({
                     ))}
                   </div>
                 </div>
-                <div className="message-template-image-field">
-                  <span>Attached image <span className="message-template-optional">(optional)</span></span>
-                  {imagePreviewUrl ? (
-                    <div className="message-template-image-preview">
-                      <img src={imagePreviewUrl} alt="Template attachment preview" />
-                      <div>
-                        <span className="message-template-image-name">{imageFile?.name || "Attached image"}</span>
-                        <div className="message-template-image-actions">
-                          <button type="button" disabled={saving} onClick={() => imageInputRef.current?.click()}>Replace</button>
-                          <span aria-hidden="true">|</span>
-                          <button type="button" disabled={saving} onClick={clearImage}>Remove</button>
-                        </div>
-                      </div>
-                    </div>
-                  ) : (
-                    <button type="button" className="message-template-image-picker" disabled={saving}
-                      title="JPG, PNG or WebP, up to 5 MB" onClick={() => imageInputRef.current?.click()}>
-                      <IconPhoto size={20} stroke={1.7} aria-hidden="true" /> Add image
+              </div>
+              <aside className="message-template-live-preview" aria-label="Message preview">
+                <h2 className="message-template-preview-head">WhatsApp preview</h2>
+                {/* The image sits with the preview it appears in, always in view. */}
+                <div className="message-template-image-row">
+                  <span className="message-template-image-thumb" aria-hidden="true">
+                    {imagePreviewUrl ? <img src={imagePreviewUrl} alt="" /> : <IconPhoto size={18} stroke={1.7} />}
+                  </span>
+                  <span className="message-template-image-text">
+                    <strong>{imagePreviewUrl ? (imageFile?.name || "Image attached") : "Add an image"}</strong>
+                    <span>{imagePreviewUrl ? "Sent with the first message" : "Optional · JPG, PNG or WebP, up to 5 MB"}</span>
+                  </span>
+                  <span className="message-template-image-actions">
+                    <button type="button" disabled={saving} onClick={() => imageInputRef.current?.click()}>
+                      {imagePreviewUrl ? "Replace" : "Add"}
                     </button>
-                  )}
+                    {imagePreviewUrl && <button type="button" disabled={saving} className="is-danger" onClick={clearImage}>Remove</button>}
+                  </span>
                   <input ref={imageInputRef} className="message-template-image-input" type="file"
                     aria-label="Attach template image" accept={MESSAGE_TEMPLATE_IMAGE_TYPES.join(",")} onChange={chooseImage} />
                 </div>
-              </div>
-              <aside className="message-template-live-preview" aria-label="Message preview">
-                <h2 className="message-template-preview-head">Preview (WhatsApp)</h2>
                 <div className="message-template-chat-bubble">
                   {imagePreviewUrl ? <img src={imagePreviewUrl} alt="Preview of the template attachment" /> : null}
                   <p>{previewMessage}</p>
