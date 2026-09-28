@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
-import { IconX } from "@tabler/icons-react";
+import { IconUsers, IconX } from "@tabler/icons-react";
 
+// Add seller opens in the same right-side drawer as the seller details, with
+// the same fields and footer as Edit seller.
 const STATUS_OPTIONS = [
   { value: "", label: "No status" },
   { value: "Prospect", label: "Prospect" },
@@ -18,6 +20,8 @@ const EMPTY_DRAFT = {
   status: "",
   lastContact: "",
 };
+
+const FORM_ID = "add-seller-form";
 
 export default function AddSellerModal({ onClose, onSubmit, submitting, sourceLabel }) {
   const [draft, setDraft] = useState(EMPTY_DRAFT);
@@ -46,117 +50,85 @@ export default function AddSellerModal({ onClose, onSubmit, submitting, sourceLa
 
   const hasMinimum = [draft.name, draft.building, draft.phone].some((value) => String(value || "").trim());
   const disabled = submitting || !hasMinimum;
+  const input = (field, props) => (
+    <input value={draft[field]} disabled={submitting} onChange={(event) => updateField(field, event.target.value)} {...props} />
+  );
 
   return (
-    <div className="lead-modal-backdrop" onClick={onClose}>
-      <div className="lead-modal" onClick={(event) => event.stopPropagation()}>
-        <div className="lead-modal-header">
-          <div className="lead-modal-title-block">
-            <h2 className="lead-modal-name">Add seller</h2>
-            {sourceLabel ? <span className="lead-modal-building">to {sourceLabel}</span> : null}
-          </div>
-          <div className="lead-modal-header-actions">
-            <button type="button" className="lead-modal-close" onClick={onClose} aria-label="Close">
-              <IconX className="icon" size={16} stroke={2} aria-hidden="true" />
-            </button>
-          </div>
+    <div className="seller-drawer-layer">
+      <div className="seller-drawer-backdrop" onClick={onClose} aria-hidden="true" />
+      <aside className="seller-drawer" role="dialog" aria-modal="true" aria-labelledby="add-seller-title">
+        <div className="seller-drawer-bar">
+          <span className="seller-drawer-bar-title">
+            <IconUsers size={17} stroke={1.8} aria-hidden="true" />
+            <span id="add-seller-title">Add seller{sourceLabel ? ` to ${sourceLabel}` : ""}</span>
+          </span>
+          <button type="button" className="seller-drawer-icon-btn" onClick={onClose} aria-label="Close" title="Close">
+            <IconX size={18} stroke={1.8} aria-hidden="true" />
+          </button>
         </div>
 
-        <div className="lead-modal-body">
-          <form className="lead-edit-form" onSubmit={handleSubmit}>
-            <div className="lead-edit-grid">
-              <label className="lead-edit-field">
+        <div className="seller-drawer-scroll">
+          <div className="seller-drawer-body">
+            <form id={FORM_ID} className="seller-edit" onSubmit={handleSubmit}>
+              <label className="seller-edit-field">
                 <span>Name</span>
-                <input
-                  type="text"
-                  value={draft.name}
-                  onChange={(event) => updateField("name", event.target.value)}
-                  placeholder="Seller name"
-                  disabled={submitting}
-                />
+                {input("name", { type: "text", placeholder: "Seller name", autoFocus: true })}
               </label>
-
-              <label className="lead-edit-field">
-                <span>Building</span>
-                <input
-                  type="text"
-                  value={draft.building}
-                  onChange={(event) => updateField("building", event.target.value)}
-                  placeholder="Building name"
-                  disabled={submitting}
-                />
-              </label>
-
-              <label className="lead-edit-field">
+              <label className="seller-edit-field">
                 <span>Phone</span>
-                <input
-                  type="tel"
-                  value={draft.phone}
-                  onChange={(event) => updateField("phone", event.target.value)}
-                  placeholder="+971..."
-                  disabled={submitting}
-                />
+                {input("phone", { type: "tel", placeholder: "+971..." })}
               </label>
-
-              <label className="lead-edit-field">
-                <span>Bedroom</span>
-                <input
-                  type="text"
-                  value={draft.bedroom}
-                  onChange={(event) => updateField("bedroom", event.target.value)}
-                  placeholder="2BR"
-                  disabled={submitting}
-                />
+              <label className="seller-edit-field">
+                <span>Building</span>
+                {input("building", { type: "text", placeholder: "Building name" })}
               </label>
-
-              <label className="lead-edit-field">
-                <span>Unit</span>
-                <input
-                  type="text"
-                  value={draft.unit}
-                  onChange={(event) => updateField("unit", event.target.value)}
-                  placeholder="Unit 1203"
-                  disabled={submitting}
-                />
-              </label>
-
-              <label className="lead-edit-field">
+              <div className="seller-edit-row">
+                <label className="seller-edit-field">
+                  <span>Unit</span>
+                  {input("unit", { type: "text", placeholder: "1203" })}
+                </label>
+                <label className="seller-edit-field">
+                  <span>Bedrooms</span>
+                  {input("bedroom", { type: "text", placeholder: "2BR" })}
+                </label>
+              </div>
+              <div className="seller-edit-field">
                 <span>Status</span>
-                <select
-                  value={draft.status}
-                  onChange={(event) => updateField("status", event.target.value)}
-                  disabled={submitting}
-                >
+                <div className="seller-edit-chips" role="radiogroup" aria-label="Status">
                   {STATUS_OPTIONS.map((option) => (
-                    <option key={option.value || "blank"} value={option.value}>
+                    <button
+                      key={option.value || "blank"}
+                      type="button"
+                      role="radio"
+                      aria-checked={draft.status === option.value}
+                      className={draft.status === option.value ? "is-active" : ""}
+                      disabled={submitting}
+                      onClick={() => updateField("status", option.value)}
+                    >
                       {option.label}
-                    </option>
+                    </button>
                   ))}
-                </select>
-              </label>
-
-              <label className="lead-edit-field">
+                </div>
+              </div>
+              <label className="seller-edit-field">
                 <span>Last contact</span>
-                <input
-                  type="date"
-                  value={draft.lastContact}
-                  onChange={(event) => updateField("lastContact", event.target.value)}
-                  disabled={submitting}
-                />
+                {input("lastContact", { type: "date" })}
               </label>
-            </div>
-
-            <div className="lead-edit-actions">
-              <button type="submit" className="btn-sm btn-primary" disabled={disabled}>
-                {submitting ? "Adding..." : "Add seller"}
-              </button>
-              <button type="button" className="btn-sm" disabled={submitting} onClick={onClose}>
-                Cancel
-              </button>
-            </div>
-          </form>
+              <p className="seller-message-hint">Add at least a name, phone or building. Everything else is optional.</p>
+            </form>
+          </div>
         </div>
-      </div>
+
+        <div className="seller-drawer-footer is-split">
+          <button type="button" className="seller-drawer-primary is-outline" disabled={submitting} onClick={onClose}>
+            Cancel
+          </button>
+          <button type="submit" form={FORM_ID} className="seller-drawer-primary" disabled={disabled}>
+            {submitting ? "Adding…" : "Add seller"}
+          </button>
+        </div>
+      </aside>
     </div>
   );
 }

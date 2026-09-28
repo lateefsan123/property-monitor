@@ -3,6 +3,10 @@ import SellerFollowUpControl from './SellerFollowUpControl';
 import { introAttachmentPath } from "../../../../supabase/functions/_shared/intro-attachment.js";
 import {
   IconBrandWhatsapp,
+  IconCheck,
+  IconCopy,
+  IconMessage,
+  IconPencil,
   IconX,
 } from "@tabler/icons-react";
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
@@ -13,14 +17,19 @@ import {
   MarketPanel,
   MessagePanel,
   NotesPanel,
-  OverviewPanel,
+  SELLER_EDIT_FORM_ID,
+  SellerDetailsPanel,
 } from "./LeadModalPanels";
+import { sellerAvatarColour, sellerInitials } from "./seller-avatar";
 
+// Seller details open in a right-side drawer over the sellers table, laid
+// out after Lightfield's contact drawer (Mobbin 76496176): slim title bar,
+// avatar and name, a labelled field list, then activity. Tabs and content
+// follow the mobile seller sheet: Details (with market data), Notes, Message.
 const SECTIONS = [
-  { id: "overview", label: "Overview" },
-  { id: "market", label: "Market data" },
-  { id: "message", label: "Message" },
+  { id: "details", label: "Details" },
   { id: "notes", label: "Notes" },
+  { id: "message", label: "Message" },
 ];
 
 export default function LeadModal({
@@ -45,10 +54,11 @@ export default function LeadModal({
   onSendWhatsApp,
   onStartEditing,
   onHandoff,
+  onUpdateStatus,
   templates = [],
   whatsappConnected,
 }) {
-  const [activeSection, setActiveSection] = useState("overview");
+  const [activeSection, setActiveSection] = useState("details");
   const [notesValue, setNotesValue] = useState(lead.notes || "");
   const [notesSaving, setNotesSaving] = useState(false);
   const [templateChoice, setTemplateChoice] = useState("default");
@@ -120,7 +130,7 @@ export default function LeadModal({
   }
 
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
-  const displayBuildingLabel = insight?.locationName || formatBuildingLabel(lead.building) || lead.building || "-";
+  const displayBuildingLabel = insight?.locationName || formatBuildingLabel(lead.resolvedBuilding || lead.building) || lead.building || "No building";
   const bedroomLabel = formatLeadBedroom(lead.bedroom);
   const unitLabel = formatLeadUnit(lead.unit || extractUnitFromBuilding(lead.building));
   const whatsappUrl = whatsappPhone
@@ -139,14 +149,31 @@ export default function LeadModal({
     };
   }, [onClose]);
 
-  const initials = (lead.name || "?").trim().charAt(0).toUpperCase() || "?";
 
-  function renderWhatsAppAction() {
+  const name = lead.name || "Unnamed seller";
+
+  function selectSection(id) {
+    handleNotesBlur();
+    setActiveSection(id);
+  }
+
+  // Like the mobile sheet: Preview message until the Message tab is open,
+  // then the send action for this seller.
+  function renderFooterAction() {
+    if (activeSection !== "message") {
+      return (
+        <button type="button" className="seller-drawer-primary" onClick={() => selectSection("message")}>
+          <IconMessage size={18} stroke={2} aria-hidden="true" />
+          Preview message
+        </button>
+      );
+    }
+
     if (whatsappPhone && whatsappConnected) {
       return (
         <button
           type="button"
-          className="lead-modal-wa-btn"
+          className="seller-drawer-primary is-whatsapp"
           disabled={sending}
           onClick={async () => {
             if (sendLock.current) return;
@@ -159,7 +186,7 @@ export default function LeadModal({
             finally { sendLock.current = false; setSending(false); }
           }}
         >
-          <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
+          {isSent ? <IconCheck size={18} stroke={2} aria-hidden="true" /> : <IconBrandWhatsapp size={18} stroke={2} aria-hidden="true" />}
           {sending ? 'Sending…' : isSent ? "Send follow-up" : "Send via WhatsApp"}
         </button>
       );
@@ -168,13 +195,13 @@ export default function LeadModal({
     if (whatsappUrl) {
       return (
         <a
-          className="lead-modal-wa-btn"
+          className="seller-drawer-primary is-whatsapp"
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
           onClick={() => onHandoff?.(lead.id)}
         >
-          <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
+          {isSent ? <IconCheck size={18} stroke={2} aria-hidden="true" /> : <IconBrandWhatsapp size={18} stroke={2} aria-hidden="true" />}
           {isSent ? "Sent" : "Send via WhatsApp"}
         </a>
       );
@@ -183,103 +210,111 @@ export default function LeadModal({
     return (
       <button
         type="button"
-        className="lead-modal-wa-btn lead-modal-wa-nophone"
+        className="seller-drawer-primary is-outline"
         onClick={() => {
           void onCopyMessage(lead.id, message);
           onHandoff?.(lead.id);
         }}
       >
-        <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
-        {isSent ? "Sent" : copiedLeadId === lead.id ? "Copied!" : "Copy message"}
+        {copiedLeadId === lead.id ? <IconCheck size={18} stroke={2} aria-hidden="true" /> : <IconCopy size={18} stroke={2} aria-hidden="true" />}
+        {isSent ? "Sent" : copiedLeadId === lead.id ? "Copied" : "Copy message"}
       </button>
     );
   }
 
+  const avatarStyle = { background: sellerAvatarColour(lead.id || name) };
+
   return (
-    <div className="lead-modal-backdrop" onClick={onClose}>
-      <div
-        className="lead-modal lead-detail-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label={lead.name || "Seller"}
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="lead-detail-header">
-          <span className="lead-detail-header-icon" aria-hidden>{initials}</span>
-          <div className="lead-detail-header-title">
-            <h2 className="lead-detail-name">{lead.name || "Unnamed"}</h2>
-            <span className="lead-detail-building">{displayBuildingLabel}</span>
-          </div>
-          <div className="lead-detail-header-actions">
-            {!isEditing && (
-              <button
-                type="button"
-                className="btn-sm"
-                disabled={isSaving || isDeleting}
-                onClick={() => onStartEditing?.(lead.id)}
-              >
-                Edit
-              </button>
-            )}
+    <div className="seller-drawer-layer">
+      <div className="seller-drawer-backdrop" onClick={onClose} aria-hidden="true" />
+      <aside className="seller-drawer" role="dialog" aria-modal="true" aria-label={name}>
+        <div className="seller-drawer-bar">
+          <span className="seller-drawer-bar-title">
+            <span className="seller-drawer-bar-avatar" style={avatarStyle} aria-hidden="true">{sellerInitials(name)}</span>
+            <span>{isEditing ? "Edit seller" : name}</span>
+          </span>
+          {!isEditing && (
             <button
               type="button"
-              className="lead-detail-close"
-              onClick={onClose}
-              aria-label="Close"
+              className="seller-drawer-icon-btn"
+              disabled={isSaving || isDeleting}
+              onClick={() => onStartEditing?.(lead.id)}
+              aria-label="Edit seller"
+              title="Edit seller"
             >
-              <IconX size={16} stroke={2} aria-hidden="true" />
+              <IconPencil size={17} stroke={1.8} aria-hidden="true" />
             </button>
-          </div>
+          )}
+          <button type="button" className="seller-drawer-icon-btn" onClick={onClose} aria-label="Close" title="Close">
+            <IconX size={18} stroke={1.8} aria-hidden="true" />
+          </button>
         </div>
 
         {isEditing ? (
-          <div className="lead-detail-body lead-detail-body-edit">
-            <LeadEditForm
-              draft={editDraft}
-              isDeleting={isDeleting}
-              isSaving={isSaving}
-              onCancel={onCancelEditing}
-              onChange={onEditFieldChange}
-              onDelete={() => onDelete?.(lead.id)}
-              onSave={() => onSaveEdit?.(lead.id)}
-            />
-          </div>
+          <>
+            <div className="seller-drawer-scroll">
+              <div className="seller-drawer-body">
+                <LeadEditForm
+                  draft={editDraft}
+                  isDeleting={isDeleting}
+                  isSaving={isSaving}
+                  onChange={onEditFieldChange}
+                  onDelete={() => { if (window.confirm(`Delete "${name}"? This cannot be undone.`)) onDelete?.(lead.id); }}
+                  onSave={() => onSaveEdit?.(lead.id)}
+                />
+              </div>
+            </div>
+            <div className="seller-drawer-footer is-split">
+              <button type="button" className="seller-drawer-primary is-outline" disabled={isSaving || isDeleting} onClick={onCancelEditing}>
+                Cancel
+              </button>
+              <button type="submit" form={SELLER_EDIT_FORM_ID} className="seller-drawer-primary" disabled={isSaving || isDeleting}>
+                {isSaving ? "Saving…" : "Save changes"}
+              </button>
+            </div>
+          </>
         ) : (
           <>
-            <ul className="lead-detail-sections" role="tablist" aria-label="Seller details">
-              {SECTIONS.map((section) => {
-                const active = activeSection === section.id;
-                return (
-                  <li key={section.id}>
-                    <button
-                      type="button"
-                      role="tab"
-                      aria-selected={active}
-                      className={`lead-detail-section${active ? " active" : ""}`}
-                      onClick={() => setActiveSection(section.id)}
-                    >
-                      {section.label}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
+            <div className="seller-drawer-scroll">
+              <div className="seller-drawer-profile">
+                <span className="seller-drawer-avatar" style={avatarStyle} aria-hidden="true">{sellerInitials(name)}</span>
+                <div className="seller-drawer-identity">
+                  <h2>{name}</h2>
+                  <p>{displayBuildingLabel}</p>
+                </div>
+              </div>
 
-            <div className="lead-detail-body">
-              <div className="lead-detail-content">
-                {activeSection === "overview" && (
+              <div className="seller-drawer-tabs" role="tablist" aria-label="Seller details">
+                {SECTIONS.map((section) => (
+                  <button
+                    key={section.id}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeSection === section.id}
+                    className={activeSection === section.id ? "is-active" : ""}
+                    onClick={() => selectSection(section.id)}
+                  >
+                    {section.label}
+                  </button>
+                ))}
+              </div>
+
+              <div className={`seller-drawer-body is-${activeSection}`}>
+                {activeSection === "details" && (
                   <>
-                  <OverviewPanel
-                    action={renderWhatsAppAction()}
-                    lead={lead}
-                    bedroomLabel={bedroomLabel}
-                    unitLabel={unitLabel}
-                  />
-                  {onSaveFollowUp && <SellerFollowUpControl lead={lead} onSave={onSaveFollowUp} />}
+                    <div className="seller-info-card">
+                      <SellerDetailsPanel
+                        lead={lead}
+                        buildingLabel={displayBuildingLabel}
+                        bedroomLabel={bedroomLabel}
+                        unitLabel={unitLabel}
+                        disabled={isSaving || isDeleting}
+                        onUpdateStatus={onUpdateStatus}
+                      />
+                      {onSaveFollowUp && <SellerFollowUpControl lead={lead} onSave={onSaveFollowUp} />}
+                    </div>
+                    <MarketPanel insight={insight} lead={lead} />
                   </>
-                )}
-                {activeSection === "market" && (
-                  <MarketPanel insight={insight} lead={lead} />
                 )}
                 {activeSection === "message" && (
                   <MessagePanel
@@ -317,12 +352,10 @@ export default function LeadModal({
               </div>
             </div>
 
-            {activeSection !== "overview" && (
-              <div className="lead-detail-footer">{renderWhatsAppAction()}</div>
-            )}
+            <div className="seller-drawer-footer">{renderFooterAction()}</div>
           </>
         )}
-      </div>
+      </aside>
     </div>
   );
 }

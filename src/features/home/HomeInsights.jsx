@@ -13,10 +13,10 @@ import HomeActivity from "./HomeActivity";
 import { CalendarToday, EmailBrief, HomeConnectionPrompt } from "./HomeConnect";
 import { buildDailyMessageSeries, fetchListingPriceDrops, fetchWhatsAppMessageActivity } from "./home-insight-services";
 
-// Mirrors mobile/src/workspace/home.js: one summary card, then Activity,
-// Price drops, Email and Calendar tabs.
+// Uses mobile Home's look (mobile/src/workspace/home.js) in a desktop layout:
+// the summary card across the top, then activity, price drops, email and
+// calendar as side-by-side cards instead of mobile's tabs.
 const WINDOW_DAYS = 14;
-const TABS = [["activity", "Activity"], ["drops", "Price drops"], ["email", "Email"], ["calendar", "Calendar"]];
 
 function DropRow({ item, onOpen }) {
   const meta = [item.beds === 0 ? "Studio" : Number.isFinite(item.beds) && item.beds ? `${item.beds} bed` : null, Number.isFinite(item.areaSqft) ? formatArea(item.areaSqft) : null].filter(Boolean);
@@ -73,7 +73,6 @@ function PriceDrops({ query, onNavigate }) {
 }
 
 export default function HomeInsights({ userId, onNavigate }) {
-  const [tab, setTab] = useState("activity");
   const [days, setDays] = useState(WINDOW_DAYS);
   const connections = useQuery(integrationStatusOptions(userId, integrationRequest));
   const hasEmail = connections.data?.some((item) => item.feature === "email" && item.connected) || false;
@@ -91,7 +90,7 @@ export default function HomeInsights({ userId, onNavigate }) {
   const metrics = [
     { label: "Due today", value: leadsReady ? cadence.due : "—", action: () => onNavigate?.("sellers") },
     { label: "Scheduled", value: leadsReady ? cadence.scheduled : "—", action: () => onNavigate?.("schedule") },
-    { label: "Sent today", value: activityReady ? series[series.length - 1]?.count || 0 : "—", action: () => setTab("activity") },
+    { label: "Sent today", value: activityReady ? series[series.length - 1]?.count || 0 : "—", action: () => document.querySelector(".home-activity")?.scrollIntoView({ behavior: "smooth", block: "center" }) },
   ];
   return (
     <>
@@ -100,6 +99,8 @@ export default function HomeInsights({ userId, onNavigate }) {
           <button type="button" className="home-text-button" onClick={() => { leads.refetch(); activity.refetch(); drops.refetch(); }}>Try again</button>
         </p>
       )}
+      <div className="home-layout">
+      <div className="home-main">
       <section className="home-summary" aria-label="Seller pipeline" aria-busy={leads.isPending}>
         <div className="home-summary-metrics">
           {metrics.map((metric) => (
@@ -114,18 +115,26 @@ export default function HomeInsights({ userId, onNavigate }) {
           <IconChevronRight size={17} stroke={2} aria-hidden="true" />
         </button>
       </section>
-      <div className="home-tabs-section">
-        <div className="home-tabs" role="tablist">
-          {TABS.map(([id, label]) => (
-            <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-active" : ""} onClick={() => setTab(id)}>{label}</button>
-          ))}
-        </div>
-        {tab === "activity" ? <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} />
-          : tab === "drops" ? <PriceDrops query={drops} onNavigate={onNavigate} />
-          : tab === "email" ? (emailReady && !emailConnected
+        <section className="home-card" aria-label="Messages sent">
+          <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} />
+        </section>
+        <section className="home-card" aria-labelledby="home-drops-title">
+          <h2 id="home-drops-title" className="home-card-title">Price drops</h2>
+          <PriceDrops query={drops} onNavigate={onNavigate} />
+        </section>
+      </div>
+      {/* Today's calendar and email sit in a right rail from the top of the
+          page (after Charma's home, Mobbin 68685623) so they need no scroll. */}
+      <aside className="home-rail" aria-label="Today">
+        <section className="home-card" aria-label="Calendar">
+          <CalendarToday userId={userId} connections={connections.data} connectionError={connections.error} retryConnections={connections.refetch} />
+        </section>
+        <section className="home-card" aria-label="Email">
+          {emailReady && !emailConnected
             ? <HomeConnectionPrompt feature="email" connections={connections.data} />
-            : <EmailBrief query={emailSummary} connectedProviders={connections.data ? connections.data.filter((item) => item.feature === "email" && item.connected).map((item) => item.provider) : emailSummary.data?.providers || []} />)
-          : <CalendarToday userId={userId} connections={connections.data} connectionError={connections.error} retryConnections={connections.refetch} />}
+            : <EmailBrief query={emailSummary} connectedProviders={connections.data ? connections.data.filter((item) => item.feature === "email" && item.connected).map((item) => item.provider) : emailSummary.data?.providers || []} />}
+        </section>
+      </aside>
       </div>
     </>
   );

@@ -1,55 +1,19 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  IconCheck,
-  IconChevronDown,
-  IconFileSpreadsheet,
-  IconListDetails,
-  IconPlus,
-} from "@tabler/icons-react";
+import { useState } from "react";
+import { IconPlus } from "@tabler/icons-react";
 import AddSellerModal from "./components/AddSellerModal";
 import BuildingCleanupPanel from "./components/BuildingCleanupPanel";
-import FiltersToolbar from "./components/FiltersToolbar";
 import ImportHealthPanel from "./components/ImportHealthPanel";
 import LeadCard from "./components/LeadCard";
 import LeadModal from "./components/LeadModal";
 import Pagination from "./components/Pagination";
-import StickyActionBar from "./components/StickyActionBar";
+import SellerFilterBar from "./components/SellerFilterBar";
 import SellerSignalSettingsModal from "./components/SellerSignalSettingsModal";
 import { useSellerFavorites } from "./useSellerFavorites";
 import { useSellerSignalPage } from "./useSellerSignalPage";
 
-function SourceIcon({ id }) {
-  return id === "all"
-    ? <IconListDetails size={16} stroke={1.9} aria-hidden="true" />
-    : <IconFileSpreadsheet size={16} stroke={1.8} aria-hidden="true" />;
-}
-
-function SourcePickerMenu({ activeId, options, onSelect }) {
-  return (
-    <div className="sheet-sort-menu source-picker-menu" role="menu">
-      <div className="sheet-sort-menu-label">Spreadsheet source</div>
-      {options.map((option) => (
-        <button
-          key={option.id}
-          type="button"
-          role="menuitemradio"
-          aria-checked={activeId === option.id}
-          className={`sheet-sort-item source-picker-item${activeId === option.id ? " is-selected" : ""}`}
-          onClick={() => onSelect(option.id)}
-        >
-          <span className="source-picker-item-main">
-            <span className="source-tab-icon">
-              <SourceIcon id={option.id} />
-            </span>
-            <span className="source-picker-item-label">{option.label}</span>
-          </span>
-          {activeId === option.id && <IconCheck size={14} stroke={2.5} aria-hidden="true" />}
-        </button>
-      ))}
-    </div>
-  );
-}
-
+// Sellers table styled after Deel's People page (Mobbin fd251a0e): view switch
+// row (the breadcrumb already names the page), a rounded filter bar, and the
+// table inside one rounded card with one value per column.
 export default function SellerSignalDashboard({
   savedSellerId,
   onCloseSavedSeller,
@@ -63,8 +27,6 @@ export default function SellerSignalDashboard({
 }) {
   const dashboard = useSellerSignalPage(userId);
   const [addSellerOpen, setAddSellerOpen] = useState(false);
-  const [sourceMenuOpen, setSourceMenuOpen] = useState(false);
-  const sourcePickerRef = useRef(null);
   const { favoriteIds, toggleFavorite, pinnedIds, togglePin } = useSellerFavorites(userId);
 
   const canAddSeller = dashboard.sourceFilter
@@ -73,36 +35,6 @@ export default function SellerSignalDashboard({
   const activeSourceLabel = canAddSeller
     ? (dashboard.sourceOptions?.find((option) => option.id === dashboard.sourceFilter)?.label || "")
     : "";
-  const sourcePickerOptions = useMemo(
-    () => [{ id: "all", label: "All spreadsheets" }, ...(dashboard.sourceOptions || [])],
-    [dashboard.sourceOptions],
-  );
-  const activeSourceOption = sourcePickerOptions.find((option) => option.id === dashboard.sourceFilter)
-    || sourcePickerOptions[0];
-
-  useEffect(() => {
-    if (!sourceMenuOpen) return undefined;
-
-    function handleDocClick(event) {
-      if (!sourcePickerRef.current?.contains(event.target)) setSourceMenuOpen(false);
-    }
-    function handleKey(event) {
-      if (event.key === "Escape") setSourceMenuOpen(false);
-    }
-
-    document.addEventListener("mousedown", handleDocClick);
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("mousedown", handleDocClick);
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, [sourceMenuOpen]);
-
-  function selectSource(sourceId) {
-    dashboard.actions.selectSourceFilter(sourceId);
-    setSourceMenuOpen(false);
-  }
-
   if (dashboard.loading) {
     return (
       <div className="page">
@@ -126,7 +58,7 @@ export default function SellerSignalDashboard({
   }
 
   return (
-    <div className="page">
+    <div className="page seller-page">
       {dashboard.pendingHandoff && (
         <div className="notice handoff-confirm" role="alertdialog" aria-labelledby="handoff-confirm-title">
           <div>
@@ -165,43 +97,20 @@ export default function SellerSignalDashboard({
         open={settingsOpen}
         subscription={subscription}
       />
-      {dashboard.sourceOptions?.length > 0 && (
-        <div className="source-tabs-row">
-          <div className="source-picker-wrap" ref={sourcePickerRef}>
-            <button
-              type="button"
-              className={`source-picker-btn${sourceMenuOpen ? " is-open" : ""}`}
-              aria-haspopup="menu"
-              aria-expanded={sourceMenuOpen}
-              onClick={() => setSourceMenuOpen((value) => !value)}
-              title={activeSourceOption?.label}
-            >
-              <span className="source-tab-icon">
-                <SourceIcon id={activeSourceOption?.id} />
-              </span>
-              <span className="source-picker-label">{activeSourceOption?.label}</span>
-              <IconChevronDown size={16} stroke={2} aria-hidden="true" />
-            </button>
-            {sourceMenuOpen && (
-              <SourcePickerMenu
-                activeId={dashboard.sourceFilter}
-                options={sourcePickerOptions}
-                onSelect={selectSource}
-              />
-            )}
+      <div className="seller-page-head">
+        {dashboard.hasLeads && (
+          <div className="seller-view-switch" role="tablist" aria-label="Sellers">
+            {[["active", "Due today", dashboard.dueCount], ["done", "Scheduled", dashboard.scheduledCount]].map(([id, label, count]) => (
+              <button key={id} type="button" role="tab" aria-selected={dashboard.viewTab === id} className={dashboard.viewTab === id ? "is-active" : ""} onClick={() => dashboard.actions.selectViewTab(id)}>
+                {label}<span>{count}</span>
+              </button>
+            ))}
           </div>
-          <button
-            type="button"
-            className="add-seller-btn"
-            onClick={() => setAddSellerOpen(true)}
-            disabled={!canAddSeller}
-            title={canAddSeller ? "" : "Pick a spreadsheet first"}
-          >
-            <IconPlus size={16} stroke={2} aria-hidden="true" />
-            <span>Add seller</span>
-          </button>
-        </div>
-      )}
+        )}
+        <button type="button" className="seller-add-btn" onClick={() => setAddSellerOpen(true)} disabled={!canAddSeller} title={canAddSeller ? undefined : "Choose a spreadsheet in the filters first"}>
+          <IconPlus size={18} stroke={2.2} aria-hidden="true" />Add seller
+        </button>
+      </div>
 
       {addSellerOpen && (
         <AddSellerModal
@@ -220,54 +129,39 @@ export default function SellerSignalDashboard({
         savingAliasName={dashboard.savingBuildingAliasName}
       />
 
-      <div className="seller-record-surface">
-        <FiltersToolbar
-          dataFilter={dashboard.dataFilter}
-          dataQualityFilter={dashboard.dataQualityFilter}
-          dueCount={dashboard.dueCount}
-          isAllExpanded={dashboard.isAllExpanded}
-          onDataFilterChange={dashboard.actions.selectDataFilter}
-          onDataQualityFilterChange={dashboard.actions.selectDataQualityFilter}
-          onSearchTermChange={dashboard.actions.updateSearchTerm}
-          onSourceFilterChange={dashboard.actions.selectSourceFilter}
-          onStatusFilterChange={dashboard.actions.selectStatusFilter}
-          onViewTabChange={dashboard.actions.selectViewTab}
-          onToggleAllExpanded={dashboard.actions.toggleAllExpanded}
-          scheduledCount={dashboard.scheduledCount}
-          searchTerm={dashboard.searchTerm}
-          sourceFilter={dashboard.sourceFilter}
-          statusFilter={dashboard.statusFilter}
-          userId={userId}
-          viewTab={dashboard.viewTab}
-        />
+      <div className="seller-table-surface">
+        <SellerFilterBar dashboard={dashboard} userId={userId} />
 
         {dashboard.hasLeads ? (
           <>
-            <div className="seller-record-meta">
-              {dashboard.filteredLeadCount} leads
-              {dashboard.dataQualitySummary?.review > 0 && ` - ${dashboard.dataQualitySummary.review} need review`}
-              {dashboard.dataQualitySummary?.partial > 0 && ` - ${dashboard.dataQualitySummary.partial} missing info`}
+            <div className="seller-table-card">
+            <div className="seller-table-meta">
+              {dashboard.filteredLeadCount.toLocaleString()} seller{dashboard.filteredLeadCount === 1 ? "" : "s"}
+              {dashboard.dataQualitySummary?.review > 0 && ` · ${dashboard.dataQualitySummary.review} need review`}
+              {dashboard.dataQualitySummary?.partial > 0 && ` · ${dashboard.dataQualitySummary.partial} missing info`}
             </div>
 
             {dashboard.pagedLeads.length === 0 && (
-              <div className="empty seller-record-empty">
+              <div className="seller-table-empty">
                 {dashboard.viewTab === "done"
                   ? "Nothing scheduled - every seller is either due or opted out."
                   : "You're all caught up - no sellers due today."}
               </div>
             )}
 
-            <div className="lead-table-wrap">
-              <table className="lead-table">
+            {dashboard.pagedLeads.length > 0 && <div className="seller-table-scroll">
+              <table className="seller-table">
                 <thead>
                   <tr>
-                    <th>Name</th>
+                    <th>Seller</th>
                     <th>Building</th>
-                    <th>Bed</th>
                     <th>Unit</th>
+                    <th>Bedrooms</th>
                     <th>Status</th>
+                    <th>Follow-up</th>
                     <th>Phone</th>
                     <th>Contact</th>
+                    <th aria-label="Actions" />
                   </tr>
                 </thead>
                 <tbody>
@@ -293,6 +187,7 @@ export default function SellerSignalDashboard({
                   ))}
                 </tbody>
               </table>
+            </div>}
             </div>
 
             {(() => {
@@ -335,21 +230,12 @@ export default function SellerSignalDashboard({
       </div>
 
       {dashboard.hasLeads && (
-        <>
-          <Pagination
-            currentPage={dashboard.safePage}
-            onNext={dashboard.actions.goToNextPage}
-            onPrevious={dashboard.actions.goToPreviousPage}
-            totalPages={dashboard.totalPages}
-          />
-
-          <StickyActionBar
-            onSendAll={dashboard.actions.bulkWhatsApp}
-            canSendAll={dashboard.sendAllCount > 0}
-            sendAllCount={dashboard.sendAllCount}
-            whatsappConnected={Boolean(dashboard.connectedWhatsAppAccount)}
-          />
-        </>
+        <Pagination
+          currentPage={dashboard.safePage}
+          onNext={dashboard.actions.goToNextPage}
+          onPrevious={dashboard.actions.goToPreviousPage}
+          totalPages={dashboard.totalPages}
+        />
       )}
     </div>
   );
