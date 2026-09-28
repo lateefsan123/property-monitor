@@ -9,6 +9,7 @@ import { useVoice } from '../../shared/use-voice.js';
 import { createVoiceWorkspace, voiceResultCards } from '../../shared/voice-workspace.js';
 import { createBrowserVoiceTransport } from './voice-transport';
 import './voice.css';
+import { useAssistantPreference } from "./useAssistantPreference";
 import MatrixOrb from './MatrixOrb';
 import { canUsePrivateAssistant } from '../../shared/assistant-access.js';
 
@@ -18,6 +19,7 @@ export default function VoicePanel(props) {
 }
 
 function PrivateVoicePanel({ userId, onOpenChange }) {
+  const assistantPreference = useAssistantPreference(userId);
   const audio = useRef(null), launcher = useRef(null), closeButton = useRef(null);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
@@ -43,7 +45,7 @@ function PrivateVoicePanel({ userId, onOpenChange }) {
   const title = { connecting: 'Connecting', listening: 'I’m listening', muted: 'Microphone muted', ending: 'Ending conversation' }[voice.state] || 'What can I help with?';
   return <div className={`repeat-assistant${open ? ' is-open' : ''}`}>
     <audio ref={audio} autoPlay hidden aria-label="Assistant audio" />
-    {!open && <button ref={launcher} className="assistant-launcher" type="button" aria-label="Open Repeat AI assistant" aria-expanded={false}
+    {!open && assistantPreference.ready && assistantPreference.value && <button ref={launcher} className="assistant-launcher" type="button" aria-label="Open Repeat AI assistant" aria-expanded={false}
       onClick={() => { setOpen(true); onOpenChange?.(true); }}><AudioLines size={23} /><span>Ask Repeat</span></button>}
     {open && <section className="assistant-panel" role="dialog" aria-label="Repeat AI assistant" onKeyDown={event => { if (event.key === 'Escape') dismiss(); }}>
       <header className="assistant-header"><span>Repeat AI</span><div className="assistant-header-actions"><button type="button" disabled={voice.sending} aria-label="New chat" onClick={() => { voice.newChat(); setDraft(''); }}><Plus size={26} /></button><button ref={closeButton} type="button" aria-label="Close and end conversation" onClick={dismiss}><X size={24} /></button></div></header>

@@ -7,6 +7,7 @@ export function useWorkspacePreference(userId, name, fallback) {
   const storageKey = `repeat-ai:${userId}:${name}`;
   const query = useQuery({
     queryKey: key,
+    networkMode: "always",
     enabled: Boolean(userId),
     queryFn: async () => {
       const value = await AsyncStorage.getItem(storageKey);
@@ -19,6 +20,7 @@ export function useWorkspacePreference(userId, name, fallback) {
     },
   });
   const mutation = useMutation({
+    networkMode: "always",
     mutationFn: async (value) => {
       await AsyncStorage.setItem(storageKey, JSON.stringify(value));
       return value;

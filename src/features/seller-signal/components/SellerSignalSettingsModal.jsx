@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   IconArrowLeft,
+  IconAdjustmentsHorizontal,
   IconChevronRight,
   IconBolt,
   IconBrandWhatsapp,
@@ -8,6 +9,7 @@ import {
   IconPlug,
   IconX,
 } from "@tabler/icons-react";
+import { useAssistantPreference } from "../../../voice/useAssistantPreference";
 import BillingSettingsPanel from "./BillingSettingsPanel";
 import "../../../styles/settings-connection-first.css";
 import SendActivityPanel from "./SendActivityPanel";
@@ -15,6 +17,7 @@ import WhatsAppConnectionPanel from "./WhatsAppConnectionPanel";
 import IntegrationConnectionsPanel from "./IntegrationConnectionsPanel";
 
 const TABS = [
+  { id: "preferences", label: "Preferences", icon: IconAdjustmentsHorizontal },
   { id: "automations", label: "Automations", icon: IconBolt },
   { id: "whatsapp", label: "WhatsApp", icon: IconBrandWhatsapp },
   { id: "activity", label: "Send activity", icon: null },
@@ -73,6 +76,7 @@ export default function SellerSignalSettingsModal({
   sendActivityLoading,
   subscription,
 }) {
+  const assistantPreference = useAssistantPreference(userId);
   const [activeTab, setActiveTab] = useState("automations");
 
   useEffect(() => {
@@ -138,7 +142,7 @@ export default function SellerSignalSettingsModal({
               <div className="seller-settings-content">
                 {activeTab === "activity" && <button type="button" className="settings-back" onClick={() => setActiveTab("whatsapp")}><IconArrowLeft size={16} aria-hidden="true" /> Back to WhatsApp</button>}
                 <h2 className="seller-settings-section-title">
-                  {activeTab === "automations"
+                  {activeTab === "preferences" ? "Preferences" : activeTab === "automations"
                     ? "Automations"
                     : activeTab === "whatsapp"
                       ? "WhatsApp"
@@ -146,7 +150,12 @@ export default function SellerSignalSettingsModal({
                         ? "Send activity"
                         : activeTab === "integrations" ? "Integrations" : "Billing"}
                 </h2>
-                {activeTab === "automations" ? (
+                {activeTab === "preferences" ? (
+                  <div className="seller-settings-toggle-list">
+                    <AutomationToggle label="Ask Repeat" description="Show the assistant button on this browser." checked={assistantPreference.value} disabled={assistantPreference.pending} onChange={assistantPreference.set} />
+                    {assistantPreference.error && <p role="alert">Could not save this preference. Please try again.</p>}
+                  </div>
+                ) : activeTab === "automations" ? (
                   <div className="seller-settings-automation-pane">
                     <div className="seller-settings-shared-lane">
                       <strong>One shared delivery lane</strong>

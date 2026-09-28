@@ -3,6 +3,7 @@ import { AppState, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView,
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
+import { useWorkspacePreference } from "./preferences";
 import AssistantLauncher from './assistant-launcher';
 import MatrixOrb from './matrix-orb';
 import { integrationRequest } from './integration-client';
@@ -20,6 +21,7 @@ export default function VoicePanel(props) {
 }
 
 function PrivateVoicePanel({ colors, userId, hideLauncher = false, launcherBottom = 16, request }) {
+  const assistantPreference = useWorkspacePreference(userId, "ask-repeat-visible", true);
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState('');
   const [handledRequest, setHandledRequest] = useState(null);
@@ -48,7 +50,7 @@ function PrivateVoicePanel({ colors, userId, hideLauncher = false, launcherBotto
   const title = { connecting: 'Connecting', listening: 'I’m listening', muted: 'Microphone muted', ending: 'Ending conversation' }[voice.state] || 'What can I help with?';
   function close() { voice.end(); setOpen(false); }
   return <>
-    {!hideLauncher && <AssistantLauncher colors={colors} bottom={launcherBottom} onPress={() => setOpen(true)} />}
+    {!hideLauncher && !assistantPreference.pending && assistantPreference.value && <AssistantLauncher colors={colors} bottom={launcherBottom} onPress={() => setOpen(true)} />}
     <Modal visible={open} presentationStyle="fullScreen" animationType="slide" onRequestClose={close} statusBarTranslucent navigationBarTranslucent>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1, backgroundColor: colors.bgCard, paddingTop: insets.top, paddingBottom: insets.bottom }}>

@@ -1,3 +1,4 @@
+import { useWorkspacePreference } from "./preferences";
 import { useCallback, useEffect, useState } from "react";
 import { BackHandler, ScrollView, Text, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -67,6 +68,7 @@ function SendActivity({ userId, colors, active }) {
 }
 
 export default function WorkspaceSettings({ userId, colors, active = true, onHeaderChange, onExit, request, ...accountProps }) {
+  const assistantPreference = useWorkspacePreference(userId, "ask-repeat-visible", true);
   const [page, setPage] = useState(() => ["Integrations", "WhatsApp"].includes(request?.section) ? request.section : null);
   const [editingProfile, setEditingProfile] = useState(false);
   const backToSettings = useCallback(() => setPage(null), []);
@@ -100,9 +102,13 @@ export default function WorkspaceSettings({ userId, colors, active = true, onHea
         {SETTINGS_PAGES.map(([label, icon], index) => <SettingsItem key={label} label={label} icon={icon} colors={colors} last={index === SETTINGS_PAGES.length - 1} onPress={() => setPage(label)} />)}
       </SettingsGroup>
       <SettingsGroup title="Preferences" colors={colors}>
-        <SettingsItem label="Dark mode" icon="moon" colors={colors} last>
+        <SettingsItem label="Dark mode" icon="moon" colors={colors}>
           <SettingsToggle colors={colors} accessibilityLabel="Dark mode" value={accountProps.theme === "dark"} onValueChange={accountProps.onToggleTheme} />
         </SettingsItem>
+        <SettingsItem label="Ask Repeat" icon="message" colors={colors} last>
+          <SettingsToggle colors={colors} accessibilityLabel="Ask Repeat" value={assistantPreference.value} disabled={assistantPreference.pending} onValueChange={assistantPreference.set} />
+        </SettingsItem>
+        {assistantPreference.error ? <Text accessibilityRole="alert" style={{ color: colors.errorText, padding: 16 }}>Could not save this preference. Please try again.</Text> : null}
       </SettingsGroup>
       <SettingsGroup title="Support" colors={colors}>
         <SettingsItem label="Help & legal" icon="document" colors={colors} last onPress={() => setPage("Help & legal")} />
