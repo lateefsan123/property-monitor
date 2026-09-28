@@ -3,7 +3,6 @@ import {
   IconArrowDown,
   IconArrowLeft,
   IconArrowUp,
-  IconChartLine,
   IconExternalLink,
 } from "@tabler/icons-react";
 import {
@@ -75,8 +74,8 @@ function TimelineEvent({ event, isLast }) {
   let headline = "Tracking started";
   if (event.type === "new") headline = `Listed at ${formatPrice(event.price)}`;
   if (isReappeared) headline = `Back on market at ${formatPrice(event.price)}`;
-  if (isDrop) headline = `Dropped ${formatPrice(Math.abs(event.priceDelta))} -> ${formatPrice(event.price)}`;
-  if (isIncrease) headline = `Raised ${formatPrice(Math.abs(event.priceDelta))} -> ${formatPrice(event.price)}`;
+  if (isDrop) headline = `Dropped ${formatPrice(Math.abs(event.priceDelta))} → ${formatPrice(event.price)}`;
+  if (isIncrease) headline = `Raised ${formatPrice(Math.abs(event.priceDelta))} → ${formatPrice(event.price)}`;
   if (isRemoved) headline = "Went off market";
 
   let dotClass = "ld-timeline-dot";
@@ -196,17 +195,9 @@ export function PriceChart({ priceHistory }) {
 
   if (points.length < 2) {
     return (
-      <div className="ld-chart-empty">
-        <div className="ld-chart-empty-icon">
-          <IconChartLine size={18} stroke={2} aria-hidden="true" />
-        </div>
-        <div className="ld-chart-empty-title">
-          {points.length === 0 ? "No price history yet" : "Just one data point so far"}
-        </div>
-        <div className="ld-chart-empty-text">
-          Refresh this watchlist after the market moves to start drawing the curve.
-        </div>
-      </div>
+      <p className="ld-chart-empty-line">
+        {points.length === 0 ? "No price history yet." : "No price changes yet."}
+      </p>
     );
   }
   const firstTime = points[0].t;
