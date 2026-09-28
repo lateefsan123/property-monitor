@@ -47,6 +47,7 @@ export default function OnboardingScreen({ onComplete, onClose, preview = false,
   const button = fontsLoaded ? { fontFamily: 'OnboardingButton' } : { fontWeight: '600' };
   useEffect(() => {
     const listener = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (account) return false;
       if (lock.current) return true;
       if (step > 0) { setStep(value => account && login ? 0 : Math.max(0, value - (nameStep && authenticated ? 2 : 1))); return true; }
       if (preview && onClose) { onClose(); return true; }
@@ -75,6 +76,10 @@ export default function OnboardingScreen({ onComplete, onClose, preview = false,
     else if (final) void finish(onboardingDestination(goalIds));
     else { if (step === 0) setLogin(false); setError(''); setStep(value => value + 1); }
   }
+  if (account) return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.page, { paddingTop: insets.top }]}>
+    <StatusBar barStyle="dark-content" backgroundColor="#EEECE6" />
+    <AuthScreen embedded initialSignUp={!login} heading={heading} preview={preview} onBack={back} onClose={preview ? onClose : undefined} onPreviewComplete={() => setPreviewAuthenticated(true)} onPasswordRecovery={onPasswordRecovery} />
+  </KeyboardAvoidingView>;
   return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.page, { paddingTop: insets.top }]}>
     <StatusBar barStyle="dark-content" backgroundColor="#EEECE6" />
     <View style={s.header}>
@@ -84,7 +89,7 @@ export default function OnboardingScreen({ onComplete, onClose, preview = false,
     <MotionScreen key={slide.id} active>
       <View style={[s.content, compact && { paddingTop: 10, gap: 12 }]}>
         <Text accessibilityRole="header" style={[s.title, heading, compact && { fontSize: 26, lineHeight: 28 }]}>{slide.title}</Text>
-        {account ? <AuthScreen embedded initialSignUp={!login} preview={preview} onPreviewComplete={() => setPreviewAuthenticated(true)} onPasswordRecovery={onPasswordRecovery} /> : nameStep ? <View style={{ flex: 1, paddingHorizontal: 24, gap: 24, paddingTop: 16 }}><Text style={[s.body, body]}>{slide.body}</Text><TextInput accessibilityLabel="Username" value={username} onChangeText={setUsername} placeholder="Your username" placeholderTextColor="#888" autoCapitalize="none" autoCorrect={false} maxLength={60} textContentType="nickname" returnKeyType="done" onSubmitEditing={next} style={{ minHeight: 58, borderWidth: 1, borderColor: '#DDD', borderRadius: 8, paddingHorizontal: 18, fontSize: 17, color: '#111' }} /></View> : choice ? <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 22, paddingBottom: 12, gap: compact ? 12 : 20 }} showsVerticalScrollIndicator={false}>
+        {nameStep ? <View style={{ flex: 1, paddingHorizontal: 24, gap: 24, paddingTop: 16 }}><Text style={[s.body, body]}>{slide.body}</Text><TextInput accessibilityLabel="Username" value={username} onChangeText={setUsername} placeholder="Your username" placeholderTextColor="#888" autoCapitalize="none" autoCorrect={false} maxLength={60} textContentType="nickname" returnKeyType="done" onSubmitEditing={next} style={{ minHeight: 58, borderWidth: 1, borderColor: '#DDD', borderRadius: 8, paddingHorizontal: 18, fontSize: 17, color: '#111' }} /></View> : choice ? <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 22, paddingBottom: 12, gap: compact ? 12 : 20 }} showsVerticalScrollIndicator={false}>
           <Text style={[s.body, body]}>{slide.body}</Text>
           {ONBOARDING_GOALS.map(item => <Pressable key={item.id} accessibilityRole="checkbox" accessibilityState={{ checked: goalIds.includes(item.id) }} aria-checked={goalIds.includes(item.id)} accessibilityLabel={item.title} onPress={() => setGoalIds(values => toggleOnboardingGoal(values, item.id))} style={({ pressed }) => [s.choice, compact && { padding: 12, minHeight: 72 }, { borderColor: goalIds.includes(item.id) ? '#000' : '#E7E7E7', backgroundColor: goalIds.includes(item.id) ? '#E3E1DA' : '#F5F3EE', opacity: pressed ? 0.7 : 1 }]}>
             <AppIcon name={item.icon} size={25} color="#000" /><Text style={[s.choiceTitle, button, { flex: 1 }]}>{item.title}</Text><View style={{ width: 22, height: 22, borderRadius: 5, borderWidth: 1.5, borderColor: goalIds.includes(item.id) ? '#000' : '#CCC', backgroundColor: goalIds.includes(item.id) ? '#000' : '#FFF', alignItems: 'center', justifyContent: 'center' }}>{goalIds.includes(item.id) ? <AppIcon name="check" size={16} color="#FFF" /> : null}</View>
