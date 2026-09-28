@@ -21,3 +21,27 @@ test("web and mobile both build the send flag from the shared policy", () => {
   }
   assert.doesNotMatch(mobile, /requireTodaysTransaction: !customImage/);
 });
+
+test("handoff confirmation names one seller or counts several", async () => {
+  const { handoffConfirmation } = await import("../shared/whatsapp-send-policy.js");
+  assert.equal(handoffConfirmation(["Alex Morgan"]).title, "Did you send it to Alex Morgan?");
+  assert.equal(handoffConfirmation([""]).title, "Did you send it to this seller?");
+  assert.equal(handoffConfirmation(["A", "B", "C"]).title, "Did you send it to 3 sellers?");
+  assert.equal(handoffConfirmation(["A"]).confirm, "Mark as sent");
+});
+
+test("opening WhatsApp or copying never records contact without confirmation", () => {
+  const files = [
+    "../src/features/seller-signal/useSellerSignalActions.js",
+    "../src/features/seller-signal/components/LeadCard.jsx",
+    "../src/features/seller-signal/components/LeadModal.jsx",
+    "../mobile/src/features/seller-signal/useSellerSignalPage.js",
+    "../mobile/src/features/seller-signal/components/LeadCard.js",
+    "../mobile/src/features/seller-signal/components/LeadDetailSheet.js",
+  ];
+  for (const file of files) {
+    const source = readFileSync(new URL(file, import.meta.url), "utf8");
+    assert.doesNotMatch(source, /onToggleSent\(lead\.id\)/, file);
+    assert.doesNotMatch(source, /(wa\.me|copyMessage)[^\n]*\n[^\n]*toggleSent\(lead\.id\)/, file);
+  }
+});

@@ -212,7 +212,7 @@ export default function LeadDetailSheet({
   onSaveFollowUp,
   onSendWhatsApp,
   onStartEditing,
-  onToggleSent,
+  onHandoff,
   onUpdateStatus,
   whatsappConnected,
   colors,
@@ -285,7 +285,7 @@ export default function LeadDetailSheet({
       return;
     }
     Linking.openURL(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`);
-    if (!isSent) void onToggleSent(lead.id);
+    onHandoff?.(lead.id);
   }
 
   async function chooseImage() {

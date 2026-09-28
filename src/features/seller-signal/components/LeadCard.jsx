@@ -51,7 +51,7 @@ export default function LeadCard({
   onToggleExpanded,
   onToggleFavorite,
   onTogglePin,
-  onToggleSent,
+  onHandoff,
   pinned,
   whatsappConnected,
 }) {
@@ -124,7 +124,7 @@ export default function LeadCard({
       rel="noopener noreferrer"
       onClick={(event) => {
         event.stopPropagation();
-        if (!isSent) void onToggleSent(lead.id);
+        onHandoff?.(lead.id);
       }}
     >
       <WhatsAppIcon />
@@ -137,7 +137,7 @@ export default function LeadCard({
       onClick={(event) => {
         event.stopPropagation();
         if (message) void onCopyMessage(lead.id, message);
-        if (!isSent) void onToggleSent(lead.id);
+        onHandoff?.(lead.id);
       }}
     >
       <WhatsAppIcon />

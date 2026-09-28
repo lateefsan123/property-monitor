@@ -17,6 +17,7 @@ import { applyLeadEdits, applyLeadStatus, formatDateInputValue, sortLeadsByPrior
 import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
 import { useAutoSheetSync } from "./useAutoSheetSync";
 import { leadsQueryKey } from "./useHomeLeadSummary";
+import { confirmHandoffSent } from "./handoff-confirmation";
 import {
   clearLeadsForSource,
   createLeadSource,
@@ -663,6 +664,18 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     }
   }
 
+  // External WhatsApp and copy handoffs cannot prove a send, so contact is
+  // recorded only after the person confirms it.
+  function requestSentConfirmation(leadIds) {
+    const unsent = [].concat(leadIds)
+      .map((id) => leads.find((lead) => lead.id === id) || pagedLeads.find((lead) => lead.id === id))
+      .filter((lead) => lead && !sentLeads[lead.id]);
+    if (!unsent.length) return;
+    confirmHandoffSent(unsent.map((lead) => lead.name), () => {
+      unsent.forEach((lead) => { void toggleSent(lead.id); });
+    });
+  }
+
   async function toggleSent(leadId) {
     const previousSentAt = sentLeads[leadId] || null;
     const shouldMarkSent = !previousSentAt;
@@ -735,13 +748,13 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     }
     if (!phone) {
       if (message) await copyMessage(lead.id, message);
-      if (!sentLeads[lead.id]) await toggleSent(lead.id);
+      requestSentConfirmation(lead.id);
       return false;
     }
 
     if (!connectedWhatsAppAccount) {
       await Linking.openURL(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`);
-      if (!sentLeads[lead.id]) await toggleSent(lead.id);
+      requestSentConfirmation(lead.id);
       return true;
     }
 
@@ -966,10 +979,8 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
         Linking.openURL(url);
       }, index * WHATSAPP_OPEN_DELAY_MS);
 
-      if (markAsSent && !sentLeads[lead.id]) {
-        void toggleSent(lead.id);
-      }
     });
+    if (markAsSent) requestSentConfirmation(targets.map((lead) => lead.id));
   }
 
   async function copyMessage(leadId, message) {
@@ -1064,6 +1075,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
       toggleImportPanel,
       toggleLeadExpanded,
       toggleSent,
+      requestSentConfirmation,
       updateLeadDraftField,
       updateLegacySheetUrl,
       updateLeadSourceField,

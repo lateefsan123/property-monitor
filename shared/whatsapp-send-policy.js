@@ -6,3 +6,15 @@
 export function manualSendRequiresTodaysTransaction({ customImage = false, hasTodaysTransaction = false } = {}) {
   return !customImage && Boolean(hasTodaysTransaction);
 }
+
+// Opening WhatsApp outside Repeat AI, or copying a message, proves nothing was
+// sent. Both clients ask first and only then record contact for these sellers.
+export function handoffConfirmation(names = []) {
+  const who = names.length === 1 ? (String(names[0] || "").trim() || "this seller") : `${names.length} sellers`;
+  return {
+    title: `Did you send it to ${who}?`,
+    body: "Repeat AI marks sellers as contacted only after you confirm the message was sent.",
+    confirm: "Mark as sent",
+    cancel: "Not yet",
+  };
+}

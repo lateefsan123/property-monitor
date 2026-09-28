@@ -161,7 +161,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={s.listContent}
           renderItem={({ item }) => (
-            <LeadCard lead={item} insight={d.insights[item.id]} colors={colors} onPress={lead => setSelectedLeadId(lead.id)} isSent={Boolean(d.sentLeads[item.id])} messageTemplate={d.messageTemplate} copiedLeadId={d.copiedLeadId} onCopyMessage={d.actions.copyMessage} onSendWhatsApp={d.actions.sendWhatsAppLead} onToggleSent={d.actions.toggleSent} whatsappConnected={Boolean(d.connectedWhatsAppAccount)} favorite={favorites.value.includes(String(item.id))} pinned={pins.value.includes(String(item.id))} onFavorite={() => toggle(favorites,item.id)} onPin={() => toggle(pins,item.id)} />
+            <LeadCard lead={item} insight={d.insights[item.id]} colors={colors} onPress={lead => setSelectedLeadId(lead.id)} isSent={Boolean(d.sentLeads[item.id])} messageTemplate={d.messageTemplate} copiedLeadId={d.copiedLeadId} onCopyMessage={d.actions.copyMessage} onSendWhatsApp={d.actions.sendWhatsAppLead} onHandoff={d.actions.requestSentConfirmation} whatsappConnected={Boolean(d.connectedWhatsAppAccount)} favorite={favorites.value.includes(String(item.id))} pinned={pins.value.includes(String(item.id))} onFavorite={() => toggle(favorites,item.id)} onPin={() => toggle(pins,item.id)} />
           )}
           ItemSeparatorComponent={() => <View style={[s.separator, { backgroundColor: colors.textFainter }]} />}
           ListEmptyComponent={<Text style={{ color: colors.textMuted, textAlign: "center", paddingVertical: 32 }}>No sellers match your search or filters.</Text>}
@@ -208,7 +208,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
         onSaveFollowUp={d.actions.saveFollowUp}
         onSendWhatsApp={d.actions.sendWhatsAppLead}
         onStartEditing={d.actions.startEditingLead}
-        onToggleSent={d.actions.toggleSent}
+        onHandoff={d.actions.requestSentConfirmation}
         onUpdateStatus={d.actions.updateLeadStatus}
         whatsappConnected={Boolean(d.connectedWhatsAppAccount)}
         colors={colors}

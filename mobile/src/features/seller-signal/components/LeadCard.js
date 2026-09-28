@@ -116,7 +116,7 @@ export default function LeadCard({
   onCopyMessage,
   onPress,
   onSendWhatsApp,
-  onToggleSent,
+  onHandoff,
   whatsappConnected,
 }) {
   const [copyStatus, setCopyStatus] = useState("");
@@ -134,7 +134,7 @@ export default function LeadCard({
       return;
     }
     Linking.openURL(`https://wa.me/${whatsappPhone}?text=${encodeURIComponent(message)}`);
-    if (!isSent) void onToggleSent(lead.id);
+    onHandoff?.(lead.id);
   }
 
   return (

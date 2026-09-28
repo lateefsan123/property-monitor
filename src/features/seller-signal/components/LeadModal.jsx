@@ -44,7 +44,7 @@ export default function LeadModal({
   onSaveFollowUp,
   onSendWhatsApp,
   onStartEditing,
-  onToggleSent,
+  onHandoff,
   templates = [],
   whatsappConnected,
 }) {
@@ -172,7 +172,7 @@ export default function LeadModal({
           href={whatsappUrl}
           target="_blank"
           rel="noopener noreferrer"
-          onClick={() => { if (!isSent) void onToggleSent(lead.id); }}
+          onClick={() => onHandoff?.(lead.id)}
         >
           <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />
           {isSent ? "Sent" : "Send via WhatsApp"}
@@ -186,7 +186,7 @@ export default function LeadModal({
         className="lead-modal-wa-btn lead-modal-wa-nophone"
         onClick={() => {
           void onCopyMessage(lead.id, message);
-          if (!isSent) void onToggleSent(lead.id);
+          onHandoff?.(lead.id);
         }}
       >
         <IconBrandWhatsapp className="icon" size={18} stroke={2} aria-hidden="true" />

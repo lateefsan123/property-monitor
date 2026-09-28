@@ -127,6 +127,18 @@ export default function SellerSignalDashboard({
 
   return (
     <div className="page">
+      {dashboard.pendingHandoff && (
+        <div className="notice handoff-confirm" role="alertdialog" aria-labelledby="handoff-confirm-title">
+          <div>
+            <strong id="handoff-confirm-title">{dashboard.pendingHandoff.title}</strong>
+            <p>{dashboard.pendingHandoff.body}</p>
+          </div>
+          <div className="handoff-confirm-actions">
+            <button type="button" className="btn-sm" onClick={dashboard.actions.dismissPendingHandoff}>{dashboard.pendingHandoff.cancel}</button>
+            <button type="button" className="btn-sm btn-primary" onClick={() => dashboard.actions.confirmPendingHandoff(dashboard.pendingHandoff)}>{dashboard.pendingHandoff.confirm}</button>
+          </div>
+        </div>
+      )}
       {dashboard.notice && <div className="notice">{dashboard.notice}</div>}
       {dashboard.error && <div className="error">{dashboard.error}</div>}
       <ImportHealthPanel
@@ -274,7 +286,7 @@ export default function SellerSignalDashboard({
                       onToggleExpanded={dashboard.actions.toggleLeadExpanded}
                       onToggleFavorite={toggleFavorite}
                       onTogglePin={togglePin}
-                      onToggleSent={dashboard.actions.toggleSent}
+                      onHandoff={dashboard.actions.requestSentConfirmation}
                       pinned={pinnedIds.has(String(lead.id))}
                       whatsappConnected={Boolean(dashboard.connectedWhatsAppAccount)}
                     />
@@ -309,7 +321,7 @@ export default function SellerSignalDashboard({
                   onSaveFollowUp={dashboard.actions.saveFollowUp}
                   onSendWhatsApp={dashboard.actions.sendWhatsAppLead}
                   onStartEditing={dashboard.actions.startEditingLead}
-                  onToggleSent={dashboard.actions.toggleSent}
+                  onHandoff={dashboard.actions.requestSentConfirmation}
                   onUpdateStatus={dashboard.actions.updateLeadStatus}
                   templates={dashboard.messageTemplates.templates}
                   whatsappConnected={Boolean(dashboard.connectedWhatsAppAccount)}

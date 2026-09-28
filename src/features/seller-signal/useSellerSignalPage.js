@@ -75,6 +75,7 @@ export function useSellerSignalPage(userId) {
   const sourceFilterStorageKey = userId ? `seller-signal:source-filter:${userId}` : null;
   const [actionError, setActionError] = useState(null);
   const [actionNotice, setActionNotice] = useState(null);
+  const [pendingHandoff, setPendingHandoff] = useState(null);
   const [lastImportReport, setLastImportReport] = useState(null);
   const [importing, setImporting] = useState(false);
   const [importingSourceId, setImportingSourceId] = useState(null);
@@ -581,6 +582,7 @@ export function useSellerSignalPage(userId) {
     setters: {
       setActionError,
       setActionNotice,
+      setPendingHandoff,
       setAddingLead,
       setCopiedLeadId,
       setCurrentPage,
@@ -656,6 +658,7 @@ export function useSellerSignalPage(userId) {
       loading: sendActivityQuery.isPending,
     },
     notice,
+    pendingHandoff,
     pagedLeads,
     refreshing,
     safePage,

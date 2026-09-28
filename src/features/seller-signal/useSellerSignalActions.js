@@ -19,7 +19,7 @@ import {
   sellerWhatsAppAccountsQueryKey,
 } from "./queryKeys";
 import { createSellerSignalImportActions } from "./useSellerSignalImportActions";
-import { manualSendRequiresTodaysTransaction } from "../../../shared/whatsapp-send-policy.js";
+import { handoffConfirmation, manualSendRequiresTodaysTransaction } from "../../../shared/whatsapp-send-policy.js";
 
 export function createSellerSignalActions(context) {
   const {
@@ -51,6 +51,7 @@ export function createSellerSignalActions(context) {
   const {
     setActionError,
     setActionNotice,
+    setPendingHandoff,
     setAddingLead,
     setCopiedLeadId,
     setDeletingLeadId,
@@ -86,6 +87,23 @@ export function createSellerSignalActions(context) {
       return false;
     } finally {
       setAddingLead(false);
+    }
+  }
+
+  // External WhatsApp and copy handoffs cannot prove a send, so they only
+  // record contact after the person confirms in the dashboard banner.
+  function requestSentConfirmation(leadIds) {
+    const unsent = [].concat(leadIds)
+      .map((id) => leads.find((lead) => lead.id === id))
+      .filter((lead) => lead && !sentLeads[lead.id]);
+    if (!unsent.length) return;
+    setPendingHandoff({ leadIds: unsent.map((lead) => lead.id), ...handoffConfirmation(unsent.map((lead) => lead.name)) });
+  }
+
+  async function confirmPendingHandoff(pending) {
+    setPendingHandoff(null);
+    for (const leadId of pending?.leadIds || []) {
+      if (!sentLeads[leadId]) await toggleSent(leadId);
     }
   }
 
@@ -330,7 +348,7 @@ export function createSellerSignalActions(context) {
 
     if (!phone) {
       if (message) await copyMessage(lead.id, message);
-      if (!sentLeads[lead.id]) await toggleSent(lead.id);
+      requestSentConfirmation(lead.id);
       return false;
     }
 
@@ -338,7 +356,7 @@ export function createSellerSignalActions(context) {
       if (options.customImage) { setActionError('Connect WhatsApp to send the selected image.'); return false; }
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
       window.open(url, "_blank", "noopener,noreferrer");
-      if (!sentLeads[lead.id]) await toggleSent(lead.id);
+      requestSentConfirmation(lead.id);
       return true;
     }
 
@@ -467,11 +485,8 @@ export function createSellerSignalActions(context) {
       window.setTimeout(() => {
         window.open(url, "_blank", "noopener,noreferrer");
       }, index * WHATSAPP_OPEN_DELAY_MS);
-
-      if (markAsSent && !sentLeads[lead.id]) {
-        void toggleSent(lead.id);
-      }
     });
+    if (markAsSent) requestSentConfirmation(targets.map((lead) => lead.id));
   }
 
   async function copyMessage(leadId, message) {
@@ -505,6 +520,9 @@ export function createSellerSignalActions(context) {
     sendWhatsAppLead,
     startEditingLead,
     toggleSent,
+    requestSentConfirmation,
+    confirmPendingHandoff,
+    dismissPendingHandoff: () => setPendingHandoff(null),
     updateLeadDraftField,
     updateLeadStatus: updateLeadStatusAction,
   };
