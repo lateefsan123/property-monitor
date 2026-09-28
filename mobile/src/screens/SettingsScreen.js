@@ -17,7 +17,6 @@ export default function SettingsScreen({
   manageSubscriptionPending = false,
   onBack,
   onManageSubscription,
-  onReplayOnboarding,
   onToggleTheme,
   subscriptionStoreLabel = "",
   theme,
@@ -85,9 +84,6 @@ export default function SettingsScreen({
           </SettingsGroup>}
         </>}
         {section !== "account" && <>
-          <SettingsGroup title="Help" colors={colors}>
-            <SettingsItem icon="refresh" label="Replay onboarding" onPress={onReplayOnboarding} colors={colors} last />
-          </SettingsGroup>
           <SettingsGroup title="Legal" colors={colors}>
             <SettingsItem icon="document" label="Privacy policy" onPress={() => Linking.openURL(PRIVACY_URL)} colors={colors} />
             <SettingsItem icon="document" label="Terms of service" onPress={() => Linking.openURL(TERMS_URL)} colors={colors} />
