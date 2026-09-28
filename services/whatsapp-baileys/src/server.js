@@ -398,7 +398,11 @@ async function getSession(sessionId) {
   return startSession(sessionId);
 }
 
-registerProfilePhotoRoute(app, { requireToken, sessions });
+registerProfilePhotoRoute(app, { requireToken, sessions, restoreSession: async sessionId => {
+  const creds = JSON.parse(await fs.readFile(path.join(sessionPath(sessionId), 'creds.json'), 'utf8'));
+  if (!creds.registered) return null;
+  return getSession(sessionId);
+} });
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "seller-signal-whatsapp-baileys" });
