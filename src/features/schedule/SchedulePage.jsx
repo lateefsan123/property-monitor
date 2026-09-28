@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { IconCircleCheckFilled, IconPencil, IconPlus, IconSettings, IconX } from "@tabler/icons-react";
 import { supabase } from "../../supabase";
 import { useBuildingSchedule } from "../../../shared/use-building-schedule.js";
-import { createBuildingScheduleServices } from "../../../shared/building-schedule-services.js";
-import { buildingScheduleOptions } from "../../../shared/building-schedule-queries.js";
 import { useSpreadsheetBuildings } from "./useSpreadsheetBuildings";
 import SearchField from "../../components/SearchField";
-import { SCHEDULE_DAYS, emptySchedule, scheduleBuildingKey } from "../../../supabase/functions/_shared/building-schedule.js";
+import SchedulePreferences from "./SchedulePreferences";
+import { SCHEDULE_DAYS, scheduleBuildingKey } from "../../../supabase/functions/_shared/building-schedule.js";
 import scheduleArt from "../../../mobile/assets/schedule-empty.png";
 import "./schedule.css";
 
@@ -17,11 +15,6 @@ import "./schedule.css";
 // The Weekly schedule / Fill unused switches (mobile Settings → Schedule)
 // sit behind the settings button and save on their own, like mobile.
 const daysFor = (value, name) => SCHEDULE_DAYS.filter((day) => value.days[day].some((item) => scheduleBuildingKey(item) === scheduleBuildingKey(name)));
-
-const PREFERENCES = [
-  ["enabled", "Weekly schedule", "Use the days chosen for each building. Off returns to account-wide automation."],
-  ["fill_unused", "Fill unused slots", "Use other buildings when selected buildings run out. Empty days stay off."],
-];
 
 function Sheet({ title, subtitle, onClose, children, footer }) {
   const panel = useRef(null);
@@ -45,33 +38,6 @@ function Sheet({ title, subtitle, onClose, children, footer }) {
         <div className="sch-sheet-body">{children}</div>
         {footer ? <footer className="sch-sheet-foot">{footer}</footer> : null}
       </div>
-    </div>
-  );
-}
-
-function SchedulePreferences({ userId, client, value }) {
-  const cache = useQueryClient();
-  const options = buildingScheduleOptions(client, userId).schedule;
-  const mutation = useMutation({
-    mutationFn: (next) => createBuildingScheduleServices(client).savePreferences(userId, next),
-    onSuccess: (flags) => cache.setQueryData(options.queryKey, (previous) => ({ ...(previous || emptySchedule()), ...flags })),
-  });
-  const current = { enabled: value.enabled, fill_unused: value.fill_unused, ...(mutation.isPending ? mutation.variables : {}) };
-  return (
-    <div className="sch-prefs">
-      {PREFERENCES.map(([key, title, description]) => (
-        <label key={key} className="sch-pref">
-          <span>
-            <strong>{title}</strong>
-            <small>{description}</small>
-          </span>
-          <input type="checkbox" role="switch" className="sch-switch" checked={Boolean(current[key])} disabled={mutation.isPending}
-            onChange={(event) => mutation.mutate({ ...current, [key]: event.target.checked })} />
-        </label>
-      ))}
-      <p className="sch-note" aria-live="polite">
-        {mutation.error ? <span className="sch-error">{mutation.error.message}</span> : mutation.isPending ? "Saving…" : "Changes save automatically. All schedules use Dubai time."}
-      </p>
     </div>
   );
 }
@@ -225,7 +191,7 @@ export default function SchedulePage({ userId, client = supabase }) {
 
       {sheet === "settings" && (
         <Sheet title="Schedule settings" onClose={close}>
-          <SchedulePreferences userId={userId} client={client} value={state.value} />
+          <SchedulePreferences userId={userId} client={client} />
         </Sheet>
       )}
     </main>

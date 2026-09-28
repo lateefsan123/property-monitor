@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { usePagePrefetch } from "./usePagePrefetch";
 import SchedulePage from "./features/schedule/SchedulePage";
+import SettingsPage from "./features/settings/SettingsPage";
 import {
   IconBuildingEstate,
   IconCalendarWeek,
   IconDownload,
   IconHome,
   IconMenu2,
+  IconSettings,
   IconTable,
   IconUsers,
 } from "@tabler/icons-react";
@@ -25,12 +27,13 @@ import VoicePanel from "./voice/VoicePanel";
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 import { createBillingPortalSession } from "./billing";
 
-const VALID_PAGES = new Set(["home", "sellers", "listing-alerts", "spreadsheets", "schedule"]);
+const VALID_PAGES = new Set(["home", "sellers", "listing-alerts", "spreadsheets", "schedule", "settings"]);
 const THEME_STORAGE_KEY = "property:theme";
 
 const PAGE_LABELS = {
   home: "Home",
   schedule: "Schedule",
+  settings: "Settings",
   sellers: "Sellers",
   "listing-alerts": "Listings",
   spreadsheets: "Spreadsheets",
@@ -44,6 +47,7 @@ const PAGE_ACCENTS = {
 
 function PageIcon({ page }) {
   if (page === "schedule") return <IconCalendarWeek size={14} stroke={2} aria-hidden="true" />;
+  if (page === "settings") return <IconSettings size={14} stroke={2} aria-hidden="true" />;
   if (page === "sellers") {
     return <IconUsers size={14} stroke={2} aria-hidden="true" />;
   }
@@ -98,7 +102,6 @@ export default function AppShell({ displayName, subscription, userId }) {
   const [assistantOpen, setAssistantOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [messageTemplatesOpen, setMessageTemplatesOpen] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const [billingPortalState, setBillingPortalState] = useState({ error: null, pending: false });
   const [theme, setTheme] = useState(readInitialTheme);
 
@@ -155,9 +158,7 @@ export default function AppShell({ displayName, subscription, userId }) {
       setMessageTemplatesOpen(true);
       setSidebarCollapsed(true);
     } else if (actionId === "settings") {
-      setSettingsOpen(true);
-      setSidebarCollapsed(true);
-      if (currentPage !== "sellers") handleNavigate("sellers");
+      handleNavigate("settings");
     }
   }
 
@@ -233,7 +234,7 @@ export default function AppShell({ displayName, subscription, userId }) {
         />
       )}
 
-      {!createOpen && !messageTemplatesOpen && !settingsOpen && !assistantOpen && <ProductTour key={userId} userId={userId} onNavigate={handleNavigate} onAction={handleSidebarAction} />}
+      {!createOpen && !messageTemplatesOpen && !assistantOpen && <ProductTour key={userId} userId={userId} onNavigate={handleNavigate} onAction={handleSidebarAction} />}
       <VoicePanel key={`voice:${userId}`} userId={userId} onOpenChange={setAssistantOpen} />
 
       <div className="app-main">
@@ -303,11 +304,21 @@ export default function AppShell({ displayName, subscription, userId }) {
             onCancelPlan={handleCancelPlan}
             userId={userId}
             subscription={subscription}
-            settingsOpen={settingsOpen}
-            onCloseSettings={() => setSettingsOpen(false)}
           />
         ) : currentPage === "schedule" ? (
           <SchedulePage key={userId} userId={userId} />
+        ) : currentPage === "settings" ? (
+          <SettingsPage
+            key={userId}
+            userId={userId}
+            onNavigate={handleNavigate}
+            theme={theme}
+            onToggleTheme={handleToggleTheme}
+            subscription={subscription}
+            billingPortalError={billingPortalState.error}
+            billingPortalPending={billingPortalState.pending}
+            onCancelPlan={handleCancelPlan}
+          />
         ) : currentPage === "spreadsheets" ? (
           <SpreadsheetsPage userId={userId} />
         ) : (

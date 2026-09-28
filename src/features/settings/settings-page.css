@@ -1,0 +1,57 @@
+/* Settings page after Base44's full-page settings (Mobbin d9d0498f), grouped
+   like mobile: left menu with group labels, then title, one line, and rows. */
+.st-page { width: 100%; max-width: 1080px; margin: 0 auto; padding: 28px 32px 80px; box-sizing: border-box; display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 40px; align-items: start; color: var(--text); }
+.st-page button { font: inherit; cursor: pointer; }
+.st-page button:disabled { cursor: default; opacity: .5; }
+.st-page :focus-visible { outline: 2px solid var(--text-name); outline-offset: 2px; }
+
+/* Menu */
+.st-nav { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 18px; }
+.st-nav h1 { margin: 0 0 2px 10px; color: var(--text-name); font-size: 22px; font-weight: 700; letter-spacing: -.3px; }
+.st-nav-group { display: flex; flex-direction: column; gap: 2px; }
+.st-nav-label { padding: 0 10px 6px; color: var(--text-muted); font-size: 12px; font-weight: 600; }
+.st-nav button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 38px; padding: 0 10px; border: 0; border-radius: 10px; background: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; text-align: left; }
+.st-nav button svg { flex: none; color: var(--text-muted); }
+.st-nav button:hover { background: var(--bg-hover); color: var(--text); }
+.st-nav button.is-active { background: var(--bg-hover); color: var(--text-name); font-weight: 600; }
+.st-nav button.is-active svg { color: var(--text-name); }
+
+/* Content */
+.st-content { min-width: 0; display: flex; flex-direction: column; gap: 20px; }
+.st-content.settings-connection-first { background: none; height: auto; }
+.st-head h2 { margin: 0; color: var(--text-name); font-size: 24px; font-weight: 700; letter-spacing: -.4px; }
+.st-head p { margin: 6px 0 0; color: var(--text-muted); font-size: 14px; }
+.st-section { display: flex; flex-direction: column; gap: 12px; }
+.st-card { border: 1px solid var(--border); border-radius: 16px; background: var(--bg-card); }
+.st-card-pad { padding: 20px; }
+.st-card-flush .sch-prefs { padding: 0 20px; }
+.st-card-flush .sch-prefs .sch-note { padding: 0 0 16px; }
+
+/* Rows: label + description on the left, control on the right */
+.st-row { display: flex; align-items: center; gap: 24px; padding: 18px 20px; cursor: pointer; }
+.st-row + .st-row { border-top: 1px solid var(--border); }
+.st-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.st-row-text strong { color: var(--text); font-size: 15px; font-weight: 600; }
+.st-row-text small { color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+.st-switch { appearance: none; flex: none; position: relative; width: 46px; height: 28px; margin: 0; border-radius: 14px; background: var(--border); cursor: pointer; transition: background .15s; }
+.st-switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .15s; }
+.st-switch:checked { background: var(--badge-ok-text, #16a34a); }
+.st-switch:checked::after { transform: translateX(18px); }
+.st-switch:disabled { opacity: .5; cursor: default; }
+
+.st-note { margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+.st-error { margin: 0; color: var(--error-text); font-size: 13px; }
+.st-link-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 56px; padding: 0 20px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg-card); color: var(--text); font-size: 15px; font-weight: 500; text-align: left; }
+.st-link-row > span:first-child { flex: 1; }
+.st-link-row .st-link-value { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.st-link-row svg { color: var(--text-muted); }
+.st-link-row:hover { background: var(--bg-hover); }
+
+@media (max-width: 820px) {
+  .st-page { grid-template-columns: 1fr; gap: 20px; padding: 20px 16px 60px; }
+  .st-nav { position: static; flex-direction: row; flex-wrap: wrap; gap: 6px; }
+  .st-nav h1 { width: 100%; margin: 0 0 6px; }
+  .st-nav-group { flex-direction: row; flex-wrap: wrap; gap: 6px; }
+  .st-nav-label { display: none; }
+  .st-nav button { width: auto; border: 1px solid var(--border); border-radius: 18px; min-height: 36px; padding: 0 12px; }
+}
