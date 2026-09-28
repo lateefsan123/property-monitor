@@ -7,7 +7,15 @@ dist/
 tmp/
 outputs/
 reports/
-mobile/
+# The web listings read the building-name registry from the mobile app. The
+# building photos in mobile/assets stay out of web deploys until their reuse
+# is cleared (docs/mobile-listing-exteriors-2026-09-27.md).
+/mobile/*
+!/mobile/src/
+/mobile/src/*
+!/mobile/src/data/
+/mobile/src/data/*
+!/mobile/src/data/building-exteriors.json
 /desktop/
 services/
 /supabase/.temp/

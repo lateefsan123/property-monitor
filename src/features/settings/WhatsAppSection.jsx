@@ -4,7 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { IconBrandWhatsapp, IconChevronRight, IconLink, IconX } from "@tabler/icons-react";
 import { connectWhatsAppAccount } from "../seller-signal/services";
 import { sellerWhatsAppAccountsQueryKey } from "../seller-signal/queryKeys";
-import repeatIcon from "../../../mobile/assets/repeat-ai-icon.png";
+import repeatIcon from "../../assets/repeat-ai-icon.png";
 
 // Web port of mobile's WhatsApp settings (mobile/src/workspace/whatsapp-panel.js
 // and whatsapp-overview.js): a connect card, or the linked number, with the

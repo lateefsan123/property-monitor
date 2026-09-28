@@ -6,7 +6,7 @@ import { useSpreadsheetBuildings } from "./useSpreadsheetBuildings";
 import SearchField from "../../components/SearchField";
 import SchedulePreferences from "./SchedulePreferences";
 import { SCHEDULE_DAYS, scheduleBuildingKey } from "../../../supabase/functions/_shared/building-schedule.js";
-import scheduleArt from "../../../mobile/assets/schedule-empty.png";
+import scheduleArt from "../../assets/schedule-empty.png";
 import "./schedule.css";
 
 // Same layout as the mobile schedule (mobile/src/workspace/schedule-editor.js):
