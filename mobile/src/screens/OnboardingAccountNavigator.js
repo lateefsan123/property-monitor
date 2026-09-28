@@ -1,7 +1,9 @@
+import googleLogo from '../../assets/google-logo.png';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { NavigationContainer, NavigationIndependentTree, useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { BackHandler, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { BackHandler, Image, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppIcon from '../components/AppIcon';
 import useReducedMotion from '../components/use-reduced-motion';
@@ -9,8 +11,8 @@ import useReducedMotion from '../components/use-reduced-motion';
 const Stack = createNativeStackNavigator();
 const titles = { Providers: 'Create your account', Signup: 'Sign up with email', Login: 'Welcome back', Reset: 'Reset your password', CheckEmail: 'Check your email' };
 
-function Button({ children, onPress, disabled, primary = false }) {
-  return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [s.button, primary && s.primary, { opacity: disabled ? 0.45 : pressed ? 0.7 : 1 }]}><Text style={[s.buttonText, primary && { color: '#FFF' }]}>{children}</Text></Pressable>;
+function Button({ children, onPress, disabled, primary = false, icon }) {
+  return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [s.button, primary && s.primary, { opacity: disabled ? 0.45 : pressed ? 0.7 : 1 }]}>{icon}<Text style={[s.buttonText, primary && { color: '#FFF' }]}>{children}</Text></Pressable>;
 }
 
 function AccountPage({ navigation, route, auth }) {
@@ -45,8 +47,8 @@ function AccountPage({ navigation, route, auth }) {
         {name === 'Providers' ? <>
           <Text style={s.body}>Keep your sellers and conversations together.</Text>
           <View style={{ height: 10 }} />
-          <Button disabled={auth.pending} onPress={auth.onGoogle}>Continue with Google</Button>
-          {auth.appleAvailable ? <Button disabled={auth.pending} onPress={auth.onApple}>Continue with Apple</Button> : null}
+          <Button icon={<Image source={googleLogo} style={{ width: 20, height: 20 }} resizeMode="contain" accessible={false} />} disabled={auth.pending} onPress={auth.onGoogle}>Continue with Google</Button>
+          {auth.appleAvailable && Platform.OS === 'ios' ? <View pointerEvents={auth.pending ? 'none' : 'auto'} style={{ opacity: auth.pending ? 0.45 : 1 }}><AppleAuthentication.AppleAuthenticationButton buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK} buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE} cornerRadius={5} style={{ height: 54, width: '100%' }} onPress={auth.onApple} /></View> : auth.preview ? <Button disabled={auth.pending} onPress={auth.onApple}>Continue with Apple</Button> : null}
           <Button primary disabled={auth.pending} onPress={() => go(auth.initialSignUp ? 'Signup' : 'Login')}>Continue with email</Button>
           {!auth.initialSignUp ? <Button disabled={auth.pending} onPress={() => go('Signup')}>New to Repeat AI? Sign up</Button> : null}
         </> : form ? <>
@@ -84,7 +86,7 @@ const s = StyleSheet.create({
   content: { paddingHorizontal: 24, gap: 24 },
   body: { color: '#666', fontSize: 14, lineHeight: 21, textAlign: 'center' },
   input: { minHeight: 54, borderWidth: 1, borderColor: '#CCC', borderRadius: 8, paddingHorizontal: 16, color: '#111', fontSize: 16 },
-  button: { minHeight: 54, borderWidth: 1, borderColor: '#CCC', borderRadius: 5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
+  button: { flexDirection: 'row', gap: 10, minHeight: 54, borderWidth: 1, borderColor: '#CCC', borderRadius: 5, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12 },
   primary: { backgroundColor: '#000', borderColor: '#000' },
   buttonText: { color: '#111', fontSize: 14, fontWeight: '600', textAlign: 'center' },
   error: { color: '#B42318', fontSize: 13, textAlign: 'center' },

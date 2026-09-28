@@ -210,7 +210,7 @@ function AppInner() {
 
   if (!gateState.onboardingCompleted) {
     return <SafeAreaProvider>
-      <OnboardingScreen session={session} displayName={displayName} onComplete={handleOnboardingComplete}
+      <OnboardingScreen subscription={subscription} session={session} displayName={displayName} onComplete={handleOnboardingComplete}
         onPasswordRecovery={() => setIsRecoveringPassword(true)}
         onSaveUsername={async (value) => {
           if (!sessionUserId) throw new Error('Sign in to continue.');

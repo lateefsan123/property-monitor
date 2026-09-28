@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { View } from 'react-native';
+import { Text, View } from 'react-native';
 import AppIcon from './AppIcon';
 import sheets from '../../assets/onboarding/sheets.png';
 import excel from '../../assets/onboarding/excel.png';
@@ -20,6 +20,16 @@ const apps = [
   { image: bayut, wide: true, x: 0, y: 171 }, { icon: 'table', color: '#e0a13b', x: 40, y: 66 },
 ];
 export default function OnboardingPreview({ screen, width, height }) {
+  if (screen === 'automation') return <View style={{ width, height, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24, gap: 20 }}>
+    <View style={{ width: '100%', maxWidth: 320, padding: 24, borderRadius: 24, backgroundColor: '#fff', gap: 18 }}>
+      <AppIcon name="whatsapp" size={30} color="#278575" />
+      <Text style={{ fontSize: 64, fontWeight: '700', color: '#111', letterSpacing: -2 }}>40</Text>
+      <Text style={{ fontSize: 17, fontWeight: '600', color: '#111' }}>messages a day</Text>
+      <Text style={{ fontSize: 14, lineHeight: 21, color: '#666' }}>Your message. Your sellers. Your schedule.</Text>
+      <View style={{ height: 6, backgroundColor: '#E4E6E9', borderRadius: 3 }}><View style={{ width: '100%', height: 6, backgroundColor: '#278575', borderRadius: 3 }} /></View>
+      <Text style={{ fontSize: 12, color: '#666' }}>Up to 40 · Default daily limit</Text>
+    </View>
+  </View>;
   if (screen === 'integrations') {
     const scale = Math.max(0, Math.min((width - 32) / 360, height / 400));
     return <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={{ width, height, alignItems: 'center', justifyContent: 'center' }}>

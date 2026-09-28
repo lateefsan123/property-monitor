@@ -1,3 +1,4 @@
+import SubscriptionScreen from './SubscriptionScreen';
 import { useEffect, useRef, useState } from 'react';
 import { BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,7 +8,7 @@ import OnboardingPreview from '../components/OnboardingPreview';
 import { ONBOARDING_GOALS, ONBOARDING_STEPS, onboardingDestination, toggleOnboardingGoal } from '../onboarding-flow';
 import AuthScreen from './AuthScreen';
 
-export default function OnboardingScreen({ onComplete, onClose, preview = false, session, displayName = '', onSaveUsername, onPasswordRecovery }) {
+export default function OnboardingScreen({ onComplete, onClose, preview = false, session, displayName = '', onSaveUsername, onPasswordRecovery, subscription }) {
   const { height, width } = useWindowDimensions();
   const compact = height < 740 || width < 360;
   const insets = useSafeAreaInsets();
@@ -71,6 +72,11 @@ export default function OnboardingScreen({ onComplete, onClose, preview = false,
     else if (final) void finish(onboardingDestination(goalIds));
     else { if (step === 0) setLogin(false); setError(''); setStep(value => value + 1); }
   }
+  if (final) return <SubscriptionScreen onboarding preview={preview} hasAccess={subscription?.hasAccess}
+    action={busy ? 'finish' : subscription?.action} canPurchase={subscription?.canPurchase} storeConfigured={subscription?.storeConfigured}
+    priceString={subscription?.priceString || (preview ? '€35.00' : null)} trialEligible={subscription?.trialEligible}
+    error={error || subscription?.error} onPurchase={subscription?.purchase} onRestore={subscription?.restore} onRefresh={subscription?.refresh}
+    onBack={back} onContinue={() => finish(onboardingDestination(goalIds))} />;
   if (account) return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.page, { paddingTop: insets.top }]}>
     <StatusBar barStyle="dark-content" backgroundColor="#F2F3F5" />
     <AuthScreen embedded initialSignUp={!login} heading={heading} preview={preview} onBack={back} onClose={preview ? onClose : undefined} onPreviewComplete={() => setPreviewAuthenticated(true)} onPasswordRecovery={onPasswordRecovery} />

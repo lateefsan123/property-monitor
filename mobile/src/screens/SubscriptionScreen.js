@@ -13,11 +13,12 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { PRO_TRIAL_DAYS } from "../subscriptions";
 
-const BENEFITS = ["Sellers and follow-ups", "Listings and price alerts", "Mobile and desktop"];
+const BENEFITS = ["Sellers and follow-ups", "Listings and price alerts", "Mobile and desktop", "Up to 40 automated WhatsApp messages daily"];
 const TERMS_URL = "https://repeatai.org/terms";
 const PRIVACY_URL = "https://repeatai.org/privacy";
 
 export default function SubscriptionScreen({
+  onboarding = false, preview = false, hasAccess = false, onContinue, onBack,
   action,
   canPurchase,
   error,
@@ -35,7 +36,7 @@ export default function SubscriptionScreen({
   const pendingAction = action || localAction;
   const price = priceString || null;
   const trialCopy = trialEligible === true ? `${PRO_TRIAL_DAYS}-day free trial` : null;
-  const purchaseDisabled = !storeConfigured || !canPurchase || Boolean(pendingAction);
+  const purchaseDisabled = Boolean(pendingAction) || (!preview && !hasAccess && (!storeConfigured || !canPurchase));
 
   async function runAction(name, task) {
     if (actionPending.current) return;
@@ -66,17 +67,17 @@ export default function SubscriptionScreen({
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.header}>
-        <View />
-        <Pressable onPress={onSignOut} hitSlop={12} style={({ pressed }) => pressed && styles.pressed}>
+        {onBack ? <Pressable accessibilityRole="button" onPress={onBack} disabled={Boolean(pendingAction)}><Text style={styles.signOut}>Back</Text></Pressable> : <View />}
+        {onSignOut ? <Pressable onPress={onSignOut} hitSlop={12} style={({ pressed }) => pressed && styles.pressed}>
           <Text style={styles.signOut}>Sign out</Text>
-        </Pressable>
+        </Pressable> : null}
       </View>
 
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={styles.title}>CHOOSE A PLAN</Text>
+        <Text style={styles.title}>Choose your plan</Text>
 
         <View style={styles.planCard}>
           {trialCopy ? <View style={styles.ribbon}><Text style={styles.ribbonText}>{trialCopy}</Text></View> : null}
@@ -87,10 +88,12 @@ export default function SubscriptionScreen({
           <View style={styles.checkBadge}><Text style={styles.checkBadgeText}>✓</Text></View>
         </View>
 
+        {preview ? <Text style={styles.billingLine}>Preview only · No purchase will be made</Text> : null}
+        {onboarding && hasAccess ? <Text style={styles.billingLine}>Your Pro access is active</Text> : null}
         <Text style={styles.billingLine}>{trialCopy ? "Billed monthly after trial" : "Billed monthly"}</Text>
 
         <View style={styles.benefits}>
-          <Text style={styles.sectionTitle}>WHAT PRO ADDS</Text>
+          <Text style={styles.sectionTitle}>Everything in Pro</Text>
           {BENEFITS.map((benefit) => (
             <View key={benefit} style={styles.benefitRow}>
               <View style={styles.check}><Text style={styles.checkText}>✓</Text></View>
@@ -112,7 +115,7 @@ export default function SubscriptionScreen({
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 14) }]}>
         <Pressable
           disabled={purchaseDisabled}
-          onPress={() => void runAction("purchase", onPurchase)}
+          onPress={() => preview || hasAccess ? onContinue?.() : void runAction("purchase", onPurchase)}
           style={({ pressed }) => [
             styles.primaryButton,
             purchaseDisabled && styles.primaryButtonDisabled,
@@ -123,7 +126,7 @@ export default function SubscriptionScreen({
             <ActivityIndicator color="#FFFFFF" />
           ) : (
             <Text style={styles.primaryButtonText}>
-              {!storeConfigured || !canPurchase
+              {preview ? "Finish preview" : hasAccess ? "Continue" : !storeConfigured || !canPurchase
                 ? "Subscription unavailable"
                 : trialCopy ? `Start ${trialCopy}` : "Subscribe"}
             </Text>
@@ -137,7 +140,7 @@ export default function SubscriptionScreen({
         </Text> : null}
 
         <Pressable
-          disabled={Boolean(pendingAction)}
+          disabled={preview || Boolean(pendingAction)}
           onPress={() => void runAction("restore", onRestore)}
           style={styles.textButton}
         >

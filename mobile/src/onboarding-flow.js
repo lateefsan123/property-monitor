@@ -5,6 +5,7 @@ export const ONBOARDING_STEPS = [
   { id: 'listings', title: 'SPOT THE CHANGE.\nSTART THE CONVERSATION.', body: 'Track price changes. Find the right reason to reconnect.' },
   { id: 'messages', title: 'MAKE EVERY\nMESSAGE RELEVANT.', body: 'Save your best messages. Personalise every conversation.' },
   { id: 'schedule', title: 'STAY IN TOUCH.\nON YOUR SCHEDULE.', body: 'Choose your buildings and days. Keep the conversation going.' },
+  { id: 'automation', title: 'Follow up.\nAutomatically.', body: 'Schedule up to 40 WhatsApp messages a day. Connect WhatsApp, choose your sellers and set your schedule.' },
   { id: 'account', title: 'MAKE IT\nYOUR WORKSPACE.', body: '' },
   { id: 'username', title: 'WHAT SHOULD WE\nCALL YOU?', body: 'Choose the name you’ll see in Repeat AI.' },
   { id: 'finish', title: 'YOUR NEXT\nCONVERSATION STARTS HERE.', body: 'You’re ready. Let’s bring your workflow together.' },

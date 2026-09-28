@@ -9,7 +9,7 @@ test('each onboarding goal opens its real setup route', () => {
   assert.deepEqual(onboardingDestination('unknown'), onboardingDestination('organise'));
 });
 test('full tour introduces integrations and ends after product demonstrations', () => {
-  assert.deepEqual(ONBOARDING_STEPS.map(step => step.id), ['integrations', 'goal', 'sellers', 'listings', 'messages', 'schedule', 'account', 'username', 'finish']);
+  assert.deepEqual(ONBOARDING_STEPS.map(step => step.id), ['integrations', 'goal', 'sellers', 'listings', 'messages', 'schedule', 'automation', 'account', 'username', 'finish']);
   assert.equal(new Set(ONBOARDING_GOALS.map(goal => goal.id)).size, 3);
 });
 
