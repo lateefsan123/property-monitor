@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { registerProfilePhotoRoute } from './profile-photo.js';
 import express from "express";
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -396,6 +397,8 @@ async function requestSessionPairingCode(session, phoneNumber, customPairingCode
 async function getSession(sessionId) {
   return startSession(sessionId);
 }
+
+registerProfilePhotoRoute(app, { requireToken, sessions });
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, service: "seller-signal-whatsapp-baileys" });

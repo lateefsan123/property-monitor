@@ -1,3 +1,4 @@
+import SellerAvatar from './SellerAvatar';
 import AppIcon from "../../../components/AppIcon";
 import { useEffect, useRef, useState } from "react";
 import * as Linking from "expo-linking";
@@ -186,6 +187,8 @@ function EditActions({ colors: c, isDeleting, isSaving, onCancel, onDelete, onSa
 }
 
 export default function LeadDetailSheet({
+  userId,
+  whatsappAccountId,
   visible,
   onClose,
   lead,
@@ -307,7 +310,7 @@ export default function LeadDetailSheet({
     <BottomSheet visible={visible} onClose={() => { handleNotesBlur(); onClose(); }} colors={colors}>
       <ScrollView keyboardShouldPersistTaps="handled" style={s.scroll} contentContainerStyle={s.content} showsVerticalScrollIndicator={false}>
         {isEditing ? <Text style={{ fontSize: 22, fontWeight: "700", color: c.text }}>Edit seller</Text> : <View style={s.profileHeader}>
-          <View style={[s.avatar, { backgroundColor: c.bgBadge }]}><Text style={{ color: c.text, fontSize: 23, fontWeight: "600" }}>{(lead.name || "?").split(/\s+/).slice(0, 2).map(part => part[0]).join("").toUpperCase()}</Text></View>
+          <SellerAvatar key={`${userId}:${whatsappAccountId}:${lead.id}`} userId={userId} accountId={whatsappAccountId} lead={lead} visible={visible} colors={c} />
           <Text style={{ fontSize: 22, fontWeight: "700", color: c.textName, textAlign: "center" }}>{lead.name || "Unnamed seller"}</Text>
           <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center" }}>{formatBuildingLabel(lead.resolvedBuilding || lead.building) || "No building"}</Text>
           {!isEditing && <Pressable accessibilityRole="button" onPress={() => onStartEditing?.(lead.id)} disabled={isSaving || isDeleting} style={{ minHeight: 44, justifyContent: "center" }}><Text style={{ color: c.text, fontWeight: "600" }}>Edit seller</Text></Pressable>}
