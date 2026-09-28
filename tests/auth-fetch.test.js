@@ -24,3 +24,16 @@ test('application requests keep their original signal and options', async () => 
   const request = createAuthFetch((_input, received) => Promise.resolve(received));
   assert.equal(await request('https://example.test/storage/v1/upload', options), options);
 });
+
+test('network failures are distinguished from an actual auth rejection', async () => {
+  const states = [];
+  let status = 503;
+  const request = createAuthFetch(async () => ({ status }), 100, failed => states.push(failed));
+  await request('https://example.test/auth/v1/token');
+  status = 401;
+  await request('https://example.test/auth/v1/token');
+  assert.deepEqual(states, [true, false]);
+  const offline = createAuthFetch(async () => { throw new TypeError('offline'); }, 100, failed => states.push(failed));
+  await assert.rejects(offline('https://example.test/auth/v1/token'), /offline/);
+  assert.equal(states.at(-1), true);
+});

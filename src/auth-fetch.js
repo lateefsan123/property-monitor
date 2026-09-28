@@ -1,6 +1,6 @@
 // Abort stalled auth requests so Supabase can retry without deleting the session.
 // Leave uploads and long-running application requests on their existing policy.
-export function createAuthFetch(fetcher = fetch, timeoutMs = 12000) {
+export function createAuthFetch(fetcher = fetch, timeoutMs = 12000, onConnectionState = () => {}) {
   return async (input, options = {}) => {
     const url = typeof input === 'string' ? input : input.url || String(input);
     if (!new URL(url).pathname.startsWith('/auth/v1/')) return fetcher(input, options);
@@ -11,7 +11,12 @@ export function createAuthFetch(fetcher = fetch, timeoutMs = 12000) {
     else originalSignal?.addEventListener('abort', abort, { once: true });
     const timer = setTimeout(() => controller.abort(), timeoutMs);
     try {
-      return await fetcher(input, { ...options, signal: controller.signal });
+      const response = await fetcher(input, { ...options, signal: controller.signal });
+      onConnectionState(response.status >= 500);
+      return response;
+    } catch (error) {
+      onConnectionState(true);
+      throw error;
     } finally {
       clearTimeout(timer);
       originalSignal?.removeEventListener('abort', abort);

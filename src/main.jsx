@@ -23,7 +23,7 @@ import UsernameSetup from "./features/seller-signal/components/UsernameSetup.jsx
 import { queryClient } from "./queryClient";
 import { pageQueries } from "./page-prefetch";
 import { prefetchHomeOnStartup } from "./startup-prefetch";
-import { supabase, supabaseConfigError } from "./supabase";
+import { supabase, supabaseConfigError, hasAuthConnectionFailure } from "./supabase";
 import { billingFailureState } from "./billing-state.js";
 import StartupStatus from './StartupStatus.jsx';
 
@@ -186,6 +186,9 @@ export function Root() {
     // INITIAL_SESSION is emitted after storage initialization. A separate
     // getSession promise can arrive late and overwrite a newer auth event.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, nextSession) => {
+      // Supabase can emit INITIAL_SESSION(null) after a retryable network failure.
+      // Keep recovery visible rather than falsely presenting a signed-out state.
+      if (event === 'INITIAL_SESSION' && !nextSession && hasAuthConnectionFailure()) return;
       setSession(nextSession);
       if (event === "PASSWORD_RECOVERY") setIsRecoveringPassword(true);
     });
