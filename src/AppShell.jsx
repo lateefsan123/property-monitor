@@ -24,6 +24,7 @@ import { useSellerSignalMessageTemplates } from "./features/seller-signal/useSel
 import ThemeToggleButton from "./components/ThemeToggleButton";
 import ProductTour from "./components/ProductTour";
 import VoicePanel from "./voice/VoicePanel";
+import SendVolumeDialog from "./features/seller-signal/components/SendVolumeDialog";
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 import { createBillingPortalSession } from "./billing";
 
@@ -236,6 +237,7 @@ export default function AppShell({ displayName, subscription, userId }) {
 
       {!createOpen && !messageTemplatesOpen && !assistantOpen && <ProductTour key={userId} userId={userId} onNavigate={handleNavigate} onAction={handleSidebarAction} />}
       <VoicePanel key={`voice:${userId}`} userId={userId} onOpenChange={setAssistantOpen} />
+      <SendVolumeDialog />
 
       <div className="app-main">
         <header className={`app-topbar${scrolled ? " app-topbar-scrolled" : ""}`}>

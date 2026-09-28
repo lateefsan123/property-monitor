@@ -1,0 +1,16 @@
+/* Daily send-volume confirmation, above every other layer. */
+.svd-backdrop { position: fixed; inset: 0; z-index: 2000; display: grid; place-items: center; padding: 24px; background: rgba(12,14,18,.55); animation: svd-fade .15s ease-out; }
+@keyframes svd-fade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .svd-backdrop { animation: none; } }
+.svd-dialog { width: min(420px, 100%); display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 28px 24px 22px; border: 1px solid var(--border); border-radius: 22px; background: var(--bg-card); color: var(--text); text-align: center; box-shadow: 0 30px 80px -24px rgba(0,0,0,.5); }
+.svd-icon { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--badge-due-bg, #fef3c7); color: var(--badge-due-text, #b45309); }
+.svd-dialog h2 { margin: 4px 0 0; color: var(--text-name); font-size: 20px; font-weight: 700; letter-spacing: -.2px; }
+.svd-dialog p { margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.55; }
+.svd-skip { display: flex; align-items: center; gap: 8px; margin-top: 4px; color: var(--text-secondary); font-size: 13px; cursor: pointer; }
+.svd-skip input { width: 16px; height: 16px; margin: 0; accent-color: var(--text-name); }
+.svd-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+.svd-btn { min-height: 46px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); color: var(--text); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+.svd-btn:hover { background: var(--bg-hover); }
+.svd-btn.is-primary { border-color: var(--btn-primary-bg); background: var(--btn-primary-bg); color: var(--btn-primary-text); }
+.svd-btn.is-primary:hover { background: var(--btn-primary-hover); }
+.svd-btn:focus-visible, .svd-skip input:focus-visible { outline: 2px solid var(--text-name); outline-offset: 2px; }

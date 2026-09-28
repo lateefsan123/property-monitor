@@ -172,9 +172,6 @@ button.st-profile:hover { background: var(--bg-hover); }
 .st-count-icon { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--bg-badge); color: var(--text-muted); }
 .st-count-label { flex: 1; font-size: 15px; }
 .st-count-row strong { font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums; }
-.st-alert { display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 14px; background: var(--error-bg, #fde8e8); color: var(--error-text); }
-.st-alert strong { font-size: 14px; }
-.st-alert small { font-size: 13px; }
 
 /* Integrations */
 .st-app-row .st-app-logo { flex: none; width: 25px; height: 25px; object-fit: contain; }
@@ -197,3 +194,23 @@ button.st-profile:hover { background: var(--bg-hover); }
   .st-backdrop { place-items: end center; padding: 0; }
   .st-dialog { width: 100%; border-radius: 20px 20px 0 0; }
 }
+
+/* Send activity: plain-language warnings and today's progress toward 40 */
+.st-warning { display: flex; align-items: flex-start; gap: 12px; padding: 14px 16px; border-radius: 14px; }
+.st-warning svg { flex: none; margin-top: 1px; }
+.st-warning div { display: flex; flex-direction: column; gap: 4px; }
+.st-warning strong { font-size: 14px; font-weight: 600; }
+.st-warning p { margin: 0; font-size: 13px; line-height: 1.5; opacity: .9; }
+.st-warning.is-amber { background: #fef3c7; color: #92400e; }
+.st-warning.is-red { background: var(--error-bg, #fde8e8); color: var(--error-text); }
+[data-theme="dark"] .st-warning.is-amber { background: #3a2a0c; color: #fbbf24; }
+.st-stats-card { overflow: hidden; border: 1px solid var(--border); border-radius: 18px; background: var(--bg-card); }
+.st-stats-card .st-stats { border: 0; border-radius: 0; }
+.st-meter { display: flex; flex-direction: column; gap: 10px; padding: 18px 24px 20px; border-top: 1px solid var(--border); }
+.st-meter-top { display: flex; justify-content: space-between; gap: 12px; color: var(--text-muted); font-size: 13px; }
+.st-meter-top strong { color: var(--text-name); font-size: 15px; font-variant-numeric: tabular-nums; }
+.st-meter-track { height: 8px; overflow: hidden; border-radius: 4px; background: var(--bg-badge); }
+.st-meter-track span { display: block; height: 100%; border-radius: 4px; background: #278575; transition: width .3s; }
+.st-meter-track span.is-near { background: #d97706; }
+.st-meter-track span.is-over { background: var(--error-text); }
+.st-meter small { color: var(--text-muted); font-size: 12px; line-height: 1.5; }

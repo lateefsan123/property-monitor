@@ -84,7 +84,7 @@ export function createSendActivityServices(supabase) {
     const { data: alerts, error: alertsError } = await allRows(() => supabase
       .from("seller_signal_send_alerts")
       .select(
-        "id, alert_type, severity, threshold_count, observed_count, details, created_at",
+        "id, alert_type, severity, threshold_count, observed_count, details, dubai_date, created_at",
       )
       .eq("user_id", userId)
       .gte("dubai_date", range.startDate)

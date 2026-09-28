@@ -3,7 +3,8 @@ import { saveSellerFollowUp, uploadSellerAttachment } from './seller-contact-ser
 import { introAttachmentPath } from "../../../supabase/functions/_shared/intro-attachment.js";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
 import { applyLeadEdits, applyLeadStatus, sortLeadsByPriority } from "./lead-utils";
-import { insertLead } from "./services";
+import { fetchWhatsAppSendActivity, insertLead } from "./services";
+import { confirmSendVolume } from "./send-volume-guard";
 import {
   createLeadEditDraft,
   EMPTY_LEADS_DATA,
@@ -16,6 +17,7 @@ import {
   sellerBuildingCleanupQueryPrefix,
   sellerInsightsQueryPrefix,
   sellerLeadsQueryKey,
+  sellerSendActivityQueryKey,
   sellerWhatsAppAccountsQueryKey,
 } from "./queryKeys";
 import { createSellerSignalImportActions } from "./useSellerSignalImportActions";
@@ -362,6 +364,16 @@ export function createSellerSignalActions(context) {
 
     setActionError(null);
     if (!options.quiet) setActionNotice(null);
+
+    // Past 40 sends today, ask before a manual message goes out.
+    if ((options.sendSource || "manual") === "manual") {
+      let sentToday = queryClient.getQueryData(sellerSendActivityQueryKey(userId))?.total;
+      if (!Number.isFinite(sentToday)) {
+        sentToday = await queryClient.fetchQuery({ queryKey: sellerSendActivityQueryKey(userId), queryFn: () => fetchWhatsAppSendActivity(userId), staleTime: 30_000 })
+          .then((activity) => activity?.total, () => undefined);
+      }
+      if (!(await confirmSendVolume(userId, sentToday))) return false;
+    }
 
     try {
       const result = await sendWhatsAppMessageMutation.mutateAsync({
