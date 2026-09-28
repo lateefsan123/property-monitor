@@ -75,7 +75,7 @@ export default function ProductTour({ userId, onNavigate, onAction }) {
           </div>
         </section>
       ) : (
-        <button ref={launcher} type="button" className="repeat-tour-launcher" aria-label="Open product tour" onClick={() => move(state.step === TOUR_STEPS.length - 1 ? 0 : state.step)}><CircleHelp className="repeat-tour-help-icon" size={20} strokeWidth={1.75} aria-hidden="true" />Quick tour</button>
+        <button ref={launcher} type="button" className="repeat-tour-launcher" aria-label="Open product tour" title="Quick tour" onClick={() => move(state.step === TOUR_STEPS.length - 1 ? 0 : state.step)}><CircleHelp className="repeat-tour-help-icon" size={20} strokeWidth={1.75} aria-hidden="true" /></button>
       )}
     </div>
   );

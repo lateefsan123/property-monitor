@@ -1,9 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useQuery } from "@tanstack/react-query";
 import {
   IconCheck,
   IconDots,
+  IconLayoutGrid,
+  IconList,
   IconPinned,
   IconPinnedFilled,
   IconPlus,
@@ -12,6 +14,7 @@ import {
 } from "@tabler/icons-react";
 import { SellerPreviewThumb, SheetPreviewThumb } from "../../components/SeededPreviewThumb";
 import HomeInsights from "./HomeInsights";
+import "../../styles/home-pinned.css";
 import { fetchUserLeads } from "../seller-signal/services";
 import { fetchSellerSources, formatSourceLabel } from "../seller-signal/page-helpers";
 import { sellerLeadsQueryKey, sellerSourcesQueryKey } from "../seller-signal/queryKeys";
@@ -92,66 +95,6 @@ function TopbarActionsPortal({ children }) {
 
   if (!host) return null;
   return createPortal(children, host);
-}
-
-function LayoutMenu({ value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const wrapRef = useRef(null);
-
-  useEffect(() => {
-    if (!open) return undefined;
-    function handleDocClick(event) {
-      if (!wrapRef.current) return;
-      if (!wrapRef.current.contains(event.target)) setOpen(false);
-    }
-    function handleKey(event) {
-      if (event.key === "Escape") setOpen(false);
-    }
-    document.addEventListener("mousedown", handleDocClick);
-    document.addEventListener("keydown", handleKey);
-    return () => {
-      document.removeEventListener("mousedown", handleDocClick);
-      document.removeEventListener("keydown", handleKey);
-    };
-  }, [open]);
-
-  return (
-    <div className="sheet-sort" ref={wrapRef}>
-      <button
-        type="button"
-        className={`sheet-sort-btn${open ? " is-open" : ""}`}
-        onClick={() => setOpen((v) => !v)}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        title="Change layout"
-      >
-        <IconDots size={20} stroke={2} aria-hidden="true" />
-      </button>
-      {open && (
-        <div className="sheet-sort-menu" role="menu">
-          <div className="sheet-sort-menu-label">Layout</div>
-          {LAYOUTS.map((option) => (
-            <button
-              key={option.id}
-              type="button"
-              role="menuitemradio"
-              aria-checked={value === option.id}
-              className={`sheet-sort-item${value === option.id ? " is-selected" : ""}`}
-              onClick={() => {
-                onChange(option.id);
-                setOpen(false);
-              }}
-            >
-              <span>{option.label}</span>
-              {value === option.id && (
-                <IconCheck size={14} stroke={2.5} aria-hidden="true" />
-              )}
-            </button>
-          ))}
-        </div>
-      )}
-    </div>
-  );
 }
 
 function PinnedCard({ item, onOpen, onTogglePin }) {
@@ -235,7 +178,7 @@ function PinnedRow({ item, onOpen, onTogglePin }) {
   );
 }
 
-function PinnedSection({ userId, layout, onNavigate, pinnedSheetIds, setPinnedSheetIds }) {
+function PinnedSection({ userId, layout, onLayoutChange, onNavigate, pinnedSheetIds, setPinnedSheetIds }) {
   const { pinnedIds: pinnedSellerIds, togglePin: toggleSellerPin } = useSellerFavorites(userId);
 
   const sourcesQuery = useQuery({
@@ -329,7 +272,18 @@ function PinnedSection({ userId, layout, onNavigate, pinnedSheetIds, setPinnedSh
 
   return (
     <section className="home-pinned">
-      <h2 className="home-pinned-title">Pinned</h2>
+      {/* Layout only affects pinned items, so the switch lives with them. */}
+      <div className="home-pinned-head">
+        <h2 className="home-pinned-title">Pinned</h2>
+        <div className="home-layout-switch" role="radiogroup" aria-label="Pinned layout">
+          {LAYOUTS.map((option) => (
+            <button key={option.id} type="button" role="radio" aria-checked={layout === option.id} aria-label={option.label}
+              title={option.label} className={layout === option.id ? "is-active" : ""} onClick={() => onLayoutChange(option.id)}>
+              {option.id === "grid" ? <IconLayoutGrid size={16} stroke={1.8} aria-hidden="true" /> : <IconList size={16} stroke={1.8} aria-hidden="true" />}
+            </button>
+          ))}
+        </div>
+      </div>
       {layout === "grid" ? (
         <div className="sheet-grid">
           {pinnedItems.map((item) => (
@@ -383,7 +337,6 @@ export default function HomePage({ displayName, onNavigate, userId, onOpenCreate
         >
           <IconPlus size={18} stroke={2} aria-hidden="true" />
         </button>
-        <LayoutMenu value={layout} onChange={setLayout} />
       </TopbarActionsPortal>
 
       <header className="home-greeting">
@@ -396,6 +349,7 @@ export default function HomePage({ displayName, onNavigate, userId, onOpenCreate
       <PinnedSection
         userId={userId}
         layout={layout}
+        onLayoutChange={setLayout}
         onNavigate={onNavigate}
         pinnedSheetIds={pinnedSheetIds}
         setPinnedSheetIds={setPinnedSheetIds}

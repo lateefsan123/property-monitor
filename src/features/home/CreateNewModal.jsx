@@ -1,124 +1,58 @@
-import { useEffect, useState } from "react";
-import { IconX } from "@tabler/icons-react";
-import TilePreview from "./TilePreview";
+import { useEffect, useRef } from "react";
+import { IconBuildingSkyscraper, IconChevronRight, IconFileSpreadsheet, IconMessage, IconUserPlus, IconX } from "@tabler/icons-react";
+import "../../styles/create-new-modal.css";
 
+// "Create new" from the top bar: one clean list, styled like the spreadsheet
+// import modal (icon tile, title, one line, chevron).
 const OPTIONS = [
-  {
-    id: "seller",
-    label: "Seller",
-    title: "Add a seller",
-    description: "Track a new lead with call notes, contact details, and pipeline status.",
-    previewKind: "preview-sellers",
-  },
-  {
-    id: "listing-search",
-    label: "Listing search",
-    title: "Search listings",
-    description: "Browse live Dubai listings and watch for units that match your criteria.",
-    previewKind: "preview-listings",
-  },
-  {
-    id: "spreadsheet",
-    label: "Spreadsheet",
-    title: "Connect a spreadsheet",
-    description: "Link a Google Sheet to sync your pipeline in both directions.",
-    previewKind: "preview-spreadsheets",
-  },
-  {
-    id: "import",
-    label: "Import existing data",
-    title: "Import existing data",
-    description: "Bring in leads from a CSV or Google Sheet you already have.",
-    previewKind: "preview-spreadsheets",
-  },
-  {
-    id: "message-template",
-    label: "Message template",
-    title: "Create a message template",
-    description: "Create or update the text and image used for WhatsApp sends.",
-    previewKind: "preview-templates",
-  },
+  { id: "seller", icon: IconUserPlus, title: "Seller", description: "Add a seller to follow up with." },
+  { id: "listing-search", icon: IconBuildingSkyscraper, title: "Listing search", description: "Watch a building for new listings and price drops." },
+  { id: "spreadsheet", icon: IconFileSpreadsheet, title: "Spreadsheet", description: "Import sellers from a file, a link, Google Sheets or Excel." },
+  { id: "message-template", icon: IconMessage, title: "Message template", description: "Write the WhatsApp message your sellers receive." },
 ];
 
-function PreviewPanel({ option }) {
-  if (!option) return null;
-
-  return (
-    <div className="create-modal-preview">
-      <div className="create-modal-preview-art">
-        <TilePreview kind={option.previewKind} />
-      </div>
-      <div className="create-modal-preview-body">
-        <h3 className="create-modal-preview-title">{option.title}</h3>
-        <p className="create-modal-preview-desc">{option.description}</p>
-      </div>
-    </div>
-  );
-}
-
 export default function CreateNewModal({ onClose, onSelect }) {
-  const [hoveredId, setHoveredId] = useState(OPTIONS[0].id);
+  const listRef = useRef(null);
 
   useEffect(() => {
+    const previous = document.activeElement;
+    listRef.current?.querySelector("button")?.focus();
     function handleKey(event) {
       if (event.key === "Escape") onClose?.();
+      if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+      const buttons = [...(listRef.current?.querySelectorAll("button") || [])];
+      const index = buttons.indexOf(document.activeElement);
+      if (index < 0) return;
+      event.preventDefault();
+      buttons[(index + (event.key === "ArrowDown" ? 1 : -1) + buttons.length) % buttons.length].focus();
     }
     document.addEventListener("keydown", handleKey);
     document.body.style.overflow = "hidden";
     return () => {
       document.removeEventListener("keydown", handleKey);
       document.body.style.overflow = "";
+      previous?.focus?.();
     };
   }, [onClose]);
 
-  const activeOption = OPTIONS.find((option) => option.id === hoveredId) || OPTIONS[0];
-
   return (
-    <div className="create-modal-backdrop" onClick={onClose}>
-      <div
-        className="create-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Create new"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className="create-modal-header">
-          <span className="create-modal-header-prompt">New</span>
-          <button
-            type="button"
-            className="create-modal-close"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            <IconX size={16} stroke={2} aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className="create-modal-body">
-          <ul className="create-modal-options" role="listbox">
-            {OPTIONS.map((option) => {
-              const active = hoveredId === option.id;
-              return (
-                <li key={option.id}>
-                  <button
-                    type="button"
-                    className={`create-modal-option${active ? " active" : ""}`}
-                    onClick={() => onSelect?.(option.id)}
-                    onMouseEnter={() => setHoveredId(option.id)}
-                    onFocus={() => setHoveredId(option.id)}
-                  >
-                    <span className="create-modal-option-preview" aria-hidden="true">
-                      <TilePreview kind={option.previewKind} />
-                    </span>
-                    <span className="create-modal-option-label">{option.label}</span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-
-          <PreviewPanel option={activeOption} />
-        </div>
+    <div className="cn-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) onClose?.(); }}>
+      <div className="cn-modal" role="dialog" aria-modal="true" aria-labelledby="cn-title">
+        <header className="cn-head">
+          <h2 id="cn-title">Create new</h2>
+          <button type="button" className="cn-close" onClick={onClose} aria-label="Close"><IconX size={18} stroke={2} aria-hidden="true" /></button>
+        </header>
+        <ul ref={listRef} className="cn-list">
+          {OPTIONS.map((option) => (
+            <li key={option.id}>
+              <button type="button" onClick={() => onSelect?.(option.id)}>
+                <span className="cn-icon" aria-hidden="true"><option.icon size={21} stroke={1.7} /></span>
+                <span className="cn-text"><strong>{option.title}</strong><span>{option.description}</span></span>
+                <IconChevronRight className="cn-chevron" size={18} stroke={1.8} aria-hidden="true" />
+              </button>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );

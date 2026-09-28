@@ -1,0 +1,7 @@
+/* Pinned section header with its grid / list switch. */
+.home-pinned-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.home-pinned-head .home-pinned-title { margin: 0; }
+.home-layout-switch { display: flex; padding: 3px; border-radius: 10px; background: var(--bg-badge); }
+.home-layout-switch button { display: grid; place-items: center; width: 30px; height: 28px; padding: 0; border: 0; border-radius: 7px; background: none; color: var(--text-muted); cursor: pointer; }
+.home-layout-switch button.is-active { background: var(--bg-card); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12); }
+.home-layout-switch button:focus-visible { outline: 2px solid var(--text-name); outline-offset: 2px; }
