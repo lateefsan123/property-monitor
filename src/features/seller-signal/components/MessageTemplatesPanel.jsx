@@ -283,26 +283,26 @@ export default function MessageTemplatesPanel({
               </div>
               <aside className="message-template-live-preview" aria-label="Message preview">
                 <h2 className="message-template-preview-head">WhatsApp preview</h2>
-                {/* The image sits with the preview it appears in, always in view. */}
-                <div className="message-template-image-row">
-                  <span className="message-template-image-thumb" aria-hidden="true">
-                    {imagePreviewUrl ? <img src={imagePreviewUrl} alt="" /> : <IconPhoto size={18} stroke={1.7} />}
-                  </span>
-                  <span className="message-template-image-text">
-                    <strong>{imagePreviewUrl ? (imageFile?.name || "Image attached") : "Add an image"}</strong>
-                    <span>{imagePreviewUrl ? "Sent with the first message" : "Optional · JPG, PNG or WebP, up to 5 MB"}</span>
-                  </span>
-                  <span className="message-template-image-actions">
-                    <button type="button" disabled={saving} onClick={() => imageInputRef.current?.click()}>
-                      {imagePreviewUrl ? "Replace" : "Add"}
+                {/* The image is added, replaced and removed right where it
+                    appears: an empty slot at the top of the WhatsApp bubble. */}
+                <div className="message-template-chat-bubble">
+                  {imagePreviewUrl ? (
+                    <div className="message-template-bubble-image">
+                      <img src={imagePreviewUrl} alt="Template image, sent with the first message" />
+                      <div className="message-template-bubble-image-actions">
+                        <button type="button" disabled={saving} onClick={() => imageInputRef.current?.click()}>Replace</button>
+                        <button type="button" disabled={saving} onClick={clearImage}>Remove</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button type="button" className="message-template-bubble-slot" disabled={saving} onClick={() => imageInputRef.current?.click()}>
+                      <IconPhoto size={22} stroke={1.6} aria-hidden="true" />
+                      <span>Add image</span>
+                      <small>Optional · JPG, PNG or WebP, up to 5 MB</small>
                     </button>
-                    {imagePreviewUrl && <button type="button" disabled={saving} className="is-danger" onClick={clearImage}>Remove</button>}
-                  </span>
+                  )}
                   <input ref={imageInputRef} className="message-template-image-input" type="file"
                     aria-label="Attach template image" accept={MESSAGE_TEMPLATE_IMAGE_TYPES.join(",")} onChange={chooseImage} />
-                </div>
-                <div className="message-template-chat-bubble">
-                  {imagePreviewUrl ? <img src={imagePreviewUrl} alt="Preview of the template attachment" /> : null}
                   <p>{previewMessage}</p>
                 </div>
               </aside>
