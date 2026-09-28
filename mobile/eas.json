@@ -22,6 +22,20 @@
     },
     "production": {
       "autoIncrement": true
+    },
+    "release-ios": {
+      "extends": "production",
+      "environment": "production",
+      "autoIncrement": false
+    },
+    "release-android": {
+      "extends": "production",
+      "distribution": "internal",
+      "environment": "production",
+      "autoIncrement": false,
+      "android": {
+        "buildType": "apk"
+      }
     }
   },
   "submit": {
