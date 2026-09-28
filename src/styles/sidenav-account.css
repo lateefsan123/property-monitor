@@ -1,0 +1,6 @@
+/* Sidebar account row: the user's photo or initials and name open Settings. */
+.sidenav-account { gap: 10px; }
+.sidenav-account .st-avatar { flex: none; font-size: 11px; }
+.sidenav-account-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left; }
+.sidenav-account-gear { flex: none; opacity: .55; }
+.sidenav-account:hover .sidenav-account-gear, .sidenav-account.active .sidenav-account-gear { opacity: .9; }

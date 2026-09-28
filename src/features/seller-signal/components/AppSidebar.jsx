@@ -13,6 +13,9 @@ import {
 } from "@tabler/icons-react";
 import { useSpreadsheetFavorites, requestOpenSpreadsheet } from "../useSpreadsheetFavorites";
 import SavedSidebarItems from "./SavedSidebarItems";
+import { Avatar } from "../../settings/settings-ui";
+import { useProfile } from "../../settings/useProfile";
+import "../../../styles/sidenav-account.css";
 
 function isPlaceholderSourceLabel(source) {
   const label = String(source?.label || "").trim();
@@ -86,6 +89,7 @@ export default function AppSidebar({
   userId,
 }) {
   const { favoritedSources } = useSpreadsheetFavorites(userId);
+  const profile = useProfile(userId);
 
   function handleOpenFavorite(id) {
     requestOpenSpreadsheet(id);
@@ -140,13 +144,20 @@ export default function AppSidebar({
       <div className="sidenav-spacer" />
 
       <div className="sidenav-footer">
-        <SidenavItem
-          item={{ id: "settings", label: "Settings", Icon: IconSettings, kind: "action", accent: "purple" }}
-          currentPage={currentPage}
-          onNavigate={onNavigate}
-          onAction={onAction}
-          onPrefetch={onPrefetch}
-        />
+        {/* Account row: the user's photo (or initials) and name open Settings,
+            like the account row at the bottom of Notion or Claude. */}
+        <button
+          type="button"
+          className={`sidenav-link sidenav-account accent-purple${currentPage === "settings" ? " active" : ""}`}
+          onClick={() => onAction?.("settings")}
+          onMouseEnter={() => onPrefetch?.("settings")}
+          onFocus={() => onPrefetch?.("settings")}
+          aria-label={`Settings for ${profile.name || "your account"}`}
+        >
+          <Avatar name={profile.name} url={profile.avatarUrl} size={26} />
+          <span className="sidenav-account-name">{profile.name || "Settings"}</span>
+          <IconSettings className="sidenav-account-gear" size={17} stroke={1.8} aria-hidden="true" />
+        </button>
         <button type="button" className="sidenav-link sidenav-signout accent-rose" onClick={onSignOut}>
           <IconLogout size={20} stroke={1.8} aria-hidden="true" />
           <span>Sign out</span>
