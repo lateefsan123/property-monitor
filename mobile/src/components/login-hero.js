@@ -14,7 +14,9 @@ export default function LoginHero() {
   return <View style={s.hero} onLayout={({ nativeEvent: { layout } }) => setSize({ width: layout.width, height: layout.height })} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
     {size ? <>
       <Svg width={size.width} height={size.height} style={StyleSheet.absoluteFill}>
-        <Defs><RadialGradient id="horizon" cx="50%" cy="100%" r="80%"><Stop offset="0" stopColor="#3B5BDB" stopOpacity={0.34} /><Stop offset="1" stopColor="#3B5BDB" stopOpacity={0} /></RadialGradient></Defs>
+        {/* Centred behind the towers and fully faded by the hero's lower edge,
+            so the waterline sits on black with no seam above the title. */}
+        <Defs><RadialGradient id="horizon" cx="50%" cy="56%" r="44%"><Stop offset="0" stopColor="#3B5BDB" stopOpacity={0.3} /><Stop offset="0.6" stopColor="#3B5BDB" stopOpacity={0.1} /><Stop offset="1" stopColor="#3B5BDB" stopOpacity={0} /></RadialGradient></Defs>
         <Rect width={size.width} height={size.height} fill="url(#horizon)" />
       </Svg>
       <Image source={skyline} contentFit="contain" style={{ position: 'absolute', width: w, height: w / RATIO, left: (size.width - w) / 2, bottom: 14, opacity: 0.9 }} />
