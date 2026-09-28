@@ -61,3 +61,18 @@ Final replacement build IDs:
 - iOS submission: `46e493cf-efe7-4854-a1d8-efc51b119abc`
 
 Final verification: both replacement builds FINISHED; iOS submission FINISHED with no reported errors. Apple processing and device installation remain unverified because no browser or device was available. Android 5 APK: https://expo.dev/artifacts/eas/4054p2YlxOutBIXzIqvckPPtUSGDMCeYTSLX1XDd3UY.apk
+
+## iOS 32, Android 6 and website (afternoon)
+
+Merged the release branch into main (`6fe63970`, keeping main's newer App, AuthScreen, OnboardingScreen and settings code), then built from main `bf10c8bd`. Includes all mobile work since build 31's source, including Opal-style onboarding and sign-in, the 40-message cap copy and manual-send confirmation, seller message drafts, the Ask Repeat visibility preference and the Send activity trim. Launch film mode stays off unless `EXPO_PUBLIC_FILM=1`, which the production EAS environment does not set.
+
+Validation: Android Expo export passed (1,768 modules). 63 of 68 targeted tests passed; the 5 failures are existing harness gaps (Metro sandbox without `process`, a `useState` mock without lazy initializers, the web UsernameSetup harness), not app changes.
+
+Packaging: the git-based EAS archive would carry an 881 MB shallow `.git` pack because large videos are tracked, so both builds used `EAS_NO_VCS=1` with `EAS_PROJECT_ROOT` set to the repository root. The archive was 24 MB and 624 files, with no `.git`, environment, credential or `dist-*` files. Empty `dist-*` folders remain because eas-cli's copy filter does not match directory-only patterns against bare folder names.
+
+- Android 6: build `e8194fab-fb8f-43a1-8be1-231a960948d2`, FINISHED. Internal APK, not a Google Play rollout: https://expo.dev/artifacts/eas/xJsZmgt9WlUXSQpbuOEtPiUUWM0esSPbxSDvlob7gVI.apk
+- iOS 32: build `f46af424-3919-42de-a98b-98fe209c1bd4`, FINISHED. Automatic submission uploaded it to App Store Connect for TestFlight. Build 29's App Review submission was not changed.
+
+Website: production deployment `dpl_5i2nqWE5P3LwHmHZ8upA2SM32h8q` is READY at https://repeatai.org from `c2a9c953`, deployed as a clean `git archive` package. It adds the Sellers redesign, Home layout, Settings and Schedule pages, spreadsheet import, templates and icon changes. sellersignal.vercel.app, which the desktop app loads, serves the same bundle. Two earlier attempts failed at build time without replacing production: the web imported artwork from `mobile/`, which web deploys exclude. The artwork now lives in `src/assets`. `.vercelignore` admits only the building-name registry from `mobile/`, so the uncleared building photos are not published and listings keep their existing web images. The live Sellers and Home pages were checked signed in, with no console errors. The desktop installer remains v1.0.1, the newest release.
+
+Device installation and TestFlight availability were not verified.
