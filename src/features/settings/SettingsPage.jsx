@@ -14,7 +14,7 @@ import {
   IconUserCircle,
 } from "@tabler/icons-react";
 import { useAssistantPreference } from "../../voice/useAssistantPreference";
-import BillingSettingsPanel from "../seller-signal/components/BillingSettingsPanel";
+import BillingSection from "./BillingSection";
 import SchedulePreferences from "../schedule/SchedulePreferences";
 import AccountSection from "./AccountSection";
 import IntegrationsSection from "./IntegrationsSection";
@@ -77,7 +77,6 @@ export default function SettingsPage({
   return (
     <div className="st-page">
       <nav className="st-nav" aria-label="Settings">
-        <h1>Settings</h1>
         <SettingsProfile compact name={profile.name} avatarUrl={profile.avatarUrl} onClick={() => setSection("account")} />
         {GROUPS.map((group) => (
           <div key={group.label || "top"} className="st-nav-group">
@@ -120,7 +119,7 @@ export default function SettingsPage({
         )}
 
         {section === "billing" && (
-          <BillingSettingsPanel error={billingPortalError} onCancelPlan={onCancelPlan} pending={billingPortalPending} subscription={subscription} />
+          <BillingSection error={billingPortalError} onOpenBilling={onCancelPlan} pending={billingPortalPending} subscription={subscription} />
         )}
 
         {section === "automations" && (

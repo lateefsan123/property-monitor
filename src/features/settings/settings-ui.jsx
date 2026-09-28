@@ -55,7 +55,7 @@ export function SettingsProfile({ name, avatarUrl, onClick, compact = false }) {
   const shown = name?.trim() || "Your account";
   const body = (
     <>
-      <Avatar name={shown} url={avatarUrl} size={compact ? 40 : 48} />
+      <Avatar name={shown} url={avatarUrl} size={compact ? 32 : 48} />
       <span className="st-profile-text">
         <strong>{shown}</strong>
         <small>{onClick ? "Manage your account" : "Repeat AI account"}</small>

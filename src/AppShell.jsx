@@ -192,7 +192,7 @@ export default function AppShell({ displayName, subscription, userId }) {
       }
       const returnUrl = new URL(import.meta.env.BASE_URL, window.location.origin);
       returnUrl.searchParams.set("billing", "updated");
-      returnUrl.hash = "/sellers";
+      returnUrl.hash = "/settings";
       const { portalUrl } = await createBillingPortalSession({
         returnUrl: returnUrl.toString(),
       });

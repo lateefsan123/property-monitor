@@ -8,7 +8,7 @@
 
 /* Menu */
 .st-nav { position: sticky; top: 24px; display: flex; flex-direction: column; gap: 18px; }
-.st-nav h1 { margin: 0 0 -4px 10px; color: var(--text-name); font-size: 22px; font-weight: 700; letter-spacing: -.3px; }
+
 .st-nav-group { display: flex; flex-direction: column; gap: 2px; }
 .st-nav-label { padding: 0 10px 6px; color: var(--text-muted); font-size: 12px; font-weight: 600; }
 .st-nav-group button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 38px; padding: 0 10px; border: 0; border-radius: 10px; background: none; color: var(--text-secondary); font-size: 14px; font-weight: 500; text-align: left; }
@@ -49,7 +49,7 @@ button.st-item:hover:not(:disabled), a.st-item:hover { background: var(--bg-hove
 .st-avatar { flex: none; display: grid; place-items: center; overflow: hidden; border-radius: 50%; background: var(--bg-badge); color: var(--text); font-weight: 600; }
 .st-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .st-profile { width: 100%; display: flex; align-items: center; gap: 13px; min-height: 88px; padding: 16px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-card); color: var(--text); text-align: left; box-sizing: border-box; }
-.st-profile.is-compact { min-height: 64px; padding: 12px; }
+.st-profile.is-compact { min-height: 0; gap: 10px; padding: 8px 10px; border: 0; border-radius: 10px; background: none; }
 button.st-profile:hover { background: var(--bg-hover); }
 .st-profile-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
 .st-profile-text strong { color: var(--text); font-size: 16px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -214,3 +214,30 @@ button.st-profile:hover { background: var(--bg-hover); }
 .st-meter-track span.is-near { background: #d97706; }
 .st-meter-track span.is-over { background: var(--error-text); }
 .st-meter small { color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+
+/* Billing, after Claude's billing settings (Mobbin 40cea7ff) */
+.bl { display: flex; flex-direction: column; }
+.bl-plan { display: flex; align-items: flex-start; gap: 16px; padding: 4px 0 24px; border-bottom: 1px solid var(--border); }
+.bl-plan-icon { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: 14px; background: var(--bg-badge); color: var(--text-name); }
+.bl-plan-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.bl-plan-text strong { color: var(--text-name); font-size: 17px; font-weight: 600; }
+.bl-plan-text span { color: var(--text); font-size: 14px; }
+.bl-plan-text small { color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+.bl-status { flex: none; height: 26px; padding: 0 11px; display: inline-flex; align-items: center; border-radius: 13px; background: var(--badge-ok-bg); color: var(--badge-ok-text); font-size: 12px; font-weight: 600; }
+.bl-status.is-trial { background: var(--bg-badge); color: var(--text-badge); }
+.bl-status.is-ending { background: #fef3c7; color: #92400e; }
+[data-theme="dark"] .bl-status.is-ending { background: #3a2a0c; color: #fbbf24; }
+.bl-section { display: flex; flex-direction: column; gap: 12px; padding: 22px 0; border-bottom: 1px solid var(--border); }
+.bl-section h3 { margin: 0; color: var(--text-name); font-size: 15px; font-weight: 600; }
+.bl-row { display: flex; align-items: center; gap: 12px; color: var(--text-muted); }
+.bl-row > svg { flex: none; }
+.bl-row-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; color: var(--text); font-size: 14px; }
+.bl-row-text small { color: var(--text-muted); font-size: 13px; }
+.bl-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-card); color: var(--text); font-size: 14px; font-weight: 600; }
+.bl-btn:hover:not(:disabled) { background: var(--bg-hover); }
+.bl-btn.is-danger { border-color: transparent; background: #c0392b; color: #fff; }
+.bl-btn.is-danger:hover:not(:disabled) { background: #a93226; }
+.bl-confirm { padding: 26px 24px 22px; gap: 10px; }
+.bl-confirm h2 { margin: 0; color: var(--text-name); font-size: 19px; font-weight: 700; }
+.bl-confirm p { margin: 0 0 8px; color: var(--text-muted); font-size: 14px; line-height: 1.55; }
+.bl-confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
