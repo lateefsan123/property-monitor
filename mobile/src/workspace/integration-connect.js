@@ -1,8 +1,8 @@
 import * as WebBrowser from 'expo-web-browser';
 import { integrationRequest } from './integration-client';
 
-export async function connectIntegration(provider, feature, capability) {
-  const result = await integrationRequest({ action: 'begin', provider, feature, client: 'mobile', ...(capability ? { capability } : {}) });
+export async function connectIntegration(provider, feature, capability, expectedUserId) {
+  const result = await integrationRequest({ action: 'begin', provider, feature, client: 'mobile', ...(capability ? { capability } : {}) }, undefined, expectedUserId);
   const authorization = new URL(result.authorizationUrl);
   const host = provider === 'google' ? 'accounts.google.com' : 'login.microsoftonline.com';
   if (authorization.protocol !== 'https:' || authorization.hostname !== host) throw new Error('Invalid connection destination.');
@@ -11,5 +11,5 @@ export async function connectIntegration(provider, feature, capability) {
   if (response.type !== 'success') return { status: 'cancelled' };
   const callback = new URL(response.url);
   if (callback.protocol !== 'seller-signal:' || callback.hostname !== 'integrations' || callback.searchParams.get('provider') !== provider || callback.searchParams.get('state') !== state) throw new Error('Connection did not match. Please try again.');
-  return integrationRequest({ action: 'complete', provider, state, code: callback.searchParams.get('code'), error: callback.searchParams.get('error') });
+  return integrationRequest({ action: 'complete', provider, state, code: callback.searchParams.get('code'), error: callback.searchParams.get('error') }, undefined, expectedUserId);
 }

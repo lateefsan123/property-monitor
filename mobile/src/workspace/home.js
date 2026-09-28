@@ -27,7 +27,6 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
   const hasEmail = connections.data?.some(item => item.feature === 'email' && item.connected) || false;
   const emailSummary = useEmailSummary({ userId, connected: hasEmail, request: integrationRequest });
   const activeTab = tab;
-  const connect = () => onNavigate('settings', { section: 'Integrations' });
   const emailConnected = connections.data ? hasEmail : emailSummary.data?.connected;
   const emailReady = connections.data !== undefined || emailSummary.data !== undefined;
   const hasCalendar = connections.data?.some(item => item.feature === 'calendar' && item.connected) || false;
@@ -90,8 +89,8 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
             <Text style={{ fontSize: 14, fontWeight: activeTab === id ? "600" : "400", color: activeTab === id ? colors.textName : colors.textMuted }}>{label}</Text>
           </Pressable>)}
         </View>
-        {activeTab === 'calendar' ? <CalendarPreview colors={colors} connected={hasCalendar} ready={connections.data !== undefined} onConnect={connect} /> : activeTab === "email" ? (
-          emailReady && !emailConnected ? <HomeConnectionPrompt feature="email" colors={colors} onConnect={connect} /> : <EmailSummaryCard key={userId} query={emailSummary} colors={colors} connectedProviders={connections.data ? connections.data.filter(item => item.feature === 'email' && item.connected).map(item => item.provider) : emailSummary.data?.providers || []} />
+        {activeTab === 'calendar' ? <CalendarPreview colors={colors} connected={hasCalendar} ready={connections.data !== undefined} userId={userId} connections={connections.data} /> : activeTab === "email" ? (
+          emailReady && !emailConnected ? <HomeConnectionPrompt feature="email" colors={colors} userId={userId} connections={connections.data} /> : <EmailSummaryCard key={userId} query={emailSummary} colors={colors} connectedProviders={connections.data ? connections.data.filter(item => item.feature === 'email' && item.connected).map(item => item.provider) : emailSummary.data?.providers || []} />
         ) : activeTab === "activity" ? <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} colors={colors} /> : (
       <View style={{ gap: 4 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
