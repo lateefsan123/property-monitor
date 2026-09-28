@@ -349,7 +349,6 @@ export default function NewSpreadsheetModal({
                 onImport={importConnected}
               />
               {connectedError && <p className="si-error" role="alert">{connectedError}</p>}
-              <p className="si-note">Imports once into a new spreadsheet in Repeat AI. Your {SHEET_PROVIDERS[provider].name} file isn’t changed.</p>
             </div>
           )}
         </div>

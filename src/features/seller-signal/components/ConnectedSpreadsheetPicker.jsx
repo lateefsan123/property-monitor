@@ -89,14 +89,7 @@ export default function ConnectedSpreadsheetPicker({ userId, provider, busy, onC
       <div className="si-connect">
         <SheetProviderIcon provider={provider} size={44} />
         <h3>{!connection.connected ? `Connect ${SHEET_PROVIDERS[provider].name}` : "Allow access to your files"}</h3>
-        <p>
-          {!connection.connected
-            ? `Sign in to choose a spreadsheet from your ${provider === "google" ? "Google Drive" : "OneDrive"}.`
-            : capability === "browse"
-              ? "Allow file-name access so you can choose one of your Google Sheets."
-              : "Microsoft asks for file read/write permission for its workbook API. Repeat AI only reads the workbook."}
-        </p>
-        {provider === "microsoft" && <p className="si-note">Works with .xlsx workbooks in a Microsoft work or school account. For a personal account, use Import file.</p>}
+        {provider === "microsoft" && <p className="si-note">Work or school accounts only. Repeat AI only reads your workbook.</p>}
         <button type="button" className="si-btn is-primary" disabled={busy || connecting || !connection.configured} onClick={connect}>
           {!connection.configured ? "Connection setup needed" : connecting ? "Opening sign-in…" : connection.connected ? "Allow access" : "Connect account"}
         </button>
@@ -133,7 +126,7 @@ export default function ConnectedSpreadsheetPicker({ userId, provider, busy, onC
           <span className="si-confirm-icon" aria-hidden="true"><IconTable size={20} stroke={1.7} /></span>
           <div>
             <strong>{tab}</strong>
-            <span>From {file.name}. Its sellers are imported into a new spreadsheet in Repeat AI.</span>
+            <span>From {file.name} · imported as a new spreadsheet</span>
           </div>
           <button type="button" className="si-btn is-primary" disabled={busy} onClick={() => onImport({ provider, file, sheetName: tab })}>
             {busy ? "Importing…" : "Import worksheet"}
@@ -176,7 +169,6 @@ export default function ConnectedSpreadsheetPicker({ userId, provider, busy, onC
               {files.data?.nextPageToken && <button type="button" className="si-link" disabled={busy || files.isFetching} onClick={() => setPageToken(files.data.nextPageToken)}>More files</button>}
             </div>
           )}
-          {file && <p className="si-hint">Choose the worksheet with your sellers.</p>}
         </>
       )}
     </div>
