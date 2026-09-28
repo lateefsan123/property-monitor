@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   IconCheck,
   IconDots,
   IconPhoto,
   IconPlus,
+  IconSparkles,
   IconX,
 } from "@tabler/icons-react";
 import { DEFAULT_MESSAGE_TEMPLATE } from "../insight-utils";
-import TemplateDraftControl from './TemplateDraftControl';
+import TemplateAiDialog from './TemplateAiDialog';
 import {
   MESSAGE_TEMPLATE_IMAGE_MAX_BYTES,
   MESSAGE_TEMPLATE_IMAGE_TYPES,
@@ -53,6 +54,14 @@ export default function MessageTemplatesPanel({
   const imageInputRef = useRef(null);
   const localImageUrlRef = useRef(null);
   const textareaRef = useRef(null);
+  const [aiOpen, setAiOpen] = useState(false);
+  const aiWasOpen = useRef(false);
+  const closeAi = useCallback(() => setAiOpen(false), []);
+  useEffect(() => {
+    // Return focus to the AI button once the dialog closes and the editor is no longer inert.
+    if (aiWasOpen.current && !aiOpen) modalRef.current?.querySelector(".message-template-ai-btn")?.focus();
+    aiWasOpen.current = aiOpen;
+  }, [aiOpen]);
   const selectedTemplate = templates.find((template) => template.id === selectedId) || null;
   const previewMessage = renderMessagePreview(content);
 
@@ -79,7 +88,7 @@ export default function MessageTemplatesPanel({
       }
       if (event.key === "Tab") {
         const controls = [...modal.querySelectorAll('button:not(:disabled), input:not(:disabled), textarea:not(:disabled), summary')]
-          .filter((element) => element.getClientRects().length);
+          .filter((element) => element.getClientRects().length && !element.closest("[inert]"));
         const first = controls[0];
         const last = controls.at(-1);
         if (event.shiftKey && document.activeElement === first) {
@@ -222,14 +231,14 @@ export default function MessageTemplatesPanel({
       onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) onClose?.(); }}>
       <section ref={modalRef} className="message-template-modal" role="dialog"
         aria-modal="true" aria-labelledby="message-template-title">
-        <header className="message-template-modal-header">
+        <header className="message-template-modal-header" inert={aiOpen}>
           <h1 id="message-template-title">Message templates</h1>
           <button type="button" className="message-template-close" disabled={saving}
             onClick={onClose} aria-label="Close message templates">
             <IconX size={26} stroke={1.8} aria-hidden="true" />
           </button>
         </header>
-        <div className="message-template-modal-body">
+        <div className="message-template-modal-body" inert={aiOpen}>
           {loading ? <p role="status" className="message-template-loading">Loading templates…</p> : (
             <div className="message-template-workspace">
               <nav className="message-template-library" aria-label="Saved templates">
@@ -248,7 +257,6 @@ export default function MessageTemplatesPanel({
                 ))}
               </nav>
               <div className="message-template-editor">
-                <TemplateDraftControl key={selectedId} disabled={saving} onApply={draft => { setName(draft.name); setContent(draft.content); setNotice('AI draft added. Review it before saving.'); }} />
                 <div className="message-template-name-row">
                   <label className="message-template-name-field">
                     <span>Template name</span>
@@ -267,11 +275,17 @@ export default function MessageTemplatesPanel({
                     </details>
                   ) : null}
                 </div>
-                <label className="message-template-body-field">
-                  <span>Message</span>
-                  <textarea ref={textareaRef} value={content} maxLength={4000} rows={9} disabled={saving}
+                <div className="message-template-body-field">
+                  <div className="message-template-field-head">
+                    <label htmlFor="message-template-content">Message</label>
+                    <button type="button" className="message-template-ai-btn" disabled={saving} onClick={() => setAiOpen(true)}
+                      aria-haspopup="dialog" title="Polish or write this message with AI">
+                      <IconSparkles size={15} stroke={1.8} aria-hidden="true" /> AI
+                    </button>
+                  </div>
+                  <textarea id="message-template-content" ref={textareaRef} value={content} maxLength={4000} rows={9} disabled={saving}
                     onChange={(event) => setContent(event.target.value)} />
-                </label>
+                </div>
                 <div className="message-template-token-field">
                   <span>Insert variable</span>
                   <div className="message-template-token-row">
@@ -309,7 +323,7 @@ export default function MessageTemplatesPanel({
             </div>
           )}
         </div>
-        <footer className="message-template-actions">
+        <footer className="message-template-actions" inert={aiOpen}>
           <div aria-live="polite">
             {error ? <p role="alert" className="message-template-error">{error}</p> : null}
             {notice ? <p className="message-template-notice">{notice}</p> : null}
@@ -318,6 +332,21 @@ export default function MessageTemplatesPanel({
             {saving ? "Saving…" : selectedTemplate ? "Save changes" : "Create template"}
           </button>
         </footer>
+        {aiOpen && (
+          <TemplateAiDialog
+            message={content}
+            disabled={saving}
+            onClose={closeAi}
+            onApply={(draft, mode) => {
+              // Polishing keeps the template's name; a new draft from a prompt brings its own.
+              if (mode === "prompt" || !name.trim()) setName(draft.name);
+              setContent(draft.content);
+              setError(null);
+              setNotice(mode === "polish" ? "Message polished. Review it before saving." : "AI draft added. Review it before saving.");
+              closeAi();
+            }}
+          />
+        )}
       </section>
     </div>
   );
