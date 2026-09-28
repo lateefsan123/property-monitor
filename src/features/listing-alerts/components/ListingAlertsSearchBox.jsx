@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { IconSearch } from "@tabler/icons-react";
+import SearchField from "../../../components/SearchField";
 import { getSearchOptionLabel, getSearchOptionMeta } from "../search-option-utils";
 
 export default function ListingAlertsSearchBox({
@@ -108,28 +108,25 @@ export default function ListingAlertsSearchBox({
 
   return (
     <div className="la-search-pill-wrap" ref={boxRef}>
-      <label className="search-pill">
-        <IconSearch className="search-pill-icon" size={17} stroke={2} aria-hidden="true" />
-        <input
-          ref={inputRef}
-          type="text"
-          placeholder="Search buildings"
-          value={searchTerm}
-          onChange={handleInputChange}
-          onFocus={() => {
-            if (searchTerm.trim().length >= 2) {
-              setMenuOpen(true);
-            }
-          }}
-          onKeyDown={handleKeyDown}
-          autoCapitalize="none"
-          autoCorrect="off"
-          autoComplete="off"
-          aria-autocomplete="list"
-          aria-expanded={showDropdown}
-          aria-label="Search buildings"
-        />
-      </label>
+      <SearchField
+        className="is-full"
+        inputRef={inputRef}
+        placeholder="Search buildings"
+        value={searchTerm}
+        onChange={handleInputChange}
+        onClear={() => { handleInputChange({ target: { value: "" } }); inputRef.current?.focus(); }}
+        onFocus={() => {
+          if (searchTerm.trim().length >= 2) {
+            setMenuOpen(true);
+          }
+        }}
+        onKeyDown={handleKeyDown}
+        autoCapitalize="none"
+        autoCorrect="off"
+        autoComplete="off"
+        aria-autocomplete="list"
+        aria-expanded={showDropdown}
+      />
 
       {showDropdown ? (
         <div className="la-search-dropdown" role="listbox" aria-label="Available building options">

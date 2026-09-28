@@ -1,0 +1,17 @@
+/* Shared search pill: the Sellers page search bar used across the app. */
+.app-search {
+  display: flex; align-items: center; gap: 10px; height: 44px; width: min(280px, 100%); padding: 0 16px; box-sizing: border-box;
+  border: 1px solid var(--nav-btn-border); border-radius: 22px; background: transparent; color: var(--text-muted); cursor: text;
+}
+.app-search:focus-within { border-color: var(--text-muted); }
+.app-search > svg { flex: none; }
+.app-search input {
+  flex: 1; min-width: 0; height: 100%; padding: 0; border: 0; outline: 0; background: none; box-shadow: none;
+  color: var(--text); font: inherit; font-size: 15px;
+}
+.app-search input::placeholder { color: var(--text-faint); }
+.app-search input::-webkit-search-cancel-button { display: none; }
+.app-search button { display: grid; place-items: center; padding: 2px; border: 0; border-radius: 50%; background: none; color: var(--text-muted); cursor: pointer; }
+.app-search button:hover { color: var(--text); }
+.app-search button:focus-visible { outline: 2px solid var(--text-name); outline-offset: 2px; }
+.app-search.is-full { width: 100%; }

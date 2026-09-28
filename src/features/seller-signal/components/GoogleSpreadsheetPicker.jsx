@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import SearchField from '../../../components/SearchField';
 
 export default function GoogleSpreadsheetPicker({ request, onSelect, onBrowse, disabled }) {
   const [search, setSearch] = useState('');
@@ -20,7 +21,7 @@ export default function GoogleSpreadsheetPicker({ request, onSelect, onBrowse, d
       <button disabled={disabled || loading} onClick={() => { setSelection(null); load({ query: search }); }}>← Spreadsheets</button>
       <h4>{selection.name}</h4><p>Choose a worksheet to preview.</p>
     </> : <form className="integration-tools" onSubmit={event => { event.preventDefault(); load({ query: search.trim() }); }}>
-      <input aria-label="Search Google spreadsheets" placeholder="Search your spreadsheets…" maxLength={100} value={search} onChange={event => setSearch(event.target.value)} />
+      <SearchField className="is-full" label="Search Google spreadsheets" placeholder="Search your spreadsheets…" maxLength={100} value={search} onChange={event => setSearch(event.target.value)} onClear={() => setSearch('')} />
       <button disabled={disabled || loading}>Search</button>
     </form>}
     {loading && <p role="status">Loading your {selection ? 'worksheets' : 'spreadsheets'}…</p>}

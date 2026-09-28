@@ -6,6 +6,7 @@ import {
   IconPlus,
   IconX,
 } from "@tabler/icons-react";
+import SearchField from "../../../components/SearchField";
 import { parseSpreadsheetFile } from "../file-import";
 import { previewSheetBuildings } from "../lead-import-services";
 
@@ -80,7 +81,7 @@ function UrlTab({ onSubmit, submitting, onClose, maxSelections }) {
             <span>{selected.size} selected · {totals.rows.toLocaleString()} rows · {totals.phones.toLocaleString()} phone entries</span>
             <small>Each building becomes its own spreadsheet card. You can add up to {maxSelections} more.</small>
           </div>
-          <input className="new-sheet-building-search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search buildings" />
+          <SearchField className="is-full" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="Search buildings" />
           <div className="new-sheet-building-actions">
             <button type="button" onClick={() => setSelected(new Set(filteredBuildings.slice(0, maxSelections).map((item) => item.building)))}>Select visible</button>
             <button type="button" onClick={() => setSelected(new Set())}>Clear</button>

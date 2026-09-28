@@ -25,7 +25,6 @@
 .schedule-picker::backdrop { background: #0007; }
 .schedule-picker header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
 .schedule-picker h2 { font-size: 20px; margin: 0; }
-.schedule-picker > input { width: 100%; box-sizing: border-box; border: 1px solid var(--schedule-border); background: var(--schedule-panel); color: inherit; border-radius: 8px; padding: 12px; font: inherit; }
 .schedule-picker-list { max-height: 45vh; overflow: auto; padding: 12px 0; margin-bottom: 10px; }
 .schedule-picker-list label { display: flex; gap: 12px; align-items: center; min-height: 48px; }
 .schedule-source { display: grid; gap: 8px; margin-bottom: 14px; font-size: 14px; }

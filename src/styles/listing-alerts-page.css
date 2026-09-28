@@ -178,13 +178,8 @@
   position: relative;
   flex: 1;
   min-width: 0;
-  max-width: 320px;
+  max-width: 280px;
   display: inline-flex;
-}
-
-.la-search-pill-wrap .search-pill {
-  width: 100%;
-  max-width: none;
 }
 
 .la-search-dropdown {

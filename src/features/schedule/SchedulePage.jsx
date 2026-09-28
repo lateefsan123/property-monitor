@@ -3,6 +3,7 @@ import { IconPlus, IconX } from "@tabler/icons-react";
 import { supabase } from "../../supabase";
 import { useBuildingSchedule } from "../../../shared/use-building-schedule.js";
 import { useSpreadsheetBuildings } from "./useSpreadsheetBuildings";
+import SearchField from "../../components/SearchField";
 import { SCHEDULE_DAYS, scheduleBuildingKey } from "../../../supabase/functions/_shared/building-schedule.js";
 import "./schedule.css";
 
@@ -45,7 +46,7 @@ export default function SchedulePage({ userId, client = supabase }) {
           <option value="">{spreadsheets.sources.length ? "Choose a spreadsheet" : "No spreadsheets yet"}</option>
           {spreadsheets.sources.map(source => <option key={source.id} value={source.id}>{source.label}</option>)}
         </select></label>
-        <input aria-label="Search spreadsheet buildings" placeholder="Search spreadsheet buildings" value={search} onChange={event => setSearch(event.target.value)} />
+        <SearchField className="is-full" placeholder="Search spreadsheet buildings" value={search} onChange={event => setSearch(event.target.value)} onClear={() => setSearch("")} />
         <div className="schedule-picker-list">
           {state.buildings.filter(name => name.toLowerCase().includes(search.toLowerCase())).map(name => <label key={name}><input type="checkbox" checked={Boolean(day && state.value.days[day].some(item => scheduleBuildingKey(item) === scheduleBuildingKey(name)))} onChange={() => state.toggleBuilding(day, name)} /><span>{name}</span></label>)}
           {!spreadsheets.sourceId ? <p>Choose a spreadsheet to see its buildings.</p> : !state.buildings.length ? <p>This spreadsheet has no sellers with building names yet.</p> : !state.buildings.some(name => name.toLowerCase().includes(search.toLowerCase())) ? <p>No matching buildings.</p> : null}

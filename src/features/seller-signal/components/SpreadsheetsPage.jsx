@@ -5,9 +5,9 @@ import {
   IconCheck,
   IconDots,
   IconPlus,
-  IconSearch,
   IconX,
 } from "@tabler/icons-react";
+import SearchField from "../../../components/SearchField";
 import SpreadsheetRow from "./SpreadsheetListRow";
 import "../../../styles/spreadsheet-minimal-list.css";
 import { useSpreadsheetsPage } from "../useSpreadsheetsPage";
@@ -357,10 +357,7 @@ export default function SpreadsheetsPage({ userId }) {
       </TopbarSortPortal>
 
       <div className="ss-list-toolbar">
-        <label className="ss-list-search">
-          <IconSearch size={19} stroke={1.6} aria-hidden="true" />
-          <input aria-label="Search spreadsheets" placeholder="Search spreadsheets" value={query} onChange={(event) => setQuery(event.target.value)} />
-        </label>
+        <SearchField placeholder="Search spreadsheets" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} />
         <button type="button" className="ss-list-add" onClick={handleOpenNewSheet} disabled={page.loading || !page.canAddSource || page.addingSource}>
           <IconPlus size={18} aria-hidden="true" /> Add spreadsheet
         </button>
