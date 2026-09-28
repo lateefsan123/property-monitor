@@ -1,38 +1,12 @@
-import { createClient } from '@supabase/supabase-js';
-import { createIntegrationOAuth, createTokenVault } from '../../server/integration-oauth.js';
-import { createIntegrationStore } from '../../server/integration-store.js';
+import { createIntegrationRuntime } from '../../server/integration-runtime.js';
 import { createIntegrationHandler } from '../../server/integration-api.js';
-import { createIntegrationTokens } from '../../server/integration-tokens.js';
-import { createIntegrationReads } from '../../server/integration-reads.js';
-import { createIntegrationMail } from '../../server/integration-mail.js';
-import { Buffer } from 'node:buffer';
 import process from 'node:process';
 
+export const config = { maxDuration: 90 };
 let handler;
 export default async function integrations(req, res) {
   try {
-    if (!handler) {
-      const env = process.env;
-      const db = createClient(env.SUPABASE_URL || env.VITE_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY,
-        { auth: { persistSession: false, autoRefreshToken: false } });
-      const store = createIntegrationStore(db);
-      const key = Buffer.from(env.INTEGRATION_ENCRYPTION_KEY || '', 'base64');
-      const configs = Object.fromEntries(['google', 'microsoft'].map(provider => {
-        const prefix = provider.toUpperCase();
-        return [provider, { clientId: env[`${prefix}_INTEGRATION_CLIENT_ID`], clientSecret: env[`${prefix}_INTEGRATION_CLIENT_SECRET`],
-          redirectUri: env[`${prefix}_INTEGRATION_REDIRECT_URI`] }];
-      }));
-      const configured = provider => key.length === 32 && Object.values(configs[provider]).every(Boolean);
-      const vault = key.length === 32 ? createTokenVault(key) : null;
-      const oauth = vault ? createIntegrationOAuth({ configs, store, vault }) : null;
-      const tokens = vault ? createIntegrationTokens({ configs, store, vault }) : null;
-      const read = tokens ? createIntegrationReads({ tokens }) : null;
-      const mail = tokens ? createIntegrationMail({ tokens, store, vault }) : null;
-      handler = createIntegrationHandler({ store, oauth, configured, read, mail, authenticate: async token => {
-        const { data, error } = await db.auth.getUser(token);
-        return error ? null : data.user;
-      } });
-    }
+    if (!handler) handler = createIntegrationHandler(createIntegrationRuntime(process.env));
     return await handler(req, res);
   } catch {
     res.statusCode = 503;

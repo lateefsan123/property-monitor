@@ -11,12 +11,20 @@ import { summarizeLeadCadence } from "../features/seller-signal/lead-utils";
 import { buildDailyMessageSeries, fetchListingPriceDrops, fetchWhatsAppMessageActivity } from "./home-insights";
 import { formatArea, formatPrice } from "../features/listing-alerts/formatters";
 import { Feedback } from "./ui";
+import { integrationStatusOptions } from '../../../src/integration-query';
+import { integrationRequest } from './integration-client';
+import { useEmailSummary } from '../../../shared/use-email-summary';
+import EmailSummaryCard from './email-summary-card';
 
 export default function WorkspaceHome({ userId, displayName, colors, onNavigate }) {
   useQuery(messageTemplatesOptions(userId));
   const [tab, setTab] = useState("activity");
   const [days, setDays] = useState(14);
   const [refreshing, setRefreshing] = useState(false);
+  const connections = useQuery(integrationStatusOptions(userId, integrationRequest));
+  const hasEmail = connections.data?.some(item => item.feature === 'email' && item.connected) || false;
+  const emailSummary = useEmailSummary({ userId, connected: hasEmail, request: integrationRequest });
+  const activeTab = tab === 'email' && !hasEmail ? 'activity' : tab;
   const leads = useQuery({
     queryKey: leadsQueryKey(userId),
     queryFn: () => fetchUserLeads(userId),
@@ -43,7 +51,7 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
   ];
   async function refresh() {
     setRefreshing(true);
-    try { await Promise.all([leads.refetch(), activity.refetch(), drops.refetch()]); }
+    try { await Promise.all([leads.refetch(), activity.refetch(), drops.refetch(), connections.refetch(), ...(hasEmail ? [emailSummary.refetch()] : [])]); }
     finally { setRefreshing(false); }
   }
   return (
@@ -71,12 +79,12 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
       </View>
       <View style={{ gap: 24 }}>
         <View accessibilityRole="tablist" style={{ flexDirection: "row", gap: 28, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-          {[["activity", "Activity"], ["drops", "Price drops"]].map(([id, label]) => <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: tab === id }} onPress={() => setTab(id)}
-            style={{ minHeight: 48, justifyContent: "center", borderBottomWidth: 2, borderBottomColor: tab === id ? colors.textName : "transparent" }}>
-            <Text style={{ fontSize: 16, fontWeight: tab === id ? "600" : "400", color: tab === id ? colors.textName : colors.textMuted }}>{label}</Text>
+          {[["activity", "Activity"], ["drops", "Price drops"], ...(hasEmail ? [["email", "Email"]] : [])].map(([id, label]) => <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: activeTab === id }} onPress={() => setTab(id)}
+            style={{ minHeight: 48, justifyContent: "center", borderBottomWidth: 2, borderBottomColor: activeTab === id ? colors.textName : "transparent" }}>
+            <Text style={{ fontSize: 16, fontWeight: activeTab === id ? "600" : "400", color: activeTab === id ? colors.textName : colors.textMuted }}>{label}</Text>
           </Pressable>)}
         </View>
-        {tab === "activity" ? <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} colors={colors} /> : (
+        {activeTab === "email" ? <EmailSummaryCard key={userId} query={emailSummary} colors={colors} /> : activeTab === "activity" ? <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} colors={colors} /> : (
       <View style={{ gap: 4 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
           <View style={{ gap: 4 }}>

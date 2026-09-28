@@ -1,4 +1,5 @@
 {
+  "crons": [{ "path": "/api/email-summary-cron", "schedule": "*/15 * * * *" }],
   "rewrites": [
     { "source": "/data-deletion", "destination": "/index.html" },
     { "source": "/((?!api|assets|data|favicon|.*\\.).*)", "destination": "/index.html" }

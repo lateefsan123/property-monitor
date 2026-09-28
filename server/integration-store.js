@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto';
 // Deliberately server-only. Never return secret columns to the browser.
 function checked({ data, error }) {
   if (error) throw new Error('Connection storage is unavailable');
@@ -19,7 +20,8 @@ export function createIntegrationStore(db) {
     },
     async saveConnection(value) {
       checked(await db.from('integration_connections').upsert({ user_id: value.userId, provider: value.provider,
-        feature: value.feature, scopes: value.scopes, expires_at: value.expiresAt, secret: value.secret }, { onConflict: 'user_id,provider,feature' }));
+        feature: value.feature, scopes: value.scopes, expires_at: value.expiresAt, secret: value.secret,
+        summary_revision: randomUUID() }, { onConflict: 'user_id,provider,feature' }));
     },
     async list(userId) {
       return checked(await db.from('integration_connections').select('provider,feature,expires_at,scopes').eq('user_id', userId)) || [];

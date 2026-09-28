@@ -2,7 +2,7 @@ import { INTEGRATION_PROVIDERS } from './integration-oauth.js';
 import { IntegrationError } from './integration-http.js';
 import { includesScopes, EXTRA_SCOPES } from './integration-scopes.js';
 
-export function createIntegrationHandler({ authenticate, store, oauth, configured, read, mail }) {
+export function createIntegrationHandler({ authenticate, store, oauth, configured, read, mail, summaries }) {
   return async (req, res) => {
     const send = (status, body) => {
       res.statusCode = status;
@@ -23,13 +23,19 @@ export function createIntegrationHandler({ authenticate, store, oauth, configure
       if (!body || Array.isArray(body) || JSON.stringify(body).length > 12000) throw new Error();
     } catch { return send(400, { error: 'Invalid request' }); }
     const { action, provider, feature } = body;
-    const fields = { status: ['action'], begin: ['action', 'provider', 'feature', 'capability', 'client'],
+    const fields = { status: ['action'], email_summary: ['action'], email_summary_run: ['action'], email_summary_configure: ['action', 'enabled'], begin: ['action', 'provider', 'feature', 'capability', 'client'],
       prepare_email: ['action', 'provider', 'feature', 'input'], confirm_email: ['action', 'provider', 'feature', 'confirmation'],
       complete: ['action', 'provider', 'state', 'code', 'error'], disconnect: ['action', 'provider', 'feature'], read: ['action', 'provider', 'feature', 'input'] };
     if (!Object.hasOwn(fields, action) || Object.keys(body).some(key => !fields[action].includes(key))) return send(400, { error: 'Invalid request' });
-    if (action !== 'status' && (!Object.hasOwn(INTEGRATION_PROVIDERS, provider)
+    if (action !== 'status' && !action.startsWith('email_summary') && (!Object.hasOwn(INTEGRATION_PROVIDERS, provider)
       || (action !== 'complete' && !Object.hasOwn(INTEGRATION_PROVIDERS[provider].scopes, feature)))) return send(400, { error: 'Unknown integration' });
     try {
+      if (action.startsWith('email_summary')) {
+        if (!summaries) return send(503, { error: 'Email summaries are not available yet.' });
+        if (action === 'email_summary_configure' && typeof body.enabled !== 'boolean') return send(400, { error: 'Invalid preference' });
+        return send(200, await (action === 'email_summary' ? summaries.status(user.id)
+          : action === 'email_summary_run' ? summaries.run(user.id) : summaries.configure(user.id, body.enabled)));
+      }
       if (action === 'status') {
         const rows = await store.list(user.id);
         return send(200, { connections: Object.entries(INTEGRATION_PROVIDERS).flatMap(([provider, spec]) =>
