@@ -1,4 +1,4 @@
-// node video/launch-film/contact.mjs [9x16|16x9] [step]
+// node video/launch-film/contact.mjs [9x16|16x9] [step] [film|app-film]
 // Renders one frame per beat (default 0.5 s) and tiles them into a contact
 // sheet so the whole film can be reviewed before a full render.
 import { spawnSync } from 'node:child_process';
@@ -8,14 +8,15 @@ import { openFilm } from './browser.mjs';
 
 const format = process.argv[2] || '9x16';
 const step = Number(process.argv[3] || 0.5);
+const film = process.argv[4] || 'film';
 const out = path.join(import.meta.dirname, 'out');
-const frames = path.join(out, `contact-${format}`);
+const frames = path.join(out, `contact-${film}-${format}`);
 rmSync(frames, { recursive: true, force: true });
 mkdirSync(frames, { recursive: true });
 
-const { browser, page, seek, errors } = await openFilm(format);
+const { browser, page, seek, duration, errors } = await openFilm(format, film);
 let index = 0;
-for (let t = 0; t < 20; t += step, index += 1) {
+for (let t = 0; t < duration; t += step, index += 1) {
   await seek(t + 0.001);
   await page.screenshot({ path: path.join(frames, `${String(index).padStart(3, '0')}.png`) });
 }

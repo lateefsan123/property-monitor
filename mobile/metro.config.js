@@ -18,6 +18,9 @@ config.resolver.blockList = [
 // EAS installs this standalone app, not the web root. Shared source still
 // needs access to its dependencies and the same React/context installations.
 config.resolver.nodeModulesPaths = [path.resolve(__dirname, 'node_modules')];
+const FILM_MODE = process.env.EXPO_PUBLIC_FILM === '1';
+const REAL_SUPABASE = path.resolve(__dirname, 'src', 'supabase.js');
+const FILM_SUPABASE = path.resolve(__dirname, 'film', 'fake-supabase.js');
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   if (moduleName === 'react' || moduleName.startsWith('react/') || moduleName === '@tanstack/react-query') {
     return {
@@ -25,6 +28,10 @@ config.resolver.resolveRequest = (context, moduleName, platform) => {
       filePath: require.resolve(moduleName, { paths: [__dirname] }),
     };
   }
-  return context.resolveRequest(context, moduleName, platform);
+  const resolved = context.resolveRequest(context, moduleName, platform);
+  // Film mode (EXPO_PUBLIC_FILM=1, dev only): swap the Supabase client for an
+  // offline demo backend so launch-film captures never touch real accounts.
+  if (FILM_MODE && resolved?.filePath === REAL_SUPABASE) return { type: 'sourceFile', filePath: FILM_SUPABASE };
+  return resolved;
 };
 module.exports = config;

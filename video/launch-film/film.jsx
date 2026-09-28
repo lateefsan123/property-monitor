@@ -29,7 +29,6 @@ const sp = (t, start, [k, d] = CARD) => spring(t - start, k, d);
 // Counters change once per video frame, so motion-blur subframes never mix two numbers.
 const frameTime = (t) => Math.floor(t * 60 + 1e-6) / 60;
 const fadeIn = (t, start, length = 0.25) => clamp((t - start) / length);
-const fadeOut = (t, start, length = 0.25) => 1 - clamp((t - start) / length);
 const visible = (t, from, to) => t >= from - 0.01 && t < to;
 
 // Kinetic type: each word springs up from below on its own beat.

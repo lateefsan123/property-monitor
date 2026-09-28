@@ -12,6 +12,10 @@ export default defineConfig({
   plugins: [react()],
   // No hot reload, so an edit can't swap code inside a page mid-capture; file
   // watching stays on so every new page load gets the current code.
-  server: { host: '127.0.0.1', port: 4190, strictPort: true, hmr: false },
+  server: {
+    host: '127.0.0.1', port: 4190, strictPort: true, hmr: false,
+    // Rendered frames and the repo's large build/temp folders must not be watched.
+    watch: { ignored: ['**/out/**', '**/tmp/**', '**/dist*/**', '**/node_modules/**', '**/.git/**', '**/video/out/**', '**/video/assets/**'] },
+  },
   resolve: { dedupe: ['react', 'react-dom'] },
 });

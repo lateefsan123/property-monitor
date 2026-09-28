@@ -1,7 +1,10 @@
 import ContentSkeleton from "../components/ContentSkeleton";
 import { useState } from "react";
-import { Pressable, Text, View } from "react-native";
+import { Platform, Pressable, Text, View } from "react-native";
 import Svg, { Line, Rect, Text as SvgText } from "react-native-svg";
+
+// Native SVG text uses the system face; browsers default SVG text to a serif.
+const axisFont = Platform.OS === "web" ? "system-ui, -apple-system, \"Segoe UI\", Roboto, sans-serif" : undefined;
 
 export default function HomeActivity({ series, days, onDaysChange, ready, loading, colors }) {
   const [chartWidth, setChartWidth] = useState(320);
@@ -28,9 +31,9 @@ export default function HomeActivity({ series, days, onDaysChange, ready, loadin
     {loading ? <ContentSkeleton colors={colors} rows={2} label="Loading message activity" /> : ready ? <View style={{ gap: 12 }}>
       <Svg width="100%" height={height + 26} viewBox={`0 0 ${chartWidth} ${height + 26}`} accessibilityLabel={`${total} messages sent in the last ${days} days`}>
         {[0, 0.5, 1].map(ratio => <Line key={ratio} x1={0} x2={chartWidth - 28} y1={8 + ratio * (height - 20)} y2={8 + ratio * (height - 20)} stroke={colors.border} strokeDasharray={ratio === 1 ? undefined : "3 5"} />)}
-        {[0, 0.5, 1].map(ratio => <SvgText key={ratio} x={chartWidth} y={12 + ratio * (height - 20)} fontSize={10} fill={colors.textMuted} textAnchor="end">{max * (1 - ratio)}</SvgText>)}
+        {[0, 0.5, 1].map(ratio => <SvgText key={ratio} x={chartWidth} y={12 + ratio * (height - 20)} fontSize={10} fontFamily={axisFont} fill={colors.textMuted} textAnchor="end">{max * (1 - ratio)}</SvgText>)}
         {visible.map((point, index) => <Rect key={point.key} x={index * step + step * 0.18} y={height - 12 - (point.count / max) * (height - 20)} width={step * 0.64} height={(point.count / max) * (height - 20)} rx={3} fill={colors.statValue} opacity={index === visible.length - 1 ? 1 : 0.5} />)}
-        {labelIndices.map(index => <SvgText key={index} x={index === 0 ? 0 : index === visible.length - 1 ? chartWidth - 28 : index * step + step / 2} y={height + 14} fontSize={11} fill={colors.textMuted} textAnchor={index === 0 ? "start" : index === visible.length - 1 ? "end" : "middle"}>{visible[index]?.label}</SvgText>)}
+        {labelIndices.map(index => <SvgText key={index} x={index === 0 ? 0 : index === visible.length - 1 ? chartWidth - 28 : index * step + step / 2} y={height + 14} fontSize={11} fontFamily={axisFont} fill={colors.textMuted} textAnchor={index === 0 ? "start" : index === visible.length - 1 ? "end" : "middle"}>{visible[index]?.label}</SvgText>)}
       </Svg>
       {total === 0 ? <Text style={{ color: colors.textMuted, fontSize: 13 }}>No messages sent in this period.</Text> : null}
     </View> : <Text style={{ color: colors.textMuted, fontSize: 14, paddingVertical: 24 }}>Message activity unavailable.</Text>}
