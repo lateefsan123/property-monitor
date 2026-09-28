@@ -3,8 +3,6 @@ import SellerFilters from "../features/seller-signal/components/SellerFilters";
 import AppIcon from "../components/AppIcon";
 import AppSearchBar from "../components/AppSearchBar";
 import LeadCard from "../features/seller-signal/components/LeadCard";
-import { getBuildingKeyVariants } from "../features/seller-signal/lead-utils";
-import buildingImages from "../data/building-images.json";
 import { Button, Field } from "../workspace/ui";
 import { useWorkspacePreference } from "../workspace/preferences";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -163,7 +161,7 @@ export default function DashboardScreen({ onBack, theme, userId, embedded = fals
           keyExtractor={(item) => String(item.id)}
           contentContainerStyle={s.listContent}
           renderItem={({ item }) => (
-            <LeadCard buildingImageUrl={buildingImages[getBuildingKeyVariants(item.resolvedBuilding || item.building).find(key => buildingImages[key])]} lead={item} insight={d.insights[item.id]} colors={colors} onPress={lead => setSelectedLeadId(lead.id)} isSent={Boolean(d.sentLeads[item.id])} messageTemplate={d.messageTemplate} copiedLeadId={d.copiedLeadId} onCopyMessage={d.actions.copyMessage} onSendWhatsApp={d.actions.sendWhatsAppLead} onToggleSent={d.actions.toggleSent} whatsappConnected={Boolean(d.connectedWhatsAppAccount)} favorite={favorites.value.includes(String(item.id))} pinned={pins.value.includes(String(item.id))} onFavorite={() => toggle(favorites,item.id)} onPin={() => toggle(pins,item.id)} />
+            <LeadCard lead={item} insight={d.insights[item.id]} colors={colors} onPress={lead => setSelectedLeadId(lead.id)} isSent={Boolean(d.sentLeads[item.id])} messageTemplate={d.messageTemplate} copiedLeadId={d.copiedLeadId} onCopyMessage={d.actions.copyMessage} onSendWhatsApp={d.actions.sendWhatsAppLead} onToggleSent={d.actions.toggleSent} whatsappConnected={Boolean(d.connectedWhatsAppAccount)} favorite={favorites.value.includes(String(item.id))} pinned={pins.value.includes(String(item.id))} onFavorite={() => toggle(favorites,item.id)} onPin={() => toggle(pins,item.id)} />
           )}
           ItemSeparatorComponent={() => <View style={[s.separator, { backgroundColor: colors.textFainter }]} />}
           ListEmptyComponent={<Text style={{ color: colors.textMuted, textAlign: "center", paddingVertical: 32 }}>No sellers match your search or filters.</Text>}

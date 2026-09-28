@@ -1,8 +1,7 @@
 import AppIcon from "../../../components/AppIcon";
 import { Icon } from "../../../workspace/ui";
 import * as Linking from "expo-linking";
-import { useState } from "react";
-import { Image, Modal, Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
 import { formatBuildingLabel } from "../lead-utils";
 
@@ -105,7 +104,6 @@ export function Badge({ label, type, statusId, colors }) {
 }
 
 export default function LeadCard({
-  buildingImageUrl,
   colors,
   copiedLeadId,
   insight,
@@ -122,7 +120,6 @@ export default function LeadCard({
   const c = colors;
   const message = insight?.message || buildMessage(lead, insight, messageTemplate);
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
-  const [previewVisible, setPreviewVisible] = useState(false);
   const bedroomLabel = formatLeadBedroom(lead.bedroom);
   const unitLabel = formatLeadUnit(lead.unit || extractUnitFromBuilding(lead.building));
 
@@ -139,16 +136,8 @@ export default function LeadCard({
 
   return (
     <Pressable onPress={() => onPress(lead)} accessibilityRole="button" accessibilityLabel={`Open seller ${lead.name || "Unnamed"}`}>
-      {/* Name + building image */}
+      {/* Seller identity and property details */}
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        {buildingImageUrl && (
-          <Pressable onPress={(e) => { e.stopPropagation(); setPreviewVisible(true); }}>
-            <Image
-              source={{ uri: buildingImageUrl }}
-              style={{ width: 52, height: 52, borderRadius: 8 }}
-            />
-          </Pressable>
-        )}
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 16, fontWeight: "600", color: c.textName }}>{lead.name || "Unnamed"}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginTop: 2 }}>
@@ -186,15 +175,6 @@ export default function LeadCard({
             </Pressable>
           )}
         </View>
-      )}
-      {buildingImageUrl && (
-        <Modal visible={previewVisible} transparent animationType="fade" onRequestClose={() => setPreviewVisible(false)}>
-          <Pressable onPress={() => setPreviewVisible(false)} style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.85)", justifyContent: "center", alignItems: "center" }}>
-            <Image source={{ uri: buildingImageUrl }} style={{ width: "90%", height: "60%", borderRadius: 12 }} resizeMode="contain" />
-            <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600", marginTop: 16 }}>{lead.building || ""}</Text>
-            <Text style={{ color: "rgba(255,255,255,0.6)", fontSize: 13, marginTop: 8 }}>Tap anywhere to close</Text>
-          </Pressable>
-        </Modal>
       )}
     </Pressable>
   );
