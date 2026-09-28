@@ -4,9 +4,9 @@ Mobile Home shows an Email tab when Gmail or Outlook is connected. Users explici
 
 ## Design references
 
-The flat summary follows the heading, short description and muted metadata at the top of [Finimize's daily brief](https://mobbin.com/screens/5d326d90-9cdc-44c6-9572-1a45f22cfb64), found and inspected through Mobbin MCP. It sits directly on Home's background with Repeat's typography and a small schedule toggle. Individual email rows and nested cards are removed. Fictional preview text appears until a real summary is available.
+The flat summary follows the heading, short description and muted metadata at the top of [Finimize's daily brief](https://mobbin.com/screens/5d326d90-9cdc-44c6-9572-1a45f22cfb64), found and inspected through Mobbin MCP. It sits directly on Home's background with Repeat's typography and a small schedule toggle. Individual email rows and nested cards are removed. Only real summary text is shown. The provider icons are derived from the connected-account list. Dates, counts and schedule metadata are omitted.
 
-The daily window is the 24 hours ending at 08:00 Asia/Dubai. The reader selects up to 10 recent inbox emails across both providers, excludes attachments, and bounds text to 30,000 characters total. Truncated messages are labelled as excerpts. GPT-5.6 Luna returns an overview and a sentence per email. The server reuses `REPEAT_VOICE_OPENAI_API_KEY`; the key never enters the mobile bundle.
+The daily window is the 24 hours ending at 08:00 Asia/Dubai. The reader selects up to 10 recent inbox emails across both providers, excludes attachments, and bounds text to 30,000 characters total. Input truncation is tracked in the saved source metadata. GPT-5.6 Luna returns an overview and a sentence per email. The server reuses `REPEAT_VOICE_OPENAI_API_KEY`; the key never enters the mobile bundle.
 
 Only the latest generated summary and source metadata are stored. Raw bodies are not persisted by this feature. Requests use `store: false` and no model tools. This does not override the AI provider's API data retention policy.
 
@@ -17,7 +17,7 @@ Only the latest generated summary and source metadata are stored. Raw bodies are
 3. Deploy the backend and `vercel.json` together. The authenticated cron checks eligible accounts every 15 minutes; each account has one daily briefing with at most two generation attempts. The current Vercel team is Pro, which supports this interval.
 4. Ship the mobile code in the next release. Enable the card on a connected test account and check the saved briefing, pause, and disconnect flows on a device.
 
-The schema migration and backend deployment have not been applied as part of the local implementation. `CRON_SECRET` was absent during the release check.
+Production rollout completed on 2026-09-28: migration `20260928010000` applied and recorded, `CRON_SECRET` added as a production secret, and deployment `dpl_GMuHM4eCSotQrq4YxdYnjoNGi5Bw` is ready at https://repeatai.org. Vercel reports the cron enabled with the expected 15-minute schedule. The release was deployed from an isolated checkout of `d7eecd02`.
 
 ## Verification
 
@@ -29,3 +29,12 @@ The schema migration and backend deployment have not been applied as part of the
 - Repository-wide file-size lint remains blocked by existing oversized files outside this change.
 
 The API authenticates every summary request and derives the owner from the session. Client caches are keyed by user. DB tables and functions are service-role only. Pausing or reconnecting during reads cancels AI work; connection revisions hide summaries from the previous connection.
+
+## Production checks
+
+- Authenticated summary status, no-mailbox run and pause returned HTTP 200 using a temporary test account, which was deleted afterward.
+- Invalid sessions returned 401; caller-supplied owner IDs returned 400.
+- Cron rejected unauthenticated calls with 401 and accepted the configured secret with 200. No users had enabled summaries during this check, so zero mailboxes were processed.
+- Both tables have RLS enabled, no authenticated-role read grant, and service-role read access. Security advisors reported no issues on the new tables or functions; existing unrelated advisories remain.
+- Updated iOS and Android exports passed. The mobile UI remains for the next app release; no TestFlight build or OTA was published.
+- A real connected mailbox summary has not been verified on a device. Each account enables its own summaries through the switch.
