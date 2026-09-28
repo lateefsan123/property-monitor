@@ -351,3 +351,43 @@
   background: #fee2e2;
   color: #991b1b;
 }
+
+/* Phone numbers remain table data; copying is a quiet inline action. */
+.lead-phone-control { position: relative; display: inline-flex; }
+.lead-phone-copy {
+  appearance: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  min-height: 36px;
+  margin: 0;
+  padding: 4px 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-secondary);
+  font: inherit;
+  font-weight: 400;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.lead-phone-copy:hover, .lead-phone-copy:active {
+  background: transparent;
+  color: var(--text-name);
+  box-shadow: none;
+}
+.lead-phone-copy svg { flex-shrink: 0; color: var(--text-faint); }
+.lead-phone-copy:hover svg, .lead-phone-copy:focus-visible svg { color: var(--text-secondary); }
+.lead-phone-copy:focus-visible { outline: 2px solid var(--text-muted); outline-offset: 4px; }
+.lead-phone-feedback {
+  position: absolute;
+  top: calc(100% - 3px);
+  left: 0;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 14px;
+  white-space: nowrap;
+  pointer-events: none;
+}

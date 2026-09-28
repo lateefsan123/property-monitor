@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   IconCopy,
+  IconCheck,
   IconBrandWhatsapp,
   IconPinned,
   IconPinnedFilled,
@@ -55,6 +56,21 @@ export default function LeadCard({
   whatsappConnected,
 }) {
   const [copyStatus, setCopyStatus] = useState("");
+  const copyTimer = useRef(null);
+  useEffect(() => () => clearTimeout(copyTimer.current), []);
+
+  async function copyPhone(event) {
+    event.stopPropagation();
+    clearTimeout(copyTimer.current);
+    try {
+      await navigator.clipboard.writeText(String(lead.phone));
+      setCopyStatus("Copied");
+    } catch {
+      setCopyStatus("Could not copy. Try again.");
+    }
+    copyTimer.current = setTimeout(() => setCopyStatus(""), 2500);
+  }
+
   const message = lead.message_draft ?? insight?.message ?? null;
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
   const displayBuildingLabel = insight?.locationName
@@ -202,7 +218,23 @@ export default function LeadCard({
         )}
       </td>
       <td className="lead-cell-phone">
-        {lead.phone ? <button type="button" className="btn-sm" aria-label={`Copy phone number for ${lead.name || "seller"}`} onClick={async event => { event.stopPropagation(); try { await navigator.clipboard.writeText(String(lead.phone)); setCopyStatus("Copied"); } catch { setCopyStatus("Could not copy. Try again."); } }}><IconCopy size={14} aria-hidden="true" /> {lead.phone}<span role="status">{copyStatus}</span></button> : <span className="text-muted">—</span>}
+        {lead.phone ? (
+          <span className="lead-phone-control">
+            <button
+              type="button"
+              className="lead-phone-copy"
+              aria-label={`Copy phone number for ${lead.name || "seller"}`}
+              title="Copy phone number"
+              onClick={copyPhone}
+            >
+              <span>{lead.phone}</span>
+              {copyStatus === "Copied"
+                ? <IconCheck size={14} stroke={1.8} aria-hidden="true" />
+                : <IconCopy size={14} stroke={1.8} aria-hidden="true" />}
+            </button>
+            <span className="lead-phone-feedback" role="status">{copyStatus}</span>
+          </span>
+        ) : <span className="text-muted">—</span>}
       </td>
       <td className="lead-cell-action" onClick={(e) => e.stopPropagation()}>
         {sendButton}
