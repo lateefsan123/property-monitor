@@ -22,6 +22,7 @@ import { withStartupTimeout } from './src/startup-request';
 
 import { createAccountCacheGuard, mobileQueryDefaults } from "./src/query-cache";
 import { shouldShowOnboarding } from './src/onboarding-flow';
+import { saveProfile } from './src/workspace/profile-service';
 import AccessVerificationScreen from './src/screens/AccessVerificationScreen';
 
 const queryClient = new QueryClient({
@@ -198,14 +199,14 @@ function AppInner() {
 
   if (shouldShowOnboarding(onboardingUserId, sessionUserId)) {
     return <SafeAreaProvider>
-      <OnboardingScreen subscription={subscription} session={session} displayName={displayName} onComplete={handleOnboardingComplete}
+      <OnboardingScreen subscription={subscription} session={session} displayName={displayName} avatarUrl={session?.user.user_metadata?.avatar_url || ''} onComplete={handleOnboardingComplete}
         onClose={() => setOnboardingUserId(undefined)} onLogin={() => setOnboardingUserId(undefined)}
         onPasswordRecovery={() => setIsRecoveringPassword(true)}
-        onSaveUsername={async (value) => {
+        onSaveProfile={async (name, photo) => {
           if (!sessionUserId) throw new Error('Sign in to continue.');
-          const { error } = await supabase.auth.updateUser({ data: { username: value } });
-          if (error) throw error;
-          setDisplayNameOverride({ userId: sessionUserId, value });
+          // Same path as Edit Profile: photos go to storage, not auth metadata.
+          await saveProfile(supabase, sessionUserId, name, photo);
+          setDisplayNameOverride({ userId: sessionUserId, value: name.trim() });
         }} />
       <StatusBar style="dark" />
     </SafeAreaProvider>;

@@ -12,13 +12,13 @@ Shared tokens live in `mobile/src/components/onboarding-ui.js`: black surface, c
 | integrations | Welcome with lit hero object | Repeat AI mark with integration tiles at depth |
 | goal | "What level of commitment" cards | Three goals, multi-select |
 | sellers, listings, messages, schedule | "Connect Opal to Screen Time" ringed card | One native card per feature, built from app UI and bundled building photos |
-| automation | "8 years+" gradient figure | "40 a day" WhatsApp limit |
+| automation | "8 years+" gradient figure | "40" automated WhatsApp messages per day (the server-side maximum, sent five minutes apart) |
 | account | "Let's create your account" | Email form, "or", Google and Apple |
-| username | Question screen | Name field |
+| username | Question screen | Profile: optional photo (choose, take or remove) and name |
 
 The five feature steps show Opal's five-segment progress bar. Feature cards are drawn in code rather than screenshots, so they stay sharp at any density; seller names, units and prices are sample data. Burj Khalifa, Act One and Boulevard Point photos come from `mobile/assets/buildings`.
 
-Behaviour is unchanged: one selected goal routes to spreadsheet import, listing search or WhatsApp settings; multiple or no goals open Home. New users see onboarding before authentication. Username is saved only to the authenticated user's metadata, signed-in users skip account creation, password recovery takes precedence, and the subscription gate still follows onboarding. The account step keeps separate Signup, Login, Reset and CheckEmail routes with drafts held in the auth controller; Signup and Login now show the email form first, then the provider pills, as Opal does.
+Behaviour is unchanged: one selected goal routes to spreadsheet import, listing search or WhatsApp settings; multiple or no goals open Home. New users see onboarding before authentication. The profile step saves through `saveProfile`, the same path as Edit Profile: the photo is uploaded to the `profile-avatars` bucket and only its URL, with the name, goes into the authenticated user's metadata. An existing photo (for example from Google) is kept unless the person changes or removes it; signed-in users skip account creation, password recovery takes precedence, and the subscription gate still follows onboarding. The account step keeps separate Signup, Login, Reset and CheckEmail routes with drafts held in the auth controller; Signup and Login now show the email form first, then the provider pills, as Opal does.
 
 Validation: mobile-web captures at 393 x 852 @3x were compared side by side with each Opal reference; onboarding unit tests, targeted lint and a native iOS export pass. Native Apple sign-in, SVG gradient text and keyboard behaviour still need on-device verification before release.
 

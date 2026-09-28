@@ -1,12 +1,10 @@
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import * as ImagePicker from 'expo-image-picker';
-import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
 import AppIcon from '../components/AppIcon';
 import { supabase } from '../supabase';
 import { saveProfile } from '../workspace/profile-service';
-import { AVATAR_PIXELS, AVATAR_QUALITY } from '../../../shared/profile-avatar';
+import { pickAvatarPhoto } from '../workspace/avatar-picker';
 
 export default function EditProfileScreen({ userId, displayName = '', avatarUrl = '', colors, onClose }) {
   const [name, setName] = useState(displayName);
@@ -35,21 +33,8 @@ export default function EditProfileScreen({ userId, displayName = '', avatarUrl 
     setMenu(false);
     setError('');
     try {
-      if (camera) {
-        const permission = await ImagePicker.requestCameraPermissionsAsync();
-        if (!permission.granted) throw new Error('Allow camera access in your phone settings to take a photo. You can also choose a photo instead.');
-      }
-      const options = { mediaTypes: ['images'], allowsEditing: true, aspect: [1, 1], quality: 1 };
-      const result = camera ? await ImagePicker.launchCameraAsync(options) : await ImagePicker.launchImageLibraryAsync(options);
-      if (result.canceled) return;
-      const asset = result.assets[0];
-      const side = Math.min(asset.width, asset.height);
-      const resized = await manipulateAsync(asset.uri, [
-        { crop: { originX: (asset.width - side) / 2, originY: (asset.height - side) / 2, width: side, height: side } },
-        { resize: { width: Math.min(side, AVATAR_PIXELS), height: Math.min(side, AVATAR_PIXELS) } },
-      ], { format: SaveFormat.JPEG, compress: AVATAR_QUALITY, base64: true });
-      if (!resized.base64) throw new Error('Could not process that photo.');
-      setPhoto(`data:image/jpeg;base64,${resized.base64}`);
+      const picked = await pickAvatarPhoto(camera);
+      if (picked) setPhoto(picked);
     } catch (failure) {
       setError(failure.message || 'Could not open that photo. Please try again.');
     } finally {

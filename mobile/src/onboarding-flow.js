@@ -5,9 +5,9 @@ export const ONBOARDING_STEPS = [
   { id: 'listings', title: 'Spot the change.\nStart the conversation.', body: 'Track price drops in your buildings as they happen.' },
   { id: 'messages', title: 'Make every\nmessage relevant', body: 'Save your best messages. Personalise each one automatically.' },
   { id: 'schedule', title: 'Stay in touch on\nyour schedule', body: 'Choose your buildings and days. We’ll keep it going.' },
-  { id: 'automation', title: 'Follow up automatically', body: 'Repeat AI can reach out to your sellers with up to' },
+  { id: 'automation', title: 'Follow up automatically', body: 'Repeat AI follows up with your sellers for you, sending up to' },
   { id: 'account', title: 'Let’s create your account', body: 'Keep your sellers and conversations together.' },
-  { id: 'username', title: 'What should we\ncall you?', body: 'This is the name you’ll see in Repeat AI.' },
+  { id: 'username', title: 'Set up your profile', body: 'Add a photo and the name you’ll go by.' },
   { id: 'finish', title: 'You’re all set', body: 'Your next conversation\nstarts here.' },
 ];
 export const ONBOARDING_GOALS = [

@@ -2,6 +2,7 @@ import SubscriptionScreen from './SubscriptionScreen';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Image } from 'expo-image';
 import AppIcon from '../components/AppIcon';
 import MotionScreen from '../components/MotionScreen';
 import OnboardingPreview, { GradientStat } from '../components/OnboardingPreview';
@@ -9,16 +10,19 @@ import { O, OnboardingNav, OnboardingSegments, PillButton, TextLink, onboardingT
 import { ONBOARDING_GOALS, ONBOARDING_STEPS, onboardingDestination, toggleOnboardingGoal } from '../onboarding-flow';
 import AuthScreen from './AuthScreen';
 import AccessVerificationScreen from './AccessVerificationScreen';
+import { pickAvatarPhoto } from '../workspace/avatar-picker';
 
 // The product tour uses Opal's segmented progress: one segment per feature.
 const FEATURES = ['sellers', 'listings', 'messages', 'schedule', 'automation'];
 
-export default function OnboardingScreen({ onComplete, onClose, onLogin, preview = false, session, displayName = '', onSaveUsername, onPasswordRecovery, subscription }) {
+export default function OnboardingScreen({ onComplete, onClose, onLogin, preview = false, session, displayName = '', avatarUrl = '', onSaveProfile, onPasswordRecovery, subscription }) {
   const insets = useSafeAreaInsets();
   const [artSize, setArtSize] = useState({ width: 0, height: 0 });
   const [step, setStep] = useState(0);
   const [goalIds, setGoalIds] = useState([]);
   const [username, setUsername] = useState(displayName);
+  const [photo, setPhoto] = useState(avatarUrl);
+  const [photoMenu, setPhotoMenu] = useState(false);
   const [login, setLogin] = useState(false);
   const [previewAuthenticated, setPreviewAuthenticated] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -36,9 +40,10 @@ export default function OnboardingScreen({ onComplete, onClose, onLogin, preview
   useEffect(() => {
     if (account && authenticated) {
       setUsername(displayName);
+      setPhoto(avatarUrl);
       setStep(ONBOARDING_STEPS.findIndex(item => item.id === (displayName ? 'finish' : 'username')));
     }
-  }, [account, authenticated, displayName]);
+  }, [account, authenticated, displayName, avatarUrl]);
   function back() {
     setError('');
     setStep(value => account && login ? 0 : Math.max(0, value - (nameStep && authenticated ? 2 : 1)));
@@ -60,15 +65,22 @@ export default function OnboardingScreen({ onComplete, onClose, onLogin, preview
     catch { setError('Could not finish setup. Please try again.'); }
     finally { lock.current = false; setBusy(false); }
   }
+  async function choosePhoto(camera) {
+    if (lock.current) return;
+    lock.current = true; setBusy(true); setError(''); setPhotoMenu(false);
+    try { const picked = await pickAvatarPhoto(camera); if (picked) setPhoto(picked); }
+    catch (failure) { setError(failure?.message || 'Could not open that photo. Please try again.'); }
+    finally { lock.current = false; setBusy(false); }
+  }
   async function next() {
     if (lock.current) return;
     if (nameStep) {
-      if (!username.trim()) { setError('Enter your username to continue.'); return; }
-      lock.current = true; setBusy(true); setError('');
+      if (!username.trim()) { setError('Enter your name to continue.'); return; }
+      lock.current = true; setBusy(true); setError(''); setPhotoMenu(false);
       try {
-        if (!preview) await onSaveUsername(username.trim());
+        if (!preview) await onSaveProfile(username.trim(), photo);
         setStep(value => value + 1);
-      } catch { setError('Could not save your username. Please try again.'); }
+      } catch (failure) { setError(failure?.message || 'Could not save your profile. Please try again.'); }
       finally { lock.current = false; setBusy(false); }
     }
     else if (final) void finish(onboardingDestination(goalIds));
@@ -118,12 +130,23 @@ export default function OnboardingScreen({ onComplete, onClose, onLogin, preview
         </ScrollView>
       </View> : slide.id === 'automation' ? <View style={[s.fill, s.center]}>
         <Text style={s.statLead}>{slide.body}</Text>
-        <GradientStat value="40 a day" />
-        <Text style={s.statLead}>WhatsApp messages, on the days{'\n'}and times you choose.</Text>
+        <GradientStat value="40" size={104} />
+        <Text style={s.statLead}>automated WhatsApp messages{'\n'}per day.</Text>
       </View> : nameStep ? <View style={s.top}>
         {title}
         <Text style={t.hint}>{slide.body}</Text>
-        <TextInput accessibilityLabel="Username" value={username} onChangeText={setUsername} placeholder="Your name" placeholderTextColor={O.muted} autoCapitalize="words" autoCorrect={false} maxLength={60} textContentType="nickname" returnKeyType="done" onSubmitEditing={next} keyboardAppearance="dark" selectionColor={O.text} style={[t.input, s.nameInput]} />
+        <View style={s.photoArea}>
+          <Pressable accessibilityRole="button" accessibilityLabel={photo ? 'Change profile photo' : 'Add profile photo'} accessibilityState={{ expanded: photoMenu }} disabled={busy} onPress={() => setPhotoMenu(value => !value)} style={s.photo}>
+            {photo ? <Image source={{ uri: photo }} contentFit="cover" style={s.photoImage} accessibilityLabel="Profile photo" /> : <AppIcon name="person" size={46} color={O.muted} />}
+            <View style={s.photoBadge}><AppIcon name={photo ? 'edit' : 'plus'} size={17} color="#000" /></View>
+          </Pressable>
+        </View>
+        {photoMenu ? <View style={s.photoMenu}>
+          <View style={s.photoMenuItem}><PillButton dark compact label="Choose photo" onPress={() => choosePhoto(false)} /></View>
+          {Platform.OS !== 'web' ? <View style={s.photoMenuItem}><PillButton dark compact label="Take photo" onPress={() => choosePhoto(true)} /></View> : null}
+          {photo ? <View style={s.photoMenuItem}><PillButton dark compact label="Remove" onPress={() => { setPhoto(''); setPhotoMenu(false); }} /></View> : null}
+        </View> : null}
+        <TextInput accessibilityLabel="Name" value={username} onChangeText={setUsername} placeholder="Your name" placeholderTextColor={O.muted} autoCapitalize="words" autoCorrect={false} maxLength={80} textContentType="name" returnKeyType="done" onSubmitEditing={next} keyboardAppearance="dark" selectionColor={O.text} style={[t.input, s.nameInput]} />
       </View> : final ? <View style={[s.fill, s.center]}>
         {title}
         <Text style={t.body}>{slide.body}</Text>
@@ -134,7 +157,7 @@ export default function OnboardingScreen({ onComplete, onClose, onLogin, preview
       </View>}
     </MotionScreen>
     <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, 16) + (secondary ? 6 : 34) }]}>
-      {slide.id === 'automation' ? <Text style={s.footnote}>Default daily limit. Change it anytime in Settings.</Text> : null}
+      {slide.id === 'automation' ? <Text style={s.footnote}>Sent five minutes apart, on the days and times you choose.</Text> : null}
       {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}
       <PillButton busy={busy} onPress={next} label={final ? preview ? 'Finish preview' : goal?.cta || 'Open Repeat AI' : welcome ? 'Get Started' : 'Continue'} />
       {secondary ? <View style={s.secondary}><TextLink label={secondary.label} tone={secondary.tone} disabled={busy} onPress={secondary.onPress} /></View> : null}
@@ -155,7 +178,13 @@ const s = StyleSheet.create({
   radio: { width: 25, height: 25, borderRadius: 13, borderWidth: 1.5, borderColor: '#2E2C2F', backgroundColor: '#0E0C0F', alignItems: 'center', justifyContent: 'center' },
   radioOn: { backgroundColor: O.text, borderColor: O.text },
   statLead: { color: O.text, fontSize: 17, lineHeight: 23, textAlign: 'center', paddingHorizontal: 32 },
-  nameInput: { marginHorizontal: O.gutter, marginTop: 28 },
+  nameInput: { marginHorizontal: O.gutter, marginTop: 24 },
+  photoArea: { alignItems: 'center', marginTop: 32 },
+  photo: { width: 116, height: 116, borderRadius: 58, backgroundColor: O.row, borderWidth: 1, borderColor: O.line, alignItems: 'center', justifyContent: 'center' },
+  photoImage: { width: 116, height: 116, borderRadius: 58 },
+  photoBadge: { position: 'absolute', right: 2, bottom: 2, width: 34, height: 34, borderRadius: 17, backgroundColor: O.text, borderWidth: 3, borderColor: O.bg, alignItems: 'center', justifyContent: 'center' },
+  photoMenu: { flexDirection: 'row', gap: 8, paddingHorizontal: O.gutter, marginTop: 16 },
+  photoMenuItem: { flex: 1 },
   footer: { paddingHorizontal: O.gutter, paddingTop: 12 },
   secondary: { minHeight: 56, paddingTop: 10 },
   footnote: { color: O.muted, fontSize: 12, lineHeight: 16, textAlign: 'center', marginBottom: 14 },

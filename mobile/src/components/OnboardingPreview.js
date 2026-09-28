@@ -133,10 +133,10 @@ export default function OnboardingPreview({ screen, width, height }) {
 // fills the glyphs on iOS, Android and web alike. Native SVG text already uses
 // the system face; browsers default SVG text to a serif, so name one there.
 const statFont = Platform.OS === 'web' ? 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif' : undefined;
-export function GradientStat({ value, width = 320 }) {
-  return <Svg width={width} height={92} accessibilityLabel={value}>
+export function GradientStat({ value, width = 320, size = 72 }) {
+  return <Svg width={width} height={Math.round(size * 1.28)} accessibilityLabel={value}>
     <Defs><LinearGradient id="stat" x1="0" y1="0" x2="1" y2="0"><Stop offset="0" stopColor="#5EEAD4" /><Stop offset="1" stopColor="#30D158" /></LinearGradient></Defs>
-    <SvgText x={width / 2} y={72} fontSize={72} fontWeight="700" textAnchor="middle" fill="url(#stat)" letterSpacing={-1.5} fontFamily={statFont}>{value}</SvgText>
+    <SvgText x={width / 2} y={size} fontSize={size} fontWeight="700" textAnchor="middle" fill="url(#stat)" letterSpacing={-1.5} fontFamily={statFont}>{value}</SvgText>
   </Svg>;
 }
 
