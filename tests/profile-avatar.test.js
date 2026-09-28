@@ -53,8 +53,17 @@ test('profile save failure cleans up only the new upload', async () => {
   assert.deepEqual(calls.removed, [calls.uploads[0][0]]);
 });
 
-test('unchanged legacy photos, existing URLs and removal require no upload', async () => {
-  for (const avatar of [photo, 'https://example.com/photo.jpg', null]) {
+test('unchanged legacy photos migrate out of token metadata without changing image bytes', async () => {
+  const { client, calls } = fixture({ existing: photo });
+  const user = await saveAvatarProfile(client, 'owner', { avatar_url: photo, username: 'Updated name' });
+  assert.equal(calls.uploads.length, 1);
+  assert.deepEqual(new Uint8Array(calls.uploads[0][1]), new Uint8Array([255, 216, 255, 217]));
+  assert.match(user.user_metadata.avatar_url, /^https:/);
+  assert.equal(user.user_metadata.username, 'Updated name');
+});
+
+test('existing URLs and removal require no upload', async () => {
+  for (const avatar of ['https://example.com/photo.jpg', null]) {
     const { client, calls } = fixture({ existing: avatar });
     const user = await saveAvatarProfile(client, 'owner', { avatar_url: avatar });
     assert.equal(user.user_metadata.avatar_url, avatar);

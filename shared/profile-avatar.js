@@ -12,7 +12,7 @@ export async function saveAvatarProfile(client, userId, updates) {
   }
   const data = { ...updates };
   let uploadedPath;
-  if (data.avatar_url?.startsWith('data:') && data.avatar_url !== current.user.user_metadata?.avatar_url) {
+  if (data.avatar_url?.startsWith('data:')) {
     const match = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(data.avatar_url);
     if (!match || match[1].length > Math.ceil(MAX_BYTES / 3) * 4) {
       throw new Error('Please choose a photo smaller than 1 MB after cropping.');
