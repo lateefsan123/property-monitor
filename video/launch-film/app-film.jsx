@@ -7,7 +7,7 @@ import { CARD, HEAVY, UI, clamp, lerp, spring } from './motion';
 
 // Mobile app film, ~73 s at 120 BPM. The phone shows stills of the real app
 // (captured by app-takes.mjs from film mode with demo data) plus one drawn
-// WhatsApp chat; captions, taps and camera moves are pure functions of t.
+// WhatsApp chat; captions and taps are pure functions of t; screens are never zoomed.
 // Section lengths follow the voiceover lines in mix-app.mjs.
 const DURATION = 73;
 const params = new URLSearchParams(location.search);
@@ -47,20 +47,6 @@ const SCREENS = [
 // Taps in app points (393x852 space).
 const TAPS = [[9, 349, 103], [10.2, 200, 606], [11.6, 197, 807], [30.2, 357, 343], [45.6, 150, 154], [47, 209, 141],
   [51.9, 197, 609], [53.9, 196, 726], [54.6, 300, 726], [55.8, 289, 803], [57.8, 298, 807], [59.3, 294, 809]];
-// Camera: [in, out, scale, focus x, focus y in app points]. Keep 1.2 s between one out and the next in.
-const ZOOMS = [
-  [4.4, 7.2, 1.08, 196, 190],
-  [15.8, 18.4, 1.08, 196, 330],
-  [23.4, 26.6, 1.08, 196, 520],
-  [28.4, 31.9, 1.08, 196, 330],
-  [33.2, 37.6, 1.06, 196, 0],
-  [39.2, 41, 1.1, 196, 250],
-  [42.3, 43.9, 1.08, 196, 620],
-  [48, 50.3, 1.18, 30, 330],
-  [52.4, 55.6, 1.12, 196, 740],
-  [59.8, 61, 1.12, 16, 300],
-  [62.3, 65, 1.1, 196, 190],
-];
 const CAPTIONS = [
   [3.9, 7.4, ['Your day,', 'at a glance.']],
   [8.2, 14.4, ['Bring your', 'spreadsheet.']],
@@ -178,33 +164,19 @@ function Screen({ t }) {
   const previous = index > 0 ? SCREENS[index - 1][1] : null;
   const p = transition === 'push' ? sp(t, start, UI) : clamp((t - start) / 0.18);
   const tap = TAPS.find(([time]) => t >= time && t < time + 0.5);
-  const { scale, origin } = camera(t);
   return <div className="screen" style={{ width: SCREEN_W, height: SCREEN_H, borderRadius: 56 * S * 0.9 }}>
     <StatusBar />
     <div className="viewport" style={{ top: STATUS, width: SCREEN_W, height: 852 * S }}>
-      <div style={{ position: 'absolute', inset: 0, transform: `scale(${scale})`, transformOrigin: origin }}>
       {previous && p < 1 && <Layer take={previous} t={t} style={{ transform: transition === 'push' ? `translateX(${-p * 30 * S}px)` : undefined, opacity: transition === 'push' ? 1 - p * 0.6 : 1 }} />}
       <Layer take={take} t={t} style={{ transform: transition === 'push' ? `translateX(${(1 - p) * SCREEN_W}px)` : undefined, opacity: transition === 'push' ? 1 : p }} />
       {tap && <span className="tap" style={{
         left: tap[1] * S, top: tap[2] * S, width: 90 * S, height: 90 * S,
         transform: `translate(-50%, -50%) scale(${0.3 + 0.9 * clamp((t - tap[0]) / 0.35)})`, opacity: 0.55 * (1 - clamp((t - tap[0] - 0.15) / 0.35)),
       }} />}
-      </div>
     </div>
   </div>;
 }
 
-// Each zoom scales the app inside the screen about its focus point, so what the voice
-// names grows in place while the phone itself stays put.
-function camera(t) {
-  let scale = 1;
-  let focus = [196, 426];
-  ZOOMS.forEach(([from, to, s, fx, fy]) => {
-    scale += (s - 1) * (sp(t, from, CARD) - sp(t, to, CARD));
-    if (t >= from - 0.01 && t < to + 1.2) focus = [fx, fy];
-  });
-  return { scale, origin: `${focus[0] * S}px ${focus[1] * S}px` };
-}
 
 function Phone({ t }) {
   const enter = sp(t, PHONE_IN - 0.1, HEAVY);
