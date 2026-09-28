@@ -131,6 +131,7 @@ export default function WorkspaceShell({
             <MessageTemplatesScreen {...common} />
           ) : (
             <WorkspaceSettings
+              key={requests[id]?.key || 'settings'}
               request={requests[id]}
               onHeaderChange={setSettingsHeader}
               onExit={() => navigate("home")}

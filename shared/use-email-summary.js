@@ -8,8 +8,10 @@ export function useEmailSummary({ userId, connected, request }) {
   const query = useQuery({
     queryKey: key,
     queryFn: ({ signal }) => request({ action: 'email_summary' }, signal, userId),
-    enabled: Boolean(userId && connected), staleTime: 60000,
-    refetchInterval: query => query.state.data?.status === 'processing' ? 3000 : 60000,
+    // Status reads saved data only. Start alongside connection status rather
+    // than waiting for a second network round trip before loading the brief.
+    enabled: Boolean(userId), staleTime: 60000,
+    refetchInterval: query => !query.state.data?.connected ? false : query.state.data?.status === 'processing' ? 3000 : 60000,
   });
   const generate = useMutation({
     mutationFn: async () => ({ owner: userId, data: await request({ action: 'email_summary_run' }, undefined, userId) }),

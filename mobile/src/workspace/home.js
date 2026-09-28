@@ -15,6 +15,8 @@ import { integrationStatusOptions } from '../../../src/integration-query';
 import { integrationRequest } from './integration-client';
 import { useEmailSummary } from '../../../shared/use-email-summary';
 import EmailSummaryCard from './email-summary-card';
+import CalendarPreview from './calendar-preview';
+import HomeConnectionPrompt from './home-connection-prompt';
 
 export default function WorkspaceHome({ userId, displayName, colors, onNavigate }) {
   useQuery(messageTemplatesOptions(userId));
@@ -24,7 +26,11 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
   const connections = useQuery(integrationStatusOptions(userId, integrationRequest));
   const hasEmail = connections.data?.some(item => item.feature === 'email' && item.connected) || false;
   const emailSummary = useEmailSummary({ userId, connected: hasEmail, request: integrationRequest });
-  const activeTab = tab === 'email' && !hasEmail ? 'activity' : tab;
+  const activeTab = tab;
+  const connect = () => onNavigate('settings', { section: 'Integrations' });
+  const emailConnected = connections.data ? hasEmail : emailSummary.data?.connected;
+  const emailReady = connections.data !== undefined || emailSummary.data !== undefined;
+  const hasCalendar = connections.data?.some(item => item.feature === 'calendar' && item.connected) || false;
   const leads = useQuery({
     queryKey: leadsQueryKey(userId),
     queryFn: () => fetchUserLeads(userId),
@@ -78,13 +84,15 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
         </Pressable>
       </View>
       <View style={{ gap: 24 }}>
-        <View accessibilityRole="tablist" style={{ flexDirection: "row", gap: 28, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-          {[["activity", "Activity"], ["drops", "Price drops"], ...(hasEmail ? [["email", "Email"]] : [])].map(([id, label]) => <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: activeTab === id }} onPress={() => setTab(id)}
+        <View accessibilityRole="tablist" style={{ flexDirection: "row", justifyContent: 'space-between', gap: 10, borderBottomWidth: 1, borderBottomColor: colors.border }}>
+          {[["activity", "Activity"], ["drops", "Price drops"], ["email", "Email"], ["calendar", "Calendar"]].map(([id, label]) => <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: activeTab === id }} onPress={() => setTab(id)}
             style={{ minHeight: 48, justifyContent: "center", borderBottomWidth: 2, borderBottomColor: activeTab === id ? colors.textName : "transparent" }}>
-            <Text style={{ fontSize: 16, fontWeight: activeTab === id ? "600" : "400", color: activeTab === id ? colors.textName : colors.textMuted }}>{label}</Text>
+            <Text style={{ fontSize: 14, fontWeight: activeTab === id ? "600" : "400", color: activeTab === id ? colors.textName : colors.textMuted }}>{label}</Text>
           </Pressable>)}
         </View>
-        {activeTab === "email" ? <EmailSummaryCard key={userId} query={emailSummary} colors={colors} connectedProviders={(connections.data || []).filter(item => item.feature === 'email' && item.connected).map(item => item.provider)} /> : activeTab === "activity" ? <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} colors={colors} /> : (
+        {activeTab === 'calendar' ? <CalendarPreview colors={colors} connected={hasCalendar} ready={connections.data !== undefined} onConnect={connect} /> : activeTab === "email" ? (
+          emailReady && !emailConnected ? <HomeConnectionPrompt feature="email" colors={colors} onConnect={connect} /> : <EmailSummaryCard key={userId} query={emailSummary} colors={colors} connectedProviders={connections.data ? connections.data.filter(item => item.feature === 'email' && item.connected).map(item => item.provider) : emailSummary.data?.providers || []} />
+        ) : activeTab === "activity" ? <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} colors={colors} /> : (
       <View style={{ gap: 4 }}>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
           <View style={{ gap: 4 }}>
