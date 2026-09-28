@@ -208,7 +208,7 @@ export default function AppShell({ displayName, subscription, userId }) {
   return (
     <div className="app-shell">
       <AppSidebar
-        key={userId}
+        key={`sidebar:${userId}`}
         onOpenSeller={(id) => { handleNavigate("sellers"); setSavedSellerId(id); }}
         onPrefetch={prefetchPage}
         currentPage={currentPage}
@@ -235,7 +235,7 @@ export default function AppShell({ displayName, subscription, userId }) {
         />
       )}
 
-      {!createOpen && !messageTemplatesOpen && !assistantOpen && <ProductTour key={userId} userId={userId} onNavigate={handleNavigate} onAction={handleSidebarAction} />}
+      {!createOpen && !messageTemplatesOpen && !assistantOpen && <ProductTour key={`tour:${userId}`} userId={userId} onNavigate={handleNavigate} onAction={handleSidebarAction} />}
       <VoicePanel key={`voice:${userId}`} userId={userId} onOpenChange={setAssistantOpen} />
       <SendVolumeDialog />
 
