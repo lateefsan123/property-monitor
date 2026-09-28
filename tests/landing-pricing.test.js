@@ -22,7 +22,7 @@ test("pricing offers only the existing monthly Pro plan and seven-day trial", ()
   assert.equal(nodes.filter(n => n.tag === "h2").length, 1);
   assert.match(texts(tree), /€35.*\/month/);
   assert.match(texts(tree), /7 days free, then €35\/month/);
-  assert.match(texts(tree), /Up to 50 automated WhatsApp follow-ups a day/);
+  assert.match(texts(tree), /Up to 40 automated WhatsApp messages per day/);
   assert.doesNotMatch(texts(tree), /Annually|Enterprise|14.day|No credit card|Unlimited/);
 });
 

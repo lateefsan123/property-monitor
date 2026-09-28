@@ -19,6 +19,7 @@ import {
   sellerWhatsAppAccountsQueryKey,
 } from "./queryKeys";
 import { createSellerSignalImportActions } from "./useSellerSignalImportActions";
+import { manualSendRequiresTodaysTransaction } from "../../../shared/whatsapp-send-policy.js";
 
 export function createSellerSignalActions(context) {
   const {
@@ -351,7 +352,7 @@ export function createSellerSignalActions(context) {
         lead,
         message,
         sendSource: options.sendSource || "manual",
-        requireTodaysTransaction: options.customImage ? false : isHot,
+        requireTodaysTransaction: manualSendRequiresTodaysTransaction({ customImage: Boolean(options.customImage), hasTodaysTransaction: isHot }),
       });
       const sentAt = result?.sentAt || new Date().toISOString();
       markLeadSentLocally(lead.id, sentAt);

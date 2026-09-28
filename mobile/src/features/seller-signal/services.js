@@ -5,6 +5,7 @@ import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
 import { buildMessage, buildRecentTransactions, extractBeds, extractTransactionDate, formatPhoneForWhatsApp, summarizeTransactions } from "./insight-utils";
 import { cleanBuildingName, createLeadInsertRecord, getBuildingKeyVariants, mapStoredLeadRow, sortLeadsByPriority, startOfDay } from "./lead-utils";
 import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToObjects } from "./spreadsheet";
+import { manualSendRequiresTodaysTransaction } from "../../../../shared/whatsapp-send-policy.js";
 
 const IMPORT_TRUNCATION_PATTERN = /\u2026|\.{3,}/;
 const IMPORT_TRUNCATION_FIELDS = [
@@ -675,7 +676,7 @@ export function getConnectedWhatsAppAccount(accounts = []) {
   return accounts.find((account) => account.connection_status === "connected") || null;
 }
 
-export async function sendLeadWhatsAppMessage({ accountId, imagePath, customImage = false, leadId, message, phone, sendSource = "manual" }) {
+export async function sendLeadWhatsAppMessage({ accountId, imagePath, customImage = false, hasTodaysTransaction = false, leadId, message, phone, sendSource = "manual" }) {
   const to = formatPhoneForWhatsApp(phone);
   if (!to) throw new Error("Lead does not have a valid WhatsApp phone number");
 
@@ -685,7 +686,7 @@ export async function sendLeadWhatsAppMessage({ accountId, imagePath, customImag
       clientKind: "mobile",
       clientRequestId: randomUUID(),
       sendSource,
-      requireTodaysTransaction: !customImage,
+      requireTodaysTransaction: manualSendRequiresTodaysTransaction({ customImage, hasTodaysTransaction }),
       imagePath: imagePath || null,
       customImage,
       leadId,

@@ -6,7 +6,7 @@ const FEATURES = [
   "Listing alerts and price-drop tracking",
   "Recent building transactions",
   "Personalised templates and broker cards",
-  "Up to 50 automated WhatsApp follow-ups a day",
+  "Up to 40 automated WhatsApp messages per day",
   "Mobile and desktop access",
 ];
 

@@ -68,13 +68,13 @@ export const LANDING_PRODUCT_SECTIONS = [
   {
     id: "whatsapp-follow-ups",
     title: "Keep in touch. Keep your day.",
-    description: "Automate up to 50 seller follow-ups a day on WhatsApp, using your saved template.",
+    description: "Send up to 40 automated WhatsApp messages per day, using your saved template.",
     image: "product-followups-story-dubai-v1.png",
     width: 1942,
     height: 809,
     mobileImage: "product-followups-story-mobile-dubai-v1.png",
     mobileWidth: 1144,
     mobileHeight: 1375,
-    alt: "Illustrative WhatsApp follow-up queue: Ahmed’s message is sent, Priya and Daniel are scheduled. Daily automation supports up to 50 sellers a day; these are sample statuses, not live activity.",
+    alt: "Illustrative WhatsApp follow-up queue: Ahmed’s message is sent, Priya and Daniel are scheduled. Daily automation sends up to 40 automated messages per day; these are sample statuses, not live activity.",
   },
 ];

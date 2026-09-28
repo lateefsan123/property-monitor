@@ -723,6 +723,16 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     const message = options.message ?? savedMessage;
     const requestedImagePath = Object.prototype.hasOwnProperty.call(options, "imagePath") ? options.imagePath : defaultImagePath;
     const imagePath = introAttachmentPath(requestedImagePath, lead, sentLeads[lead.id]);
+    // Same rule as web: a seller with today's transaction gets that update;
+    // otherwise send a recent-market follow-up, or the person's own words.
+    const insight = insights[lead.id];
+    const hasTodaysTransaction = insight?.status === "ready" && Boolean(insight.hasTodaysTransactions);
+    const canFollowUp = insight?.status === "ready" && (insight.recentTransactions?.length || 0) > 0;
+    if (!hasTodaysTransaction && !canFollowUp && !options.customImage && !lead.message_draft?.trim() && !String(options.message || "").trim()) {
+      setError("No market data for this building yet - copy the message and personalize it instead.");
+      setNotice(null);
+      return false;
+    }
     if (!phone) {
       if (message) await copyMessage(lead.id, message);
       if (!sentLeads[lead.id]) await toggleSent(lead.id);
@@ -743,6 +753,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
         accountId: connectedWhatsAppAccount.id,
         imagePath: options.customImage ? await uploadSellerImage(userId, lead.id, options.customImage) : imagePath,
         customImage: Boolean(options.customImage),
+        hasTodaysTransaction,
         leadId: lead.id,
         message,
         phone: lead.phone,

@@ -71,7 +71,7 @@ export default function LandingPage({
           <p className="landing-sub">
             Keep your sellers, spreadsheets and listing alerts together.{" "}
             <br className="landing-hero-break" />
-            Automate up to 50 seller follow-ups a day on WhatsApp.
+            Send up to 40 automated WhatsApp messages per day.
           </p>
 
           <div className="landing-hero-actions">
