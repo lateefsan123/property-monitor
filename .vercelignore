@@ -11,9 +11,9 @@ reports/
 # building photos in mobile/assets stay out of web deploys until their reuse
 # is cleared (docs/mobile-listing-exteriors-2026-09-27.md).
 /mobile/*
-!/mobile/src/
+!/mobile/src
 /mobile/src/*
-!/mobile/src/data/
+!/mobile/src/data
 /mobile/src/data/*
 !/mobile/src/data/building-exteriors.json
 /desktop/
