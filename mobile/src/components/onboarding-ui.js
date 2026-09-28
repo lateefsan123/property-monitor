@@ -1,9 +1,8 @@
-import { Image } from 'expo-image';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import AppIcon from './AppIcon';
-import wordmark from '../../assets/repeat-ai-logo.png';
 
-// Onboarding tokens measured from Opal's iOS onboarding (Mobbin flows
+// The nav carries only back and close so the Repeat AI name appears at most
+// once per screen. Onboarding tokens measured from Opal's iOS onboarding (Mobbin flows
 // 91394aa7 and 7b6dc8e9) at 3x: 16pt gutters, 56pt pill CTA, 12pt row gaps.
 export const O = {
   bg: '#000000',
@@ -23,7 +22,7 @@ export const O = {
 export function OnboardingNav({ onBack, onClose, busy }) {
   return <View style={s.nav}>
     <View style={s.navSide}>{onBack ? <Pressable accessibilityRole="button" accessibilityLabel="Go back" disabled={busy} hitSlop={8} onPress={onBack} style={[s.navButton, busy && { opacity: 0.4 }]}><AppIcon name="chevronBack" size={24} color={O.text} /></Pressable> : null}</View>
-    <Image source={wordmark} contentFit="contain" accessibilityLabel="Repeat AI" style={s.wordmark} />
+    <View style={{ flex: 1 }} />
     <View style={[s.navSide, { alignItems: 'flex-end' }]}>{onClose ? <Pressable accessibilityRole="button" accessibilityLabel="Close onboarding" disabled={busy} hitSlop={8} onPress={onClose} style={s.navButton}><AppIcon name="close" size={24} color={O.muted} /></Pressable> : null}</View>
   </View>;
 }
@@ -34,10 +33,10 @@ export function OnboardingSegments({ count, index }) {
   </View>;
 }
 
-export function PillButton({ label, onPress, disabled, busy, dark, icon, compact, accessibilityLabel }) {
+export function PillButton({ label, onPress, disabled, busy, dark, icon, compact, height, accessibilityLabel }) {
   const off = disabled && !busy;
   return <Pressable accessibilityRole="button" accessibilityLabel={accessibilityLabel || label} accessibilityState={{ disabled: Boolean(disabled || busy), busy: Boolean(busy) }} disabled={disabled || busy} onPress={onPress}
-    style={({ pressed }) => [s.pill, compact && { minHeight: 48 }, { backgroundColor: off || dark ? O.line : O.text, opacity: pressed ? 0.8 : 1 }]}>
+    style={({ pressed }) => [s.pill, compact && { minHeight: 48 }, height && { minHeight: height }, { backgroundColor: off || dark ? O.line : O.text, opacity: pressed ? 0.8 : 1 }]}>
     {busy ? <ActivityIndicator color={dark ? O.text : '#000'} /> : <>{icon}<Text style={[s.pillText, { color: off ? O.disabledText : dark ? O.text : '#000' }]}>{label}</Text></>}
   </Pressable>;
 }
@@ -61,7 +60,6 @@ const s = StyleSheet.create({
   nav: { height: 44, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8 },
   navSide: { width: 60 },
   navButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  wordmark: { flex: 1, height: 19 },
   segments: { flexDirection: 'row', gap: 4, paddingHorizontal: 24, marginTop: 6 },
   segment: { flex: 1, height: 3, borderRadius: 1.5, backgroundColor: '#272528' },
   pill: { minHeight: 56, borderRadius: 999, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20 },

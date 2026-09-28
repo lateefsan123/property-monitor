@@ -1,5 +1,4 @@
 import googleLogo from '../../assets/google-logo.png';
-import wordmark from '../../assets/repeat-ai-logo.png';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { NavigationContainer, NavigationIndependentTree, useFocusEffect } from '@react-navigation/native';
 import { useCallback } from 'react';
@@ -15,7 +14,7 @@ const Stack = createNativeStackNavigator();
 // "or" and the provider pills. Reset and CheckEmail keep their own routes.
 const pages = {
   Signup: { title: 'Let’s create your account', body: 'All your sellers, in one place.' },
-  Login: { title: 'Welcome back', body: 'Pick up where you left off.' },
+  Login: { title: 'Log in with email', body: 'Pick up where you left off.' },
   Reset: { title: 'Reset your password', body: 'Enter your email and we’ll send you a reset link.' },
   CheckEmail: { title: 'Check your email', body: '' },
 };
@@ -58,7 +57,6 @@ function AccountPage({ navigation, route, auth }) {
   return <View style={s.page}>
     <OnboardingNav onBack={leave} onClose={auth.onClose} busy={auth.pending} />
     <ScrollView contentContainerStyle={[s.content, { paddingBottom: Math.max(16, insets.bottom) }]} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets showsVerticalScrollIndicator={false}>
-      <Image source={wordmark} resizeMode="contain" accessible={false} style={s.logo} />
       <Text accessibilityRole="header" style={t.title}>{pages[name].title}</Text>
       <Text style={t.lead}>{form ? pages[name].body : route.params?.notice}</Text>
       <View style={s.stack}>
@@ -93,8 +91,7 @@ export default function OnboardingAccountNavigator(props) {
 
 const s = StyleSheet.create({
   page: { flex: 1, backgroundColor: O.bg },
-  content: { flexGrow: 1, paddingTop: 30 },
-  logo: { alignSelf: 'center', width: 170, height: 30, marginBottom: 22 },
+  content: { flexGrow: 1, paddingTop: 22 },
   stack: { paddingHorizontal: O.gutter, paddingTop: 28, gap: 13 },
   or: { flexDirection: 'row', alignItems: 'center', gap: 10, marginVertical: 2 },
   orLine: { flex: 1, height: StyleSheet.hairlineWidth, backgroundColor: '#5C5A5D' },
