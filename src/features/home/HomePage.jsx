@@ -358,7 +358,7 @@ function PinnedSection({ userId, layout, onNavigate, pinnedSheetIds, setPinnedSh
 }
 
 export default function HomePage({ displayName, onNavigate, userId, onOpenCreate }) {
-  const firstName = (displayName || "").split(" ")[0] || "there";
+  const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
   const [layout, setLayout] = useState(loadInitialLayout);
   const [pinnedSheetIds, setPinnedSheetIds] = useState(loadPinnedSheetIds);
 
@@ -386,7 +386,10 @@ export default function HomePage({ displayName, onNavigate, userId, onOpenCreate
         <LayoutMenu value={layout} onChange={setLayout} />
       </TopbarActionsPortal>
 
-      <h1 className="home-title">Welcome back, {firstName}.</h1>
+      <header className="home-greeting">
+        <span className="home-muted">{today}</span>
+        <h1 className="home-title">Hello{displayName ? `, ${displayName}` : ""}</h1>
+      </header>
 
       <HomeInsights userId={userId} onNavigate={onNavigate} />
 

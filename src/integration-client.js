@@ -12,3 +12,13 @@ export async function integrationRequest(body, signal, expectedUserId) {
   if (!response.ok || !result) throw new Error(result?.error || 'Connections are unavailable. Please try again.');
   return result;
 }
+
+// Starts a Google or Microsoft connection by redirecting to the provider's own
+// sign-in page, and refuses any other destination the server might return.
+export async function beginIntegrationConnect(request, provider, feature, capability) {
+  const result = await request({ action: 'begin', provider, feature, ...(capability ? { capability } : {}) });
+  const url = new URL(result.authorizationUrl);
+  const host = provider === 'google' ? 'accounts.google.com' : 'login.microsoftonline.com';
+  if (url.protocol !== 'https:' || url.hostname !== host) throw new Error('Invalid connection destination.');
+  window.location.assign(url.href);
+}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { integrationStatusOptions } from '../../../integration-query';
-import { integrationRequest } from '../../../integration-client';
+import { beginIntegrationConnect, integrationRequest } from '../../../integration-client';
 import '../../../styles/integration-connections.css';
 import IntegrationWorkspace from './IntegrationWorkspace';
 
@@ -27,18 +27,14 @@ export default function IntegrationConnectionsPanel({ userId, request = integrat
     setBusy(`${provider}-${feature}`);
     setError('');
     try {
-      const result = await request({ action: connected ? 'disconnect' : 'begin', provider, feature, ...(capability ? { capability } : {}) });
-      if (connected) {
+      if (!connected) await beginIntegrationConnect(request, provider, feature, capability);
+      else {
+        await request({ action: 'disconnect', provider, feature });
         await cache.cancelQueries({ queryKey: options.queryKey });
         cache.setQueryData(options.queryKey, current => current?.map(item => item.provider === provider && item.feature === feature ? { ...item, connected: false } : item));
         void cache.invalidateQueries({ queryKey: options.queryKey });
         setConfirmId('');
         setOpenId('');
-      } else {
-        const url = new URL(result.authorizationUrl);
-        const host = provider === 'google' ? 'accounts.google.com' : 'login.microsoftonline.com';
-        if (url.protocol !== 'https:' || url.hostname !== host) throw new Error('Invalid connection destination.');
-        window.location.assign(url.href);
       }
     } catch (error) { setError(error.message); }
     finally { setBusy(''); }

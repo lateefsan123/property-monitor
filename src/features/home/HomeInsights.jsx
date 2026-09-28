@@ -1,341 +1,132 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { IconBuildingSkyscraper, IconX } from "@tabler/icons-react";
-import {
-  Bar,
-  BarChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { Eyebrow, PriceDeltaChip } from "../listing-alerts/components/ListingDetailParts";
-import { formatArea, formatListingTimestamp, formatPrice } from "../listing-alerts/formatters";
+import { IconBuildingSkyscraper, IconChevronRight, IconX } from "@tabler/icons-react";
+import { formatArea, formatPrice } from "../listing-alerts/formatters";
 import { requestOpenListing } from "../listing-alerts/open-listing-request";
 import { fetchUserLeads } from "../seller-signal/services";
 import { summarizeLeadCadence } from "../seller-signal/lead-utils";
 import { sellerLeadsQueryKey } from "../seller-signal/queryKeys";
-import {
-  buildDailyMessageSeries,
-  fetchListingPriceDrops,
-  fetchWhatsAppMessageActivity,
-  startOfLocalDay,
-} from "./home-insight-services";
+import { integrationRequest } from "../../integration-client";
+import { integrationStatusOptions } from "../../integration-query";
+import { useEmailSummary } from "../../../shared/use-email-summary";
+import HomeActivity from "./HomeActivity";
+import { CalendarToday, EmailBrief, HomeConnectionPrompt } from "./HomeConnect";
+import { buildDailyMessageSeries, fetchListingPriceDrops, fetchWhatsAppMessageActivity } from "./home-insight-services";
 
-const MESSAGE_WINDOW_DAYS = 14;
-const MAX_PRICE_DROPS = 4;
+// Mirrors mobile/src/workspace/home.js: one summary card, then Activity,
+// Price drops, Email and Calendar tabs.
+const WINDOW_DAYS = 14;
+const TABS = [["activity", "Activity"], ["drops", "Price drops"], ["email", "Email"], ["calendar", "Calendar"]];
 
-function PipelineCard({ userId, onNavigate }) {
-  const leadsQuery = useQuery({
-    queryKey: sellerLeadsQueryKey(userId),
-    enabled: Boolean(userId),
-    queryFn: () => fetchUserLeads(userId),
-    staleTime: 2 * 60 * 1000,
-  });
-  const activityQuery = useQuery({
-    queryKey: ["home", "whatsapp-activity", userId, MESSAGE_WINDOW_DAYS],
-    enabled: Boolean(userId),
-    queryFn: () => fetchWhatsAppMessageActivity(userId, MESSAGE_WINDOW_DAYS),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const cadence = useMemo(
-    () => summarizeLeadCadence(leadsQuery.data?.leads),
-    [leadsQuery.data],
-  );
-  const sentToday = useMemo(() => {
-    const series = buildDailyMessageSeries(activityQuery.data, MESSAGE_WINDOW_DAYS);
-    return series[series.length - 1]?.count || 0;
-  }, [activityQuery.data]);
-
-  const pipelineReady = Boolean(leadsQuery.data);
-  const activityReady = Boolean(activityQuery.data);
-
+function DropRow({ item, onOpen }) {
+  const meta = [item.beds === 0 ? "Studio" : Number.isFinite(item.beds) && item.beds ? `${item.beds} bed` : null, Number.isFinite(item.areaSqft) ? formatArea(item.areaSqft) : null].filter(Boolean);
   return (
-    <section className="home-insight-card home-pipeline-card" aria-label="Seller pipeline" aria-busy={leadsQuery.isPending}>
-      <div className="home-pipeline-stats">
-        <div className="ld-chart-stat">
-          <Eyebrow>Due today</Eyebrow>
-          <div className="ld-chart-stat-value">{pipelineReady ? cadence.due : "—"}</div>
-        </div>
-        <div className="ld-chart-stat">
-          <Eyebrow>Scheduled</Eyebrow>
-          <div className="ld-chart-stat-value">{pipelineReady ? cadence.scheduled : "—"}</div>
-        </div>
-        <div className="ld-chart-stat">
-          <Eyebrow>Sent today</Eyebrow>
-          <div className="ld-chart-stat-value">{activityReady ? sentToday : "—"}</div>
-        </div>
-      </div>
-      {!pipelineReady && <div role="status">{leadsQuery.error ? "Could not load seller totals." : "Loading seller totals…"}</div>}
-      <button
-        type="button"
-        className="home-insight-link"
-        onClick={() => onNavigate?.("sellers")}
-      >
-        Open sellers
-      </button>
-    </section>
-  );
-}
-
-function MessagesChartTooltip({ active, payload }) {
-  if (!active || !payload?.length) return null;
-  const point = payload[0]?.payload;
-  if (!point) return null;
-  return (
-    <div className="ld-chart-tooltip">
-      <div className="ld-chart-tooltip-price">
-        {point.count} message{point.count === 1 ? "" : "s"}
-      </div>
-      <div className="ld-chart-tooltip-date">{point.fullLabel}</div>
-    </div>
-  );
-}
-
-function MessagesSentCard({ userId }) {
-  const activityQuery = useQuery({
-    queryKey: ["home", "whatsapp-activity", userId, MESSAGE_WINDOW_DAYS],
-    enabled: Boolean(userId),
-    queryFn: () => fetchWhatsAppMessageActivity(userId, MESSAGE_WINDOW_DAYS),
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const series = useMemo(
-    () => buildDailyMessageSeries(activityQuery.data, MESSAGE_WINDOW_DAYS),
-    [activityQuery.data],
-  );
-  const stats = useMemo(() => {
-    const totalSent = series.reduce((sum, point) => sum + point.count, 0);
-    const busiest = series.reduce(
-      (best, point) => (point.count > best.count ? point : best),
-      { count: 0 },
-    );
-    const todayKey = startOfLocalDay().toDateString();
-    const todayCount = series.find((point) => point.key === todayKey)?.count || 0;
-    return { totalSent, busiest, todayCount };
-  }, [series]);
-
-  return (
-    <section className="home-insight-card" aria-label="WhatsApp messages sent">
-      <div className="home-insight-head">
-        <div className="ld-chart-stat">
-          <Eyebrow>Sent - last {MESSAGE_WINDOW_DAYS} days</Eyebrow>
-          <div className="ld-chart-stat-value">{activityQuery.data ? stats.totalSent : "—"}</div>
-        </div>
-        <div className="ld-chart-stat center">
-          <Eyebrow>Busiest day</Eyebrow>
-          <div className="ld-chart-stat-value">
-            {stats.busiest.count > 0 ? `${stats.busiest.count} - ${stats.busiest.label}` : "-"}
-          </div>
-        </div>
-        <div className="ld-chart-stat end">
-          <Eyebrow>Today</Eyebrow>
-          <div className="ld-chart-stat-value">{activityQuery.data ? stats.todayCount : "—"}</div>
-        </div>
-      </div>
-
-      {activityQuery.isPending ? (
-        <div className="home-insight-empty">Loading activity...</div>
-      ) : activityQuery.error ? (
-        <div className="home-insight-empty">Could not load message activity.</div>
-      ) : stats.totalSent === 0 ? (
-        <div className="home-insight-empty">
-          No WhatsApp messages sent in the last {MESSAGE_WINDOW_DAYS} days.
-        </div>
-      ) : (
-        <div className="home-insight-chart">
-          <ResponsiveContainer width="100%" height={168}>
-            <BarChart data={series} margin={{ top: 6, right: 4, bottom: 0, left: -18 }}>
-              <CartesianGrid
-                vertical={false}
-                stroke="var(--bg-card-border)"
-                strokeDasharray="2 5"
-              />
-              <XAxis
-                dataKey="label"
-                axisLine={false}
-                tickLine={false}
-                tickMargin={8}
-                interval="preserveStartEnd"
-                minTickGap={24}
-                tick={{ fill: "var(--text-faint)", fontSize: 11 }}
-                className="ld-chart-axis"
-              />
-              <YAxis
-                allowDecimals={false}
-                axisLine={false}
-                tickLine={false}
-                tickCount={3}
-                tick={{ fill: "var(--text-faint)", fontSize: 11 }}
-              />
-              <Tooltip
-                content={<MessagesChartTooltip />}
-                cursor={{ fill: "var(--bg-hover)" }}
-                wrapperStyle={{ outline: "none" }}
-              />
-              <Bar
-                dataKey="count"
-                fill="var(--stat-value)"
-                radius={[4, 4, 0, 0]}
-                maxBarSize={18}
-                isAnimationActive={false}
-              />
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-      )}
-    </section>
-  );
-}
-
-function PriceDropRow({ item, onOpen }) {
-  const metaParts = [
-    item.beds === 0 ? "Studio" : Number.isFinite(item.beds) ? `${item.beds} bed` : null,
-    Number.isFinite(item.areaSqft) ? formatArea(item.areaSqft) : null,
-    item.verifiedAt ? formatListingTimestamp(item.verifiedAt) : null,
-  ].filter(Boolean);
-
-  return (
-    <button type="button" className="home-drop-row" onClick={() => onOpen(item)}>
-      <span className="home-drop-icon" aria-hidden="true">
-        {item.coverPhoto ? (
-          <img src={item.coverPhoto} alt="" loading="lazy" />
-        ) : (
-          <IconBuildingSkyscraper size={18} stroke={1.7} />
-        )}
+    <button type="button" className="home-drop" onClick={() => onOpen(item)} aria-label={`Open ${item.buildingName}, ${item.title || "listing"}`}>
+      <span className="home-drop-thumb" aria-hidden="true">
+        {item.coverPhoto ? <img src={item.coverPhoto} alt="" loading="lazy" /> : <IconBuildingSkyscraper size={22} stroke={1.7} />}
       </span>
-      <span className="home-drop-body">
-        <span className="home-drop-building">{item.buildingName}</span>
-        {item.title && item.title !== "Untitled listing" && (
-          <span className="home-drop-title" title={item.title}>{item.title}</span>
-        )}
-        <span className="home-drop-meta">{metaParts.join(" - ")}</span>
-      </span>
-      <span className="home-drop-pricing">
-        <span className="home-drop-price">{formatPrice(item.price)}</span>
-        <PriceDeltaChip priceDelta={item.priceDelta} />
-      </span>
+      <span className="home-drop-text"><strong>{item.buildingName}</strong><span className="home-muted home-small">{meta.join(" · ")}</span></span>
+      <span className="home-drop-price"><strong>{formatPrice(item.price)}</strong><span className="home-drop-delta">↓ {formatPrice(Math.abs(item.priceDelta || 0))}</span></span>
     </button>
   );
 }
 
-function PriceDropsModal({ drops, onClose, onOpen }) {
+function AllDropsDialog({ drops, onClose, onOpen }) {
   useEffect(() => {
-    function handleKey(event) {
-      if (event.key === "Escape") onClose();
-    }
-    document.addEventListener("keydown", handleKey);
-    return () => document.removeEventListener("keydown", handleKey);
+    const onKey = (event) => { if (event.key === "Escape") onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
-
   return (
     <div className="home-drops-modal-overlay" role="presentation" onClick={onClose}>
-      <div
-        className="home-drops-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="All price drops"
-        onClick={(event) => event.stopPropagation()}
-      >
+      <div className="home-drops-modal" role="dialog" aria-modal="true" aria-label="All price drops" onClick={(event) => event.stopPropagation()}>
         <div className="home-drops-modal-head">
-          <div className="ld-chart-stat">
-            <Eyebrow>Watched buildings - last 14 days</Eyebrow>
-            <div className="ld-chart-stat-value">
-              {drops.length} price drop{drops.length === 1 ? "" : "s"}
-            </div>
-          </div>
-          <button
-            type="button"
-            className="home-drops-modal-close"
-            onClick={onClose}
-            aria-label="Close"
-          >
-            <IconX size={18} stroke={2} aria-hidden="true" />
-          </button>
+          <div><span className="home-muted home-small">Last 14 days</span><h3>{drops.length} price drop{drops.length === 1 ? "" : "s"}</h3></div>
+          <button type="button" className="home-drops-modal-close" onClick={onClose} aria-label="Close"><IconX size={18} stroke={2} aria-hidden="true" /></button>
         </div>
-        <div className="home-drops-modal-body home-drop-list">
-          {drops.map((item) => (
-            <PriceDropRow key={`${item.locationId}-${item.id}`} item={item} onOpen={onOpen} />
-          ))}
-        </div>
+        <div className="home-drops-modal-body">{drops.map((item) => <DropRow key={`${item.locationId}-${item.id}`} item={item} onOpen={onOpen} />)}</div>
       </div>
     </div>
   );
 }
 
-function PriceDropsCard({ userId, onNavigate }) {
-  const dropsQuery = useQuery({
-    queryKey: ["home", "price-drops", userId],
-    enabled: Boolean(userId),
-    queryFn: () => fetchListingPriceDrops(userId),
-    staleTime: 5 * 60 * 1000,
-  });
+function PriceDrops({ query, onNavigate }) {
   const [showAll, setShowAll] = useState(false);
-
-  const drops = dropsQuery.data || [];
-  const visibleDrops = drops.slice(0, MAX_PRICE_DROPS);
-
-  // Open the listing's in-app detail page (price trajectory, Bayut link)
-  // rather than bouncing straight out to Bayut.
-  function openDrop(item) {
+  const drops = query.data || [];
+  function open(item) {
     setShowAll(false);
     if (item.locationId && item.id) requestOpenListing(`${item.locationId}:${item.id}`);
     onNavigate?.("listing-alerts");
   }
-
   return (
-    <section className="home-insight-card" aria-label="Listing price drops">
-      <div className="home-insight-head">
-        <div className="ld-chart-stat">
-          <Eyebrow>Watched buildings - last 14 days</Eyebrow>
-          <div className="ld-chart-stat-value">Price drops</div>
-        </div>
-        <button
-          type="button"
-          className="home-insight-link"
-          onClick={() => setShowAll(true)}
-          disabled={!drops.length}
-        >
-          View all{drops.length ? ` (${drops.length})` : ""}
-        </button>
+    <div className="home-drops">
+      <div className="home-drops-head">
+        <span className="home-muted home-small">Last 14 days</span>
+        <button type="button" className="home-text-button" disabled={!drops.length} onClick={() => setShowAll(true)}>View all</button>
       </div>
-
-      {dropsQuery.isPending ? (
-        <div className="home-insight-empty">Checking watched listings...</div>
-      ) : dropsQuery.error ? (
-        <div className="home-insight-empty">Could not load price drops.</div>
-      ) : visibleDrops.length === 0 ? (
-        <div className="home-insight-empty">
-          No price drops on your watched listings yet.
-        </div>
-      ) : (
-        <div className="home-drop-list">
-          {visibleDrops.map((item) => (
-            <PriceDropRow key={`${item.locationId}-${item.id}`} item={item} onOpen={openDrop} />
-          ))}
-          {drops.length > visibleDrops.length && (
-            <button type="button" className="home-drop-more" onClick={() => setShowAll(true)}>
-              +{drops.length - visibleDrops.length} more
-            </button>
-          )}
-        </div>
-      )}
-
-      {showAll && (
-        <PriceDropsModal drops={drops} onClose={() => setShowAll(false)} onOpen={openDrop} />
-      )}
-    </section>
+      {query.isPending && <p className="home-muted" role="status">Checking watched listings…</p>}
+      {drops.slice(0, 5).map((item) => <DropRow key={`${item.locationId}-${item.id}`} item={item} onOpen={open} />)}
+      {!query.isPending && !query.error && !drops.length && <p className="home-muted home-empty">No recent drops in your watched buildings.</p>}
+      {showAll && <AllDropsDialog drops={drops} onClose={() => setShowAll(false)} onOpen={open} />}
+    </div>
   );
 }
 
 export default function HomeInsights({ userId, onNavigate }) {
+  const [tab, setTab] = useState("activity");
+  const [days, setDays] = useState(WINDOW_DAYS);
+  const connections = useQuery(integrationStatusOptions(userId, integrationRequest));
+  const hasEmail = connections.data?.some((item) => item.feature === "email" && item.connected) || false;
+  const emailSummary = useEmailSummary({ userId, connected: hasEmail, request: integrationRequest });
+  const emailConnected = connections.data ? hasEmail : emailSummary.data?.connected;
+  const emailReady = connections.data !== undefined || emailSummary.data !== undefined;
+  const leads = useQuery({ queryKey: sellerLeadsQueryKey(userId), enabled: Boolean(userId), queryFn: () => fetchUserLeads(userId), staleTime: 2 * 60 * 1000 });
+  const activity = useQuery({ queryKey: ["home", "whatsapp-activity", userId, WINDOW_DAYS], enabled: Boolean(userId), queryFn: () => fetchWhatsAppMessageActivity(userId, WINDOW_DAYS), staleTime: 5 * 60 * 1000 });
+  const drops = useQuery({ queryKey: ["home", "price-drops", userId], enabled: Boolean(userId), queryFn: () => fetchListingPriceDrops(userId), staleTime: 5 * 60 * 1000 });
+  const series = buildDailyMessageSeries(activity.data, WINDOW_DAYS);
+  const cadence = summarizeLeadCadence(leads.data?.leads);
+  const leadsReady = Boolean(leads.data);
+  const activityReady = Boolean(activity.data);
+  const failure = leads.error || activity.error || drops.error;
+  const metrics = [
+    { label: "Due today", value: leadsReady ? cadence.due : "—", action: () => onNavigate?.("sellers") },
+    { label: "Scheduled", value: leadsReady ? cadence.scheduled : "—", action: () => onNavigate?.("schedule") },
+    { label: "Sent today", value: activityReady ? series[series.length - 1]?.count || 0 : "—", action: () => setTab("activity") },
+  ];
   return (
-    <div className="home-insights">
-      <PipelineCard userId={userId} onNavigate={onNavigate} />
-      <MessagesSentCard userId={userId} />
-      <PriceDropsCard userId={userId} onNavigate={onNavigate} />
-    </div>
+    <>
+      {failure && (
+        <p className="home-error" role="alert">{failure.message || "Could not load your overview."}{" "}
+          <button type="button" className="home-text-button" onClick={() => { leads.refetch(); activity.refetch(); drops.refetch(); }}>Try again</button>
+        </p>
+      )}
+      <section className="home-summary" aria-label="Seller pipeline" aria-busy={leads.isPending}>
+        <div className="home-summary-metrics">
+          {metrics.map((metric) => (
+            <button key={metric.label} type="button" className="home-summary-metric" onClick={metric.action} aria-label={`${metric.label}: ${metric.value}`}>
+              <span className="home-muted home-small">{metric.label}</span>
+              <strong>{metric.value}</strong>
+            </button>
+          ))}
+        </div>
+        <button type="button" className="home-summary-link" onClick={() => onNavigate?.("sellers")}>
+          <span>{leadsReady && cadence.due === 0 ? "All caught up · View sellers" : "View sellers"}</span>
+          <IconChevronRight size={17} stroke={2} aria-hidden="true" />
+        </button>
+      </section>
+      <div className="home-tabs-section">
+        <div className="home-tabs" role="tablist">
+          {TABS.map(([id, label]) => (
+            <button key={id} type="button" role="tab" aria-selected={tab === id} className={tab === id ? "is-active" : ""} onClick={() => setTab(id)}>{label}</button>
+          ))}
+        </div>
+        {tab === "activity" ? <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} />
+          : tab === "drops" ? <PriceDrops query={drops} onNavigate={onNavigate} />
+          : tab === "email" ? (emailReady && !emailConnected
+            ? <HomeConnectionPrompt feature="email" connections={connections.data} />
+            : <EmailBrief query={emailSummary} connectedProviders={connections.data ? connections.data.filter((item) => item.feature === "email" && item.connected).map((item) => item.provider) : emailSummary.data?.providers || []} />)
+          : <CalendarToday userId={userId} connections={connections.data} connectionError={connections.error} retryConnections={connections.refetch} />}
+      </div>
+    </>
   );
 }
