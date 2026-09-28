@@ -76,3 +76,13 @@ Packaging: the git-based EAS archive would carry an 881 MB shallow `.git` pack b
 Website: production deployment `dpl_5i2nqWE5P3LwHmHZ8upA2SM32h8q` is READY at https://repeatai.org from `c2a9c953`, deployed as a clean `git archive` package. It adds the Sellers redesign, Home layout, Settings and Schedule pages, spreadsheet import, templates and icon changes. sellersignal.vercel.app, which the desktop app loads, serves the same bundle. Two earlier attempts failed at build time without replacing production: the web imported artwork from `mobile/`, which web deploys exclude. The artwork now lives in `src/assets`. `.vercelignore` admits only the building-name registry from `mobile/`, so the uncleared building photos are not published and listings keep their existing web images. The live Sellers and Home pages were checked signed in, with no console errors. The desktop installer remains v1.0.1, the newest release.
 
 Device installation and TestFlight availability were not verified.
+
+## Android 7: Send Activity warning removal
+
+Source fix `b5c8ffed` removes daily-volume warnings from mobile Send Activity while retaining rapid-repeat alerts. Android versionCode was advanced to 7 in `36fbe11e`; iOS remains build 32.
+
+Validation: scoped ESLint, diff checks and Android Expo export passed. Built a clean committed source archive with the existing release-android profile and remote signing key; unrelated working-tree changes were excluded.
+
+EAS build `19214956-7b77-445e-8931-c244144c3d6f` finished successfully with no build error. Internal APK: https://expo.dev/artifacts/eas/BXi7jIpUevfhA2xefj3J3vJwrTnEPwCzsVgl4qVsWpw.apk
+
+This is an Android APK release, not a Google Play or iOS rollout. Installation and physical-device verification remain outstanding.
