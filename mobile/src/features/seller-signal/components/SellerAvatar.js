@@ -8,13 +8,13 @@ export default function SellerAvatar({ userId, accountId, lead, visible, colors 
   const photo = useQuery({
     queryKey: ['seller-signal', 'profile-photo', userId, accountId, lead?.id, lead?.phone],
     enabled: Boolean(visible && userId && accountId && lead?.id && lead?.phone),
-    staleTime: 5 * 60_000, gcTime: 5 * 60_000, retry: false,
+    staleTime: 60_000, gcTime: 5 * 60_000, retry: false,
     queryFn: async ({ signal }) => {
       const controller = new AbortController();
       const cancel = () => controller.abort();
       signal.addEventListener('abort', cancel);
       if (signal.aborted) cancel();
-      const timer = setTimeout(cancel, 9000);
+      const timer = setTimeout(cancel, 12000);
       try {
       const { data, error } = await supabase.functions.invoke('whatsapp-profile-photo', {
         body: { accountId, leadId: lead.id }, signal: controller.signal,

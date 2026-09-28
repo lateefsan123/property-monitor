@@ -27,14 +27,21 @@ export function createProfilePhotoLookup({ timeoutMs = 4500, now = Date.now } = 
   };
 }
 
-export function registerProfilePhotoRoute(app, { requireToken, sessions }) {
+export function registerProfilePhotoRoute(app, { requireToken, sessions, restoreSession }) {
   const lookup = createProfilePhotoLookup();
   app.post('/sessions/:sessionId/profile-photo', requireToken, async (req, res) => {
     res.set('Cache-Control', 'no-store');
     const phone = String(req.body?.phone || '').replace(/\D/g, '');
     if (!/^\d{7,15}$/.test(phone)) return res.status(400).json({ error: 'Invalid phone' });
-    // Never start or reconnect a linked device for an optional avatar lookup.
-    const session = sessions.get(req.params.sessionId);
+    // Restore only an existing registered linked device after a process restart.
+    let session = sessions.get(req.params.sessionId);
+    if (!session && restoreSession) {
+      try { session = await restoreSession(req.params.sessionId); } catch { return res.json({ url: null }); }
+    }
+    const deadline = Date.now() + 4000;
+    while (session && ['starting', 'connecting', 'reconnecting'].includes(session.status) && Date.now() < deadline) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
     if (session?.status !== 'connected' || !session.socket) return res.json({ url: null });
     return res.json({ url: await lookup(session.socket, phone) });
   });

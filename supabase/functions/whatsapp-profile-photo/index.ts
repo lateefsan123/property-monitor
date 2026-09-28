@@ -16,7 +16,8 @@ Deno.serve(async req => {
   if (authError || !user) return reply({ error: 'Unauthorized' }, 401);
   let input;
   try { input = await req.json(); } catch { return reply({ error: 'Invalid request' }, 400); }
-  if (typeof input?.leadId !== 'string' || typeof input?.accountId !== 'string') return reply({ error: 'Seller and account required' }, 400);
+  const validLeadId = (typeof input?.leadId === 'string' && input.leadId.trim().length > 0) || (Number.isSafeInteger(input?.leadId) && input.leadId > 0);
+  if (!validLeadId || typeof input?.accountId !== 'string') return reply({ error: 'Seller and account required' }, 400);
   // Use user-scoped queries and explicit owner checks. Never accept a phone or session from the client.
   const [seller, account] = await Promise.all([
     client.from('leads').select('phone').eq('id', input.leadId).eq('user_id', user.id).maybeSingle(),
@@ -35,7 +36,7 @@ Deno.serve(async req => {
   try {
     const response = await fetch(`${service.replace(/\/+$/, '')}/sessions/${encodeURIComponent(sessionId)}/profile-photo`, {
       method: 'POST', headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone }), signal: AbortSignal.timeout(6000),
+      body: JSON.stringify({ phone }), signal: AbortSignal.timeout(10000),
     });
     if (!response.ok) return reply({ url: null });
     const result = await response.json();

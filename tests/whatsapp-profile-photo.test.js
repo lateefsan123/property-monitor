@@ -33,3 +33,11 @@ test('private route requires middleware and does not connect missing sessions', 
   await route[2]({ params: { sessionId: 'absent' }, body: { phone: '971500000001' } }, res);
   assert.deepEqual(body, { url: null });
 });
+
+test('restores an existing linked session before looking up a photo', async () => {
+  let route; let restored;
+  registerProfilePhotoRoute({ post: (...args) => { route = args; } }, { requireToken: () => {}, sessions: new Map(), restoreSession: async id => { restored=id; return {status:'connected',socket:{profilePictureUrl:async()=> 'https://example.com/photo.jpg'}}; } });
+  let body; const res={set(){},json(value){body=value;}};
+  await route[2]({params:{sessionId:'saved'},body:{phone:'971500000001'}},res);
+  assert.equal(restored,'saved'); assert.equal(body.url,'https://example.com/photo.jpg');
+});
