@@ -20,6 +20,8 @@ const names = {
   more: "ellipsis-horizontal-outline",
   tag: "pricetag-outline",
   edit: "create-outline",
+  apple: "logo-apple",
+  mail: "mail-outline",
 };
 
 // A bundled icon font, rendered as native text. Button labels belong to the

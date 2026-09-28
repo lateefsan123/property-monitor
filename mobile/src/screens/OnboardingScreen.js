@@ -1,17 +1,19 @@
 import SubscriptionScreen from './SubscriptionScreen';
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, BackHandler, KeyboardAvoidingView, Platform, Pressable, ScrollView, StatusBar, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AppIcon from '../components/AppIcon';
 import MotionScreen from '../components/MotionScreen';
-import OnboardingPreview from '../components/OnboardingPreview';
+import OnboardingPreview, { GradientStat } from '../components/OnboardingPreview';
+import { O, OnboardingNav, OnboardingSegments, PillButton, TextLink, onboardingText as t } from '../components/onboarding-ui';
 import { ONBOARDING_GOALS, ONBOARDING_STEPS, onboardingDestination, toggleOnboardingGoal } from '../onboarding-flow';
 import AuthScreen from './AuthScreen';
 import AccessVerificationScreen from './AccessVerificationScreen';
 
+// The product tour uses Opal's segmented progress: one segment per feature.
+const FEATURES = ['sellers', 'listings', 'messages', 'schedule', 'automation'];
+
 export default function OnboardingScreen({ onComplete, onClose, onLogin, preview = false, session, displayName = '', onSaveUsername, onPasswordRecovery, subscription }) {
-  const { height, width } = useWindowDimensions();
-  const compact = height < 740 || width < 360;
   const insets = useSafeAreaInsets();
   const [artSize, setArtSize] = useState({ width: 0, height: 0 });
   const [step, setStep] = useState(0);
@@ -24,10 +26,12 @@ export default function OnboardingScreen({ onComplete, onClose, onLogin, preview
   const lock = useRef(false);
   const slide = ONBOARDING_STEPS[step];
   const goal = goalIds.length === 1 ? ONBOARDING_GOALS.find(item => item.id === goalIds[0]) : null;
+  const welcome = step === 0;
   const final = slide.id === 'finish';
   const choice = slide.id === 'goal';
   const account = slide.id === 'account';
   const nameStep = slide.id === 'username';
+  const feature = FEATURES.indexOf(slide.id);
   const authenticated = preview ? previewAuthenticated : !!session;
   useEffect(() => {
     if (account && authenticated) {
@@ -39,9 +43,6 @@ export default function OnboardingScreen({ onComplete, onClose, onLogin, preview
     setError('');
     setStep(value => account && login ? 0 : Math.max(0, value - (nameStep && authenticated ? 2 : 1)));
   }
-  const heading = { fontWeight: '700' };
-  const body = {};
-  const button = { fontWeight: '600' };
   useEffect(() => {
     const listener = BackHandler.addEventListener('hardwareBackPress', () => {
       if (account) return false;
@@ -73,7 +74,7 @@ export default function OnboardingScreen({ onComplete, onClose, onLogin, preview
     else if (final) void finish(onboardingDestination(goalIds));
     else { if (step === 0) setLogin(false); setError(''); setStep(value => value + 1); }
   }
-  if (final && !preview && subscription?.isLoading) return <View style={[s.page, { justifyContent: 'center' }]}><ActivityIndicator accessibilityLabel="Checking your access" color="#111" /></View>;
+  if (final && !preview && subscription?.isLoading) return <View style={[s.page, { justifyContent: 'center' }]}><ActivityIndicator accessibilityLabel="Checking your access" color={O.text} /></View>;
   if (final && !preview && subscription?.verificationError) return <AccessVerificationScreen error={subscription.verificationError} onRetry={subscription.refresh} />;
   if (final && (preview || !subscription?.hasAccess)) return <SubscriptionScreen onboarding preview={preview} hasAccess={subscription?.hasAccess}
     action={busy ? 'finish' : subscription?.action} canPurchase={subscription?.canPurchase} storeConfigured={subscription?.storeConfigured}
@@ -81,52 +82,82 @@ export default function OnboardingScreen({ onComplete, onClose, onLogin, preview
     error={error || subscription?.error} onPurchase={subscription?.purchase} onRestore={subscription?.restore} onRefresh={subscription?.refresh}
     onBack={back} onContinue={() => finish(onboardingDestination(goalIds))} />;
   if (account) return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.page, { paddingTop: insets.top }]}>
-    <StatusBar barStyle="dark-content" backgroundColor="#F2F3F5" />
-    <AuthScreen embedded initialSignUp={!login} heading={heading} preview={preview} onBack={back} onClose={onClose} onPreviewComplete={() => setPreviewAuthenticated(true)} onPasswordRecovery={onPasswordRecovery} />
+    <StatusBar barStyle="light-content" backgroundColor={O.bg} />
+    <AuthScreen embedded initialSignUp={!login} preview={preview} onBack={back} onClose={onClose} onPreviewComplete={() => setPreviewAuthenticated(true)} onPasswordRecovery={onPasswordRecovery} />
   </KeyboardAvoidingView>;
+
+  const secondary = welcome && !session && !preview ? { label: 'Already have an account?', onPress: onLogin || onClose }
+    : final && !preview ? { label: 'Explore on my own', onPress: () => finish({ page: 'home' }), tone: 'muted' } : null;
+  const art = <View style={s.art} onLayout={({ nativeEvent: { layout } }) => setArtSize(previous => previous.width === layout.width && previous.height === layout.height ? previous : { width: layout.width, height: layout.height })}>
+    {artSize.width > 0 && artSize.height > 0 ? <OnboardingPreview screen={slide.id} width={artSize.width} height={artSize.height} /> : null}
+  </View>;
+  const title = <Text accessibilityRole="header" style={t.title}>{slide.title}</Text>;
+
   return <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={[s.page, { paddingTop: insets.top }]}>
-    <StatusBar barStyle="dark-content" backgroundColor="#F2F3F5" />
-    <View style={s.header}>
-      <Pressable accessibilityRole="button" accessibilityLabel="Go back" disabled={busy || step === 0} onPress={back} style={[s.headerButton, { opacity: step === 0 ? 0 : busy ? 0.4 : 1 }]}><AppIcon name="chevronBack" size={25} color="#000" /></Pressable>
-      {onClose ? <Pressable accessibilityRole="button" accessibilityLabel="Close onboarding" disabled={busy} onPress={onClose} style={s.headerButton}><AppIcon name="close" size={23} color="#000" /></Pressable> : <View style={s.headerButton} />}
-    </View>
+    <StatusBar barStyle="light-content" backgroundColor={O.bg} />
+    <OnboardingNav onBack={welcome ? undefined : back} onClose={onClose} busy={busy} />
+    {feature >= 0 ? <OnboardingSegments count={FEATURES.length} index={feature} /> : null}
     <MotionScreen key={slide.id} active>
-      <View style={[s.content, compact && { paddingTop: 10, gap: 12 }]}>
-        <Text accessibilityRole="header" style={[s.title, heading, compact && { fontSize: 26, lineHeight: 31 }]}>{slide.title}</Text>
-        {nameStep ? <View style={{ flex: 1, paddingHorizontal: 24, gap: 24, paddingTop: 16 }}><Text style={[s.body, body]}>{slide.body}</Text><TextInput accessibilityLabel="Username" value={username} onChangeText={setUsername} placeholder="Your username" placeholderTextColor="#888" autoCapitalize="none" autoCorrect={false} maxLength={60} textContentType="nickname" returnKeyType="done" onSubmitEditing={next} style={{ minHeight: 58, borderWidth: 1, borderColor: '#DDD', borderRadius: 8, paddingHorizontal: 18, fontSize: 17, color: '#111' }} /></View> : choice ? <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingHorizontal: 22, paddingBottom: 12, gap: compact ? 12 : 20 }} showsVerticalScrollIndicator={false}>
-          <Text style={[s.body, body]}>{slide.body}</Text>
-          {ONBOARDING_GOALS.map(item => <Pressable key={item.id} accessibilityRole="checkbox" accessibilityState={{ checked: goalIds.includes(item.id) }} aria-checked={goalIds.includes(item.id)} accessibilityLabel={item.title} onPress={() => setGoalIds(values => toggleOnboardingGoal(values, item.id))} style={({ pressed }) => [s.choice, compact && { padding: 12, minHeight: 72 }, { borderColor: goalIds.includes(item.id) ? '#000' : '#E7E7E7', backgroundColor: goalIds.includes(item.id) ? '#E4E6E9' : '#FFFFFF', opacity: pressed ? 0.7 : 1 }]}>
-            <AppIcon name={item.icon} size={25} color="#000" /><Text style={[s.choiceTitle, button, { flex: 1 }]}>{item.title}</Text><View style={{ width: 22, height: 22, borderRadius: 5, borderWidth: 1.5, borderColor: goalIds.includes(item.id) ? '#000' : '#CCC', backgroundColor: goalIds.includes(item.id) ? '#000' : '#FFF', alignItems: 'center', justifyContent: 'center' }}>{goalIds.includes(item.id) ? <AppIcon name="check" size={16} color="#FFF" /> : null}</View>
-          </Pressable>)}
-        </ScrollView> : final ? <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 28, paddingHorizontal: 40 }}><View style={{ width: 88, height: 88, borderRadius: 44, backgroundColor: '#F2F7F3', alignItems: 'center', justifyContent: 'center' }}><AppIcon name="check" size={40} color="#298048" /></View><Text style={[s.body, body]}>{slide.body}</Text></View> : <View style={s.art} onLayout={({ nativeEvent: { layout } }) => setArtSize(previous => previous.width === layout.width && previous.height === layout.height ? previous : { width: layout.width, height: layout.height })}>
-          {artSize.width > 0 && artSize.height > 0 ? <OnboardingPreview screen={slide.id} width={artSize.width} height={artSize.height} /> : null}
-        </View>}
-      </View>
+      {welcome ? <View style={s.fill}>
+        {art}
+        {title}
+        <Text style={t.body}>{slide.body}</Text>
+      </View> : choice ? <View style={s.top}>
+        {title}
+        <Text style={t.hint}>{slide.body}</Text>
+        <ScrollView style={s.fill} contentContainerStyle={s.options} showsVerticalScrollIndicator={false}>
+          {ONBOARDING_GOALS.map(item => {
+            const selected = goalIds.includes(item.id);
+            return <Pressable key={item.id} accessibilityRole="checkbox" accessibilityState={{ checked: selected }} aria-checked={selected} accessibilityLabel={item.title} accessibilityHint={item.body}
+              onPress={() => setGoalIds(values => toggleOnboardingGoal(values, item.id))} style={({ pressed }) => [s.option, selected && { backgroundColor: O.line }, pressed && { opacity: 0.8 }]}>
+              <View style={[s.optionIcon, selected && { backgroundColor: '#2E2C2F' }]}><AppIcon name={item.icon} size={20} color={O.text} /></View>
+              <Text style={s.optionText}>{item.title}</Text>
+              <View style={[s.radio, selected && s.radioOn]}>{selected ? <AppIcon name="check" size={15} color="#000" /> : null}</View>
+            </Pressable>;
+          })}
+        </ScrollView>
+      </View> : slide.id === 'automation' ? <View style={[s.fill, s.center]}>
+        <Text style={s.statLead}>{slide.body}</Text>
+        <GradientStat value="40 a day" />
+        <Text style={s.statLead}>WhatsApp messages, on the days{'\n'}and times you choose.</Text>
+      </View> : nameStep ? <View style={s.top}>
+        {title}
+        <Text style={t.hint}>{slide.body}</Text>
+        <TextInput accessibilityLabel="Username" value={username} onChangeText={setUsername} placeholder="Your name" placeholderTextColor={O.muted} autoCapitalize="words" autoCorrect={false} maxLength={60} textContentType="nickname" returnKeyType="done" onSubmitEditing={next} keyboardAppearance="dark" selectionColor={O.text} style={[t.input, s.nameInput]} />
+      </View> : final ? <View style={[s.fill, s.center]}>
+        {title}
+        <Text style={t.body}>{slide.body}</Text>
+      </View> : <View style={s.top}>
+        {title}
+        <Text style={t.lead}>{slide.body}</Text>
+        {art}
+      </View>}
     </MotionScreen>
-    <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, 10) + 10 }]}>
-      {!choice && !final && !account && !nameStep ? <Text style={[s.note, body, compact && { paddingVertical: 2 }]}>{slide.body}</Text> : null}
-      {error ? <Text accessibilityRole="alert" style={[s.error, body]}>{error}</Text> : null}
-      {!account ? <Pressable accessibilityRole="button" disabled={busy} accessibilityState={{ disabled: busy }} onPress={next} style={({ pressed }) => [s.primary, { opacity: busy ? 0.5 : pressed ? 0.85 : 1 }]}><Text style={[s.primaryText, button]}>{busy ? 'Saving…' : final ? preview ? 'Finish preview' : goal?.cta || 'Open Repeat AI' : step === 0 ? 'Let’s get started' : 'Next'}</Text></Pressable> : null}
-      {step === 0 && !session && !preview ? <Pressable accessibilityRole="button" onPress={onLogin || onClose} style={s.secondary}><Text style={[s.choiceBody, button]}>Already have an account? Log in</Text></Pressable> : null}
-      {final && !preview ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => finish({ page: 'home' })} style={s.secondary}><Text style={[s.choiceBody, button]}>Explore on my own</Text></Pressable> : null}
+    <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, 16) + (secondary ? 6 : 34) }]}>
+      {slide.id === 'automation' ? <Text style={s.footnote}>Default daily limit. Change it anytime in Settings.</Text> : null}
+      {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}
+      <PillButton busy={busy} onPress={next} label={final ? preview ? 'Finish preview' : goal?.cta || 'Open Repeat AI' : welcome ? 'Get Started' : 'Continue'} />
+      {secondary ? <View style={s.secondary}><TextLink label={secondary.label} tone={secondary.tone} disabled={busy} onPress={secondary.onPress} /></View> : null}
     </View>
   </KeyboardAvoidingView>;
 }
+
 const s = StyleSheet.create({
-  page: { flex: 1, backgroundColor: '#F2F3F5' },
-  header: { height: 48, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 10 },
-  headerButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  content: { flex: 1, minHeight: 0, paddingTop: 18, gap: 20 },
-  title: { paddingHorizontal: 22, color: '#000', fontSize: 30, lineHeight: 36, letterSpacing: -0.5, textAlign: 'center' },
+  page: { flex: 1, backgroundColor: O.bg },
+  fill: { flex: 1, minHeight: 0 },
+  center: { justifyContent: 'center', alignItems: 'center' },
+  top: { flex: 1, minHeight: 0, paddingTop: 22 },
   art: { flex: 1, minHeight: 0, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  body: { color: '#666', fontSize: 14, lineHeight: 21, textAlign: 'center' },
-  footer: { paddingHorizontal: 18, paddingTop: 12, gap: 10, backgroundColor: '#F2F3F5' },
-  note: { color: '#777', fontSize: 12, lineHeight: 18, textAlign: 'center', paddingVertical: 8 },
-  primary: { minHeight: 54, borderRadius: 5, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
-  primaryText: { color: '#FFF', fontSize: 15 },
-  secondary: { minHeight: 34, alignItems: 'center', justifyContent: 'center' },
-  choice: { flexDirection: 'row', alignItems: 'center', gap: 13, borderWidth: 1.5, borderRadius: 12, padding: 16, minHeight: 86 },
-  choiceTitle: { color: '#111', fontSize: 16 },
-  choiceBody: { color: '#777', fontSize: 12, lineHeight: 18 },
-  error: { color: '#B42318', textAlign: 'center', fontSize: 13 },
+  options: { paddingHorizontal: O.gutter, paddingTop: 28, paddingBottom: 16, gap: 12 },
+  option: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 64, paddingHorizontal: 12, paddingVertical: 12, borderRadius: 14, borderWidth: 1, borderColor: O.line },
+  optionIcon: { width: 40, height: 40, borderRadius: 10, backgroundColor: O.line, alignItems: 'center', justifyContent: 'center' },
+  optionText: { flex: 1, color: O.text, fontSize: 17 },
+  radio: { width: 25, height: 25, borderRadius: 13, borderWidth: 1.5, borderColor: '#2E2C2F', backgroundColor: '#0E0C0F', alignItems: 'center', justifyContent: 'center' },
+  radioOn: { backgroundColor: O.text, borderColor: O.text },
+  statLead: { color: O.text, fontSize: 17, lineHeight: 23, textAlign: 'center', paddingHorizontal: 32 },
+  nameInput: { marginHorizontal: O.gutter, marginTop: 28 },
+  footer: { paddingHorizontal: O.gutter, paddingTop: 12 },
+  secondary: { minHeight: 56, paddingTop: 10 },
+  footnote: { color: O.muted, fontSize: 12, lineHeight: 16, textAlign: 'center', marginBottom: 14 },
+  error: { color: '#FF453A', textAlign: 'center', fontSize: 14, marginBottom: 10 },
 });

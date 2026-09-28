@@ -1,19 +1,23 @@
 # Repeat AI onboarding refresh
 
-The onboarding uses FighterCenter / MacroFactor's mobile showcase structure: white surface, Outfit Black 32/33 headings, Inter copy, a centered 1080:2340 upright phone frame with 4px border, and a 54px black primary button. The phone is top aligned and continues behind the fixed footer. It starts at 64% stage width and can grow to 78% on taller screens to preserve the bottom crop. Step counters, summary metadata and secondary descriptions on goal cards are removed.
+The mobile onboarding is a 1:1 adaptation of Opal's iOS onboarding, so the flow continues the dark login screen instead of switching to a light surface. Every measurement below was taken from Mobbin's 1180 x 2676 captures (3x, 393pt wide):
 
-References inspected:
-- [MacroFactor onboarding](https://mobbin.com/flows/0ff63cb6-0dce-488f-828a-5557cf884452): cropped upright phone, black headline and fixed CTA; simple question screens.
-- FighterCenter `apps/mobile/app/onboarding.tsx`, `components/onboarding/MobileFeaturePhone.tsx`, `OnboardingSteps.tsx`, and `onboarding-flow.ts`.
-- [Headspace full onboarding](https://mobbin.com/flows/31b21791-dec6-448a-8253-648f5ebbba3e): goal selection followed by a relevant starting point.
-- [Wise onboarding](https://mobbin.com/flows/8853035c-aba6-493c-81bf-bb06d2f4f0fc) and [Vivid onboarding](https://mobbin.com/flows/6fbb8b82-1f00-42ae-b85e-f311ef58c09f): product introductions and explicit next actions.
+- [Opal onboarding, flow A](https://mobbin.com/flows/91394aa7-8b77-461f-b95a-ad3f177e98f3): welcome, question screens, segmented statement screens, gradient figure.
+- [Opal onboarding, flow B](https://mobbin.com/flows/7b6dc8e9-56e3-4db3-a898-cfdddc9b1e8a): welcome with hero, "Connect to Screen Time" ringed card, account creation.
 
-Sequence: integrations welcome, multiple goals, sellers, listings, message preview, schedule, account, username, first action. One selected goal routes to spreadsheet import, listing search, or WhatsApp settings; multiple or no goals open Home. New users see onboarding before authentication, with email, Google and available Apple sign-in reusing the existing auth handlers. Username is saved only to the authenticated user's metadata. Signed-in users skip account creation. Password recovery takes precedence, and the subscription gate still follows onboarding. The welcome has a returning-user login shortcut.
+Shared tokens live in `mobile/src/components/onboarding-ui.js`: black surface, centred wordmark nav, 16pt gutters, 28/34 semibold titles, `#EEEEEE` hints, `#BDBDBD` body copy, a 56pt white pill CTA (disabled `#1B191C`), 3pt progress segments with 4pt gaps, and 14pt-radius option cards with a `#1B191C` border, 40pt icon tile and 25pt radio that fills white when selected.
 
-Settings preview simulates account creation and username entry without calling auth or changing profile metadata. Completion remains nonmutating. The Bayut logo is the canonical SVG from https://static.bayut.com/assets/logoBayutGreenEN_noinline.68881f018eee5b80.svg, observed on Bayut's official homepage.
+| Step | Opal reference | Repeat AI content |
+| --- | --- | --- |
+| integrations | Welcome with lit hero object | Repeat AI mark with integration tiles at depth |
+| goal | "What level of commitment" cards | Three goals, multi-select |
+| sellers, listings, messages, schedule | "Connect Opal to Screen Time" ringed card | One native card per feature, built from app UI and bundled building photos |
+| automation | "8 years+" gradient figure | "40 a day" WhatsApp limit |
+| account | "Let's create your account" | Email form, "or", Google and Apple |
+| username | Question screen | Name field |
 
-Account setup uses an independent native navigation stack with separate Provider, Signup, Login, Reset and CheckEmail routes. Each owns its heading and page layout. Email/password drafts stay in the auth controller when navigating back; provider buttons never expand a form inline. Header Back, Android Back and iOS stack gestures navigate the account history. Reduced motion disables slide transitions. Browser verification covered provider-to-email, reset-to-confirmation, returning through Back with email retained, 320px layout, and nonmutating preview completion. Native swipe gestures still require device verification.
+The five feature steps show Opal's five-segment progress bar. Feature cards are drawn in code rather than screenshots, so they stay sharp at any density; seller names, units and prices are sample data. Burj Khalifa, Act One and Boulevard Point photos come from `mobile/assets/buildings`.
 
-The four `*-screen.png` assets now use the user's supplied dark-mode iPhone screenshots (Photos 3, 5, 8 and 9), retouched with ImageGen. Seller names, unit numbers and list counts are sample data. The template uses generic copy signed Repeat AI and a neutral building thumbnail instead of a personal business card. Blue gear overlays are removed and status-bar clocks standardised. These are edited product illustrations, not untouched screenshots or live market data. The other supplied photos are not bundled. The onboarding surface and footer use muted warm grey `#EEECE6`; the preview frame remains dark. Fonts retain their bundled SIL Open Font License notices in `mobile/assets/fonts`.
+Behaviour is unchanged: one selected goal routes to spreadsheet import, listing search or WhatsApp settings; multiple or no goals open Home. New users see onboarding before authentication. Username is saved only to the authenticated user's metadata, signed-in users skip account creation, password recovery takes precedence, and the subscription gate still follows onboarding. The account step keeps separate Signup, Login, Reset and CheckEmail routes with drafts held in the auth controller; Signup and Login now show the email form first, then the provider pills, as Opal does.
 
-Validation: 320 x 568 and 390 x 844 browser previews; independent goal selection and deselection; simulated account creation; blank username validation; signed-in account skip; username-save failure and retry; completion failure and retry with selected destination preserved; returning-user login shortcut. Targeted lint, onboarding unit tests and native iOS export pass. Auth provider calls are mocked during browser testing: real Google/Apple callbacks and device keyboard behavior still need device verification before release.
+Validation: mobile-web captures at 393 x 852 @3x were compared side by side with each Opal reference; onboarding unit tests, targeted lint and a native iOS export pass. Native Apple sign-in, SVG gradient text and keyboard behaviour still need on-device verification before release.
