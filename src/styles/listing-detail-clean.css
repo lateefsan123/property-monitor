@@ -1,19 +1,22 @@
-/* Apartment details: the mobile listing screen laid out for desktop.
-   Main column: gallery, price + facts, Price history / Activity.
-   Side column: sticky building card with key facts and actions.
-   Colours come from the shared (mobile) theme tokens. */
-.lp-page { width: 100%; max-width: 1240px; margin: 0 auto; padding: 28px 32px 56px; box-sizing: border-box; }
-.lp-layout { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 40px; align-items: start; }
-.lp-main { min-width: 0; display: flex; flex-direction: column; gap: 28px; }
+/* Apartment details: the mobile listing screen laid out for desktop so the
+   whole page fits one screen. Top row: photo + a card with the building,
+   price, key facts and actions. Below: Price history / Activity, with the
+   chart sized to the remaining viewport height. Colours come from the shared
+   (mobile) theme tokens. */
+.lp-page {
+  --lp-top: clamp(260px, 42vh, 380px);
+  width: 100%; max-width: 1240px; margin: 0 auto; padding: 24px 32px 32px; box-sizing: border-box;
+  display: flex; flex-direction: column; gap: 24px;
+}
+.lp-top { display: grid; grid-template-columns: minmax(0, 1fr) 360px; gap: 24px; height: var(--lp-top); }
 
-/* Gallery */
-.lp-gallery-wrap { display: flex; flex-direction: column; gap: 10px; }
+/* Photo */
 .lp-gallery {
-  position: relative; aspect-ratio: 16 / 9; overflow: hidden; border-radius: 18px;
+  position: relative; height: 100%; min-width: 0; overflow: hidden; border-radius: 18px;
   background: var(--bg-hover); border: 1px solid var(--border);
 }
 .lp-gallery img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.lp-gallery.is-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; aspect-ratio: 16 / 7; color: var(--text-faint); font-size: 14px; }
+.lp-gallery.is-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; color: var(--text-faint); font-size: 14px; }
 .lp-gallery-nav {
   position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%);
   display: flex; align-items: center; gap: 2px; padding: 2px; border-radius: 22px;
@@ -23,87 +26,66 @@
 .lp-gallery-nav button { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: none; color: #fff; cursor: pointer; }
 .lp-gallery-nav button:hover:not(:disabled) { background: rgba(255, 255, 255, 0.16); }
 .lp-gallery-nav button:disabled { opacity: 0.3; cursor: default; }
-.lp-thumbs { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: 8px; }
-.lp-thumbs button {
-  position: relative; aspect-ratio: 4 / 3; padding: 0; overflow: hidden; border: 2px solid transparent; border-radius: 10px;
-  background: var(--bg-hover); cursor: pointer; opacity: 0.7;
-}
-.lp-thumbs button:hover { opacity: 1; }
-.lp-thumbs button.is-active { border-color: var(--text-name); opacity: 1; }
-.lp-thumbs img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.lp-thumbs-more { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(0, 0, 0, 0.55); color: #fff; font-size: 14px; font-weight: 600; }
 
-/* Price + facts */
-.lp-price { display: flex; flex-direction: column; gap: 8px; }
+/* Card: building, price, facts, actions */
+.lp-card { min-width: 0; display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 18px; background: var(--bg-card); overflow: hidden; }
+.lp-card-title { margin: 0; padding: 18px 20px 0; color: var(--text-muted); font-size: 14px; font-weight: 500; line-height: 1.4; overflow-wrap: anywhere; }
+.lp-card-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 20px 14px; display: flex; flex-direction: column; gap: 14px; }
+.lp-price { display: flex; flex-direction: column; gap: 6px; }
 .lp-removed { color: var(--error-text); font-size: 13px; font-weight: 600; }
-.lp-price-row { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; }
-.lp-price-value { color: var(--text-name); font-size: 34px; font-weight: 800; letter-spacing: -0.8px; line-height: 1.15; font-variant-numeric: tabular-nums; }
-.lp-price .ld-delta-chip { font-size: 13px; padding: 6px 10px; border-radius: 999px; font-weight: 700; }
-.lp-facts-line { margin: 0; color: var(--text-muted); font-size: 15px; line-height: 1.5; }
-.lp-description { margin: 4px 0 0; max-width: 70ch; color: var(--text-secondary); font-size: 14px; line-height: 1.6; }
-.lp-more { align-self: flex-start; padding: 4px 0; border: 0; background: none; color: var(--text-muted); font: inherit; font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+.lp-price-row { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+.lp-price-value { color: var(--text-name); font-size: 30px; font-weight: 800; letter-spacing: -0.7px; line-height: 1.15; font-variant-numeric: tabular-nums; }
+.lp-price .ld-delta-chip { font-size: 13px; padding: 5px 10px; border-radius: 999px; font-weight: 700; }
+.lp-description { margin: 2px 0 0; color: var(--text-secondary); font-size: 13px; line-height: 1.55; }
+.lp-more { align-self: flex-start; padding: 2px 0; border: 0; background: none; color: var(--text-muted); font: inherit; font-size: 13px; font-weight: 500; text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
 .lp-more:hover { color: var(--text); }
+.lp-card-facts { margin: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px 12px; padding-top: 14px; border-top: 1px solid var(--border); }
+.lp-card-facts div { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.lp-card-facts dt { color: var(--text-muted); font-size: 12px; }
+.lp-card-facts dd { margin: 0; color: var(--text); font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lp-card-actions { flex: none; display: flex; gap: 8px; padding: 14px 20px 18px; border-top: 1px solid var(--border); }
+.lp-btn {
+  flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 42px; padding: 0 10px;
+  border: 0; border-radius: 12px; background: var(--btn-primary-bg); color: var(--btn-primary-text);
+  font: inherit; font-size: 14px; font-weight: 600; white-space: nowrap; cursor: pointer;
+}
+.lp-btn:hover { background: var(--btn-primary-hover); }
+.lp-btn.is-secondary { border: 1px solid var(--border); background: none; color: var(--text); }
+.lp-btn.is-secondary:hover { background: var(--bg-hover); }
 
-/* History tabs (mobile's underline tabs) */
-.lp-history { display: flex; flex-direction: column; }
+/* History tabs (mobile's underline tabs); chart fills the rest of the screen */
+.lp-history { display: flex; flex-direction: column; min-width: 0; }
 .lp-tabs { display: flex; border-bottom: 1px solid var(--border); }
 .lp-tabs button {
-  min-height: 46px; padding: 0 18px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; background: none;
+  min-height: 44px; padding: 0 18px; margin-bottom: -1px; border: 0; border-bottom: 2px solid transparent; background: none;
   color: var(--text-muted); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
 }
 .lp-tabs button:hover:not(.is-active) { color: var(--text); }
 .lp-tabs button.is-active { border-bottom-color: var(--text-name); color: var(--text-name); }
-.lp-history-panel { padding-top: 24px; }
+.lp-history-panel { padding-top: 16px; }
 .lp-page .ld-chart { border: 1px solid var(--border); border-radius: 18px; background: var(--bg-card); padding: 12px 8px 0 0; --listing-chart-line: #23445e; }
 :root[data-theme="dark"] .lp-page .ld-chart { --listing-chart-line: #a6c5dd; }
-.lp-page .ld-chart-body { height: 300px; padding: 0; }
+.lp-page .ld-chart-body { height: max(200px, calc(100dvh - var(--lp-top) - 240px)); padding: 0; }
 .lp-page .ld-chart .recharts-cartesian-axis-tick-value { font-size: 12px; font-weight: 400; letter-spacing: 0; fill: var(--text-muted); }
 .lp-page .ld-chart-dot { fill: var(--listing-chart-line); stroke: var(--bg-card); stroke-width: 1.5; }
 .lp-page .ld-chart-dot.drop { fill: var(--badge-ok-text); }
 .ld-chart-empty-line { margin: 0; color: var(--text-muted); font-size: 14px; }
 .lp-page .ld-activity-empty { color: var(--text-muted); font-size: 14px; line-height: 1.5; }
 
-/* Side card */
-.lp-side { position: sticky; top: 24px; }
-.lp-card { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 18px; background: var(--bg-card); }
-.lp-card-head { display: flex; align-items: flex-start; gap: 12px; padding: 20px 20px 16px; }
-.lp-card-icon { flex: none; display: grid; place-items: center; width: 36px; height: 36px; border-radius: 10px; background: var(--bg-badge); color: var(--text-muted); }
-.lp-card-head h1 { margin: 0; color: var(--text-name); font-size: 18px; font-weight: 700; line-height: 1.3; letter-spacing: -0.2px; overflow-wrap: anywhere; }
-.lp-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.lp-tag { display: inline-flex; align-items: center; height: 22px; padding: 0 9px; border-radius: 11px; background: var(--bg-badge); color: var(--text-badge); font-size: 12px; font-weight: 600; }
-.lp-tag.is-live { background: var(--badge-ok-bg); color: var(--badge-ok-text); }
-.lp-tag.is-off { background: var(--badge-due-bg); color: var(--badge-due-text); }
-.lp-card-facts { margin: 0; padding: 0 20px; border-top: 1px solid var(--border); }
-.lp-card-facts div { display: flex; justify-content: space-between; gap: 12px; padding: 12px 0; }
-.lp-card-facts div + div { border-top: 1px solid var(--border-light, var(--border)); }
-.lp-card-facts dt { color: var(--text-muted); font-size: 14px; }
-.lp-card-facts dd { margin: 0; color: var(--text); font-size: 14px; font-weight: 500; text-align: right; font-variant-numeric: tabular-nums; }
-.lp-card-actions { display: flex; flex-direction: column; gap: 8px; padding: 16px 20px 20px; border-top: 1px solid var(--border); }
-.lp-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border: 0; border-radius: 12px;
-  background: var(--btn-primary-bg); color: var(--btn-primary-text); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
-}
-.lp-btn:hover { background: var(--btn-primary-hover); }
-.lp-btn.is-secondary { border: 1px solid var(--border); background: none; color: var(--text); }
-.lp-btn.is-secondary:hover { background: var(--bg-hover); }
-
 .lp-page button:focus-visible { outline: 2px solid var(--text-name); outline-offset: 2px; }
 
-@media (max-width: 960px) {
-  .lp-page { padding: 20px 20px 40px; }
-  .lp-layout { grid-template-columns: minmax(0, 1fr); gap: 24px; }
-  .lp-side { position: static; }
-  .lp-main { display: contents; }
-  .lp-gallery-wrap { order: 0; }
-  .lp-price { order: 1; }
-  .lp-side { order: 2; }
-  .lp-history { order: 3; }
+@media (max-width: 900px) {
+  .lp-page { padding: 20px 20px 32px; }
+  .lp-top { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .lp-gallery { height: auto; aspect-ratio: 16 / 9; }
+  .lp-card-scroll { overflow: visible; }
+  .lp-page .ld-chart-body { height: 280px; }
 }
 @media (max-width: 640px) {
-  .lp-page { padding: 0 0 32px; }
+  .lp-page { padding: 0 0 28px; gap: 20px; }
   .lp-gallery { border-radius: 0; border: 0; aspect-ratio: 4 / 3; }
-  .lp-thumbs { display: none; }
-  .lp-price, .lp-history, .lp-side { padding: 0 18px; }
-  .lp-price-value { font-size: 30px; }
+  .lp-card { margin: 0 16px; }
+  .lp-history { padding: 0 16px; }
+  .lp-price-value { font-size: 28px; }
   .lp-page .ld-chart-body { height: 240px; }
 }

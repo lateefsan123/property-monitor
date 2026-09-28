@@ -10,7 +10,6 @@ import {
 import { supabase } from "../../../supabase";
 import {
   formatArea,
-  formatBedsAndBaths,
   formatPrice,
 } from "../formatters";
 import { getRecentPriceDrop } from "../price-drop-utils";
@@ -51,42 +50,22 @@ function PhotoGallery({ photos, buildingName }) {
   const go = (next) => setIndex(Math.max(0, Math.min(visible.length - 1, next)));
 
   return (
-    <div className="lp-gallery-wrap">
-      <div className="lp-gallery">
-        <img
-          key={visible[current]}
-          src={visible[current]}
-          alt={`${buildingName || "Listing"} photo ${current + 1} of ${visible.length}`}
-          onError={() => markFailed(visible[current])}
-        />
-        {visible.length > 1 && (
-          <div className="lp-gallery-nav">
-            <button type="button" aria-label="Previous photo" disabled={current === 0} onClick={() => go(current - 1)}>
-              <IconChevronLeft size={18} stroke={2} aria-hidden="true" />
-            </button>
-            <span aria-live="polite">{current + 1} / {visible.length}</span>
-            <button type="button" aria-label="Next photo" disabled={current === visible.length - 1} onClick={() => go(current + 1)}>
-              <IconChevronRight size={18} stroke={2} aria-hidden="true" />
-            </button>
-          </div>
-        )}
-      </div>
+    <div className="lp-gallery">
+      <img
+        key={visible[current]}
+        src={visible[current]}
+        alt={`${buildingName || "Listing"} photo ${current + 1} of ${visible.length}`}
+        onError={() => markFailed(visible[current])}
+      />
       {visible.length > 1 && (
-        <div className="lp-thumbs" role="list">
-          {visible.slice(0, 8).map((url, position) => (
-            <button
-              key={url}
-              type="button"
-              role="listitem"
-              className={position === current ? "is-active" : ""}
-              aria-label={`Show photo ${position + 1}`}
-              aria-current={position === current ? "true" : undefined}
-              onClick={() => go(position)}
-            >
-              <img src={url} alt="" loading="lazy" onError={() => markFailed(url)} />
-              {position === 7 && visible.length > 8 && <span className="lp-thumbs-more">+{visible.length - 8}</span>}
-            </button>
-          ))}
+        <div className="lp-gallery-nav">
+          <button type="button" aria-label="Previous photo" disabled={current === 0} onClick={() => go(current - 1)}>
+            <IconChevronLeft size={18} stroke={2} aria-hidden="true" />
+          </button>
+          <span aria-live="polite">{current + 1} / {visible.length}</span>
+          <button type="button" aria-label="Next photo" disabled={current === visible.length - 1} onClick={() => go(current + 1)}>
+            <IconChevronRight size={18} stroke={2} aria-hidden="true" />
+          </button>
         </div>
       )}
     </div>
@@ -125,7 +104,6 @@ export default function ListingDetailPage({
   const lastKnownPrice = listing.lastKnownPrice ?? listing.price ?? listing.currentPrice ?? null;
   const shownPrice = isRemoved ? lastKnownPrice : currentPrice;
   const recentDrop = getRecentPriceDrop(listing);
-  const bedsBaths = formatBedsAndBaths(listing.beds, listing.baths).replace(" | ", " · ");
   const area = formatArea(listing.areaSqft);
   const history = listing.priceHistory || [];
   const reversedHistory = history.slice().reverse();
@@ -149,74 +127,31 @@ export default function ListingDetailPage({
     { label: "First seen", value: firstSeen ? new Date(firstSeen).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : null },
   ].filter((fact) => fact.value !== null && fact.value !== undefined && fact.value !== "");
 
+
   return (
     <div className="lp-page">
-      <div className="lp-layout">
-        <main className="lp-main">
-          <PhotoGallery photos={photos} buildingName={listing.buildingName} />
+      <div className="lp-top">
+        <PhotoGallery photos={photos} buildingName={listing.buildingName} />
 
-          <section className="lp-price">
-            {isRemoved && <span className="lp-removed">Off market · Last known price</span>}
-            <div className="lp-price-row">
-              <span className="lp-price-value">{formatPrice(shownPrice)}</span>
-              {!isRemoved && <PriceDeltaChip priceDelta={recentDrop.hasDrop ? recentDrop.priceDelta : listing.priceDelta} />}
-            </div>
-            <p className="lp-facts-line">{[bedsBaths, area].filter(Boolean).join(" · ")}</p>
-            {listing.title && (
-              <>
-                {showDetails && <p className="lp-description">{listing.title}</p>}
-                <button type="button" className="lp-more" aria-expanded={showDetails} onClick={() => setShowDetails((value) => !value)}>
-                  {showDetails ? "Hide details" : "More details"}
-                </button>
-              </>
-            )}
-          </section>
+        <aside className="lp-card">
+          <h1 className="lp-card-title">{listing.buildingName || "Untitled building"}</h1>
 
-          <section className="lp-history">
-            <div className="lp-tabs" role="tablist" aria-label="Listing history">
-              {DETAIL_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  id={`listing-tab-${tab.id}`}
-                  aria-selected={activeTab === tab.id}
-                  aria-controls="listing-history-panel"
-                  tabIndex={activeTab === tab.id ? 0 : -1}
-                  className={activeTab === tab.id ? "is-active" : ""}
-                  onKeyDown={(event) => {
-                    if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
-                    event.preventDefault();
-                    const next = event.key === "Home" ? "price" : event.key === "End" ? "activity" : activeTab === "price" ? "activity" : "price";
-                    setActiveTab(next);
-                    event.currentTarget.parentElement.querySelector(`#listing-tab-${next}`)?.focus();
-                  }}
-                  onClick={() => setActiveTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-            <div id="listing-history-panel" role="tabpanel" aria-labelledby={`listing-tab-${activeTab}`} className="lp-history-panel">
-              {activeTab === "price"
-                ? <PriceChart priceHistory={listing.priceHistory} />
-                : <ActivityTimeline events={reversedHistory} isTracked={isTracked} />}
-            </div>
-          </section>
-        </main>
-
-        <aside className="lp-side">
-          <div className="lp-card">
-            <div className="lp-card-head">
-              <span className="lp-card-icon" aria-hidden="true"><IconBuildingSkyscraper size={18} stroke={1.8} /></span>
-              <div>
-                <h1>{listing.buildingName || "Untitled building"}</h1>
-                <div className="lp-card-tags">
-                  <span className={`lp-tag${isRemoved ? " is-off" : " is-live"}`}>{isRemoved ? "Off market" : "Active"}</span>
-                  {isTracked && <span className="lp-tag">Tracking</span>}
-                </div>
+          <div className="lp-card-scroll">
+            <section className="lp-price">
+              {isRemoved && <span className="lp-removed">Off market · Last known price</span>}
+              <div className="lp-price-row">
+                <span className="lp-price-value">{formatPrice(shownPrice)}</span>
+                {!isRemoved && <PriceDeltaChip priceDelta={recentDrop.hasDrop ? recentDrop.priceDelta : listing.priceDelta} />}
               </div>
-            </div>
+              {listing.title && (
+                <>
+                  {showDetails && <p className="lp-description">{listing.title}</p>}
+                  <button type="button" className="lp-more" aria-expanded={showDetails} onClick={() => setShowDetails((value) => !value)}>
+                    {showDetails ? "Hide details" : "More details"}
+                  </button>
+                </>
+              )}
+            </section>
 
             {facts.length > 0 && (
               <dl className="lp-card-facts">
@@ -228,24 +163,56 @@ export default function ListingDetailPage({
                 ))}
               </dl>
             )}
+          </div>
 
-            <div className="lp-card-actions">
-              {!autoTracking && (
-                <button type="button" className={`lp-btn${isTracked ? " is-secondary" : ""}`} onClick={onToggleTracking}>
-                  {isTracked ? <IconBookmarkFilled size={17} aria-hidden="true" /> : <IconBookmark size={17} stroke={1.8} aria-hidden="true" />}
-                  {isTracked ? "Stop tracking" : "Track listing"}
-                </button>
-              )}
-              {listing.bayutUrl && (
-                <button type="button" className={`lp-btn${autoTracking ? "" : " is-secondary"}`} onClick={onOpenExternal}>
-                  <ExternalLinkIcon size={16} />
-                  Open on Bayut
-                </button>
-              )}
-            </div>
+          <div className="lp-card-actions">
+            {!autoTracking && (
+              <button type="button" className={`lp-btn${isTracked ? " is-secondary" : ""}`} onClick={onToggleTracking}>
+                {isTracked ? <IconBookmarkFilled size={17} aria-hidden="true" /> : <IconBookmark size={17} stroke={1.8} aria-hidden="true" />}
+                {isTracked ? "Stop tracking" : "Track listing"}
+              </button>
+            )}
+            {listing.bayutUrl && (
+              <button type="button" className={`lp-btn${autoTracking ? "" : " is-secondary"}`} onClick={onOpenExternal}>
+                <ExternalLinkIcon size={16} />
+                Open on Bayut
+              </button>
+            )}
           </div>
         </aside>
       </div>
+
+      <section className="lp-history">
+        <div className="lp-tabs" role="tablist" aria-label="Listing history">
+          {DETAIL_TABS.map((tab) => (
+            <button
+              key={tab.id}
+              type="button"
+              role="tab"
+              id={`listing-tab-${tab.id}`}
+              aria-selected={activeTab === tab.id}
+              aria-controls="listing-history-panel"
+              tabIndex={activeTab === tab.id ? 0 : -1}
+              className={activeTab === tab.id ? "is-active" : ""}
+              onKeyDown={(event) => {
+                if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
+                event.preventDefault();
+                const next = event.key === "Home" ? "price" : event.key === "End" ? "activity" : activeTab === "price" ? "activity" : "price";
+                setActiveTab(next);
+                event.currentTarget.parentElement.querySelector(`#listing-tab-${next}`)?.focus();
+              }}
+              onClick={() => setActiveTab(tab.id)}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+        <div id="listing-history-panel" role="tabpanel" aria-labelledby={`listing-tab-${activeTab}`} className="lp-history-panel">
+          {activeTab === "price"
+            ? <PriceChart priceHistory={listing.priceHistory} />
+            : <ActivityTimeline events={reversedHistory} isTracked={isTracked} />}
+        </div>
+      </section>
     </div>
   );
 }
