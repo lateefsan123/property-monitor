@@ -1,8 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "../supabase";
+import ListingPhotoGallery from "../components/listing-photo-gallery";
 import { getRecentPriceDrop } from "../../../src/features/listing-alerts/price-drop-utils";
 import AppIcon from "../components/AppIcon";
 import { useEffect, useMemo, useState } from "react";
 import {
-  Image,
   Pressable,
   ScrollView,
   StatusBar,
@@ -20,7 +22,7 @@ import {
   formatPrice,
 } from "../features/listing-alerts/formatters";
 
-const HERO_HEIGHT = 240;
+
 
 // ---------- Icons ----------
 
@@ -327,6 +329,15 @@ export default function ListingDetailScreen({
   const [historyTab, setHistoryTab] = useState("price");
   useEffect(() => () => onFooterHeightChange?.(0), [onFooterHeightChange]);
   const { width: screenWidth } = useWindowDimensions();
+  const gallery = useQuery({
+    queryKey: ['listing-photos', listing?.id],
+    enabled: Boolean(listing?.id), staleTime: 60 * 60_000, gcTime: 60 * 60_000, retry: false,
+    queryFn: async ({ signal }) => {
+      const { data, error } = await supabase.functions.invoke('listing-photos', { body: { listingId: listing.id }, signal });
+      if (error) throw error;
+      return Array.isArray(data?.photos) ? data.photos : [];
+    },
+  });
   if (!listing) return null;
 
   const recentDrop = getRecentPriceDrop(listing);
@@ -340,7 +351,7 @@ export default function ListingDetailScreen({
 
   const chartWidth = Math.max(260, screenWidth - 32);
   const reversedHistory = (listing.priceHistory || []).slice().reverse();
-  const hasCover = Boolean(listing.coverPhoto);
+  const photos = [...new Set([listing.coverPhoto, ...(listing.photos || []), ...(gallery.data || [])].filter(url => typeof url === "string" && /^https?:\/\//.test(url)))];
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>
@@ -348,12 +359,11 @@ export default function ListingDetailScreen({
       <ScrollView
         style={{ flex: 1 }}
         stickyHeaderIndices={[2]}
-        contentContainerStyle={{ paddingBottom: 180 + insets.bottom }}
+        contentContainerStyle={{ paddingBottom: 24 }}
+        alwaysBounceVertical={false}
         showsVerticalScrollIndicator={false}
       >
-        <View>{hasCover ? (
-          <Image source={{ uri: listing.coverPhoto }} style={{ height: HERO_HEIGHT, width: "100%", backgroundColor: colors.bgCard }} resizeMode="cover" />
-        ) : null}</View>
+        <View><ListingPhotoGallery key={`${listing.id}:${photos.join("|")}`} photos={photos} colors={colors} /></View>
 
         <View style={{ paddingHorizontal: 20, paddingTop: 24, gap: 10 }}>
           {isRemoved ? <Text style={{ color: colors.errorText, fontSize: 13, fontWeight: "600" }}>Off market · Last known price</Text> : null}
@@ -381,7 +391,7 @@ export default function ListingDetailScreen({
             ))}
           </View>
         </View>
-        <View style={{ paddingHorizontal: historyTab === "price" ? 16 : 24, paddingTop: 24, minHeight: 260 }}>
+        <View style={{ paddingHorizontal: historyTab === "price" ? 16 : 24, paddingTop: 24 }}>
           {historyTab === "price" ? <PriceChart priceHistory={listing.priceHistory} width={chartWidth} colors={colors} /> : reversedHistory.length ? (
             <View>{reversedHistory.map((event, index) => <TimelineEvent key={`${event.type}-${event.at || index}-${index}`} event={event} colors={colors} isLast={index === reversedHistory.length - 1} />)}</View>
           ) : <Text style={{ fontSize: 14, color: colors.textMuted }}>No activity recorded yet.</Text>}
@@ -392,10 +402,6 @@ export default function ListingDetailScreen({
       <View
         onLayout={(event) => onFooterHeightChange?.(event.nativeEvent.layout.height)}
         style={{
-          position: "absolute",
-          left: 0,
-          right: 0,
-          bottom: 0,
           paddingHorizontal: 16,
           paddingTop: 14,
           paddingBottom: Math.max(insets.bottom, 16),

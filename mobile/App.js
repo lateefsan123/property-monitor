@@ -141,8 +141,8 @@ function AppInner() {
     };
   }, [sessionUserId]);
 
-  function toggleTheme() {
-    setTheme((current) => (current === "light" ? "dark" : "light"));
+  function toggleTheme(nextValue) {
+    setTheme((current) => typeof nextValue === "boolean" ? (nextValue ? "dark" : "light") : (current === "light" ? "dark" : "light"));
   }
 
   async function handleOnboardingComplete(destination) {

@@ -57,7 +57,7 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic"
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} />}
-      contentContainerStyle={{ padding: 20, paddingBottom: 112, gap: 26, width: "100%", maxWidth: 720, alignSelf: "center" }}>
+      contentContainerStyle={{ padding: 20, paddingBottom: 80, gap: 26, width: "100%", maxWidth: 720, alignSelf: "center" }}>
       <View style={{ gap: 6 }}>
         <Text style={{ color: colors.textMuted, fontSize: 13 }}>{new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</Text>
         <Text style={{ color: colors.textName, fontSize: 25, fontWeight: "600", letterSpacing: -0.6 }}>Hello{displayName ? `, ${displayName}` : ""}</Text>

@@ -338,7 +338,7 @@ const styles = (c) =>
       paddingVertical: 8,
     },
     listWrap: { flex: 1 },
-    listContent: { padding: 16, paddingBottom: 100 },
+    listContent: { padding: 16, paddingBottom: 80 },
     separator: { height: StyleSheet.hairlineWidth, marginVertical: 18, marginHorizontal: -16 },
     fab: {
       position: "absolute",

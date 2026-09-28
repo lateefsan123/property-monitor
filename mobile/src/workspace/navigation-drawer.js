@@ -11,7 +11,7 @@ import {
   useWindowDimensions,
   View,
 } from "react-native";
-import { Image, useImage } from "expo-image";
+import { Image } from "expo-image";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   MAIN_NAVIGATION as BASE_MAIN_NAVIGATION,
@@ -38,11 +38,6 @@ export default function NavigationDrawer({
 }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  // Decode both themed variants before the drawer opens, retaining native image
-  // references so opening the modal or changing theme does not reload the logo.
-  const lightLogo = useImage(NAVIGATION_LOGO, { maxWidth: 540, tintColor: "#111111" });
-  const darkLogo = useImage(NAVIGATION_LOGO, { maxWidth: 540, tintColor: "#ffffff" });
-  const logo = colors.isDark ? darkLogo : lightLogo;
   const drawerWidth = Math.min(320, width * 0.86);
   const [open, setOpen] = useState(false);
   const pendingAction = useRef(null);
@@ -248,12 +243,12 @@ export default function NavigationDrawer({
               }}
             >
               <Image
-                source={logo ?? NAVIGATION_LOGO}
+                source={NAVIGATION_LOGO}
                 tintColor={colors.isDark ? "#ffffff" : "#111111"}
                 accessibilityLabel="Repeat AI"
                 contentFit="contain"
                 transition={0}
-                style={{ width: 180, height: 34, flexShrink: 0 }}
+                style={{ width: 180, maxWidth: "75%", height: 34, flexShrink: 1 }}
               />
               <Pressable
                 accessibilityRole="button"
@@ -261,7 +256,7 @@ export default function NavigationDrawer({
                 onPress={close}
                 style={{ padding: 12 }}
               >
-                <Icon name="close" />
+                <Icon name="close" color={colors.text} />
               </Pressable>
             </View>
             <ScrollView contentContainerStyle={{ gap: 12 }}>

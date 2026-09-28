@@ -1062,7 +1062,7 @@ const styles = (c) =>
 
     // List
     listWrap: { flex: 1 },
-    listContent: { padding: 16, paddingBottom: 120 },
+    listContent: { padding: 16, paddingBottom: 80 },
     separator: { height: StyleSheet.hairlineWidth, marginVertical: 18, marginHorizontal: -16 },
     resultsBar: {
       paddingHorizontal: 16,

@@ -35,7 +35,7 @@ export default function MessageTemplatesScreen({ userId, colors }) {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode="on-drag"
           contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingBottom: 100 }}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 20, paddingBottom: 80 }}
           renderItem={({ item }) => (
             <Pressable accessibilityRole="button" accessibilityLabel={`Edit ${item.name}${item.is_default ? ", default template" : ""}`} onPress={() => openEditor(item)} style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, minHeight: 74, opacity: pressed ? 0.5 : 1 })}>
               <Icon name="tag" size={21} color={colors.textMuted} />

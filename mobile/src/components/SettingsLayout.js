@@ -6,9 +6,9 @@ export function settingsBackground(colors) {
 }
 
 export function SettingsToggle({ colors, value, ...props }) {
-  const thumbColor = value && colors.isDark ? "#222222" : "#ffffff";
+  const thumbColor = "#ffffff";
   return <Switch {...props} value={value}
-    trackColor={{ false: colors.border, true: colors.isDark ? "#e0e0e0" : "#222222" }}
+    trackColor={{ false: colors.border, true: "#278575" }}
     thumbColor={thumbColor}
     ios_backgroundColor={colors.border}
     {...(Platform.OS === "web" ? { activeThumbColor: thumbColor } : {})}
