@@ -257,7 +257,6 @@ function AppInner() {
       avatarUrl={session.user.user_metadata?.avatar_url || ''}
       manageSubscriptionPending={subscription.action === "manage"}
       onManageSubscription={handleManageSubscription}
-      onReplayOnboarding={handleReplayOnboarding}
       subscriptionStoreLabel={subscription.storeLabel} />
     <StatusBar barStyle={theme === "dark" ? "light-content" : "dark-content"} />
   </SafeAreaProvider>);
