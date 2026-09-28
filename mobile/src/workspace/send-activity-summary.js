@@ -20,7 +20,7 @@ export default function SendActivitySummary({ data, colors }) {
   const isToday = !data.startDate || (data.startDate === dubaiDateKey() && data.endDate === data.startDate);
   const sources = Object.entries(data.sources).filter(([, count]) => count > 0);
   const origins = Object.entries(data.origins).filter(([, count]) => count > 0);
-  const warnings = describeSendAlerts(data.alerts, !isToday);
+  const warnings = describeSendAlerts((data.alerts || []).filter(alert => alert.alert_type === 'rapid_repeat'), !isToday);
   return <View style={{ gap: 24 }}>
     {warnings.map(warning => <View key={warning.key} accessibilityRole="alert" style={{ flexDirection: 'row', gap: 12, backgroundColor: warning.tone === 'red' ? colors.errorBg : colors.badgeDueBg, borderRadius: 14, padding: 16 }}>
       <AppIcon name="alert" size={20} color={warning.tone === 'red' ? colors.errorText : colors.badgeDueText} />
