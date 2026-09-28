@@ -6,7 +6,6 @@ const providers = {
   google: { name: 'Gmail', logo: 'https://www.gstatic.com/images/branding/product/2x/gmail_2020q4_48dp.png' },
   microsoft: { name: 'Outlook', logo: 'https://res.cdn.office.net/files/fabric-cdn-prod_20221201.001/assets/brand-icons/product/png/outlook_48x1.png' },
 };
-const sampleOverview = 'Your dentist appointment is tomorrow at 10 AM, your parcel is due this afternoon, and Alex is asking if you’re free for dinner on Friday.';
 
 export default function EmailSummaryCard({ query, colors, connectedProviders = [] }) {
   const data = query.data;
@@ -22,16 +21,16 @@ export default function EmailSummaryCard({ query, colors, connectedProviders = [
   }
   return <View style={{ gap: 20 }}>
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      {(data?.providers || connectedProviders).filter(provider => providers[provider]).map(provider => <Image key={provider}
+      {connectedProviders.filter(provider => providers[provider]).map(provider => <Image key={provider}
         source={{ uri: providers[provider].logo }} accessibilityLabel={providers[provider].name} accessible
         contentFit="contain" style={{ width: 24, height: 24 }} />)}
-      <Text accessibilityRole="header" style={{ flex: 1, color: colors.textName, fontSize: 18, fontWeight: '600', letterSpacing: -0.3 }}>{summary ? 'Your daily brief' : 'Sample brief'}</Text>
+      <Text accessibilityRole="header" style={{ flex: 1, color: colors.textName, fontSize: 18, fontWeight: '600', letterSpacing: -0.3 }}>Your daily brief</Text>
       {data ? <Switch accessibilityLabel="Daily email summaries" value={data.enabled} disabled={query.configure.isPending || (!data.available && !data.enabled)} onValueChange={setEnabled} /> : null}
     </View>
     <Feedback colors={colors} loading={query.isPending} error={error} onRetry={query.retry} />
     {data && !data.available ? <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 21 }}>Email summaries are not available yet. Please try again later.</Text> : null}
     {working ? <Text accessibilityLiveRegion="polite" style={{ color: colors.textMuted, fontSize: 14 }}>Preparing your briefing…</Text> : null}
     {data?.error ? <Text accessibilityRole="alert" style={{ color: colors.textMuted, fontSize: 14, lineHeight: 21 }}>{data.error}</Text> : null}
-    <Text selectable style={{ color: colors.textName, fontSize: 16, lineHeight: 26 }}>{summary?.overview || sampleOverview}</Text>
+    {summary ? <Text selectable style={{ color: colors.textName, fontSize: 16, lineHeight: 26 }}>{summary.overview}</Text> : data?.available && !working && !error && !data.error ? <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 22 }}>{data.enabled ? 'Your briefing will appear here when it’s ready.' : 'Turn on your daily email briefing.'}</Text> : null}
   </View>;
 }
