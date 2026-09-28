@@ -5,26 +5,26 @@ import { spawnSync } from 'node:child_process';
 import path from 'node:path';
 
 const out = path.join(import.meta.dirname, 'out');
-const VO = path.join(out, 'vo-bella.mp3');
+const VO = path.join(out, 'vo-brady-confident.mp3');
 const SCORE = path.join(out, 'score-app-film.wav');
 const MIX = path.join(out, 'mix-app-film.wav');
 
 // [start, end] of each line in the take (from silencedetect), and its cue in the film.
 const LINES = [
-  [0, 3, 0.15],         // Two thousand sellers. So... who's due today?
-  [5, 7.62, 3.9],       // Meet Repeat AI. Your whole day, at a glance.
-  [9.54, 13.16, 8.5],   // Bring in your spreadsheet...
-  [15.08, 17.19, 15.5], // Everyone due today. One list.
-  [19.05, 25.71, 19.5], // Every day, Repeat sends forty automated WhatsApp messages...
-  [27.92, 31.94, 27.8], // Need more? Just tap the WhatsApp icon...
-  [34.07, 37.46, 32.9], // It lands right in their WhatsApp. And sellers reply.
-  [39.98, 43.37, 39],   // Every message is personal. Their name. Their building...
-  [45.09, 48.82, 44.8], // Track your buildings. Open any apartment...
-  [50.49, 54.35, 51.2], // Pick the days each building gets its updates...
-  [56.05, 58.17, 57.4], // Need something? Just ask Repeat.
-  [60.78, 64.1, 61.6],  // Works with Google Sheets, Excel, Gmail, and your calendar.
-  [66.48, 69.11, 66],   // Every seller. Right on time.
-  [71.42, 72.75, 69.7], // Repeat AI.
+  [0, 3.855, 0.15],          // Two thousand sellers. One question: who needs you today?
+  [6.562, 8.892, 3.9],       // Repeat AI puts the answer right in front of you.
+  [11.122, 13.297, 8.5],     // Import your spreadsheet. Your pipeline is ready.
+  [15.569, 18.544, 15.5],    // Every seller due today. One clear list.
+  [20.658, 25.777, 19.5],    // Repeat sends forty timely WhatsApp updates every day...
+  [27.895, 31.098, 27.8],    // Want to step in? Tap once and send it yourself.
+  [33.211, 36.206, 32.9],    // The update lands in WhatsApp. Read. Replied.
+  [38.3, 40.733, 39],        // Every message is personal: seller, property, building.
+  [42.7, 45.412, 44.8],      // Open any apartment and see exactly how its price has moved.
+  [47.446, 50.421, 51.2],    // Choose the days for each building. Repeat handles the schedule.
+  [52.352, 54.297, 57.4],    // Need an answer? Ask Repeat.
+  [56.35, 58.592, 61.6],     // Connect Sheets, Excel, Gmail, and your calendar.
+  [60.527, 63.423, 66],      // Every seller. Every signal. Right on time.
+  [65.398, 66.51, 69.7],     // Repeat AI.
 ];
 
 const pre = 0.05, post = 0.18;
