@@ -15,3 +15,7 @@
 .app-search button:hover { color: var(--text); }
 .app-search button:focus-visible { outline: 2px solid var(--text-name); outline-offset: 2px; }
 .app-search.is-full { width: 100%; }
+/* The pill shows focus; never draw a second outline on the inner input. */
+.app-search input:focus, .app-search input:focus-visible { outline: none; box-shadow: none; }
+.app-search { flex-shrink: 0; }
+.app-search:focus-within { border-color: var(--text-muted); box-shadow: 0 0 0 3px color-mix(in srgb, var(--text-muted) 18%, transparent); }

@@ -68,6 +68,8 @@
 .sch-sheet-close { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 10px; background: none; color: var(--text-muted); }
 .sch-sheet-close:hover { background: var(--bg-hover); color: var(--text); }
 .sch-sheet-body { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; padding: 4px 24px 24px; }
+/* Only the list may shrink; the dropdown and search keep their height. */
+.sch-sheet-body > * { flex-shrink: 0; }
 .sch-sheet-foot { display: flex; gap: 10px; padding: 0 24px 24px; }
 .sch-sheet-foot .sch-primary { flex: 1; min-height: 50px; }
 
