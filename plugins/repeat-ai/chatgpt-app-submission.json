@@ -1,0 +1,157 @@
+{
+  "$schema": "https://developers.openai.com/plugins/schemas/chatgpt-app-submission.v1.json",
+  "schema_version": 1,
+  "app_info": {
+    "display_name": "Repeat AI",
+    "subtitle": "Manage seller follow-ups",
+    "description": "Use your connected Repeat AI account to find seller leads, read seller details, and review connected WhatsApp accounts and message history. Add seller records, update notes or contact status, and request individual WhatsApp messages with explicit confirmation. Intended for property agents managing their own seller workspace. Requires a Repeat AI account and an eligible subscription. Writes require a client that supports the service's confirmation form; unsupported clients cannot execute them. This plugin does not currently provide property-listing search, spreadsheet imports, calendar scheduling, or email tools.",
+    "category": "PRODUCTIVITY"
+  },
+  "tools": {
+    "get_my_seller_signal_account": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Reads records scoped to the authenticated Repeat AI account without modifying data or sending messages.",
+        "open_world_justification": "Queries or changes only records in the authenticated Repeat AI workspace; it does not contact external recipients.",
+        "destructive_justification": "Does not modify, delete, or overwrite records."
+      }
+    },
+    "list_my_seller_leads": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Reads records scoped to the authenticated Repeat AI account without modifying data or sending messages.",
+        "open_world_justification": "Queries or changes only records in the authenticated Repeat AI workspace; it does not contact external recipients.",
+        "destructive_justification": "Does not modify, delete, or overwrite records."
+      }
+    },
+    "get_my_seller_lead": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Reads records scoped to the authenticated Repeat AI account without modifying data or sending messages.",
+        "open_world_justification": "Queries or changes only records in the authenticated Repeat AI workspace; it does not contact external recipients.",
+        "destructive_justification": "Does not modify, delete, or overwrite records."
+      }
+    },
+    "add_my_seller_lead": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Inserts a new seller record after explicit confirmation.",
+        "open_world_justification": "Queries or changes only records in the authenticated Repeat AI workspace; it does not contact external recipients.",
+        "destructive_justification": "Only inserts a new seller record; existing records are not overwritten or deleted."
+      }
+    },
+    "update_my_seller_lead": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": false,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Changes an existing seller record after explicit confirmation.",
+        "open_world_justification": "Queries or changes only records in the authenticated Repeat AI workspace; it does not contact external recipients.",
+        "destructive_justification": "Can overwrite existing seller notes, status, last contact date, or sent state."
+      }
+    },
+    "list_my_whatsapp_accounts": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Reads records scoped to the authenticated Repeat AI account without modifying data or sending messages.",
+        "open_world_justification": "Queries or changes only records in the authenticated Repeat AI workspace; it does not contact external recipients.",
+        "destructive_justification": "Does not modify, delete, or overwrite records."
+      }
+    },
+    "list_my_whatsapp_messages": {
+      "annotations": {
+        "readOnlyHint": true,
+        "openWorldHint": false,
+        "destructiveHint": false
+      },
+      "justifications": {
+        "read_only_justification": "Reads records scoped to the authenticated Repeat AI account without modifying data or sending messages.",
+        "open_world_justification": "Queries or changes only records in the authenticated Repeat AI workspace; it does not contact external recipients.",
+        "destructive_justification": "Does not modify, delete, or overwrite records."
+      }
+    },
+    "send_seller_signal_whatsapp_message": {
+      "annotations": {
+        "readOnlyHint": false,
+        "openWorldHint": true,
+        "destructiveHint": true
+      },
+      "justifications": {
+        "read_only_justification": "Sends a WhatsApp message and records its delivery state after explicit confirmation.",
+        "open_world_justification": "Sends a message through the connected WhatsApp provider to an external recipient.",
+        "destructive_justification": "Creates an externally visible message that cannot reliably be undone and can update contact state."
+      }
+    }
+  },
+  "test_cases": [
+    {
+      "description": "Inspect the connected review account",
+      "user_prompt": "Show my Repeat AI account summary.",
+      "tools_triggered": "get_my_seller_signal_account",
+      "expected_output": "Return the authenticated test account's summary without exposing credentials or another account's records."
+    },
+    {
+      "description": "Find seeded seller leads",
+      "user_prompt": "Find my active seller leads in Review Tower.",
+      "tools_triggered": "list_my_seller_leads",
+      "expected_output": "Search the connected test account's active leads and return the seeded Review Tower record."
+    },
+    {
+      "description": "Read a seller record",
+      "user_prompt": "Show the details for the Review Tower seller you found.",
+      "tools_triggered": "get_my_seller_lead",
+      "expected_output": "Use the ID returned by the previous search and return only the connected account's record."
+    },
+    {
+      "description": "Update notes after explicit approval",
+      "user_prompt": "Change that seller's notes to: Call next Tuesday.",
+      "tools_triggered": "update_my_seller_lead",
+      "expected_output": "Display the exact record and proposed change in the confirmation form. After reviewer approval, update that record. Verify the new notes by reading it back."
+    },
+    {
+      "description": "Read WhatsApp history",
+      "user_prompt": "Show my five most recent WhatsApp messages.",
+      "tools_triggered": "list_my_whatsapp_messages",
+      "expected_output": "Return at most five messages belonging to the test account. The isolated reviewer account has no connected WhatsApp account or message history, so explain the empty result. Do not send any messages."
+    }
+  ],
+  "negative_test_cases": [
+    {
+      "description": "Public property listing search is outside this plugin.",
+      "user_prompt": "Find apartments currently for sale in Dubai Marina.",
+      "expected_output": "Do not invoke Repeat AI seller workspace tools. Explain that public listing search is not supported."
+    },
+    {
+      "description": "Calendar scheduling is outside this plugin.",
+      "user_prompt": "Create a calendar appointment for my property viewing tomorrow.",
+      "expected_output": "Do not invoke Repeat AI tools or claim a calendar event was created."
+    },
+    {
+      "description": "Email sending is outside this plugin.",
+      "user_prompt": "Send an email to my seller with the viewing details.",
+      "expected_output": "Do not invoke Repeat AI tools or substitute a WhatsApp message. Email is not supported."
+    }
+  ]
+}

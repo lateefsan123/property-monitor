@@ -2,12 +2,32 @@
 
 ## Current state (2026-09-29)
 
-The plugin package and production MCP backend are prepared. Nothing has been
-uploaded to OpenAI, submitted, approved, or published. Signed in using the
-user-selected lateefsanusi68@gmail.com account. OpenAI blocks creation/upload
-until the Personal organization completes developer identity verification.
-The individual verification dialog is open and directs the user to Persona;
-no identity documents or verification attestations have been submitted.
+The Personal organization is identity verified. A Repeat AI 0.1.0 draft has been
+created under the user-selected lateefsanusi68@gmail.com account. Listing fields,
+directory/composer icons, prompts, reviewer tests and the seller-workspace skill are uploaded.
+Nothing has been submitted, approved, or published.
+
+- Draft app: `asdk_app_6abc34a9bfb8819187668196e47b6952`.
+- Draft version: `asdk_app_v_6abc34ab3b008191adc45fe66660692e`.
+- Verified developer: Lateef Ayomide Sanusi.
+- OpenAI's OAuth tool scan succeeded using the isolated reviewer account after
+  explicit user approval. All eight current tool justifications were imported.
+- The seller-workspace safety scan shows Passed. The directory icon was uploaded
+  again and its light/dark previews were verified after the original upload did
+  not persist. Release notes are saved. All six final attestations remain unchecked.
+- Sharing the isolated test login/password with OpenAI's review form is awaiting
+  explicit user confirmation. No credentials have been entered in that form yet.
+- OpenAI shows the MCP domain as verified. The challenge is served from
+  `/.well-known/openai-apps-challenge` using `OPENAI_APPS_DOMAIN_CHALLENGE`.
+- Latest Railway deployment `2b2ef833-4a98-4609-b998-b572401583ac` is SUCCESS,
+  from service-only archive of `d57f6de5`. It includes the challenge route and
+  corrected destructive/open-world annotations. The endpoint returned HTTP 200
+  with the exact expected token and text/plain content type.
+- Six billing/session tests, MCP syntax checks and targeted ESLint passed for
+  these changes. The OpenAI rescan confirms the corrected annotations live.
+- `scripts/build-plugin-submission.mjs` generates the separate dashboard import
+  `plugins/repeat-ai/chatgpt-app-submission.json` with five positive cases and
+  three out-of-scope invocation cases. It contains no reviewer credentials.
 
 - Source: `plugins/repeat-ai`.
 - Local upload ZIP: `outputs/plugin-review/repeat-ai-0.1.0.zip`.
@@ -85,9 +105,9 @@ must not print tokens/passwords. Rerun only against those isolated accounts.
 
 ## Remaining before submission
 
-1. Complete the Persona identity check opened from OpenAI organization settings.
-   The dashboard explicitly requires this before creating or uploading a plugin.
-   Then inspect the publishing form under the selected account.
+1. Enter reviewer credentials after confirmation and complete final attestations.
+   Identity verification, draft creation, OAuth tool scanning, and MCP domain
+   verification are complete; the uploaded skill passed scanning.
 2. Verify the confirmation experience in real ChatGPT/Codex UI. Live SDK protocol
    tests do not establish that those hosts render and accept the form correctly.
 3. Connect a reviewer-controlled WhatsApp test number before claiming successful
