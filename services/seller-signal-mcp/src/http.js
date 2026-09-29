@@ -121,6 +121,9 @@ async function main() {
     res.set("X-Robots-Tag", "noindex, nofollow");
     res.sendFile(fileURLToPath(new URL("../public/review-demo.mp4", import.meta.url)));
   });
+  app.get("/privacy", (_req, res) => {
+    res.sendFile(fileURLToPath(new URL("../public/plugin-privacy.html", import.meta.url)));
+  });
 
   app.get("/.well-known/openai-apps-challenge", (_req, res) => {
     const challenge = process.env.OPENAI_APPS_DOMAIN_CHALLENGE?.trim();

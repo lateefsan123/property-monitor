@@ -23,7 +23,7 @@
         ],
         "websiteURL": "https://repeatai.org",
         "supportURL": "https://repeatai.org/support",
-        "privacyPolicyURL": "https://repeatai.org/privacy",
+        "privacyPolicyURL": "https://seller-signal-mcp-production.up.railway.app/privacy",
         "termsOfServiceURL": "https://repeatai.org/terms",
         "logo": "./assets/icon.png",
         "composerIcon": "./assets/icon.png",
