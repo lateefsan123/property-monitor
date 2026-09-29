@@ -29,3 +29,7 @@ At the user's request, replaced build 29 with the latest available build, 1.0.0 
 - This confirms resubmission, not approval or resolution of the Apple sign-in failure. No physical-device Apple sign-in test was performed during this task.
 
 Validation was the live App Store Connect build selector and final review status, plus inspection of the mobile configuration. No application source changed, so code tests were not rerun.
+
+## Website
+
+Production deployment `dpl_FARht4gksmnSjGHdhCVHY8x8wUEQ` is READY at https://repeatai.org, deployed from main `b90650e7` as a clean `git archive` package. It adds Repeat the fox to the web Ask Repeat button and panel, the landing hero and templates broker cards, the web onboarding referral step and the product tour. repeatai.org and sellersignal.vercel.app, which the desktop app loads, serve the same bundle, `index-D7TKjgVZ.js`. The live bundle references the fox images, `/landing/hero-ask-repeat-fox-v1.png` returns 200, and Download app still redirects to the v1.0.1 installer. The package test build bundled none of the uncleared building photos. The first attempt returned a transient "Not authorized"; the retry succeeded without other changes.
