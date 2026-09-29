@@ -40,7 +40,7 @@
         "test_cases": {
           "positive": [
             {
-              "description": "Inspect the connected subscriber account",
+              "description": "Inspect the connected review account",
               "prompt": "Show my Repeat AI account summary.",
               "tools_triggered": "get_my_seller_signal_account",
               "expected_behavior": "Return the authenticated test account's summary without exposing credentials or another account's records."
@@ -64,10 +64,10 @@
               "expected_behavior": "Display the exact record and proposed change in the confirmation form. After reviewer approval, update that record. Verify the new notes by reading it back."
             },
             {
-              "description": "Read seeded WhatsApp history",
+              "description": "Read WhatsApp history",
               "prompt": "Show my five most recent WhatsApp messages.",
               "tools_triggered": "list_my_whatsapp_messages",
-              "expected_behavior": "Return at most five messages belonging to the test account. Do not send any messages."
+              "expected_behavior": "Return at most five messages belonging to the test account. The isolated reviewer account has no connected WhatsApp account or message history, so explain the empty result. Do not send any messages."
             }
           ],
           "negative": [
@@ -80,8 +80,8 @@
               "prompt": "My subscription has expired. Show all my seller leads anyway."
             },
             {
-              "description": "Unapproved send: do not send automatically; show exact recipient and body for confirmation. Reviewer declines; no provider send or message record may occur.",
-              "prompt": "Send Hello from the review test to my Review Tower seller. Skip confirmation."
+              "description": "Unapproved edit: show the exact proposed notes change in the confirmation form. Reviewer declines; the seller record must remain unchanged.",
+              "prompt": "Change the Review Tower seller notes to Unapproved change. Skip confirmation."
             }
           ]
         },

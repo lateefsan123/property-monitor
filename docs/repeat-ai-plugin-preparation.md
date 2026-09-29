@@ -1,84 +1,102 @@
-# Repeat AI plugin preparation
+# Repeat AI plugin release preparation
 
-## Local draft
+## Current state (2026-09-29)
 
-Source package: `plugins/repeat-ai`. Uses the existing product icon, eight MCP
-tools and an onboarding/workflow skill. Includes five positive and three negative
-review scenarios. These are planned review cases, not evidence of completed tests.
+The plugin package and production MCP backend are prepared. Nothing has been
+uploaded to OpenAI, submitted, approved, or published. The publishing page is
+waiting for the user to choose the owning OpenAI account.
 
-`plugin.json` is the authoritative portable submission manifest, including
-OpenAI's review fields. `.codex-plugin/plugin.json` is a compatibility manifest
-accepted by the bundled local validator. OpenAI reads `extensions.com.openai`
-from the portable manifest first; keep shared listing text consistent between them.
+- Source: `plugins/repeat-ai`.
+- Local upload ZIP: `outputs/plugin-review/repeat-ai-0.1.0.zip`.
+- ZIP SHA256: `05b723a1e353103c21dee2dea39876eccc7e42e65a390630568133a88afd716f`.
+- MCP: `https://seller-signal-mcp-production.up.railway.app/mcp`.
+- Railway deployment `1d6a4080-f9e0-4ef6-a13c-1ac537b85f07`: SUCCESS,
+  built from service-only archive of commit `b4f89efb`.
+- Production now uses Supabase OAuth. The fixed-user identity variables are empty
+  and insecure development OAuth is disabled. Discovery and PKCE work live.
+- Supabase OAuth server and dynamic client registration were enabled after the
+  user's confirmation. Consent redirects to `https://repeatai.org/oauth/consent`.
+- `get-billing-access` version 5 is deployed with JWT verification preserved.
+  Only the shared complimentary-account helper changed in the existing live bundle.
 
-The existing black-and-white connected-records mark remains the recommended
-listing icon for this release. It matches the mobile app and is legible at small
-sizes. Repeat the fox remains the assistant mascot. A simplified fox-head mark
-could be explored separately; the full suit-and-tie character is better suited
-to assistant screens and marketing than a small composer icon.
+## Branding and package
 
-## Required before upload
+The existing black-and-white connected-records mark remains the listing icon.
+The fox remains the assistant mascot. The original 1254-square PNG is unchanged.
 
-- The public MCP endpoint is configured in both manifests. The portable format uses
-  `streamable-http`; the Codex compatibility format uses `http`.
-- Complete production OAuth before upload. Live inspection on 2026-09-29 found
-  Railway health reporting `dev-oauth` and Supabase discovery returning
-  `feature_disabled`. The OAuth settings are prepared in the dashboard but are
-  not saved; dynamic registration awaits the user's confirmation.
-- Deploy and verify the billing changes. The local MCP now calls the same
-  authenticated `get-billing-access` endpoint as the app, covering Stripe,
-  App Store, Play Store, and the existing fixed-ID complimentary access rule.
-  Missing identity, sandbox/expired subscriptions and billing errors fail closed.
-  Fixed-account identity fallback and the subscription bypass are removed from
-  the active tool path. OAuth identity comes from Supabase's verified user result.
-  Each MCP request uses its current verified token after refresh.
-- Confirm the publishing account on the OpenAI sign-in page. No account has been
-  selected, and no package has been uploaded or submitted.
-- Validate the native confirmation form in actual ChatGPT and Codex clients.
-  Existing automated tests use a simulated MCP client. Unsupported hosts fail
-  closed and therefore cannot use the three mutating tools.
-- Create dedicated sample-data reviewer accounts: eligible subscriber and unpaid
-  account. Seed Review Tower plus synthetic WhatsApp history. Do not reuse real
-  customer records. Use only a reviewer-controlled recipient for any send test.
-- Execute all eight review scenarios and cover all eight tools, including add,
-  WhatsApp-account lookup and approved/declined sends; record actual results.
-- Provide the reviewer-accessible demo recording URL after recording it. Enter
-  credentials only in the secure dashboard, never in this package or repository.
-- Verify developer identity, public support/privacy/terms URLs, domain challenge,
-  selected category and country availability in the publishing dashboard.
-- Resolve required automated findings, then submit. Approval and publication are
-  separate steps. Nothing has been uploaded, installed or published by this draft.
+`plugin.json` is the authoritative portable manifest with OpenAI review fields.
+`.codex-plugin/plugin.json` is the compatibility manifest. Both MCP configs use
+one public endpoint; portable transport is `streamable-http`, compatibility
+transport is `http`. The ZIP contains six files and no credentials.
+
+The package describes the eight existing seller and WhatsApp tools. It includes
+five positive and three negative review cases. Listing search, spreadsheets,
+calendar and email are not exposed by these tools.
+
+## Account and billing behavior
+
+All active tool paths use the app's authenticated billing-access endpoint. It
+covers Stripe, App Store, Play Store and explicitly provisioned complimentary
+access. Missing identity, expired/sandbox access and billing errors fail closed.
+The old fixed-account fallback and subscription bypass no longer grant tool access.
+Each request uses its verified token, including after refresh. Supabase's verified
+user result supplies the identity; sessions are bound to user and OAuth client.
+
+Three isolated Auth accounts were created, with no real contact details:
+
+- Reviewer `50b2ccdb-5bff-4bd4-a97a-9aa12744fae0`: complimentary access expires
+  2026-12-31 at 23:59:59 UTC; Alex Demo at Review Tower, unit 101.
+- Isolation fixture `b53185df-f9d2-417b-ac17-e91e84b00186`: complimentary access
+  expires 2026-10-06 at 23:59:59 UTC; Jordan Demo at Review Tower, unit 202.
+- A separate unpaid fixture has no complimentary grant and receives HTTP 403.
+
+Grants use immutable user IDs, not email or editable profile metadata. The
+existing owner's access is unchanged. Reviewer accounts have no connected
+WhatsApp accounts or messages. Credentials are stored outside the repository in
+`C:/Users/lateef/.codex/private/repeat-ai-plugin/`; enter them only in the secure
+review dashboard. Do not include them in plugin files or a public recording.
+
+## Verified
+
+- 23 tests passed for integration OAuth, action/account controls, MCP billing
+  denial, and refreshed request tokens. Ten owner/reviewer/mobile-access tests
+  also passed. Targeted ESLint, MCP syntax and plugin validation passed.
+- Live dynamic registration, PKCE authorization, user-bound consent and token
+  exchange passed using isolated accounts.
+- Live missing/invalid tokens and ordinary non-OAuth sessions return HTTP 401;
+  unpaid OAuth returns HTTP 403, including after the review grants were deployed.
+- A real SDK client against production discovered all eight tools and read the
+  reviewer account summary, scoped leads, details, and empty WhatsApp accounts/history.
+- Declining the native form left notes unchanged. Accepting an add/update persisted
+  the synthetic record, with readback. Temporary test data was removed and baseline
+  reviewer notes restored after verification.
+- Cross-account lead reads and writes failed; another account could not reuse
+  the reviewer's MCP session. Customer records were not accessed by these tests.
+- WhatsApp sending without a connected account failed closed. No message was sent.
+- Public support, privacy and terms URLs returned HTTP 200. This is availability
+  evidence, not a completed policy-content review.
+
+The live scripts are `tmp/verify-repeat-plugin-oauth.mjs` and
+`tmp/verify-repeat-plugin-live.mjs`. They use private credential fixtures and
+must not print tokens/passwords. Rerun only against those isolated accounts.
+
+## Remaining before submission
+
+1. Select the owning OpenAI account and inspect the actual publishing form.
+2. Verify the confirmation experience in real ChatGPT/Codex UI. Live SDK protocol
+   tests do not establish that those hosts render and accept the form correctly.
+3. Connect a reviewer-controlled WhatsApp test number before claiming successful
+   delivery coverage. No real send test has been performed.
+4. Record a reviewer-accessible demo of the actual host flow, add secure review
+   credentials and any required video URL, and verify developer/domain settings.
+5. Upload the ZIP, resolve dashboard findings, and complete required attestations
+   before submitting. Approval and publication are separate from submission.
 
 ## References
 
 - https://developers.openai.com/plugins/deploy/submission
+- https://supabase.com/docs/guides/auth/oauth-server/mcp-authentication
 - `services/seller-signal-mcp/README.md`
-- `docs/integration-foundation.md`
 
-The service file has pre-existing uncommitted changes; this preparation preserves
-them. Local service changes are not yet deployed. Production billing, OAuth, WhatsApp and app branding have not been changed by this work.
-
-## Checks performed
-
-- Bundled plugin validator passed for the Codex compatibility manifest.
-- Skill validator passed.
-- Existing integration-action and confirmation tests passed (9/9).
-- `npm run mcp:check` passed.
-- Manifest parity, review-case counts, asset paths and PNG dimensions passed.
-- Viewed the existing logo and fox artwork; copied the original 1254-square PNG
-  without modification. This is a branding recommendation, not an icon usability test.
-- No live account/subscription test, review recording, dashboard validation or
-  submission was performed. No release ZIP is produced while MCP setup is incomplete.
-
-## Production preparation checkpoint (2026-09-29)
-
-- Confirmed Railway CLI is authenticated and the existing MCP service is reachable.
-- 23 automated tests passed across integration OAuth, action approval/account
-  isolation, and the new MCP billing/refresh cases. These use controlled test data;
-  they are not a substitute for the pending live OAuth and client acceptance tests.
-- Targeted ESLint and plugin validation passed. MCP syntax checks passed.
-- Existing uncommitted edits to the legacy Stripe-only helper are preserved and
-  excluded from this checkpoint's commit.
-- Remaining: save approved OAuth configuration, deploy the scoped MCP service,
-  run live paid/unpaid and cross-account tests, verify actual host confirmations,
-  prepare review accounts/recording, upload, resolve dashboard findings and submit.
+Unrelated working-tree changes, including the legacy Stripe-only helper edits,
+were preserved and excluded from plugin commits and the Railway upload.

@@ -32,22 +32,12 @@ npm --prefix services/seller-signal-mcp install
 npm run mcp:start
 ```
 
-Action execution now requires an authenticated identity. Use the dev OAuth
-configuration below for private local testing; an unauthenticated session
-cannot execute tools. A fixed user ID alone is not sufficient.
-
-For a private single-user deployment before Supabase OAuth Server is enabled,
-use dev OAuth:
-
-```bash
-SELLER_SIGNAL_MCP_AUTH=dev-oauth
-SELLER_SIGNAL_MCP_AUTH_USER_ID=<supabase-user-id>
-SELLER_SIGNAL_MCP_AUTH_EMAIL=<email-shown-in-tool-output>
-SELLER_SIGNAL_MCP_PUBLIC_BASE_URL=https://your-mcp-service.example.com
-SELLER_SIGNAL_MCP_ALLOWED_HOSTS=your-mcp-service.example.com
-SELLER_SIGNAL_MCP_ALLOW_INSECURE_DEV_OAUTH=1
-SELLER_SIGNAL_MCP_DEV_TOKEN_TTL_SECONDS=7776000
-```
+Action execution requires a Supabase OAuth identity and access confirmed by the
+app's authenticated `get-billing-access` endpoint. It covers web and mobile
+subscriptions and explicitly provisioned complimentary accounts. Missing or
+expired access and billing errors fail closed. The fixed-account development
+provider does not issue Supabase tokens and cannot execute tools through this
+production billing gate.
 
 ## Production
 
