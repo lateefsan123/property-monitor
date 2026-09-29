@@ -3,8 +3,11 @@
 ## Current state (2026-09-29)
 
 The plugin package and production MCP backend are prepared. Nothing has been
-uploaded to OpenAI, submitted, approved, or published. The publishing page is
-waiting for the user to choose the owning OpenAI account.
+uploaded to OpenAI, submitted, approved, or published. Signed in using the
+user-selected lateefsanusi68@gmail.com account. OpenAI blocks creation/upload
+until the Personal organization completes developer identity verification.
+The individual verification dialog is open and directs the user to Persona;
+no identity documents or verification attestations have been submitted.
 
 - Source: `plugins/repeat-ai`.
 - Local upload ZIP: `outputs/plugin-review/repeat-ai-0.1.0.zip`.
@@ -82,7 +85,9 @@ must not print tokens/passwords. Rerun only against those isolated accounts.
 
 ## Remaining before submission
 
-1. Select the owning OpenAI account and inspect the actual publishing form.
+1. Complete the Persona identity check opened from OpenAI organization settings.
+   The dashboard explicitly requires this before creating or uploading a plugin.
+   Then inspect the publishing form under the selected account.
 2. Verify the confirmation experience in real ChatGPT/Codex UI. Live SDK protocol
    tests do not establish that those hosts render and accept the form correctly.
 3. Connect a reviewer-controlled WhatsApp test number before claiming successful
