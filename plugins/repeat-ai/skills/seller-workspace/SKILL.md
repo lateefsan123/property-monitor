@@ -24,9 +24,12 @@ operation. Do not bypass it or promise that reconnecting fixes billing.
 ## Make changes
 
 Use `add_my_seller_lead` or `update_my_seller_lead` for the requested record change.
-Resolve ambiguous records first. The server must show its native confirmation
-form for each write. Never manufacture approval or pass an approval flag as a
-tool argument. A cancelled or unsupported confirmation means no change occurred.
+Resolve ambiguous records first. Each write requires either the native confirmation
+form or the server's authenticated browser approval page. If a tool returns an
+approval URL, show it to the user and wait for them to sign in and approve there.
+Do not open or approve the link on the user's behalf or request duplicate actions.
+Never manufacture approval or pass an approval flag as a tool argument.
+A pending, declined, expired or failed approval is not a completed change.
 Read back changed records before reporting success.
 
 Use `send_seller_signal_whatsapp_message` only when the user requests a message

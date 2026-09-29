@@ -134,6 +134,10 @@ export function createActionRegistry(options = {}) {
         if (!options.confirmAction) return { status: "confirmation_required", action: name };
         const prepared = await prepareAction(name, args, options.authInfo, { getLead, listWhatsAppAccounts, normalizeWhatsAppPhone });
         args = prepared.input;
+        if (options.deferConfirmation) {
+          const deferred = options.deferConfirmation({ userId, action: name, input: structuredClone(args), summary: prepared.summary }, () => action.handler(args));
+          if (deferred) return deferred;
+        }
         const approved = await options.confirmAction({ userId, action: name, input: structuredClone(args), summary: prepared.summary }, context);
         if (approved !== true) return { status: "cancelled", action: name };
         if (context?.signal?.aborted) return { status: "cancelled", action: name };

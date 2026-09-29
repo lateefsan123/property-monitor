@@ -4,6 +4,10 @@ import { createMcpConfirmation } from "./action-confirmation.js";
 
 export function createSellerSignalMcpServer(options = {}) {
   const server = new McpServer({ name: "seller-signal-mcp", version: "0.1.0" });
+  const deferConfirmation = options.approvalStore
+    ? (request, execute) => server.server.getClientCapabilities()?.elicitation?.form ? null : options.approvalStore.create(request, execute)
+    : undefined;
+  options = { ...options, deferConfirmation };
   const actions = createActionRegistry({ ...options, confirmAction: options.confirmAction ?? createMcpConfirmation(server.server) });
   for (const action of actions.list()) {
     server.registerTool(action.name, {

@@ -2,6 +2,9 @@
 import "dotenv/config";
 
 import { randomUUID } from "node:crypto";
+import { createClient } from "@supabase/supabase-js";
+import { readSupabaseConfig } from "./config.js";
+import { createApprovalStore, mountApprovalRoutes } from "./browser-approval.js";
 import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
 import {
   getOAuthProtectedResourceMetadataUrl,
@@ -122,6 +125,16 @@ async function main() {
   let authMiddleware;
   const publicBaseUrl = getPublicBaseUrl(host, port);
   const mcpServerUrl = new URL("/mcp", publicBaseUrl);
+  const approvalStore = authMode === "supabase-oauth" ? createApprovalStore({ origin: publicBaseUrl.origin }) : undefined;
+  if (approvalStore) {
+    const config = readSupabaseConfig();
+    const authClient = createClient(config.url, config.publishableKey, { auth: { persistSession: false, autoRefreshToken: false } });
+    mountApprovalRoutes(app, { store: approvalStore, origin: publicBaseUrl.origin, config, verifyUser: async token => {
+      const { data, error } = await authClient.auth.getUser(token);
+      if (error) return null;
+      return data.user;
+    } });
+  }
 
   if (authMode === "dev-oauth") {
     assertDevOAuthAllowed({
@@ -223,7 +236,7 @@ async function main() {
           await closedSession?.server.close();
         },
       });
-      const server = createSellerSignalMcpServer({ authInfo: req.auth });
+      const server = createSellerSignalMcpServer({ authInfo: req.auth, approvalStore });
       session = { server, transport, userId: req.auth?.extra?.userId, clientId: req.auth?.clientId };
 
       transport.onclose = async () => {
