@@ -3,7 +3,7 @@ import "./styles/onboarding.css";
 const ARTWORK = {
   welcome: "product-spreadsheets-mobile-colour-v3.png",
   profile: "product-seller-story-mobile-colour-v2.png",
-  referral: "product-templates-story-mobile-clean-v4.png",
+  referral: "product-templates-story-mobile-fox-clean-v1.png",
   trial: "product-followups-story-mobile-colour-v2.png",
 };
 

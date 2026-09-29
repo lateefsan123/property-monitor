@@ -91,8 +91,8 @@ export default function LandingPage({
         </div>
         <figure className="landing-hero-artwork">
           <img
-            src="/landing/hero-ask-repeat-minimal-v3.png"
-            alt="Illustrative Repeat AI workspace held by two hands: Ask Repeat is asked to update Forte 2 leads with the latest transactions and create a WhatsApp template. A draft for fictional seller Ahmed shows Omar Hassan's minimal white broker card for fictional company Sora & Vale above the message, with Confirm change and Discard controls."
+            src="/landing/hero-ask-repeat-fox-v1.png"
+            alt="Illustrative Repeat AI workspace held by two hands: Ask Repeat is asked to update Forte 2 leads with the latest transactions and create a WhatsApp template. A draft for fictional seller Ahmed shows Repeat's white broker card, with the Repeat fox in a suit, for fictional company Sora & Vale above the message, with Confirm change and Discard controls."
             width="1855"
             height="848"
             fetchPriority="high"

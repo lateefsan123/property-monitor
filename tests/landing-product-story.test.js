@@ -17,9 +17,12 @@ test("product story covers the complete journey once, in order", () => {
 test("fictional landing names are consistent across the Dubai seller journey", () => {
   const allAlt = LANDING_PRODUCT_SECTIONS.map(section => section.alt).join(' ');
   assert.doesNotMatch(allAlt, /Alex|Jamie|Jordan/);
-  for (const name of ['Ahmed Mansoori', 'Priya Shah', 'Daniel Reed', 'Omar Hassan']) {
+  for (const name of ['Ahmed Mansoori', 'Priya Shah', 'Daniel Reed']) {
     assert.ok(allAlt.includes(name));
   }
+  // The sample broker card belongs to Repeat, the fox, not a fictional person.
+  assert.doesNotMatch(allAlt, /Omar Hassan/);
+  assert.match(LANDING_PRODUCT_SECTIONS.find(section => section.id === 'message-templates').alt, /Repeat’s broker card/);
   for (const section of LANDING_PRODUCT_SECTIONS.filter(section => !['market-activity', 'ask-repeat'].includes(section.id))) {
     assert.match(section.image, /dubai-v1\.png$/);
     assert.match(section.mobileImage, /dubai-v1\.png$/);
