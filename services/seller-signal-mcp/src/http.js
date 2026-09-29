@@ -81,7 +81,7 @@ async function requireSubscription(req, res, next) {
       throw new SubscriptionRequiredError("Seller Signal subscription requires a linked Seller Signal account.");
     }
 
-    await assertUserHasSubscription(userId);
+    await assertUserHasSubscription(userId, req.auth);
     next();
   } catch (error) {
     if (error instanceof SubscriptionRequiredError) {
@@ -147,7 +147,7 @@ async function main() {
     app.use(mcpAuthMetadataRouter({
       oauthMetadata,
       resourceServerUrl: mcpServerUrl,
-      scopesSupported: ["openid", "email", "profile", "seller-signal:read", "seller-signal:write"],
+      scopesSupported: ["openid", "email", "profile"],
       resourceName: "Seller Signal MCP",
     }));
 

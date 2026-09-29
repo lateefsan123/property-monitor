@@ -17,7 +17,12 @@ export function createSellerSignalMcpServer(options = {}) {
         ...(action.readOnly ? { idempotentHint: true } : {}),
       },
     }, async (args, extra) => {
-      const value = await actions.execute(action.name, args, extra);
+      // HTTP requests carry the current verified token, including after refresh.
+      // Never mutate the session's auth object: requests can run concurrently.
+      const requestActions = extra.authInfo
+        ? createActionRegistry({ ...options, authInfo: extra.authInfo, confirmAction: options.confirmAction ?? createMcpConfirmation(server.server) })
+        : actions;
+      const value = await requestActions.execute(action.name, args, extra);
       return { content: [{ type: "text", text: typeof value === "string" ? value : JSON.stringify(value, null, 2) }] };
     });
   }

@@ -135,8 +135,8 @@ export function createSupabaseOAuthVerifier(options = {}) {
         expiresAt: typeof claims.exp === "number" ? claims.exp : undefined,
         resource,
         extra: {
-          userId: claims.user_id ?? claims.sub ?? data.user.id,
-          email: claims.email ?? data.user.email,
+          userId: data.user.id,
+          email: data.user.email,
         },
       };
     },

@@ -1,3 +1,4 @@
+import { hasBillingAccess } from "./billing-access.js";
 import { getSupabaseAdminClient } from "./config.js";
 
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(["active", "trialing"]);
@@ -243,17 +244,17 @@ function requireEnv(name) {
 }
 
 function shouldRequireSubscription() {
-  return process.env.SELLER_SIGNAL_MCP_REQUIRE_SUBSCRIPTION !== "0";
+  return true;
 }
 
 function getAuthenticatedUserId(authInfo) {
-  const userId = authInfo?.extra?.userId || process.env.SELLER_SIGNAL_MCP_AUTH_USER_ID;
+  const userId = authInfo?.extra?.userId;
   if (typeof userId === "string" && userId.trim()) return userId.trim();
   throw new Error("Authenticated Seller Signal account required. Reconnect the MCP server with OAuth.");
 }
 
 export function getAuthenticatedEmail(authInfo) {
-  const email = authInfo?.extra?.email || process.env.SELLER_SIGNAL_MCP_AUTH_EMAIL;
+  const email = authInfo?.extra?.email;
   return typeof email === "string" && email.trim() ? email.trim() : null;
 }
 
@@ -282,9 +283,9 @@ export async function isUserSubscribed(userId) {
   return Number.isNaN(currentPeriodEnd) || currentPeriodEnd > Date.now();
 }
 
-export async function assertUserHasSubscription(userId) {
-  if (!shouldRequireSubscription()) return;
-  if (await isUserSubscribed(userId)) return;
+export async function assertUserHasSubscription(userId, authInfo) {
+  if (!userId || userId !== authInfo?.extra?.userId) throw new Error("Authenticated account required");
+  if (await hasBillingAccess(authInfo)) return;
   throw new SubscriptionRequiredError(
     "Seller Signal subscription is required to use the ChatGPT app. Start or restore your subscription, then reconnect the app.",
   );
@@ -342,7 +343,7 @@ async function validateLeadSource(userId, sourceId) {
 
 export async function getAccountSummary(authInfo) {
   const userId = getAuthenticatedUserId(authInfo);
-  await assertUserHasSubscription(userId);
+  await assertUserHasSubscription(userId, authInfo);
   const client = getSupabaseAdminClient();
 
   const [activeLeads, doneLeads, whatsappAccounts] = await Promise.all([
@@ -381,7 +382,7 @@ export async function getAccountSummary(authInfo) {
 
 export async function addLead(authInfo, input = {}) {
   const userId = getAuthenticatedUserId(authInfo);
-  await assertUserHasSubscription(userId);
+  await assertUserHasSubscription(userId, authInfo);
 
   const row = {
     user_id: userId,
@@ -412,7 +413,7 @@ export async function addLead(authInfo, input = {}) {
 
 export async function listLeads(authInfo, input = {}) {
   const userId = getAuthenticatedUserId(authInfo);
-  await assertUserHasSubscription(userId);
+  await assertUserHasSubscription(userId, authInfo);
   const limit = Math.min(Math.max(Number(input.limit) || 25, 1), 100);
   let query = getSupabaseAdminClient()
     .from("leads")
@@ -446,7 +447,7 @@ export async function listLeads(authInfo, input = {}) {
 
 export async function getLead(authInfo, leadId) {
   const userId = getAuthenticatedUserId(authInfo);
-  await assertUserHasSubscription(userId);
+  await assertUserHasSubscription(userId, authInfo);
   const id = String(leadId || "").trim();
   if (!id) throw new Error("leadId is required");
 
@@ -464,7 +465,7 @@ export async function getLead(authInfo, leadId) {
 
 export async function updateLead(authInfo, input = {}) {
   const userId = getAuthenticatedUserId(authInfo);
-  await assertUserHasSubscription(userId);
+  await assertUserHasSubscription(userId, authInfo);
   const leadId = String(input.leadId || "").trim();
   if (!leadId) throw new Error("leadId is required");
 
@@ -492,7 +493,7 @@ export async function updateLead(authInfo, input = {}) {
 
 export async function listWhatsAppAccounts(authInfo) {
   const userId = getAuthenticatedUserId(authInfo);
-  await assertUserHasSubscription(userId);
+  await assertUserHasSubscription(userId, authInfo);
 
   const { data, error } = await getSupabaseAdminClient()
     .from("whatsapp_accounts")
@@ -509,7 +510,7 @@ export async function listWhatsAppAccounts(authInfo) {
 
 export async function listWhatsAppMessages(authInfo, input = {}) {
   const userId = getAuthenticatedUserId(authInfo);
-  await assertUserHasSubscription(userId);
+  await assertUserHasSubscription(userId, authInfo);
   const limit = Math.min(Math.max(Number(input.limit) || 25, 1), 100);
   let query = getSupabaseAdminClient()
     .from("whatsapp_messages")
@@ -701,7 +702,7 @@ async function markLeadSent(userId, leadId, sentAt) {
 
 export async function sendWhatsAppMessage(authInfo, input = {}) {
   const userId = getAuthenticatedUserId(authInfo);
-  await assertUserHasSubscription(userId);
+  await assertUserHasSubscription(userId, authInfo);
   const body = String(input.body || "").trim();
   if (!body) throw new Error("body is required");
 

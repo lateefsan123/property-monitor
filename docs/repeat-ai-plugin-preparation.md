@@ -19,17 +19,21 @@ to assistant screens and marketing than a small composer icon.
 
 ## Required before upload
 
-- Set the same verified public MCP endpoint in `mcp.json` and `.mcp.json`. The current empty server
-  map deliberately makes this an incomplete draft; do not upload it as skills-only.
-  OpenAI does not currently allow adding MCP to a published skills-only plugin.
-- Confirm production OAuth, account isolation and the deployed subscription gate.
-  All eight local service handlers call `assertUserHasSubscription`; it can be
-  disabled by `SELLER_SIGNAL_MCP_REQUIRE_SUBSCRIPTION=0`. Production must not use
-  that bypass or private development OAuth.
-- Verify billing parity. The current MCP gate queries `billing_subscriptions` for
-  active/trialing status, `raw.livemode === true`, and a future period end. This
-  inspection does not prove Apple/Google entitlements work or that production uses
-  this code. Do not advertise mobile subscription compatibility until tested.
+- The public MCP endpoint is configured in both manifests. The portable format uses
+  `streamable-http`; the Codex compatibility format uses `http`.
+- Complete production OAuth before upload. Live inspection on 2026-09-29 found
+  Railway health reporting `dev-oauth` and Supabase discovery returning
+  `feature_disabled`. The OAuth settings are prepared in the dashboard but are
+  not saved; dynamic registration awaits the user's confirmation.
+- Deploy and verify the billing changes. The local MCP now calls the same
+  authenticated `get-billing-access` endpoint as the app, covering Stripe,
+  App Store, Play Store, and the existing fixed-ID complimentary access rule.
+  Missing identity, sandbox/expired subscriptions and billing errors fail closed.
+  Fixed-account identity fallback and the subscription bypass are removed from
+  the active tool path. OAuth identity comes from Supabase's verified user result.
+  Each MCP request uses its current verified token after refresh.
+- Confirm the publishing account on the OpenAI sign-in page. No account has been
+  selected, and no package has been uploaded or submitted.
 - Validate the native confirmation form in actual ChatGPT and Codex clients.
   Existing automated tests use a simulated MCP client. Unsupported hosts fail
   closed and therefore cannot use the three mutating tools.
@@ -52,7 +56,7 @@ to assistant screens and marketing than a small composer icon.
 - `docs/integration-foundation.md`
 
 The service file has pre-existing uncommitted changes; this preparation preserves
-them. The draft does not change production billing, OAuth, WhatsApp or app branding.
+them. Local service changes are not yet deployed. Production billing, OAuth, WhatsApp and app branding have not been changed by this work.
 
 ## Checks performed
 
@@ -65,3 +69,16 @@ them. The draft does not change production billing, OAuth, WhatsApp or app brand
   without modification. This is a branding recommendation, not an icon usability test.
 - No live account/subscription test, review recording, dashboard validation or
   submission was performed. No release ZIP is produced while MCP setup is incomplete.
+
+## Production preparation checkpoint (2026-09-29)
+
+- Confirmed Railway CLI is authenticated and the existing MCP service is reachable.
+- 23 automated tests passed across integration OAuth, action approval/account
+  isolation, and the new MCP billing/refresh cases. These use controlled test data;
+  they are not a substitute for the pending live OAuth and client acceptance tests.
+- Targeted ESLint and plugin validation passed. MCP syntax checks passed.
+- Existing uncommitted edits to the legacy Stripe-only helper are preserved and
+  excluded from this checkpoint's commit.
+- Remaining: save approved OAuth configuration, deploy the scoped MCP service,
+  run live paid/unpaid and cross-account tests, verify actual host confirmations,
+  prepare review accounts/recording, upload, resolve dashboard findings and submit.
