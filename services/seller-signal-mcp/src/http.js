@@ -112,6 +112,13 @@ async function main() {
   });
   app.set("trust proxy", 1);
 
+  app.get("/.well-known/openai-apps-challenge", (_req, res) => {
+    const challenge = process.env.OPENAI_APPS_DOMAIN_CHALLENGE?.trim();
+    res.set("Cache-Control", "no-store");
+    if (!challenge) return res.sendStatus(404);
+    return res.type("text/plain").send(challenge);
+  });
+
   let authMiddleware;
   const publicBaseUrl = getPublicBaseUrl(host, port);
   const mcpServerUrl = new URL("/mcp", publicBaseUrl);
