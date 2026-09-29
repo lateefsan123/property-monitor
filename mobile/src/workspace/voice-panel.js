@@ -5,7 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
 import { useWorkspacePreference } from "./preferences";
 import AssistantLauncher from './assistant-launcher';
-import MatrixOrb from './matrix-orb';
+import RepeatFox from '../components/RepeatFox';
 import { integrationRequest } from './integration-client';
 import { fetchListingPriceDrops } from './home-insights';
 import { Button, Icon } from './ui';
@@ -63,7 +63,7 @@ function PrivateVoicePanel({ colors, userId, hideLauncher = false, launcherBotto
         </View>
         <ScrollView ref={scroll} style={{ flex: 1 }} keyboardShouldPersistTaps="handled" contentInsetAdjustmentBehavior="never" contentContainerStyle={{ padding: 22, gap: 14, flexGrow: 1, justifyContent: empty && !voice.error && !voice.notice ? 'center' : 'flex-start' }}>
           {(empty || active) && <><View style={{ alignSelf: 'center', marginBottom: 10 }}>
-            <MatrixOrb size={148} color={colors.text} animated={open}
+            <RepeatFox size={132} animated={open}
               state={voice.chatting || voice.loading || voice.sending || voice.state === 'connecting' ? 'thinking' : voice.state === 'listening' ? 'listening' : 'idle'} />
           </View>
           <Text accessibilityLiveRegion="polite" style={{ ...text, textAlign: 'center', fontSize: 25, lineHeight: 32, fontWeight: '500' }}>{title}</Text>

@@ -15,9 +15,14 @@ test('web launcher is absent for other accounts and present for the private acco
   });
   try {
     const { default: VoicePanel } = await vite.ssrLoadModule('/src/voice/VoicePanel.jsx');
-    const render = userId => renderToStaticMarkup(React.createElement(QueryClientProvider, { client: new QueryClient() }, React.createElement(VoicePanel, { userId })));
+    // The launcher waits for the saved "show Ask Repeat" preference; seed it as on.
+    const client = new QueryClient();
+    client.setQueryData(['workspace-preference', PRIVATE_ASSISTANT_USER_ID, 'ask-repeat-visible'], true);
+    const render = userId => renderToStaticMarkup(React.createElement(QueryClientProvider, { client }, React.createElement(VoicePanel, { userId })));
     assert.equal(render('another-account'), '');
     assert.equal(render(undefined), '');
-    assert.match(render(PRIVATE_ASSISTANT_USER_ID), /Open Repeat AI assistant/);
+    const launcher = render(PRIVATE_ASSISTANT_USER_ID);
+    assert.match(launcher, /Open Repeat AI assistant/);
+    assert.match(launcher, /class="repeat-fox is-idle"/);
   } finally { await vite.close(); }
 });

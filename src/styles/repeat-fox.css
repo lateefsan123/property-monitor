@@ -1,0 +1,12 @@
+/* Repeat, the broker fox (RepeatFox.jsx): blink, listening tilt, thinking nod. */
+.repeat-fox { display: block; flex: none; overflow: visible; }
+.repeat-fox-eyes { transform-box: fill-box; transform-origin: center; animation: repeat-fox-blink 4.2s infinite; }
+.repeat-fox-head { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .45s ease; }
+.repeat-fox.is-listening .repeat-fox-head { transform: rotate(-8deg); }
+.repeat-fox.is-thinking .repeat-fox-head { animation: repeat-fox-nod .6s ease-in-out infinite; }
+@keyframes repeat-fox-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+@keyframes repeat-fox-nod { 0%, 100% { transform: rotate(0); } 50% { transform: rotate(4deg); } }
+@media (prefers-reduced-motion: reduce) {
+  .repeat-fox-eyes, .repeat-fox.is-thinking .repeat-fox-head { animation: none; }
+  .repeat-fox-head { transition: none; }
+}

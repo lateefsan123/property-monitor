@@ -55,7 +55,9 @@
 .app-shell .assistant-approval { background: var(--bg-hover); }
 .app-shell .assistant-error { color: var(--error-text); }
 .repeat-assistant audio:not([hidden]) { position: absolute; top: 72px; right: 16px; z-index: 1; width: min(300px, calc(100% - 32px)); }
-.assistant-matrix-orb { margin: 4px auto 12px; color: var(--text); }
+.assistant-fox { margin: 4px auto 12px; }
+/* The launcher fox holds still; the panel fox blinks, tilts and nods. */
+.assistant-launcher .repeat-fox-eyes { animation: none; }
 .assistant-header-actions { display: flex; gap: 8px; }
 .assistant-suggestions { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 12px 0 0; }
 .assistant-suggestions button { text-align: left; padding: 10px 12px; white-space: normal; }

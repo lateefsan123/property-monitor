@@ -10,7 +10,7 @@ import { createVoiceWorkspace, voiceResultCards } from '../../shared/voice-works
 import { createBrowserVoiceTransport } from './voice-transport';
 import './voice.css';
 import { useAssistantPreference } from "./useAssistantPreference";
-import MatrixOrb from './MatrixOrb';
+import RepeatFox from '../components/RepeatFox';
 import { canUsePrivateAssistant } from '../../shared/assistant-access.js';
 
 const sessionRequest = createVoiceRequest({ getSession: () => supabase.auth.getSession(), url: '/api/voice' });
@@ -46,13 +46,12 @@ function PrivateVoicePanel({ userId, onOpenChange }) {
   return <div className={`repeat-assistant${open ? ' is-open' : ''}`}>
     <audio ref={audio} autoPlay hidden aria-label="Assistant audio" />
     {!open && assistantPreference.ready && assistantPreference.value && <button ref={launcher} className="assistant-launcher" type="button" aria-label="Open Repeat AI assistant" aria-expanded={false}
-      onClick={() => { setOpen(true); onOpenChange?.(true); }}><AudioLines size={23} /><span>Ask Repeat</span></button>}
+      onClick={() => { setOpen(true); onOpenChange?.(true); }}><RepeatFox size={28} /><span>Ask Repeat</span></button>}
     {open && <section className="assistant-panel" role="dialog" aria-label="Repeat AI assistant" onKeyDown={event => { if (event.key === 'Escape') dismiss(); }}>
       <header className="assistant-header"><span>Repeat AI</span><div className="assistant-header-actions"><button type="button" disabled={voice.sending} aria-label="New chat" onClick={() => { voice.newChat(); setDraft(''); }}><Plus size={26} /></button><button ref={closeButton} type="button" aria-label="Close and end conversation" onClick={dismiss}><X size={24} /></button></div></header>
       <div className={`assistant-body${empty && !voice.error && !voice.notice ? ' is-empty' : ''}`}>
-        {(empty || active) && <><MatrixOrb className="assistant-matrix-orb" size={148} color="currentColor"
-          state={voice.chatting || voice.loading || voice.sending || voice.state === 'connecting' ? 'thinking' : voice.state === 'listening' ? 'listening' : 'idle'}
-          labels={{ idle: '', listening: '', thinking: '' }} aria-hidden="true" />
+        {(empty || active) && <><RepeatFox className="assistant-fox" size={132}
+          state={voice.chatting || voice.loading || voice.sending || voice.state === 'connecting' ? 'thinking' : voice.state === 'listening' ? 'listening' : 'idle'} />
         <h2 role="status">{title}</h2></>}
         <div className="assistant-chat-log" role="log" aria-label="Conversation">
           {voice.messages.map((message, index) => <p key={index} className={`assistant-chat-message is-${message.role}`}><span className="assistant-speaker">{message.role === 'user' ? 'You' : 'Repeat AI'}: </span>{message.content}</p>)}
