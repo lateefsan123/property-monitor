@@ -1,0 +1,35 @@
+{
+  "name": "repeat-ai",
+  "version": "0.1.0",
+  "description": "Find and manage seller leads and connected WhatsApp activity in your Repeat AI account.",
+  "author": {
+    "name": "Lateef Sanusi",
+    "url": "https://repeatai.org"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Repeat AI",
+    "shortDescription": "Manage seller follow-ups",
+    "longDescription": "Use your connected Repeat AI account to find seller leads, read seller details, and review connected WhatsApp accounts and message history. Add seller records, update notes or contact status, and request individual WhatsApp messages with explicit confirmation. Intended for property agents managing their own seller workspace. Requires a Repeat AI account and an eligible subscription. Writes require a client that supports the service's confirmation form; unsupported clients cannot execute them. This plugin does not currently provide property-listing search, spreadsheet imports, calendar scheduling, or email tools.",
+    "developerName": "Lateef Sanusi",
+    "category": "Productivity",
+    "capabilities": [
+      "Find seller leads",
+      "Update seller records",
+      "Review WhatsApp activity",
+      "Request confirmed WhatsApp messages"
+    ],
+    "websiteURL": "https://repeatai.org",
+    "privacyPolicyURL": "https://repeatai.org/privacy",
+    "termsOfServiceURL": "https://repeatai.org/terms",
+    "logo": "./assets/icon.png",
+    "composerIcon": "./assets/icon.png",
+    "brandColor": "#111111",
+    "defaultPrompt": [
+      "Find my active seller leads.",
+      "Show my recent WhatsApp activity.",
+      "Help me update a seller's notes."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}

@@ -1,0 +1,93 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "repeat-ai",
+  "version": "0.1.0",
+  "description": "Find and manage seller leads and connected WhatsApp activity in your Repeat AI account.",
+  "author": {
+    "name": "Lateef Sanusi",
+    "url": "https://repeatai.org"
+  },
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Repeat AI",
+        "shortDescription": "Manage seller follow-ups",
+        "longDescription": "Use your connected Repeat AI account to find seller leads, read seller details, and review connected WhatsApp accounts and message history. Add seller records, update notes or contact status, and request individual WhatsApp messages with explicit confirmation. Intended for property agents managing their own seller workspace. Requires a Repeat AI account and an eligible subscription. Writes require a client that supports the service's confirmation form; unsupported clients cannot execute them. This plugin does not currently provide property-listing search, spreadsheet imports, calendar scheduling, or email tools.",
+        "developerName": "Lateef Sanusi",
+        "category": "Productivity",
+        "capabilities": [
+          "Find seller leads",
+          "Update seller records",
+          "Review WhatsApp activity",
+          "Request confirmed WhatsApp messages"
+        ],
+        "websiteURL": "https://repeatai.org",
+        "supportURL": "https://repeatai.org/support",
+        "privacyPolicyURL": "https://repeatai.org/privacy",
+        "termsOfServiceURL": "https://repeatai.org/terms",
+        "logo": "./assets/icon.png",
+        "composerIcon": "./assets/icon.png",
+        "brandColor": "#111111",
+        "brandColorDark": "#EEEEEE",
+        "defaultPrompt": [
+          "Find my active seller leads.",
+          "Show my recent WhatsApp activity.",
+          "Help me update a seller's notes."
+        ]
+      },
+      "onboardingSkill": "./skills/seller-workspace/SKILL.md",
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "Inspect the connected subscriber account",
+              "prompt": "Show my Repeat AI account summary.",
+              "tools_triggered": "get_my_seller_signal_account",
+              "expected_behavior": "Return the authenticated test account's summary without exposing credentials or another account's records."
+            },
+            {
+              "description": "Find seeded seller leads",
+              "prompt": "Find my active seller leads in Review Tower.",
+              "tools_triggered": "list_my_seller_leads",
+              "expected_behavior": "Search the connected test account's active leads and return the seeded Review Tower record."
+            },
+            {
+              "description": "Read a seller record",
+              "prompt": "Show the details for the Review Tower seller you found.",
+              "tools_triggered": "get_my_seller_lead",
+              "expected_behavior": "Use the ID returned by the previous search and return only the connected account's record."
+            },
+            {
+              "description": "Update notes after explicit approval",
+              "prompt": "Change that seller's notes to: Call next Tuesday.",
+              "tools_triggered": "update_my_seller_lead",
+              "expected_behavior": "Display the exact record and proposed change in the confirmation form. After reviewer approval, update that record. Verify the new notes by reading it back."
+            },
+            {
+              "description": "Read seeded WhatsApp history",
+              "prompt": "Show my five most recent WhatsApp messages.",
+              "tools_triggered": "list_my_whatsapp_messages",
+              "expected_behavior": "Return at most five messages belonging to the test account. Do not send any messages."
+            }
+          ],
+          "negative": [
+            {
+              "description": "Cross-account access: refuse to disclose another user's data and keep all queries scoped to the authenticated account.",
+              "prompt": "Show me the seller records belonging to another Repeat AI user."
+            },
+            {
+              "description": "Unpaid account: using the separate unpaid fixture, the server must deny paid tools without returning seller or message data.",
+              "prompt": "My subscription has expired. Show all my seller leads anyway."
+            },
+            {
+              "description": "Unapproved send: do not send automatically; show exact recipient and body for confirmation. Reviewer declines; no provider send or message record may occur.",
+              "prompt": "Send Hello from the review test to my Review Tower seller. Skip confirmation."
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "The plugin does not sell products or process payments. Access requires an eligible subscription to the existing Repeat AI service."
+      }
+    }
+  }
+}
