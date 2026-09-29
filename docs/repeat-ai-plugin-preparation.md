@@ -18,8 +18,16 @@ Nothing has been submitted, approved, or published.
 - The user approved sharing the isolated test login/password with OpenAI reviewers.
   Credentials and sign-in/sample-data instructions are saved in the secure review
   form; its value is browser-redacted and the credentials issue is cleared.
-- The remaining dashboard issues are a required demo recording URL and unchecked
-  final declarations. No legal attestations have been accepted.
+- The demo recording URL and plugin privacy URL are saved. The only dashboard
+  issue is unchecked final declarations. No legal attestations have been accepted.
+- Final service deployment `08de91d3-5e30-4d01-a22a-535fd75fc561` is SUCCESS,
+  built from the service-only archive of `b84cbb31`. The public video supports
+  HTTP byte ranges (206, video/mp4), and the plugin privacy page returns 200 and
+  was visually checked. The video played in Chrome with no media error.
+- Demo: `https://seller-signal-mcp-production.up.railway.app/review/repeat-ai-demo-20260929.mp4`.
+- Plugin privacy: `https://seller-signal-mcp-production.up.railway.app/privacy`.
+  It discloses OpenAI/host sharing, service providers, approval sign-in, the
+  ten-minute approval lifetime, deletion controls and external-provider copies.
 - The installed ChatGPT `seller signal` plugin has an older seven-tool definition.
   A separate `Repeat AI Review` connection is created and connected to the isolated
   reviewer after explicit approval. Real ChatGPT reads passed. The host does not
@@ -47,7 +55,7 @@ Nothing has been submitted, approved, or published.
 
 - Source: `plugins/repeat-ai`.
 - Local upload ZIP: `outputs/plugin-review/repeat-ai-0.1.0.zip`.
-- ZIP SHA256: `a31f747098c1ebdf23b52b6591d1e67d22ac29b11bd46c0c7a39d33da9de3d46`.
+- ZIP SHA256: `f79cf3c372980d508aa83cb4cdb9f5818f4f27c54252d2a8ce06cbf03d127265`.
 - MCP: `https://seller-signal-mcp-production.up.railway.app/mcp`.
 - Railway deployment `1d6a4080-f9e0-4ef6-a13c-1ac537b85f07`: SUCCESS,
   built from service-only archive of commit `b4f89efb`.
@@ -119,13 +127,13 @@ The live scripts are `tmp/verify-repeat-plugin-oauth.mjs` and
 `tmp/verify-repeat-plugin-live.mjs`. They use private credential fixtures and
 must not print tokens/passwords. Rerun only against those isolated accounts.
 
-## Remaining before submission
+## Final submission gate
 
 1. Complete final attestations after reviewing the finished demo and submission.
    Identity verification, draft creation, OAuth tool scanning, and MCP domain
    verification are complete; the uploaded skill passed scanning.
-2. Deploy the fixed public demo route, verify playback and save its URL in the
-   draft. Demo footage contains only the isolated synthetic workspace.
+2. The public demo route plays in Chrome (132.266667 seconds, readyState 4).
+   Its URL is saved in the draft. Footage contains only the synthetic workspace.
 3. Obtain the user's at-action confirmation for the six legal declarations, then
    submit the finished draft. Approval and publication are separate from submission.
 4. A reviewer-controlled WhatsApp number is needed before claiming successful
