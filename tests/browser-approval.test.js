@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { Buffer } from 'node:buffer';
 import { createRequire } from 'node:module';
 import { createApprovalStore, mountApprovalRoutes, approvalPage } from '../services/seller-signal-mcp/src/browser-approval.js';
 const require = createRequire(new URL('../services/seller-signal-mcp/package.json', import.meta.url));
