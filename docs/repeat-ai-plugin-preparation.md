@@ -1,11 +1,14 @@
 # Repeat AI plugin release preparation
 
-## Current state (2026-09-29)
+## Current state (2026-09-30)
 
-The Personal organization is identity verified. A Repeat AI 0.1.0 draft has been
-created under the user-selected lateefsanusi68@gmail.com account. Listing fields,
+The Personal organization is identity verified. Repeat AI 0.1.0 was submitted
+under the user-selected lateefsanusi68@gmail.com account. Listing fields,
 directory/composer icons, prompts, reviewer tests and the seller-workspace skill are uploaded.
-Nothing has been submitted, approved, or published.
+The user completed the final declarations and submission. The live dashboard
+confirms "Repeat AI submitted for review" and says a decision notification will
+follow. The version is read-only and all six declarations are checked. Approval
+and publication are not yet confirmed.
 
 - Draft app: `asdk_app_6abc34a9bfb8819187668196e47b6952`.
 - Draft version: `asdk_app_v_6abc34ab3b008191adc45fe66660692e`.
@@ -14,12 +17,12 @@ Nothing has been submitted, approved, or published.
   explicit user approval. All eight current tool justifications were imported.
 - The seller-workspace safety scan shows Passed. The directory icon was uploaded
   again and its light/dark previews were verified after the original upload did
-  not persist. Release notes are saved. All six final attestations remain unchecked.
+  not persist. Release notes are saved. All six final attestations are checked.
 - The user approved sharing the isolated test login/password with OpenAI reviewers.
   Credentials and sign-in/sample-data instructions are saved in the secure review
   form; its value is browser-redacted and the credentials issue is cleared.
-- The demo recording URL and plugin privacy URL are saved. The only dashboard
-  issue is unchecked final declarations. No legal attestations have been accepted.
+- The demo recording URL and plugin privacy URL are saved in the submitted version.
+- Submission proof: `outputs/plugin-review/submitted-for-review.png`.
 - Final service deployment `08de91d3-5e30-4d01-a22a-535fd75fc561` is SUCCESS,
   built from the service-only archive of `b84cbb31`. The public video supports
   HTTP byte ranges (206, video/mp4), and the plugin privacy page returns 200 and
@@ -127,15 +130,14 @@ The live scripts are `tmp/verify-repeat-plugin-oauth.mjs` and
 `tmp/verify-repeat-plugin-live.mjs`. They use private credential fixtures and
 must not print tokens/passwords. Rerun only against those isolated accounts.
 
-## Final submission gate
+## Review status and coverage limit
 
-1. Complete final attestations after reviewing the finished demo and submission.
-   Identity verification, draft creation, OAuth tool scanning, and MCP domain
-   verification are complete; the uploaded skill passed scanning.
+1. Submission is confirmed in the live OpenAI dashboard. Await its review decision.
+   Identity verification, OAuth tool scanning, and MCP domain verification are
+   complete; the uploaded skill passed scanning.
 2. The public demo route plays in Chrome (132.266667 seconds, readyState 4).
    Its URL is saved in the draft. Footage contains only the synthetic workspace.
-3. Obtain the user's at-action confirmation for the six legal declarations, then
-   submit the finished draft. Approval and publication are separate from submission.
+3. Approval and publication are separate from the completed submission.
 4. A reviewer-controlled WhatsApp number is needed before claiming successful
    delivery coverage. No real send test has been performed or represented in the demo.
 
