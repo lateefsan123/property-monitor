@@ -37,7 +37,7 @@ test("ten steps use real destinations and existing product assets", () => {
 });
 test("tour integration is authenticated, user-scoped and suppressed for shell modals", () => {
   const shell = readFileSync(new URL('../src/AppShell.jsx', import.meta.url), 'utf8');
-  assert.match(shell, /!createOpen && !messageTemplatesOpen && !settingsOpen && !assistantOpen && <ProductTour key=\{userId\}/);
+  assert.match(shell, /!createOpen && !messageTemplatesOpen && !assistantOpen && <ProductTour key=\{`tour:\$\{userId\}`\}/);
   const component = readFileSync(new URL('../src/components/ProductTour.jsx', import.meta.url), 'utf8');
   assert.match(component, /observer.disconnect/);
   assert.match(component, /event.key === "Escape"/);
@@ -109,7 +109,8 @@ test("artwork retains its palette in dark mode and launcher uses a fixed-size ic
   for (const colour of ['#d5ebf8', '#f6dbca', '#e0d9f1', '#dbf5eb', '#d9e6cf']) assert.ok(css.includes(colour));
 });
 
-test("seller automation clears the bottom help and assistant row", () => {
+test("no floating seller action bar sits under the help and assistant row", () => {
   const css = readFileSync(new URL('../src/voice/voice.css', import.meta.url), 'utf8');
-  assert.match(css, /\.app-shell \.floating-action-container\s*\{[^}]*bottom: calc\(88px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+  assert.doesNotMatch(css, /floating-action-container/);
+  assert.equal(existsSync(new URL('../src/features/seller-signal/components/StickyActionBar.jsx', import.meta.url)), false);
 });
