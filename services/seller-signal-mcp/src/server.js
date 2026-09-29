@@ -12,8 +12,8 @@ export function createSellerSignalMcpServer(options = {}) {
       inputSchema: action.inputSchema,
       annotations: {
         readOnlyHint: action.readOnly,
-        destructiveHint: !action.readOnly,
-        openWorldHint: action.name.includes("whatsapp"),
+        destructiveHint: action.name === "update_my_seller_lead" || action.name === "send_seller_signal_whatsapp_message",
+        openWorldHint: action.name === "send_seller_signal_whatsapp_message",
         ...(action.readOnly ? { idempotentHint: true } : {}),
       },
     }, async (args, extra) => {
