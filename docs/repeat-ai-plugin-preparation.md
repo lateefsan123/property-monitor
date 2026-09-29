@@ -60,7 +60,8 @@ them. The draft does not change production billing, OAuth, WhatsApp or app brand
 - Skill validator passed.
 - Existing integration-action and confirmation tests passed (9/9).
 - `npm run mcp:check` passed.
-- Viewed the existing logo and fox artwork; copied the original 1280-square PNG
+- Manifest parity, review-case counts, asset paths and PNG dimensions passed.
+- Viewed the existing logo and fox artwork; copied the original 1254-square PNG
   without modification. This is a branding recommendation, not an icon usability test.
 - No live account/subscription test, review recording, dashboard validation or
   submission was performed. No release ZIP is produced while MCP setup is incomplete.
