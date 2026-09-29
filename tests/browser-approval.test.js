@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { Buffer } from 'node:buffer';
 import { createRequire } from 'node:module';
 import { createApprovalStore, mountApprovalRoutes, approvalPage } from '../services/seller-signal-mcp/src/browser-approval.js';
+import { createSellerSignalMcpServer } from '../services/seller-signal-mcp/src/server.js';
 const require = createRequire(new URL('../services/seller-signal-mcp/package.json', import.meta.url));
 const request = { userId: 'owner', action: 'update_my_seller_lead', input: { leadId: '1', notes: '<script>bad</script>' } };
 const idOf = result => result.approvalUrl.split('/').at(-1);
@@ -71,4 +72,22 @@ test('approval page never embeds action data or privileged keys', () => {
   assert.ok(!page.includes('SECRET'));
   assert.match(page, /textContent=JSON.stringify/);
   assert.ok(!page.includes('localStorage'));
+});
+
+test('a real MCP client without elicitation receives a pending browser link, not a write', async () => {
+  const { Client } = require('@modelcontextprotocol/sdk/client/index.js');
+  const { InMemoryTransport } = require('@modelcontextprotocol/sdk/inMemory.js');
+  const store = createApprovalStore({ origin: 'https://example.test' });
+  const server = createSellerSignalMcpServer({ authInfo: { token: 'unused', extra: { userId: 'owner' } }, approvalStore: store });
+  const client = new Client({ name: 'without-forms', version: '1' });
+  const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
+  try {
+    await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
+    const result = await client.callTool({ name: 'add_my_seller_lead', arguments: { name: 'Synthetic test' } });
+    const pending = JSON.parse(result.content[0].text);
+    assert.equal(pending.status, 'confirmation_required');
+    assert.equal(store.inspect(idOf(pending), 'owner').status, 'pending');
+    assert.equal(store.inspect(idOf(pending), 'owner').input.name, 'Synthetic test');
+    await store.decide(idOf(pending), 'owner', false);
+  } finally { await client.close(); await server.close(); }
 });

@@ -4,7 +4,7 @@
   "app_info": {
     "display_name": "Repeat AI",
     "subtitle": "Manage seller follow-ups",
-    "description": "Use your connected Repeat AI account to find seller leads, read seller details, and review connected WhatsApp accounts and message history. Add seller records, update notes or contact status, and request individual WhatsApp messages with explicit confirmation. Intended for property agents managing their own seller workspace. Requires a Repeat AI account and an eligible subscription. Writes require a client that supports the service's confirmation form; unsupported clients cannot execute them. This plugin does not currently provide property-listing search, spreadsheet imports, calendar scheduling, or email tools.",
+    "description": "Use your connected Repeat AI account to find seller leads, read seller details, and review connected WhatsApp accounts and message history. Add seller records, update notes or contact status, and request individual WhatsApp messages with explicit confirmation. Intended for property agents managing their own seller workspace. Requires a Repeat AI account and an eligible subscription. Writes require approval in a supported native form or on a separate Repeat AI page using email/password sign-in. This plugin does not currently provide property-listing search, spreadsheet imports, calendar scheduling, or email tools.",
     "category": "PRODUCTIVITY"
   },
   "tools": {
@@ -128,7 +128,7 @@
       "description": "Update notes after explicit approval",
       "user_prompt": "Change that seller's notes to: Call next Tuesday.",
       "tools_triggered": "update_my_seller_lead",
-      "expected_output": "Display the exact record and proposed change in the confirmation form. After reviewer approval, update that record. Verify the new notes by reading it back."
+      "expected_output": "Display the exact record and proposed change in the native confirmation form or provide an authenticated browser approval link. Open the link, sign in with the supplied demo credentials and approve the exact change. After approval, ask the assistant to read back the record and verify the new notes. A pending or declined approval must not modify the record."
     },
     {
       "description": "Read WhatsApp history",

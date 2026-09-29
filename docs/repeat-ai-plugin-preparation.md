@@ -21,23 +21,33 @@ Nothing has been submitted, approved, or published.
 - The remaining dashboard issues are a required demo recording URL and unchecked
   final declarations. No legal attestations have been accepted.
 - The installed ChatGPT `seller signal` plugin has an older seven-tool definition.
-  A separate `Repeat AI Review` MCP connection form is prepared for the current
-  endpoint, awaiting permission to create/connect the isolated test workspace.
+  A separate `Repeat AI Review` connection is created and connected to the isolated
+  reviewer after explicit approval. Real ChatGPT reads passed. The host does not
+  support native MCP form elicitation, so an authenticated browser approval
+  fallback was implemented and verified for accepted and declined writes.
 - OpenAI shows the MCP domain as verified. The challenge is served from
   `/.well-known/openai-apps-challenge` using `OPENAI_APPS_DOMAIN_CHALLENGE`.
-- Latest Railway deployment `2b2ef833-4a98-4609-b998-b572401583ac` is SUCCESS,
-  from service-only archive of `d57f6de5`. It includes the challenge route and
-  corrected destructive/open-world annotations. The endpoint returned HTTP 200
-  with the exact expected token and text/plain content type.
+- Railway deployment `50a49879-2e03-4254-9c7c-9e97c1dfd0f2` is SUCCESS,
+  from service-only archive of `109df202`. It includes the browser approval
+  fallback. Approved notes saved and declined notes did not change, with actual
+  ChatGPT readback. The original synthetic notes were restored and verified.
 - Six billing/session tests, MCP syntax checks and targeted ESLint passed for
   these changes. The OpenAI rescan confirms the corrected annotations live.
 - `scripts/build-plugin-submission.mjs` generates the separate dashboard import
   `plugins/repeat-ai/chatgpt-app-submission.json` with five positive cases and
   three out-of-scope invocation cases. It contains no reviewer credentials.
+- Updated listing, test cases, reviewer instructions and skill are saved in the
+  dashboard. The updated skill scan passed. Sixteen targeted confirmation,
+  browser approval and billing/session tests passed, as did MCP syntax and ESLint.
+- Review footage: `services/seller-signal-mcp/public/review-demo.mp4`, 132 seconds,
+  H.264, 1920x1080. It combines captured live screens and a live browser recording
+  with idle time condensed. Sign-in credentials are omitted. It shows read cases,
+  accepted/declined changes and fixture restoration; no WhatsApp send is claimed.
+  FFmpeg decoded the entire video without errors and selected frames were inspected.
 
 - Source: `plugins/repeat-ai`.
 - Local upload ZIP: `outputs/plugin-review/repeat-ai-0.1.0.zip`.
-- ZIP SHA256: `05b723a1e353103c21dee2dea39876eccc7e42e65a390630568133a88afd716f`.
+- ZIP SHA256: `a31f747098c1ebdf23b52b6591d1e67d22ac29b11bd46c0c7a39d33da9de3d46`.
 - MCP: `https://seller-signal-mcp-production.up.railway.app/mcp`.
 - Railway deployment `1d6a4080-f9e0-4ef6-a13c-1ac537b85f07`: SUCCESS,
   built from service-only archive of commit `b4f89efb`.
@@ -114,14 +124,12 @@ must not print tokens/passwords. Rerun only against those isolated accounts.
 1. Complete final attestations after reviewing the finished demo and submission.
    Identity verification, draft creation, OAuth tool scanning, and MCP domain
    verification are complete; the uploaded skill passed scanning.
-2. Verify the confirmation experience in real ChatGPT/Codex UI. Live SDK protocol
-   tests do not establish that those hosts render and accept the form correctly.
-3. Connect a reviewer-controlled WhatsApp test number before claiming successful
-   delivery coverage. No real send test has been performed.
-4. Record a reviewer-accessible demo of the actual host flow, add secure review
-   credentials and any required video URL, and verify developer/domain settings.
-5. Upload the ZIP, resolve dashboard findings, and complete required attestations
-   before submitting. Approval and publication are separate from submission.
+2. Deploy the fixed public demo route, verify playback and save its URL in the
+   draft. Demo footage contains only the isolated synthetic workspace.
+3. Obtain the user's at-action confirmation for the six legal declarations, then
+   submit the finished draft. Approval and publication are separate from submission.
+4. A reviewer-controlled WhatsApp number is needed before claiming successful
+   delivery coverage. No real send test has been performed or represented in the demo.
 
 ## References
 
