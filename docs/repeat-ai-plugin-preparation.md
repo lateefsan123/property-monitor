@@ -15,8 +15,14 @@ Nothing has been submitted, approved, or published.
 - The seller-workspace safety scan shows Passed. The directory icon was uploaded
   again and its light/dark previews were verified after the original upload did
   not persist. Release notes are saved. All six final attestations remain unchecked.
-- Sharing the isolated test login/password with OpenAI's review form is awaiting
-  explicit user confirmation. No credentials have been entered in that form yet.
+- The user approved sharing the isolated test login/password with OpenAI reviewers.
+  Credentials and sign-in/sample-data instructions are saved in the secure review
+  form; its value is browser-redacted and the credentials issue is cleared.
+- The remaining dashboard issues are a required demo recording URL and unchecked
+  final declarations. No legal attestations have been accepted.
+- The installed ChatGPT `seller signal` plugin has an older seven-tool definition.
+  A separate `Repeat AI Review` MCP connection form is prepared for the current
+  endpoint, awaiting permission to create/connect the isolated test workspace.
 - OpenAI shows the MCP domain as verified. The challenge is served from
   `/.well-known/openai-apps-challenge` using `OPENAI_APPS_DOMAIN_CHALLENGE`.
 - Latest Railway deployment `2b2ef833-4a98-4609-b998-b572401583ac` is SUCCESS,
@@ -105,7 +111,7 @@ must not print tokens/passwords. Rerun only against those isolated accounts.
 
 ## Remaining before submission
 
-1. Enter reviewer credentials after confirmation and complete final attestations.
+1. Complete final attestations after reviewing the finished demo and submission.
    Identity verification, draft creation, OAuth tool scanning, and MCP domain
    verification are complete; the uploaded skill passed scanning.
 2. Verify the confirmation experience in real ChatGPT/Codex UI. Live SDK protocol
