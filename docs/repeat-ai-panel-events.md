@@ -177,3 +177,32 @@ sent its lead-scoped request to ChatGPT. ChatGPT again reported native MCP
 Events subscriptions unavailable; deployed logs showed no subscription call.
 No monitoring was activated. This is a remaining integration/host capability
 question, not a verified platform-wide outage or a proven server-side cause.
+
+## Event discovery verified; subscription control unavailable
+
+The preview plugin's Apps detail dialog visibly lists `seller.reply_received`
+under Events, alongside all nine tools. This confirms ChatGPT ingested the
+catalog, beyond the successful `events/list` HTTP response. Evidence:
+`outputs/plugin-review/chatgpt-event-discovered.png`.
+
+A fresh Work chat launched through the plugin's **Try in chat** action requested
+native webhook monitoring for synthetic lead #54014. Its activity showed
+"Listing Automation Event Sources". The completed response reported that the
+session's subscription control listed only Gmail and GitHub and did not expose
+Repeat AI Preview. No `events/subscribe` reached the service; monitoring was not
+created. The Scheduled > New task form exposed time-based scheduling only and
+was cancelled without creating a task.
+
+Reproduction chat:
+https://chatgpt.com/c/6abc6362-8ae4-83eb-ae5c-dc56edf023e1
+
+Evidence: `outputs/plugin-review/event-subscription-capability-result.png`.
+The catalog result is directly verified; the supported-provider list is reported
+by the Work session, not independently inspected in OpenAI's internal registry.
+No undocumented callback URLs, polling replacement, or customer messages were
+used. Further server schema changes are not justified by this evidence.
+
+The next dependency is making the discovered custom event available to the
+host's subscription control. A ready-to-send, credential-free reproduction is
+in `docs/repeat-ai-events-support-repro.md`; it has not been sent. Once native
+subscription is available, resume the callback and unsubscribe checklist above.
