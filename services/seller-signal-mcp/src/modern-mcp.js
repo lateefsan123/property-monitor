@@ -17,6 +17,9 @@ function decodeHeader(value) {
 export function createModernHandler({ events, approvalStore, origin, registry = createActionRegistry }) {
   return async (req, res) => {
     const body = req.body;
+    // Log protocol operations only: never tokens, arguments, account data or callbacks.
+    const diagnosticMethod = ["server/discover", "tools/list", "tools/call", "resources/list", "resources/read", "events/list", "events/subscribe", "events/unsubscribe", "ping"].includes(body?.method) ? body.method : "other";
+    res.on?.("finish", () => console.info("Preview MCP", diagnosticMethod, res.statusCode));
     const error = (code, message, status = 400, data) => res.status(status).json({ jsonrpc: "2.0", id: body?.id ?? null, error: { code, message, ...(data ? { data } : {}) } });
     res.set("Cache-Control", "no-store");
     if (req.headers.origin && req.headers.origin !== origin) return error(-32600, "Origin not allowed", 403);
