@@ -11,6 +11,7 @@ import { createBrowserVoiceTransport } from './voice-transport';
 import './voice.css';
 import { useAssistantPreference } from "./useAssistantPreference";
 import RepeatFox from '../components/RepeatFox';
+import AssistantMessage from './AssistantMessage';
 import { canUsePrivateAssistant } from '../../shared/assistant-access.js';
 
 const sessionRequest = createVoiceRequest({ getSession: () => supabase.auth.getSession(), url: '/api/voice' });
@@ -54,7 +55,7 @@ function PrivateVoicePanel({ userId, onOpenChange }) {
           state={voice.chatting || voice.loading || voice.sending || voice.state === 'connecting' ? 'thinking' : voice.state === 'listening' ? 'listening' : 'idle'} />
         <h2 role="status">{title}</h2></>}
         <div className="assistant-chat-log" role="log" aria-label="Conversation">
-          {voice.messages.map((message, index) => <p key={index} className={`assistant-chat-message is-${message.role}`}><span className="assistant-speaker">{message.role === 'user' ? 'You' : 'Repeat AI'}: </span>{message.content}</p>)}
+          {voice.messages.map((message, index) => <AssistantMessage key={index} message={message} />)}
           {voice.chatting && <p role="status">Thinking…</p>}
           <div ref={chatEnd} />
         </div>

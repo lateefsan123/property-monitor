@@ -5,6 +5,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabase';
 import { useWorkspacePreference } from "./preferences";
 import AssistantLauncher from './assistant-launcher';
+import AssistantMessage from './assistant-message';
 import RepeatFox from '../components/RepeatFox';
 import { integrationRequest } from './integration-client';
 import { fetchListingPriceDrops } from './home-insights';
@@ -68,10 +69,7 @@ function PrivateVoicePanel({ colors, userId, hideLauncher = false, launcherBotto
           </View>
           <Text accessibilityLiveRegion="polite" style={{ ...text, textAlign: 'center', fontSize: 25, lineHeight: 32, fontWeight: '500' }}>{title}</Text>
           </>}
-          {voice.messages.map((message, index) => <View key={index} style={{ alignSelf: message.role === 'user' ? 'flex-end' : 'stretch', maxWidth: message.role === 'user' ? '88%' : '100%', backgroundColor: message.role === 'user' ? (colors.isDark ? '#303030' : '#eef0ed') : 'transparent', borderRadius: 18, padding: message.role === 'user' ? 16 : 0, marginTop: message.role === 'user' ? 0 : 10, gap: 8 }}>
-            <Text style={{ ...muted, fontWeight: '600', color: message.role === 'user' ? colors.textMuted : colors.text }}>{message.role === 'user' ? 'You' : 'Repeat AI'}</Text>
-            <Text selectable accessibilityLabel={`${message.role === 'user' ? 'You' : 'Repeat AI'}: ${message.content}`} style={text}>{message.content}</Text>
-          </View>)}
+          {voice.messages.map((message, index) => <AssistantMessage key={index} message={message} colors={colors} />)}
           {voice.chatting && <Text accessibilityLiveRegion="polite" style={muted}>Thinking…</Text>}
           {voice.loading && <Text style={muted}>Checking your workspace…</Text>}
           {voice.error ? <Text selectable accessibilityRole="alert" style={text}>{voice.error}</Text> : null}
@@ -101,7 +99,7 @@ function PrivateVoicePanel({ colors, userId, hideLauncher = false, launcherBotto
           <View style={{ flex: 1, flexDirection: 'row', alignItems: 'flex-end', gap: 4, borderWidth: 1, borderColor: colors.border, borderRadius: 26, padding: 4, paddingLeft: 16, backgroundColor: colors.bgInput }}>
             <TextInput ref={composer} accessibilityLabel="Message Repeat AI" placeholder="Message Repeat" placeholderTextColor={colors.textMuted}
               value={draft} onChangeText={setDraft} multiline maxLength={4000} editable={!voice.chatting && !voice.sending && !voice.preview}
-              style={{ ...text, flex: 1, minHeight: 44, maxHeight: 120, paddingVertical: 12 }} />
+              style={{ ...text, fontSize: 16, lineHeight: 24, flex: 1, minHeight: 44, maxHeight: 120, paddingVertical: 12 }} />
             {(voice.chatting || draft.trim()) ? <Pressable accessibilityRole="button" accessibilityLabel={voice.chatting ? 'Stop response' : 'Send message'} disabled={voice.sending || !!voice.preview}
               style={{ ...iconButton, width: 44, height: 44, backgroundColor: colors.btnPrimaryBg, opacity: voice.sending || voice.preview ? .4 : 1 }}
               onPress={voice.chatting ? voice.stopChat : () => { const text = draft; setDraft(''); void voice.sendText(text).then(() => scroll.current?.scrollToEnd({ animated: true })); }}><Icon name={voice.chatting ? 'stop' : 'arrowUp'} size={22} color={colors.btnPrimaryText} /></Pressable> : null}

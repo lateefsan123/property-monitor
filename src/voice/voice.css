@@ -61,13 +61,34 @@
 .assistant-header-actions { display: flex; gap: 8px; }
 .assistant-suggestions { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 12px 0 0; }
 .assistant-suggestions button { text-align: left; padding: 10px 12px; white-space: normal; }
-.assistant-chat-log { display: flex; flex-direction: column; gap: 12px; }
-.assistant-chat-message { white-space: pre-wrap; overflow-wrap: anywhere; margin: 0; padding: 10px 12px; border-radius: 14px; text-align: left; }
-.assistant-chat-message.is-user { background: var(--bg-hover); align-self: flex-end; max-width: 90%; }
-.assistant-chat-message.is-assistant { align-self: stretch; padding-left: 0; }
+.assistant-chat-log { display: flex; flex-direction: column; gap: 24px; font-size: 16px; line-height: 1.7; }
+.assistant-chat-message { overflow-wrap: anywhere; min-width: 0; margin: 0; text-align: left; }
+.assistant-chat-message.is-user { white-space: pre-wrap; background: var(--bg-hover, #f0f0f0); align-self: flex-end; max-width: 88%; padding: 12px 18px; border-radius: 22px; box-sizing: border-box; }
+.assistant-chat-message.is-assistant { align-self: stretch; padding: 4px 0 16px; }
+.assistant-prose > :first-child { margin-top: 0; }
+.assistant-prose > :last-child { margin-bottom: 0; }
+.assistant-prose p { margin: 0 0 16px; white-space: pre-wrap; }
+.assistant-body .assistant-prose :is(h2,h3,h4,h5,h6) { text-align: left; font-size: 20px; line-height: 1.4; font-weight: 600; letter-spacing: -.25px; margin: 24px 0 12px; }
+.assistant-body .assistant-prose :is(h4,h5,h6) { font-size: 17px; }
+.assistant-prose strong { font-weight: 600; }
+.assistant-prose :is(ul,ol) { padding-left: 24px; margin: 0 0 18px; }
+.assistant-prose li { padding-left: 4px; margin: 8px 0; }
+.assistant-prose li > p { margin-bottom: 6px; }
+.assistant-prose li :is(ul,ol) { margin: 6px 0; }
+.assistant-prose a { color: inherit; text-decoration: underline; text-underline-offset: 3px; }
+.assistant-prose a:focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+.assistant-prose blockquote { margin: 18px 0; padding-left: 16px; border-left: 3px solid var(--nav-btn-border, #d6d6d6); color: var(--text-muted, #646464); }
+.assistant-prose code { font-family: ui-monospace, Consolas, monospace; font-size: .875em; background: var(--bg-input, #f0f0f0); border-radius: 4px; padding: 2px 5px; }
+.assistant-prose pre { margin: 18px 0; padding: 16px; border-radius: 12px; background: var(--bg-input, #f0f0f0); overflow-x: auto; white-space: pre; }
+.assistant-prose pre code { padding: 0; background: none; }
+.assistant-prose hr { border: 0; border-top: 1px solid var(--nav-btn-border, #d6d6d6); margin: 24px 0; }
+.assistant-table { overflow-x: auto; margin: 18px 0; }
+.assistant-table table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.assistant-table :is(th,td) { min-width: 100px; text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--nav-btn-border, #d6d6d6); }
+.assistant-table th { font-weight: 600; background: var(--bg-input, #f0f0f0); }
 .assistant-speaker { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 .assistant-composer { flex: 1; min-width: 0; display: flex; align-items: flex-end; gap: 4px; padding: 4px 4px 4px 16px; margin: 0; border: 1px solid var(--nav-btn-border, #dedfe5); border-radius: 26px; background: var(--bg-input, #f4f4f4); }
-.assistant-composer textarea { flex: 1; min-width: 0; min-height: 44px; max-height: 120px; box-sizing: border-box; field-sizing: content; resize: none; border: 0; background: transparent; color: var(--text, #24262d); font: inherit; padding: 12px 0; }
+.assistant-composer textarea { flex: 1; min-width: 0; min-height: 44px; max-height: 120px; box-sizing: border-box; field-sizing: content; resize: none; border: 0; background: transparent; color: var(--text, #24262d); font: inherit; font-size: 16px; line-height: 24px; padding: 10px 0; }
 .assistant-composer textarea::placeholder { color: var(--text-muted); }
 .assistant-composer textarea:focus { outline: none; }
 .assistant-composer:focus-within { outline: 2px solid var(--text-muted); outline-offset: 2px; }
