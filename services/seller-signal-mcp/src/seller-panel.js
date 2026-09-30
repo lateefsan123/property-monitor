@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 
-export const PANEL_URI = "ui://repeat-ai/sellers-v1.html";
+export const PANEL_URI = "ui://repeat-ai/sellers-v2.html";
 export const PANEL_META = {
   ui: { resourceUri: PANEL_URI },
   "openai/outputTemplate": PANEL_URI,
