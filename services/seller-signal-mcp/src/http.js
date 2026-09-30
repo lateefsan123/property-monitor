@@ -4,7 +4,10 @@ import "dotenv/config";
 import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { createClient } from "@supabase/supabase-js";
-import { readSupabaseConfig } from "./config.js";
+import { readSupabaseConfig, getSupabaseAdminClient } from "./config.js";
+import { createModernHandler, MODERN_VERSION } from "./modern-mcp.js";
+import { createEvents, credentialCipher } from "./events.js";
+import { createEventStore, eventAccessChecker } from "./event-store.js";
 import { createApprovalStore, mountApprovalRoutes } from "./browser-approval.js";
 import { createMcpExpressApp } from "@modelcontextprotocol/sdk/server/express.js";
 import {
@@ -19,7 +22,7 @@ import { createSellerSignalMcpServer } from "./server.js";
 import { isSessionOwner } from "./session-owner.js";
 import { assertDevOAuthAllowed, INSECURE_DEV_OAUTH_OPT_IN_ENV } from "./dev-oauth-policy.js";
 import { SellerSignalDevOAuthProvider } from "./oauth.js";
-import { assertUserHasSubscription, SubscriptionRequiredError } from "./seller-signal.js";
+import { assertUserHasSubscription, SubscriptionRequiredError, getLead } from "./seller-signal.js";
 import { createSupabaseOAuthVerifier, loadSupabaseOAuthMetadata } from "./supabase-oauth.js";
 
 function parsePort() {
@@ -246,7 +249,7 @@ async function main() {
           await closedSession?.server.close();
         },
       });
-      const server = createSellerSignalMcpServer({ authInfo: req.auth, approvalStore });
+      const server = createSellerSignalMcpServer({ authInfo: req.auth, approvalStore, enablePanel: req.path === "/mcp/preview" });
       session = { server, transport, userId: req.auth?.extra?.userId, clientId: req.auth?.clientId };
 
       transport.onclose = async () => {
@@ -308,6 +311,26 @@ async function main() {
   app.post("/mcp", ...protectedHandlers, mcpPostHandler);
   app.get("/mcp", ...protectedHandlers, mcpGetHandler);
   app.delete("/mcp", ...protectedHandlers, mcpDeleteHandler);
+
+  if (process.env.MCP_PREVIEW_ENABLED === "1" && authMode === "supabase-oauth") {
+    let events;
+    if (process.env.MCP_EVENTS_ENCRYPTION_KEY) {
+      const db = getSupabaseAdminClient();
+      const verifier = createSupabaseOAuthVerifier({ expectedResource: mcpServerUrl });
+      events = createEvents({ store: createEventStore(db), cipher: credentialCipher(process.env.MCP_EVENTS_ENCRYPTION_KEY), getLead,
+        checkAccess: eventAccessChecker(db, token => verifier.verifyAccessToken(token)) });
+      const timer = setInterval(() => events.tick().catch(() => console.error("Event delivery cycle failed; will retry")), 5000);
+      timer.unref();
+    }
+    const modern = createModernHandler({ events, approvalStore, origin: publicBaseUrl.origin });
+    app.post("/mcp/preview", ...protectedHandlers, (req, res) => {
+      const version = req.body?.params?._meta?.["io.modelcontextprotocol/protocolVersion"];
+      return version || req.headers["mcp-protocol-version"] === MODERN_VERSION || req.body?.method === "server/discover" || req.body?.method?.startsWith("events/")
+        ? modern(req, res) : mcpPostHandler(req, res);
+    });
+    app.get("/mcp/preview", ...protectedHandlers, mcpGetHandler);
+    app.delete("/mcp/preview", ...protectedHandlers, mcpDeleteHandler);
+  }
 
   app.listen(port, host, (error) => {
     if (error) {

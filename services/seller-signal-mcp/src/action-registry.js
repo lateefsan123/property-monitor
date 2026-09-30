@@ -23,6 +23,13 @@ export function createActionRegistry(options = {}) {
     const readOnly = name.startsWith("get_") || name.startsWith("list_");
     actions.set(name, { name, title, description, inputSchema, handler, readOnly });
   }
+  if (options.enablePanel) registerAction(
+    "get_my_seller_workspace",
+    "Open Repeat AI Sellers",
+    "Open the Repeat AI seller panel to search sellers, read their details and recent messages, and request reply summaries or monitoring.",
+    {},
+    async () => listLeads(options.authInfo, { limit: 50, status: "all" }),
+  );
   registerAction(
     "get_my_seller_signal_account",
     "Get My Seller Signal Account",
