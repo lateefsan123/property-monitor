@@ -36,6 +36,16 @@ test("modern transport rejects forged headers, wrong origins and unsupported ver
   assert.equal((await request("unknown")).status, 404);
 });
 
+test("MCP 2.0 cacheable responses include required private cache hints", async () => {
+  for (const method of ["server/discover", "tools/list", "resources/list", "resources/read"]) {
+    const { output, status } = await request(method, method === "resources/read" ? { uri: PANEL_URI } : {});
+    assert.equal(status, 200);
+    assert.equal(output.result.ttlMs, 0);
+    assert.equal(output.result.cacheScope, "private");
+  }
+  assert.equal((await request("events/list")).output.result.cacheScope, undefined);
+});
+
 test("panel metadata validates against the official extension SDK", () => {
   OpenAIUiToolMetadataSchema.parse(PANEL_META["openai/ui"]);
   OpenAIUiResourceMetadataSchema.parse(panelResource().contents[0]._meta["openai/ui"]);

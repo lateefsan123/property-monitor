@@ -56,7 +56,11 @@ export function createModernHandler({ events, approvalStore, origin, registry = 
         case "ping": result = {}; break;
         default: return error(-32601, "Method not found", 404);
       }
-      return res.json({ jsonrpc: "2.0", id: body.id, result: { ...result, resultType: "complete" } });
+      // MCP 2.0 requires explicit cache hints on discovery and resource results.
+      // Keep the preview private to the current authorization context.
+      const cacheHints = ["server/discover", "tools/list", "resources/list", "resources/read"].includes(body.method)
+        ? { ttlMs: 0, cacheScope: "private" } : {};
+      return res.json({ jsonrpc: "2.0", id: body.id, result: { ...result, ...cacheHints, resultType: "complete" } });
     } catch (cause) {
       return error(cause.code === -32015 ? cause.code : -32602, cause.code === -32015 ? cause.message : "Could not process request. Check arguments, callback URL and account access.", 400, cause.data);
     }
