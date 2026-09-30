@@ -204,5 +204,6 @@ used. Further server schema changes are not justified by this evidence.
 
 The next dependency is making the discovered custom event available to the
 host's subscription control. A ready-to-send, credential-free reproduction is
-in `docs/repeat-ai-events-support-repro.md`; it has not been sent. Once native
+in `docs/repeat-ai-events-support-repro.md`; it was subsequently submitted to
+OpenAI support and escalation to a human specialist was confirmed. Once native
 subscription is available, resume the callback and unsubscribe checklist above.

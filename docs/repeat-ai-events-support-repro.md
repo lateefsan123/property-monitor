@@ -1,6 +1,21 @@
 # Repeat AI custom MCP event is discovered but unavailable to subscription control
 
-Draft support report — not sent. Observed September 30, 2026.
+Submitted through the signed-in OpenAI Help Center support chat on September
+30, 2026. Human escalation confirmed in the support UI.
+
+## Support status
+
+The initial AI support reply described built-in Gmail, Slack and GitHub event
+triggers. A follow-up distinguished the documented custom MCP Events workflow
+and requested technical review of the discrepancy between the docs and the
+observed runtime. After confirming escalation, the UI showed **Escalation
+requested** and stated that a support specialist would respond in the coming
+days, with replies also sent by email. No case reference was displayed.
+
+Proof: `outputs/plugin-review/openai-support-escalated.png`.
+The report below was submitted as text; screenshots and local files were not
+uploaded. No credentials were included. The initial AI reply is not treated as
+a definitive explanation of custom MCP Events availability.
 
 ## Environment
 
