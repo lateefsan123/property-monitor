@@ -112,5 +112,33 @@ The local and database checks do not by themselves prove ChatGPT-side delivery.
   and no duplicate event when a message is updated. Existing records preserved.
 - Updating the old development plugin via ZIP was rejected by ChatGPT because
   it requires the existing canonical app. No plugin version was changed. A new
-  `Repeat AI Preview` connection is prepared for the isolated reviewer account;
-  ChatGPT-side rendering and actual callback delivery remain pending that grant.
+  `Repeat AI Preview` connection was subsequently created and authorized for
+  the isolated reviewer account. The submitted plugin was not changed.
+
+## ChatGPT verification — September 30, 2026
+
+- Development app: `asdk_app_6abc5c9e94448191bef34f91cdd5ad03`.
+- Development version: `asdk_app_v_6abc5c9e944c81919b495d93871b37c8`.
+- ChatGPT successfully called the workspace tool and read only Alex Demo (#54014).
+- Refreshing tools produced successful `server/discover`, `tools/list`,
+  `events/list`, and `resources/read` calls in the deployed service logs.
+- The ChatGPT widget request returned HTTP 404, `HTML asset not found`.
+  Both the sidebar launcher and conversation widget failed to render. Reducing
+  the embedded canonical logo brought the HTML from 934 KB to 440 KB, with a
+  fresh resource URI, but did not resolve the host rendering failure.
+- Two chats, including a fresh chat after rescan, reported that native event
+  subscription controls were unavailable. No `events/subscribe` was observed;
+  callback delivery and unsubscribe in ChatGPT remain unverified. No synthetic
+  inbound messages were inserted because there was no active host subscription.
+- The compact panel renders correctly in the local official AppBridge harness.
+  The live authenticated API checks still pass, including the original eight
+  tools on `/mcp`. All 32 tests and targeted ESLint passed after diagnostics;
+  the five panel/protocol tests passed again after the asset changes.
+- Protocol diagnostics log only an allowlisted operation name and HTTP status.
+  They do not log arguments, identities, credentials or callback destinations.
+
+This preview is not ready to replace the submitted plugin. Next work is to
+resolve ChatGPT resource ingestion and availability of subscription controls,
+then complete the callback lifecycle checklist above. Evidence is saved under
+`outputs/plugin-review/`; the event test chat is
+`https://chatgpt.com/c/6abc5e3f-d5a8-83eb-98c1-a50a93482592`.
