@@ -138,7 +138,42 @@ The local and database checks do not by themselves prove ChatGPT-side delivery.
   They do not log arguments, identities, credentials or callback destinations.
 
 This preview is not ready to replace the submitted plugin. Next work is to
-resolve ChatGPT resource ingestion and availability of subscription controls,
+resolve availability of subscription controls (the panel ingestion issue was
+subsequently fixed below),
 then complete the callback lifecycle checklist above. Evidence is saved under
 `outputs/plugin-review/`; the event test chat is
 `https://chatgpt.com/c/6abc5e3f-d5a8-83eb-98c1-a50a93482592`.
+
+## Resource ingestion fix and public reports
+
+The modern adapter omitted `ttlMs` and `cacheScope` on complete discovery,
+tool-list and resource results. MCP 2.0 requires both fields:
+https://modelcontextprotocol.io/specification/2026-07-28/server/utilities/caching
+
+Commit `8caa3a15` adds zero-TTL private cache hints without changing legacy
+responses. Deployment `d63d98f9-cdca-46f9-bb33-834c5e379a57` succeeded.
+After refreshing the development plugin, the ChatGPT sidebar panel rendered
+successfully. Seller selection loaded the correct detail and empty message
+history; search returned an empty state and restored the original seller.
+Evidence: `outputs/plugin-review/chatgpt-panel-working.png`.
+All 33 tests, targeted ESLint and live authenticated API checks passed.
+
+Public reports were checked before attributing this to the host:
+- https://community.openai.com/t/bug-widget-api-fails-when-requesting-resource/1381864
+  reports the same error but with an incorrectly shaped resource path during
+  permission prompts/model switching. Our captured path did not match that case.
+- https://github.com/openai/openai-apps-sdk-examples/issues/222 describes a
+  different iframe-mount failure with a frontend tree-cycle error.
+- https://github.com/openai/openai-apps-sdk-examples/issues/216 describes stale
+  resources/CSP after successful resource reads. It does not establish our cause.
+
+The panel now works after correcting our protocol response. The public reports
+are symptom comparisons, not evidence that the resolved panel fault was an
+OpenAI outage. No matching primary report was found for our missing native
+event-subscription controls.
+
+After the cache-hint fix, the live panel's Monitor replies button successfully
+sent its lead-scoped request to ChatGPT. ChatGPT again reported native MCP
+Events subscriptions unavailable; deployed logs showed no subscription call.
+No monitoring was activated. This is a remaining integration/host capability
+question, not a verified platform-wide outage or a proven server-side cause.
