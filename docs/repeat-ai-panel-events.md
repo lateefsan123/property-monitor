@@ -94,3 +94,23 @@ Before promoting the preview:
    unsubscribe. Repeat refresh/restart and access revocation checks.
 
 The local and database checks do not by themselves prove ChatGPT-side delivery.
+
+## Verified deployment — September 30, 2026
+
+- Implementation commit: `7298562f`.
+- Railway preview deployment: `177e92a6-2782-437b-90f8-4e67e661caca` (SUCCESS).
+- Preview URL: `https://seller-signal-mcp-production.up.railway.app/mcp/preview`.
+- 32 tests passed, plus targeted ESLint and service syntax checks.
+- Browser checks passed in the official AppBridge harness: seller details,
+  search, filters, empty/error results, escaped message text, summary/monitoring
+  request forwarding and narrow layout.
+- Live authenticated reviewer checks passed: MCP 2.0 discovery, nine tools,
+  account-scoped panel data, UI resource, reply event definition, active OAuth
+  consent/session checks, and eight-tool regression check on `/mcp`.
+- Rolled-back database tests passed: matching/all-seller delivery, cross-user and
+  nonmatching exclusion, expired subscription exclusion, outbound exclusion,
+  and no duplicate event when a message is updated. Existing records preserved.
+- Updating the old development plugin via ZIP was rejected by ChatGPT because
+  it requires the existing canonical app. No plugin version was changed. A new
+  `Repeat AI Preview` connection is prepared for the isolated reviewer account;
+  ChatGPT-side rendering and actual callback delivery remain pending that grant.
