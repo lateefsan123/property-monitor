@@ -280,7 +280,8 @@ export default function WhatsAppConnectionPanel({
       return;
     }
 
-    setStatus(nextStatus === "starting" || nextStatus === "connecting" ? "loading" : "waiting");
+    // Keep polling while the socket connects: the QR arrives after this response.
+    setStatus("waiting");
   }, []);
 
   useEffect(() => {

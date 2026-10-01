@@ -32,6 +32,7 @@ export default function WhatsAppPanel({ userId, colors, active = true }) {
   const connected = account?.connection_status === "connected" || result?.account?.connection_status === "connected";
   const connectedAccount = result?.account?.connection_status === "connected" ? result.account : account;
   const phoneLabel = connectedAccount?.display_phone_number || connectedAccount?.business_name || "WhatsApp number";
+  const savedPhone = result?.account?.display_phone_number || account?.display_phone_number;
 
   useEffect(() => {
     if (!active) setSheet(null);
@@ -46,6 +47,11 @@ export default function WhatsAppPanel({ userId, colors, active = true }) {
       try {
         const next = await connectWhatsAppAccount({ accountId, action: "status", quiet: true });
         if (stopped) return;
+        if (["error", "logged_out", "pairing_code_error"].includes(next?.session?.status || next?.status)) {
+          setWaiting(false);
+          setError(new Error(next?.session?.lastError || "WhatsApp disconnected. Use your saved number to reconnect."));
+          return;
+        }
         setResult((previous) => ({ ...previous, ...next, session: { ...previous?.session, ...next?.session } }));
         if (next?.account?.connection_status === "connected") {
           setWaiting(false);
@@ -67,9 +73,9 @@ export default function WhatsAppPanel({ userId, colors, active = true }) {
     return () => { stopped = true; clearTimeout(timer); };
   }, [active, waiting, accountId, userId, client]);
 
-  async function run(action, pairingMode) {
+  async function run(action, pairingMode, reuseSavedNumber = false) {
     setError(null);
-    if (action === "start" && pairingMode === "code" && !/^\+?\d[\d\s-]{7,18}$/.test(phone.trim())) {
+    if (action === "start" && pairingMode === "code" && !reuseSavedNumber && !/^\+?\d[\d\s-]{7,18}$/.test(phone.trim())) {
       setError(new Error("Enter your WhatsApp number including country code."));
       return;
     }
@@ -78,8 +84,9 @@ export default function WhatsAppPanel({ userId, colors, active = true }) {
     try {
       const next = await connectWhatsAppAccount({
         action,
-        accountId: action === "disconnect" ? connectedAccount?.id : undefined,
+        accountId: action === "disconnect" || reuseSavedNumber ? (result?.account?.id || connectedAccount?.id) : undefined,
         pairingMode,
+        reuseSavedNumber,
         phoneNumber: pairingMode === "code" ? phone.trim() : undefined,
         resetSession: action === "start",
       });
@@ -111,6 +118,7 @@ export default function WhatsAppPanel({ userId, colors, active = true }) {
         <Feedback colors={colors} error={error} />
         {sheet === "pair" ? <>
           {!waiting ? <>
+            {savedPhone ? <Button colors={colors} primary disabled={busy} onPress={() => run("start", "code", true)}>Use this number · {savedPhone}</Button> : null}
             <Field colors={colors} label="Phone number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" placeholder="+971…" />
             <Button colors={colors} primary disabled={busy} onPress={() => run("start", "code")}>{busy ? "Connecting…" : "Get pairing code"}</Button>
             <Button colors={colors} disabled={busy} onPress={() => run("start", "qr")}>Use QR code</Button>

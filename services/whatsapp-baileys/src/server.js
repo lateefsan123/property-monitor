@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { createVersionResolver } from './wa-version.js';
 import { registerProfilePhotoRoute } from './profile-photo.js';
 import express from "express";
 import fs from "node:fs/promises";
@@ -11,6 +12,7 @@ import pino from "pino";
 import { createClient } from "@supabase/supabase-js";
 import makeWASocket, {
   Browsers,
+  DEFAULT_CONNECTION_CONFIG,
   DisconnectReason,
   jidNormalizedUser,
   useMultiFileAuthState,
@@ -25,6 +27,7 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
 const app = express();
 const sessions = new Map();
 const logger = pino({ level: process.env.LOG_LEVEL || "info" });
+const resolveVersion = createVersionResolver({ fallback: DEFAULT_CONNECTION_CONFIG.version, logger });
 const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
   ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: { autoRefreshToken: false, persistSession: false },
@@ -130,16 +133,18 @@ async function maybeRequestPairingCode(session) {
   if (!session.pendingPairingPhoneNumber || session.pairingCode || session.pairingCodeRequestInFlight) return;
   if (!session.socket) return;
   if (session.socket.authState?.creds?.registered) return;
+  const socket = session.socket;
 
   session.pairingCodeRequestInFlight = true;
   session.status = "pairing_code_requested";
   session.updatedAt = new Date().toISOString();
 
   try {
-    const code = await session.socket.requestPairingCode(
+    const code = await socket.requestPairingCode(
       session.pendingPairingPhoneNumber,
       session.pendingCustomPairingCode || undefined,
     );
+    if (session.socket !== socket) return;
     session.pairingCode = code;
     session.pairingCodeRequestedAt = new Date().toISOString();
     session.qr = null;
@@ -147,6 +152,7 @@ async function maybeRequestPairingCode(session) {
     session.status = "pairing_code";
     session.lastError = null;
   } catch (error) {
+    if (session.socket !== socket) return;
     session.lastError = error instanceof Error ? error.message : "Could not request pairing code";
     session.status = "pairing_code_error";
     logger.warn({ error, sessionId: session.id }, "Could not request Baileys pairing code");
@@ -161,7 +167,7 @@ async function syncAccount(session) {
 
   const patch = {
     connection_status: session.status === "connected" ? "connected" : session.status === "error" ? "error" : "pending",
-    display_phone_number: session.displayPhoneNumber || null,
+    ...(session.displayPhoneNumber ? { display_phone_number: session.displayPhoneNumber } : {}),
     last_error: session.lastError || null,
     raw_account: {
       baileys: {
@@ -228,6 +234,8 @@ async function removeSessionFiles(sessionId) {
 }
 
 async function stopSessionSocket(session) {
+  clearTimeout(session?.reconnectTimer);
+  if (session) session.stopped = true;
   if (!session?.socket) return;
 
   try {
@@ -260,7 +268,7 @@ async function startSession(sessionId, options = {}) {
   if (existing?.socket && existing.status !== "logged_out") {
     if (options.phoneNumber) {
       setPendingPairing(existing, options.phoneNumber, options.customPairingCode);
-      if (existing.qr) await maybeRequestPairingCode(existing);
+      if (existing.pairingReady) await maybeRequestPairingCode(existing);
     }
     return existing;
   }
@@ -286,6 +294,11 @@ async function startSession(sessionId, options = {}) {
   };
 
   session.status = "starting";
+  session.stopped = false;
+  session.pairingReady = false;
+  session.qr = null;
+  session.qrDataUrl = null;
+  session.pairingCode = null;
   session.lastError = null;
   session.pairingCodeRequestInFlight = false;
   session.pendingCustomPairingCode = session.pendingCustomPairingCode || null;
@@ -295,12 +308,15 @@ async function startSession(sessionId, options = {}) {
   sessions.set(sessionId, session);
 
   const socket = makeWASocket({
+    version: await resolveVersion(),
     auth: state,
     browser: Browsers.macOS("Chrome"),
     logger: logger.child({ sessionId }),
     markOnlineOnConnect: false,
     printQRInTerminal: false,
     syncFullHistory: false,
+    connectTimeoutMs: 20000,
+    defaultQueryTimeoutMs: 10000,
   });
 
   session.socket = socket;
@@ -308,18 +324,22 @@ async function startSession(sessionId, options = {}) {
   socket.ev.on("creds.update", saveCreds);
 
   socket.ev.on("connection.update", async (update) => {
+    if (session.stopped || sessions.get(sessionId) !== session || session.socket !== socket) return;
     const { connection, lastDisconnect, qr } = update;
     session.updatedAt = new Date().toISOString();
 
     if (qr) {
+      session.pairingReady = true;
       session.qr = qr;
       session.qrDataUrl = await QRCode.toDataURL(qr, { margin: 1, width: 320 });
+      if (session.stopped || session.socket !== socket) return;
       if (session.pairingMode !== "code") session.status = "qr";
       await maybeRequestPairingCode(session);
     }
 
     if (connection === "open") {
       session.status = "connected";
+      session.reconnectAttempts = 0;
       session.connectedAt = new Date().toISOString();
       session.lastError = null;
       session.pairingCode = null;
@@ -342,16 +362,26 @@ async function startSession(sessionId, options = {}) {
         || new Boom(lastDisconnect?.error).output.statusCode;
       const loggedOut = statusCode === DisconnectReason.loggedOut;
       session.socket = null;
+      session.pairingReady = false;
+      session.qr = null;
+      session.qrDataUrl = null;
+      session.pairingCode = null;
+      session.reconnectAttempts = (session.reconnectAttempts || 0) + 1;
       session.status = loggedOut ? "logged_out" : "reconnecting";
+      const retry = !loggedOut && (socket.authState?.creds?.registered || session.reconnectAttempts < 5);
+      if (!loggedOut && !retry) session.status = "error";
       session.lastError = lastDisconnect?.error?.message || null;
+      logger.warn({ sessionId, statusCode, attempt: session.reconnectAttempts, retry }, "WhatsApp connection closed");
       await syncAccount(session);
 
-      if (!loggedOut) {
-        setTimeout(() => {
+      if (retry) {
+        session.reconnectTimer = setTimeout(() => {
+          session.reconnectTimer = null;
+          if (session.stopped || sessions.get(sessionId) !== session) return;
           startSession(sessionId).catch((error) => {
             logger.error({ error, sessionId }, "Baileys reconnect failed");
           });
-        }, 1500);
+        }, Math.min(1500 * 2 ** (session.reconnectAttempts - 1), 30000));
       }
     }
   });
@@ -377,25 +407,21 @@ async function requestSessionPairingCode(session, phoneNumber, customPairingCode
   }
 
   setPendingPairing(session, phone, customPairingCode);
-  if (session.qr) await maybeRequestPairingCode(session);
+  if (session.pairingReady) await maybeRequestPairingCode(session);
   await waitFor(
-    () => session.pairingCode || session.status === "pairing_code_error" || session.status === "connected",
+    () => session.pairingCode || ["pairing_code_error", "error", "logged_out", "connected"].includes(session.status),
     15000,
   );
 
-  if (session.status === "pairing_code_error") {
+  if (["pairing_code_error", "error", "logged_out"].includes(session.status)) {
     throw new Error(session.lastError || "Could not request pairing code");
-  }
-
-  if (!session.pairingCode && session.status !== "connected") {
-    throw new Error("Timed out waiting for WhatsApp pairing code");
   }
 
   return session;
 }
 
 async function getSession(sessionId) {
-  return startSession(sessionId);
+  return sessions.get(sessionId) || startSession(sessionId);
 }
 
 registerProfilePhotoRoute(app, { requireToken, sessions, restoreSession: async sessionId => {
@@ -425,14 +451,11 @@ app.post("/sessions", requireToken, async (req, res) => {
     );
     if (wantsPairingCode) {
       await waitFor(
-        () => session.pairingCode || session.status === "pairing_code_error" || session.status === "connected",
+        () => session.pairingCode || ["pairing_code_error", "error", "logged_out", "connected"].includes(session.status),
         15000,
       );
-      if (session.status === "pairing_code_error") {
+      if (["pairing_code_error", "error", "logged_out"].includes(session.status)) {
         throw new Error(session.lastError || "Could not request pairing code");
-      }
-      if (!session.pairingCode && session.status !== "connected") {
-        throw new Error("Timed out waiting for WhatsApp pairing code");
       }
     }
     res.json(publicSession(session));

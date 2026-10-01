@@ -56,6 +56,7 @@ export default function WhatsAppSection({ userId, account, loading }) {
   const connected = account?.connection_status === "connected" || result?.account?.connection_status === "connected";
   const connectedAccount = result?.account?.connection_status === "connected" ? result.account : account;
   const phoneLabel = connectedAccount?.display_phone_number || connectedAccount?.business_name || "WhatsApp number";
+  const savedPhone = result?.account?.display_phone_number || account?.display_phone_number;
   const refresh = () => client.invalidateQueries({ queryKey: sellerWhatsAppAccountsQueryKey(userId) });
 
   useEffect(() => {
@@ -67,6 +68,11 @@ export default function WhatsAppSection({ userId, account, loading }) {
       try {
         const next = await connectWhatsAppAccount({ provider: "baileys", accountId, action: "status", quiet: true });
         if (stopped) return;
+        if (["error", "logged_out", "pairing_code_error"].includes(next?.session?.status || next?.status)) {
+          setWaiting(false);
+          setError(new Error(next?.session?.lastError || "WhatsApp disconnected. Use your saved number to reconnect."));
+          return;
+        }
         setResult((previous) => ({ ...previous, ...next, session: { ...previous?.session, ...next?.session } }));
         if (next?.account?.connection_status === "connected") {
           setWaiting(false);
@@ -89,9 +95,9 @@ export default function WhatsAppSection({ userId, account, loading }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [waiting, accountId, userId]);
 
-  async function run(action, pairingMode) {
+  async function run(action, pairingMode, reuseSavedNumber = false) {
     setError(null);
-    if (action === "start" && pairingMode === "code" && !/^\+?\d[\d\s-]{7,18}$/.test(phone.trim())) {
+    if (action === "start" && pairingMode === "code" && !reuseSavedNumber && !/^\+?\d[\d\s-]{7,18}$/.test(phone.trim())) {
       setError(new Error("Enter your WhatsApp number including country code."));
       return;
     }
@@ -101,8 +107,9 @@ export default function WhatsAppSection({ userId, account, loading }) {
       const next = await connectWhatsAppAccount({
         provider: "baileys",
         action,
-        accountId: action === "disconnect" ? connectedAccount?.id : undefined,
+        accountId: action === "disconnect" || reuseSavedNumber ? (result?.account?.id || connectedAccount?.id) : undefined,
         pairingMode,
+        reuseSavedNumber,
         phoneNumber: pairingMode === "code" ? phone.trim() : undefined,
         resetSession: action === "start",
       });
@@ -153,6 +160,7 @@ export default function WhatsAppSection({ userId, account, loading }) {
             <>
               {!waiting ? (
                 <>
+                  {savedPhone ? <button type="button" className="st-primary" disabled={busy} onClick={() => run("start", "code", true)}>Use this number · {savedPhone}</button> : null}
                   <label className="st-field">
                     <span>Phone number</span>
                     <input type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="+971…" autoFocus disabled={busy} />

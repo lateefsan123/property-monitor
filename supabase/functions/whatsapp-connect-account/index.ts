@@ -236,10 +236,9 @@ async function upsertAccount(adminClient: any, input: {
 async function findLatestBaileysAccount(adminClient: any, userId: string) {
   const { data, error } = await adminClient
     .from("whatsapp_accounts")
-    .select("id, phone_number_id, raw_account")
+    .select("id, phone_number_id, display_phone_number, raw_account")
     .eq("user_id", userId)
     .eq("provider", "baileys")
-    .neq("connection_status", "disconnected")
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
@@ -251,7 +250,7 @@ async function findLatestBaileysAccount(adminClient: any, userId: string) {
 async function findBaileysAccountById(adminClient: any, userId: string, accountId: string) {
   const { data, error } = await adminClient
     .from("whatsapp_accounts")
-    .select("id, phone_number_id, raw_account")
+    .select("id, phone_number_id, display_phone_number, raw_account")
     .eq("id", accountId)
     .eq("user_id", userId)
     .eq("provider", "baileys")
@@ -262,7 +261,7 @@ async function findBaileysAccountById(adminClient: any, userId: string, accountI
   return data;
 }
 
-async function upsertBaileysAccount(adminClient: any, userId: string, session: any) {
+async function upsertBaileysAccount(adminClient: any, userId: string, session: any, savedPhone: string | null = null) {
   const sessionId = requireString(session?.sessionId, "Baileys session ID");
   const connectionStatus = session?.status === "connected"
     ? "connected"
@@ -277,7 +276,7 @@ async function upsertBaileysAccount(adminClient: any, userId: string, session: a
       provider: "baileys",
       waba_id: "baileys",
       phone_number_id: baileysPhoneNumberId(sessionId),
-      display_phone_number: cleanString(session?.displayPhoneNumber),
+      display_phone_number: cleanString(session?.displayPhoneNumber) || savedPhone,
       business_name: "WhatsApp Web",
       connection_status: connectionStatus,
       last_error: cleanString(session?.lastError),
@@ -348,7 +347,7 @@ async function handleBaileysConnect(adminClient: any, userId: string, input: any
     const account = await findBaileysAccountById(adminClient, userId, accountId);
     const sessionId = requireString(getBaileysSessionId(account), "Baileys session ID");
     const session = await baileysFetch(`/sessions/${encodeURIComponent(sessionId)}`);
-    const updatedAccount = await upsertBaileysAccount(adminClient, userId, session);
+    const updatedAccount = await upsertBaileysAccount(adminClient, userId, session, account.display_phone_number);
 
     return jsonResponse({
       account: updatedAccount,
@@ -362,9 +361,16 @@ async function handleBaileysConnect(adminClient: any, userId: string, input: any
 
   if (action !== "start") throw new HttpError(400, "Unsupported Baileys action");
 
-  const existingAccount = await findLatestBaileysAccount(adminClient, userId);
+  const reuseSavedNumber = truthyInput(input.reuseSavedNumber);
+  const requestedAccountId = cleanString(input.accountId || input.account_id);
+  const existingAccount = reuseSavedNumber && requestedAccountId
+    ? await findBaileysAccountById(adminClient, userId, requestedAccountId)
+    : await findLatestBaileysAccount(adminClient, userId);
   const existingSessionId = getBaileysSessionId(existingAccount);
-  const phoneNumber = cleanString(input.phoneNumber || input.phone_number);
+  const phoneNumber = reuseSavedNumber
+    ? cleanString(existingAccount?.display_phone_number)
+    : cleanString(input.phoneNumber || input.phone_number);
+  if (reuseSavedNumber && !phoneNumber) throw new HttpError(400, "No saved WhatsApp number. Enter your number to reconnect.");
   const customPairingCode = cleanString(input.customPairingCode || input.custom_pairing_code);
   const wantsPairingCode = Boolean(phoneNumber);
   const resetSession = wantsPairingCode || truthyInput(input.resetSession ?? input.reset_session);
@@ -381,7 +387,7 @@ async function handleBaileysConnect(adminClient: any, userId: string, input: any
     method: "POST",
     body: JSON.stringify(sessionBody),
   });
-  const account = await upsertBaileysAccount(adminClient, userId, session);
+  const account = await upsertBaileysAccount(adminClient, userId, session, phoneNumber || existingAccount?.display_phone_number || null);
 
   return jsonResponse({
     account,
