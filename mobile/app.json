@@ -4,6 +4,12 @@
     "slug": "seller-signal",
     "owner": "lateefsan-2",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/4cae8513-9326-42eb-8cdb-3b07f6785b71"
+    },
     "scheme": "seller-signal",
     "orientation": "portrait",
     "icon": "./assets/repeat-ai-icon.png",
@@ -18,7 +24,7 @@
       "entitlements": {
         "aps-environment": "production"
       },
-      "buildNumber": "34"
+      "buildNumber": "35"
     },
     "android": {
       "package": "com.lateefsan.sellersignal",
@@ -26,7 +32,7 @@
         "foregroundImage": "./assets/repeat-ai-icon.png",
         "backgroundColor": "#000000"
       },
-      "versionCode": 9
+      "versionCode": 10
     },
     "web": {
       "favicon": "./assets/repeat-ai-icon.png"
