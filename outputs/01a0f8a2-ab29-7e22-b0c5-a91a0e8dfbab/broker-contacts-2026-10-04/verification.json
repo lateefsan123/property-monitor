@@ -1,9 +1,13 @@
 {
-  "individualContacts": 251,
-  "newIndividuals": 76,
+  "individualContacts": 255,
+  "newIndividuals": 4,
+  "newAlternateNumbers": 1,
+  "propertyFinderProfilesChecked": 20,
+  "propertyFinderNumbersConfirmed": 5,
+  "propertyFinderPending": 15,
   "excludedSharedNumbers": 2,
   "agencyContacts": 0,
-  "companies": 8,
+  "companies": 12,
   "checkedOn": "2026-10-04",
   "dialTested": false
 }
