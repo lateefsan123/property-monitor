@@ -9,6 +9,7 @@
 - Public URLs: `https://repeatai.org`, `/privacy`, `/support`, `/terms`, `/data-deletion`.
 - Data safety declares collection for account, workspace, connected messaging/email/calendar, uploads, voice, subscriptions, diagnostics and optional push identifiers. Service-provider and user-directed transfers follow Google's sharing exemptions. All selected purposes were audited in the expanded preview before saving; no advertising purposes selected.
 - Google reviewers received the existing Apple demo login with explicit account-holder permission. Credentials are not stored in this document. Sharing credentials with Google's other testing partners was disabled.
+- Closed testing Alpha: all 178 available countries/regions saved; only the existing `Repeat AI internal testers` list (1 user) selected, with `https://repeatai.org/support` for feedback. Both setup tasks are confirmed complete. No release published and join links remain unavailable.
 
 ## Reviewer access
 
@@ -32,7 +33,13 @@
 2. Current signed AAB: `release-play` profile and version code 11 committed in `7f1aa5ee`. Expo included credits exhausted; permission for one build with a US$2 limit is pending. No paid build was submitted.
 3. Run a current Play-installed build and validate sandbox purchase, eligible trial, restore, cancellation/expiry/refund and server access. A complimentary reviewer account is not a billing test.
 4. Closed testing: no closed release published, 0 testers opted in. The required 12 testers / 14 continuous days clock has not started. No testing service was purchased.
-5. Privacy/support/deletion copy updated locally for optional AI voice, connected email/calendar, push, RevenueCat and Google Play billing flows. Production deployment and actual in-app deletion journey verification still required. Do not submit partially prepared release metadata.
+5. Actual in-app deletion journey verification still required. Privacy/support/deletion copy is deployed and checked live for optional AI voice, connected email/calendar, push, RevenueCat and Google Play billing flows. Do not submit partially prepared release metadata.
+
+## Website deployment
+
+- Deployed a scoped archive of commit `6cb87c38`, excluding unrelated working-tree changes, with the tracked shared backend dependencies needed by the web build.
+- Vercel deployment `dpl_9GGdrKPyinkBAdR6P5hYnoG2UbVm` built successfully and was promoted to `https://repeatai.org`.
+- Live browser checks passed for `/privacy`, `/support` and `/data-deletion`, showing the October 4 copy and Google Play cancellation/restore instructions. This proves the public policy pages, not the in-app deletion workflow.
 
 ## Checks
 
@@ -43,4 +50,4 @@
 - Repository-wide ESLint was stopped after it began scanning unrelated generated mobile exports. `lint:size` reports 22 existing oversized files; none is changed by this checkpoint. The policy component remains below its size limit.
 - Earlier public Expo config and mobile billing/policy checks passed; a configuration/export check is not a signed store build or device test.
 
-No push, public Google release, paid build, purchase or test-provider order was made by this checkpoint.
+No Git push, public Google release, paid build, purchase or test-provider order was made by this checkpoint. The scoped website policy update and reviewer access endpoint were deployed as described above.
