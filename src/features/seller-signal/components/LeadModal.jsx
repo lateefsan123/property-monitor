@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import SellerFollowUpControl from './SellerFollowUpControl';
 import { introAttachmentPath } from "../../../../supabase/functions/_shared/intro-attachment.js";
+import { TEMPLATE_STATUSES, pickTemplateForStatus, templateStatusId } from "../../../../supabase/functions/_shared/template-status.js";
 import {
   IconBrandWhatsapp,
   IconCheck,
@@ -99,13 +100,17 @@ export default function LeadModal({
     }
   }
 
-  // Saved seller text takes priority over the default template.
-  // Unsaved edits still apply to the next send; Save persists them.
-  const defaultTemplate = templates.find((template) => template.is_default) || null;
-  const defaultTemplateName = defaultTemplate?.name;
+  // Saved seller text takes priority over the template for the seller's
+  // status (or the default template). Unsaved edits still apply to the next
+  // send; Save persists them.
+  const statusTemplate = pickTemplateForStatus(templates, lead.status);
+  const statusId = templateStatusId(lead.status);
+  const matchedStatus = statusTemplate?.statuses?.includes(statusId)
+    ? TEMPLATE_STATUSES.find((status) => status.id === statusId)?.label
+    : null;
   const templateOptions = [
-    { id: "default", label: defaultTemplateName ? `${defaultTemplateName} (default)` : "Default script" },
-    ...templates.filter((template) => !template.is_default).map((template) => ({
+    { id: "default", label: statusTemplate ? `${statusTemplate.name} (${matchedStatus || "default"})` : "Default script" },
+    ...templates.filter((template) => template.id !== statusTemplate?.id).map((template) => ({
       id: template.id,
       label: template.name,
     })),
@@ -113,10 +118,10 @@ export default function LeadModal({
   const chosenTemplate = templateChoice === "default"
     ? null
     : templates.find((template) => template.id === templateChoice);
-  const selectedTemplate = chosenTemplate || defaultTemplate;
+  const selectedTemplate = chosenTemplate || statusTemplate;
   const baseMessage = chosenTemplate
     ? buildMessage(lead, insight, chosenTemplate.content)
-    : (insight?.message || buildMessage(lead, insight, messageTemplate));
+    : (insight?.message || buildMessage(lead, insight, statusTemplate?.content || messageTemplate));
   const message = draftMessage ?? (templateChoice === "default" ? lead.message_draft : null) ?? baseMessage;
   const messageEdited = draftMessage !== null && draftMessage !== baseMessage;
   const templateImagePath = selectedTemplate?.image_path || null;

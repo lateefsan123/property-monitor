@@ -3,6 +3,7 @@ import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
 import { followUpPending } from "../_shared/seller-follow-up.js";
+import { pickTemplateForStatus } from "../_shared/template-status.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -372,15 +373,24 @@ function buildMessage(
     .trim();
 }
 
-async function fetchDefaultMessageTemplates(adminClient: any, userIds: string[]) {
-  const templatesByUser = new Map<string, { content: string; imagePath: string | null }>();
+// Every usable template per account. Each seller gets the template for their
+// status, else the default template (../_shared/template-status.js).
+async function fetchMessageTemplates(adminClient: any, userIds: string[]) {
+  const templatesByUser = new Map<string, any[]>();
   if (!userIds.length) return templatesByUser;
 
-  const { data, error } = await adminClient
+  let { data, error } = await adminClient
     .from("seller_signal_message_templates")
-    .select("user_id, content, image_path")
-    .in("user_id", userIds)
-    .eq("is_default", true);
+    .select("user_id, content, image_path, is_default, statuses, updated_at")
+    .in("user_id", userIds);
+  if (error?.code === "42703") {
+    // Before the statuses column exists, only default templates apply.
+    ({ data, error } = await adminClient
+      .from("seller_signal_message_templates")
+      .select("user_id, content, image_path, is_default, updated_at")
+      .in("user_id", userIds)
+      .eq("is_default", true));
+  }
 
   if (error) {
     if (error.code === "42P01") return templatesByUser;
@@ -388,12 +398,10 @@ async function fetchDefaultMessageTemplates(adminClient: any, userIds: string[])
   }
 
   for (const template of data || []) {
-    if (String(template.content || "").includes("{{transactions}}")) {
-      templatesByUser.set(template.user_id, {
-        content: template.content,
-        imagePath: cleanString(template.image_path),
-      });
-    }
+    if (!String(template.content || "").includes("{{transactions}}")) continue;
+    const templates = templatesByUser.get(template.user_id) || [];
+    templates.push(template);
+    templatesByUser.set(template.user_id, templates);
   }
   return templatesByUser;
 }
@@ -1072,7 +1080,7 @@ Deno.serve(async (req) => {
       await fetchScannableLeads(adminClient, [...accountByUser.keys()], 0),
     );
 
-    const templatesByUser = await fetchDefaultMessageTemplates(adminClient, [...accountByUser.keys()]);
+    const templatesByUser = await fetchMessageTemplates(adminClient, [...accountByUser.keys()]);
 
     const baseKeysByLead = new Map<number, string[]>();
     const baseBuildingKeys = new Set<string>();
@@ -1250,7 +1258,8 @@ Deno.serve(async (req) => {
       let messageRowId: string | null = null;
       let providerAccepted = false;
       try {
-        const template = templatesByUser.get(lead.user_id);
+        const picked = pickTemplateForStatus(templatesByUser.get(lead.user_id) || [], lead.status);
+        const template = picked ? { content: picked.content, imagePath: cleanString(picked.image_path) } : null;
         const body = buildMessage(
           lead,
           matchedTransactions,

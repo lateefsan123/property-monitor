@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as Linking from "expo-linking";
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { introAttachmentPath } from "../../../../../supabase/functions/_shared/intro-attachment.js";
+import { resolveForLead } from "../../../../../supabase/functions/_shared/template-status.js";
 import BottomSheet from "../../../components/BottomSheet";
 import { formatBedsLabel, formatDate, formatPrice, formatRange } from "../formatters";
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
@@ -250,7 +251,10 @@ export default function LeadDetailSheet({
     finally { setSavingMessage(false); }
   }
   const followUp = Boolean(isSent || lead.sentAt || lead.sent_at);
-  const selectedImagePath = introAttachmentPath(messageTemplateImagePath, lead, isSent, imageIncluded);
+  // The template for this seller's status (or the default) supplies the image.
+  const templateImagePath = resolveForLead(messageTemplateImagePath, lead);
+  const templateImageUrl = resolveForLead(messageTemplateImageUrl, lead);
+  const selectedImagePath = introAttachmentPath(templateImagePath, lead, isSent, imageIncluded);
 
   function handleNotesChange(text) {
     setNotesDraft({ leadId, value: text });
@@ -430,7 +434,7 @@ export default function LeadDetailSheet({
               </View>
               <View style={{ padding: 14, borderRadius: 14, borderWidth: 1, borderColor: c.border, gap: 12 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                  {customImage?.uri || (selectedImagePath && messageTemplateImageUrl) ? <Image accessibilityLabel="Message attachment preview" source={{ uri: customImage?.uri || messageTemplateImageUrl }} resizeMode="contain" style={{ width: 72, height: 72, borderRadius: 8, backgroundColor: c.bgInput }} /> : null}
+                  {customImage?.uri || (selectedImagePath && templateImageUrl) ? <Image accessibilityLabel="Message attachment preview" source={{ uri: customImage?.uri || templateImageUrl }} resizeMode="contain" style={{ width: 72, height: 72, borderRadius: 8, backgroundColor: c.bgInput }} /> : null}
                   <View style={{ flex: 1, gap: 4 }}>
                     <Text style={{ color: c.text, fontSize: 15, fontWeight: '600' }}>{customImage || selectedImagePath ? 'Message image' : 'Add an image'}</Text>
                     <Text style={{ color: c.textMuted, fontSize: 12, lineHeight: 18 }}>{customImage ? 'For this seller’s next message only' : selectedImagePath ? 'Using your template image' : 'Optional · for this message only'}</Text>
@@ -440,7 +444,7 @@ export default function LeadDetailSheet({
                   <Pressable accessibilityRole="button" disabled={messageBusy} onPress={chooseImage} style={{ flex: 1, minHeight: 44, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: c.bgBadge, opacity: messageBusy ? 0.45 : 1 }}><Text style={{ color: c.text, fontWeight: '600' }}>{messageBusy ? 'Please wait…' : customImage || selectedImagePath ? 'Change image' : 'Add image'}</Text></Pressable>
                   {customImage || selectedImagePath ? <Pressable accessibilityRole="button" disabled={messageBusy} onPress={() => { setCustomImage(null); setImageIncluded(false); setMessageError(''); }} style={{ minHeight: 44, paddingHorizontal: 12, justifyContent: 'center', opacity: messageBusy ? 0.45 : 1 }}><Text style={{ color: c.errorText }}>Remove image</Text></Pressable> : null}
                 </View>
-                {messageTemplateImagePath && !followUp && (customImage || !imageIncluded) ? <Pressable accessibilityRole="button" disabled={messageBusy} onPress={() => { setCustomImage(null); setImageIncluded(true); setMessageError(''); }} style={{ minHeight: 44, justifyContent: 'center', opacity: messageBusy ? 0.45 : 1 }}><Text style={{ color: c.textMuted, textAlign: 'center' }}>Use template image</Text></Pressable> : null}
+                {templateImagePath && !followUp && (customImage || !imageIncluded) ? <Pressable accessibilityRole="button" disabled={messageBusy} onPress={() => { setCustomImage(null); setImageIncluded(true); setMessageError(''); }} style={{ minHeight: 44, justifyContent: 'center', opacity: messageBusy ? 0.45 : 1 }}><Text style={{ color: c.textMuted, textAlign: 'center' }}>Use template image</Text></Pressable> : null}
                 {!whatsappConnected ? <Text style={{ color: c.textMuted, fontSize: 12 }}>Connect WhatsApp to send image attachments.</Text> : null}
               </View>
               {messageError ? <Text accessibilityRole="alert" style={{ color: c.errorText }}>{messageError}</Text> : null}

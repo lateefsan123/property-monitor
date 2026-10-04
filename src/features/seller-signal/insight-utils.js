@@ -2,6 +2,7 @@ import { RECENT_TRANSACTIONS_LIMIT } from "./constants";
 import { formatDate, formatPriceShort } from "./formatters";
 import { cleanBuildingName, formatBuildingLabel } from "./building-utils";
 import { parseDateValue, startOfDay } from "./lead-utils";
+import { resolveForLead } from "../../../supabase/functions/_shared/template-status.js";
 
 const TRANSACTION_TIME_ZONE = "Asia/Dubai";
 export const DEFAULT_MESSAGE_TEMPLATE = `Hi {{name}}, quick update on recent transactions in {{building}}.
@@ -230,7 +231,9 @@ export function formatPhoneForWhatsApp(rawValue) {
   return digits;
 }
 
+// templateContent may be a per-seller function (the template for their status).
 export function buildMessage(lead, insight, templateContent = DEFAULT_MESSAGE_TEMPLATE) {
+  templateContent = resolveForLead(templateContent, lead);
   const name = String(lead.name || "there").trim() || "there";
   const buildingName = lead.resolvedBuilding || lead.building;
   const cleanedBuilding = formatBuildingLabel(buildingName) || cleanBuildingName(buildingName) || "your building";

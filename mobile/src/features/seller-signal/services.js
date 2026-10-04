@@ -636,25 +636,6 @@ export async function persistLeadSentState(userId, leadId, isSent) {
   return sentAt;
 }
 
-export async function fetchDefaultMessageTemplate(userId) {
-  if (!userId) return null;
-  const { data, error } = await supabase
-    .from("seller_signal_message_templates")
-    .select("id, name, content, image_path, is_default")
-    .eq("user_id", userId)
-    .eq("is_default", true)
-    .maybeSingle();
-  if (error) {
-    if (error.code === "42P01") return null;
-    throw new Error(error.message);
-  }
-  if (data?.image_path) {
-    const { data: preview } = await supabase.storage.from("seller-signal-template-images").createSignedUrl(data.image_path, 3600);
-    return { ...data, image_url: preview?.signedUrl || null };
-  }
-  return data || null;
-}
-
 export async function fetchWhatsAppAccounts(userId) {
   if (!userId) return [];
 

@@ -12,6 +12,7 @@ import {
   MESSAGE_TEMPLATE_IMAGE_TYPES,
 } from "./message-templates";
 import BottomSheet from "../components/BottomSheet";
+import { TEMPLATE_STATUSES, templateStatusLabels } from "../../../supabase/functions/_shared/template-status.js";
 import { Button, Feedback, Icon } from "./ui";
 
 
@@ -25,6 +26,7 @@ export default function MessageTemplateEditor({ templates, initial, userId, colo
   const [isDefault, setIsDefault] = useState(
     initial?.is_default || templates.length === 0,
   );
+  const [statuses, setStatuses] = useState(initial?.statuses || []);
   const [image, setImage] = useState(null);
   const [removeImage, setRemoveImage] = useState(false);
   const [error, setError] = useState(null);
@@ -89,6 +91,7 @@ export default function MessageTemplateEditor({ templates, initial, userId, colo
           imageFile: image,
           imagePath: selected?.image_path,
           removeImage,
+          statuses,
         });
       await Promise.all([
         client.invalidateQueries({
@@ -180,6 +183,11 @@ export default function MessageTemplateEditor({ templates, initial, userId, colo
             <Text style={{ color: colors.textMuted, fontSize: 14 }}>Remove</Text>
           </Pressable> : null}
         </View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Use for seller statuses" disabled={busy} onPress={() => openSheet("statuses")} style={{ flexDirection: "row", alignItems: "center", minHeight: 50, borderTopWidth: 1, borderTopColor: colors.borderLight }}>
+          <Text style={{ flex: 1, color: colors.text, fontSize: 15 }}>Use for</Text>
+          {statuses.length ? <Text numberOfLines={1} style={{ flexShrink: 1, color: colors.textMuted, fontSize: 13, marginRight: 12 }}>{templateStatusLabels(statuses).join(", ")}</Text> : null}
+          <Icon name="chevron" color={colors.textMuted} size={18} />
+        </Pressable>
         <Pressable accessibilityRole="button" disabled={busy} onPress={() => openSheet("options")} style={{ flexDirection: "row", alignItems: "center", minHeight: 50, borderTopWidth: 1, borderTopColor: colors.borderLight }}>
           <Text style={{ flex: 1, color: colors.text, fontSize: 15 }}>Options</Text>
           {isDefault ? <Text style={{ color: colors.textMuted, fontSize: 13, marginRight: 12 }}>Default</Text> : null}
@@ -189,7 +197,7 @@ export default function MessageTemplateEditor({ templates, initial, userId, colo
       <BottomSheet visible={Boolean(sheet)} onClose={closeSheet} colors={colors}>
         <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ padding: 22, gap: 18 }}>
           <Text style={{ color: colors.textName, fontSize: 21, fontWeight: "600" }}>
-            {sheet === "preview" ? "Preview" : sheet === "discard" ? "Unsaved changes" : sheet === "delete" ? "Delete template?" : sheet === "details" ? "Insert details" : "Options"}
+            {sheet === "preview" ? "Preview" : sheet === "discard" ? "Unsaved changes" : sheet === "delete" ? "Delete template?" : sheet === "details" ? "Insert details" : sheet === "statuses" ? "Use for" : "Options"}
           </Text>
           {sheet === "details" ? <>
             <Text style={{ color: colors.textMuted, fontSize: 15, lineHeight: 22 }}>These are filled in for each seller when you send.</Text>
@@ -198,6 +206,19 @@ export default function MessageTemplateEditor({ templates, initial, userId, colo
                 <Text style={{ color: colors.textName, fontSize: 16 }}>{label}</Text>
               </Pressable>
             ))}
+          </> : sheet === "statuses" ? <>
+            <Text style={{ color: colors.textMuted, fontSize: 15, lineHeight: 22 }}>Sellers with these statuses get this template. Others get your default.</Text>
+            {TEMPLATE_STATUSES.map(status => {
+              const on = statuses.includes(status.id);
+              const owner = !on ? templates.find(template => template.id !== selected?.id && template.statuses?.includes(status.id)) : null;
+              return <View key={status.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 48 }}>
+                <View style={{ flex: 1, gap: 2 }}>
+                  <Text style={{ color: colors.text, fontSize: 16 }}>{status.label}</Text>
+                  {owner ? <Text style={{ color: colors.textMuted, fontSize: 13 }}>Used by {owner.name}</Text> : null}
+                </View>
+                <Switch accessibilityLabel={`Use for ${status.label}`} value={on} onValueChange={value => { setStatuses(previous => value ? [...previous, status.id] : previous.filter(id => id !== status.id)); setDirty(true); }} />
+              </View>;
+            })}
           </> : sheet === "options" ? <>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 48 }}>
               <Text style={{ color: colors.text, fontSize: 16 }}>Use by default</Text>

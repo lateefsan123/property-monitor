@@ -9,6 +9,7 @@ import {
 } from "@tabler/icons-react";
 import { DEFAULT_MESSAGE_TEMPLATE } from "../insight-utils";
 import TemplateAiDialog from './TemplateAiDialog';
+import { TEMPLATE_STATUSES, templateStatusLabels } from "../../../../supabase/functions/_shared/template-status.js";
 import {
   MESSAGE_TEMPLATE_IMAGE_MAX_BYTES,
   MESSAGE_TEMPLATE_IMAGE_TYPES,
@@ -44,6 +45,7 @@ export default function MessageTemplatesPanel({
   const [selectedId, setSelectedId] = useState(templates[0]?.id || NEW_TEMPLATE_ID);
   const [name, setName] = useState(templates[0]?.name || "Transaction update");
   const [content, setContent] = useState(templates[0]?.content || DEFAULT_MESSAGE_TEMPLATE);
+  const [statuses, setStatuses] = useState(templates[0]?.statuses || []);
   const [imageFile, setImageFile] = useState(null);
   const [imagePreviewUrl, setImagePreviewUrl] = useState(templates[0]?.image_url || null);
   const [removeImage, setRemoveImage] = useState(false);
@@ -119,6 +121,7 @@ export default function MessageTemplatesPanel({
     setSelectedId(nextId);
     setName(nextTemplate?.name || "Transaction update");
     setContent(nextTemplate?.content || DEFAULT_MESSAGE_TEMPLATE);
+    setStatuses(nextTemplate?.statuses || []);
     setTemplateImage(nextTemplate);
     setNotice(null);
     setError(null);
@@ -151,6 +154,7 @@ export default function MessageTemplatesPanel({
         content,
         isDefault: Boolean(selectedTemplate?.is_default),
         removeImage,
+        statuses,
       });
       if (saved?.id) {
         setSelectedId(saved.id);
@@ -251,7 +255,7 @@ export default function MessageTemplatesPanel({
                     aria-current={selectedId === template.id ? "true" : undefined}
                     className={selectedId === template.id ? "is-selected" : ""}
                     onClick={() => selectTemplate(template.id)}>
-                    <span>{template.name}</span>
+                    <span>{template.name}{template.statuses?.length ? <small>{templateStatusLabels(template.statuses).join(" · ")}</small> : null}</span>
                     {template.is_default ? <IconCheck className="message-template-default" size={20} aria-label="Default template" /> : null}
                   </button>
                 ))}
@@ -274,6 +278,23 @@ export default function MessageTemplatesPanel({
                       </div>
                     </details>
                   ) : null}
+                </div>
+                {/* Sellers with these statuses get this template; others get the default. */}
+                <div className="message-template-status-field" role="group" aria-labelledby="message-template-status-label">
+                  <span id="message-template-status-label">Use for</span>
+                  <div className="message-template-status-row">
+                    {TEMPLATE_STATUSES.map((status) => {
+                      const on = statuses.includes(status.id);
+                      const owner = templates.find((template) => template.id !== selectedTemplate?.id && template.statuses?.includes(status.id));
+                      return (
+                        <button key={status.id} type="button" className={`message-template-status${on ? " is-on" : ""}`} aria-pressed={on} disabled={saving}
+                          title={!on && owner ? `Used by ${owner.name}. Saving moves it here.` : undefined}
+                          onClick={() => setStatuses((value) => on ? value.filter((id) => id !== status.id) : [...value, status.id])}>
+                          {status.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
                 <div className="message-template-body-field">
                   <div className="message-template-field-head">

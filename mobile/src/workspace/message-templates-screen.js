@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { messageTemplatesOptions } from "./message-templates";
 import MessageTemplateEditor from "./message-template-editor";
 import { Feedback, Icon } from "./ui";
+import { templateStatusLabels } from "../../../supabase/functions/_shared/template-status.js";
 
 export default function MessageTemplatesScreen({ userId, colors }) {
   const [search, setSearch] = useState("");
@@ -42,7 +43,7 @@ export default function MessageTemplatesScreen({ userId, colors }) {
               <View style={{ flex: 1, paddingVertical: 16, borderBottomWidth: 1, borderBottomColor: colors.borderLight, gap: 5 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                   <Text numberOfLines={1} style={{ flex: 1, color: colors.textName, fontSize: 15, fontWeight: "500" }}>{item.name}</Text>
-                  {item.is_default ? <Text style={{ color: colors.textMuted, fontSize: 12 }}>Default</Text> : null}
+                  {item.is_default || item.statuses?.length ? <Text numberOfLines={1} style={{ flexShrink: 1, color: colors.textMuted, fontSize: 12 }}>{[...templateStatusLabels(item.statuses), item.is_default ? "Default" : null].filter(Boolean).join(" · ")}</Text> : null}
                 </View>
                 <Text numberOfLines={1} style={{ color: colors.textMuted, fontSize: 13 }}>{item.content.replace(/\s+/g, " ").trim()}</Text>
               </View>

@@ -1,3 +1,5 @@
+import { cleanTemplateStatuses } from "../supabase/functions/_shared/template-status.js";
+
 // Shared by desktop and native. The authenticated client is supplied by each app.
 export function createMessageTemplateServices(
   supabase,
@@ -12,7 +14,7 @@ export function createMessageTemplateServices(
   ];
 
   const TEMPLATE_SELECT_COLUMNS =
-    "id, user_id, name, content, image_path, is_default, created_at, updated_at";
+    "id, user_id, name, content, image_path, is_default, statuses, created_at, updated_at";
   const TEMPLATE_IMAGE_PREVIEW_TTL_SECONDS = 60 * 60;
 
   function getImageExtension(file) {
@@ -99,6 +101,27 @@ export function createMessageTemplateServices(
     return includeImagePreviews ? addTemplateImagePreviews(data || []) : (data || []);
   }
 
+  // A status belongs to one template: take these statuses off the others.
+  async function releaseTemplateStatuses(userId, statuses, keepId) {
+    if (!statuses.length) return;
+    let query = supabase
+      .from("seller_signal_message_templates")
+      .select("id, statuses")
+      .eq("user_id", userId)
+      .overlaps("statuses", statuses);
+    if (keepId) query = query.neq("id", keepId);
+    const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    for (const template of data || []) {
+      const { error: updateError } = await supabase
+        .from("seller_signal_message_templates")
+        .update({ statuses: cleanTemplateStatuses(template.statuses).filter((status) => !statuses.includes(status)) })
+        .eq("id", template.id)
+        .eq("user_id", userId);
+      if (updateError) throw new Error(updateError.message);
+    }
+  }
+
   async function saveMessageTemplate({
     content,
     id,
@@ -107,6 +130,7 @@ export function createMessageTemplateServices(
     isDefault,
     name,
     removeImage,
+    statuses,
     userId,
   }) {
     if (!userId) throw new Error("Sign in to save a message template.");
@@ -146,6 +170,16 @@ export function createMessageTemplateServices(
       image_path: nextImagePath,
       is_default: Boolean(isDefault),
     };
+    // Statuses change only when the caller sends them.
+    if (Array.isArray(statuses)) {
+      record.statuses = cleanTemplateStatuses(statuses);
+      try {
+        await releaseTemplateStatuses(userId, record.statuses, id);
+      } catch (releaseError) {
+        if (uploadedImagePath) await removeTemplateImage(uploadedImagePath).catch(() => {});
+        throw releaseError;
+      }
+    }
     const query = id
       ? supabase
           .from("seller_signal_message_templates")

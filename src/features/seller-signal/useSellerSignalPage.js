@@ -1,7 +1,8 @@
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MAX_MEANINGFUL_OVERDUE_DAYS } from "./constants";
-import { formatPhoneForWhatsApp, getTodayTransactionDateKey } from "./insight-utils";
+import { DEFAULT_MESSAGE_TEMPLATE, formatPhoneForWhatsApp, getTodayTransactionDateKey } from "./insight-utils";
+import { pickTemplateForStatus } from "../../../supabase/functions/_shared/template-status.js";
 import { enrichLeadsWithDataQuality, summarizeLeadDataQuality } from "./lead-data-quality";
 import { filterLeads, paginateLeads, sortLeads } from "./selectors";
 import { normalizeStatusFilter } from "./status-filter-utils";
@@ -129,8 +130,14 @@ export function useSellerSignalPage(userId) {
     upsertBuildingAliasMutation,
   } = useSellerSignalBuildingAliases(userId);
   const messageTemplates = useSellerSignalMessageTemplates(userId);
-  const messageTemplate = messageTemplates.activeTemplateContent;
-  const messageTemplateImagePath = messageTemplates.activeTemplate?.image_path || null;
+  // Each seller gets the template for their status, else the default template.
+  const { messageTemplate, messageTemplateImagePath } = useMemo(() => {
+    const templateFor = (lead) => pickTemplateForStatus(messageTemplates.templates, lead?.status);
+    return {
+      messageTemplate: (lead) => templateFor(lead)?.content || DEFAULT_MESSAGE_TEMPLATE,
+      messageTemplateImagePath: (lead) => templateFor(lead)?.image_path || null,
+    };
+  }, [messageTemplates.templates]);
   const cachedBuildingsQuery = useQuery({
     queryKey: sellerCachedBuildingsQueryKey(),
     enabled: Boolean(userId),

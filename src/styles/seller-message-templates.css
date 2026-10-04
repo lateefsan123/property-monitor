@@ -43,6 +43,13 @@ body:has(.message-template-overlay) { overflow: hidden; }
 .message-template-token-row { display: flex; flex-wrap: wrap; gap: 8px; }
 .message-template-token-row button { display: inline-flex; align-items: center; justify-content: center; height: 36px; padding: 0 14px; border: 1px solid var(--border, #d6d7db); border-radius: 18px; background: transparent; color: var(--text, inherit); font-size: 14px; font-weight: 500; line-height: 1; text-align: center; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .message-template-token-row button:hover:not(:disabled) { background: var(--bg-hover, #f4f4f5); }
+/* Seller statuses a template is used for (supabase/functions/_shared/template-status.js). */
+.message-template-status-field { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 13px; font-weight: 500; color: var(--text-muted, #626775); }
+.message-template-status-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.message-template-status { height: 36px; padding: 0 14px; border: 1px solid var(--border, #d6d7db); border-radius: 18px; background: transparent; color: var(--text, inherit); font-size: 14px; font-weight: 500; }
+.message-template-status:hover:not(:disabled):not(.is-on) { background: var(--bg-hover, #f4f4f5); }
+.message-template-status.is-on { border-color: var(--text-name, #111); background: var(--text-name, #111); color: var(--bg-card, #fff); }
+.message-template-library button small { display: block; margin-top: 2px; color: var(--text-muted, #85878a); font-size: 12px; font-weight: 400; }
 
 /* Preview + image */
 .message-template-live-preview { display: flex; flex-direction: column; gap: 14px; min-width: 0; min-height: 0; padding: 18px 24px 20px; border-left: 1px solid var(--bg-card-border, #e6e6e8); background: var(--bg-msg, #fafafa); overflow-y: auto; }

@@ -12,7 +12,9 @@ import * as Linking from "expo-linking";
 import { useCallback, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ENRICH_CHUNK_SIZE, WHATSAPP_OPEN_DELAY_MS } from "./constants";
-import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
+import { DEFAULT_MESSAGE_TEMPLATE, buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
+import { pickTemplateForStatus } from "../../../../supabase/functions/_shared/template-status.js";
+import { fetchMessageTemplates } from "../../workspace/message-templates";
 import { applyLeadEdits, applyLeadStatus, formatDateInputValue, sortLeadsByPriority } from "./lead-utils";
 import { filterLeads, paginateLeads, splitLeadsBySentStatus } from "./selectors";
 import { useAutoSheetSync } from "./useAutoSheetSync";
@@ -23,7 +25,6 @@ import {
   createLeadSource,
   deleteLeadSource,
   deleteLead,
-  fetchDefaultMessageTemplate,
   insertLead,
   fetchLeadSources,
   fetchUserLeads,
@@ -217,12 +218,20 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
 
   const messageTemplateQuery = useQuery({
     queryKey: messageTemplateQueryKey(userId),
-    queryFn: () => fetchDefaultMessageTemplate(userId),
+    queryFn: () => fetchMessageTemplates(userId),
     enabled: Boolean(userId),
     staleTime: 60 * 1000,
   });
-  const messageTemplate = messageTemplateQuery.data?.content;
-  const messageTemplateImagePath = messageTemplateQuery.data?.image_path || null;
+  // Each seller gets the template for their status, else the default template.
+  const { messageTemplate, messageTemplateImagePath, messageTemplateImageUrl } = useMemo(() => {
+    const templates = messageTemplateQuery.data || [];
+    const templateFor = (lead) => pickTemplateForStatus(templates, lead?.status);
+    return {
+      messageTemplate: (lead) => templateFor(lead)?.content || DEFAULT_MESSAGE_TEMPLATE,
+      messageTemplateImagePath: (lead) => templateFor(lead)?.image_path || null,
+      messageTemplateImageUrl: (lead) => templateFor(lead)?.image_url || null,
+    };
+  }, [messageTemplateQuery.data]);
 
   const connectedWhatsAppAccount = useMemo(
     () => getConnectedWhatsAppAccount(whatsappAccountsQuery.data || []),
@@ -1026,7 +1035,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     loading,
     messageTemplate,
     messageTemplateImagePath,
-    messageTemplateImageUrl: messageTemplateQuery.data?.image_url || null,
+    messageTemplateImageUrl,
     notice,
     pagedLeads,
     safePage,

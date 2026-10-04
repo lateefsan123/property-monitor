@@ -1,6 +1,9 @@
+import { resolveForLead } from "./template-status.js";
+
 // A template image introduces the agent once; follow-ups should be text-only.
+// imagePath may be a per-seller function (the template for their status).
 export function introAttachmentPath(imagePath, lead, sentAt, included = true) {
-  return included && !sentAt && !lead?.sentAt && !lead?.sent_at ? imagePath || null : null;
+  return included && !sentAt && !lead?.sentAt && !lead?.sent_at ? resolveForLead(imagePath, lead) || null : null;
 }
 
 export async function hasPriorWhatsAppContact(client, { userId, phone, sentAt }) {
