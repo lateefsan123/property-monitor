@@ -1,13 +1,15 @@
 {
-  "individualContacts": 255,
-  "newIndividuals": 4,
-  "newAlternateNumbers": 1,
-  "propertyFinderProfilesChecked": 20,
-  "propertyFinderNumbersConfirmed": 5,
+  "individualContacts": 8823,
+  "newIndividuals": 8568,
+  "dldSourceRecords": 33434,
+  "dldValidMobileRecords": 9637,
+  "dldExcludedInvalidOrOffice": 23797,
+  "dldExcludedSharedMobileRecords": 1037,
+  "dldOverlappingPhoneOrName": 32,
   "propertyFinderPending": 15,
   "excludedSharedNumbers": 2,
   "agencyContacts": 0,
-  "companies": 12,
+  "companies": 4618,
   "checkedOn": "2026-10-04",
   "dialTested": false
 }

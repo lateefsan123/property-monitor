@@ -11,6 +11,9 @@ const live = await read('live-dubai.tsv');
 const espace = await read('espace.tsv');
 const additions = await read('individuals-additions.tsv');
 const round2 = await read('individuals-round2.tsv');
+const dld = await read('dld-individuals.tsv');
+const dldStats=JSON.parse(await fs.readFile(path.join(dir,'dld-source-verification.json'),'utf8'));
+if(dld.length!==8600)throw new Error('Unexpected DLD cleaned source size');
 const pf = await read('propertyfinder-confirmed.tsv');
 if(pf.length!==5 || fingerprint(pf.map(r=>`${r[0]}|${r[1]}`).sort().join('\n'))!=='6368dc0c')throw new Error('Property Finder transcription differs from browser observations');
 if(round2.length!==76 || fingerprint(round2.map(r=>`${r[0]}|${r[1]}`).sort().join('\n'))!=='d09c9f4') throw new Error('Round 2 transcription differs from browser observations');
@@ -33,11 +36,19 @@ for(const r of pf){
   else{const person={name:r[0],phone:r[1],role:r[2],company:r[3],email:'',source:r[4],type:'Property Finder mobile',sourceType:'Property Finder agent listing',note};records.push(person);pfNew.push(person);}
 }
 const groups = new Map();
+const dldNew=[];const dldOverlaps=[];
+const normalizeName=s=>s.toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
+const knownPhones=new Set(records.map(r=>r.phone));const knownNames=new Set(records.map(r=>normalizeName(r.name)));
+for(const r of dld){
+  if(knownPhones.has(r[1])||knownNames.has(normalizeName(r[0]))){dldOverlaps.push({name:r[0],phone:r[1],brn:r[5]});continue;}
+  const person={name:r[0],phone:r[1],role:r[2],company:r[3],email:r[4]||'',source:dldStats.sourceUrl,type:'DLD registered broker mobile',sourceType:'Dubai Land Department registry',note:`Broker number ${r[5]}; published phone ${r[6]}. Registry contact; not dial-tested.`};
+  records.push(person);dldNew.push(person);knownPhones.add(r[1]);knownNames.add(normalizeName(r[0]));
+}
 for(const r of records) { if(!/^(?:\+9715\d{8}|\+346\d{8})$/.test(r.phone)) throw new Error(`Invalid mobile ${r.name}`); if(!groups.has(r.phone))groups.set(r.phone,[]); groups.get(r.phone).push(r); }
 const existing=await SpreadsheetFile.importXlsx(await FileBlob.load(path.join(dir,'Repeat-AI-broker-call-list.xlsx')));
 const previous=new Map(existing.worksheets.getItem('Broker mobiles').getUsedRange().values.slice(6).map(r=>[String(r[2]).replaceAll(' ',''),r.slice(6,9)]));
 const brokerRows = [...groups.values()].filter(g=>g.length===1).map(g=>g[0]).sort((a,b)=>a.company.localeCompare(b.company)||a.name.localeCompare(b.name)).map(r=>[r.name,r.company,r.phone,r.role,r.email,r.type||'Direct business mobile',...(previous.get(r.phone)||['Not contacted',null,'']),new Date('2026-10-04T12:00:00Z'),r.sourceType||'Official agency website',r.note||(r.phone.startsWith('+34')?'Spanish mobile published for this Dubai consultant':''),null,r.source]);
-if(brokerRows.length!==255)throw new Error(`Unexpected individual count ${brokerRows.length}`);
+if(brokerRows.length!==255+dldNew.length)throw new Error(`Unexpected individual count ${brokerRows.length}`);
 const book=Workbook.create();
 const makeSheet=(name,headers,rows,widths,sourceCol,statusCol,dateCols)=>{
   const sheet=book.worksheets.add(name); sheet.showGridLines=false;
@@ -54,6 +65,8 @@ const makeSheet=(name,headers,rows,widths,sourceCol,statusCol,dateCols)=>{
   const table=sheet.tables.add(`A6:${String.fromCharCode(64+sourceCol-2)}${last}`,true,name==='Broker mobiles'?'BrokerCallList':'AgencyCallList'); table.showFilterButton=true;
   sheet.getRange(`A6:${String.fromCharCode(64+sourceCol-2)}6`).format={fill:'#172554',font:{name:'Arial',size:10,bold:true,color:'#FFFFFF'},wrapText:true,horizontalAlignment:'center',verticalAlignment:'center',rowHeight:34};
   sheet.getRange(`A7:${lastCol}${last}`).format.rowHeight=32;
+  sheet.getRange(`A7:E${last}`).format.wrapText=true;
+  sheet.getRange(`A7:${lastCol}${last}`).format.rowHeight=48;
   sheet.getRange(`A7:${lastCol}${last}`).format.verticalAlignment='center';
   widths.forEach((w,i)=>sheet.getRangeByIndexes(5,i,rows.length+1,1).format.columnWidth=w);
   // Phone numbers remain literal text, including the international + prefix.
@@ -71,6 +84,6 @@ console.log((await book.inspect({kind:'table',range:'Broker mobiles!A6:G10',incl
 console.log((await book.inspect({kind:'match',searchTerm:'#REF!|#DIV/0!|#VALUE!|#NAME\\?|#N/A|#NUM!|#NULL!',options:{useRegex:true,maxResults:20},maxChars:1000})).ndjson);
 for(const sheetName of ['Broker mobiles']) { const preview=await book.render({sheetName,range:'A1:G12',scale:1.5,format:'png'}); await fs.writeFile(path.join(dir,`${sheetName.toLowerCase().replaceAll(' ','-')}-preview.png`),new Uint8Array(await preview.arrayBuffer())); }
 await (await SpreadsheetFile.exportXlsx(book)).save(path.join(dir,'Repeat-AI-broker-call-list.xlsx'));
-const totals={individualContacts:brokerRows.length,newIndividuals:pfNew.length,newAlternateNumbers:pf.length-pfNew.length,propertyFinderProfilesChecked:20,propertyFinderNumbersConfirmed:pf.length,propertyFinderPending:15,excludedSharedNumbers:[...groups.values()].filter(g=>g.length>1).length,agencyContacts:0,companies:new Set(brokerRows.map(r=>r[1])).size,checkedOn:'2026-10-04',dialTested:false};
+const totals={individualContacts:brokerRows.length,newIndividuals:dldNew.length,dldSourceRecords:dldStats.sourceRecords,dldValidMobileRecords:dldStats.validMobileRecords,dldExcludedInvalidOrOffice:dldStats.excludedInvalidOrOffice,dldExcludedSharedMobileRecords:dldStats.excludedSharedMobileRecords,dldOverlappingPhoneOrName:dldOverlaps.length,propertyFinderPending:15,excludedSharedNumbers:[...groups.values()].filter(g=>g.length>1).length,agencyContacts:0,companies:new Set(brokerRows.map(r=>r[1])).size,checkedOn:'2026-10-04',dialTested:false};
 await fs.writeFile(path.join(dir,'verification.json'),JSON.stringify(totals,null,2)+'\n');
 console.log(JSON.stringify(totals));
