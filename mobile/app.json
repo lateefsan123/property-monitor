@@ -32,7 +32,7 @@
         "foregroundImage": "./assets/repeat-ai-icon.png",
         "backgroundColor": "#000000"
       },
-      "versionCode": 10
+      "versionCode": 11
     },
     "web": {
       "favicon": "./assets/repeat-ai-icon.png"

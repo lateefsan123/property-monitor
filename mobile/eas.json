@@ -32,6 +32,15 @@
       "environment": "production",
       "autoIncrement": false
     },
+    "release-play": {
+      "extends": "production",
+      "distribution": "store",
+      "environment": "production",
+      "autoIncrement": false,
+      "android": {
+        "buildType": "app-bundle"
+      }
+    },
     "release-android": {
       "extends": "production",
       "distribution": "internal",
