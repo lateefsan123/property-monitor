@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { createBillingRequest } from "../src/billing-request.js";
 
 // Execute the actual client wrappers with a fake transport, without loading
 // Vite's browser-only Supabase configuration in Node.
@@ -9,8 +10,8 @@ const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
 function wrapper(name, response) {
   const declaration = source.match(new RegExp(`export async function ${name}\\([^]*?\\n\\}`, "m"));
   assert.ok(declaration, `Missing client wrapper: ${name}`);
-  return new AsyncFunction("supabase", `${declaration[0].replace("export ", "")}\nreturn ${name}();`)(
-    { functions: { invoke: async () => response } },
+  return new AsyncFunction("requestBilling", `${declaration[0].replace("export ", "")}\nreturn ${name}();`)(
+    createBillingRequest({ functions: { invoke: async () => response } }),
   );
 }
 

@@ -1,6 +1,6 @@
 import "./styles/policy.css";
 
-const UPDATED_AT = "September 12, 2026";
+const UPDATED_AT = "October 4, 2026";
 
 const POLICIES = {
   "/support": {
@@ -9,8 +9,8 @@ const POLICIES = {
     intro: "Help with your account, subscription, seller records, and listings.",
     sections: [
       { title: "Contact Us", body: "Email lateefsanusiit@gmail.com with a description of the issue, your device model, and app version. Do not include your password or other people’s contact details." },
-      { title: "Subscriptions", body: "In the app, open Settings → Billing to manage your subscription. For an Apple subscription, you can also use your device Settings → your name → Subscriptions. If you have already paid, use Restore purchases on the app subscription screen." },
-      { title: "Account Deletion", body: "In the app, open Settings → Account → Delete account. You can also request deletion by emailing lateefsanusiit@gmail.com from your account email. Deleting an account does not automatically cancel an App Store subscription." },
+      { title: "Subscriptions", body: "In the app, open Settings → Billing to manage your subscription. Apple subscriptions can also be managed in device Settings → your name → Subscriptions; Google Play subscriptions in Play Store → profile → Payments & subscriptions → Subscriptions. If you have already paid, use Restore purchases on the app subscription screen while signed in to the appropriate store account." },
+      { title: "Account Deletion", body: "In the app, open Settings → Account → Delete account. You can also request deletion by emailing lateefsanusiit@gmail.com from your account email. Deleting an account does not automatically cancel an Apple or Google Play subscription. Cancel it through the store's subscription controls." },
     ],
   },
   "/privacy": {
@@ -22,7 +22,7 @@ const POLICIES = {
       {
         title: "Information We Collect",
         body:
-          "We collect account details such as your name, email address, profile settings, subscription status, and app preferences. When you use Repeat AI, we also process seller records, lead details, imported spreadsheet data, notes, listing alerts, building watchlists, and WhatsApp connection metadata you choose to provide.",
+          "We collect account identifiers, email address, profile details you provide, subscription and purchase status, and app preferences. When you use Repeat AI, we also process seller names, contact details and addresses, imported files and spreadsheet records, notes, searches, listing alerts, building watchlists, follow-up activity, and photos you choose to upload. We process operational and diagnostic information to maintain reliability and security. If you enable push notifications, we process your notification token to deliver requested alerts.",
       },
       {
         title: "How We Use Information",
@@ -35,9 +35,24 @@ const POLICIES = {
           "If you connect WhatsApp, Repeat AI processes connection credentials, messages you initiate or automate, and message and delivery events to provide messaging features and associate activity with the relevant account or seller. Connections may use a linked-device session or WhatsApp Business Platform integration. We do not sell WhatsApp message data.",
       },
       {
+        title: "Connected Email and Calendar",
+        body:
+          "If you connect an email or calendar account, we process the account connection credentials, email content and related contact details, and calendar events needed for the features you use. These integrations are optional. You can disconnect an integration in Repeat AI and revoke its authorization through the connected provider's account controls.",
+      },
+      {
+        title: "AI and Voice Features",
+        body:
+          "When you use the assistant, we send your request and relevant workspace context to our AI service providers to generate a response. If you choose voice input or a live voice session, microphone audio is sent for transcription or conversational processing. We also process assistant conversations and any files or images you choose to include. Voice and assistant features are optional; avoid including information you do not want processed by these providers.",
+      },
+      {
+        title: "Payments and Subscription Access",
+        body:
+          "Web payments are handled by Stripe, and native purchases by Apple or Google Play. RevenueCat helps validate native purchases, renewals, cancellations and refunds. We send RevenueCat your Repeat AI account identifier and, when available, account email and display name so purchase access can be associated with your account. We receive subscription status and purchase information; payment card details are handled by the payment provider.",
+      },
+      {
         title: "Sharing",
         body:
-          "We share information only with service providers needed to run the product, such as hosting, database, authentication, payments, analytics, and messaging infrastructure. We may disclose information when required by law or to protect the service and users.",
+          "We provide information to service providers needed to run the product, including hosting, database, authentication, payments, RevenueCat, AI processing, operational analytics, notifications, and connected messaging, email and calendar infrastructure. Messages and other information you choose to send are delivered to your selected recipients. We do not sell your personal data. We may disclose information when required by law or to protect the service and users.",
       },
       {
         title: "Retention and Deletion",
@@ -93,17 +108,17 @@ const POLICIES = {
     eyebrow: "Deletion",
     title: "Data Deletion Instructions",
     intro:
-      "You can request deletion of your Repeat AI account data and connected messaging data at any time.",
+          "You can request deletion of your Repeat AI account and associated data, or selected workspace and integration data while keeping your account.",
     sections: [
       {
         title: "How To Request Deletion",
         body:
-          "Email lateefsanusiit@gmail.com from the email address linked to your Repeat AI account with the subject line 'Repeat AI data deletion request'. Include your account email and, if relevant, the WhatsApp Business phone number or workspace affected.",
+          "Email lateefsanusiit@gmail.com from the email address linked to your Repeat AI account with the subject line 'Repeat AI data deletion request'. State whether you want your entire account deleted or only specific records, uploads, conversations or connected integration data. Identify the workspace or integration affected without including your password. In the app, you can also open Settings → Account → Delete account to request full account deletion.",
       },
       {
         title: "What We Delete",
         body:
-          "We will delete or anonymize account profile data, seller records, imported spreadsheet data, lead notes, saved views, WhatsApp connection records, and related operational data unless retention is required for legal, security, billing, or dispute-resolution reasons.",
+          "For account deletion, we delete or anonymize account profile data, seller records, imported files and spreadsheets, lead notes, saved views, assistant conversations, connected messaging/email/calendar records, notification tokens and related operational data unless retention is required for legal, security, billing, or dispute-resolution reasons. For partial deletion requests, we remove the specified data after verifying the request. Deletion does not automatically cancel an Apple or Google Play subscription; use the store's subscription controls to cancel it.",
       },
       {
         title: "Timing",
@@ -113,7 +128,7 @@ const POLICIES = {
       {
         title: "Platform Data",
         body:
-          "If your data also exists in Meta, WhatsApp, Stripe, Supabase, or another service you connected, you may need to use that provider's own account or privacy controls to delete copies held directly by that provider.",
+          "If your data also exists in Apple, Google, Meta, WhatsApp, Stripe, RevenueCat, or another connected provider, use that provider's account or privacy controls for copies held directly by the provider. Disconnecting an integration does not delete your original emails, calendar events or messages in that provider's service.",
       },
     ],
   },

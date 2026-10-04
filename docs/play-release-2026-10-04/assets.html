@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Repeat AI Google Play assets</title>
+<style>
+body{margin:32px;background:#eef1f5;color:#19222b;font:16px Arial,sans-serif}canvas{display:block;margin:20px 0;max-width:100%;height:auto}button{padding:12px 18px;margin-bottom:30px}
+</style>
+<h1>Repeat AI Google Play assets</h1>
+<p>Existing Repeat AI branding, rendered at Google's required dimensions.</p>
+<canvas id="icon" width="512" height="512"></canvas>
+<button id="save-icon">Download app icon</button>
+<canvas id="feature" width="1024" height="500"></canvas>
+<button id="save-feature">Download feature graphic</button>
+<script type="module">
+const logo = new Image();
+logo.src = '../../mobile/assets/repeat-ai-icon.png';
+await logo.decode();
+const icon = document.querySelector('#icon');
+const iconContext = icon.getContext('2d');
+iconContext.fillStyle = '#000';
+iconContext.fillRect(0, 0, 512, 512);
+iconContext.drawImage(logo, 0, 0, 512, 512);
+const feature = document.querySelector('#feature');
+const ctx = feature.getContext('2d');
+ctx.fillStyle = '#f7faff';
+ctx.fillRect(0, 0, 1024, 500);
+ctx.strokeStyle = '#e7eef7';
+ctx.lineWidth = 1;
+for (let x = -500; x < 1600; x += 72) {
+  ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 500, 500); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x - 500, 500); ctx.stroke();
+}
+ctx.drawImage(logo, 72, 64, 88, 88);
+ctx.fillStyle = '#19222b';
+ctx.font = 'bold 31px Arial';
+ctx.fillText('Repeat AI', 184, 120);
+ctx.font = 'bold 54px Arial';
+ctx.fillText('Your seller workspace.', 72, 245);
+ctx.font = '27px Arial';
+ctx.fillStyle = '#536473';
+ctx.fillText('Sellers, property activity and follow-ups.', 72, 302);
+ctx.font = '20px Arial';
+ctx.fillText('Requires Repeat AI Pro · Paid subscription', 72, 418);
+function download(canvas, name) {
+  const link = document.createElement('a');
+  link.href = canvas.toDataURL('image/png');
+  link.download = name;
+  link.click();
+}
+document.querySelector('#save-icon').onclick = () => download(icon, 'repeat-ai-play-icon.png');
+document.querySelector('#save-feature').onclick = () => download(feature, 'repeat-ai-play-feature.png');
+</script>
+</html>
