@@ -1,4 +1,46 @@
-# App film audio revision - 28 September 2026
+# App film audio
+
+## v4 cut - 5 October 2026
+
+`app-film-v4` runs 72 seconds. Inputs: `out/vo-brady-v4-take-1.mp3`,
+`out/music-vastness-andrew-ev.mp3`; outputs are named `*-app-film-v4*` in `out/`.
+
+### Narration
+
+Eleven v4, Brady J - Confident Real Estate Agent, take 1 (68.99 s), approved by
+the user. It plays once from 0.5 s: no trims, tempo changes, inserted pauses or
+older pickups. `narration-words.py` recovered all 202 scripted words in order
+(the recogniser hears "due" as "do"; they sound the same). The picture follows
+its word times (`app-pacing.mjs`).
+
+Level: one fixed gain of +2.27 dB to -18 LUFS (the take measures -20.27 LUFS,
+-1.38 dBTP), then a peak limiter at -3 dBFS with its lookahead compensated, so
+timing and delivery are unchanged.
+
+### Music and effects
+
+The licensed **Vastness** passage below (Andrew Ev, Mixkit), source seconds 18-90,
+2-second fade in and 4.5-second fade out, -27 LUFS before ducking. The voice
+ducks it; while the narration plays it measures -33.4 LUFS, 15.2 LU under the
+voice (-18.1 LUFS). `sound-app.mjs` writes 44 cues from the shared timeline
+(`out/sfx-app-film-v4-cues.json`), reduced 16 dB in the mix.
+
+Master: two-pass loudness normalization to -16 LUFS, applied as a linear gain
+(premix -18.3 LUFS, -5.2 dBTP). Result: -16.0 LUFS integrated, -2.9 dBTP, LRA 2.2.
+These numbers don't establish how the voice and music sound; that takes listening.
+
+### Export checks
+
+`out/repeat-ai-app-film-v4-9x16.mp4`: 72.000 seconds, 1080x1920 at 60 fps (H.264),
+stereo AAC at 48 kHz, both streams starting at 0; 14.8 MB. A full decode reported
+no errors. ebur128: -15.9 LUFS integrated, LRA 2.3, peak -2.9 dBFS. Speech
+recognition on the export recovered all 202 scripted words in order, and each
+checked word sits 0.46-0.52 s after its time in the bare take (0.5 s expected,
+the rest is word-boundary jitter), from the opening to the closing line: no drift.
+The contact sheet and 18 frames from the encoded file were reviewed. The 86-second
+film and its audio stems kept their 28 September sizes and dates.
+
+## 86-second cut - 28 September 2026
 
 The revised cut runs 86 seconds. `app-pacing.mjs` maps the original 73-second
 picture into longer sections. Picture source, SFX and fast conform share that

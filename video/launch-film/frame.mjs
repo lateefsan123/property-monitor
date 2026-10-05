@@ -2,7 +2,8 @@
 import path from 'node:path';
 import { openFilm } from './browser.mjs';
 const [format, ...times] = process.argv.slice(2);
-const { browser, page, seek, errors } = await openFilm(format, process.env.FILM || 'film');
-for (const t of times) { await seek(Number(t)); await page.screenshot({ path: path.join(import.meta.dirname, 'out', `frame-${format}-${t}.png`) }); }
+const { browser, page, seek, name, errors } = await openFilm(format, process.env.FILM || 'film');
+const prefix = name ? `frame-${name}-${format}` : `frame-${format}`;
+for (const t of times) { await seek(Number(t)); await page.screenshot({ path: path.join(import.meta.dirname, 'out', `${prefix}-${t}.png`) }); }
 await browser.close();
 if (errors.length) console.log(errors.join('\n'));

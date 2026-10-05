@@ -1,24 +1,23 @@
-// Re-time the rendered 73-second picture using the shared pacing map.
+// node video/launch-film/conform-app.mjs [9x16|16x9]
+// Puts the current mix on the rendered picture of the cut in app-pacing.mjs, so an
+// audio change doesn't need a new frame render. Both must match the cut length.
+// (The 86-second cut re-timed its 73-second picture here; the v4 cut is rendered
+// at its own timing by render.mjs.)
 import { spawnSync } from 'node:child_process';
 import path from 'node:path';
-import { DURATION, SOURCE_DURATION, PACING } from './app-pacing.mjs';
+import { CUT, DURATION } from './app-pacing.mjs';
+const format = process.argv[2] || '9x16';
 const out = path.join(import.meta.dirname, 'out');
-const source = path.join(out, 'source-app-film-9x16-73s.mp4');
-const info = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'json', source], { encoding: 'utf8' });
-if (info.status !== 0) throw new Error(info.stderr);
-if (Math.abs(Number(JSON.parse(info.stdout).format.duration) - SOURCE_DURATION) > 0.03)
-  throw new Error('Conform requires the original 73-second silent picture.');
-let expression = String(DURATION);
-for (let i = PACING.length - 1; i >= 1; i--) {
-  const [a, x] = PACING[i - 1], [b, y] = PACING[i];
-  expression = `if(lt(T,${b}),${x}+(T-${a})*${(y - x) / (b - a)},${expression})`;
+const picture = path.join(out, `silent-${CUT}-${format}.mp4`);
+const mix = path.join(out, `mix-${CUT}.wav`);
+for (const source of [picture, mix]) {
+  const info = spawnSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', source], { encoding: 'utf8' });
+  if (info.status !== 0) throw new Error(info.stderr);
+  if (Math.abs(Number(info.stdout) - DURATION) > 0.05) throw new Error(`${path.basename(source)} is not ${DURATION} seconds.`);
 }
-const target = path.join(out, 'repeat-ai-app-film-9x16-sound-review.mp4');
-const result = spawnSync('ffmpeg', ['-hide_banner', '-y', '-i', source,
-  '-i', path.join(out, 'mix-app-film.wav'), '-map', '0:v:0', '-map', '1:a:0',
-  '-vf', `setpts='(${expression})/TB',fps=60`, '-t', String(DURATION),
-  '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p',
-  '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-movflags', '+faststart', target],
+const target = path.join(out, `repeat-ai-${CUT}-${format}.mp4`);
+const result = spawnSync('ffmpeg', ['-hide_banner', '-y', '-i', picture, '-i', mix, '-map', '0:v:0', '-map', '1:a:0',
+  '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-t', String(DURATION), '-movflags', '+faststart', target],
   { stdio: 'inherit' });
 if (result.status !== 0) throw new Error(`Conform failed: ${result.status}`);
 console.log(target);

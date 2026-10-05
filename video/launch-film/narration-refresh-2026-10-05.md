@@ -25,6 +25,10 @@ Naturalness and full transcript fidelity remain subject to listening review. Thi
 
 The user requested Claude handle the remaining video work. `claude-video-handoff-2026-10-05.md` contains the scoped brief. Native app control is unavailable in this session; the browser Claude tab and installed Claude Code CLI are signed out. The brief has been prepared but has not been sent to Claude. Browser control lost its debugger connection after the first audio download, blocking the second download and a new generation screenshot.
 
+## Approved take and cut (5 October)
+
+The user listened to take 1 and approved it for the film. Claude cut `app-film-v4` (72 seconds) around it, unedited from 0.5 s: see the v4 sections of `README.md` and `audio-production.md`. The handoff's result is recorded at the end of `claude-video-handoff-2026-10-05.md`.
+
 ## Remaining verification
 
 Generate and compare voice auditions, select the natural delivery, download its original audio, align the picture, mix the existing licensed music and sound effects, and export. Listen to the generated audio and final mix for naturalness; transcript, decode, loudness and timing checks alone cannot establish that the narration sounds good. Provide a hosted watch link for the user's remote device.

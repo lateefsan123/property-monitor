@@ -12,12 +12,13 @@ const film = (() => { const i = process.argv.indexOf('--film'); return i > 0 ? p
 const FPS = arg('fps', 60), SUB = arg('sub', 2);
 const out = path.join(import.meta.dirname, 'out');
 mkdirSync(out, { recursive: true });
-const tag = film === 'film' ? 'launch' : film;
-const silent = path.join(out, `silent-${tag}-${format}.mp4`);
-const final = path.join(out, `repeat-ai-${tag}-${format}.mp4`);
 
 let session = await openFilm(format, film);
 const { width, height, duration: DUR, errors } = session;
+const cut = session.name || film;
+const tag = session.name || (film === 'film' ? 'launch' : film);
+const silent = path.join(out, `silent-${tag}-${format}.mp4`);
+const final = path.join(out, `repeat-ai-${tag}-${format}.mp4`);
 const vf = SUB > 1 ? `tmix=frames=${SUB},select='eq(mod(n\\,${SUB})\\,${SUB - 1})',setpts=N/${FPS}/TB` : 'null';
 const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(FPS * SUB), '-i', '-',
   '-vf', vf, '-r', String(FPS), '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', silent],
@@ -55,10 +56,10 @@ await session.browser.close();
 if (errors.length) console.log('PAGE ERRORS:\n' + errors.join('\n'));
 
 // A voiceover mix (mix-app.mjs) wins over the plain score when present.
-const mix = path.join(out, `mix-${film}.wav`);
-const score = existsSync(mix) ? mix : path.join(out, film === 'film' ? 'score.wav' : `score-${film}.wav`);
+const mix = path.join(out, `mix-${cut}.wav`);
+const score = existsSync(mix) ? mix : path.join(out, film === 'film' ? 'score.wav' : `score-${cut}.wav`);
 if (!existsSync(score)) { console.log(`video only: ${silent} (run music.mjs for sound)`); process.exit(0); }
 const mux = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-i', silent, '-i', score, '-map', '0:v', '-map', '1:a',
-  '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-shortest', '-movflags', '+faststart', final], { stdio: 'inherit' });
+  '-c:v', 'copy', '-c:a', 'aac', '-b:a', '256k', '-ar', '48000', '-shortest', '-movflags', '+faststart', final], { stdio: 'inherit' });
 await new Promise((resolve) => mux.on('close', resolve));
 console.log(`done: ${final}`);

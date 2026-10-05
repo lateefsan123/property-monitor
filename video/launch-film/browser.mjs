@@ -17,6 +17,7 @@ export async function openFilm(format = '9x16', film = 'film', base = 'http://12
   await page.waitForFunction(() => typeof window.seek === 'function');
   await page.evaluate(() => window.filmReady || true);
   const seek = (t) => page.evaluate((value) => window.seek(value), t);
-  const duration = await page.evaluate(() => window.filmSize.duration);
-  return { browser, page, seek, width, height, duration, errors };
+  // A film can name its cut (app-film-v4) so its files never replace an older cut's.
+  const { duration, name } = await page.evaluate(() => window.filmSize);
+  return { browser, page, seek, width, height, duration, name, errors };
 }

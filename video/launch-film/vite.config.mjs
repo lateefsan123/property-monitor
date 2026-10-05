@@ -11,9 +11,11 @@ export default defineConfig({
   configFile: false,
   plugins: [react()],
   // No hot reload, so an edit can't swap code inside a page mid-capture; file
-  // watching stays on so every new page load gets the current code.
+  // watching stays on so every new page load gets the current code. No websocket
+  // either: another page's error (e.g. the web app at /, which needs its own
+  // config) would otherwise be pushed as an overlay into frames being captured.
   server: {
-    host: '127.0.0.1', port: 4190, strictPort: true, hmr: false,
+    host: '127.0.0.1', port: 4190, strictPort: true, hmr: false, ws: false,
     // Rendered frames and the repo's large build/temp folders must not be watched.
     watch: { ignored: ['**/out/**', '**/tmp/**', '**/dist*/**', '**/node_modules/**', '**/.git/**', '**/video/out/**', '**/video/assets/**'] },
   },

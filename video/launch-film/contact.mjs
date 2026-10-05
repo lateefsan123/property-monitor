@@ -10,11 +10,10 @@ const format = process.argv[2] || '9x16';
 const step = Number(process.argv[3] || 0.5);
 const film = process.argv[4] || 'film';
 const out = path.join(import.meta.dirname, 'out');
-const frames = path.join(out, `contact-${film}-${format}`);
+const { browser, page, seek, duration, name, errors } = await openFilm(format, film);
+const frames = path.join(out, `contact-${name || film}-${format}`);
 rmSync(frames, { recursive: true, force: true });
 mkdirSync(frames, { recursive: true });
-
-const { browser, page, seek, duration, errors } = await openFilm(format, film);
 let index = 0;
 for (let t = 0; t < duration; t += step, index += 1) {
   await seek(t + 0.001);

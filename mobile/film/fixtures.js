@@ -104,14 +104,25 @@ export const BUILDING_SCHEDULES = [{
   },
 }];
 
+// Templates by seller status. Sara introduces herself to new contacts and gets
+// straight to the update with sellers she has already spoken to. The film
+// assigns Appraisal to the follow-up on camera, so it starts without a status.
 export const MESSAGE_TEMPLATES = [
   {
-    id: 'tpl-transactions', user_id: FILM_USER.id, name: 'Transaction update', is_default: true, image_path: null, created_at: iso(30), updated_at: iso(2),
+    id: 'tpl-transactions', user_id: FILM_USER.id, name: 'Transaction update', is_default: true, statuses: [], image_path: null, created_at: iso(30), updated_at: iso(4),
     content: 'Hi {{name}}, quick update on recent sales in {{building}}.\n\n{{transactions}}\n\nBuyers are active in your building right now. Happy to share what your unit could achieve if you are thinking of selling.',
   },
   {
-    id: 'tpl-market', user_id: FILM_USER.id, name: 'Monthly market check-in', is_default: false, image_path: null, created_at: iso(40), updated_at: iso(9),
-    content: 'Hi {{name}}, here is this month in {{building}}:\n\n{{transactions}}\n\nLet me know if you would like a fresh valuation.',
+    id: 'tpl-intro', user_id: FILM_USER.id, name: 'Introduction', is_default: false, statuses: ['none', 'prospect'], image_path: null, created_at: iso(20), updated_at: iso(1),
+    content: 'Hi {{name}}, I’m Sara, a broker specialising in {{building}}.\n\nHere are the latest transactions in your building:\n\n{{transactions}}\n\nIf you ever think about selling, I’d be happy to tell you what your unit could achieve.',
+  },
+  {
+    id: 'tpl-appraisal', user_id: FILM_USER.id, name: 'Appraisal follow-up', is_default: false, statuses: [], image_path: null, created_at: iso(18), updated_at: iso(2),
+    content: 'Hi {{name}}, hope you’re well.\n\nJust wanted to keep you updated on the latest activity in {{building}}.\n\n{{transactions}}\n\nBuyer activity is still holding up well. If selling is still on your mind, I’d be happy to update your valuation.',
+  },
+  {
+    id: 'tpl-for-sale', user_id: FILM_USER.id, name: 'For sale update', is_default: false, statuses: ['for_sale_available'], image_path: null, created_at: iso(16), updated_at: iso(3),
+    content: 'Hi {{name}}, quick update on {{building}}.\n\n{{transactions}}\n\nHappy to talk through how these compare with your asking price.',
   },
 ];
 
