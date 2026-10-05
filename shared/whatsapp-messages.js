@@ -153,13 +153,13 @@ export function createWhatsAppMessageServices(supabase) {
     const phone = normalizeSellerPhone(lead.phone);
     const filters = [Number.isFinite(leadId) ? `lead_id.eq.${leadId}` : null, phone ? `recipient_phone.eq.${phone}` : null].filter(Boolean);
     if (!filters.length) return { items: [], nextCursor: null };
-    let query = supabase
+    // One or() filter: (this seller's id or number) and, for older pages, before the cursor.
+    const seller = filters.join(",");
+    const { data, error } = await supabase
       .from("whatsapp_messages")
       .select(MESSAGE_COLUMNS)
       .eq("user_id", userId)
-      .or(filters.join(","));
-    if (cursor) query = query.or(beforeCursor(cursor));
-    const { data, error } = await query
+      .or(cursor ? `and(or(${seller}),or(${beforeCursor(cursor)}))` : seller)
       .order("created_at", { ascending: false })
       .order("id", { ascending: true })
       .limit(pageSize + 1);

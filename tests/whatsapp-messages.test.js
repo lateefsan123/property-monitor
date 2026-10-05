@@ -95,6 +95,12 @@ test("thread pages match the seller by id or phone", async () => {
   assert.deepEqual(calls[0].filters[0], ["eq", "user_id", "user-1"]);
 });
 
+test("older thread pages combine the seller and cursor in one filter", async () => {
+  const { client, calls } = fakeSupabase({ whatsapp_messages: [] });
+  await createWhatsAppMessageServices(client).fetchSellerThreadPage("user-1", { id: 7, phone: "050 555 0121" }, { cursor: { created_at: "2026-10-05T10:00:00+00:00", id: "m9" } });
+  assert.deepEqual(calls[0].ors, ['and(or(lead_id.eq.7,recipient_phone.eq.971505550121),or(created_at.lt."2026-10-05T10:00:00+00:00",and(created_at.eq."2026-10-05T10:00:00+00:00",id.gt.m9)))']);
+});
+
 test("groupFeedByDay labels today and yesterday", () => {
   const now = new Date(2026, 9, 5, 12);
   const groups = groupFeedByDay([

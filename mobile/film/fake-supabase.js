@@ -59,6 +59,7 @@ class Query {
     };
     const compile = (term) => {
       if (term.startsWith('and(')) { const inner = split(term.slice(4, -1)).map(compile); return (row) => inner.every((test) => test(row)); }
+      if (term.startsWith('or(')) { const inner = split(term.slice(3, -1)).map(compile); return (row) => inner.some((test) => test(row)); }
       const [column, operator, ...rest] = term.split('.');
       const value = rest.join('.').replace(/^"|"$/g, '');
       if (operator === 'eq') return (row) => same(row[column], value);
