@@ -14,7 +14,9 @@ Add your broker card as an image, and it goes out with your first message. Their
 
 In Listings, watch the buildings you cover, and open any apartment to see how its asking price has changed. Then choose the days for each building, so routine updates fit around your week.
 
-And in early access, there's Ask Repeat. Ask what sold in a building last month, what similar apartments are asking, or which listings just dropped their price. It can draft notes, templates and emails too, and nothing changes until you confirm.
+And there's Ask Repeat, in early access. Talk to it, or type.
+
+Ask what similar apartments are asking, or which listings just dropped their price. It can draft notes, templates and emails too, and nothing changes until you confirm.
 
 Connect your spreadsheets, email and calendar, and keep your seller workspace in one place.
 

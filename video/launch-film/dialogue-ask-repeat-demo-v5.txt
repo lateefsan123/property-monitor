@@ -1,0 +1,7 @@
+Plays between "Talk to it, or type." and "Ask what similar apartments are asking…" in dialogue-natural-v5.txt.
+
+BROKER (Brady J, same settings as the narration):
+What sold in Forte 2 last month?
+
+REPEAT (the assistant's voice):
+Forte 2 had five recorded sales in August. The median was two point nine million dirhams, about three thousand per square foot.
