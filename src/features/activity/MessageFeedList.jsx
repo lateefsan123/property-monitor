@@ -2,8 +2,6 @@ import { formatBuildingLabel } from "../seller-signal/building-utils";
 import { formatMessageWhen, groupFeedByDay, messageSourceLabel, messageStatusLabel, messageText, messageTime } from "../../../shared/whatsapp-messages.js";
 import "../../styles/message-history.css";
 
-const timeOf = (value) => new Date(value).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-
 function FeedRow({ item, compact, onOpenSeller }) {
   const lead = item.lead;
   const inbound = item.direction === "inbound";
@@ -11,8 +9,8 @@ function FeedRow({ item, compact, onOpenSeller }) {
   const place = lead ? [formatBuildingLabel(lead.building) || lead.building, lead.unit ? `Unit ${lead.unit}` : null].filter(Boolean).join(" · ") : "Not in your sellers";
   const detail = inbound ? `Replied: ${messageText(item)}` : [messageSourceLabel(item), messageStatusLabel(item)].filter(Boolean).join(" · ");
   const sentAt = messageTime(item);
-  // Rows under a day heading show the time; standalone rows also name the day.
-  const when = compact ? formatMessageWhen(sentAt) : timeOf(sentAt);
+  // Every row shows the date and time it was sent ("5 Oct · 10:35").
+  const when = formatMessageWhen(sentAt);
   const content = <>
     <span className="message-feed-text">
       <strong>{name}</strong>

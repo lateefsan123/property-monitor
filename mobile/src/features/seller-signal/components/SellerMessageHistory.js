@@ -2,9 +2,7 @@ import { Pressable, Text, View } from "react-native";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import ContentSkeleton from "../../../components/ContentSkeleton";
 import { fetchSellerThreadPage, nextFeedCursor, sellerThreadQueryKey } from "../../../workspace/message-feed";
-import { groupFeedByDay, messageSourceLabel, messageStatusLabel, messageText, messageTime } from "../../../../../shared/whatsapp-messages.js";
-
-const timeOf = (value) => new Date(value).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+import { formatMessageWhen, groupFeedByDay, messageSourceLabel, messageStatusLabel, messageText, messageTime } from "../../../../../shared/whatsapp-messages.js";
 
 // Every WhatsApp message with this seller: what you sent (right) and what they
 // replied (left), oldest first under day dividers. Loads the latest 20; earlier
@@ -36,7 +34,7 @@ export default function SellerMessageHistory({ userId, lead, colors: c }) {
       {group.items.map((message) => {
         const inbound = message.direction === "inbound";
         const failed = message.status === "failed";
-        const time = timeOf(messageTime(message));
+        const time = formatMessageWhen(messageTime(message));
         const meta = inbound ? time : [time, messageSourceLabel(message), messageStatusLabel(message)].filter(Boolean).join(" · ");
         return <View key={message.id} style={{ alignItems: inbound ? "flex-start" : "flex-end", gap: 4 }}>
           <View style={{ maxWidth: "86%", borderRadius: 16, borderTopLeftRadius: inbound ? 4 : 16, borderTopRightRadius: inbound ? 16 : 4, paddingHorizontal: 13, paddingVertical: 10, backgroundColor: inbound ? c.bgMsg : c.bgBadge }}>

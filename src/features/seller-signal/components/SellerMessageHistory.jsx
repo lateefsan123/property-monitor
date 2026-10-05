@@ -1,9 +1,7 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import { groupFeedByDay, messageSourceLabel, messageStatusLabel, messageText, messageTime } from "../../../../shared/whatsapp-messages.js";
+import { formatMessageWhen, groupFeedByDay, messageSourceLabel, messageStatusLabel, messageText, messageTime } from "../../../../shared/whatsapp-messages.js";
 import { fetchSellerThreadPage, nextFeedCursor, sellerThreadQueryKey } from "../../home/message-feed-services";
 import "../../../styles/message-history.css";
-
-const timeOf = (value) => new Date(value).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
 
 // Every WhatsApp message with this seller: what you sent (right) and what they
 // replied (left), oldest first under day dividers. Loads the latest 20; earlier
@@ -32,7 +30,7 @@ export default function SellerMessageHistory({ userId, lead }) {
           const inbound = message.direction === "inbound";
           const failed = message.status === "failed";
           const sentAt = messageTime(message);
-          const time = timeOf(sentAt);
+          const time = formatMessageWhen(sentAt);
           const meta = inbound ? time : [time, messageSourceLabel(message), messageStatusLabel(message)].filter(Boolean).join(" · ");
           return <div key={message.id} className={`message-thread-item ${inbound ? "is-inbound" : "is-outbound"}`}>
             <p className="message-thread-bubble">{messageText(message)}</p>

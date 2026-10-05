@@ -45,11 +45,11 @@ test("message labels describe source and fallback text", () => {
   assert.equal(messageText({ body: null, template_name: "transaction_update" }), "Template: transaction_update");
 });
 
-test("formatMessageWhen gives the exact time with its day", () => {
+test("formatMessageWhen gives the date and time", () => {
   const now = new Date(2026, 9, 5, 12);
-  assert.equal(formatMessageWhen(new Date(2026, 9, 5, 10, 35).toISOString(), now), "Today 10:35");
-  assert.equal(formatMessageWhen(new Date(2026, 9, 4, 9, 5).toISOString(), now), "Yesterday 09:05");
-  assert.match(formatMessageWhen(new Date(2026, 9, 2, 11, 55).toISOString(), now), /^Fri 2 Oct 11:55$/);
+  assert.equal(formatMessageWhen(new Date(2026, 9, 5, 10, 35).toISOString(), now), "5 Oct · 10:35");
+  assert.equal(formatMessageWhen(new Date(2026, 9, 2, 9, 5).toISOString(), now), "2 Oct · 09:05");
+  assert.equal(formatMessageWhen(new Date(2025, 11, 30, 18, 0).toISOString(), now), "30 Dec 2025 · 18:00");
 });
 
 test("a feed page asks for one extra row and returns a cursor when more exist", async () => {
@@ -102,6 +102,6 @@ test("groupFeedByDay labels today and yesterday", () => {
     { sent_at: new Date(2026, 9, 4, 9).toISOString() },
     { sent_at: new Date(2026, 9, 1, 9).toISOString() },
   ], now);
-  assert.deepEqual(groups.slice(0, 2).map((group) => group.title), ["Today", "Yesterday"]);
+  assert.deepEqual(groups.map((group) => group.title), ["Today · Monday 5 Oct", "Yesterday · Sunday 4 Oct", "Thursday 1 Oct"]);
   assert.equal(groups.length, 3);
 });

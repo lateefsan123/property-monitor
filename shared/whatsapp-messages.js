@@ -17,17 +17,13 @@ export function normalizeSellerPhone(value) {
   return digits.startsWith("0") ? `971${digits.slice(1)}` : digits;
 }
 
-// "Today 10:35", "Yesterday 09:05", "Fri 2 Oct 11:55": exact send time with its day.
+// "5 Oct · 10:35" (with the year when it isn't this year): the date and time a message was sent.
 export function formatMessageWhen(value, now = new Date()) {
   if (!value) return "";
   const date = new Date(value);
   const time = date.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
-  const day = (d) => `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-  const yesterday = new Date(now);
-  yesterday.setDate(yesterday.getDate() - 1);
-  if (day(date) === day(now)) return `Today ${time}`;
-  if (day(date) === day(yesterday)) return `Yesterday ${time}`;
-  return `${date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })} ${time}`;
+  const options = date.getFullYear() === now.getFullYear() ? { day: "numeric", month: "short" } : { day: "numeric", month: "short", year: "numeric" };
+  return `${date.toLocaleDateString("en-GB", options)} · ${time}`;
 }
 
 export function messageTime(message) {
@@ -68,8 +64,11 @@ export function groupFeedByDay(items, now = new Date()) {
     const key = dayKey(time);
     let group = groups[groups.length - 1];
     if (!group || group.key !== key) {
-      const title = key === today ? "Today" : key === yesterday ? "Yesterday"
-        : new Date(time).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "short" });
+      // "Today · Monday 5 Oct", "Yesterday · Sunday 4 Oct", "Friday 2 Oct".
+      const date = new Date(time);
+      const fullDate = date.toLocaleDateString("en-GB", date.getFullYear() === now.getFullYear()
+        ? { weekday: "long", day: "numeric", month: "short" } : { weekday: "long", day: "numeric", month: "short", year: "numeric" });
+      const title = key === today ? `Today · ${fullDate}` : key === yesterday ? `Yesterday · ${fullDate}` : fullDate;
       group = { key, title, items: [] };
       groups.push(group);
     }
