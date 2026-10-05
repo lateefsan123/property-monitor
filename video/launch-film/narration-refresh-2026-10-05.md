@@ -13,9 +13,17 @@
 
 Status-specific template assignment exists for No status, Prospect, Appraisal and For Sale. The script describes writing introduction and follow-up wording; it does not claim an automatic first-send/second-send text switch. Automatic omission of the introductory template image is separate from text selection.
 
-## Purchase pending
+## Creator active and first audition
 
-ElevenLabs Starter monthly checkout was prepared, not paid: EUR 1.14 due today, EUR 6.82 per month starting next month, including displayed VAT. Saved Stripe Link payment access requires verification. User confirmation of the recurring amount is pending. No plan or extra credits were purchased.
+The user purchased Creator directly. The live subscription page confirmed Creator, 0 credits used out of 121,104, renewal November 5. Codex did not complete the earlier Starter checkout.
+
+Generated the revised script with Eleven v4 and Brady J - Confident Real Estate Agent, displayed stability 0.5, similarity 0.75, audio effects off, MP3 44.1 kHz / 192 kbps. The interface produced two candidate generations. The first was downloaded to `out/vo-brady-v4-take-1.mp3`; ffprobe reports 68.989375 seconds, mono, 44.1 kHz, 1,672,683 bytes. Full ffmpeg decoding passed. The original download filename includes historical `sp88_s9_sb75_v4` tokens; the v4 UI does not expose a speed control, so those filename tokens alone are not evidence of effective generation parameters. No post-generation speed changes or processing were applied.
+
+Naturalness and full transcript fidelity remain subject to listening review. This is an audition, not an approved final recording. The original rendered film is unchanged.
+
+## Claude handoff
+
+The user requested Claude handle the remaining video work. `claude-video-handoff-2026-10-05.md` contains the scoped brief. Native app control is unavailable in this session; the browser Claude tab and installed Claude Code CLI are signed out. The brief has been prepared but has not been sent to Claude. Browser control lost its debugger connection after the first audio download, blocking the second download and a new generation screenshot.
 
 ## Remaining verification
 
