@@ -4,7 +4,7 @@
 import path from 'node:path';
 import { writeFileSync } from 'node:fs';
 import { createScore } from './synth.mjs';
-import { CHAT, CLOSE, CUT, DURATION, PHONE_IN, PHONE_OUT, SCREENS, TAPS, screenAt } from './app-pacing.mjs';
+import { CHAT, CLOSE, CUT, DURATION, PHONE_IN, PHONE_OUT, TAPS, screenAt } from './app-pacing.mjs';
 const s = createScore(DURATION);
 const events = [];
 function cue(type, at, fn) {
@@ -16,8 +16,9 @@ function tap(t, gain = 0.14) {
     * Math.min(1, x / 0.002) * Math.exp(-x * 85), gain);
 }
 for (const [t] of TAPS) cue('tap', t, at => tap(at));
-const pushes = SCREENS.filter(([, , transition]) => transition === 'push').map(([time]) => time);
-for (const t of [PHONE_IN, ...pushes, PHONE_OUT]) cue('transition', t, at => s.whoosh(at, 0.34, 0.10));
+// Page switches are silent (a whoosh on each was too much); only the phone's
+// entrance and exit get a soft one.
+for (const t of [PHONE_IN, PHONE_OUT]) cue('transition', t, at => s.whoosh(at, 0.34, 0.05));
 cue('import complete', screenAt('import-done'), at => s.chime(at, [72, 79], 0.075, 0.09));
 cue('message sent', CHAT.sent, at => s.pop(at, 540, 0.17));
 cue('read receipt', CHAT.read, at => tap(at, 0.075));
@@ -30,6 +31,7 @@ cue('logo settle', CLOSE.logo, at => {
 });
 events.sort((a, b) => a.at - b.at);
 const out = path.join(import.meta.dirname, 'out');
-s.write(path.join(out, `sfx-${CUT}.wav`), DURATION - 1.1);
+// The gain the track had with page-switch whooshes, so every other sound keeps its level.
+s.write(path.join(out, `sfx-${CUT}.wav`), DURATION - 1.1, 3.4586);
 writeFileSync(path.join(out, `sfx-${CUT}-cues.json`), JSON.stringify(events, null, 2));
 console.log(`${events.length} cues`);

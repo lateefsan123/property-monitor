@@ -22,11 +22,14 @@ timing and delivery are unchanged.
 The licensed **Vastness** passage below (Andrew Ev, Mixkit), source seconds 18-90,
 2-second fade in and 4.5-second fade out, -27 LUFS before ducking. The voice
 ducks it; while the narration plays it measures -33.4 LUFS, 15.2 LU under the
-voice (-18.1 LUFS). `sound-app.mjs` writes 44 cues from the shared timeline
-(`out/sfx-app-film-v4-cues.json`), reduced 16 dB in the mix.
+voice (-18.1 LUFS). `sound-app.mjs` writes 28 cues from the shared timeline
+(`out/sfx-app-film-v4-cues.json`), reduced 16 dB in the mix. Page switches are
+silent: the user found a whoosh on each one annoying and too loud. Only the
+phone's entrance and exit keep a whoosh, 6 dB quieter. The track's output gain
+is fixed, so taps and chimes kept their exact levels when the whooshes went.
 
-Master: two-pass loudness normalization to -16 LUFS, applied as a linear gain
-(premix -18.3 LUFS, -5.2 dBTP). Result: -16.0 LUFS integrated, -2.9 dBTP, LRA 2.2.
+Master: two-pass loudness normalization to -16 LUFS, applied as a linear gain.
+Result: -16.0 LUFS integrated, -3.0 dBTP, LRA 2.3.
 These numbers don't establish how the voice and music sound; that takes listening.
 
 ### Export checks

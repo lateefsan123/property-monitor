@@ -73,13 +73,15 @@ export function createScore(duration) {
     },
 
     // Gentle saturation, peak-normalise to about -2 dBFS (AAC headroom), fade, 16-bit stereo WAV.
-    write(file, fadeFrom = duration - 1.1) {
+    // A fixed gain keeps every sound's level when the loudest one is removed.
+    write(file, fadeFrom = duration - 1.1, fixedGain = null) {
       let peak = 0;
       for (let i = 0; i < L.length; i += 1) {
         L[i] = Math.tanh(L[i] * 1.2); R[i] = Math.tanh(R[i] * 1.2);
         peak = Math.max(peak, Math.abs(L[i]), Math.abs(R[i]));
       }
-      const gain = 0.79 / (peak || 1);
+      const gain = fixedGain ?? 0.79 / (peak || 1);
+      console.log(`output gain ${gain.toFixed(4)} (peak ${(peak * gain).toFixed(3)})`);
       const fadeStart = Math.floor(fadeFrom * SR);
       const n = L.length, buf = Buffer.alloc(44 + n * 4);
       buf.write('RIFF', 0); buf.writeUInt32LE(36 + n * 4, 4); buf.write('WAVEfmt ', 8);
