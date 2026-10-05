@@ -1,7 +1,8 @@
 import { supabase } from "../supabase";
 import { createWhatsAppMessageServices } from "../../../shared/whatsapp-messages.js";
 
-export const { fetchMessageFeed, fetchSellerThread } = createWhatsAppMessageServices(supabase);
-export const messageFeedQueryKey = (userId) => ["home", "message-feed", userId];
-export const activityFeedQueryKey = (userId) => ["activity", "message-feed", userId];
+export const { fetchMessagePage, fetchSellerThreadPage } = createWhatsAppMessageServices(supabase);
+export const messageFeedQueryKey = (userId, scope) => ["message-feed", userId, scope];
 export const sellerThreadQueryKey = (userId, leadId) => ["seller-thread", userId, String(leadId)];
+// Shared by react-query's infinite queries: the cursor of the last page.
+export const nextFeedCursor = (lastPage) => lastPage.nextCursor ?? undefined;

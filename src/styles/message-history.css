@@ -1,11 +1,20 @@
-/* Home "Recent messages" feed and the seller History tab. Plain rows, no icon tiles. */
+/* Recent messages (Home card and modal), the Activity page, and the seller
+   History tab. Plain rows, no icon tiles; full-width dividers between rows and
+   a labelled rule for each day. */
 .message-feed-empty { margin: 8px 0 0; font-size: 14px; }
-.message-feed-day { margin-top: 18px; }
-.message-feed-day-title { margin: 0 0 4px; color: var(--text-muted); font-size: 12px; font-weight: 500; }
+
+/* Day divider: label then a rule to the edge. */
+.message-feed-day + .message-feed-day { margin-top: 20px; }
+.message-feed-day-title {
+  display: flex; align-items: center; gap: 12px; margin: 0 0 2px;
+  color: var(--text-muted); font-size: 12px; font-weight: 600; letter-spacing: 0.2px;
+}
+.message-feed-day-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
 .message-feed-list { margin: 0; padding: 0; list-style: none; }
-.message-feed-list li + li .message-feed-row { border-top: 1px solid var(--border-light); }
+.message-feed-list > li + li { border-top: 1px solid var(--border); }
 .message-feed-row {
-  display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 12px 0;
+  display: flex; align-items: flex-start; gap: 16px; width: 100%; padding: 14px 0;
   border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
 }
 .message-feed-row.is-static { cursor: default; }
@@ -16,12 +25,25 @@
 .message-feed-place, .message-feed-detail { overflow: hidden; color: var(--text-muted); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
 .message-feed-detail.is-reply { color: var(--text); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .message-feed-detail.is-failed { color: var(--error-text); }
-.message-feed-time { flex-shrink: 0; color: var(--text-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
-.message-feed-more { margin-top: 8px; }
+.message-feed-time { flex-shrink: 0; padding-top: 2px; color: var(--text-muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-.message-thread { display: flex; flex-direction: column; gap: 18px; }
+/* Home card: tighter rows under the card title. */
+.message-feed-list.is-compact { margin-top: 6px; }
+.message-feed-list.is-compact .message-feed-row { padding: 11px 0; }
+.message-feed-more { margin-top: 6px; }
+.message-feed-modal-body { overflow-y: auto; padding-right: 4px; }
+.message-feed-load-more {
+  display: block; width: 100%; margin-top: 8px; padding: 12px; border: 0; border-top: 1px solid var(--border);
+  background: none; color: var(--text-name); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer;
+}
+.message-feed-load-more:hover:not(:disabled) { text-decoration: underline; }
+.message-feed-load-more:disabled { color: var(--text-muted); cursor: default; }
+
+/* Seller History thread. Day divider: rule, label, rule. */
+.message-thread { display: flex; flex-direction: column; gap: 20px; }
 .message-thread-day { display: flex; flex-direction: column; gap: 10px; }
-.message-thread-day-title { margin: 0; color: var(--text-muted); font-size: 12px; font-weight: 500; text-align: center; }
+.message-thread-day-title { display: flex; align-items: center; gap: 12px; margin: 0; color: var(--text-muted); font-size: 12px; font-weight: 600; }
+.message-thread-day-title::before, .message-thread-day-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
 .message-thread-item { display: flex; flex-direction: column; gap: 4px; }
 .message-thread-item.is-outbound { align-items: flex-end; }
 .message-thread-item.is-inbound { align-items: flex-start; }
@@ -31,14 +53,11 @@
 }
 .message-thread-item.is-outbound .message-thread-bubble { border-top-right-radius: 4px; background: var(--bg-badge); }
 .message-thread-item.is-inbound .message-thread-bubble { border-top-left-radius: 4px; background: var(--bg-msg); border: 1px solid var(--border-light); }
-.message-thread-meta { color: var(--text-muted); font-size: 11px; }
+.message-thread-meta { color: var(--text-muted); font-size: 11px; font-variant-numeric: tabular-nums; }
 .message-thread-meta.is-failed { color: var(--error-text); }
 .message-thread-empty { margin: 0; color: var(--text-muted); font-size: 14px; line-height: 20px; }
 .message-thread-empty.is-error { color: var(--error-text); }
 .message-thread-retry { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
 .message-thread-earlier { align-self: center; padding: 10px 12px; border: 0; background: none; color: var(--text); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
-.message-thread-earlier:hover { text-decoration: underline; }
-.message-feed-list.is-compact { margin-top: 8px; }
-.message-feed-list.is-compact .message-feed-row { padding: 10px 0; }
-.message-feed-modal-body { overflow-y: auto; }
-.message-feed-modal-body > .message-feed-day:first-child { margin-top: 4px; }
+.message-thread-earlier:hover:not(:disabled) { text-decoration: underline; }
+.message-thread-earlier:disabled { color: var(--text-muted); cursor: default; }

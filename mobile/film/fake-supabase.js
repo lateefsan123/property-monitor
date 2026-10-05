@@ -44,10 +44,30 @@ class Query {
   is(column, value) { this.filters.push((row) => (value === null ? row[column] == null : row[column] === value)); return this; }
   not(column, operator, value) { if (operator === 'is' && value === null) this.filters.push((row) => row[column] != null); return this; }
   overlaps(column, values) { this.filters.push((row) => (row[column] || []).some((value) => values.includes(value))); return this; }
-  // PostgREST or(): comma-separated "column.eq.value" terms; a row matches any term.
+  // PostgREST or(): comma-separated terms ("column.op.value" or "and(...)"); a row
+  // matches any term. Supports eq/lt/gt and double-quoted values (keyset cursors).
   or(expression) {
-    const terms = String(expression).split(',').map((term) => term.split('.')).filter(([, operator]) => operator === 'eq');
-    if (terms.length) this.filters.push((row) => terms.some(([column, , ...value]) => same(row[column], value.join('.'))));
+    const split = (text) => {
+      const parts = []; let depth = 0; let quoted = false; let current = '';
+      for (const char of text) {
+        if (char === '"') quoted = !quoted;
+        if (!quoted && char === '(') depth += 1;
+        if (!quoted && char === ')') depth -= 1;
+        if (!quoted && depth === 0 && char === ',') { parts.push(current); current = ''; } else current += char;
+      }
+      return current ? [...parts, current] : parts;
+    };
+    const compile = (term) => {
+      if (term.startsWith('and(')) { const inner = split(term.slice(4, -1)).map(compile); return (row) => inner.every((test) => test(row)); }
+      const [column, operator, ...rest] = term.split('.');
+      const value = rest.join('.').replace(/^"|"$/g, '');
+      if (operator === 'eq') return (row) => same(row[column], value);
+      if (operator === 'lt') return (row) => String(row[column]) < value;
+      if (operator === 'gt') return (row) => String(row[column]) > value;
+      return () => true;
+    };
+    const tests = split(String(expression)).map(compile);
+    this.filters.push((row) => tests.some((test) => test(row)));
     return this;
   }
   ilike(column, pattern) { const needle = String(pattern).replace(/%/g, '').toLowerCase(); this.filters.push((row) => String(row[column] || '').toLowerCase().includes(needle)); return this; }

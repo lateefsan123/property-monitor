@@ -7,6 +7,6 @@
 .activity-filter.is-active { background: var(--bg-card); color: var(--text-name); }
 .activity-filter:focus-visible { outline: 2px solid var(--text-name); outline-offset: 2px; }
 .activity-card { padding: 4px 20px 16px; border: 1px solid var(--bg-card-border); border-radius: 16px; background: var(--bg-card); }
-.activity-card > .message-feed-day:first-child { margin-top: 14px; }
+.activity-card > .message-feed-day:first-of-type { margin-top: 16px; }
 .activity-empty { margin: 0; padding: 28px 0; color: var(--text-muted); font-size: 14px; text-align: center; }
 @media (max-width: 600px) { .activity-page { padding: 20px 16px 120px; } .activity-card { padding: 4px 14px 12px; } }

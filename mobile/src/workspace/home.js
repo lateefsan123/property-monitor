@@ -18,7 +18,7 @@ import EmailSummaryCard from './email-summary-card';
 import CalendarToday from './calendar-today';
 import HomeConnectionPrompt from './home-connection-prompt';
 import HomeMessageFeed from "./home-message-feed";
-import { fetchMessageFeed, messageFeedQueryKey } from "./message-feed";
+import { fetchMessagePage, messageFeedQueryKey } from "./message-feed";
 
 export default function WorkspaceHome({ userId, displayName, colors, onNavigate, onAskRepeat }) {
   useQuery(messageTemplatesOptions(userId));
@@ -42,8 +42,8 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate,
     enabled: Boolean(userId),
   });
   const feed = useQuery({
-    queryKey: messageFeedQueryKey(userId),
-    queryFn: () => fetchMessageFeed(userId),
+    queryKey: messageFeedQueryKey(userId, "latest"),
+    queryFn: () => fetchMessagePage(userId, { days: 7, pageSize: 3 }),
     enabled: Boolean(userId),
   });
   const drops = useQuery({
@@ -88,7 +88,7 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate,
           <AppIcon name="chevron" color={colors.textMuted} size={17} />
         </Pressable>
       </View>
-      <HomeMessageFeed query={feed} colors={colors} onOpenSeller={(sellerId) => onNavigate("sellers", { sellerId, sellerTab: "History" })} />
+      <HomeMessageFeed userId={userId} query={feed} colors={colors} onOpenSeller={(sellerId) => onNavigate("sellers", { sellerId, sellerTab: "History" })} />
       <View style={{ gap: 24 }}>
         <View accessibilityRole="tablist" style={{ flexDirection: "row", justifyContent: 'space-between', gap: 10, borderBottomWidth: 1, borderBottomColor: colors.border }}>
           {[["activity", "Activity"], ["drops", "Price drops"], ["email", "Email"], ["calendar", "Calendar"]].map(([id, label]) => <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: activeTab === id }} onPress={() => setTab(id)}
