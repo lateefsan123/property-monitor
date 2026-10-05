@@ -111,7 +111,9 @@ body:has(.message-template-overlay) { overflow: hidden; }
 
 /* AI button beside the Message label */
 .message-template-field-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.message-template-ai-btn { position: relative; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 1px solid var(--border, #d6d7db); border-radius: 10px; background: transparent; color: var(--text, inherit); }
+/* The Repeat fox, plain (no tile), opens the AI writer. */
+.message-template-ai-btn { position: relative; display: grid; place-items: center; width: 34px; height: 34px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--text, inherit); cursor: pointer; }
+.message-template-ai-btn:disabled { opacity: .5; cursor: default; }
 .message-template-ai-btn::after { content: attr(data-tooltip); position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translate(-50%, 4px); padding: 4px 8px; border-radius: 6px; background: var(--text-name, #12151b); color: var(--bg-card, #fff); font-size: 12px; font-weight: 600; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .12s, transform .12s; }
 .message-template-ai-btn:hover::after, .message-template-ai-btn:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
 .message-template-ai-btn:hover:not(:disabled) { background: var(--bg-hover, #f4f4f5); }
@@ -123,7 +125,7 @@ body:has(.message-template-overlay) { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) { .template-ai-layer { animation: none; } }
 .template-ai-head { display: flex; align-items: center; gap: 12px; padding: 20px 16px 16px 24px; }
 .template-ai-mark { display: grid; place-items: center; color: var(--text, inherit); }
-.template-ai-mark svg { width: 20px; height: 20px; }
+.template-ai-mark svg { width: 28px; height: 28px; }
 .template-ai-head h2 { flex: 1; margin: 0; font-size: 19px; font-weight: 700; letter-spacing: -.2px; }
 .template-ai-close { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; border: 0; border-radius: 10px; background: transparent; color: var(--text-muted, #84848b); }
 .template-ai-close:hover:not(:disabled) { background: var(--bg-hover, #f4f4f5); color: inherit; }

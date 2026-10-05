@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { IconBolt, IconCalendarStats, IconMoodSmile, IconSparkles, IconX } from "@tabler/icons-react";
+import { IconBolt, IconCalendarStats, IconMoodSmile, IconX } from "@tabler/icons-react";
+import RepeatFox from "../../../components/RepeatFox";
 import { supabase } from "../../../supabase";
 import { requestTemplateDraft } from "../../../../shared/template-draft";
 
-// AI help for a message template, opened from the sparkle button beside the
+// AI help for a message template, opened from the Repeat fox beside the
 // Message field. "Polish" rewrites what the user typed; "Prompt" writes a new
 // template from a short description. The server takes a 5–600 character
 // brief, so polishing sends the message inside that brief.
@@ -75,8 +76,8 @@ export default function TemplateAiDialog({ message, disabled, onClose, onApply }
     <div className="template-ai-layer" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) onClose(); }}>
       <div ref={dialogRef} className="template-ai-dialog" role="dialog" aria-modal="true" aria-labelledby="template-ai-title">
         <header className="template-ai-head">
-          <span className="template-ai-mark" aria-hidden="true"><IconSparkles size={18} stroke={1.8} /></span>
-          <h2 id="template-ai-title">Write with AI</h2>
+          <span className="template-ai-mark" aria-hidden="true"><RepeatFox size={28} state={busy ? "thinking" : "idle"} /></span>
+          <h2 id="template-ai-title">Write with Repeat</h2>
           <button type="button" className="template-ai-close" disabled={busy} onClick={onClose} aria-label="Close AI writer">
             <IconX size={18} stroke={1.8} aria-hidden="true" />
           </button>
@@ -144,7 +145,7 @@ export default function TemplateAiDialog({ message, disabled, onClose, onApply }
             </>
           ) : (
             <button type="button" className="template-ai-btn is-primary" disabled={busy || disabled || !canRun} onClick={run}>
-              <IconSparkles size={16} stroke={1.8} aria-hidden="true" />
+              <RepeatFox size={18} state={busy ? "thinking" : "idle"} />
               {busy ? "Working…" : mode === "polish" ? "Polish" : "Write it"}
             </button>
           )}

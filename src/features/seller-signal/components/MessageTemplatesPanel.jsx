@@ -4,10 +4,10 @@ import {
   IconDots,
   IconPhoto,
   IconPlus,
-  IconSparkles,
   IconX,
 } from "@tabler/icons-react";
 import { DEFAULT_MESSAGE_TEMPLATE } from "../insight-utils";
+import RepeatFox from "../../../components/RepeatFox";
 import TemplateAiDialog from './TemplateAiDialog';
 import { TEMPLATE_STATUSES, templateStatusLabels } from "../../../../supabase/functions/_shared/template-status.js";
 import {
@@ -300,8 +300,8 @@ export default function MessageTemplatesPanel({
                   <div className="message-template-field-head">
                     <label htmlFor="message-template-content">Message</label>
                     <button type="button" className="message-template-ai-btn" disabled={saving} onClick={() => setAiOpen(true)}
-                      aria-haspopup="dialog" aria-label="Write with AI" data-tooltip="AI">
-                      <IconSparkles size={19} stroke={1.8} aria-hidden="true" />
+                      aria-haspopup="dialog" aria-label="Write with Repeat" data-tooltip="Ask Repeat">
+                      <RepeatFox size={24} />
                     </button>
                   </div>
                   <textarea id="message-template-content" ref={textareaRef} value={content} maxLength={4000} rows={9} disabled={saving}
