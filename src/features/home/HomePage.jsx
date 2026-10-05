@@ -311,7 +311,7 @@ function PinnedSection({ userId, layout, onLayoutChange, onNavigate, pinnedSheet
   );
 }
 
-export default function HomePage({ displayName, onNavigate, userId, onOpenCreate }) {
+export default function HomePage({ displayName, onNavigate, onOpenSeller, userId, onOpenCreate }) {
   const today = new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
   const [layout, setLayout] = useState(loadInitialLayout);
   const [pinnedSheetIds, setPinnedSheetIds] = useState(loadPinnedSheetIds);
@@ -344,7 +344,7 @@ export default function HomePage({ displayName, onNavigate, userId, onOpenCreate
         <h1 className="home-title">Hello{displayName ? `, ${displayName}` : ""}</h1>
       </header>
 
-      <HomeInsights userId={userId} onNavigate={onNavigate} />
+      <HomeInsights userId={userId} onNavigate={onNavigate} onOpenSeller={onOpenSeller} />
 
       <PinnedSection
         userId={userId}

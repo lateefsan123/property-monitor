@@ -9,6 +9,7 @@ import { sellerLeadsQueryKey } from "../seller-signal/queryKeys";
 import { integrationRequest } from "../../integration-client";
 import { integrationStatusOptions } from "../../integration-query";
 import { useEmailSummary } from "../../../shared/use-email-summary";
+import HomeMessageShortcut from "./HomeMessageShortcut";
 import HomeActivity from "./HomeActivity";
 import { CalendarToday, EmailBrief, HomeConnectionPrompt } from "./HomeConnect";
 import { buildDailyMessageSeries, fetchListingPriceDrops, fetchWhatsAppMessageActivity } from "./home-insight-services";
@@ -72,7 +73,7 @@ function PriceDrops({ query, onNavigate }) {
   );
 }
 
-export default function HomeInsights({ userId, onNavigate }) {
+export default function HomeInsights({ userId, onNavigate, onOpenSeller }) {
   const [days, setDays] = useState(WINDOW_DAYS);
   const connections = useQuery(integrationStatusOptions(userId, integrationRequest));
   const hasEmail = connections.data?.some((item) => item.feature === "email" && item.connected) || false;
@@ -129,6 +130,7 @@ export default function HomeInsights({ userId, onNavigate }) {
         <section className="home-card" aria-label="Calendar">
           <CalendarToday userId={userId} connections={connections.data} connectionError={connections.error} retryConnections={connections.refetch} />
         </section>
+        <HomeMessageShortcut userId={userId} onOpenSeller={(sellerId) => onOpenSeller?.(sellerId, "history")} />
         <section className="home-card" aria-label="Email">
           {emailReady && !emailConnected
             ? <HomeConnectionPrompt feature="email" connections={connections.data} />

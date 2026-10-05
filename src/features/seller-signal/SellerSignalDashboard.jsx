@@ -16,6 +16,7 @@ import { useSellerSignalPage } from "./useSellerSignalPage";
 // table inside one rounded card with one value per column.
 export default function SellerSignalDashboard({
   savedSellerId,
+  savedSellerSection = null,
   onCloseSavedSeller,
   billingPortalError,
   billingPortalPending = false,
@@ -196,7 +197,9 @@ export default function SellerSignalDashboard({
               if (!modalLead) return null;
               return (
                 <LeadModal
-                  key={modalLead.id}
+                  key={`${modalLead.id}:${savedSellerId ? savedSellerSection || "" : ""}`}
+                  userId={userId}
+                  initialSection={savedSellerId ? savedSellerSection : null}
                   copiedLeadId={dashboard.copiedLeadId}
                   editDraft={dashboard.editingLeadId === modalLead.id ? dashboard.editingLeadDraft : null}
                   insight={dashboard.insights[modalLead.id]}

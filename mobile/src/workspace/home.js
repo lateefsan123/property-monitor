@@ -17,6 +17,8 @@ import { useEmailSummary } from '../../../shared/use-email-summary';
 import EmailSummaryCard from './email-summary-card';
 import CalendarToday from './calendar-today';
 import HomeConnectionPrompt from './home-connection-prompt';
+import HomeMessageFeed from "./home-message-feed";
+import { fetchMessageFeed, messageFeedQueryKey } from "./message-feed";
 
 export default function WorkspaceHome({ userId, displayName, colors, onNavigate, onAskRepeat }) {
   useQuery(messageTemplatesOptions(userId));
@@ -39,6 +41,11 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate,
     queryFn: () => fetchWhatsAppMessageActivity(userId),
     enabled: Boolean(userId),
   });
+  const feed = useQuery({
+    queryKey: messageFeedQueryKey(userId),
+    queryFn: () => fetchMessageFeed(userId),
+    enabled: Boolean(userId),
+  });
   const drops = useQuery({
     queryKey: ["home", "price-drops", userId],
     queryFn: () => fetchListingPriceDrops(userId),
@@ -55,7 +62,7 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate,
   ];
   async function refresh() {
     setRefreshing(true);
-    try { await Promise.all([leads.refetch(), activity.refetch(), drops.refetch(), connections.refetch(), ...(hasEmail ? [emailSummary.refetch()] : [])]); }
+    try { await Promise.all([leads.refetch(), activity.refetch(), feed.refetch(), drops.refetch(), connections.refetch(), ...(hasEmail ? [emailSummary.refetch()] : [])]); }
     finally { setRefreshing(false); }
   }
   return (
@@ -81,6 +88,7 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate,
           <AppIcon name="chevron" color={colors.textMuted} size={17} />
         </Pressable>
       </View>
+      <HomeMessageFeed query={feed} colors={colors} onOpenSeller={(sellerId) => onNavigate("sellers", { sellerId, sellerTab: "History" })} />
       <View style={{ gap: 24 }}>
         <View accessibilityRole="tablist" style={{ flexDirection: "row", justifyContent: 'space-between', gap: 10, borderBottomWidth: 1, borderBottomColor: colors.border }}>
           {[["activity", "Activity"], ["drops", "Price drops"], ["email", "Email"], ["calendar", "Calendar"]].map(([id, label]) => <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: activeTab === id }} onPress={() => setTab(id)}

@@ -13,6 +13,7 @@ import { formatBuildingLabel } from "../lead-utils";
 import { Badge } from "./LeadCard";
 import SellerFollowUpControl from './seller-follow-up-control';
 import { pickSellerImage } from '../seller-contact';
+import SellerMessageHistory from "./SellerMessageHistory";
 
 const STATUS_ACTIONS = [
   { id: "prospect", label: "Prospect", value: "Prospect" },
@@ -218,12 +219,13 @@ export default function LeadDetailSheet({
   onUpdateStatus,
   whatsappConnected,
   colors,
+  initialTab = null,
 }) {
   const [draftMessage, setDraftMessage] = useState(null);
   const [savingMessage, setSavingMessage] = useState(false);
   const [saveStatus, setSaveStatus] = useState("");
   const [saveError, setSaveError] = useState("");
-  const [tab, setTab] = useState("Details");
+  const [tab, setTab] = useState(initialTab || "Details");
   const [statusOpen, setStatusOpen] = useState(false);
   const c = colors;
   const leadId = lead?.id ?? null;
@@ -332,7 +334,7 @@ export default function LeadDetailSheet({
           <Text style={{ fontSize: 14, color: c.textMuted, textAlign: "center" }}>{formatBuildingLabel(lead.resolvedBuilding || lead.building) || "No building"}</Text>
           {!isEditing && <Pressable accessibilityRole="button" onPress={() => onStartEditing?.(lead.id)} disabled={isSaving || isDeleting} style={{ minHeight: 44, justifyContent: "center" }}><Text style={{ color: c.text, fontWeight: "600" }}>Edit seller</Text></Pressable>}
         </View>}
-        {!isEditing && <View accessibilityRole="tablist" style={[s.tabs, { backgroundColor: c.bgBadge }]}>{["Details", "Notes", "Message"].map(value => <Pressable key={value} accessibilityRole="tab" accessibilityState={{ selected: tab === value }} onPress={() => { handleNotesBlur(); setTab(value); }} style={[s.tab, tab === value && { backgroundColor: c.bgCard }]}><Text style={{ color: tab === value ? c.text : c.textMuted, fontWeight: "600" }}>{value}</Text></Pressable>)}</View>}
+        {!isEditing && <View accessibilityRole="tablist" style={[s.tabs, { backgroundColor: c.bgBadge }]}>{["Details", "Notes", "Message", "History"].map(value => <Pressable key={value} accessibilityRole="tab" accessibilityState={{ selected: tab === value }} onPress={() => { handleNotesBlur(); setTab(value); }} style={[s.tab, tab === value && { backgroundColor: c.bgCard }]}><Text style={{ color: tab === value ? c.text : c.textMuted, fontWeight: "600" }}>{value}</Text></Pressable>)}</View>}
 
         {isEditing ? (
           <EditForm
@@ -427,6 +429,8 @@ export default function LeadDetailSheet({
                 multiline
               />
             </View>}
+
+            {tab === "History" && <SellerMessageHistory userId={userId} lead={lead} colors={c} />}
 
             {tab === "Message" && <View style={{ gap: 12 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>

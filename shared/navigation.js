@@ -5,6 +5,7 @@ export const TOP_NAVIGATION = [
 ];
 export const MAIN_NAVIGATION = [
   { id: "sellers", label: "Sellers", icon: "users", kind: "nav" },
+  { id: "activity", label: "Activity", icon: "activity", kind: "nav" },
   { id: "listing-alerts", label: "Listings", icon: "building", kind: "nav" },
   { id: "spreadsheets", label: "Spreadsheets", icon: "table", kind: "nav" },
   {

@@ -11,6 +11,7 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
+import SellerMessageHistory from "./SellerMessageHistory";
 import { formatBuildingLabel } from "../building-utils";
 import { extractUnitFromBuilding, formatLeadBedroom, formatLeadUnit } from "./lead-display-utils";
 import {
@@ -26,11 +27,13 @@ import { sellerAvatarColour, sellerInitials } from "./seller-avatar";
 // Seller details open in a right-side drawer over the sellers table, laid
 // out after Lightfield's contact drawer (Mobbin 76496176): slim title bar,
 // avatar and name, a labelled field list, then activity. Tabs and content
-// follow the mobile seller sheet: Details (with market data), Notes, Message.
+// follow the mobile seller sheet: Details (with market data), Notes, Message,
+// and History (the WhatsApp thread with this seller).
 const SECTIONS = [
   { id: "details", label: "Details" },
   { id: "notes", label: "Notes" },
   { id: "message", label: "Message" },
+  { id: "history", label: "History" },
 ];
 
 export default function LeadModal({
@@ -57,9 +60,11 @@ export default function LeadModal({
   onHandoff,
   onUpdateStatus,
   templates = [],
+  userId,
+  initialSection = null,
   whatsappConnected,
 }) {
-  const [activeSection, setActiveSection] = useState("details");
+  const [activeSection, setActiveSection] = useState(SECTIONS.some((section) => section.id === initialSection) ? initialSection : "details");
   const [notesValue, setNotesValue] = useState(lead.notes || "");
   const [notesSaving, setNotesSaving] = useState(false);
   const [templateChoice, setTemplateChoice] = useState("default");
@@ -321,6 +326,7 @@ export default function LeadModal({
                     <MarketPanel insight={insight} lead={lead} />
                   </>
                 )}
+                {activeSection === "history" && <SellerMessageHistory userId={userId} lead={lead} />}
                 {activeSection === "message" && (
                   <MessagePanel
                     edited={messageEdited || Boolean(lead.message_draft)}

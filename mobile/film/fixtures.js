@@ -137,11 +137,28 @@ export const MESSAGE_TEMPLATES = [
 
 // 14 days of WhatsApp activity: automation sends up to 40 a day, plus manual.
 const DAILY = [31, 40, 38, 22, 40, 35, 12, 40, 36, 40, 27, 40, 33, 14];
-export const WHATSAPP_MESSAGES = DAILY.flatMap((count, day) => Array.from({ length: count }, (_, i) => {
+// Sent messages carry the app's default template text so the Home feed and a
+// seller's History tab read like the real thing.
+const leadDigits = (lead) => lead.phone.replace(/\D/g, '');
+const templateBody = (lead) => `Hi ${lead.name}, quick update on recent transactions in ${lead.building}, Downtown Dubai.
+
+Buyer activity remains strong, and your unit is in hot demand.
+
+If you would like to further discuss the sale of your unit, please let me know.`;
+const SENT = DAILY.flatMap((count, day) => Array.from({ length: count }, (_, i) => {
   const sentAt = iso(13 - day, 9, 0);
   const at = new Date(new Date(sentAt).getTime() + i * 5 * 60000).toISOString();
-  return { id: `msg-${day}-${i}`, user_id: FILM_USER.id, direction: 'outbound', status: 'delivered', queued_at: at, sent_at: at, lead_id: (i % LEADS.length) + 1, send_source: i % 9 === 0 ? 'manual' : 'auto', initiated_via: 'app' };
+  const lead = LEADS[i % LEADS.length];
+  return { id: `msg-${day}-${i}`, user_id: FILM_USER.id, direction: 'outbound', status: day >= 12 && i % 4 === 0 ? 'read' : 'delivered', queued_at: at, sent_at: at, created_at: at, lead_id: lead.id, recipient_phone: leadDigits(lead), body: templateBody(lead), send_source: i % 9 === 0 ? 'manual' : 'auto', initiated_via: 'app' };
 }));
+// Seller replies from today. Older replies are saved without a lead_id, as before replies were linked.
+const REPLIES = [[0, 25, 'Thanks Sara! What do you think mine could get right now?', true], [4, 70, 'Not selling yet, maybe next year. Keep me posted.', false], [1, 95, 'Can you call me after 6?', true]];
+const RECEIVED = REPLIES.map(([index, minutes, body, linked], n) => {
+  const lead = LEADS[index];
+  const at = new Date(new Date(iso(0, 9, 0)).getTime() + minutes * 60000).toISOString();
+  return { id: `reply-${n}`, user_id: FILM_USER.id, direction: 'inbound', status: 'received', created_at: at, queued_at: at, sent_at: null, lead_id: linked ? lead.id : null, recipient_phone: leadDigits(lead), body, message_type: 'text' };
+});
+export const WHATSAPP_MESSAGES = [...SENT, ...RECEIVED];
 
 // Watched buildings and fictional listings (bundled exterior photos).
 // The listing gallery only shows absolute http(s) URLs, so resolve the bundled

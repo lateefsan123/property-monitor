@@ -1,5 +1,6 @@
 import { TOP_NAVIGATION, MAIN_NAVIGATION } from '../../../../shared/navigation';
 import {
+  IconActivity,
   IconBuildingEstate,
   IconCalendarWeek,
   IconHome,
@@ -29,7 +30,7 @@ function getSourceNameValue(source) {
   return label || buildingName || "";
 }
 
-const ICONS = { home: IconHome, search: IconSearch, plus: IconPlus, users: IconUsers, building: IconBuildingEstate, table: IconTable, message: IconMessage };
+const ICONS = { activity: IconActivity, home: IconHome, search: IconSearch, plus: IconPlus, users: IconUsers, building: IconBuildingEstate, table: IconTable, message: IconMessage };
 const ACCENTS = { home: 'blue', search: 'purple', new: 'emerald', sellers: 'indigo', 'listing-alerts': 'rose', spreadsheets: 'emerald', 'message-template': 'emerald' };
 const toSidebarItem = item => ({ ...item, Icon: ICONS[item.icon], accent: ACCENTS[item.id] });
 const TOP_GROUP = TOP_NAVIGATION.map(toSidebarItem);

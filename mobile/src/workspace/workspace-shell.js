@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import NavigationDrawer from "./navigation-drawer";
 import WorkspaceHome from "./home";
 import ScheduleScreen from "./schedule-screen";
+import ActivityScreen from "./activity-screen";
 import WorkspaceSettings from "./settings";
 import MessageTemplatesScreen from "./message-templates-screen";
 import WorkspaceSpreadsheets from "./spreadsheets";
@@ -126,6 +127,8 @@ export default function WorkspaceShell({
             <WorkspaceSpreadsheets {...common} request={requests[id]} />
           ) : id === "listing-alerts" ? (
             <ListingAlertsScreen {...common} onFooterHeightChange={setListingFooterHeight} onHeaderChange={setListingHeader} active={page === id} onExit={() => navigate("home")} embedded request={requests[id]} />
+          ) : id === "activity" ? (
+            <ActivityScreen {...common} />
           ) : id === "schedule" ? (
             <ScheduleScreen {...common} />
           ) : id === "message-template" ? (

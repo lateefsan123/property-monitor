@@ -2,7 +2,9 @@ import { useEffect, useState } from "react";
 import { usePagePrefetch } from "./usePagePrefetch";
 import SchedulePage from "./features/schedule/SchedulePage";
 import SettingsPage from "./features/settings/SettingsPage";
+import ActivityPage from "./features/activity/ActivityPage";
 import {
+  IconActivity,
   IconBuildingEstate,
   IconCalendarWeek,
   IconDownload,
@@ -28,11 +30,12 @@ import SendVolumeDialog from "./features/seller-signal/components/SendVolumeDial
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 import { createBillingPortalSession } from "./billing";
 
-const VALID_PAGES = new Set(["home", "sellers", "listing-alerts", "spreadsheets", "schedule", "settings"]);
+const VALID_PAGES = new Set(["home", "sellers", "activity", "listing-alerts", "spreadsheets", "schedule", "settings"]);
 const THEME_STORAGE_KEY = "property:theme";
 
 const PAGE_LABELS = {
   home: "Home",
+  activity: "Activity",
   schedule: "Schedule",
   settings: "Settings",
   sellers: "Sellers",
@@ -47,6 +50,7 @@ const PAGE_ACCENTS = {
 };
 
 function PageIcon({ page }) {
+  if (page === "activity") return <IconActivity size={14} stroke={2} aria-hidden="true" />;
   if (page === "schedule") return <IconCalendarWeek size={14} stroke={2} aria-hidden="true" />;
   if (page === "settings") return <IconSettings size={14} stroke={2} aria-hidden="true" />;
   if (page === "sellers") {
@@ -97,6 +101,7 @@ function MessageTemplatesModal({ onClose, userId }) {
 export default function AppShell({ displayName, subscription, userId }) {
   const [currentPage, setCurrentPage] = useState(readPageFromHash);
   const [savedSellerId, setSavedSellerId] = useState(null);
+  const [savedSellerSection, setSavedSellerSection] = useState(null);
   const prefetchPage = usePagePrefetch(userId, currentPage);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
@@ -209,7 +214,7 @@ export default function AppShell({ displayName, subscription, userId }) {
     <div className="app-shell">
       <AppSidebar
         key={`sidebar:${userId}`}
-        onOpenSeller={(id) => { handleNavigate("sellers"); setSavedSellerId(id); }}
+        onOpenSeller={(id) => { handleNavigate("sellers"); setSavedSellerId(id); setSavedSellerSection(null); }}
         onPrefetch={prefetchPage}
         currentPage={currentPage}
         displayName={displayName}
@@ -294,19 +299,23 @@ export default function AppShell({ displayName, subscription, userId }) {
           <HomePage
             displayName={displayName}
             onNavigate={handleNavigate}
+            onOpenSeller={(id, section) => { handleNavigate("sellers"); setSavedSellerId(String(id)); setSavedSellerSection(section || null); }}
             userId={userId}
             onOpenCreate={() => setCreateOpen(true)}
           />
         ) : currentPage === "sellers" ? (
           <SellerSignalDashboard
             savedSellerId={savedSellerId}
-            onCloseSavedSeller={() => setSavedSellerId(null)}
+            savedSellerSection={savedSellerSection}
+            onCloseSavedSeller={() => { setSavedSellerId(null); setSavedSellerSection(null); }}
             billingPortalError={billingPortalState.error}
             billingPortalPending={billingPortalState.pending}
             onCancelPlan={handleCancelPlan}
             userId={userId}
             subscription={subscription}
           />
+        ) : currentPage === "activity" ? (
+          <ActivityPage key={userId} userId={userId} onOpenSeller={(id) => { handleNavigate("sellers"); setSavedSellerId(String(id)); setSavedSellerSection("history"); }} />
         ) : currentPage === "schedule" ? (
           <SchedulePage key={userId} userId={userId} />
         ) : currentPage === "settings" ? (

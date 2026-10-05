@@ -44,7 +44,12 @@ class Query {
   is(column, value) { this.filters.push((row) => (value === null ? row[column] == null : row[column] === value)); return this; }
   not(column, operator, value) { if (operator === 'is' && value === null) this.filters.push((row) => row[column] != null); return this; }
   overlaps(column, values) { this.filters.push((row) => (row[column] || []).some((value) => values.includes(value))); return this; }
-  or() { return this; }
+  // PostgREST or(): comma-separated "column.eq.value" terms; a row matches any term.
+  or(expression) {
+    const terms = String(expression).split(',').map((term) => term.split('.')).filter(([, operator]) => operator === 'eq');
+    if (terms.length) this.filters.push((row) => terms.some(([column, , ...value]) => same(row[column], value.join('.'))));
+    return this;
+  }
   ilike(column, pattern) { const needle = String(pattern).replace(/%/g, '').toLowerCase(); this.filters.push((row) => String(row[column] || '').toLowerCase().includes(needle)); return this; }
   like(column, pattern) { return this.ilike(column, pattern); }
   order(column, { ascending = true } = {}) { this.orders.push([column, ascending]); return this; }

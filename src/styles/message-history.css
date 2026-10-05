@@ -1,0 +1,44 @@
+/* Home "Recent messages" feed and the seller History tab. Plain rows, no icon tiles. */
+.message-feed-empty { margin: 8px 0 0; font-size: 14px; }
+.message-feed-day { margin-top: 18px; }
+.message-feed-day-title { margin: 0 0 4px; color: var(--text-muted); font-size: 12px; font-weight: 500; }
+.message-feed-list { margin: 0; padding: 0; list-style: none; }
+.message-feed-list li + li .message-feed-row { border-top: 1px solid var(--border-light); }
+.message-feed-row {
+  display: flex; align-items: flex-start; gap: 12px; width: 100%; padding: 12px 0;
+  border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+}
+.message-feed-row.is-static { cursor: default; }
+.message-feed-row:not(.is-static):hover strong { text-decoration: underline; }
+.message-feed-row:focus-visible { outline: 2px solid var(--text-name); outline-offset: 2px; border-radius: 6px; }
+.message-feed-text { display: flex; flex: 1; min-width: 0; flex-direction: column; gap: 3px; }
+.message-feed-text strong { color: var(--text-name); font-size: 15px; font-weight: 600; }
+.message-feed-place, .message-feed-detail { overflow: hidden; color: var(--text-muted); font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.message-feed-detail.is-reply { color: var(--text); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.message-feed-detail.is-failed { color: var(--error-text); }
+.message-feed-time { flex-shrink: 0; color: var(--text-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
+.message-feed-more { margin-top: 8px; }
+
+.message-thread { display: flex; flex-direction: column; gap: 18px; }
+.message-thread-day { display: flex; flex-direction: column; gap: 10px; }
+.message-thread-day-title { margin: 0; color: var(--text-muted); font-size: 12px; font-weight: 500; text-align: center; }
+.message-thread-item { display: flex; flex-direction: column; gap: 4px; }
+.message-thread-item.is-outbound { align-items: flex-end; }
+.message-thread-item.is-inbound { align-items: flex-start; }
+.message-thread-bubble {
+  max-width: 86%; margin: 0; padding: 10px 13px; border-radius: 16px;
+  color: var(--text); font-size: 14px; line-height: 20px; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.message-thread-item.is-outbound .message-thread-bubble { border-top-right-radius: 4px; background: var(--bg-badge); }
+.message-thread-item.is-inbound .message-thread-bubble { border-top-left-radius: 4px; background: var(--bg-msg); border: 1px solid var(--border-light); }
+.message-thread-meta { color: var(--text-muted); font-size: 11px; }
+.message-thread-meta.is-failed { color: var(--error-text); }
+.message-thread-empty { margin: 0; color: var(--text-muted); font-size: 14px; line-height: 20px; }
+.message-thread-empty.is-error { color: var(--error-text); }
+.message-thread-retry { padding: 0; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+.message-thread-earlier { align-self: center; padding: 10px 12px; border: 0; background: none; color: var(--text); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
+.message-thread-earlier:hover { text-decoration: underline; }
+.message-feed-list.is-compact { margin-top: 8px; }
+.message-feed-list.is-compact .message-feed-row { padding: 10px 0; }
+.message-feed-modal-body { overflow-y: auto; }
+.message-feed-modal-body > .message-feed-day:first-child { margin-top: 4px; }
