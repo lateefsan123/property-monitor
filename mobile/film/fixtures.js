@@ -2,9 +2,18 @@
 // listing and price below is fictional; building names are real Downtown Dubai
 // towers used as context. Dates are relative to today so "due" is computed by
 // the app's own cadence rules (For sale 5 d, Appraisal 25 d, Prospect 75 d).
+/* global require */
 import { Asset } from 'expo-asset';
 import { PRIVATE_ASSISTANT_USER_ID } from '../../shared/assistant-access';
-import { buildingExteriorAssets } from '../src/features/listing-alerts/building-exterior-assets';
+
+// Illustrated skylines (video/launch-film/film-towers.py) stand in for the app's
+// bundled building exteriors, which are third-party photos not cleared for public use.
+const TOWERS = {
+  'act-one': require('./towers/act-one.png'), 'burj-khalifa': require('./towers/burj-khalifa.png'),
+  'boulevard-point': require('./towers/boulevard-point.png'), 'opera-grand': require('./towers/opera-grand.png'),
+};
+// The broker card from the landing page artwork, attached to the Introduction template.
+const BROKER_CARD = require('./broker-card.png');
 
 export const FILM_USER = {
   // The assistant pilot ID, so Ask Repeat shows in the (offline) film account.
@@ -113,7 +122,7 @@ export const MESSAGE_TEMPLATES = [
     content: 'Hi {{name}}, quick update on recent sales in {{building}}.\n\n{{transactions}}\n\nBuyers are active in your building right now. Happy to share what your unit could achieve if you are thinking of selling.',
   },
   {
-    id: 'tpl-intro', user_id: FILM_USER.id, name: 'Introduction', is_default: false, statuses: ['none', 'prospect'], image_path: null, created_at: iso(20), updated_at: iso(1),
+    id: 'tpl-intro', user_id: FILM_USER.id, name: 'Introduction', is_default: false, statuses: ['none', 'prospect'], image_path: 'film/broker-card.png', created_at: iso(20), updated_at: iso(1),
     content: 'Hi {{name}}, I’m Sara, a broker specialising in {{building}}.\n\nHere are the latest transactions in your building:\n\n{{transactions}}\n\nIf you ever think about selling, I’d be happy to tell you what your unit could achieve.',
   },
   {
@@ -137,19 +146,22 @@ export const WHATSAPP_MESSAGES = DAILY.flatMap((count, day) => Array.from({ leng
 // Watched buildings and fictional listings (bundled exterior photos).
 // The listing gallery only shows absolute http(s) URLs, so resolve the bundled
 // asset against the dev server origin.
-const photo = (file) => {
+const assetUrl = (module) => {
   try {
-    const uri = Asset.fromModule(buildingExteriorAssets[file]).uri;
+    const uri = Asset.fromModule(module).uri;
     return typeof location === 'undefined' ? uri : new URL(uri, location.origin).href;
   } catch { return ''; }
 };
+const photo = (name) => assetUrl(TOWERS[name]);
+// Storage paths the demo backend can sign (template images).
+export const FILM_IMAGES = { 'film/broker-card.png': assetUrl(BROKER_CARD) };
 // Fictional listing links: shown as the Open on Bayut button, never opened in the film.
 const bayutUrl = (id) => `https://www.bayut.com/property/details-film-${id}.html`;
 const WATCHED = [
-  { locationId: 21733, buildingName: 'Act One', file: 'act-one.jpg' },
-  { locationId: 3694, buildingName: 'Burj Khalifa', file: 'burj-khalifa.jpg' },
-  { locationId: 383, buildingName: 'Boulevard Point', file: 'boulevard-point.jpg' },
-  { locationId: 3654, buildingName: 'Opera Grand', file: 'opera-grand.jpg' },
+  { locationId: 21733, buildingName: 'Act One', file: 'act-one' },
+  { locationId: 3694, buildingName: 'Burj Khalifa', file: 'burj-khalifa' },
+  { locationId: 383, buildingName: 'Boulevard Point', file: 'boulevard-point' },
+  { locationId: 3654, buildingName: 'Opera Grand', file: 'opera-grand' },
 ];
 const LISTING_SPECS = [
   // [beds, baths, sqft, price, drop, daysAgo, title]

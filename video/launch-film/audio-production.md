@@ -1,5 +1,28 @@
 # App film audio
 
+## v5 cut - 5 October 2026
+
+`app-film-v5` runs 114.5 seconds; outputs are named `*-app-film-v5*` in `out/`.
+
+### Voices
+
+- **Narration**: `dialogue-natural-v5.txt`, Codex's Eleven v4 / Brady J take 3 (`out/vo-brady-v5-take-3.mp3`, 95.24 s; settings in `narration-refresh-2026-10-05.md`). Of the four takes, take 3 kept clear breaths between paragraphs (20 pauses of 0.45 s or more; take 4 had 8). `narration-words.py` heard every scripted word in order. After "sellers." the take has about 0.2 s of quiet sound (-34 dB, likely a breath) that the recogniser turned into words; the cut fades it out.
+- **Ask Repeat demo**: `dialogue-ask-repeat-demo-v5.txt`. The question is `out/vo-brady-v5-demo-question-take-1.mp3` (2.35 s, Brady J); the answer is `out/vo-repeat-v5-answer-clarice-take-1.mp3` (9.40 s, ElevenLabs "Clarice", chosen over "Hope" for a calmer assistant pace). Both were checked word for word. The live assistant speaks in OpenAI's default realtime voice, not this one.
+- **Edit**: the take plays in order at its delivered speed, split only inside its own pauses. It gets 0.8 s more after "…Google Sheets or Excel.", 1.6 s after "Make the wording fit the conversation.", 0.5 s after "…before you save it." and 0.4 s before "Repeat AI." The demo sits in the pause after "Talk to it, or type." (0.3 s, question, 0.85 s, answer, 0.5 s). No tempo changes or pickups.
+- **Level**: each clip gets one fixed gain to -18 LUFS (take +2.46 dB, question +1.27 dB, answer +8.09 dB), then the same peak limiter as v4.
+
+### Music, effects and master
+
+Vastness (below), source seconds 18-132.5, same processing and ducking as v4. While the voices play the music measures -32.1 LUFS, 14.0 LU under them (-18.1 LUFS). `sound-app.mjs` writes 26 cues; page switches stay silent. Master: -16.0 LUFS integrated, -2.8 dBTP, LRA 2.9, a linear two-pass gain.
+
+### Export checks
+
+`out/repeat-ai-app-film-v5-9x16.mp4`: 114.500 seconds, 1080x1920 at 60 fps (H.264), stereo AAC at 48 kHz, both streams starting at 0; 19.6 MB. A full decode reported no errors. ebur128: -16.0 LUFS integrated, LRA 3.0, peak -2.8 dBFS.
+
+Speech recognition on the export recovered all 300 spoken words in order (narration plus the demo); the only differences were number formatting. Checked narration words sit within -0.03 to +0.14 s of their `say()` times, and the demo's second words ("sold", "had") within 0.04 s, so voice and picture stay in sync from start to end. The recogniser also "heard" words over the music-only outro after "sellers."; the voice stem is silent there apart from the end of the fade.
+
+The contact sheet and 22 frames from the encoded file were reviewed. The first render showed the chat bubble's broker card stretched over its text (the `.viewport img` rule); after the fix the picture was rendered again. Its decoded audio is bit-identical to the checked render. The 86-second and 72-second films and their stems are unchanged.
+
 ## v4 cut - 5 October 2026
 
 `app-film-v4` runs 72 seconds. Inputs: `out/vo-brady-v4-take-1.mp3`,

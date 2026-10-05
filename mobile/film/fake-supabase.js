@@ -2,7 +2,7 @@
 // Supabase client with an in-memory backend seeded from ./fixtures, so the
 // real app renders every screen offline. Nothing is sent anywhere.
 import {
-  AUTOMATION_SETTINGS, BUILDING_SCHEDULES, FILM_USER, IMPORT_SHEET_CSV, LEADS, LEAD_SOURCES, LISTING_ALERTS_STATE,
+  AUTOMATION_SETTINGS, BUILDING_SCHEDULES, FILM_IMAGES, FILM_USER, IMPORT_SHEET_CSV, LEADS, LEAD_SOURCES, LISTING_ALERTS_STATE,
   MESSAGE_TEMPLATES, WATCHLISTS, WATCH_BUILDINGS, WHATSAPP_ACCOUNTS, WHATSAPP_MESSAGES, buildingNameForKey, transactionsFor,
 } from './fixtures';
 
@@ -152,8 +152,8 @@ export const supabase = {
   },
   storage: {
     from: () => ({
-      createSignedUrl: async () => ok({ signedUrl: null }),
-      createSignedUrls: async (paths) => ok(paths.map((path) => ({ path, signedUrl: null }))),
+      createSignedUrl: async (path) => ok({ signedUrl: FILM_IMAGES[path] || null }),
+      createSignedUrls: async (paths) => ok(paths.map((path) => ({ path, signedUrl: FILM_IMAGES[path] || null }))),
       upload: async (path) => ok({ path }),
       getPublicUrl: (path) => ({ data: { publicUrl: path } }),
       remove: async () => ok([]),
@@ -197,8 +197,10 @@ const INTEGRATIONS = [
   { provider: 'google', feature: 'email', connected: true, configured: true },
   { provider: 'google', feature: 'calendar', connected: true, configured: true },
 ];
-// Ask Repeat's scripted answer, consistent with the fixtures (Act One: 5 drops, Sara and Maya due).
-const ASSISTANT_REPLY = 'Yes, 5 this month. The biggest is a 2 bed on a high floor, down AED 200K to AED 3.0M.\n\nSara Haddad and Maya Cohen own in Act One and are due today. Want me to send them the transaction update?';
+// Ask Repeat's scripted typed answer, consistent with the fixtures (Act One: 5 recorded
+// drops). It only claims what the assistant's tools can do: it can't judge who is due
+// or send WhatsApp messages.
+const ASSISTANT_REPLY = 'Yes, 5 recorded price drops in Act One in the last 14 days. The biggest is a 2 bed on a high floor, down AED 200K to AED 3.0M.';
 globalThis.fetch = async (input, init = {}) => {
   const url = String(typeof input === 'string' ? input : input?.url || '');
   let body = {};

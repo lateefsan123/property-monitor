@@ -37,6 +37,15 @@ The answer matches what Ask Repeat's sales tool returns (count, median, price pe
 
 Record the takes, settings and the chosen take in `narration-refresh-2026-10-05.md`, then make a scoped local commit. Claude will cut the picture to the chosen take; do not edit the film code or renders.
 
+## Takes used in the v5 cut
+
+The user asked Claude to choose. Claude used:
+- **Main take 3** (`out/vo-brady-v5-take-3.mp3`): every scripted word, with clear breaths between paragraphs (take 4 runs paragraphs together).
+- **Question take 1.**
+- **The "Clarice" answer**, chosen over "Hope" for a calmer pace.
+
+All three checked word for word with `narration-words.py`. Nobody listened before the edit; the user should listen to the finished film. Details are in the v5 section of `audio-production.md`.
+
 ## What Claude will change in the next cut (for reference)
 
 - Scale the phone down slightly so the bottom of the app (Send via WhatsApp, Continue, Done, the Ask Repeat button) is fully visible.

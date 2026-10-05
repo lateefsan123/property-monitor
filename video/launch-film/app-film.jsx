@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { flushSync } from 'react-dom';
 import './app-film.css';
 import wordmark from '../../mobile/assets/repeat-ai-logo.png';
+import brokerCard from '../../mobile/film/broker-card.png';
 import { CARD, HEAVY, UI, clamp, lerp, spring } from './motion';
 import {
   AUTOMATION, CAPTIONS, CHAT, CLOSE, CUT, DURATION, HOOK, MARKS, PHONE_IN, PHONE_OUT, SCREENS, TAKES, TAPS,
@@ -19,7 +20,9 @@ const H = LANDSCAPE ? 1080 : 1920;
 const TAKE = (name) => `/video/launch-film/out/app/${TAKES}/${name}.png`;
 
 // Phone geometry: screen is the 393x852 pt app at scale S, under a status bar.
-const S = LANDSCAPE ? 1.02 : 1.6;
+// In 9:16 the whole phone sits above the frame's bottom edge, with room to spare,
+// so buttons at the bottom of the app stay visible.
+const S = LANDSCAPE ? 1.02 : 1.4;
 const SCREEN_W = 393 * S;
 const STATUS = 54 * S;
 const SCREEN_H = STATUS + 852 * S;
@@ -27,9 +30,13 @@ const BEZEL = LANDSCAPE ? 12 : 16;
 const PHONE_W = SCREEN_W + BEZEL * 2;
 const PHONE_H = SCREEN_H + BEZEL * 2;
 const PHONE_LEFT = LANDSCAPE ? W - PHONE_W - 250 : (W - PHONE_W) / 2;
-const PHONE_TOP = LANDSCAPE ? (H - PHONE_H) / 2 : 480;
+const PHONE_TOP = LANDSCAPE ? (H - PHONE_H) / 2 : 470;
 
 const sp = (t, start, [k, d] = CARD) => spring(t - start, k, d);
+// Screen changes: a critically damped push and an eased dissolve.
+const PUSH = CARD;
+const FADE = 0.32;
+const ease = (p) => p * p * (3 - 2 * p);
 const frameTime = (t) => Math.floor(t * 60 + 1e-6) / 60;
 
 // Headings build word by word from a soft blur and leave with a staggered lift.
@@ -67,8 +74,9 @@ function StatusBar() {
 }
 
 // A WhatsApp-style chat (dark theme, drawn in app points) for the send and the reply.
-// The outgoing text is what the app built for Oliver, a Prospect: the Introduction
-// template with his building's sale today (out/app/takes-v4/oliver-message.png).
+// The outgoing message is what the app built for Oliver, a Prospect: the Introduction
+// template with his building's sale today, sent with the template's broker card
+// because it is his first message (out/app/takes-v5/oliver-message.png).
 const OUTGOING = [
   'Hi Oliver Grant, I’m Sara, a broker specialising in Burj Khalifa, Downtown Dubai.',
   'Here are the latest transactions in your building:',
@@ -101,10 +109,14 @@ function Chat({ t }) {
       <span style={{ background: '#182229', color: '#8696a0', fontSize: 12, padding: '5px 10px', borderRadius: 8 }}>Today</span>
     </div>
     <div style={{ padding: '10px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
-      <div style={{ alignSelf: 'flex-end', maxWidth: 318, background: '#005c4b', borderRadius: '10px 2px 10px 10px', padding: '7px 9px 6px',
+      <div style={{ alignSelf: 'flex-end', width: 300, background: '#005c4b', borderRadius: '10px 2px 10px 10px', padding: '4px 4px 6px',
         opacity: clamp(sent * 1.5), transform: `translateY(${(1 - sent) * 24}px) scale(${lerp(0.96, 1, sent)})`, transformOrigin: '100% 0' }}>
-        {OUTGOING.map((para, i) => <div key={i} style={{ ...text, marginBottom: i < OUTGOING.length - 1 ? 10 : 2 }}>{para}</div>)}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 4 }}><span style={meta}>9:41</span><Ticks read={read} /></div>
+        {/* Inline position and height override the screen-filling `.viewport img` rule. */}
+        <img src={brokerCard} alt="" style={{ display: 'block', position: 'static', width: '100%', height: 'auto', borderRadius: 7, marginBottom: 7 }} />
+        <div style={{ padding: '0 5px' }}>
+          {OUTGOING.map((para, i) => <div key={i} style={{ ...text, marginBottom: i < OUTGOING.length - 1 ? 10 : 2 }}>{para}</div>)}
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 4, padding: '0 5px' }}><span style={meta}>9:41</span><Ticks read={read} /></div>
       </div>
       {typing && <div style={{ alignSelf: 'flex-start', background: '#1f2c34', borderRadius: '2px 10px 10px 10px', padding: '12px 14px', display: 'flex', gap: 5 }}>
         {[0, 1, 2].map((i) => <span key={i} style={{ width: 7, height: 7, borderRadius: 4, background: '#8696a0', opacity: 0.4 + 0.6 * Math.max(0, Math.sin((t - CHAT.typing) * 9 - i * 0.9)) }} />)}
@@ -134,7 +146,7 @@ function Screen({ t }) {
   SCREENS.forEach(([time], i) => { if (t >= time) index = i; });
   const [start, take, transition] = SCREENS[index];
   const previous = index > 0 ? SCREENS[index - 1][1] : null;
-  const p = transition === 'push' ? sp(t, start, UI) : clamp((t - start) / 0.18);
+  const p = transition === 'push' ? sp(t, start, PUSH) : ease(clamp((t - start) / FADE));
   const tap = TAPS.find(([time]) => t >= time && t < time + 0.5);
   const marks = MARKS.filter(([from, to, mark]) => mark === take && t >= from && t < to + 0.25);
   return <div className="screen" style={{ width: SCREEN_W, height: SCREEN_H, borderRadius: 56 * S * 0.9 }}>
@@ -142,9 +154,9 @@ function Screen({ t }) {
     <div className="viewport" style={{ top: STATUS, width: SCREEN_W, height: 852 * S }}>
       {previous && p < 1 && <Layer take={previous} t={t} style={{ transform: transition === 'push' ? `translateX(${-p * 30 * S}px)` : undefined, opacity: transition === 'push' ? 1 - p * 0.6 : 1 }} />}
       <Layer take={take} t={t} style={{ transform: transition === 'push' ? `translateX(${(1 - p) * SCREEN_W}px)` : undefined, opacity: transition === 'push' ? 1 : p }} />
-      {marks.map(([from, to, , top, bottom]) => <span key={from} className="mark" style={{
-        left: 12 * S, top: top * S, width: 369 * S, height: (bottom - top) * S,
-        opacity: clamp((t - from) / 0.25) * (1 - clamp((t - to) / 0.25)),
+      {marks.map(([from, to, , top, bottom, left = 12, right = 381]) => <span key={from} className="mark" style={{
+        left: left * S, top: top * S, width: (right - left) * S, height: (bottom - top) * S,
+        opacity: ease(clamp((t - from) / 0.25)) * (1 - ease(clamp((t - to) / 0.25))),
       }} />)}
       {tap && <span className="tap" style={{
         left: tap[1] * S, top: tap[2] * S, width: 90 * S, height: 90 * S,
@@ -192,9 +204,9 @@ function Automation({ t, x, y, size }) {
   const noteOut = sp(t, out + 0.1, UI);
   return <>
     <Words t={t} x={x} y={y - (LANDSCAPE ? 60 : 30)} size={size} exit={out} lines={lines} />
-    <div className="note" style={{ position: 'absolute', left: x, top: y - (LANDSCAPE ? 60 : 30) + size * 3.2, zIndex: 5,
+    <div className="note" style={{ position: 'absolute', left: x, top: y - (LANDSCAPE ? 60 : 30) + size * (LANDSCAPE ? 3.2 : 3.1), zIndex: 5,
       opacity: clamp(note * 1.4) * (1 - noteOut), transform: `translateY(${(1 - note) * 16}px)`, filter: note < 0.98 ? `blur(${(1 - note) * 6}px)` : undefined }}>
-      Using recent sales in each seller’s building.
+      Spaced out, so no one hears from you too often.
     </div>
   </>;
 }
