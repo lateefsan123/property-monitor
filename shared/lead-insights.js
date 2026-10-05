@@ -12,6 +12,15 @@ import {
   getBuildingKeyVariants,
 } from "../src/features/seller-signal/building-utils";
 
+// A seller's message from their market insight: today's sales when there are
+// any, otherwise recent ones. Callers can rebuild it whenever templates change.
+export function buildInsightMessage(lead, insight, messageTemplate) {
+  const messageInsight = insight?.todaysRecentTransactions?.length
+    ? { ...insight, recentTransactions: insight.todaysRecentTransactions }
+    : insight;
+  return buildMessage(lead, messageInsight, messageTemplate);
+}
+
 export function createLeadInsightServices(supabase) {
   const TRANSACTION_COLUMNS =
     "building_key, amount, category, date, floor, beds, property_type, builtup_area_sqft, location_name, full_location, latitude, longitude";
@@ -316,13 +325,9 @@ export function createLeadInsightServices(supabase) {
         hasTodaysTransactions: todaysRecentTransactions.length > 0,
         allTransactionDates,
       };
-      const messageInsight = todaysRecentTransactions.length
-        ? { ...insight, recentTransactions: todaysRecentTransactions }
-        : insight;
-
       updates[lead.id] = {
         ...insight,
-        message: buildMessage(lead, messageInsight, messageTemplate),
+        message: buildInsightMessage(lead, insight, messageTemplate),
       };
       matched += 1;
     }

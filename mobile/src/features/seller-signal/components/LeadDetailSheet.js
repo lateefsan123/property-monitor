@@ -7,7 +7,8 @@ import { introAttachmentPath } from "../../../../../supabase/functions/_shared/i
 import { resolveForLead } from "../../../../../supabase/functions/_shared/template-status.js";
 import BottomSheet from "../../../components/BottomSheet";
 import { formatBedsLabel, formatDate, formatPrice, formatRange } from "../formatters";
-import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
+import { formatPhoneForWhatsApp } from "../insight-utils";
+import { leadInsightMessage } from "../../../workspace/lead-insights";
 import { formatBuildingLabel } from "../lead-utils";
 import { Badge } from "./LeadCard";
 import SellerFollowUpControl from './seller-follow-up-control';
@@ -242,7 +243,7 @@ export default function LeadDetailSheet({
 
   if (!lead) return null;
 
-  const baseMessage = insight?.message || buildMessage(lead, insight, messageTemplate);
+  const baseMessage = leadInsightMessage(lead, insight, messageTemplate);
   const message = draftMessage ?? lead.message_draft ?? baseMessage;
   async function saveMessage(value) {
     setSavingMessage(true); setSaveError(""); setSaveStatus("");

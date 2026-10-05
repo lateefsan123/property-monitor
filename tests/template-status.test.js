@@ -16,9 +16,20 @@ import { build } from 'esbuild';
 import { fileURLToPath } from 'node:url';
 import { Buffer } from 'node:buffer';
 
-// insight-utils uses extensionless imports, so bundle it before loading.
-const bundled = await build({ entryPoints: [fileURLToPath(new URL('../src/features/seller-signal/insight-utils.js', import.meta.url))], bundle: true, format: 'esm', platform: 'node', write: false, logLevel: 'silent' });
-const { buildMessage } = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`);
+// The web modules use extensionless imports, so bundle them before loading.
+// page-helpers' Supabase services are stubbed.
+const stubServices = {
+  name: 'stub-services',
+  setup(builder) {
+    builder.onResolve({ filter: /^\.\/services$/ }, () => ({ path: 'services', namespace: 'stub' }));
+    builder.onLoad({ filter: /.*/, namespace: 'stub' }, () => ({ contents: 'export const fetchLeadSources = async () => [];' }));
+  },
+};
+async function load(relative) {
+  const bundled = await build({ entryPoints: [fileURLToPath(new URL(relative, import.meta.url))], bundle: true, format: 'esm', platform: 'node', write: false, logLevel: 'silent', plugins: [stubServices] });
+  return import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`);
+}
+const { buildMessage } = await load('../src/features/seller-signal/insight-utils.js');
 
 const intro = { id: 'intro', name: 'Intro', content: 'Intro {{transactions}}', is_default: true, statuses: [], image_path: 'u/intro.png', updated_at: '2026-10-01' };
 const appraisal = { id: 'appraisal', name: 'Appraisal follow-up', content: 'Valuation {{transactions}}', is_default: false, statuses: ['market_appraisal'], image_path: null, updated_at: '2026-10-02' };
@@ -75,6 +86,39 @@ test('messages and intro images follow the per-seller template', () => {
   assert.equal(introAttachmentPath(imageFor, { status: 'For Sale' }, null), 'u/sale.png');
   assert.equal(introAttachmentPath(imageFor, { status: 'Appraisal' }, null), null);
   assert.equal(introAttachmentPath(imageFor, { status: 'For Sale', sent_at: '2026-09-30' }, null), null);
+});
+
+test('web sale messages use the template for each seller’s status', async () => {
+  const { buildInsightTarget } = await load('../src/features/seller-signal/page-helpers.js');
+  const { createLeadInsightServices } = await load('../shared/lead-insights.js');
+  const templates = [intro, appraisal, forSale];
+  const messageTemplate = lead => pickTemplateForStatus(templates, lead.status)?.content;
+  const targets = [
+    { id: 1, name: 'Ahmed', building: 'Forte 2', status: 'Market Appraisal' },
+    { id: 2, name: 'Priya', building: 'Forte 2', status: 'Prospect' },
+  ].map(buildInsightTarget);
+  const { updates } = createLeadInsightServices({}).computeLeadInsights(targets, null, {}, messageTemplate);
+  assert.match(updates[1].message, /^Valuation/);
+  assert.match(updates[2].message, /^Intro/);
+});
+
+test('a stored sale message can be rebuilt with the current templates', async () => {
+  const { buildInsightMessage, createLeadInsightServices } = await load('../shared/lead-insights.js');
+  const { getBuildingKeyVariants } = await load('../src/features/seller-signal/building-utils.js');
+  const { getTodayTransactionDateKey } = await load('../src/features/seller-signal/insight-utils.js');
+  const sale = (date, amount) => ({ amount, category: 'Sales', date, beds: 2, area_sqft: 1410, property: { beds: 2, built_up_area: 1410 }, location: {} });
+  const marketData = { buildingLookup: {}, transactionsByBuilding: { [getBuildingKeyVariants('Forte 2')[0]]: [sale(getTodayTransactionDateKey(), 4100000), sale('2026-01-15', 3900000)] } };
+  const seller = { id: 1, name: 'Ahmed', building: 'Forte 2', status: 'Market Appraisal' };
+  // The templates load after the market data: no status template yet.
+  const before = lead => pickTemplateForStatus([intro], lead.status)?.content;
+  const after = lead => pickTemplateForStatus([intro, appraisal], lead.status)?.content;
+  const insight = createLeadInsightServices({}).computeLeadInsights([seller], marketData, {}, before).updates[1];
+  assert.equal(insight.status, 'ready');
+  assert.equal(buildInsightMessage(seller, insight, before), insight.message);
+  const rebuilt = buildInsightMessage(seller, insight, after);
+  assert.match(rebuilt, /^Valuation/);
+  // Still today's sale only, like the stored message.
+  assert.equal(rebuilt.match(/2 Bed/g)?.length, 1);
 });
 
 function fakeTemplateTable(existing) {

@@ -1,5 +1,5 @@
 import { orderSellerList } from "./seller-list-order";
-import {fetchLeadInsights} from '../../workspace/lead-insights';
+import {fetchLeadInsights, leadInsightMessage} from '../../workspace/lead-insights';
 import { introAttachmentPath } from "../../../../supabase/functions/_shared/intro-attachment.js";
 import { saveSellerFollowUp, uploadSellerImage } from './seller-contact';
 import { fetchBuildingAliases, fetchCachedBuildings } from '../../workspace/building-reference';
@@ -732,7 +732,7 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
     return {
       imagePath: introAttachmentPath(messageTemplateImagePath, lead, sentLeads[lead.id]),
       insight,
-      message: lead.message_draft ?? (insight?.message || buildMessage(lead, insight, messageTemplate)),
+      message: lead.message_draft ?? leadInsightMessage(lead, insight, messageTemplate),
       phone: formatPhoneForWhatsApp(lead.phone),
     };
   }

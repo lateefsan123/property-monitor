@@ -51,6 +51,8 @@ export function buildInsightTarget(lead) {
     id: lead.id,
     name: lead.name || "",
     building: lead.resolvedBuilding || lead.building || "",
+    // The message uses the template for this seller's status.
+    status: lead.status || "",
   };
 }
 

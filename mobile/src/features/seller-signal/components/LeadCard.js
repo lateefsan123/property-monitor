@@ -4,7 +4,8 @@ import AppIcon from "../../../components/AppIcon";
 import { Icon } from "../../../workspace/ui";
 import * as Linking from "expo-linking";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { buildMessage, formatPhoneForWhatsApp } from "../insight-utils";
+import { formatPhoneForWhatsApp } from "../insight-utils";
+import { leadInsightMessage } from "../../../workspace/lead-insights";
 import { formatBuildingLabel } from "../lead-utils";
 
 function formatLeadBedroom(value) {
@@ -121,7 +122,7 @@ export default function LeadCard({
 }) {
   const [copyStatus, setCopyStatus] = useState("");
   const c = colors;
-  const message = lead.message_draft ?? (insight?.message || buildMessage(lead, insight, messageTemplate));
+  const message = lead.message_draft ?? leadInsightMessage(lead, insight, messageTemplate);
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
   const bedroomLabel = formatLeadBedroom(lead.bedroom);
   const unitLabel = formatLeadUnit(lead.unit || extractUnitFromBuilding(lead.building));

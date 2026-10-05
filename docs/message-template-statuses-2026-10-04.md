@@ -16,6 +16,15 @@ Each message template can be used for one or more seller statuses: No status, Pr
 - The website was deployed from main `56f7c212` (production READY, `index-DdXus1wM.js` on repeatai.org and sellersignal.vercel.app). The other sessions' web changes were already live from the 1 October deploy.
 - Mobile needs the next native build.
 
+## Fix: manual messages (5 October)
+
+While capturing the launch film, Oliver Grant's seller sheet (a Prospect) showed the built-in message instead of his status template. Manual sends did not reliably use status templates:
+
+- Web built sale messages from a seller record without the status (`buildInsightTarget`), so cards, one-click sends and the drawer used the No status or default template for everyone.
+- Mobile kept each message from when the sale data loaded. Sellers who loaded before the templates, or before a template changed, kept the old text.
+
+Web now keeps the status in that record. Mobile rebuilds the message from the current template when it is shown or sent (`leadInsightMessage`), using the same building name and today's-sale rule (`buildInsightMessage`). Automated sends were not affected. This needs a web deploy and a mobile update to reach users.
+
 ## Checks
 
 8 new tests in `tests/template-status.test.js` plus 31 related tests passed. Lint, the web build, a syntax check of the sender, and an Android Expo export (1,767 modules) also passed. The web editor was checked signed in: the "Use for" row rendered, and a status was toggled on and back off without saving. No templates or statuses were changed in the account.
