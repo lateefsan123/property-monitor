@@ -138,6 +138,9 @@ export default function WhatsAppPanel({ userId, colors, active = true }) {
               : qr ? <View style={{ alignSelf: "center", backgroundColor: "white", padding: 12 }}><QRCode value={qr} size={200} /></View> : null}
           </> : null}
           {waiting ? <Text style={{ color: colors.textMuted, fontSize: 14 }}>Waiting for WhatsApp…</Text> : null}
+          {/* Switch methods without closing the sheet, like web's Code / QR tabs. */}
+          {waiting && code ? <Button colors={colors} disabled={busy} onPress={() => run("start", "qr")}>Use QR code instead</Button> : null}
+          {waiting && !code && (qr || qrData) ? <Button colors={colors} disabled={busy} onPress={() => { setWaiting(false); setResult(null); setError(null); }}>Use a pairing code instead</Button> : null}
         </> : sheet === "disconnect" ? <>
           <Text style={{ color: colors.textMuted, fontSize: 15, lineHeight: 22 }}>Automated messages will pause until you reconnect.</Text>
           <Button colors={colors} disabled={busy} onPress={() => run("disconnect")}>{busy ? "Disconnecting…" : "Disconnect"}</Button>
