@@ -395,7 +395,9 @@ async function startSession(sessionId, options = {}) {
   });
 
   socket.ev.on("messages.upsert", async ({ type, messages }) => {
-    if (type !== "notify") return;
+    // "append" carries messages that arrived while the service was offline; the
+    // unique provider message id keeps a reply from being saved twice.
+    if (type !== "notify" && type !== "append") return;
     for (const message of messages || []) {
       await persistInboundMessage(session, message);
     }
@@ -550,6 +552,25 @@ app.delete("/sessions/:sessionId", requireToken, async (req, res) => {
   }
 });
 
+// Reconnect every linked WhatsApp on startup so replies keep arriving after a
+// restart, not only once the next message is sent. Only paired logins (creds.me).
+async function restoreLinkedSessions() {
+  let entries = [];
+  try { entries = await fs.readdir(AUTH_DIR, { withFileTypes: true }); } catch { return; }
+  for (const entry of entries) {
+    if (!entry.isDirectory() || sessions.has(entry.name)) continue;
+    try {
+      const creds = JSON.parse(await fs.readFile(path.join(sessionPath(entry.name), "creds.json"), "utf8"));
+      if (!creds?.me?.id) continue;
+      await startSession(entry.name);
+      logger.info({ sessionId: entry.name }, "Restored linked WhatsApp session");
+    } catch (error) {
+      logger.warn({ error, sessionId: entry.name }, "Could not restore WhatsApp session");
+    }
+  }
+}
+
 app.listen(PORT, () => {
   logger.info({ port: PORT }, "Seller Signal WhatsApp Baileys service listening");
+  void restoreLinkedSessions();
 });
