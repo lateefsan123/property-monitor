@@ -1,6 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { customStatusDays, loadCustomStatusDays } from "../_shared/custom-statuses.js";
+import { accountsNotDue, loadLastAutoSends, loadSendPacing } from "../_shared/send-pacing.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // Sends each active-pipeline seller a once-a-month recap of sales and Ejari
@@ -836,19 +837,9 @@ Deno.serve(async (req) => {
       && Deno.env.get("SELLER_SIGNAL_MONTHLY_REPORT_ENFORCE_SEND_WINDOW") !== "false";
     const sendWindowStart = getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_SEND_WINDOW_START"), DEFAULT_SEND_WINDOW_START_HOUR);
     const sendWindowEnd = getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_SEND_WINDOW_END"), DEFAULT_SEND_WINDOW_END_HOUR);
+    // Each account's own send hours and gap are applied per account below;
+    // the env window is only the default for accounts that haven't chosen.
     const dubaiHour = getDubaiHour(startedAt);
-    if (!dryRun && enforceSendWindow && (dubaiHour === null || dubaiHour < sendWindowStart || dubaiHour >= sendWindowEnd)) {
-      return jsonResponse({
-        runId,
-        enabled,
-        dryRun,
-        reportMonth,
-        dubaiHour,
-        sent: 0,
-        skipped: { outsideSendWindow: true },
-        message: `Outside the ${sendWindowStart}:00-${sendWindowEnd}:00 Dubai send window.`,
-      });
-    }
 
     const supabaseUrl = requireEnv("SUPABASE_URL");
     const serviceRoleKey = requireEnv("SUPABASE_SERVICE_ROLE_KEY");
@@ -887,6 +878,18 @@ Deno.serve(async (req) => {
       if (!monthlyReportUserIds.has(userId)) accountByUser.delete(userId);
     }
 
+    // Accounts outside their chosen hours, or whose gap since their last
+    // automated message hasn't passed, wait for a later run.
+    const pacing = await loadSendPacing(adminClient, [...accountByUser.keys()], { start: sendWindowStart, end: sendWindowEnd });
+    const lastSends = await loadLastAutoSends(adminClient, [...accountByUser.keys()], startedAt);
+    const waitingAccounts = accountsNotDue({ pacing, lastSends, now: startedAt, dubaiHour, enforceWindow: !dryRun && enforceSendWindow });
+    const pacingSkips = { outsideSendWindow: 0, spacing: 0 };
+    const reportUsersBeforePacing = accountByUser.size;
+    for (const [userId, reason] of waitingAccounts) {
+      accountByUser.delete(userId);
+      pacingSkips[reason as "outsideSendWindow" | "spacing"] += 1;
+    }
+
     if (!accountByUser.size) {
       return jsonResponse({
         runId,
@@ -894,9 +897,11 @@ Deno.serve(async (req) => {
         dryRun,
         reportMonth,
         sent: 0,
-        skipped: connectedUserIds.length
-          ? { monthlyReportsDisabledUsers: connectedUserIds.length }
-          : { noConnectedAccount: true },
+        skipped: reportUsersBeforePacing
+          ? { waitingAccounts: pacingSkips }
+          : connectedUserIds.length
+            ? { monthlyReportsDisabledUsers: connectedUserIds.length }
+            : { noConnectedAccount: true },
       });
     }
 
@@ -969,6 +974,8 @@ Deno.serve(async (req) => {
         noPhone: 0,
         dailyCap: 0,
         duplicateClaim: 0,
+        spacing: 0,
+        waitingAccounts: pacingSkips,
       },
       failures: [] as Array<{ leadId: number; error: string }>,
       dryRunMatches: [] as Array<{ leadId: number; salesCount: number; rentalCount: number }>,
@@ -977,6 +984,7 @@ Deno.serve(async (req) => {
     // Budget exhaustion is per user: skip only that user's remaining leads so
     // other users' queues keep draining in the same run.
     const budgetReachedUsers = new Set<string>();
+    const sentThisRun = new Set<string>();
 
     const scheduleQueue = await loadScheduleQueue(adminClient, leads, new Date(), allLeads);
     for (const lead of scheduleQueue) {
@@ -986,6 +994,11 @@ Deno.serve(async (req) => {
       const leadUserId = String(lead.user_id || "");
       if (budgetReachedUsers.has(leadUserId)) {
         summary.skipped.dailyCap += 1;
+        continue;
+      }
+      // One message per account per run; the account's gap paces the next.
+      if (sentThisRun.has(leadUserId)) {
+        summary.skipped.spacing += 1;
         continue;
       }
 
@@ -1075,6 +1088,7 @@ Deno.serve(async (req) => {
 
         messageRowId = messageRow.id;
         summary.attempted += 1;
+        sentThisRun.add(leadUserId);
         await markReportEvent(adminClient, claim.id, { message_id: messageRowId });
 
         const { providerMessageId, providerPayload } = await sendMessage(adminClient, account, to, body, payload);

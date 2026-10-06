@@ -160,7 +160,7 @@ export default function SellerSignalSettingsModal({
                     <div className="seller-settings-shared-lane">
                       <strong>One shared delivery lane</strong>
                       <span>
-                        One message every five minutes, with a combined maximum of 40 messages per Dubai day.
+                        Sent in the hours and at the pace you choose in Settings > Automations, up to 40 messages per Dubai day.
                       </span>
                     </div>
                     <div className="seller-settings-toggle-list">

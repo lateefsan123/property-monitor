@@ -5,6 +5,7 @@ import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
 import { followUpPending } from "../_shared/seller-follow-up.js";
 import { pickTemplateForStatus } from "../_shared/template-status.js";
 import { customStatusDays, loadCustomStatusDays } from "../_shared/custom-statuses.js";
+import { accountsNotDue, loadLastAutoSends, loadSendPacing } from "../_shared/send-pacing.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -981,6 +982,7 @@ Deno.serve(async (req) => {
     const fill = Boolean(input?.fill);
     // Users refused by the daily cap or the monthly report split are skipped for the rest of this run.
     const cappedUsers = new Set<string>();
+    const sentThisRun = new Set<string>();
     const maxLeads = Math.max(0, Math.floor(getNumber(input?.maxLeads, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_MAX_LEADS_PER_RUN"), DEFAULT_MAX_LEADS_PER_RUN))));
     // Any contact (auto or manual, tracked via leads.sent_at) pauses further
     // auto-alerts to that seller for the cooldown window; the next alert after
@@ -1018,20 +1020,9 @@ Deno.serve(async (req) => {
       && Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_ENFORCE_SEND_WINDOW") !== "false";
     const sendWindowStart = getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_SEND_WINDOW_START"), DEFAULT_SEND_WINDOW_START_HOUR);
     const sendWindowEnd = getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_SEND_WINDOW_END"), DEFAULT_SEND_WINDOW_END_HOUR);
+    // Each account's own send hours and gap are applied per account below;
+    // the env window is only the default for accounts that haven't chosen.
     const dubaiHour = getDubaiHour(startedAt);
-    if (!dryRun && enforceSendWindow && (dubaiHour === null || dubaiHour < sendWindowStart || dubaiHour >= sendWindowEnd)) {
-      return jsonResponse({
-        runId,
-        enabled,
-        dryRun,
-        dailyCap,
-        todayDateKey,
-        dubaiHour,
-        sent: 0,
-        skipped: { outsideSendWindow: true },
-        message: `Outside the ${sendWindowStart}:00-${sendWindowEnd}:00 Dubai send window.`,
-      });
-    }
 
     if (!dryRun && startDubaiDateKey && todayDateKey < startDubaiDateKey) {
       return jsonResponse({
@@ -1083,6 +1074,17 @@ Deno.serve(async (req) => {
     );
     for (const userId of automationDisabledUserIds) accountByUser.delete(userId);
 
+    // Accounts outside their chosen hours, or whose gap since their last
+    // automated message hasn't passed, wait for a later run.
+    const pacing = await loadSendPacing(adminClient, [...accountByUser.keys()], { start: sendWindowStart, end: sendWindowEnd });
+    const lastSends = await loadLastAutoSends(adminClient, [...accountByUser.keys()], startedAt);
+    const waitingAccounts = accountsNotDue({ pacing, lastSends, now: startedAt, dubaiHour, enforceWindow: !dryRun && enforceSendWindow });
+    const pacingSkips = { outsideSendWindow: 0, spacing: 0 };
+    for (const [userId, reason] of waitingAccounts) {
+      accountByUser.delete(userId);
+      pacingSkips[reason as "outsideSendWindow" | "spacing"] += 1;
+    }
+
     if (!accountByUser.size) {
       return jsonResponse({
         runId,
@@ -1094,9 +1096,11 @@ Deno.serve(async (req) => {
         todayDateKey,
         startDubaiDateKey,
         sent: 0,
-        skipped: automationDisabledUserIds.size
-          ? { automationDisabledUsers: automationDisabledUserIds.size }
-          : { noConnectedAccount: true },
+        skipped: waitingAccounts.size
+          ? { waitingAccounts: pacingSkips }
+          : automationDisabledUserIds.size
+            ? { automationDisabledUsers: automationDisabledUserIds.size }
+            : { noConnectedAccount: true },
       });
     }
 
@@ -1180,6 +1184,8 @@ Deno.serve(async (req) => {
         duplicateClaim: 0,
         duplicateRecipientDate: 0,
         dailyCap: 0,
+        spacing: 0,
+        waitingAccounts: pacingSkips,
       },
       failures: [] as Array<{ leadId: number; error: string }>,
       dryRunMatches: [] as Array<{ leadId: number; transactionCount: number; transactionDate: string }>,
@@ -1253,6 +1259,11 @@ Deno.serve(async (req) => {
       const currentDailyCount = dailyAutoMessageCounts.get(userId) || 0;
       if (currentDailyCount >= dailyCap || cappedUsers.has(userId)) {
         summary.skipped.dailyCap += 1;
+        continue;
+      }
+      // One message per account per run; the account's gap paces the next.
+      if (sentThisRun.has(userId)) {
+        summary.skipped.spacing += 1;
         continue;
       }
 
@@ -1342,6 +1353,7 @@ Deno.serve(async (req) => {
         messageRowId = messageRow.id;
         const claimedDailyCount = Number(messageRow.dailyCount || currentDailyCount + 1);
         summary.attempted += 1;
+        sentThisRun.add(userId);
         dailyAutoMessageCounts.set(userId, claimedDailyCount);
         summary.dailyActiveByUser[userId] = claimedDailyCount;
         await markAutoEvent(adminClient, claim.id, { message_id: messageRowId });

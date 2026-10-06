@@ -278,3 +278,4 @@ button.st-profile:hover { background: var(--bg-hover); }
 .st-status-cancel { border: 1px solid var(--border); background: var(--bg-card); color: var(--text-name); }
 .st-status-save { border: 0; background: var(--text-name); color: var(--bg-card); }
 .st-status-save:disabled, .st-status-cancel:disabled { opacity: .5; cursor: default; }
+.st-hours { display: flex; align-items: center; gap: 8px; }

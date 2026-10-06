@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_MONTHLY_REPORT_SHARE } from "../../../shared/automation-settings.js";
+import { DEFAULT_MONTHLY_REPORT_SHARE, DEFAULT_SEND_INTERVAL_MINUTES, DEFAULT_SEND_WINDOW } from "../../../shared/automation-settings.js";
 import {
   fetchAutomationSettings,
   fetchWhatsAppAccounts,
@@ -32,6 +32,9 @@ export function useSettingsData(userId) {
     autoWhatsAppEnabled: automation.data?.autoWhatsAppEnabled !== false,
     monthlyReportsEnabled: automation.data?.monthlyReportsEnabled === true,
     monthlyReportDailyShare: automation.data?.monthlyReportDailyShare ?? DEFAULT_MONTHLY_REPORT_SHARE,
+    sendWindowStartHour: automation.data?.sendWindowStartHour ?? DEFAULT_SEND_WINDOW.start,
+    sendWindowEndHour: automation.data?.sendWindowEndHour ?? DEFAULT_SEND_WINDOW.end,
+    sendIntervalMinutes: automation.data?.sendIntervalMinutes ?? DEFAULT_SEND_INTERVAL_MINUTES,
   };
 
   return {
@@ -43,6 +46,7 @@ export function useSettingsData(userId) {
       saving: saveAutomation.isPending,
       error: automation.error || saveAutomation.error,
       set: (key, value) => saveAutomation.mutate({ ...current, [key]: value }),
+      setMany: (values) => saveAutomation.mutate({ ...current, ...values }),
     },
   };
 }

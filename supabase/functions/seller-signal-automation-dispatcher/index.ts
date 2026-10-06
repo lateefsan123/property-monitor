@@ -6,6 +6,8 @@ const corsHeaders = {
 };
 
 const DEFAULT_DAILY_CAP = 40;
+// Sends per pass, across accounts (one each); keeps a run well inside the time limit.
+const MAX_ACCOUNTS_PER_PASS = 10;
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
@@ -69,10 +71,12 @@ Deno.serve(async (req) => {
       1,
       Math.min(DEFAULT_DAILY_CAP, Math.floor(Number(input?.dailyCap) || DEFAULT_DAILY_CAP)),
     );
-    // One message per run. Each kind first stays within its share of the 40
-    // (monthly_report_daily_share, enforced by the claim); then a fill pass lets
-    // either kind use slots the other left unused. Reports run all month.
-    const base = { dryRun, maxSends: 1, dailyCap };
+    // At most one message per account per run, paced by each account's own
+    // send hours and gap (_shared/send-pacing.js), so every account gets its
+    // turn instead of one send across all accounts. Each kind first stays
+    // within its share of the 40 (monthly_report_daily_share, enforced by the
+    // claim); then a fill pass lets either kind use slots the other left unused.
+    const base = { dryRun, maxSends: MAX_ACCOUNTS_PER_PASS, dailyCap };
     const passes: Array<[string, string, Record<string, unknown>]> = [
       ["transactionUpdates", "seller-signal-auto-whatsapp", base],
       ["monthlyReports", "seller-signal-monthly-report", { ...base, reportDailyBudget: dailyCap }],
@@ -85,7 +89,6 @@ Deno.serve(async (req) => {
       const result = await invokePipeline(functionName, body);
       results[label] = result;
       sent += Number(result?.sent || 0);
-      if (sent > 0) break;
     }
 
     return jsonResponse({ runId, dailyCap, sent, ...results });

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS } from "../../../shared/automation-settings.js";
+import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit } from "../../../shared/automation-settings.js";
 import {
   IconActivity,
   IconAdjustmentsHorizontal,
@@ -149,8 +149,43 @@ export default function SettingsPage({
                 </SettingsItem>
               )}
             </SettingsGroup>
+            <SettingsGroup title="Sending">
+              <SettingsItem label="Send between" description="Automated messages only go out in these hours, Dubai time.">
+                <div className="st-hours">
+                  <select className="st-status-select" aria-label="Start" value={data.automation.sendWindowStartHour} disabled={data.automation.loading || data.automation.saving}
+                    onChange={(event) => data.automation.setMany({ sendWindowStartHour: Number(event.target.value), sendWindowEndHour: Math.max(Number(event.target.value) + 1, data.automation.sendWindowEndHour) })}>
+                    {Array.from({ length: 24 }, (_, hour) => <option key={hour} value={hour}>{formatHour(hour)}</option>)}
+                  </select>
+                  <span className="st-note">to</span>
+                  <select className="st-status-select" aria-label="End" value={data.automation.sendWindowEndHour} disabled={data.automation.loading || data.automation.saving}
+                    onChange={(event) => data.automation.set("sendWindowEndHour", Number(event.target.value))}>
+                    {Array.from({ length: 24 }, (_, index) => index + 1).filter((hour) => hour > data.automation.sendWindowStartHour)
+                      .map((hour) => <option key={hour} value={hour}>{formatHour(hour)}</option>)}
+                  </select>
+                </div>
+              </SettingsItem>
+              <SettingsItem label="Space messages" description="The gap between one automated message and the next.">
+                <div className="st-split" role="radiogroup" aria-label="Gap between messages">
+                  {SEND_INTERVAL_OPTIONS.map((minutes) => (
+                    <button key={minutes} type="button" role="radio" aria-checked={data.automation.sendIntervalMinutes === minutes}
+                      className={`st-split-option${data.automation.sendIntervalMinutes === minutes ? " is-active" : ""}`}
+                      disabled={data.automation.loading || data.automation.saving}
+                      onClick={() => data.automation.set("sendIntervalMinutes", minutes)}>{minutes === 60 ? "1h" : `${minutes}m`}</button>
+                  ))}
+                </div>
+              </SettingsItem>
+            </SettingsGroup>
             {data.automation.error ? <p className="st-error" role="alert">{data.automation.error.message}</p> : null}
-            <p className="st-note">Up to 40 messages a day, five minutes apart, shared between updates and reports. All schedules use Dubai time.</p>
+            {(() => {
+              const pacing = { start: data.automation.sendWindowStartHour, end: data.automation.sendWindowEndHour, interval: data.automation.sendIntervalMinutes };
+              const fit = messagesThatFit(pacing, DAILY_AUTOMATION_CAP);
+              return (
+                <p className="st-note">
+                  {formatHour(pacing.start)} to {formatHour(pacing.end)}, one every {formatInterval(pacing.interval)}: up to {fit} message{fit === 1 ? "" : "s"} a day
+                  {fit < DAILY_AUTOMATION_CAP ? `, under the ${DAILY_AUTOMATION_CAP}-a-day limit. Widen the hours or shorten the gap to send more.` : ` (${DAILY_AUTOMATION_CAP} a day is the limit).`}
+                </p>
+              );
+            })()}
           </div>
         )}
 

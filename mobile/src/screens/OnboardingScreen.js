@@ -157,7 +157,7 @@ export default function OnboardingScreen({ onComplete, onClose, onLogin, preview
       </View>}
     </MotionScreen>
     <View style={[s.footer, { paddingBottom: Math.max(insets.bottom, 16) + (secondary ? 6 : 34) }]}>
-      {slide.id === 'automation' ? <Text style={s.footnote}>Sent five minutes apart, on the days and times you choose.</Text> : null}
+      {slide.id === 'automation' ? <Text style={s.footnote}>Sent on the days, hours and pace you choose.</Text> : null}
       {error ? <Text accessibilityRole="alert" style={s.error}>{error}</Text> : null}
       <PillButton busy={busy} onPress={next} label={final ? preview ? 'Finish preview' : goal?.cta || 'Open Repeat AI' : welcome ? 'Get Started' : 'Continue'} />
       {secondary ? <View style={s.secondary}><TextLink label={secondary.label} tone={secondary.tone} disabled={busy} onPress={secondary.onPress} /></View> : null}

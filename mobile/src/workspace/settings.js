@@ -3,7 +3,8 @@ import { useCallback, useEffect, useState } from "react";
 import { BackHandler, Pressable, ScrollView, Text, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAutomationSettings, saveAutomationSettings } from "./automation-settings";
-import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS } from "../../../shared/automation-settings.js";
+import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit } from "../../../shared/automation-settings.js";
+import BottomSheet from "../components/BottomSheet";
 import { fetchWhatsAppSendActivity } from "./send-activity";
 import ActivityDateFilter from './activity-date-filter';
 import { activityRange } from '../../../shared/send-activity-dates';
@@ -64,10 +65,64 @@ function Automations({ userId, colors }) {
         })}
       </View>
     </View> : null}
-    <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 20 }}>
-      Up to 40 messages a day, five minutes apart, shared between updates and reports. All schedules use Dubai time.
-    </Text>
+    {query.data ? <SendPacing settings={query.data} colors={colors} saving={mutation.isPending} onChange={(values) => mutation.mutate({ ...query.data, ...values })} /> : null}
   </View>;
+}
+
+// Send hours and the gap between automated messages (web: Settings > Automations > Sending).
+function SendPacing({ settings, colors, saving, onChange }) {
+  const [hoursOpen, setHoursOpen] = useState(false);
+  const pacing = { start: settings.sendWindowStartHour, end: settings.sendWindowEndHour, interval: settings.sendIntervalMinutes };
+  const fit = messagesThatFit(pacing, DAILY_AUTOMATION_CAP);
+  const hourColumn = (label, hours, value, onPick) => <View style={{ flex: 1, gap: 4 }}>
+    <Text style={{ color: colors.textMuted, fontSize: 13, paddingBottom: 4 }}>{label}</Text>
+    <ScrollView style={{ maxHeight: 320 }}>
+      {hours.map((hour) => <Pressable key={hour} accessibilityRole="radio" accessibilityState={{ checked: value === hour }} onPress={() => onPick(hour)}
+        style={{ minHeight: 44, justifyContent: "center", paddingHorizontal: 12, borderRadius: 10, backgroundColor: value === hour ? colors.bgBadge : "transparent" }}>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: value === hour ? "600" : "400" }}>{formatHour(hour)}</Text>
+      </Pressable>)}
+    </ScrollView>
+  </View>;
+  return <>
+    <Pressable accessibilityRole="button" disabled={saving} onPress={() => setHoursOpen(true)}
+      style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 16, borderBottomColor: colors.border, borderBottomWidth: 0.5, opacity: pressed ? 0.6 : 1 })}>
+      <View style={{ flex: 1, gap: 6 }}>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>Send between</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>Automated messages only go out in these hours, Dubai time.</Text>
+      </View>
+      <Text style={{ color: colors.text, fontSize: 15 }}>{formatHour(pacing.start)} – {formatHour(pacing.end)}</Text>
+    </Pressable>
+    <View style={{ gap: 12, paddingVertical: 16, borderBottomColor: colors.border, borderBottomWidth: 0.5 }}>
+      <View style={{ gap: 6 }}>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>Space messages</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>The gap between one automated message and the next.</Text>
+      </View>
+      <View accessibilityRole="radiogroup" accessibilityLabel="Gap between messages" style={{ flexDirection: "row", padding: 4, borderRadius: 12, backgroundColor: colors.bgBadge }}>
+        {SEND_INTERVAL_OPTIONS.map((minutes) => {
+          const selected = pacing.interval === minutes;
+          return <Pressable key={minutes} accessibilityRole="radio" accessibilityState={{ selected, disabled: saving }} disabled={saving}
+            onPress={() => onChange({ sendIntervalMinutes: minutes })}
+            style={{ flex: 1, minHeight: 36, alignItems: "center", justifyContent: "center", borderRadius: 9, backgroundColor: selected ? colors.bgCard : "transparent" }}>
+            <Text style={{ color: selected ? colors.text : colors.textMuted, fontWeight: "600", fontSize: 14 }}>{minutes === 60 ? "1h" : `${minutes}m`}</Text>
+          </Pressable>;
+        })}
+      </View>
+    </View>
+    <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 20 }}>
+      {formatHour(pacing.start)} to {formatHour(pacing.end)}, one every {formatInterval(pacing.interval)}: up to {fit} message{fit === 1 ? "" : "s"} a day{fit < DAILY_AUTOMATION_CAP ? `, under the ${DAILY_AUTOMATION_CAP}-a-day limit.` : ` (${DAILY_AUTOMATION_CAP} a day is the limit).`} Shared between updates and reports.
+    </Text>
+    <BottomSheet visible={hoursOpen} onClose={() => setHoursOpen(false)} colors={colors}>
+      <View style={{ padding: 20, paddingTop: 4, gap: 16 }}>
+        <Text accessibilityRole="header" style={{ color: colors.textName, fontSize: 21, fontWeight: "700" }}>Send between</Text>
+        <View style={{ flexDirection: "row", gap: 12 }}>
+          {hourColumn("Start", Array.from({ length: 24 }, (_, hour) => hour), pacing.start,
+            (hour) => onChange({ sendWindowStartHour: hour, sendWindowEndHour: Math.max(hour + 1, pacing.end) }))}
+          {hourColumn("End", Array.from({ length: 24 }, (_, index) => index + 1).filter((hour) => hour > pacing.start), pacing.end,
+            (hour) => onChange({ sendWindowEndHour: hour }))}
+        </View>
+      </View>
+    </BottomSheet>
+  </>;
 }
 
 function SendActivity({ userId, colors, active }) {
