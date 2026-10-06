@@ -190,6 +190,29 @@ async function syncAccount(session) {
   if (error) logger.warn({ error, sessionId: session.id }, "Could not sync Baileys account");
 }
 
+async function findReplyLeadId(account, phone) {
+  if (!supabase || !account?.id || !account?.user_id || !phone) return null;
+
+  const { data, error } = await supabase
+    .from("whatsapp_messages")
+    .select("lead_id")
+    .eq("user_id", account.user_id)
+    .eq("account_id", account.id)
+    .eq("direction", "outbound")
+    .eq("recipient_phone", phone)
+    .not("lead_id", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    logger.warn({ error, accountId: account.id, phone }, "Could not match inbound message to a lead");
+    return null;
+  }
+
+  return data?.lead_id || null;
+}
+
 async function persistInboundMessage(session, message) {
   if (!supabase || message?.key?.fromMe) return;
 
@@ -203,7 +226,7 @@ async function persistInboundMessage(session, message) {
   }
 
   const providerMessageId = message?.key?.id;
-  const from = fromJid.replace("@s.whatsapp.net", "");
+  const from = normalizeOwnPhone(fromJid);
   if (!providerMessageId || !from) return;
 
   const { data: account, error: accountError } = await supabase
@@ -218,11 +241,17 @@ async function persistInboundMessage(session, message) {
     return;
   }
 
+  const leadId = await findReplyLeadId(account, from);
+  // Only replies from sellers you've messaged through Repeat are saved; every
+  // other chat on the same WhatsApp number stays out of the database.
+  if (!leadId) return;
+
   const { error } = await supabase
     .from("whatsapp_messages")
     .insert({
       user_id: account.user_id,
       account_id: account.id,
+      lead_id: leadId,
       direction: "inbound",
       recipient_phone: from,
       message_type: "text",
