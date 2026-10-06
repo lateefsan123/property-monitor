@@ -102,6 +102,7 @@ export default function AppShell({ displayName, subscription, userId }) {
   const [currentPage, setCurrentPage] = useState(readPageFromHash);
   const [savedSellerId, setSavedSellerId] = useState(null);
   const [savedSellerSection, setSavedSellerSection] = useState(null);
+  const [settingsSection, setSettingsSection] = useState(null);
   const prefetchPage = usePagePrefetch(userId, currentPage);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
@@ -144,9 +145,10 @@ export default function AppShell({ displayName, subscription, userId }) {
 
   useAutoSheetSync(userId);
 
-  function handleNavigate(pageId) {
+  function handleNavigate(pageId, options) {
     if (!VALID_PAGES.has(pageId)) return;
     setSavedSellerId(null);
+    setSettingsSection(pageId === "settings" ? options?.section || null : null);
     prefetchPage(pageId);
     if (window.location.hash !== `#/${pageId}`) {
       window.location.hash = `/${pageId}`;
@@ -321,8 +323,9 @@ export default function AppShell({ displayName, subscription, userId }) {
           <SchedulePage key={userId} userId={userId} />
         ) : currentPage === "settings" ? (
           <SettingsPage
-            key={userId}
+            key={`${userId}:${settingsSection || ""}`}
             userId={userId}
+            initialSection={settingsSection || undefined}
             onNavigate={handleNavigate}
             theme={theme}
             onToggleTheme={handleToggleTheme}

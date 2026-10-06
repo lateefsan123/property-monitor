@@ -18,7 +18,7 @@ import {
 } from "../useSpreadsheetFavorites";
 import SpreadsheetDetailModal from "./SpreadsheetDetailModal";
 import NewSpreadsheetModal from "./NewSpreadsheetModal";
-import { peekSpreadsheetImport, takeSpreadsheetImport } from "../../../integration-resume";
+import { peekNewSpreadsheetRequest, peekSpreadsheetImport, takeNewSpreadsheetRequest, takeSpreadsheetImport } from "../../../integration-resume";
 
 function isPlaceholderSourceLabel(source) {
   const label = String(source?.label || "").trim();
@@ -245,8 +245,8 @@ export default function SpreadsheetsPage({ userId }) {
   // Returning from a Google/Microsoft sign-in started in the import modal
   // reopens the modal on that provider.
   const [newSheetMode, setNewSheetMode] = useState(() => peekSpreadsheetImport());
-  const [newSheetOpen, setNewSheetOpen] = useState(() => Boolean(peekSpreadsheetImport()));
-  useEffect(() => { takeSpreadsheetImport(); }, []);
+  const [newSheetOpen, setNewSheetOpen] = useState(() => Boolean(peekSpreadsheetImport()) || peekNewSpreadsheetRequest());
+  useEffect(() => { takeSpreadsheetImport(); takeNewSpreadsheetRequest(); }, []);
   const [sort, setSort] = useState(loadInitialSort);
   const [query, setQuery] = useState("");
   const { favoriteIds: favorites, toggle: toggleFavorite } = useSpreadsheetFavorites(userId);

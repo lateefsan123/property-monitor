@@ -60,3 +60,27 @@
 
 .onboarding-signout { display: block; margin: 28px auto 0; padding: 8px 12px; border: 0; background: none; color: var(--text-muted, #6b7280); font: inherit; font-size: 13px; cursor: pointer; }
 .onboarding-signout:hover { color: var(--text, inherit); text-decoration: underline; }
+
+/* How Repeat works: numbered steps on divided rows (after Airbnb, Mobbin 19c2044f). */
+.onboarding-page--how .onboarding-art { background: #e7e3f6; }
+.onboarding-page .onboarding-eyebrow { margin: 0 0 10px; color: #64666c; font-size: 13px; font-weight: 500; letter-spacing: .02em; }
+.onboarding-page .how-steps { display: flex; flex-direction: column; max-width: 520px; margin: 8px 0 0; padding: 0; list-style: none; }
+.onboarding-page .how-step { display: flex; gap: 18px; padding: 20px 0; border-top: 1px solid #e6e5e1; }
+.onboarding-page .how-step:last-child { border-bottom: 1px solid #e6e5e1; }
+.onboarding-page .how-step-number { flex: none; width: 20px; color: #242320; font-size: 17px; font-weight: 600; line-height: 1.4; font-variant-numeric: tabular-nums; }
+.onboarding-page .how-step-body h2 { margin: 0 0 4px; color: #242320; font-size: 17px; font-weight: 600; letter-spacing: -.01em; line-height: 1.4; }
+.onboarding-page .how-step-body p { margin: 0; color: #64666c; font-size: 14.5px; line-height: 1.6; }
+
+/* Free trial timeline (after Brilliant, Mobbin 47c242d9): three points on a line. */
+.onboarding-page .trial-timeline { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 560px; margin: 12px 0 4px; padding: 0; list-style: none; }
+.onboarding-page .trial-timeline::before { content: ""; position: absolute; top: 6px; left: 6px; right: 0; height: 2px; background: #e6e5e1; }
+.onboarding-page .trial-timeline-point { position: relative; display: flex; flex-direction: column; gap: 6px; padding-top: 26px; }
+.onboarding-page .trial-timeline-dot { position: absolute; top: 0; left: 0; width: 14px; height: 14px; border-radius: 50%; background: #fff; box-shadow: inset 0 0 0 2px #c9c7c1; }
+.onboarding-page .trial-timeline-point.is-now .trial-timeline-dot { background: #242320; box-shadow: none; }
+.onboarding-page .trial-timeline-point strong { color: #242320; font-size: 14px; font-weight: 600; }
+.onboarding-page .trial-timeline-point span:last-child { color: #64666c; font-size: 13.5px; line-height: 1.5; }
+@media (max-width: 600px) {
+  .onboarding-page .trial-timeline { grid-template-columns: 1fr; gap: 18px; }
+  .onboarding-page .trial-timeline::before { top: 0; bottom: 0; left: 6px; right: auto; width: 2px; height: auto; }
+  .onboarding-page .trial-timeline-point { padding: 0 0 0 30px; }
+}

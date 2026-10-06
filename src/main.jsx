@@ -19,6 +19,7 @@ import ResetPassword from "./ResetPassword.jsx";
 import WelcomeScreen from "./WelcomeScreen.jsx";
 import HowDidYouHearScreen from "./HowDidYouHearScreen.jsx";
 import TrialOfferScreen from "./TrialOfferScreen.jsx";
+import HowItWorksScreen from "./HowItWorksScreen.jsx";
 import UsernameSetup from "./features/seller-signal/components/UsernameSetup.jsx";
 import { queryClient } from "./queryClient";
 import { pageQueries } from "./page-prefetch";
@@ -95,6 +96,7 @@ export function Root() {
   const [session, setSession] = useState(undefined);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  const [howItWorksSeenLocally, setHowItWorksSeenLocally] = useState({ userId: null, seen: false });
   const [profileOverride, setProfileOverride] = useState({ userId: null, completed: false, username: "", avatarUrl: "" });
   const [referralAskedLocally, setReferralAskedLocally] = useState({ userId: null, asked: false });
   const [trialOfferedLocally, setTrialOfferedLocally] = useState({ userId: null, offered: false });
@@ -508,6 +510,21 @@ export function Root() {
       <WelcomeScreen
         displayName={displayName}
         onContinue={() => setWelcomeDismissed(true)}
+      />
+    );
+  }
+
+  // New accounts only: anyone already past the trial offer skips the explainer.
+  if (
+    session
+    && !onboardingReachedTrial
+    && !hasActiveBillingSubscription
+    && !session.user.user_metadata?.how_it_works_seen
+    && !(howItWorksSeenLocally.userId === session.user.id && howItWorksSeenLocally.seen)
+  ) {
+    return (
+      <HowItWorksScreen
+        onContinue={() => setHowItWorksSeenLocally({ userId: session.user.id, seen: true })}
       />
     );
   }

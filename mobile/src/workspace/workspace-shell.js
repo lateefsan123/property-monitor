@@ -120,7 +120,7 @@ export default function WorkspaceShell({
       {visited.map((id) => (
         <MotionScreen key={id} active={page === id}>
           {id === "home" ? (
-            <WorkspaceHome {...common} />
+            <WorkspaceHome {...common} active={page === id} />
           ) : id === "sellers" ? (
             <DashboardScreen {...common} embedded request={requests[id]} onSendBarHeightChange={setSellerSendBarHeight} />
           ) : id === "spreadsheets" ? (

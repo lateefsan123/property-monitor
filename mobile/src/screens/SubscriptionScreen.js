@@ -13,7 +13,7 @@ import {
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { PRO_TRIAL_DAYS } from "../subscriptions";
 
-const BENEFITS = ["Sellers and follow-ups", "Listings and price alerts", "Mobile and desktop", "Up to 40 automated WhatsApp messages daily"];
+const BENEFITS = ["Up to 40 automated WhatsApp messages a day", "Seller workspace with Excel and Google Sheets imports", "Listing alerts and price-drop tracking", "Web, desktop and mobile apps"];
 const TERMS_URL = "https://repeatai.org/terms";
 const PRIVACY_URL = "https://repeatai.org/privacy";
 

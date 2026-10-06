@@ -26,3 +26,18 @@ export function takeSpreadsheetImport() {
   try { sessionStorage.removeItem(KEY); } catch { /* Nothing to clear. */ }
   return provider;
 }
+
+// Set by Home's setup checklist so Spreadsheets opens with the import modal.
+const NEW_SHEET_KEY = "repeat:open-new-spreadsheet";
+
+export function requestNewSpreadsheet() {
+  try { sessionStorage.setItem(NEW_SHEET_KEY, "1"); } catch { /* The page still opens. */ }
+}
+
+export function peekNewSpreadsheetRequest() {
+  try { return sessionStorage.getItem(NEW_SHEET_KEY) === "1"; } catch { return false; }
+}
+
+export function takeNewSpreadsheetRequest() {
+  try { sessionStorage.removeItem(NEW_SHEET_KEY); } catch { /* Nothing to clear. */ }
+}

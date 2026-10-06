@@ -3,9 +3,10 @@ import "./styles/onboarding.css";
 
 const ARTWORK = {
   welcome: "product-spreadsheets-mobile-colour-v3.png",
+  how: "product-followups-story-mobile-colour-v2.png",
   profile: "product-seller-story-mobile-colour-v2.png",
   referral: "product-templates-story-mobile-fox-clean-v1.png",
-  trial: "product-followups-story-mobile-colour-v2.png",
+  trial: "product-market-story-mobile-colour-v2.png",
 };
 
 export default function OnboardingFrame({ children, step = "welcome" }) {

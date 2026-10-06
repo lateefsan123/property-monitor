@@ -18,9 +18,10 @@ import EmailSummaryCard from './email-summary-card';
 import CalendarToday from './calendar-today';
 import HomeConnectionPrompt from './home-connection-prompt';
 import HomeMessageFeed from "./home-message-feed";
+import HomeSetupChecklist from "./home-setup-checklist";
 import { fetchMessagePage, messageFeedQueryKey } from "./message-feed";
 
-export default function WorkspaceHome({ userId, displayName, colors, onNavigate, onAskRepeat }) {
+export default function WorkspaceHome({ userId, displayName, colors, active = true, onNavigate, onAskRepeat }) {
   useQuery(messageTemplatesOptions(userId));
   const [tab, setTab] = useState("activity");
   const [days, setDays] = useState(14);
@@ -73,6 +74,7 @@ export default function WorkspaceHome({ userId, displayName, colors, onNavigate,
         <Text style={{ color: colors.textMuted, fontSize: 13 }}>{new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}</Text>
         <Text style={{ color: colors.textName, fontSize: 25, fontWeight: "600", letterSpacing: -0.6 }}>Hello{displayName ? `, ${displayName}` : ""}</Text>
       </View>
+      <HomeSetupChecklist key={userId} userId={userId} colors={colors} active={active} onNavigate={onNavigate} />
       <Feedback error={leads.error || activity.error || drops.error} colors={colors} onRetry={refresh} />
       <View style={{ backgroundColor: colors.bgCard, borderRadius: 18, borderCurve: "continuous", borderWidth: 1, borderColor: colors.border }}>
         <View style={{ flexDirection: "row", paddingVertical: 22 }}>

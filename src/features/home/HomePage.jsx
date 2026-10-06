@@ -14,6 +14,7 @@ import {
 } from "@tabler/icons-react";
 import { SellerPreviewThumb, SheetPreviewThumb } from "../../components/SeededPreviewThumb";
 import HomeInsights from "./HomeInsights";
+import HomeSetupChecklist from "./HomeSetupChecklist";
 import "../../styles/home-pinned.css";
 import { fetchUserLeads } from "../seller-signal/services";
 import { fetchSellerSources, formatSourceLabel } from "../seller-signal/page-helpers";
@@ -343,6 +344,8 @@ export default function HomePage({ displayName, onNavigate, onOpenSeller, userId
         <span className="home-muted">{today}</span>
         <h1 className="home-title">Hello{displayName ? `, ${displayName}` : ""}</h1>
       </header>
+
+      <HomeSetupChecklist key={userId} userId={userId} onNavigate={onNavigate} />
 
       <HomeInsights userId={userId} onNavigate={onNavigate} onOpenSeller={onOpenSeller} />
 

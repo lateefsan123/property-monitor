@@ -12,7 +12,7 @@ const names = {
   moon: "moon-outline", sun: "sunny-outline", back: "arrow-back-outline",
   filter: "options-outline", chevron: "chevron-forward-outline", chevronBack: "chevron-back-outline",
   star: "star-outline", phone: "call-outline", whatsapp: "logo-whatsapp",
-  copy: "copy-outline", check: "checkmark-outline", checkCircle: "checkmark-circle-outline",
+  copy: "copy-outline", check: "checkmark-outline", checkCircle: "checkmark-circle-outline", checkCircleFilled: "checkmark-circle", circle: "ellipse-outline",
   external: "open-outline", location: "location-outline", chart: "stats-chart-outline",
   activity: "pulse-outline", flash: "flash-outline", document: "document-text-outline",
   download: "download-outline", notification: "notifications-outline", card: "card-outline",
