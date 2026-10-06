@@ -251,7 +251,9 @@ button.st-profile:hover { background: var(--bg-hover); }
 /* Statuses (StatusesSection.jsx), after TheyDo's Statuses settings: a plain
    Status / Follow up / Sellers table, small group labels with a "+", pills. */
 .stx { display: flex; flex-direction: column; gap: 20px; max-width: 760px; }
-.stx-intro { margin: -6px 0 4px; color: var(--text-muted); font-size: 15px; line-height: 1.55; }
+.stx-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; margin-top: -6px; }
+.stx-intro { margin: 0; color: var(--text-muted); font-size: 15px; line-height: 1.55; }
+.stx-new { flex: none; display: inline-flex; align-items: center; gap: 6px; }
 .stx-table { display: flex; flex-direction: column; }
 .stx-head, .stx-row { display: grid; grid-template-columns: minmax(0, 1fr) 190px 80px; align-items: center; gap: 16px; }
 .stx-head { padding: 0 0 10px; border-bottom: 1px solid var(--border); color: var(--text-name); font-size: 13px; font-weight: 500; }
@@ -280,17 +282,8 @@ button.stx-pill:hover { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pil
 .stx-muted { padding-left: 9px; color: var(--text-muted); font-size: 14px; }
 .stx-empty { align-self: flex-start; padding: 6px 0; border: 0; background: none; color: var(--text-muted); font: inherit; font-size: 14px; cursor: pointer; }
 .stx-empty:hover { color: var(--text-name); text-decoration: underline; }
-.stx-edit { display: flex; flex-direction: column; gap: 10px; margin: 6px 0; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); }
-.stx-edit-main { display: flex; align-items: center; gap: 10px; }
-.stx-edit-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--pill); }
 .stx-input { flex: 1; min-width: 0; height: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text-name); font: inherit; font-size: 14px; }
 .stx-input:focus { border-color: var(--text-name); outline: none; }
-.stx-edit .stx-select { border-color: var(--border); }
-.stx-edit-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
-.stx-colors { display: flex; gap: 6px; }
-.stx-swatch { width: 20px; height: 20px; padding: 0; border: 2px solid transparent; border-radius: 50%; background: var(--swatch); box-shadow: inset 0 0 0 2px var(--bg-card); cursor: pointer; }
-.stx-swatch.is-active { border-color: var(--text-name); }
-.stx-edit-actions { display: flex; align-items: center; gap: 8px; }
 .stx-btn { height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text-name); font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; }
 .stx-btn-primary { border-color: var(--text-name); background: var(--text-name); color: var(--bg-card); }
 .stx-btn:disabled { opacity: .5; cursor: default; }
@@ -309,3 +302,17 @@ button.stx-pill:hover { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pil
 .st-stepper button:disabled { color: var(--text-muted); opacity: .5; cursor: default; }
 .st-stepper input { width: 40px; height: 100%; padding: 0; border: 0; border-left: 1px solid var(--border); border-right: 1px solid var(--border); background: none; color: var(--text-name); font: inherit; font-size: 15px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
 .st-stepper input:focus { outline: none; background: var(--bg-hover); }
+
+/* New / Edit status dialog, after Attio's status editor. */
+.stx-dialog-backdrop { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 16px; background: rgba(15, 15, 15, .4); }
+.stx-dialog { display: flex; flex-direction: column; gap: 18px; width: min(400px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; padding: 22px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg-card); box-shadow: 0 24px 60px rgba(0, 0, 0, .22); box-sizing: border-box; }
+.stx-dialog-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.stx-dialog-head h3 { margin: 0; color: var(--text-name); font-size: 17px; font-weight: 600; }
+.stx-dialog .stx-pill { font-family: inherit; font-size: 13.5px; font-weight: 600; line-height: 1; }
+.stx-field { display: flex; flex-direction: column; gap: 8px; color: var(--text-name); font-size: 13px; font-weight: 500; }
+.stx-dialog .stx-input { height: 38px; font-size: 15px; }
+.stx-dialog .stx-select { justify-self: auto; width: 100%; height: 38px; border-color: var(--border); background: var(--bg-card); }
+.stx-dialog .cpk { width: 100%; }
+.stx-dialog-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 4px; }
+.stx-btn-danger { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; border-color: transparent; background: none; color: var(--error-text); }
+.stx-btn-danger:hover:not(:disabled) { background: var(--bg-hover); }

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import {
@@ -11,6 +11,7 @@ import { deleteStatus, fetchStatuses, renameSellers, saveStatus } from "../selle
 import { refreshAccountStatuses } from "../seller-signal/status-registry";
 import { fetchUserLeads } from "../seller-signal/services";
 import { sellerLeadsQueryKey } from "../seller-signal/queryKeys";
+import ColorPicker from "../../components/ColorPicker";
 
 // Seller statuses, after TheyDo's Statuses settings (Mobbin 2bc809cc): a plain
 // table of Status / Follow up / Sellers, small group labels with a "+", and
@@ -45,36 +46,44 @@ function FollowUpSelect({ value, onChange, disabled, label }) {
   );
 }
 
-function ColorPicker({ value, onChange, disabled }) {
+// Add or edit a status in a dialog, after Attio's status editor (Mobbin
+// 32cedf09): name, a live preview pill, the colour picker and the follow-up
+// gap, with Cancel and Create/Save. Escape or the backdrop closes it.
+function StatusDialog({ draft, setDraft, saving, error, onCancel, onSave, onDelete, isNew }) {
+  useEffect(() => {
+    const escape = (event) => { if (event.key === "Escape" && !saving) onCancel(); };
+    document.addEventListener("keydown", escape);
+    return () => document.removeEventListener("keydown", escape);
+  }, [onCancel, saving]);
   return (
-    <div className="stx-colors" role="radiogroup" aria-label="Colour">
-      {STATUS_COLOR_OPTIONS.map((color) => (
-        <button key={color} type="button" role="radio" aria-checked={value === color} aria-label={color} disabled={disabled}
-          className={`stx-swatch${value === color ? " is-active" : ""}`} style={{ "--swatch": color }} onClick={() => onChange(color)} />
-      ))}
-    </div>
-  );
-}
-
-// Inline row for a new status or renaming one: name, colour, Cancel / Save.
-function EditRow({ draft, setDraft, saving, onCancel, onSave, onDelete, isNew }) {
-  return (
-    <form className="stx-edit" onSubmit={(event) => { event.preventDefault(); onSave(); }}>
-      <div className="stx-edit-main">
-        <span className="stx-edit-dot" style={{ "--pill": draft.color }} aria-hidden="true" />
-        <input className="stx-input" value={draft.label} maxLength={40} autoFocus placeholder="Status name, e.g. Hot lead"
-          aria-label="Status name" disabled={saving} onChange={(event) => setDraft({ ...draft, label: event.target.value })} />
-        {isNew && <FollowUpSelect value={draft.follow_up_days} label="Follow up" disabled={saving} onChange={(days) => setDraft({ ...draft, follow_up_days: days })} />}
-      </div>
-      <div className="stx-edit-foot">
-        <ColorPicker value={draft.color} disabled={saving} onChange={(color) => setDraft({ ...draft, color })} />
-        <div className="stx-edit-actions">
-          {onDelete && <button type="button" className="stx-icon-btn" onClick={onDelete} disabled={saving} aria-label="Delete status" title="Delete status"><IconTrash size={16} stroke={1.8} aria-hidden="true" /></button>}
-          <button type="button" className="stx-btn" onClick={onCancel} disabled={saving}>Cancel</button>
-          <button type="submit" className="stx-btn stx-btn-primary" disabled={saving || !draft.label.trim()}>{saving ? "Saving…" : isNew ? "Create" : "Save"}</button>
+    <div className="stx-dialog-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !saving) onCancel(); }}>
+      <form className="stx-dialog" role="dialog" aria-modal="true" aria-labelledby="stx-dialog-title"
+        onSubmit={(event) => { event.preventDefault(); onSave(); }}>
+        <div className="stx-dialog-head">
+          <h3 id="stx-dialog-title">{isNew ? "New status" : "Edit status"}</h3>
+          <StatusPill label={draft.label.trim() || "Status name"} color={draft.color} />
         </div>
-      </div>
-    </form>
+        <label className="stx-field">
+          <span>Name</span>
+          <input className="stx-input" value={draft.label} maxLength={40} autoFocus placeholder="e.g. Hot lead"
+            disabled={saving} onChange={(event) => setDraft({ ...draft, label: event.target.value })} />
+        </label>
+        <div className="stx-field">
+          <span>Colour</span>
+          <ColorPicker value={draft.color} swatches={STATUS_COLOR_OPTIONS} onChange={(color) => setDraft((current) => ({ ...current, color }))} />
+        </div>
+        <label className="stx-field">
+          <span>Follow up</span>
+          <FollowUpSelect value={draft.follow_up_days} label="Follow up" disabled={saving} onChange={(days) => setDraft({ ...draft, follow_up_days: days })} />
+        </label>
+        {error && <p className="st-error" role="alert">{error}</p>}
+        <div className="stx-dialog-actions">
+          {onDelete && <button type="button" className="stx-btn stx-btn-danger" onClick={onDelete} disabled={saving}><IconTrash size={15} stroke={1.8} aria-hidden="true" />Delete</button>}
+          <button type="button" className="stx-btn" onClick={onCancel} disabled={saving}>Cancel</button>
+          <button type="submit" className="stx-btn stx-btn-primary" disabled={saving || !draft.label.trim()}>{saving ? "Saving…" : isNew ? "Create status" : "Save"}</button>
+        </div>
+      </form>
+    </div>
   );
 }
 
@@ -115,6 +124,8 @@ export default function StatusesSection({ userId }) {
     }
   }
 
+  const closeDialog = useCallback(() => { setEditing(null); setDraft(null); setError(null); }, []);
+
   function startNew() {
     setError(null);
     setEditing("new");
@@ -148,7 +159,12 @@ export default function StatusesSection({ userId }) {
 
   return (
     <div className="stx">
-      <p className="stx-intro">Statuses show where each seller stands. The follow-up gap decides when a seller shows as due, and statuses set to "Don't follow up" are never sent automated messages.</p>
+      <div className="stx-top">
+        <p className="stx-intro">Statuses show where each seller stands. The follow-up gap decides when a seller shows as due, and statuses set to "Don't follow up" are never sent automated messages.</p>
+        <button type="button" className="stx-btn stx-btn-primary stx-new" onClick={startNew} disabled={busy || custom.length >= MAX_STATUSES - BUILT_INS.length}>
+          <IconPlus size={15} stroke={2.2} aria-hidden="true" />New status
+        </button>
+      </div>
 
       <div className="stx-table" role="table" aria-label="Statuses">
         <div className="stx-head" role="row">
@@ -163,13 +179,10 @@ export default function StatusesSection({ userId }) {
             <IconPlus size={16} stroke={2} aria-hidden="true" />
           </button>
         </div>
-        {!statuses.isPending && !custom.length && editing !== "new" && (
+        {!statuses.isPending && !custom.length && (
           <button type="button" className="stx-empty" onClick={startNew}>Add your own, like "Hot lead" or "Viewing booked"</button>
         )}
-        {custom.map((row) => editing === row.id ? (
-          <EditRow key={row.id} draft={draft} setDraft={setDraft} saving={saving} onSave={saveDraft} onDelete={remove}
-            onCancel={() => { setEditing(null); setDraft(null); }} />
-        ) : (
+        {custom.map((row) => (
           <div key={row.id} className="stx-row" role="row">
             <span role="cell"><StatusPill label={row.label} color={row.color || "#6b7280"} title="Rename or change colour"
               onClick={() => { setError(null); setEditing(row.id); setDraft({ ...row }); }} /></span>
@@ -177,9 +190,6 @@ export default function StatusesSection({ userId }) {
             <span role="cell" className="stx-num">{count(`custom:${row.id}`)}</span>
           </div>
         ))}
-        {editing === "new" && draft && (
-          <EditRow draft={draft} setDraft={setDraft} saving={saving} onSave={saveDraft} isNew onCancel={() => { setEditing(null); setDraft(null); }} />
-        )}
 
         <div className="stx-group"><span>Built-in</span></div>
         {BUILT_INS.map((item) => {
@@ -198,7 +208,11 @@ export default function StatusesSection({ userId }) {
         })}
       </div>
 
-      {(error || statuses.error) && <p className="st-error" role="alert">{error || statuses.error.message}</p>}
+      {!editing && (error || statuses.error) && <p className="st-error" role="alert">{error || statuses.error?.message}</p>}
+      {editing && draft && (
+        <StatusDialog draft={draft} setDraft={setDraft} saving={saving} error={error} isNew={editing === "new"}
+          onSave={saveDraft} onDelete={editing === "new" ? null : remove} onCancel={closeDialog} />
+      )}
     </div>
   );
 }

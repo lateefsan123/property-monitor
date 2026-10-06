@@ -1,0 +1,32 @@
+/* ColorPicker.jsx, after Play's "New Color" sheet: square, hue bar, hex, swatches. */
+.cpk { display: flex; flex-direction: column; gap: 14px; width: 248px; }
+.cpk-square {
+  position: relative; height: 160px; border-radius: 10px; cursor: crosshair; touch-action: none;
+  background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, var(--cpk-hue));
+}
+.cpk-hue {
+  position: relative; height: 14px; border-radius: 999px; cursor: pointer; touch-action: none;
+  background: linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%);
+}
+.cpk-thumb {
+  position: absolute; width: 18px; height: 18px; border: 3px solid #fff; border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .25), 0 2px 6px rgba(0, 0, 0, .3); transform: translate(-50%, -50%); pointer-events: none;
+}
+.cpk-square:focus-visible, .cpk-hue:focus-visible { outline: 2px solid var(--text-name); outline-offset: 3px; }
+.cpk-row { display: flex; align-items: center; gap: 10px; }
+.cpk-hex {
+  flex: 1; display: flex; align-items: center; gap: 4px; height: 34px; padding: 0 10px;
+  border-radius: 8px; background: var(--bg-badge); color: var(--text-muted); font-size: 14px;
+}
+.cpk-hex input {
+  flex: 1; min-width: 0; padding: 0; border: 0; background: none; color: var(--text-name);
+  font: inherit; font-size: 14px; font-variant-numeric: tabular-nums; text-transform: uppercase; letter-spacing: .04em;
+}
+.cpk-hex input:focus { outline: none; }
+.cpk-preview { flex: none; width: 34px; height: 34px; border-radius: 8px; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); }
+.cpk-swatches { display: flex; flex-wrap: wrap; gap: 8px; }
+.cpk-swatch {
+  width: 22px; height: 22px; padding: 0; border: 2px solid transparent; border-radius: 50%;
+  background: var(--swatch); box-shadow: inset 0 0 0 2px var(--bg-card); cursor: pointer;
+}
+.cpk-swatch.is-active { border-color: var(--text-name); }

@@ -3,6 +3,7 @@ import { Alert, Pressable, ScrollView, Text, View } from "react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import BottomSheet from "../components/BottomSheet";
 import AppIcon from "../components/AppIcon";
+import ColorPicker from "../components/ColorPicker";
 import { SettingsGroup } from "../components/SettingsLayout";
 import { Button, Feedback, Field } from "./ui";
 import { FOLLOW_UP_OPTIONS, MAX_STATUSES, STATUS_COLOR_OPTIONS, statusesQueryKey } from "../../../shared/seller-statuses.js";
@@ -113,12 +114,8 @@ export default function StatusSettings({ userId, colors }) {
             <Feedback colors={colors} error={error} />
             {!draft.builtin_key ? <>
               <Field colors={colors} label="Name" value={draft.label} maxLength={40} placeholder="e.g. Hot lead" onChangeText={(label) => setDraft({ ...draft, label })} />
-              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-                {STATUS_COLOR_OPTIONS.map((color) => (
-                  <Pressable key={color} accessibilityRole="radio" accessibilityState={{ checked: draft.color === color }} accessibilityLabel={color} onPress={() => setDraft({ ...draft, color })}
-                    style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: color, borderWidth: 3, borderColor: draft.color === color ? colors.textName : "transparent" }} />
-                ))}
-              </View>
+              <ColorPicker value={draft.color || STATUS_COLOR_OPTIONS[0]} colors={colors} swatches={STATUS_COLOR_OPTIONS}
+                onChange={(color) => setDraft((current) => ({ ...current, color }))} />
             </> : null}
             <View style={{ gap: 4 }}>
               <Text style={{ color: colors.textMuted, fontSize: 13 }}>Follow up</Text>
