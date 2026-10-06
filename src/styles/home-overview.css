@@ -141,7 +141,7 @@
 .home-setup {
   display: flex; flex-direction: column; gap: 6px; padding: 22px 20px 10px;
   background: var(--bg-card); border: 1px solid var(--border); border-radius: 18px;
-  margin-bottom: 20px;
+  margin-bottom: 20px; width: 100%; box-sizing: border-box;
 }
 .home-setup-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .home-setup-progress { display: flex; align-items: center; gap: 12px; }
@@ -172,3 +172,4 @@
 .is-center > .setup-next, .setup-next.is-center { align-items: center; }
 .home-setup-cta { flex: none; display: inline-flex; align-items: center; }
 .home-setup-step:hover .home-setup-cta { opacity: .88; }
+.home-layout.is-single { grid-template-columns: minmax(0, 1fr); }

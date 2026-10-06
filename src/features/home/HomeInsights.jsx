@@ -11,8 +11,10 @@ import { integrationStatusOptions } from "../../integration-query";
 import { useEmailSummary } from "../../../shared/use-email-summary";
 import HomeMessageShortcut from "./HomeMessageShortcut";
 import HomeActivity from "./HomeActivity";
-import { CalendarToday, EmailBrief, HomeConnectionPrompt } from "./HomeConnect";
+import { CalendarToday, EmailBrief } from "./HomeConnect";
 import { openSetupAction } from "./setup-actions";
+import { supabase } from "../../supabase";
+import { fetchSetupStatus, setupChecklistQueryKey } from "../../../shared/setup-checklist";
 import { buildDailyMessageSeries, fetchListingPriceDrops, fetchWhatsAppMessageActivity } from "./home-insight-services";
 
 // Uses mobile Home's look (mobile/src/workspace/home.js) in a desktop layout:
@@ -78,6 +80,13 @@ export default function HomeInsights({ userId, onNavigate, onOpenSeller }) {
   const [days, setDays] = useState(WINDOW_DAYS);
   const connections = useQuery(integrationStatusOptions(userId, integrationRequest));
   const hasEmail = connections.data?.some((item) => item.feature === "email" && item.connected) || false;
+  const hasCalendar = connections.data?.some((item) => item.feature === "calendar" && item.connected) || false;
+  // Each card appears once the account uses what it shows; until then Home
+  // is the greeting and the setup checklist.
+  const setup = useQuery({ queryKey: setupChecklistQueryKey(userId), enabled: Boolean(userId), queryFn: () => fetchSetupStatus(supabase, userId), staleTime: 30 * 1000 });
+  const usingSellers = (setup.data?.leadCount || 0) > 0;
+  const messaging = Boolean(setup.data?.messageSent);
+  const watching = Boolean(setup.data?.watching);
   const emailSummary = useEmailSummary({ userId, connected: hasEmail, request: integrationRequest });
   const emailConnected = connections.data ? hasEmail : emailSummary.data?.connected;
   const emailReady = connections.data !== undefined || emailSummary.data !== undefined;
@@ -95,6 +104,10 @@ export default function HomeInsights({ userId, onNavigate, onOpenSeller }) {
     { label: "Scheduled", value: leadsReady ? cadence.scheduled : "—", action: () => onNavigate?.("schedule") },
     { label: "Sent today", value: activityReady ? series[series.length - 1]?.count || 0 : "—", action: () => document.querySelector(".home-activity")?.scrollIntoView({ behavior: "smooth", block: "center" }) },
   ];
+  const showEmail = hasEmail || (emailReady && Boolean(emailConnected));
+  const showRail = hasCalendar || messaging || showEmail;
+  if (!setup.data) return null;
+  if (!usingSellers && !messaging && !watching && !showRail) return null;
   return (
     <>
       {failure && (
@@ -102,8 +115,9 @@ export default function HomeInsights({ userId, onNavigate, onOpenSeller }) {
           <button type="button" className="home-text-button" onClick={() => { leads.refetch(); activity.refetch(); drops.refetch(); }}>Try again</button>
         </p>
       )}
-      <div className="home-layout">
+      <div className={`home-layout${showRail ? "" : " is-single"}`}>
       <div className="home-main">
+      {usingSellers && (
       <section className="home-summary" aria-label="Seller pipeline" aria-busy={leads.isPending}>
         <div className="home-summary-metrics">
           {metrics.map((metric) => (
@@ -118,27 +132,36 @@ export default function HomeInsights({ userId, onNavigate, onOpenSeller }) {
           <IconChevronRight size={17} stroke={2} aria-hidden="true" />
         </button>
       </section>
+      )}
+        {messaging && (
         <section className="home-card" aria-label="Messages sent">
           <HomeActivity series={series} days={days} onDaysChange={setDays} ready={activityReady} loading={activity.isPending} />
         </section>
+        )}
+        {watching && (
         <section className="home-card" aria-labelledby="home-drops-title">
           <h2 id="home-drops-title" className="home-card-title">Price drops</h2>
           <PriceDrops query={drops} onNavigate={onNavigate} />
         </section>
+        )}
       </div>
       {/* Today's calendar and email sit in a right rail from the top of the
           page (after Charma's home, Mobbin 68685623) so they need no scroll. */}
+      {showRail && (
       <aside className="home-rail" aria-label="Today">
+        {hasCalendar && (
         <section className="home-card" aria-label="Calendar">
           <CalendarToday userId={userId} connections={connections.data} connectionError={connections.error} retryConnections={connections.refetch} />
         </section>
-        <HomeMessageShortcut userId={userId} onNavigate={onNavigate} onOpenSeller={(sellerId) => onOpenSeller?.(sellerId, "history")} />
+        )}
+        {messaging && <HomeMessageShortcut userId={userId} onNavigate={onNavigate} onOpenSeller={(sellerId) => onOpenSeller?.(sellerId, "history")} />}
+        {showEmail && (
         <section className="home-card" aria-label="Email">
-          {emailReady && !emailConnected
-            ? <HomeConnectionPrompt feature="email" connections={connections.data} />
-            : <EmailBrief query={emailSummary} connectedProviders={connections.data ? connections.data.filter((item) => item.feature === "email" && item.connected).map((item) => item.provider) : emailSummary.data?.providers || []} />}
+          <EmailBrief query={emailSummary} connectedProviders={connections.data ? connections.data.filter((item) => item.feature === "email" && item.connected).map((item) => item.provider) : emailSummary.data?.providers || []} />
         </section>
+        )}
       </aside>
+      )}
       </div>
     </>
   );

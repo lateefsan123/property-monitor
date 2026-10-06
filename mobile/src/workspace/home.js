@@ -19,6 +19,8 @@ import CalendarToday from './calendar-today';
 import HomeConnectionPrompt from './home-connection-prompt';
 import HomeMessageFeed from "./home-message-feed";
 import HomeSetupChecklist from "./home-setup-checklist";
+import { supabase } from "../supabase";
+import { fetchSetupStatus, setupChecklistQueryKey } from "../../../shared/setup-checklist.js";
 import { openSetupAction } from "./setup-next-action";
 import { fetchMessagePage, messageFeedQueryKey } from "./message-feed";
 
@@ -30,7 +32,14 @@ export default function WorkspaceHome({ userId, displayName, colors, active = tr
   const connections = useQuery(integrationStatusOptions(userId, integrationRequest));
   const hasEmail = connections.data?.some(item => item.feature === 'email' && item.connected) || false;
   const emailSummary = useEmailSummary({ userId, connected: hasEmail, request: integrationRequest });
-  const activeTab = tab;
+  const hasCalendar = connections.data?.some(item => item.feature === 'calendar' && item.connected) || false;
+  // Each card appears once the account uses what it shows (web Home does the same).
+  const setup = useQuery({ queryKey: setupChecklistQueryKey(userId), queryFn: () => fetchSetupStatus(supabase, userId), enabled: Boolean(userId) });
+  const usingSellers = (setup.data?.leadCount || 0) > 0;
+  const messaging = Boolean(setup.data?.messageSent);
+  const watching = Boolean(setup.data?.watching);
+  const tabs = [["activity", "Activity", messaging], ["drops", "Price drops", watching], ["email", "Email", hasEmail], ["calendar", "Calendar", hasCalendar]].filter(item => item[2]);
+  const activeTab = tabs.some(([id]) => id === tab) ? tab : tabs[0]?.[0];
   const emailConnected = connections.data ? hasEmail : emailSummary.data?.connected;
   const emailReady = connections.data !== undefined || emailSummary.data !== undefined;
   const leads = useQuery({
@@ -65,7 +74,7 @@ export default function WorkspaceHome({ userId, displayName, colors, active = tr
   ];
   async function refresh() {
     setRefreshing(true);
-    try { await Promise.all([leads.refetch(), activity.refetch(), feed.refetch(), drops.refetch(), connections.refetch(), ...(hasEmail ? [emailSummary.refetch()] : [])]); }
+    try { await Promise.all([setup.refetch(), leads.refetch(), activity.refetch(), feed.refetch(), drops.refetch(), connections.refetch(), ...(hasEmail ? [emailSummary.refetch()] : [])]); }
     finally { setRefreshing(false); }
   }
   return (
@@ -78,6 +87,7 @@ export default function WorkspaceHome({ userId, displayName, colors, active = tr
       </View>
       <HomeSetupChecklist key={userId} userId={userId} colors={colors} active={active} onNavigate={onNavigate} />
       <Feedback error={leads.error || activity.error || drops.error} colors={colors} onRetry={refresh} />
+      {usingSellers ? <>
       <View style={{ backgroundColor: colors.bgCard, borderRadius: 18, borderCurve: "continuous", borderWidth: 1, borderColor: colors.border }}>
         <View style={{ flexDirection: "row", paddingVertical: 22 }}>
           {metrics.map((metric, index) => <Pressable key={metric.label} accessibilityRole="button" accessibilityLabel={`${metric.label}: ${metric.value}`} onPress={metric.action}
@@ -92,10 +102,12 @@ export default function WorkspaceHome({ userId, displayName, colors, active = tr
           <AppIcon name="chevron" color={colors.textMuted} size={17} />
         </Pressable>
       </View>
-      <HomeMessageFeed userId={userId} query={feed} colors={colors} onNavigate={onNavigate} onOpenSeller={(sellerId) => onNavigate("sellers", { sellerId, sellerTab: "History" })} />
+      </> : null}
+      {messaging ? <HomeMessageFeed userId={userId} query={feed} colors={colors} onNavigate={onNavigate} onOpenSeller={(sellerId) => onNavigate("sellers", { sellerId, sellerTab: "History" })} /> : null}
+      {tabs.length ? <>
       <View style={{ gap: 24 }}>
         <View accessibilityRole="tablist" style={{ flexDirection: "row", justifyContent: 'space-between', gap: 10, borderBottomWidth: 1, borderBottomColor: colors.border }}>
-          {[["activity", "Activity"], ["drops", "Price drops"], ["email", "Email"], ["calendar", "Calendar"]].map(([id, label]) => <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: activeTab === id }} onPress={() => setTab(id)}
+          {tabs.map(([id, label]) => <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: activeTab === id }} onPress={() => setTab(id)}
             style={{ minHeight: 48, justifyContent: "center", borderBottomWidth: 2, borderBottomColor: activeTab === id ? colors.textName : "transparent" }}>
             <Text style={{ fontSize: 14, fontWeight: activeTab === id ? "600" : "400", color: activeTab === id ? colors.textName : colors.textMuted }}>{label}</Text>
           </Pressable>)}
@@ -133,6 +145,7 @@ export default function WorkspaceHome({ userId, displayName, colors, active = tr
 
         )}
       </View>
+      </> : null}
     </ScrollView>
   );
 }
