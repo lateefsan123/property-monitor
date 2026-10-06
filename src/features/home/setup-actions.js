@@ -6,6 +6,8 @@ export function openSetupAction(action, onNavigate) {
   if (action.id === "import") {
     requestNewSpreadsheet();
     onNavigate?.("spreadsheets");
+  } else if (action.id === "watch") {
+    onNavigate?.("listing-alerts");
   } else {
     onNavigate?.("settings", { section: "whatsapp" });
   }

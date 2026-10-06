@@ -8,6 +8,7 @@ import { fetchSetupStatus, nextSetupAction, setupChecklistQueryKey } from "../..
 // setup step (import sellers, then connect WhatsApp), or nothing once done.
 export function openSetupAction(action, onNavigate) {
   if (action.id === "import") onNavigate("spreadsheets", { add: true });
+  else if (action.id === "watch") onNavigate("listing-alerts", { search: true });
   else onNavigate("settings", { section: "WhatsApp" });
 }
 
