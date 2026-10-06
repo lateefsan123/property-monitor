@@ -9,6 +9,7 @@ import { fetchSetupStatus, nextSetupAction, setupChecklistQueryKey } from "../..
 export function openSetupAction(action, onNavigate) {
   if (action.id === "import") onNavigate("spreadsheets", { add: true });
   else if (action.id === "watch") onNavigate("listing-alerts", { search: true });
+  else if (action.id === "schedule") onNavigate("schedule");
   else onNavigate("settings", { section: "WhatsApp" });
 }
 

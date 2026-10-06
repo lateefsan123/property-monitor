@@ -8,6 +8,8 @@ export function openSetupAction(action, onNavigate) {
     onNavigate?.("spreadsheets");
   } else if (action.id === "watch") {
     onNavigate?.("listing-alerts");
+  } else if (action.id === "schedule") {
+    onNavigate?.("schedule");
   } else {
     onNavigate?.("settings", { section: "whatsapp" });
   }
