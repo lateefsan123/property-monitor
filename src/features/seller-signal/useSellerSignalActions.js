@@ -387,6 +387,9 @@ export function createSellerSignalActions(context) {
       const sentAt = result?.sentAt || new Date().toISOString();
       markLeadSentLocally(lead.id, sentAt);
       await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
+      // Activity, Recent messages and this seller's History show the new message.
+      void queryClient.invalidateQueries({ queryKey: ["message-feed", userId] });
+      void queryClient.invalidateQueries({ queryKey: ["seller-thread", userId, String(lead.id)] });
 
       if (!options.quiet) {
         const accountLabel = connectedWhatsAppAccount.display_phone_number || "connected WhatsApp account";

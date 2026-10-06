@@ -786,6 +786,9 @@ export function useSellerSignalPage(userId, { enrichVisible = true } = {}) {
       setViewTab("done");
       setCurrentPage(1);
       await reloadLeads();
+      // Activity, Recent messages and this seller's History show the new message.
+      void queryClient.invalidateQueries({ queryKey: ["message-feed", userId] });
+      void queryClient.invalidateQueries({ queryKey: ["seller-thread", userId, String(lead.id)] });
 
       if (!options.quiet) {
         const accountLabel = connectedWhatsAppAccount.display_phone_number || "connected WhatsApp account";

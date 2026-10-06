@@ -14,6 +14,8 @@ function AllMessagesDialog({ userId, onClose, onOpenSeller }) {
     initialPageParam: null,
     getNextPageParam: nextFeedCursor,
     staleTime: 60 * 1000,
+    // Refocusing would refetch every loaded page; sends refresh it instead.
+    refetchOnWindowFocus: false,
   });
   useEffect(() => {
     const onKey = (event) => { if (event.key === "Escape") onClose(); };

@@ -65,6 +65,7 @@ class Query {
       if (operator === 'eq') return (row) => same(row[column], value);
       if (operator === 'lt') return (row) => String(row[column]) < value;
       if (operator === 'gt') return (row) => String(row[column]) > value;
+      if (operator === 'is' && value === 'null') return (row) => row[column] == null;
       return () => true;
     };
     const tests = split(String(expression)).map(compile);

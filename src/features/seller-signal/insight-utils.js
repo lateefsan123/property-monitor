@@ -223,11 +223,14 @@ export function summarizeTransactions(transactions) {
   };
 }
 
+// International digits for wa.me and the send API: "00" prefix dropped, a UAE
+// trunk zero after the country code removed (+971 (0)50…), local 0… made 971….
 export function formatPhoneForWhatsApp(rawValue) {
-  const digits = String(rawValue || "").replace(/[^0-9]/g, "");
+  let digits = String(rawValue || "").replace(/[^0-9]/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  if (digits.startsWith("9710")) digits = `971${digits.slice(4)}`;
   if (!digits) return null;
   if (digits.startsWith("0")) return `971${digits.slice(1)}`;
-  if (digits.startsWith("971")) return digits;
   return digits;
 }
 

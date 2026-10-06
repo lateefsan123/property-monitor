@@ -18,6 +18,8 @@ export default function ActivityPage({ userId, onOpenSeller }) {
     initialPageParam: null,
     getNextPageParam: nextFeedCursor,
     staleTime: 60 * 1000,
+    // Refocusing would refetch every loaded page; sends refresh it instead.
+    refetchOnWindowFocus: false,
   });
   const items = feed.data?.pages.flatMap((page) => page.items) || [];
 

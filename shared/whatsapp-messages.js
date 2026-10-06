@@ -8,11 +8,13 @@ const THREAD_PAGE_SIZE = 20;
 const FEED_STATUSES = ["sent", "delivered", "read", "failed", "received"];
 const MESSAGE_COLUMNS = "id, lead_id, direction, recipient_phone, send_source, status, body, template_name, error_message, queued_at, sent_at, created_at";
 
-// Same rule as formatPhoneForWhatsApp: digits only, a local leading 0 becomes 971.
+// Same rule as formatPhoneForWhatsApp: digits only, "00" dropped, "9710" becomes 971,
+// and a local leading 0 becomes 971.
 // Stored recipient_phone values are digits only, so this is what they match.
 export function normalizeSellerPhone(value) {
   let digits = String(value || "").replace(/\D/g, "");
   if (digits.startsWith("00")) digits = digits.slice(2);
+  if (digits.startsWith("9710")) digits = `971${digits.slice(4)}`;
   if (!digits) return null;
   return digits.startsWith("0") ? `971${digits.slice(1)}` : digits;
 }
@@ -57,13 +59,15 @@ export function groupFeedByDay(items, now = new Date()) {
   const yesterdayDate = new Date(now);
   yesterdayDate.setDate(yesterdayDate.getDate() - 1);
   const yesterday = dayKey(yesterdayDate);
+  // Merged by day, so a send that finishes just after midnight can't split a day in two.
   const groups = [];
+  const byKey = new Map();
   for (const item of items) {
     const time = messageTime(item);
     if (!time) continue;
     const key = dayKey(time);
-    let group = groups[groups.length - 1];
-    if (!group || group.key !== key) {
+    let group = byKey.get(key);
+    if (!group) {
       // "Today · Monday 5 Oct", "Yesterday · Sunday 4 Oct", "Friday 2 Oct".
       const date = new Date(time);
       const fullDate = date.toLocaleDateString("en-GB", date.getFullYear() === now.getFullYear()
@@ -71,6 +75,7 @@ export function groupFeedByDay(items, now = new Date()) {
       const title = key === today ? `Today · ${fullDate}` : key === yesterday ? `Yesterday · ${fullDate}` : fullDate;
       group = { key, title, items: [] };
       groups.push(group);
+      byKey.set(key, group);
     }
     group.items.push(item);
   }
@@ -151,7 +156,9 @@ export function createWhatsAppMessageServices(supabase) {
     if (!userId || !lead?.id) return { items: [], nextCursor: null };
     const leadId = Number(lead.id);
     const phone = normalizeSellerPhone(lead.phone);
-    const filters = [Number.isFinite(leadId) ? `lead_id.eq.${leadId}` : null, phone ? `recipient_phone.eq.${phone}` : null].filter(Boolean);
+    // By number only for rows not linked to a seller (e.g. older replies), so owners
+    // with several units don't see each other's messages.
+    const filters = [Number.isFinite(leadId) ? `lead_id.eq.${leadId}` : null, phone ? `and(recipient_phone.eq.${phone},lead_id.is.null)` : null].filter(Boolean);
     if (!filters.length) return { items: [], nextCursor: null };
     // One or() filter: (this seller's id or number) and, for older pages, before the cursor.
     const seller = filters.join(",");

@@ -13,9 +13,13 @@ const mockRequire = (name) => name === 'expo/metro-config'
   ? { getDefaultConfig: () => ({ resolver: {} }) }
   : nativeRequire(name);
 mockRequire.resolve = nativeRequire.resolve;
-const scope = { require: mockRequire, __dirname: mobileRoot, module: { exports: {} } };
-vm.runInNewContext(source, scope);
-const { resolver } = scope.module.exports;
+// Metro runs the config in Node, so it sees process.env; EXPO_PUBLIC_FILM picks film mode.
+function loadConfig(env = {}) {
+  const scope = { require: mockRequire, __dirname: mobileRoot, module: { exports: {} }, process: { env } };
+  vm.runInNewContext(source, scope);
+  return scope.module.exports;
+}
+const { resolver } = loadConfig();
 
 test('shared source can find dependencies installed only in the native app', () => {
   assert.equal(resolver.nodeModulesPaths[0], path.join(mobileRoot, 'node_modules'));
@@ -47,4 +51,13 @@ test('shared schedule hooks use the native QueryClient provider installation', (
     assert.equal(result.filePath, nativeRequire.resolve('@tanstack/react-query'));
     assert.ok(result.filePath.startsWith(path.join(mobileRoot, 'node_modules')));
   }
+});
+
+test('the offline film backend replaces Supabase only when EXPO_PUBLIC_FILM=1', () => {
+  const realSupabase = path.join(mobileRoot, 'src', 'supabase.js');
+  const context = { resolveRequest: () => ({ type: 'sourceFile', filePath: realSupabase }) };
+  assert.equal(resolver.resolveRequest(context, '../supabase', 'ios').filePath, realSupabase);
+  assert.equal(loadConfig({ EXPO_PUBLIC_FILM: '0' }).resolver.resolveRequest(context, '../supabase', 'ios').filePath, realSupabase);
+  const film = loadConfig({ EXPO_PUBLIC_FILM: '1' }).resolver.resolveRequest(context, '../supabase', 'web');
+  assert.equal(film.filePath, path.join(mobileRoot, 'film', 'fake-supabase.js'));
 });

@@ -34,6 +34,8 @@ test("normalizeSellerPhone matches stored recipient numbers", () => {
   assert.equal(normalizeSellerPhone("+971 50 555 0121"), "971505550121");
   assert.equal(normalizeSellerPhone("00971505550121"), "971505550121");
   assert.equal(normalizeSellerPhone("+44 7700 900123"), "447700900123");
+  assert.equal(normalizeSellerPhone("+971 (0)50 555 0121"), "971505550121");
+  assert.equal(normalizeSellerPhone("00971 050 555 0121"), "971505550121");
   assert.equal(normalizeSellerPhone(""), null);
 });
 
@@ -91,14 +93,14 @@ test("thread pages match the seller by id or phone", async () => {
   const page = await createWhatsAppMessageServices(client).fetchSellerThreadPage("user-1", { id: "7", phone: "050 555 0121" }, { pageSize: 20 });
   assert.deepEqual(page.items.map((message) => message.id), ["b", "a"]);
   assert.equal(page.nextCursor, null);
-  assert.equal(calls[0].ors[0], "lead_id.eq.7,recipient_phone.eq.971505550121");
+  assert.equal(calls[0].ors[0], "lead_id.eq.7,and(recipient_phone.eq.971505550121,lead_id.is.null)");
   assert.deepEqual(calls[0].filters[0], ["eq", "user_id", "user-1"]);
 });
 
 test("older thread pages combine the seller and cursor in one filter", async () => {
   const { client, calls } = fakeSupabase({ whatsapp_messages: [] });
   await createWhatsAppMessageServices(client).fetchSellerThreadPage("user-1", { id: 7, phone: "050 555 0121" }, { cursor: { created_at: "2026-10-05T10:00:00+00:00", id: "m9" } });
-  assert.deepEqual(calls[0].ors, ['and(or(lead_id.eq.7,recipient_phone.eq.971505550121),or(created_at.lt."2026-10-05T10:00:00+00:00",and(created_at.eq."2026-10-05T10:00:00+00:00",id.gt.m9)))']);
+  assert.deepEqual(calls[0].ors, ['and(or(lead_id.eq.7,and(recipient_phone.eq.971505550121,lead_id.is.null)),or(created_at.lt."2026-10-05T10:00:00+00:00",and(created_at.eq."2026-10-05T10:00:00+00:00",id.gt.m9)))']);
 });
 
 test("groupFeedByDay labels today and yesterday", () => {
