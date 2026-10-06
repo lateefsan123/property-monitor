@@ -649,38 +649,42 @@ async function fetchBuildingAliasLookup(adminClient: any, userIds: string[], ali
     }
   };
 
-  for (const keyBatch of chunkArray(uniqueAliasKeys, 100)) {
-    const { data, error } = await adminClient
-      .from("building_aliases")
-      .select("alias_key, canonical_name")
-      .eq("is_global", true)
-      .in("alias_key", keyBatch);
-
-    if (error) {
-      if (isMissingBuildingAliasesTableError(error)) return lookup;
-      throw new HttpError(500, error.message);
+  // The alias table is small: load global aliases and the users' own once and
+  // keep the ones for these building keys, instead of one query per 100 keys.
+  const wanted = new Set(uniqueAliasKeys);
+  const loadAll = async (build: (from: number) => any) => {
+    const rows: any[] = [];
+    for (let from = 0; ; from += DATA_PAGE_SIZE) {
+      const { data, error } = await build(from);
+      if (error) {
+        if (isMissingBuildingAliasesTableError(error)) return null;
+        throw new HttpError(500, error.message);
+      }
+      rows.push(...(data || []));
+      if (!data || data.length < DATA_PAGE_SIZE) return rows;
     }
+  };
 
-    addAliases(data || [], "global");
-  }
+  const globalAliases = await loadAll((from) => adminClient
+    .from("building_aliases")
+    .select("alias_key, canonical_name")
+    .eq("is_global", true)
+    .order("alias_key", { ascending: true })
+    .range(from, from + DATA_PAGE_SIZE - 1));
+  if (!globalAliases) return lookup;
+  addAliases(globalAliases.filter((alias) => wanted.has(cleanString(alias.alias_key) || "")), "global");
 
   if (!uniqueUserIds.length) return lookup;
 
   for (const userBatch of chunkArray(uniqueUserIds, 100)) {
-    for (const keyBatch of chunkArray(uniqueAliasKeys, 100)) {
-      const { data, error } = await adminClient
-        .from("building_aliases")
-        .select("user_id, alias_key, canonical_name")
-        .in("user_id", userBatch)
-        .in("alias_key", keyBatch);
-
-      if (error) {
-        if (isMissingBuildingAliasesTableError(error)) return lookup;
-        throw new HttpError(500, error.message);
-      }
-
-      addAliases(data || [], "user");
-    }
+    const userAliases = await loadAll((from) => adminClient
+      .from("building_aliases")
+      .select("user_id, alias_key, canonical_name")
+      .in("user_id", userBatch)
+      .order("alias_key", { ascending: true })
+      .range(from, from + DATA_PAGE_SIZE - 1));
+    if (!userAliases) return lookup;
+    addAliases(userAliases.filter((alias) => wanted.has(cleanString(alias.alias_key) || "")), "user");
   }
 
   return lookup;
