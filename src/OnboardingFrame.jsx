@@ -6,7 +6,7 @@ const ARTWORK = {
   "how-sellers": "product-spreadsheets-mobile-colour-v3.png",
   "how-whatsapp": "whatsapp-agent-conversation.png",
   "how-automation": "product-followups-story-mobile-colour-v2.png",
-  profile: "product-templates-story-mobile-colour-v2.png",
+  profile: "product-templates-story-mobile-fox-clean-v1.png",
   referral: "hero-ask-repeat-fox-v1.png",
   trial: "product-market-story-mobile-colour-v2.png",
 };
