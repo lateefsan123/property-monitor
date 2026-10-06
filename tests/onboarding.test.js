@@ -11,7 +11,8 @@ async function harness(file, props = {}, error = null) {
   });
   const states = []; const calls = []; let cursor = 0;
   const context = {
-    module: { exports: {} }, OnboardingFrame: "OnboardingFrame",
+    module: { exports: {} }, OnboardingFrame: "OnboardingFrame", FoxSays: "FoxSays", OnboardingInfo: "OnboardingInfo",
+    ...Object.fromEntries(["IconBell", "IconBrandLinkedin", "IconCalendarEvent", "IconCheck", "IconDots", "IconPlayerPlayFilled", "IconRobot", "IconSearch", "IconShare", "IconUsers"].map(name => [name, name])),
     useEffect: () => {}, useRef: value => ({ current: value }),
     useState: initial => { const i = cursor++; if (!(i in states)) states[i] = initial; return [states[i], value => { states[i] = value; }]; },
     h: (tag, props, ...children) => ({ tag, props: props || {}, children }),

@@ -1,18 +1,20 @@
 import { useState } from "react";
 import { supabase } from "./supabase";
-import OnboardingFrame from "./OnboardingFrame";
+import { IconBrandLinkedin, IconCalendarEvent, IconDots, IconRobot, IconSearch, IconShare, IconUsers } from "@tabler/icons-react";
+import OnboardingFrame, { FoxSays } from "./OnboardingFrame";
 
+// Brilliant's answer rows: an icon, the label, full width.
 const OPTIONS = [
-  { id: "search", label: "Search engine" },
-  { id: "ai", label: "AI tools" },
-  { id: "linkedin", label: "LinkedIn" },
-  { id: "colleague", label: "Friend or colleague" },
-  { id: "social", label: "Social media" },
-  { id: "community", label: "Event or community" },
-  { id: "other", label: "Other" },
+  { id: "search", label: "Search engine", Icon: IconSearch },
+  { id: "ai", label: "AI tools", Icon: IconRobot },
+  { id: "linkedin", label: "LinkedIn", Icon: IconBrandLinkedin },
+  { id: "colleague", label: "Friend or colleague", Icon: IconUsers },
+  { id: "social", label: "Social media", Icon: IconShare },
+  { id: "community", label: "Event or community", Icon: IconCalendarEvent },
+  { id: "other", label: "Other", Icon: IconDots },
 ];
 
-export default function HowDidYouHearScreen({ onContinue }) {
+export default function HowDidYouHearScreen({ onContinue, onBack }) {
   const [selected, setSelected] = useState(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
@@ -45,46 +47,44 @@ export default function HowDidYouHearScreen({ onContinue }) {
   }
 
   return (
-    <OnboardingFrame step="referral">
-        <div className="auth-form-container referral-container">
-          <div className="auth-heading-group">
-            <h1 className="auth-heading">How did you hear about us?</h1>
-          </div>
+    <OnboardingFrame step="referral" stepNumber={6} onBack={onBack} backDisabled={saving}>
+      <FoxSays>How did you hear about Repeat?</FoxSays>
 
-          {error && <div className="auth-error">{error}</div>}
+      <fieldset className="referral-options" disabled={saving}>
+        <legend className="referral-legend">How did you hear about Repeat?</legend>
+        {OPTIONS.map((option) => {
+          const isSelected = selected === option.id;
+          const Icon = option.Icon;
+          return (
+            <button
+              key={option.id}
+              type="button"
+              className={`referral-option${isSelected ? " is-selected" : ""}`}
+              onClick={() => handleSelect(option.id)}
+              aria-pressed={isSelected}
+            >
+              <Icon size={22} stroke={1.7} aria-hidden="true" />
+              <span className="referral-option-label">{option.label}</span>
+            </button>
+          );
+        })}
+      </fieldset>
 
-          <fieldset className="referral-options" disabled={saving}>
-            <legend className="referral-legend">How did you hear about us?</legend>
-            {OPTIONS.map((option) => {
-              const isSelected = selected === option.id;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  className={`referral-option${isSelected ? " is-selected" : ""}`}
-                  onClick={() => handleSelect(option.id)}
-                  aria-pressed={isSelected}
-                >
-                  <span className="referral-option-label">{option.label}</span>
-                </button>
-              );
-            })}
-          </fieldset>
+      {error && <div className="auth-error">{error}</div>}
 
-          <div className="onboarding-actions">
-          <button
-            type="button"
-            className="referral-skip onboarding-secondary"
-            onClick={handleSkip}
-            disabled={saving}
-          >
-            {saving && selected === null ? "Skipping..." : "Skip"}
-          </button>
-          <button type="button" className="auth-submit" onClick={() => persist(selected)} disabled={saving || !selected}>
-            {saving && selected ? "Saving..." : "Continue →"}
-          </button>
-          </div>
-        </div>
+      <div className="onb-cta">
+        <button type="button" className="auth-submit" onClick={() => persist(selected)} disabled={saving || !selected}>
+          {saving && selected ? "Saving..." : "Continue"}
+        </button>
+        <button
+          type="button"
+          className="referral-skip onb-skip"
+          onClick={handleSkip}
+          disabled={saving}
+        >
+          {saving && selected === null ? "Skipping..." : "Skip"}
+        </button>
+      </div>
     </OnboardingFrame>
   );
 }

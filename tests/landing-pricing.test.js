@@ -53,6 +53,6 @@ test("public pricing route precedes onboarding and preserves login routing", () 
   const root = readFileSync(new URL("../src/main.jsx", import.meta.url), "utf8");
   const pricing = root.indexOf('=== "/pricing" && !showAuth');
   assert.ok(pricing > 0);
-  assert.ok(pricing < root.indexOf("if (session && !welcomeDismissed"));
+  assert.ok(pricing < root.indexOf("if (!welcomeDismissed && !meta.welcomed)"));
   assert.match(root, /hasSubscription=\{hasActiveBillingSubscription\}/);
 });

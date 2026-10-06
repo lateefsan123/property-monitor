@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../../supabase";
-import OnboardingFrame from "../../../OnboardingFrame";
+import OnboardingFrame, { FoxSays } from "../../../OnboardingFrame";
 import { AVATAR_PIXELS, AVATAR_QUALITY, saveAvatarProfile } from '../../../../shared/profile-avatar';
 
 function getInitial(value) {
@@ -39,7 +39,7 @@ function downscaleImageToDataUrl(file) {
   });
 }
 
-export default function UsernameSetup({ initialName = "", initialAvatar = "", onComplete }) {
+export default function UsernameSetup({ initialName = "", initialAvatar = "", onComplete, onBack }) {
   const [username, setUsername] = useState(initialName);
   const [avatarDataUrl, setAvatarDataUrl] = useState(initialAvatar);
   const [saving, setSaving] = useState(false);
@@ -101,12 +101,9 @@ export default function UsernameSetup({ initialName = "", initialAvatar = "", on
   }
 
   return (
-    <OnboardingFrame step="profile">
-        <form className="auth-form-container profile-setup" onSubmit={handleSubmit}>
-          <div className="auth-heading-group">
-            <h1 className="auth-heading">What’s your name?</h1>
-            <p className="auth-helper">Add your name. A photo is optional.</p>
-          </div>
+    <OnboardingFrame step="profile" stepNumber={5} onBack={onBack} backDisabled={saving}>
+        <form className="onb-form profile-setup" onSubmit={handleSubmit}>
+          <FoxSays>What name should sellers see on your messages?</FoxSays>
 
           {error && <div className="auth-error">{error}</div>}
 
@@ -155,7 +152,7 @@ export default function UsernameSetup({ initialName = "", initialAvatar = "", on
                 )}
               </div>
               <p className="profile-avatar-hint">
-                Pick a photo up to 4MB. Your avatar photo will be public.
+                Optional. It goes on your broker card. Up to 4MB.
               </p>
               <input
                 ref={fileInputRef}
@@ -167,13 +164,13 @@ export default function UsernameSetup({ initialName = "", initialAvatar = "", on
             </div>
           </div>
 
-          <div className="onboarding-actions">
+          <div className="onb-cta">
           <button
             type="submit"
             className="auth-submit"
             disabled={saving || uploading || !username.trim()}
           >
-            {saving ? "Saving..." : "Continue →"}
+            {saving ? "Saving..." : "Continue"}
           </button>
           </div>
         </form>

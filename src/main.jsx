@@ -96,6 +96,7 @@ export function Root() {
   const [session, setSession] = useState(undefined);
   const [isRecoveringPassword, setIsRecoveringPassword] = useState(false);
   const [welcomeDismissed, setWelcomeDismissed] = useState(false);
+  const [revisit, setRevisit] = useState(null);
   const [howItWorksSeenLocally, setHowItWorksSeenLocally] = useState({ userId: null, seen: false });
   const [profileOverride, setProfileOverride] = useState({ userId: null, completed: false, username: "", avatarUrl: "" });
   const [referralAskedLocally, setReferralAskedLocally] = useState({ userId: null, asked: false });
@@ -504,80 +505,79 @@ export function Root() {
     );
   }
 
-  if (session && !welcomeDismissed && !session.user.user_metadata?.welcomed) {
-    const displayName = session.user.user_metadata?.username?.trim() || "";
-    return (
-      <WelcomeScreen
-        displayName={displayName}
-        onContinue={() => setWelcomeDismissed(true)}
-      />
-    );
-  }
-
-  // New accounts only: anyone already past the trial offer skips the explainer.
-  if (
-    session
-    && !onboardingReachedTrial
-    && !hasActiveBillingSubscription
-    && !session.user.user_metadata?.how_it_works_seen
-    && !(howItWorksSeenLocally.userId === session.user.id && howItWorksSeenLocally.seen)
-  ) {
-    return (
-      <HowItWorksScreen
-        onContinue={() => setHowItWorksSeenLocally({ userId: session.user.id, seen: true })}
-      />
-    );
-  }
-
   if (session) {
-    const overrideMatches = profileOverride.userId === session.user.id;
-    const profileCompleted = (overrideMatches && profileOverride.completed)
-      || Boolean(session.user.user_metadata?.profile_completed);
+    const meta = session.user.user_metadata || {};
+    const userId = session.user.id;
+    const profileCompleted = (profileOverride.userId === userId && profileOverride.completed) || Boolean(meta.profile_completed);
+    const referralAsked = (referralAskedLocally.userId === userId && referralAskedLocally.asked) || Boolean(meta.referral_asked);
+    const trialOffered = (trialOfferedLocally.userId === userId && trialOfferedLocally.offered) || Boolean(meta.trial_offered);
+    // New accounts only: anyone already past the trial offer skips the explainer.
+    const showsHowItWorks = !onboardingReachedTrial && !hasActiveBillingSubscription;
+    const howItWorksSeen = Boolean(meta.how_it_works_seen) || (howItWorksSeenLocally.userId === userId && howItWorksSeenLocally.seen);
 
-    if (!profileCompleted) {
-      const initialName = session.user.user_metadata?.username?.trim() || "";
-      const initialAvatar = session.user.user_metadata?.avatar_url || "";
-      return (
+    // Back re-opens an earlier step (revisit); Continue from there walks
+    // forward again through the steps already done.
+    const stillOnboarding = !trialOffered && !hasActiveBillingSubscription;
+    const revisiting = stillOnboarding && revisit?.userId === userId ? revisit : null;
+    const goTo = (step, fromBack = false) => setRevisit(step ? { userId, step, fromBack } : null);
+    const backFromProfile = () => goTo(showsHowItWorks ? "how" : "welcome", true);
+    const afterWelcome = () => (showsHowItWorks ? "how" : "profile");
+
+    const screens = {
+      welcome: (
+        <WelcomeScreen
+          key="welcome"
+          displayName={meta.username?.trim() || ""}
+          onContinue={() => { setWelcomeDismissed(true); if (revisiting) goTo(afterWelcome()); }}
+        />
+      ),
+      how: (
+        <HowItWorksScreen
+          key={`how-${revisiting?.fromBack ? "back" : "forward"}`}
+          initialIndex={revisiting?.step === "how" && revisiting.fromBack ? 2 : 0}
+          onBack={() => goTo("welcome", true)}
+          onContinue={() => { setHowItWorksSeenLocally({ userId, seen: true }); if (revisiting) goTo("profile"); }}
+        />
+      ),
+      profile: (
         <UsernameSetup
-          initialName={initialName}
-          initialAvatar={initialAvatar}
-          onComplete={({ username, avatarDataUrl }) =>
-            setProfileOverride({
-              userId: session.user.id,
-              completed: true,
-              username,
-              avatarUrl: avatarDataUrl,
-            })
-          }
+          key="profile"
+          initialName={(profileOverride.userId === userId && profileOverride.username) || meta.username?.trim() || ""}
+          initialAvatar={(profileOverride.userId === userId && profileOverride.avatarUrl) || meta.avatar_url || ""}
+          onBack={backFromProfile}
+          onComplete={({ username, avatarDataUrl }) => {
+            setProfileOverride({ userId, completed: true, username, avatarUrl: avatarDataUrl });
+            if (revisiting) goTo("referral");
+          }}
         />
-      );
-    }
-
-    const referralAskedOverride = referralAskedLocally.userId === session.user.id && referralAskedLocally.asked;
-    const referralAsked = referralAskedOverride || Boolean(session.user.user_metadata?.referral_asked);
-    if (!referralAsked) {
-      return (
+      ),
+      referral: (
         <HowDidYouHearScreen
-          onContinue={() => setReferralAskedLocally({ userId: session.user.id, asked: true })}
+          key="referral"
+          onBack={() => goTo("profile", true)}
+          onContinue={() => { setReferralAskedLocally({ userId, asked: true }); if (revisiting) goTo(null); }}
         />
-      );
-    }
-
-    const trialOfferedOverride = trialOfferedLocally.userId === session.user.id && trialOfferedLocally.offered;
-    const trialOffered = trialOfferedOverride || Boolean(session.user.user_metadata?.trial_offered);
-    if (!trialOffered && !hasActiveBillingSubscription) {
-      return (
+      ),
+      trial: (
         <TrialOfferScreen
+          key="trial"
           checkoutPending={billingState.checkoutPending || billingState.subscriptionLoading}
+          onBack={() => goTo("referral", true)}
           onStartTrial={() => {
-            setTrialOfferedLocally({ userId: session.user.id, offered: true });
+            setTrialOfferedLocally({ userId, offered: true });
             void handleStartCheckout({ withTrial: true });
           }}
-          onSkip={() => setTrialOfferedLocally({ userId: session.user.id, offered: true })}
+          onSkip={() => setTrialOfferedLocally({ userId, offered: true })}
         />
-      );
-    }
+      ),
+    };
 
+    if (revisiting) return screens[revisiting.step];
+    if (!welcomeDismissed && !meta.welcomed) return screens.welcome;
+    if (showsHowItWorks && !howItWorksSeen) return screens.how;
+    if (!profileCompleted) return screens.profile;
+    if (!referralAsked) return screens.referral;
+    if (!trialOffered && !hasActiveBillingSubscription) return screens.trial;
   }
 
   if (session && hasActiveBillingSubscription) {
