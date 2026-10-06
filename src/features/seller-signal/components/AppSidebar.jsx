@@ -35,7 +35,7 @@ const ICONS = { activity: IconActivity, home: IconHome, search: IconSearch, plus
 const ACCENTS = { home: 'blue', search: 'purple', new: 'emerald', sellers: 'indigo', 'listing-alerts': 'rose', spreadsheets: 'emerald', 'message-template': 'emerald' };
 const toSidebarItem = item => ({ ...item, Icon: ICONS[item.icon], accent: ACCENTS[item.id] });
 const TOP_GROUP = TOP_NAVIGATION.map(toSidebarItem);
-const MAIN_GROUP = [...MAIN_NAVIGATION.map(toSidebarItem), { id: "schedule", label: "Schedule", Icon: IconCalendarWeek, kind: "nav" }];
+const MAIN_GROUP = [...MAIN_NAVIGATION.map(toSidebarItem), { id: "broker-campaigns", label: "Broker outreach", Icon: IconMessage, kind: "nav" }, { id: "schedule", label: "Schedule", Icon: IconCalendarWeek, kind: "nav" }];
 
 function SidenavItem({ item, currentPage, onNavigate, onAction, onPrefetch }) {
   const Icon = item.Icon;
