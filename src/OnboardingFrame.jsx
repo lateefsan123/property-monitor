@@ -4,7 +4,7 @@ import "./styles/onboarding.css";
 const ARTWORK = {
   welcome: "product-seller-story-mobile-colour-v2.png",
   "how-sellers": "product-spreadsheets-mobile-colour-v3.png",
-  "how-whatsapp": "whatsapp-agent-conversation.png",
+  "how-whatsapp": "whatsapp-chat-fox-v1.png",
   "how-automation": "product-followups-story-mobile-colour-v2.png",
   profile: "product-templates-story-mobile-fox-clean-v1.png",
   referral: "hero-ask-repeat-fox-v1.png",

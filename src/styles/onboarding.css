@@ -64,7 +64,8 @@
 /* How Repeat works: one idea per screen, like mobile's feature slides. */
 .onboarding-page--how-sellers .onboarding-art { background: #dceefa; }
 .onboarding-page--how-whatsapp .onboarding-art { background: #dcefe4; }
-.onboarding-page--how-whatsapp .onboarding-art img, .onboarding-page--referral .onboarding-art img { width: min(100%, 560px); box-shadow: 0 24px 60px rgba(17, 27, 33, .18); }
+.onboarding-page--how-whatsapp .onboarding-art img { width: min(100%, 360px); border-radius: 22px; box-shadow: 0 24px 60px rgba(17, 27, 33, .22); }
+.onboarding-page--referral .onboarding-art img { width: min(100%, 560px); box-shadow: 0 24px 60px rgba(17, 27, 33, .18); }
 .onboarding-page--how-automation .onboarding-art { background: #e7e3f6; }
 .onboarding-page .onboarding-eyebrow { margin: 0 0 10px; color: #64666c; font-size: 13px; font-weight: 500; letter-spacing: .02em; }
 .onboarding-page .how-segments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 520px; margin: 0 0 36px; }
