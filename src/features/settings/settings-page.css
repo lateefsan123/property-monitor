@@ -241,3 +241,9 @@ button.st-profile:hover { background: var(--bg-hover); }
 .bl-confirm h2 { margin: 0; color: var(--text-name); font-size: 19px; font-weight: 700; }
 .bl-confirm p { margin: 0 0 8px; color: var(--text-muted); font-size: 14px; line-height: 1.55; }
 .bl-confirm-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+/* Monthly report share: of the 40 automated messages a day. */
+.st-split { display: inline-flex; gap: 4px; padding: 4px; border-radius: 12px; background: var(--bg-badge); }
+.st-split-option { min-width: 40px; height: 32px; padding: 0 10px; border: 0; border-radius: 9px; background: none; color: var(--text-muted); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums; }
+.st-split-option.is-active { background: var(--bg-card); color: var(--text-name); }
+.st-split-option:disabled { cursor: default; opacity: .6; }

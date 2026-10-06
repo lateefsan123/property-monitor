@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS } from "../../../shared/automation-settings.js";
 import {
   IconActivity,
   IconAdjustmentsHorizontal,
@@ -128,13 +129,25 @@ export default function SettingsPage({
                 <SettingsToggle label="Transaction updates" checked={data.automation.autoWhatsAppEnabled} disabled={data.automation.loading || data.automation.saving}
                   onChange={(value) => data.automation.set("autoWhatsAppEnabled", value)} />
               </SettingsItem>
-              <SettingsItem label="Monthly reports" description="Send building summaries during the first seven days of each month.">
+              <SettingsItem label="Monthly reports" description="Send each seller a summary of last month's sales in their building, once a month.">
                 <SettingsToggle label="Monthly reports" checked={data.automation.monthlyReportsEnabled} disabled={data.automation.loading || data.automation.saving}
                   onChange={(value) => data.automation.set("monthlyReportsEnabled", value)} />
               </SettingsItem>
+              {data.automation.autoWhatsAppEnabled && data.automation.monthlyReportsEnabled && (
+                <SettingsItem label="Daily split" description={`${data.automation.monthlyReportDailyShare} monthly reports and ${DAILY_AUTOMATION_CAP - data.automation.monthlyReportDailyShare} transaction updates a day. Unused slots go to the other.`}>
+                  <div className="st-split" role="radiogroup" aria-label="Monthly reports a day">
+                    {MONTHLY_REPORT_SHARE_OPTIONS.map((share) => (
+                      <button key={share} type="button" role="radio" aria-checked={data.automation.monthlyReportDailyShare === share}
+                        className={`st-split-option${data.automation.monthlyReportDailyShare === share ? " is-active" : ""}`}
+                        disabled={data.automation.loading || data.automation.saving}
+                        onClick={() => data.automation.set("monthlyReportDailyShare", share)}>{share}</button>
+                    ))}
+                  </div>
+                </SettingsItem>
+              )}
             </SettingsGroup>
             {data.automation.error ? <p className="st-error" role="alert">{data.automation.error.message}</p> : null}
-            <p className="st-note">Up to 40 messages a day, five minutes apart. Transaction updates go first. All schedules use Dubai time.</p>
+            <p className="st-note">Up to 40 messages a day, five minutes apart, shared between updates and reports. All schedules use Dubai time.</p>
           </div>
         )}
 

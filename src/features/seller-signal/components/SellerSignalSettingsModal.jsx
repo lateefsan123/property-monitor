@@ -173,14 +173,14 @@ export default function SellerSignalSettingsModal({
                       />
                       <AutomationToggle
                         checked={monthlyReportsEnabled}
-                        description="Send monthly building recaps only during the first seven Dubai days of each month."
+                        description="Send each seller a summary of last month's sales in their building, once a month."
                         disabled={automationLoading || automationSaving}
                         label="Monthly report automation"
                         onChange={onMonthlyReportsChange}
                       />
                     </div>
                     <p className="seller-settings-lane-note">
-                      Transaction updates get the first available slot. A monthly report can use that slot only when no transaction update is due.
+                      Up to 40 a day, shared between updates and reports. Change the split in Settings → Automations.
                     </p>
                   </div>
                 ) : activeTab === "whatsapp" ? (

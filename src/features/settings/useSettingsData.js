@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { DEFAULT_MONTHLY_REPORT_SHARE } from "../../../shared/automation-settings.js";
 import {
   fetchAutomationSettings,
   fetchWhatsAppAccounts,
@@ -30,6 +31,7 @@ export function useSettingsData(userId) {
   const current = {
     autoWhatsAppEnabled: automation.data?.autoWhatsAppEnabled !== false,
     monthlyReportsEnabled: automation.data?.monthlyReportsEnabled === true,
+    monthlyReportDailyShare: automation.data?.monthlyReportDailyShare ?? DEFAULT_MONTHLY_REPORT_SHARE,
   };
 
   return {

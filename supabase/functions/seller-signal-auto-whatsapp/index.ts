@@ -859,6 +859,7 @@ async function insertMessageRow(adminClient: any, input: {
   account: any;
   body: string;
   dailyCap: number;
+  fill: boolean;
   eventId: string;
   lead: any;
   payload: any;
@@ -878,6 +879,8 @@ async function insertMessageRow(adminClient: any, input: {
       p_auto_send_event_id: input.eventId,
       p_daily_cap: input.dailyCap,
       p_automation_kind: "transaction_updates",
+      // Outside a fill pass the claim keeps updates within 40 minus the monthly report share.
+      p_fill: input.fill,
     })
     .single();
 
@@ -961,6 +964,10 @@ Deno.serve(async (req) => {
     const enabled = Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_ENABLED") === "true";
     const maxSends = Math.max(1, Math.floor(getNumber(input?.maxSends, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_MAX_SENDS_PER_RUN"), DEFAULT_MAX_SENDS_PER_RUN))));
     const dailyCap = Math.max(1, Math.min(DEFAULT_DAILY_CAP, Math.floor(getNumber(input?.dailyCap, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_DAILY_CAP"), DEFAULT_DAILY_CAP)))));
+    // Fill pass: may use monthly-report slots left unused today (still 40 at most).
+    const fill = Boolean(input?.fill);
+    // Users refused by the daily cap or the monthly report split are skipped for the rest of this run.
+    const cappedUsers = new Set<string>();
     const maxLeads = Math.max(0, Math.floor(getNumber(input?.maxLeads, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_MAX_LEADS_PER_RUN"), DEFAULT_MAX_LEADS_PER_RUN))));
     // Any contact (auto or manual, tracked via leads.sent_at) pauses further
     // auto-alerts to that seller for the cooldown window; the next alert after
@@ -1222,7 +1229,7 @@ Deno.serve(async (req) => {
 
       const userId = String(lead.user_id || "");
       const currentDailyCount = dailyAutoMessageCounts.get(userId) || 0;
-      if (currentDailyCount >= dailyCap) {
+      if (currentDailyCount >= dailyCap || cappedUsers.has(userId)) {
         summary.skipped.dailyCap += 1;
         continue;
       }
@@ -1279,6 +1286,7 @@ Deno.serve(async (req) => {
           account,
           body,
           dailyCap,
+          fill,
           eventId: claim.id,
           lead,
           payload,
@@ -1290,10 +1298,14 @@ Deno.serve(async (req) => {
           summary.skipped.dailyCap += 1;
           dailyAutoMessageCounts.set(userId, cappedDailyCount);
           summary.dailyActiveByUser[userId] = cappedDailyCount;
-          await markAutoEvent(adminClient, claim.id, {
-            status: "skipped",
-            reason: `Daily automatic WhatsApp cap of ${dailyCap} reached for the Dubai day.`,
-          });
+          cappedUsers.add(userId);
+          // Release the claim instead of marking it skipped, so this update is
+          // retried once there is room (the event is unique per lead and sale date).
+          const { error: releaseError } = await adminClient
+            .from("seller_signal_auto_whatsapp_events")
+            .delete()
+            .eq("id", claim.id);
+          if (releaseError) throw new HttpError(500, releaseError.message);
           continue;
         }
         if (!messageRow?.id) {

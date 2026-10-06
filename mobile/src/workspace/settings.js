@@ -1,8 +1,9 @@
 import { useWorkspacePreference } from "./preferences";
 import { useCallback, useEffect, useState } from "react";
-import { BackHandler, ScrollView, Text, View } from "react-native";
+import { BackHandler, Pressable, ScrollView, Text, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAutomationSettings, saveAutomationSettings } from "./automation-settings";
+import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS } from "../../../shared/automation-settings.js";
 import { fetchWhatsAppSendActivity } from "./send-activity";
 import ActivityDateFilter from './activity-date-filter';
 import { activityRange } from '../../../shared/send-activity-dates';
@@ -35,7 +36,7 @@ function Automations({ userId, colors }) {
     <Feedback colors={colors} error={query.error || mutation.error} loading={query.isPending} onRetry={query.refetch} />
     {[
       ["autoWhatsAppEnabled", "Transaction updates", "Send sellers matching property transaction updates."],
-      ["monthlyReportsEnabled", "Monthly reports", "Send building summaries during the first seven days of each month."],
+      ["monthlyReportsEnabled", "Monthly reports", "Send each seller a summary of last month's sales in their building, once a month."],
     ].map(([id, label, description]) => (
       <View key={id} style={{ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 16, borderBottomColor: colors.border, borderBottomWidth: 0.5 }}>
         <View style={{ flex: 1, gap: 6 }}>
@@ -45,8 +46,24 @@ function Automations({ userId, colors }) {
         <SettingsToggle colors={colors} accessibilityLabel={label} value={Boolean(query.data?.[id])} disabled={!query.data || mutation.isPending} onValueChange={(value) => mutation.mutate({ ...query.data, [id]: value })} />
       </View>
     ))}
+    {query.data?.autoWhatsAppEnabled && query.data?.monthlyReportsEnabled ? <View style={{ gap: 12, paddingVertical: 16, borderBottomColor: colors.border, borderBottomWidth: 0.5 }}>
+      <View style={{ gap: 6 }}>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>Daily split</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{query.data.monthlyReportDailyShare} monthly reports and {DAILY_AUTOMATION_CAP - query.data.monthlyReportDailyShare} transaction updates a day. Unused slots go to the other.</Text>
+      </View>
+      <View accessibilityRole="radiogroup" accessibilityLabel="Monthly reports a day" style={{ flexDirection: "row", padding: 4, borderRadius: 12, backgroundColor: colors.bgBadge }}>
+        {MONTHLY_REPORT_SHARE_OPTIONS.map((share) => {
+          const selected = query.data.monthlyReportDailyShare === share;
+          return <Pressable key={share} accessibilityRole="radio" accessibilityState={{ selected, disabled: mutation.isPending }} disabled={mutation.isPending}
+            onPress={() => mutation.mutate({ ...query.data, monthlyReportDailyShare: share })}
+            style={{ flex: 1, minHeight: 36, alignItems: "center", justifyContent: "center", borderRadius: 9, backgroundColor: selected ? colors.bgCard : "transparent" }}>
+            <Text style={{ color: selected ? colors.text : colors.textMuted, fontWeight: "600", fontSize: 14 }}>{share}</Text>
+          </Pressable>;
+        })}
+      </View>
+    </View> : null}
     <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 20 }}>
-      Up to 40 messages a day, five minutes apart. Transaction updates go first. All schedules use Dubai time.
+      Up to 40 messages a day, five minutes apart, shared between updates and reports. All schedules use Dubai time.
     </Text>
   </View>;
 }

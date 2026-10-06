@@ -749,6 +749,7 @@ async function insertMessageRow(adminClient: any, input: {
   account: any;
   body: string;
   dailyCap: number;
+  fill: boolean;
   lead: any;
   payload: any;
   to: string;
@@ -766,6 +767,8 @@ async function insertMessageRow(adminClient: any, input: {
       p_auto_send_event_id: null,
       p_daily_cap: input.dailyCap,
       p_automation_kind: "monthly_reports",
+      // Outside a fill pass the claim keeps reports within the user's monthly report share.
+      p_fill: input.fill,
     })
     .single();
 
@@ -812,6 +815,8 @@ Deno.serve(async (req) => {
     // combined auto sends reach this budget, reports yield and the remaining
     // headroom belongs to same-day transaction alerts alone.
     const reportDailyBudget = Math.max(1, Math.min(dailyCap, Math.floor(getNumber(input?.reportDailyBudget, getNumber(Deno.env.get("SELLER_SIGNAL_MONTHLY_REPORT_DAILY_BUDGET"), DEFAULT_REPORT_DAILY_BUDGET)))));
+    // Fill pass: may use transaction-update slots left unused today (still 40 at most).
+    const fill = Boolean(input?.fill);
     const reportMonth = resolveReportMonth(input?.reportMonth, startedAt);
     const monthBounds = getMonthBounds(reportMonth);
     const monthLabel = getMonthLabel(reportMonth);
@@ -1045,6 +1050,7 @@ Deno.serve(async (req) => {
           account,
           body,
           dailyCap: reportDailyBudget,
+          fill,
           lead,
           payload,
           to,
