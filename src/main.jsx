@@ -120,9 +120,17 @@ export function Root() {
       && billingState.userId === sessionUserId
       && hasActiveSubscription(billingState.subscription),
   );
+  // A brand-new account goes through onboarding first; its trial offer starts
+  // checkout. Only people already past that step go straight to Stripe.
+  const onboardingReachedTrial = Boolean(
+    sessionUserId
+      && ((trialOfferedLocally.userId === sessionUserId && trialOfferedLocally.offered)
+        || session?.user?.user_metadata?.trial_offered),
+  );
   const postAuthCheckoutWillStart = Boolean(
     sessionUserId
       && postAuthAction === "checkout"
+      && onboardingReachedTrial
       && billingReadyForSession
       && !billingState.subscriptionLoading
       && !billingState.checkoutPending
@@ -359,6 +367,11 @@ export function Root() {
 
   useEffect(() => {
     if (!sessionUserId || postAuthAction !== "checkout") return;
+    if (!onboardingReachedTrial) {
+      // Onboarding will offer the trial; drop the request so it can't fire again later.
+      updatePostAuthAction(null);
+      return;
+    }
     if (!billingReadyForSession || billingState.subscriptionLoading || billingState.checkoutPending) return;
     if (billingState.error) return;
     if (pendingCheckoutSessionId) return;
@@ -376,6 +389,7 @@ export function Root() {
     billingState.error,
     billingState.subscriptionLoading,
     hasActiveBillingSubscription,
+    onboardingReachedTrial,
     pendingCheckoutSessionId,
     postAuthAction,
     sessionUserId,
