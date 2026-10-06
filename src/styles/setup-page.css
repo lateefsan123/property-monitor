@@ -1,0 +1,67 @@
+/* Setup page (src/features/home/SetupPage.jsx), sized from HoneyBook's
+   setup page: a 32px welcome heading, a step card beside a 330px rail. */
+.setup-page {
+  flex: 1; width: 100%; max-width: 1180px; margin: 0 auto; padding: 32px 32px 80px; box-sizing: border-box;
+}
+.setup-title { margin: 0 0 26px; color: var(--text-name); font-size: 32px; font-weight: 700; letter-spacing: -0.6px; line-height: 1.2; }
+.setup-layout { display: grid; grid-template-columns: minmax(0, 1fr) 330px; gap: 24px; align-items: start; }
+
+.setup-card, .setup-rail-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; }
+.setup-card { padding: 20px 20px 22px; }
+.setup-card-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+.setup-card-head h2 { margin: 0; color: var(--text-name); font-size: 17px; font-weight: 500; }
+.setup-progress { display: flex; align-items: center; gap: 8px; color: var(--text-name); font-size: 13px; }
+.setup-progress-bar { position: relative; width: 236px; height: 5px; border-radius: 999px; background: var(--border); overflow: hidden; }
+.setup-progress-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: #4cc46f; transition: width .3s ease; }
+
+.setup-steps { display: flex; flex-direction: column; gap: 15px; }
+.setup-step {
+  display: flex; align-items: center; gap: 14px; width: 100%; min-height: 74px; padding: 14px 22px 14px 20px; box-sizing: border-box;
+  border: 1px solid var(--border); border-radius: 5px; background: var(--bg-card);
+  color: inherit; font: inherit; text-align: left; cursor: pointer; transition: border-color .15s, box-shadow .15s;
+}
+.setup-step:hover { border-color: var(--text-muted); box-shadow: 0 1px 3px rgba(0, 0, 0, .06); }
+.setup-step-status { flex: none; align-self: flex-start; margin-top: 1px; color: var(--text-muted); }
+.setup-step.is-done .setup-step-status { color: #4cc46f; }
+.setup-step-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.setup-step-title { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.setup-step-title strong { color: var(--text-name); font-size: 15px; font-weight: 500; }
+.setup-step-time { padding: 1px 5px; border-radius: 3px; background: var(--bg-badge, rgba(0, 0, 0, .05)); color: var(--text-muted); font-size: 10px; line-height: 1.5; }
+.setup-step-body { color: var(--text-muted); font-size: 13px; line-height: 1.45; }
+.setup-step-chevron { flex: none; color: var(--text-name); transition: transform .15s; }
+.setup-step:hover .setup-step-chevron { transform: translateX(2px); }
+.setup-error { margin: 0; color: var(--error-text); font-size: 14px; }
+
+.setup-rail { display: flex; flex-direction: column; gap: 24px; }
+.setup-rail-head {
+  display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 16px 16px 15px;
+  border: 0; border-bottom: 1px solid var(--border); background: none; color: var(--text-name); font: inherit; cursor: pointer;
+}
+.setup-rail-head h2, .setup-rail-heading { margin: 0; color: var(--text-name); font-size: 15px; font-weight: 500; }
+.setup-rail-heading { padding: 18px 18px 6px; }
+.setup-rail-body { padding: 18px 16px; }
+.setup-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.setup-chip {
+  display: inline-flex; align-items: center; gap: 6px; min-height: 32px; padding: 0 12px;
+  border: 1px solid var(--border); border-radius: 999px; background: var(--bg-card);
+  color: var(--text-name); font: inherit; font-size: 14px; cursor: pointer;
+}
+.setup-chip:hover { border-color: var(--text-muted); }
+.setup-chip.is-connected { color: var(--text-muted); }
+.setup-chip.is-connected svg { color: #4cc46f; }
+.setup-chip img { border-radius: 3px; }
+.setup-links { list-style: none; margin: 0; padding: 0 18px 6px; }
+.setup-links li + li { border-top: 1px solid var(--border); }
+.setup-page .setup-links button, .setup-page .setup-links a {
+  display: flex; align-items: center; gap: 12px; width: 100%; min-height: 50px; margin: 0; padding: 0;
+  border: 0; border-radius: 0; box-shadow: none; background: none; font-weight: 400; color: var(--text-name); font: inherit; font-size: 14px; text-align: left; text-decoration: none; cursor: pointer;
+}
+.setup-links svg { flex: none; color: var(--text-name); }
+.setup-links button:hover, .setup-links a:hover { color: var(--text-muted); }
+
+@media (max-width: 900px) {
+  .setup-page { padding: 20px 16px 64px; }
+  .setup-title { font-size: 26px; }
+  .setup-layout { grid-template-columns: 1fr; }
+  .setup-progress-bar { width: 140px; }
+}

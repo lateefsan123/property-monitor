@@ -6,18 +6,21 @@ export const SETUP_STEPS = [
     title: "Import your sellers",
     text: "Add a spreadsheet from Excel or Google Sheets.",
     action: "Import sellers",
+    time: "2 mins",
   },
   {
     id: "whatsapp",
     title: "Connect your WhatsApp",
     text: "Link your number so follow-ups go out from you.",
     action: "Connect WhatsApp",
+    time: "1 min",
   },
   {
     id: "first-message",
     title: "Send your first follow-up",
     text: "Repeat sends sale updates automatically, up to 40 a day. You can also message any seller yourself.",
     action: "View sellers",
+    time: "1 min",
   },
 ];
 

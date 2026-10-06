@@ -14,7 +14,7 @@ export function openSetupAction(action, onNavigate) {
 export const SETUP_HIDDEN_KEY = "home:setup-hidden";
 export const SHOW_SETUP_EVENT = "repeat:show-setup-checklist";
 
-// The sidebar's setup block brings the Home checklist back if it was hidden.
+// Lets other screens bring back a hidden Home checklist.
 export function showSetupChecklist(userId) {
   try { window.localStorage.removeItem(`${SETUP_HIDDEN_KEY}:${userId}`); } catch { /* Shown for this visit only. */ }
   window.dispatchEvent(new CustomEvent(SHOW_SETUP_EVENT));

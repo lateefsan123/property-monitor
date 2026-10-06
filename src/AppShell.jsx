@@ -7,6 +7,7 @@ import {
   IconActivity,
   IconBuildingEstate,
   IconCalendarWeek,
+  IconRocket,
   IconDownload,
   IconHome,
   IconMenu2,
@@ -20,6 +21,7 @@ import SellerSignalDashboard from "./features/seller-signal/SellerSignalDashboar
 import ListingAlertsPage from "./features/listing-alerts/components/ListingAlertsPage";
 import SpreadsheetsPage from "./features/seller-signal/components/SpreadsheetsPage";
 import HomePage from "./features/home/HomePage";
+import SetupPage from "./features/home/SetupPage";
 import CreateNewModal from "./features/home/CreateNewModal";
 import MessageTemplatesPanel from "./features/seller-signal/components/MessageTemplatesPanel";
 import { useSellerSignalMessageTemplates } from "./features/seller-signal/useSellerSignalMessageTemplates";
@@ -30,7 +32,7 @@ import SendVolumeDialog from "./features/seller-signal/components/SendVolumeDial
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 import { createBillingPortalSession } from "./billing";
 
-const VALID_PAGES = new Set(["home", "sellers", "activity", "listing-alerts", "spreadsheets", "schedule", "settings"]);
+const VALID_PAGES = new Set(["home", "sellers", "activity", "listing-alerts", "spreadsheets", "schedule", "settings", "setup"]);
 const THEME_STORAGE_KEY = "property:theme";
 
 const PAGE_LABELS = {
@@ -38,6 +40,7 @@ const PAGE_LABELS = {
   activity: "Activity",
   schedule: "Schedule",
   settings: "Settings",
+  setup: "Setup",
   sellers: "Sellers",
   "listing-alerts": "Listings",
   spreadsheets: "Spreadsheets",
@@ -53,6 +56,7 @@ function PageIcon({ page }) {
   if (page === "activity") return <IconActivity size={14} stroke={2} aria-hidden="true" />;
   if (page === "schedule") return <IconCalendarWeek size={14} stroke={2} aria-hidden="true" />;
   if (page === "settings") return <IconSettings size={14} stroke={2} aria-hidden="true" />;
+  if (page === "setup") return <IconRocket size={14} stroke={2} aria-hidden="true" />;
   if (page === "sellers") {
     return <IconUsers size={14} stroke={2} aria-hidden="true" />;
   }
@@ -317,6 +321,8 @@ export default function AppShell({ displayName, subscription, userId }) {
             userId={userId}
             subscription={subscription}
           />
+        ) : currentPage === "setup" ? (
+          <SetupPage key={userId} userId={userId} displayName={displayName} onNavigate={handleNavigate} onAction={handleSidebarAction} />
         ) : currentPage === "activity" ? (
           <ActivityPage key={userId} userId={userId} onNavigate={handleNavigate} onOpenSeller={(id) => { handleNavigate("sellers"); setSavedSellerId(String(id)); setSavedSellerSection("history"); }} />
         ) : currentPage === "schedule" ? (
