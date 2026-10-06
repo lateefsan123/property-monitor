@@ -1,7 +1,45 @@
 {
-  "crons": [{ "path": "/api/email-summary-cron", "schedule": "*/15 * * * *" }],
+  "crons": [
+    {
+      "path": "/api/email-summary-cron",
+      "schedule": "*/15 * * * *"
+    }
+  ],
   "rewrites": [
-    { "source": "/data-deletion", "destination": "/index.html" },
-    { "source": "/((?!api|assets|data|favicon|.*\\.).*)", "destination": "/index.html" }
+    {
+      "source": "/data-deletion",
+      "destination": "/index.html"
+    },
+    {
+      "source": "/((?!api|assets|data|favicon|.*\\.).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "frame-ancestors 'self'"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), geolocation=()"
+        }
+      ]
+    }
   ]
 }
