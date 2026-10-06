@@ -138,9 +138,12 @@ export function createMessageTemplateServices(
     const cleanName = String(name || "").trim();
     const cleanContent = String(content || "").trim();
     if (!cleanName) throw new Error("Give this template a name.");
-    if (!cleanContent.includes("{{transactions}}")) {
+    // Sale updates need the sale details; a template used only for your own
+    // statuses (status follow-ups) doesn't.
+    const forOwnStatusesOnly = !isDefault && (statuses || []).some((status) => String(status).startsWith("custom:"));
+    if (!cleanContent.includes("{{transactions}}") && !forOwnStatusesOnly) {
       throw new Error(
-        "Keep {{transactions}} in the template so every message includes the sale details.",
+        "Keep {{transactions}} in the template so every message includes the sale details, or use it only for your own statuses.",
       );
     }
 
