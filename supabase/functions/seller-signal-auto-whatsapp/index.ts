@@ -703,23 +703,31 @@ function expandLeadBuildingKeysWithAliases(lead: any, baseKeys: string[], aliasL
   return [...keys];
 }
 
+// One query for the lookback days (a few hundred rows across Dubai), filtered to
+// the sellers' buildings in memory, instead of one query per 100 building keys.
 async function fetchRecentTransactions(adminClient: any, buildingKeys: string[], dateKeys: string[]) {
   const transactionsByKey = new Map<string, any[]>();
-  for (const batch of chunkArray([...new Set(buildingKeys)].filter(Boolean), 100)) {
+  const wanted = new Set(buildingKeys.filter(Boolean));
+  if (!wanted.size || !dateKeys.length) return transactionsByKey;
+  for (let from = 0; ; from += DATA_PAGE_SIZE) {
     const { data, error } = await adminClient
       .from("transactions")
       .select("*")
-      .in("building_key", batch)
-      .in("date", dateKeys);
+      .in("date", dateKeys)
+      .order("id", { ascending: true })
+      .range(from, from + DATA_PAGE_SIZE - 1);
 
     if (error) throw new HttpError(500, error.message);
-    for (const transaction of data || []) {
+    const page = data || [];
+    for (const transaction of page) {
+      if (!wanted.has(transaction.building_key)) continue;
       const amount = Number(transaction?.amount);
       if (!Number.isFinite(amount) || amount < MIN_SALE_AMOUNT) continue;
       const list = transactionsByKey.get(transaction.building_key) || [];
       list.push(transaction);
       transactionsByKey.set(transaction.building_key, list);
     }
+    if (page.length < DATA_PAGE_SIZE) break;
   }
   return transactionsByKey;
 }
@@ -1116,9 +1124,13 @@ Deno.serve(async (req) => {
     }
 
     const transactionsByKey = await fetchRecentTransactions(adminClient, [...allBuildingKeys], activeDateKeys);
+    // Only sellers whose building had a sale in the lookback can be sent anything,
+    // so the per-seller checks below run on them alone (not every seller, every run).
+    const candidateLeads = leads.filter((lead: any) =>
+      (keysByLead.get(Number(lead.id)) || []).some((key) => (transactionsByKey.get(key) || []).length > 0));
     const existingMessagePairs = await fetchExistingMarketMessagePairs(
       adminClient,
-      leads.map((lead: any) => Number(lead.id)),
+      candidateLeads.map((lead: any) => Number(lead.id)),
       activeDateKeys,
     );
     const existingRecipientDateKeys = await fetchExistingMarketRecipientDateKeys(
@@ -1147,6 +1159,7 @@ Deno.serve(async (req) => {
       cooldownHours,
       automationDisabledUsers: automationDisabledUserIds.size,
       scanned: leads.length,
+      candidates: candidateLeads.length,
       eligible: 0,
       attempted: 0,
       sent: 0,
@@ -1156,7 +1169,7 @@ Deno.serve(async (req) => {
         cooldown: 0,
         manualFollowUp: 0,
         noPhone: 0,
-        noTodayTransactions: 0,
+        noTodayTransactions: leads.length - candidateLeads.length,
         notInterested: 0,
         duplicateClaim: 0,
         duplicateRecipientDate: 0,
@@ -1169,7 +1182,8 @@ Deno.serve(async (req) => {
       dailyActiveByUser: Object.fromEntries(dailyAutoMessageCounts),
     };
 
-    const scheduleQueue = await loadScheduleQueue(adminClient, leads, startedAt);
+    // Queue the candidates; count today's sends per building across all sellers.
+    const scheduleQueue = await loadScheduleQueue(adminClient, candidateLeads, startedAt, leads);
     let scheduleScanned = 0;
     for (const lead of scheduleQueue) {
       if (maxLeads > 0 && scheduleScanned >= maxLeads) break;
