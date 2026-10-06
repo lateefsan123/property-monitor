@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit } from "../../../shared/automation-settings.js";
+import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, clampDailyLimit, formatHour, formatInterval, messagesThatFit } from "../../../shared/automation-settings.js";
 import {
   IconActivity,
   IconAdjustmentsHorizontal,
@@ -53,6 +53,30 @@ const GROUPS = [
   ] },
 ];
 const SECTIONS = GROUPS.flatMap((group) => group.items);
+
+// 1-40 messages a day: − and + step by one, or type a number.
+function DailyLimitStepper({ value, onChange, disabled }) {
+  const [text, setText] = useState(String(value));
+  const [lastValue, setLastValue] = useState(value);
+  if (value !== lastValue) {
+    setLastValue(value);
+    setText(String(value));
+  }
+  const commit = (next) => {
+    const clamped = clampDailyLimit(next);
+    setText(String(clamped));
+    if (clamped !== value) onChange(clamped);
+  };
+  return (
+    <div className="st-stepper">
+      <button type="button" aria-label="Fewer messages" disabled={disabled || value <= 1} onClick={() => commit(value - 1)}>−</button>
+      <input inputMode="numeric" aria-label="Messages per day" value={text} disabled={disabled}
+        onChange={(event) => setText(event.target.value.replace(/[^0-9]/g, "").slice(0, 2))}
+        onBlur={() => commit(text)} onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }} />
+      <button type="button" aria-label="More messages" disabled={disabled || value >= DAILY_AUTOMATION_CAP} onClick={() => commit(value + 1)}>+</button>
+    </div>
+  );
+}
 
 function subscriptionLabel(subscription) {
   if (!subscription) return "";
@@ -137,7 +161,11 @@ export default function SettingsPage({
                   onChange={(value) => data.automation.set("monthlyReportsEnabled", value)} />
               </SettingsItem>
               {data.automation.autoWhatsAppEnabled && data.automation.monthlyReportsEnabled && (
-                <SettingsItem label="Daily split" description={`${data.automation.monthlyReportDailyShare} monthly reports and ${DAILY_AUTOMATION_CAP - data.automation.monthlyReportDailyShare} transaction updates a day. Unused slots go to the other.`}>
+                <SettingsItem label="Daily split" description={(() => {
+                  const limit = data.automation.dailyMessageLimit;
+                  const reports = Math.min(limit, Math.round((data.automation.monthlyReportDailyShare * limit) / DAILY_AUTOMATION_CAP));
+                  return `${reports} monthly reports and ${limit - reports} transaction updates a day. Unused slots go to the other.`;
+                })()}>
                   <div className="st-split" role="radiogroup" aria-label="Monthly reports a day">
                     {MONTHLY_REPORT_SHARE_OPTIONS.map((share) => (
                       <button key={share} type="button" role="radio" aria-checked={data.automation.monthlyReportDailyShare === share}
@@ -150,14 +178,18 @@ export default function SettingsPage({
               )}
             </SettingsGroup>
             <SettingsGroup title="Sending">
+              <SettingsItem label="Messages per day" description={`How many automated WhatsApp messages go out each day, up to ${DAILY_AUTOMATION_CAP}.`}>
+                <DailyLimitStepper value={data.automation.dailyMessageLimit} disabled={data.automation.loading || data.automation.saving}
+                  onChange={(value) => data.automation.set("dailyMessageLimit", value)} />
+              </SettingsItem>
               <SettingsItem label="Send between" description="Automated messages only go out in these hours, Dubai time.">
                 <div className="st-hours">
-                  <select className="st-status-select" aria-label="Start" value={data.automation.sendWindowStartHour} disabled={data.automation.loading || data.automation.saving}
+                  <select className="stx-select" aria-label="Start" value={data.automation.sendWindowStartHour} disabled={data.automation.loading || data.automation.saving}
                     onChange={(event) => data.automation.setMany({ sendWindowStartHour: Number(event.target.value), sendWindowEndHour: Math.max(Number(event.target.value) + 1, data.automation.sendWindowEndHour) })}>
                     {Array.from({ length: 24 }, (_, hour) => <option key={hour} value={hour}>{formatHour(hour)}</option>)}
                   </select>
                   <span className="st-note">to</span>
-                  <select className="st-status-select" aria-label="End" value={data.automation.sendWindowEndHour} disabled={data.automation.loading || data.automation.saving}
+                  <select className="stx-select" aria-label="End" value={data.automation.sendWindowEndHour} disabled={data.automation.loading || data.automation.saving}
                     onChange={(event) => data.automation.set("sendWindowEndHour", Number(event.target.value))}>
                     {Array.from({ length: 24 }, (_, index) => index + 1).filter((hour) => hour > data.automation.sendWindowStartHour)
                       .map((hour) => <option key={hour} value={hour}>{formatHour(hour)}</option>)}
@@ -178,11 +210,12 @@ export default function SettingsPage({
             {data.automation.error ? <p className="st-error" role="alert">{data.automation.error.message}</p> : null}
             {(() => {
               const pacing = { start: data.automation.sendWindowStartHour, end: data.automation.sendWindowEndHour, interval: data.automation.sendIntervalMinutes };
-              const fit = messagesThatFit(pacing, DAILY_AUTOMATION_CAP);
+              const limit = data.automation.dailyMessageLimit;
+              const fit = messagesThatFit(pacing, limit);
               return (
                 <p className="st-note">
                   {formatHour(pacing.start)} to {formatHour(pacing.end)}, one every {formatInterval(pacing.interval)}: up to {fit} message{fit === 1 ? "" : "s"} a day
-                  {fit < DAILY_AUTOMATION_CAP ? `, under the ${DAILY_AUTOMATION_CAP}-a-day limit. Widen the hours or shorten the gap to send more.` : ` (${DAILY_AUTOMATION_CAP} a day is the limit).`}
+                  {fit < limit ? `, fewer than your ${limit} a day. Widen the hours or shorten the gap to send them all.` : `, your daily limit.`}
                 </p>
               );
             })()}

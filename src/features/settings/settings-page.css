@@ -248,34 +248,64 @@ button.st-profile:hover { background: var(--bg-hover); }
 .st-split-option.is-active { background: var(--bg-card); color: var(--text-name); }
 .st-split-option:disabled { cursor: default; opacity: .6; }
 
-/* Statuses (StatusesSection.jsx), after Linear's "Project statuses": grey
-   group headers with a "+", one row per status, inline editor. */
-.st-statuses { overflow: hidden; border: 1px solid var(--border); border-radius: 18px; background: var(--bg-card); padding: 6px; }
-.st-status-group { display: flex; align-items: center; justify-content: space-between; min-height: 36px; margin: 4px 0; padding: 0 6px 0 12px; border-radius: 10px; background: var(--bg-badge); color: var(--text-muted); font-size: 13px; font-weight: 600; }
-.st-status-add { display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--text-muted); cursor: pointer; }
-.st-status-add:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-name); }
-.st-status-row { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 56px; padding: 8px 12px; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.st-status-row:hover:not(:disabled) { background: var(--bg-hover); }
-.st-status-row:disabled { cursor: default; }
-.st-status-dot { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--dot); }
-.st-status-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.st-status-text strong { color: var(--text-name); font-size: 15px; font-weight: 600; }
-.st-status-text small { color: var(--text-muted); font-size: 13px; }
-.st-status-empty { margin: 0; padding: 14px 12px; color: var(--text-muted); font-size: 14px; line-height: 1.5; }
-.st-status-empty-button { display: block; width: 100%; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; border-radius: 10px; }
-.st-status-empty-button:hover { background: var(--bg-hover); color: var(--text-name); }
-.st-status-editor { display: flex; flex-direction: column; gap: 14px; margin: 6px 0; padding: 14px; border: 1px solid var(--border); border-radius: 12px; }
-.st-status-name { min-height: 42px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-input, var(--bg-card)); color: var(--text-name); font: inherit; font-size: 15px; }
-.st-status-name:focus { border-color: var(--text-name); outline: none; }
-.st-status-colors { display: flex; flex-wrap: wrap; gap: 8px; }
-.st-status-swatch { width: 26px; height: 26px; padding: 0; border: 2px solid transparent; border-radius: 50%; background: var(--swatch); cursor: pointer; box-shadow: inset 0 0 0 2px var(--bg-card); }
-.st-status-swatch.is-active { border-color: var(--text-name); }
-.st-status-field { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-name); font-size: 14px; }
-.st-status-select { min-height: 36px; padding: 0 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-card); color: var(--text-name); font: inherit; font-size: 14px; }
-.st-status-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
-.st-status-delete { margin-right: auto; padding: 8px 4px; border: 0; background: none; color: var(--error-text); font: inherit; font-size: 14px; cursor: pointer; }
-.st-status-cancel, .st-status-save { min-height: 34px; padding: 0 14px; border-radius: 9px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
-.st-status-cancel { border: 1px solid var(--border); background: var(--bg-card); color: var(--text-name); }
-.st-status-save { border: 0; background: var(--text-name); color: var(--bg-card); }
-.st-status-save:disabled, .st-status-cancel:disabled { opacity: .5; cursor: default; }
+/* Statuses (StatusesSection.jsx), after TheyDo's Statuses settings: a plain
+   Status / Follow up / Sellers table, small group labels with a "+", pills. */
+.stx { display: flex; flex-direction: column; gap: 20px; max-width: 760px; }
+.stx-intro { margin: -6px 0 4px; color: var(--text-muted); font-size: 15px; line-height: 1.55; }
+.stx-table { display: flex; flex-direction: column; }
+.stx-head, .stx-row { display: grid; grid-template-columns: minmax(0, 1fr) 190px 80px; align-items: center; gap: 16px; }
+.stx-head { padding: 0 0 10px; border-bottom: 1px solid var(--border); color: var(--text-name); font-size: 13px; font-weight: 500; }
+.stx-num { text-align: right; font-variant-numeric: tabular-nums; }
+.stx-head .stx-num { color: var(--text-name); }
+.stx-group { display: flex; align-items: center; gap: 6px; margin: 18px 0 4px; color: var(--text-name); font-size: 14px; font-weight: 500; }
+.stx-add { display: inline-grid; place-items: center; width: 24px; height: 24px; padding: 0; border: 0; border-radius: 6px; background: none; color: var(--text-muted); cursor: pointer; }
+.stx-add:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-name); }
+.stx-add:disabled { opacity: .4; cursor: default; }
+.stx-row { min-height: 40px; }
+.stx-row .stx-num { color: var(--text-muted); font-size: 14px; }
+.stx-pill {
+  display: inline-flex; align-items: center; gap: 6px; height: 26px; padding: 0 11px 0 9px; border: 0; border-radius: 999px;
+  background: color-mix(in srgb, var(--pill) 15%, transparent); color: color-mix(in srgb, var(--pill) 75%, #000);
+  font: inherit; font-size: 13.5px; font-weight: 600; white-space: nowrap;
+}
+button.stx-pill { cursor: pointer; }
+button.stx-pill:hover { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pill) 45%, transparent); }
+[data-theme="dark"] .stx-pill { background: color-mix(in srgb, var(--pill) 24%, transparent); color: color-mix(in srgb, var(--pill) 70%, #fff); }
+.stx-pill-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--pill); }
+.stx-select {
+  justify-self: start; max-width: 100%; height: 30px; padding: 0 26px 0 8px; border: 1px solid transparent; border-radius: 8px;
+  background: transparent; color: var(--text-name); font: inherit; font-size: 14px; cursor: pointer;
+}
+.stx-select:hover:not(:disabled), .stx-select:focus { border-color: var(--border); background: var(--bg-card); outline: none; }
+.stx-muted { padding-left: 9px; color: var(--text-muted); font-size: 14px; }
+.stx-empty { align-self: flex-start; padding: 6px 0; border: 0; background: none; color: var(--text-muted); font: inherit; font-size: 14px; cursor: pointer; }
+.stx-empty:hover { color: var(--text-name); text-decoration: underline; }
+.stx-edit { display: flex; flex-direction: column; gap: 10px; margin: 6px 0; padding: 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); }
+.stx-edit-main { display: flex; align-items: center; gap: 10px; }
+.stx-edit-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--pill); }
+.stx-input { flex: 1; min-width: 0; height: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text-name); font: inherit; font-size: 14px; }
+.stx-input:focus { border-color: var(--text-name); outline: none; }
+.stx-edit .stx-select { border-color: var(--border); }
+.stx-edit-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.stx-colors { display: flex; gap: 6px; }
+.stx-swatch { width: 20px; height: 20px; padding: 0; border: 2px solid transparent; border-radius: 50%; background: var(--swatch); box-shadow: inset 0 0 0 2px var(--bg-card); cursor: pointer; }
+.stx-swatch.is-active { border-color: var(--text-name); }
+.stx-edit-actions { display: flex; align-items: center; gap: 8px; }
+.stx-btn { height: 32px; padding: 0 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text-name); font: inherit; font-size: 13.5px; font-weight: 500; cursor: pointer; }
+.stx-btn-primary { border-color: var(--text-name); background: var(--text-name); color: var(--bg-card); }
+.stx-btn:disabled { opacity: .5; cursor: default; }
+.stx-icon-btn { display: inline-grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--text-muted); cursor: pointer; }
+.stx-icon-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--error-text); }
+@media (max-width: 640px) {
+  .stx-head, .stx-row { grid-template-columns: minmax(0, 1fr) 150px 52px; gap: 8px; }
+}
 .st-hours { display: flex; align-items: center; gap: 8px; }
+.st-hours .stx-select { border-color: var(--border); background: var(--bg-card); }
+.stx-table .stx-pill { font-family: inherit; font-size: 13.5px; font-weight: 600; line-height: 1; letter-spacing: 0; }
+.stx-head span:nth-child(2) { padding-left: 9px; }
+.st-stepper { display: inline-flex; align-items: center; height: 34px; border: 1px solid var(--border); border-radius: 9px; overflow: hidden; background: var(--bg-card); }
+.st-stepper button { width: 34px; height: 100%; padding: 0; border: 0; background: none; color: var(--text-name); font: inherit; font-size: 17px; cursor: pointer; }
+.st-stepper button:hover:not(:disabled) { background: var(--bg-hover); }
+.st-stepper button:disabled { color: var(--text-muted); opacity: .5; cursor: default; }
+.st-stepper input { width: 40px; height: 100%; padding: 0; border: 0; border-left: 1px solid var(--border); border-right: 1px solid var(--border); background: none; color: var(--text-name); font: inherit; font-size: 15px; font-weight: 600; text-align: center; font-variant-numeric: tabular-nums; }
+.st-stepper input:focus { outline: none; background: var(--bg-hover); }

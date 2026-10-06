@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPlus, IconTrash } from "@tabler/icons-react";
 import {
   FOLLOW_UP_OPTIONS,
   MAX_STATUSES,
@@ -9,58 +9,70 @@ import {
 } from "../../../shared/seller-statuses.js";
 import { deleteStatus, fetchStatuses, renameSellers, saveStatus } from "../seller-signal/seller-status-services";
 import { refreshAccountStatuses } from "../seller-signal/status-registry";
+import { fetchUserLeads } from "../seller-signal/services";
+import { sellerLeadsQueryKey } from "../seller-signal/queryKeys";
 
-// Seller statuses, after Linear's "Project statuses" settings (Mobbin
-// e494c7a9): one card, grey group headers with a "+", a row per status with
-// its colour, name and follow-up gap, edited inline with Cancel and Save.
+// Seller statuses, after TheyDo's Statuses settings (Mobbin 2bc809cc): a plain
+// table of Status / Follow up / Sellers, small group labels with a "+", and
+// each status as a coloured pill. New statuses are added in an inline row,
+// as in Lightfield's stages (Mobbin ea3faaac).
 const BUILT_INS = [
-  { key: "prospect", label: "Prospect", tone: "#3b82f6", days: 75 },
-  { key: "market_appraisal", label: "Appraisal", tone: "#d97706", days: 25 },
-  { key: "for_sale_available", label: "For Sale", tone: "#16a34a", days: 5 },
-  { key: "not_interested", label: "Not Interested", tone: "#9ca3af", locked: true },
+  { key: "prospect", label: "Prospect", color: "#3b82f6", days: 75 },
+  { key: "market_appraisal", label: "Appraisal", color: "#d97706", days: 25 },
+  { key: "for_sale_available", label: "For Sale", color: "#16a34a", days: 5 },
+  { key: "not_interested", label: "Not Interested", color: "#6b7280", locked: true },
 ];
 
 function followUpLabel(days) {
-  const option = FOLLOW_UP_OPTIONS.find((item) => item.days === Number(days));
-  if (option) return option.label;
-  return Number(days) === 0 ? "Don't follow up" : `Every ${days} days`;
+  return FOLLOW_UP_OPTIONS.find((item) => item.days === Number(days))?.label || (Number(days) === 0 ? "Don't follow up" : `Every ${days} days`);
 }
 
-function FollowUpSelect({ value, onChange, disabled }) {
+function StatusPill({ label, color, onClick, title }) {
+  const content = <><span className="stx-pill-dot" aria-hidden="true" />{label}</>;
+  return onClick
+    ? <button type="button" className="stx-pill" style={{ "--pill": color }} onClick={onClick} title={title}>{content}</button>
+    : <span className="stx-pill" style={{ "--pill": color }}>{content}</span>;
+}
+
+function FollowUpSelect({ value, onChange, disabled, label }) {
   const options = FOLLOW_UP_OPTIONS.some((item) => item.days === Number(value))
     ? FOLLOW_UP_OPTIONS
     : [...FOLLOW_UP_OPTIONS, { days: Number(value), label: followUpLabel(value) }].sort((a, b) => a.days - b.days);
   return (
-    <select className="st-status-select" value={String(value)} disabled={disabled} onChange={(event) => onChange(Number(event.target.value))} aria-label="Follow up">
+    <select className="stx-select" value={String(value)} disabled={disabled} aria-label={label} onChange={(event) => onChange(Number(event.target.value))}>
       {options.map((option) => <option key={option.days} value={option.days}>{option.label}</option>)}
     </select>
   );
 }
 
-function StatusEditor({ draft, onChange, onCancel, onSave, onDelete, saving, builtIn }) {
+function ColorPicker({ value, onChange, disabled }) {
   return (
-    <form className="st-status-editor" onSubmit={(event) => { event.preventDefault(); onSave(); }}>
-      {!builtIn && (
-        <>
-          <input className="st-status-name" value={draft.label} maxLength={40} autoFocus placeholder="Status name, e.g. Hot lead"
-            onChange={(event) => onChange({ ...draft, label: event.target.value })} aria-label="Status name" disabled={saving} />
-          <div className="st-status-colors" role="radiogroup" aria-label="Colour">
-            {STATUS_COLOR_OPTIONS.map((color) => (
-              <button key={color} type="button" role="radio" aria-checked={draft.color === color} aria-label={color}
-                className={`st-status-swatch${draft.color === color ? " is-active" : ""}`} style={{ "--swatch": color }}
-                onClick={() => onChange({ ...draft, color })} disabled={saving} />
-            ))}
-          </div>
-        </>
-      )}
-      <label className="st-status-field">
-        <span>Follow up</span>
-        <FollowUpSelect value={draft.follow_up_days} disabled={saving} onChange={(days) => onChange({ ...draft, follow_up_days: days })} />
-      </label>
-      <div className="st-status-actions">
-        {onDelete && <button type="button" className="st-status-delete" onClick={onDelete} disabled={saving}>Delete</button>}
-        <button type="button" className="st-status-cancel" onClick={onCancel} disabled={saving}>Cancel</button>
-        <button type="submit" className="st-status-save" disabled={saving || (!builtIn && !draft.label.trim())}>{saving ? "Saving…" : "Save"}</button>
+    <div className="stx-colors" role="radiogroup" aria-label="Colour">
+      {STATUS_COLOR_OPTIONS.map((color) => (
+        <button key={color} type="button" role="radio" aria-checked={value === color} aria-label={color} disabled={disabled}
+          className={`stx-swatch${value === color ? " is-active" : ""}`} style={{ "--swatch": color }} onClick={() => onChange(color)} />
+      ))}
+    </div>
+  );
+}
+
+// Inline row for a new status or renaming one: name, colour, Cancel / Save.
+function EditRow({ draft, setDraft, saving, onCancel, onSave, onDelete, isNew }) {
+  return (
+    <form className="stx-edit" onSubmit={(event) => { event.preventDefault(); onSave(); }}>
+      <div className="stx-edit-main">
+        <span className="stx-edit-dot" style={{ "--pill": draft.color }} aria-hidden="true" />
+        <input className="stx-input" value={draft.label} maxLength={40} autoFocus placeholder="Status name, e.g. Hot lead"
+          aria-label="Status name" disabled={saving} onChange={(event) => setDraft({ ...draft, label: event.target.value })} />
+        {isNew && <FollowUpSelect value={draft.follow_up_days} label="Follow up" disabled={saving} onChange={(days) => setDraft({ ...draft, follow_up_days: days })} />}
+      </div>
+      <div className="stx-edit-foot">
+        <ColorPicker value={draft.color} disabled={saving} onChange={(color) => setDraft({ ...draft, color })} />
+        <div className="stx-edit-actions">
+          {onDelete && <button type="button" className="stx-icon-btn" onClick={onDelete} disabled={saving} aria-label="Delete status" title="Delete status"><IconTrash size={16} stroke={1.8} aria-hidden="true" /></button>}
+          <button type="button" className="stx-btn" onClick={onCancel} disabled={saving}>Cancel</button>
+          <button type="submit" className="stx-btn stx-btn-primary" disabled={saving || !draft.label.trim()}>{saving ? "Saving…" : isNew ? "Create" : "Save"}</button>
+        </div>
       </div>
     </form>
   );
@@ -69,6 +81,7 @@ function StatusEditor({ draft, onChange, onCancel, onSave, onDelete, saving, bui
 export default function StatusesSection({ userId }) {
   const client = useQueryClient();
   const statuses = useQuery({ queryKey: statusesQueryKey(userId), enabled: Boolean(userId), queryFn: () => fetchStatuses(userId) });
+  const leads = useQuery({ queryKey: sellerLeadsQueryKey(userId), enabled: Boolean(userId), queryFn: () => fetchUserLeads(userId), staleTime: 60 * 1000 });
   const [editing, setEditing] = useState(null);
   const [draft, setDraft] = useState(null);
   const [saving, setSaving] = useState(false);
@@ -76,29 +89,25 @@ export default function StatusesSection({ userId }) {
   const rows = statuses.data || [];
   const custom = rows.filter((row) => !row.builtin_key);
   const overrides = new Map(rows.filter((row) => row.builtin_key).map((row) => [row.builtin_key, row]));
-
-  function open(key, nextDraft) {
-    setError(null);
-    setEditing(key);
-    setDraft(nextDraft);
+  const counts = {};
+  for (const lead of leads.data?.leads || []) {
+    const id = lead.statusRule?.id;
+    if (id) counts[id] = (counts[id] || 0) + 1;
   }
-
-  async function afterChange() {
-    refreshAccountStatuses(userId);
-    await Promise.all([
-      client.invalidateQueries({ queryKey: statusesQueryKey(userId) }),
-      client.invalidateQueries({ queryKey: ["seller-signal"] }),
-    ]);
-    setEditing(null);
-    setDraft(null);
-  }
+  const busy = saving || statuses.isPending;
 
   async function run(task) {
     setSaving(true);
     setError(null);
     try {
       await task();
-      await afterChange();
+      refreshAccountStatuses(userId);
+      await Promise.all([
+        client.invalidateQueries({ queryKey: statusesQueryKey(userId) }),
+        client.invalidateQueries({ queryKey: ["seller-signal"] }),
+      ]);
+      setEditing(null);
+      setDraft(null);
     } catch (failure) {
       setError(failure?.message || "Could not save. Try again.");
     } finally {
@@ -106,65 +115,90 @@ export default function StatusesSection({ userId }) {
     }
   }
 
-  function save() {
+  function startNew() {
+    setError(null);
+    setEditing("new");
+    setDraft({ label: "", color: STATUS_COLOR_OPTIONS[custom.length % STATUS_COLOR_OPTIONS.length], follow_up_days: 14 });
+  }
+
+  function saveDraft() {
     return run(async () => {
       const previous = draft.id ? rows.find((row) => row.id === draft.id) : null;
       const saved = await saveStatus(userId, { ...draft, position: draft.position ?? custom.length });
-      if (previous && !previous.builtin_key && previous.label !== saved.label) await renameSellers(userId, previous.label, saved.label);
+      if (previous && previous.label !== saved.label) await renameSellers(userId, previous.label, saved.label);
     });
   }
 
-  function remove() {
-    const row = rows.find((item) => item.id === draft.id);
-    if (!row || !window.confirm(`Delete "${row.label}"? Sellers with this status will have no status.`)) return undefined;
-    return run(() => deleteStatus(userId, row));
+  function setFollowUp(row, days) {
+    return run(() => saveStatus(userId, { ...row, follow_up_days: days }));
   }
 
-  const editor = (key, { builtIn = false, deletable = false } = {}) => editing === key && draft ? (
-    <StatusEditor draft={draft} onChange={setDraft} onCancel={() => { setEditing(null); setDraft(null); }} onSave={save}
-      onDelete={deletable ? remove : null} saving={saving} builtIn={builtIn} />
-  ) : null;
+  function setBuiltInFollowUp(item, days) {
+    const override = overrides.get(item.key);
+    return run(() => saveStatus(userId, { id: override?.id, builtin_key: item.key, label: item.key, follow_up_days: days }));
+  }
+
+  function remove() {
+    const row = rows.find((item) => item.id === draft?.id);
+    if (!row || !window.confirm(`Delete "${row.label}"? Sellers with this status will have no status.`)) return;
+    run(() => deleteStatus(userId, row));
+  }
+
+  const count = (id) => (leads.data ? counts[id] || 0 : "–");
 
   return (
-    <div className="st-stack">
-      <div className="st-statuses">
-        <div className="st-status-group">
+    <div className="stx">
+      <p className="stx-intro">Statuses show where each seller stands. The follow-up gap decides when a seller shows as due, and statuses set to "Don't follow up" are never sent automated messages.</p>
+
+      <div className="stx-table" role="table" aria-label="Statuses">
+        <div className="stx-head" role="row">
+          <span role="columnheader">Status</span>
+          <span role="columnheader">Follow up</span>
+          <span role="columnheader" className="stx-num">Sellers</span>
+        </div>
+
+        <div className="stx-group">
           <span>Your statuses</span>
-          <button type="button" className="st-status-add" aria-label="Add status" disabled={custom.length >= MAX_STATUSES - BUILT_INS.length || saving}
-            onClick={() => open("new", { label: "", color: STATUS_COLOR_OPTIONS[custom.length % STATUS_COLOR_OPTIONS.length], follow_up_days: 14 })}>
+          <button type="button" className="stx-add" onClick={startNew} disabled={busy || editing === "new" || custom.length >= MAX_STATUSES - BUILT_INS.length} aria-label="Add status" title="Add status">
             <IconPlus size={16} stroke={2} aria-hidden="true" />
           </button>
         </div>
-        {statuses.isPending && <p className="st-status-empty">Loading statuses…</p>}
         {!statuses.isPending && !custom.length && editing !== "new" && (
-          <button type="button" className="st-status-empty st-status-empty-button" onClick={() => open("new", { label: "", color: STATUS_COLOR_OPTIONS[0], follow_up_days: 14 })}>
-            Add your own, like "Hot lead" or "Viewing booked", and choose how often Repeat reminds you to follow up.
-          </button>
+          <button type="button" className="stx-empty" onClick={startNew}>Add your own, like "Hot lead" or "Viewing booked"</button>
         )}
-        {custom.map((row) => editing === row.id ? <div key={row.id}>{editor(row.id, { deletable: true })}</div> : (
-          <button key={row.id} type="button" className="st-status-row" onClick={() => open(row.id, { ...row })}>
-            <span className="st-status-dot" style={{ "--dot": row.color || "#6b7280" }} aria-hidden="true" />
-            <span className="st-status-text"><strong>{row.label}</strong><small>{followUpLabel(row.follow_up_days)}</small></span>
-          </button>
+        {custom.map((row) => editing === row.id ? (
+          <EditRow key={row.id} draft={draft} setDraft={setDraft} saving={saving} onSave={saveDraft} onDelete={remove}
+            onCancel={() => { setEditing(null); setDraft(null); }} />
+        ) : (
+          <div key={row.id} className="stx-row" role="row">
+            <span role="cell"><StatusPill label={row.label} color={row.color || "#6b7280"} title="Rename or change colour"
+              onClick={() => { setError(null); setEditing(row.id); setDraft({ ...row }); }} /></span>
+            <span role="cell"><FollowUpSelect value={row.follow_up_days} label={`Follow up for ${row.label}`} disabled={busy} onChange={(days) => setFollowUp(row, days)} /></span>
+            <span role="cell" className="stx-num">{count(`custom:${row.id}`)}</span>
+          </div>
         ))}
-        {editor("new")}
+        {editing === "new" && draft && (
+          <EditRow draft={draft} setDraft={setDraft} saving={saving} onSave={saveDraft} isNew onCancel={() => { setEditing(null); setDraft(null); }} />
+        )}
 
-        <div className="st-status-group"><span>Built-in</span></div>
+        <div className="stx-group"><span>Built-in</span></div>
         {BUILT_INS.map((item) => {
-          const override = overrides.get(item.key);
-          const days = item.locked ? 0 : override ? override.follow_up_days : item.days;
-          if (editing === item.key) return <div key={item.key}>{editor(item.key, { builtIn: true })}</div>;
+          const days = item.locked ? 0 : overrides.get(item.key)?.follow_up_days ?? item.days;
           return (
-            <button key={item.key} type="button" className="st-status-row" disabled={item.locked}
-              onClick={() => open(item.key, { id: override?.id, builtin_key: item.key, label: item.label, follow_up_days: days })}>
-              <span className="st-status-dot" style={{ "--dot": item.tone }} aria-hidden="true" />
-              <span className="st-status-text"><strong>{item.label}</strong><small>{item.locked ? "Never messaged" : followUpLabel(days)}</small></span>
-            </button>
+            <div key={item.key} className="stx-row" role="row">
+              <span role="cell"><StatusPill label={item.label} color={item.color} /></span>
+              <span role="cell">
+                {item.locked
+                  ? <span className="stx-muted">Never messaged</span>
+                  : <FollowUpSelect value={days} label={`Follow up for ${item.label}`} disabled={busy} onChange={(next) => setBuiltInFollowUp(item, next)} />}
+              </span>
+              <span role="cell" className="stx-num">{count(item.key)}</span>
+            </div>
           );
         })}
       </div>
+
       {(error || statuses.error) && <p className="st-error" role="alert">{error || statuses.error.message}</p>}
-      <p className="st-note">Follow-up gaps decide when a seller shows as due. Statuses set to "Don't follow up" are never sent automated messages.</p>
     </div>
   );
 }

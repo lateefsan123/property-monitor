@@ -35,6 +35,7 @@ export function useSettingsData(userId) {
     sendWindowStartHour: automation.data?.sendWindowStartHour ?? DEFAULT_SEND_WINDOW.start,
     sendWindowEndHour: automation.data?.sendWindowEndHour ?? DEFAULT_SEND_WINDOW.end,
     sendIntervalMinutes: automation.data?.sendIntervalMinutes ?? DEFAULT_SEND_INTERVAL_MINUTES,
+    dailyMessageLimit: automation.data?.dailyMessageLimit ?? 40,
   };
 
   return {

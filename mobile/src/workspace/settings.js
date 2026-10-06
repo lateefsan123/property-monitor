@@ -52,7 +52,7 @@ function Automations({ userId, colors }) {
     {query.data?.autoWhatsAppEnabled && query.data?.monthlyReportsEnabled ? <View style={{ gap: 12, paddingVertical: 16, borderBottomColor: colors.border, borderBottomWidth: 0.5 }}>
       <View style={{ gap: 6 }}>
         <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>Daily split</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{query.data.monthlyReportDailyShare} monthly reports and {DAILY_AUTOMATION_CAP - query.data.monthlyReportDailyShare} transaction updates a day. Unused slots go to the other.</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>{(() => { const limit = query.data.dailyMessageLimit || DAILY_AUTOMATION_CAP; const reports = Math.min(limit, Math.round((query.data.monthlyReportDailyShare * limit) / DAILY_AUTOMATION_CAP)); return `${reports} monthly reports and ${limit - reports} transaction updates a day. Unused slots go to the other.`; })()}</Text>
       </View>
       <View accessibilityRole="radiogroup" accessibilityLabel="Monthly reports a day" style={{ flexDirection: "row", padding: 4, borderRadius: 12, backgroundColor: colors.bgBadge }}>
         {MONTHLY_REPORT_SHARE_OPTIONS.map((share) => {
@@ -73,7 +73,8 @@ function Automations({ userId, colors }) {
 function SendPacing({ settings, colors, saving, onChange }) {
   const [hoursOpen, setHoursOpen] = useState(false);
   const pacing = { start: settings.sendWindowStartHour, end: settings.sendWindowEndHour, interval: settings.sendIntervalMinutes };
-  const fit = messagesThatFit(pacing, DAILY_AUTOMATION_CAP);
+  const limit = settings.dailyMessageLimit || DAILY_AUTOMATION_CAP;
+  const fit = messagesThatFit(pacing, limit);
   const hourColumn = (label, hours, value, onPick) => <View style={{ flex: 1, gap: 4 }}>
     <Text style={{ color: colors.textMuted, fontSize: 13, paddingBottom: 4 }}>{label}</Text>
     <ScrollView style={{ maxHeight: 320 }}>
@@ -83,7 +84,22 @@ function SendPacing({ settings, colors, saving, onChange }) {
       </Pressable>)}
     </ScrollView>
   </View>;
+  const stepButton = (label, next, disabled) => <Pressable accessibilityRole="button" accessibilityLabel={label} disabled={saving || disabled} onPress={() => onChange({ dailyMessageLimit: next })}
+    style={({ pressed }) => ({ width: 40, height: 36, alignItems: "center", justifyContent: "center", opacity: saving || disabled ? 0.35 : pressed ? 0.6 : 1 })}>
+    <Text style={{ color: colors.text, fontSize: 20 }}>{label === "Fewer messages" ? "−" : "+"}</Text>
+  </Pressable>;
   return <>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 16, borderBottomColor: colors.border, borderBottomWidth: 0.5 }}>
+      <View style={{ flex: 1, gap: 6 }}>
+        <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>Messages per day</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>How many automated WhatsApp messages go out each day, up to {DAILY_AUTOMATION_CAP}.</Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center", borderRadius: 10, backgroundColor: colors.bgBadge }}>
+        {stepButton("Fewer messages", limit - 1, limit <= 1)}
+        <Text accessibilityLabel={`${limit} messages a day`} style={{ minWidth: 28, textAlign: "center", color: colors.text, fontSize: 16, fontWeight: "700", fontVariant: ["tabular-nums"] }}>{limit}</Text>
+        {stepButton("More messages", limit + 1, limit >= DAILY_AUTOMATION_CAP)}
+      </View>
+    </View>
     <Pressable accessibilityRole="button" disabled={saving} onPress={() => setHoursOpen(true)}
       style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 16, borderBottomColor: colors.border, borderBottomWidth: 0.5, opacity: pressed ? 0.6 : 1 })}>
       <View style={{ flex: 1, gap: 6 }}>
@@ -109,7 +125,7 @@ function SendPacing({ settings, colors, saving, onChange }) {
       </View>
     </View>
     <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 20 }}>
-      {formatHour(pacing.start)} to {formatHour(pacing.end)}, one every {formatInterval(pacing.interval)}: up to {fit} message{fit === 1 ? "" : "s"} a day{fit < DAILY_AUTOMATION_CAP ? `, under the ${DAILY_AUTOMATION_CAP}-a-day limit.` : ` (${DAILY_AUTOMATION_CAP} a day is the limit).`} Shared between updates and reports.
+      {formatHour(pacing.start)} to {formatHour(pacing.end)}, one every {formatInterval(pacing.interval)}: up to {fit} message{fit === 1 ? "" : "s"} a day{fit < limit ? `, fewer than your ${limit}. Widen the hours or shorten the gap to send them all.` : ", your daily limit."} Shared between updates and reports.
     </Text>
     <BottomSheet visible={hoursOpen} onClose={() => setHoursOpen(false)} colors={colors}>
       <View style={{ padding: 20, paddingTop: 4, gap: 16 }}>
