@@ -54,10 +54,14 @@ function cleanString(value: unknown) {
   return text || null;
 }
 
+// Same rule as the apps' formatPhoneForWhatsApp: drop a "00" prefix, the UAE
+// trunk zero after 971 (+971 (0)50…), and turn a local 0… number into 971….
 function normalizeWhatsAppPhone(value: unknown) {
-  const digits = String(value || "").replace(/\D/g, "");
-  if (digits.startsWith("00")) return digits.slice(2);
-  return digits || null;
+  let digits = String(value || "").replace(/\D/g, "");
+  if (digits.startsWith("00")) digits = digits.slice(2);
+  if (digits.startsWith("9710")) digits = `971${digits.slice(4)}`;
+  if (digits.startsWith("0")) digits = `971${digits.slice(1)}`;
+  return digits.length >= 8 ? digits : null;
 }
 
 function normalizeToken(value: unknown) {
