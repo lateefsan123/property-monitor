@@ -374,7 +374,12 @@ export default function SpreadsheetsPage({ userId }) {
 
         <div className="ss-minimal-list" aria-busy={page.loading} aria-label="Spreadsheets">
           {page.loading && <p className="ss-list-empty" role="status">Loading spreadsheets...</p>}
-          {!page.loading && !sortedSources.length && !showLegacyCard && <p className="ss-list-empty">{query ? "No spreadsheets found." : "Add your first spreadsheet to get started."}</p>}
+          {!page.loading && !sortedSources.length && !showLegacyCard && (query ? <p className="ss-list-empty">No spreadsheets found.</p> : (
+            <div className="ss-list-empty setup-next is-center">
+              <p className="home-muted">Import sellers from Excel, CSV or Google Sheets to get started.</p>
+              <button type="button" className="setup-next-button" onClick={handleOpenNewSheet} disabled={!page.canAddSource}>Add your first spreadsheet</button>
+            </div>
+          ))}
           {sortedSources.map((source) => (
             <SpreadsheetRow
               key={source.id}

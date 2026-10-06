@@ -5,13 +5,13 @@ export const SETUP_STEPS = [
     id: "import",
     title: "Import your sellers",
     text: "Add a spreadsheet from Excel or Google Sheets.",
-    action: "Import",
+    action: "Import sellers",
   },
   {
     id: "whatsapp",
     title: "Connect your WhatsApp",
     text: "Link your number so follow-ups go out from you.",
-    action: "Connect",
+    action: "Connect WhatsApp",
   },
   {
     id: "first-message",
@@ -46,4 +46,13 @@ export async function fetchSetupStatus(supabase, userId) {
     whatsappConnected: (accounts.data || []).length > 0,
     messageSent: (messages.data || []).length > 0,
   };
+}
+
+// The first unfinished step that needs the user (importing or connecting), or
+// null. Empty states use it to offer one clear next action.
+export function nextSetupAction(status) {
+  if (!status) return null;
+  if (!(status.leadCount > 0)) return { id: "import", label: "Import your sellers", hint: "Add a spreadsheet to bring your sellers into Repeat." };
+  if (!status.whatsappConnected) return { id: "whatsapp", label: "Connect WhatsApp", hint: "Link your number and Repeat starts following up for you." };
+  return null;
 }

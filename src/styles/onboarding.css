@@ -61,15 +61,28 @@
 .onboarding-signout { display: block; margin: 28px auto 0; padding: 8px 12px; border: 0; background: none; color: var(--text-muted, #6b7280); font: inherit; font-size: 13px; cursor: pointer; }
 .onboarding-signout:hover { color: var(--text, inherit); text-decoration: underline; }
 
-/* How Repeat works: numbered steps on divided rows (after Airbnb, Mobbin 19c2044f). */
-.onboarding-page--how .onboarding-art { background: #e7e3f6; }
+/* How Repeat works: one idea per screen, like mobile's feature slides. */
+.onboarding-page--how-sellers .onboarding-art { background: #f8e2d5; }
+.onboarding-page--how-whatsapp .onboarding-art { background: #dcefe4; }
+.onboarding-page--how-whatsapp .onboarding-art img { width: min(100%, 560px); box-shadow: 0 24px 60px rgba(17, 27, 33, .18); }
+.onboarding-page--how-automation .onboarding-art { background: #e7e3f6; }
 .onboarding-page .onboarding-eyebrow { margin: 0 0 10px; color: #64666c; font-size: 13px; font-weight: 500; letter-spacing: .02em; }
-.onboarding-page .how-steps { display: flex; flex-direction: column; max-width: 520px; margin: 8px 0 0; padding: 0; list-style: none; }
-.onboarding-page .how-step { display: flex; gap: 18px; padding: 20px 0; border-top: 1px solid #e6e5e1; }
-.onboarding-page .how-step:last-child { border-bottom: 1px solid #e6e5e1; }
-.onboarding-page .how-step-number { flex: none; width: 20px; color: #242320; font-size: 17px; font-weight: 600; line-height: 1.4; font-variant-numeric: tabular-nums; }
-.onboarding-page .how-step-body h2 { margin: 0 0 4px; color: #242320; font-size: 17px; font-weight: 600; letter-spacing: -.01em; line-height: 1.4; }
-.onboarding-page .how-step-body p { margin: 0; color: #64666c; font-size: 14.5px; line-height: 1.6; }
+.onboarding-page .how-segments { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; max-width: 520px; margin: 0 0 36px; }
+.onboarding-page .how-segments span { height: 4px; border-radius: 2px; background: #e6e5e1; transition: background 250ms ease; }
+.onboarding-page .how-segments span.is-on { background: #242320; }
+.onboarding-page .how-slide { display: flex; flex-direction: column; max-width: 520px; animation: how-in 280ms ease both; }
+.onboarding-page .how-slide .auth-heading { margin: 0; }
+.onboarding-page .how-lead { margin: 14px 0 0; color: #64666c; font-size: 16px; line-height: 1.6; }
+.onboarding-page .how-stat { display: flex; flex-direction: column; gap: 4px; margin-top: 32px; }
+.onboarding-page .how-stat strong { color: #242320; font-size: 104px; font-weight: 700; line-height: 1; letter-spacing: -.05em; font-variant-numeric: tabular-nums; }
+.onboarding-page .how-stat-lead { color: #242320; font-size: 17px; font-weight: 500; line-height: 1.5; }
+.onboarding-page .how-inline-art { display: none; }
+@keyframes how-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .onboarding-page .how-slide { animation: none; } }
+@media (max-width: 900px) {
+  .onboarding-page .how-inline-art { display: block; width: 100%; max-width: 420px; max-height: 46vh; margin-top: 28px; object-fit: contain; border-radius: 14px; }
+  .onboarding-page .how-stat strong { font-size: 84px; }
+}
 
 /* Free trial timeline (after Brilliant, Mobbin 47c242d9): three points on a line. */
 .onboarding-page .trial-timeline { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; max-width: 560px; margin: 12px 0 4px; padding: 0; list-style: none; }

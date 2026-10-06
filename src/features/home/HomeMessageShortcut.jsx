@@ -3,6 +3,7 @@ import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { IconX } from "@tabler/icons-react";
 import MessageFeedList, { LoadMore } from "../activity/MessageFeedList";
 import { fetchMessagePage, messageFeedQueryKey, nextFeedCursor } from "./message-feed-services";
+import SetupNextAction from "./SetupNextAction";
 
 const PREVIEW_COUNT = 4;
 
@@ -45,7 +46,7 @@ function AllMessagesDialog({ userId, onClose, onOpenSeller }) {
 
 // Right-rail shortcut: the latest few people messaged or who replied, each with
 // its exact send time. Show all opens the last 7 days; rows open the seller's history.
-export default function HomeMessageShortcut({ userId, onOpenSeller }) {
+export default function HomeMessageShortcut({ userId, onOpenSeller, onNavigate }) {
   const [showAll, setShowAll] = useState(false);
   const latest = useQuery({
     queryKey: messageFeedQueryKey(userId, "latest"),
@@ -59,7 +60,12 @@ export default function HomeMessageShortcut({ userId, onOpenSeller }) {
       <h2 id="home-messages-title" className="home-card-title">Recent messages</h2>
       {latest.isPending ? <p className="home-muted message-feed-empty">Loading…</p>
         : latest.error ? <p className="home-muted message-feed-empty">Unavailable. <button type="button" className="home-text-button" onClick={() => latest.refetch()}>Try again</button></p>
-          : !items.length ? <p className="home-muted message-feed-empty">No messages in the last 7 days.</p>
+          : !items.length ? (
+            <div className="message-feed-empty">
+              <p className="home-muted">No messages in the last 7 days.</p>
+              <SetupNextAction userId={userId} onNavigate={onNavigate} showHint={false} />
+            </div>
+          )
             : <>
               <MessageFeedList items={items} compact onOpenSeller={onOpenSeller} />
               {latest.data.nextCursor && <button type="button" className="home-text-button message-feed-more" onClick={() => setShowAll(true)}>Show all</button>}

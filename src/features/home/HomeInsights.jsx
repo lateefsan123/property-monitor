@@ -12,6 +12,7 @@ import { useEmailSummary } from "../../../shared/use-email-summary";
 import HomeMessageShortcut from "./HomeMessageShortcut";
 import HomeActivity from "./HomeActivity";
 import { CalendarToday, EmailBrief, HomeConnectionPrompt } from "./HomeConnect";
+import { openSetupAction } from "./setup-actions";
 import { buildDailyMessageSeries, fetchListingPriceDrops, fetchWhatsAppMessageActivity } from "./home-insight-services";
 
 // Uses mobile Home's look (mobile/src/workspace/home.js) in a desktop layout:
@@ -86,6 +87,7 @@ export default function HomeInsights({ userId, onNavigate, onOpenSeller }) {
   const series = buildDailyMessageSeries(activity.data, WINDOW_DAYS);
   const cadence = summarizeLeadCadence(leads.data?.leads);
   const leadsReady = Boolean(leads.data);
+  const noSellers = leadsReady && !(leads.data.leads || []).length;
   const activityReady = Boolean(activity.data);
   const failure = leads.error || activity.error || drops.error;
   const metrics = [
@@ -111,8 +113,8 @@ export default function HomeInsights({ userId, onNavigate, onOpenSeller }) {
             </button>
           ))}
         </div>
-        <button type="button" className="home-summary-link" onClick={() => onNavigate?.("sellers")}>
-          <span>{leadsReady && cadence.due === 0 ? "All caught up · View sellers" : "View sellers"}</span>
+        <button type="button" className="home-summary-link" onClick={() => (noSellers ? openSetupAction({ id: "import" }, onNavigate) : onNavigate?.("sellers"))}>
+          <span>{noSellers ? "Import your sellers to get started" : leadsReady && cadence.due === 0 ? "All caught up · View sellers" : "View sellers"}</span>
           <IconChevronRight size={17} stroke={2} aria-hidden="true" />
         </button>
       </section>
@@ -130,7 +132,7 @@ export default function HomeInsights({ userId, onNavigate, onOpenSeller }) {
         <section className="home-card" aria-label="Calendar">
           <CalendarToday userId={userId} connections={connections.data} connectionError={connections.error} retryConnections={connections.refetch} />
         </section>
-        <HomeMessageShortcut userId={userId} onOpenSeller={(sellerId) => onOpenSeller?.(sellerId, "history")} />
+        <HomeMessageShortcut userId={userId} onNavigate={onNavigate} onOpenSeller={(sellerId) => onOpenSeller?.(sellerId, "history")} />
         <section className="home-card" aria-label="Email">
           {emailReady && !emailConnected
             ? <HomeConnectionPrompt feature="email" connections={connections.data} />

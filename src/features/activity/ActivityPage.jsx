@@ -2,13 +2,14 @@ import { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import MessageFeedList, { LoadMore } from "./MessageFeedList";
 import { fetchMessagePage, messageFeedQueryKey, nextFeedCursor } from "../home/message-feed-services";
+import SetupNextAction from "../home/SetupNextAction";
 import "../../styles/activity-page.css";
 
 const FILTERS = [["all", "All", undefined], ["sent", "Sent", "outbound"], ["replies", "Replies", "inbound"]];
 
 // Everyone messaged and every reply from the last 30 days, 30 at a time.
 // Filters run in the database; rows open the seller on their message history.
-export default function ActivityPage({ userId, onOpenSeller }) {
+export default function ActivityPage({ userId, onOpenSeller, onNavigate }) {
   const [filter, setFilter] = useState("all");
   const direction = FILTERS.find(([id]) => id === filter)[2];
   const feed = useInfiniteQuery({
@@ -36,7 +37,12 @@ export default function ActivityPage({ userId, onOpenSeller }) {
       <section className="activity-card" aria-busy={feed.isPending}>
         {feed.isPending ? <p className="activity-empty">Loading activity…</p>
           : feed.error ? <p className="activity-empty">Activity unavailable. <button type="button" className="home-text-button" onClick={() => feed.refetch()}>Try again</button></p>
-            : !items.length ? <p className="activity-empty">{filter === "replies" ? "No replies in the last 30 days." : "No messages in the last 30 days."}</p>
+            : !items.length ? (
+              <div className="activity-empty">
+                <p>{filter === "replies" ? "No replies in the last 30 days." : "No messages in the last 30 days."}</p>
+                <SetupNextAction userId={userId} onNavigate={onNavigate} />
+              </div>
+            )
               : <>
                 <MessageFeedList items={items} onOpenSeller={onOpenSeller} />
                 <LoadMore query={feed} />

@@ -19,6 +19,7 @@ import CalendarToday from './calendar-today';
 import HomeConnectionPrompt from './home-connection-prompt';
 import HomeMessageFeed from "./home-message-feed";
 import HomeSetupChecklist from "./home-setup-checklist";
+import { openSetupAction } from "./setup-next-action";
 import { fetchMessagePage, messageFeedQueryKey } from "./message-feed";
 
 export default function WorkspaceHome({ userId, displayName, colors, active = true, onNavigate, onAskRepeat }) {
@@ -55,6 +56,7 @@ export default function WorkspaceHome({ userId, displayName, colors, active = tr
   const series = buildDailyMessageSeries(activity.data || []);
   const cadence = summarizeLeadCadence(leads.data?.leads);
   const leadsReady = leads.data !== undefined;
+  const noSellers = leadsReady && !(leads.data?.leads || []).length;
   const activityReady = activity.data !== undefined;
   const metrics = [
     { label: "Due today", value: leadsReady ? cadence.due : "—", action: () => onNavigate("sellers") },
@@ -84,13 +86,13 @@ export default function WorkspaceHome({ userId, displayName, colors, active = tr
             <Text selectable style={{ fontSize: 30, fontWeight: "600", letterSpacing: -0.8, fontVariant: ["tabular-nums"], color: colors.textName }}>{metric.value}</Text>
           </Pressable>)}
         </View>
-        <Pressable accessibilityRole="button" onPress={() => onNavigate("sellers")}
+        <Pressable accessibilityRole="button" onPress={() => (noSellers ? openSetupAction({ id: "import" }, onNavigate) : onNavigate("sellers"))}
           style={({ pressed }) => ({ flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, minHeight: 48, borderTopWidth: 1, borderTopColor: colors.borderLight, opacity: pressed ? 0.6 : 1 })}>
-          <Text style={{ color: colors.textName, fontSize: 14, fontWeight: "500" }}>{leadsReady && cadence.due === 0 ? "All caught up · View sellers" : "View sellers"}</Text>
+          <Text style={{ color: colors.textName, fontSize: 14, fontWeight: "500" }}>{noSellers ? "Import your sellers to get started" : leadsReady && cadence.due === 0 ? "All caught up · View sellers" : "View sellers"}</Text>
           <AppIcon name="chevron" color={colors.textMuted} size={17} />
         </Pressable>
       </View>
-      <HomeMessageFeed userId={userId} query={feed} colors={colors} onOpenSeller={(sellerId) => onNavigate("sellers", { sellerId, sellerTab: "History" })} />
+      <HomeMessageFeed userId={userId} query={feed} colors={colors} onNavigate={onNavigate} onOpenSeller={(sellerId) => onNavigate("sellers", { sellerId, sellerTab: "History" })} />
       <View style={{ gap: 24 }}>
         <View accessibilityRole="tablist" style={{ flexDirection: "row", justifyContent: 'space-between', gap: 10, borderBottomWidth: 1, borderBottomColor: colors.border }}>
           {[["activity", "Activity"], ["drops", "Price drops"], ["email", "Email"], ["calendar", "Calendar"]].map(([id, label]) => <Pressable key={id} accessibilityRole="tab" accessibilityState={{ selected: activeTab === id }} onPress={() => setTab(id)}

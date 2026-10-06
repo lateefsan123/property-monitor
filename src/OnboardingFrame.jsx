@@ -3,11 +3,17 @@ import "./styles/onboarding.css";
 
 const ARTWORK = {
   welcome: "product-spreadsheets-mobile-colour-v3.png",
-  how: "product-followups-story-mobile-colour-v2.png",
-  profile: "product-seller-story-mobile-colour-v2.png",
+  "how-sellers": "product-seller-story-mobile-colour-v2.png",
+  "how-whatsapp": "whatsapp-agent-conversation.png",
+  "how-automation": "product-followups-story-mobile-colour-v2.png",
+  profile: "product-templates-story-mobile-colour-v2.png",
   referral: "product-templates-story-mobile-fox-clean-v1.png",
   trial: "product-market-story-mobile-colour-v2.png",
 };
+
+export function onboardingArtwork(step) {
+  return ARTWORK[step] || ARTWORK.welcome;
+}
 
 export default function OnboardingFrame({ children, step = "welcome" }) {
   return (
@@ -21,7 +27,7 @@ export default function OnboardingFrame({ children, step = "welcome" }) {
         </div>
       </section>
       <aside className="onboarding-art" aria-hidden="true">
-        <img src={`/landing/${ARTWORK[step]}`} alt="" />
+        <img src={`/landing/${onboardingArtwork(step)}`} alt="" />
       </aside>
     </main>
   );

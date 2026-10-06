@@ -4,6 +4,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import BottomSheet from "../components/BottomSheet";
 import ContentSkeleton from "../components/ContentSkeleton";
 import MessageFeedList, { LoadMore } from "./message-feed-list";
+import SetupNextAction from "./setup-next-action";
 import { fetchMessagePage, messageFeedQueryKey, nextFeedCursor } from "./message-feed";
 
 // The last 7 days, a page at a time; mounted only while the sheet is open.
@@ -24,7 +25,7 @@ function AllMessages({ userId, colors, onOpenSeller }) {
 
 // Home shortcut: the latest few people messaged or who replied, each with its
 // exact send time. Show all opens the last 7 days in a sheet.
-export default function HomeMessageFeed({ userId, query, colors, onOpenSeller }) {
+export default function HomeMessageFeed({ userId, query, colors, onOpenSeller, onNavigate }) {
   const [showAll, setShowAll] = useState(false);
   const items = query.data?.items || [];
   const open = (sellerId) => { setShowAll(false); onOpenSeller(sellerId); };
@@ -37,7 +38,10 @@ export default function HomeMessageFeed({ userId, query, colors, onOpenSeller })
     </View>
     {query.isPending ? <ContentSkeleton colors={colors} rows={2} label="Loading recent messages" />
       : query.error ? <Text style={{ color: colors.textMuted, fontSize: 14 }}>Recent messages unavailable.</Text>
-        : !items.length ? <Text style={{ color: colors.textMuted, fontSize: 14 }}>No messages in the last 7 days.</Text>
+        : !items.length ? <View style={{ gap: 6 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 14 }}>No messages in the last 7 days.</Text>
+          <SetupNextAction userId={userId} colors={colors} onNavigate={onNavigate} showHint={false} />
+        </View>
           : <MessageFeedList items={items} compact colors={colors} onOpenSeller={open} />}
     <BottomSheet visible={showAll} onClose={() => setShowAll(false)} colors={colors}>
       <ScrollView contentContainerStyle={{ padding: 20, paddingBottom: 40, gap: 18 }} showsVerticalScrollIndicator={false}>

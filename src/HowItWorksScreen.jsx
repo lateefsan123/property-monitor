@@ -1,30 +1,40 @@
 import { useState } from "react";
 import { supabase } from "./supabase";
-import OnboardingFrame from "./OnboardingFrame";
+import OnboardingFrame, { onboardingArtwork } from "./OnboardingFrame";
 
-// How Repeat works, in the order a new account sets it up. Laid out after
-// Airbnb's "It's easy to get started" (Mobbin 19c2044f): numbered steps,
-// a title and one line each, divided rows.
-const STEPS = [
+// How Repeat works, one idea per screen like mobile onboarding's feature
+// slides (mobile/src/screens/OnboardingScreen.js): segments across the top,
+// a short title and line, and the product art beside it.
+const SLIDES = [
   {
+    step: "how-sellers",
     title: "Bring in your sellers",
     text: "Import a spreadsheet from Excel or Google Sheets. Repeat matches each seller to their building.",
   },
   {
+    step: "how-whatsapp",
     title: "Connect your WhatsApp",
-    text: "Link your number once, like WhatsApp Web. Messages go out from you, not a bot.",
+    text: "Link your number once, like WhatsApp Web. Every message goes out from you, not a bot.",
   },
   {
+    step: "how-automation",
     title: "Repeat follows up for you",
-    text: "When something sells in a seller's building, they get the update. Up to 40 a day, and every reply shows in Activity.",
+    text: "When something sells in a seller's building, they get the update. Replies show in Activity.",
   },
 ];
 
 export default function HowItWorksScreen({ onContinue }) {
+  const [index, setIndex] = useState(0);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const slide = SLIDES[index];
+  const last = index === SLIDES.length - 1;
 
   async function handleContinue() {
+    if (!last) {
+      setIndex(index + 1);
+      return;
+    }
     setSaving(true);
     setError(null);
     try {
@@ -39,28 +49,37 @@ export default function HowItWorksScreen({ onContinue }) {
   }
 
   return (
-    <OnboardingFrame step="how">
+    <OnboardingFrame step={slide.step}>
       <div className="auth-form-container how-container">
-        <div className="auth-heading-group">
-          <p className="onboarding-eyebrow">How Repeat works</p>
-          <h1 className="auth-heading">Every seller followed up, without the busywork.</h1>
+        <div className="how-segments" role="progressbar" aria-label="How Repeat works" aria-valuemin={1} aria-valuemax={SLIDES.length} aria-valuenow={index + 1}>
+          {SLIDES.map((item, position) => <span key={item.step} className={position <= index ? "is-on" : ""} />)}
         </div>
 
-        <ol className="how-steps">
-          {STEPS.map((step, index) => (
-            <li key={step.title} className="how-step">
-              <span className="how-step-number" aria-hidden="true">{index + 1}</span>
-              <div className="how-step-body">
-                <h2>{step.title}</h2>
-                <p>{step.text}</p>
-              </div>
-            </li>
-          ))}
-        </ol>
+        <div key={slide.step} className="how-slide">
+          <p className="onboarding-eyebrow">How Repeat works</p>
+          <h1 className="auth-heading">{slide.title}</h1>
+          <p className="how-lead">{slide.text}</p>
+
+          {slide.step === "how-automation" && (
+            <div className="how-stat">
+              <span className="how-stat-lead">Up to</span>
+              <strong>40</strong>
+              <span className="how-stat-lead">automated WhatsApp messages a day</span>
+            </div>
+          )}
+
+          {/* The side art is hidden on narrow screens, so show it inline there. */}
+          <img className="how-inline-art" src={`/landing/${onboardingArtwork(slide.step)}`} alt="" />
+        </div>
 
         {error && <div className="auth-error">{error}</div>}
 
         <div className="onboarding-actions">
+          {index > 0 && (
+            <button type="button" className="trial-skip onboarding-secondary" onClick={() => setIndex(index - 1)} disabled={saving}>
+              Back
+            </button>
+          )}
           <button type="button" className="auth-submit" onClick={handleContinue} disabled={saving}>
             {saving ? "Saving..." : "Continue →"}
           </button>

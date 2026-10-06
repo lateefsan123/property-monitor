@@ -7,6 +7,7 @@ import SearchField from "../../components/SearchField";
 import SchedulePreferences from "./SchedulePreferences";
 import { SCHEDULE_DAYS, scheduleBuildingKey } from "../../../supabase/functions/_shared/building-schedule.js";
 import scheduleArt from "../../assets/schedule-empty.png";
+import { requestNewSpreadsheet } from "../../integration-resume";
 import "./schedule.css";
 
 // Same layout as the mobile schedule (mobile/src/workspace/schedule-editor.js):
@@ -42,7 +43,7 @@ function Sheet({ title, subtitle, onClose, children, footer }) {
   );
 }
 
-export default function SchedulePage({ userId, client = supabase }) {
+export default function SchedulePage({ userId, client = supabase, onNavigate }) {
   const spreadsheets = useSpreadsheetBuildings(userId);
   const state = useBuildingSchedule(client, userId, spreadsheets);
   const [sheet, setSheet] = useState(null);
@@ -149,7 +150,12 @@ export default function SchedulePage({ userId, client = supabase }) {
           </ul>
           {!available.length ? (
             <p className="sch-note is-center">
-              {!spreadsheets.sourceId ? "Choose a spreadsheet to see its buildings."
+              {!spreadsheets.loading && !spreadsheets.sources.length ? (
+                <span className="setup-next is-center">
+                  <span>Import sellers with building names to schedule them.</span>
+                  {onNavigate && <button type="button" className="setup-next-button" onClick={() => { requestNewSpreadsheet(); onNavigate("spreadsheets"); }}>Import a spreadsheet</button>}
+                </span>
+              ) : !spreadsheets.sourceId ? "Choose a spreadsheet to see its buildings."
                 : search ? "No matching buildings."
                   : state.buildings.length ? "All of this spreadsheet’s buildings are already scheduled."
                     : "This spreadsheet has no sellers with building names yet."}

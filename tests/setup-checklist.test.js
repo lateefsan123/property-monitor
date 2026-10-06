@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildSetupSteps, fetchSetupStatus } from "../shared/setup-checklist.js";
+import { buildSetupSteps, fetchSetupStatus, nextSetupAction } from "../shared/setup-checklist.js";
 
 test("a new account starts with nothing done", () => {
   const result = buildSetupSteps({});
@@ -32,4 +32,11 @@ test("status queries are scoped to the user", async () => {
   for (const table of ["leads", "whatsapp_accounts", "whatsapp_messages"]) {
     assert.ok(filters.some(([t, c, v]) => t === table && c === "user_id" && v === "user-1"), table);
   }
+});
+
+test("empty states offer import first, then WhatsApp, then nothing", () => {
+  assert.equal(nextSetupAction(undefined), null);
+  assert.equal(nextSetupAction({ leadCount: 0, whatsappConnected: true }).id, "import");
+  assert.equal(nextSetupAction({ leadCount: 5, whatsappConnected: false }).id, "whatsapp");
+  assert.equal(nextSetupAction({ leadCount: 5, whatsappConnected: true }), null);
 });

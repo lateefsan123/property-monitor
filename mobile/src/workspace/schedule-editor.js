@@ -9,7 +9,7 @@ import { Button, Feedback } from './ui';
 
 const daysFor = (value, name) => SCHEDULE_DAYS.filter(day => value.days[day].some(item => scheduleBuildingKey(item) === scheduleBuildingKey(name)));
 
-export default function ScheduleEditor({ state, colors }) {
+export default function ScheduleEditor({ state, colors, onImport }) {
   const [search, setSearch] = useState('');
   const [sheet, setSheet] = useState(null);
   const [editing, setEditing] = useState(null);
@@ -56,7 +56,7 @@ export default function ScheduleEditor({ state, colors }) {
         <View style={{ flexDirection: 'row', gap: 10 }}>{editingExisting ? <Button colors={colors} disabled={blocked} onPress={() => { state.removeBuilding(editing); setSheet(null); }} style={{ flex: 1, minHeight: 50, borderRadius: 25, backgroundColor: colors.errorBg, borderColor: colors.errorBg }}>Remove</Button> : null}<Button colors={colors} primary disabled={blocked || (!editingExisting && !selectedDays.length)} onPress={done} style={{ flex: 1, minHeight: 50, borderRadius: 25 }}>Done</Button></View>
       </View> : <>
         <View style={{ marginHorizontal: 20, marginBottom: 12, paddingHorizontal: 12, borderRadius: 12, backgroundColor: colors.bgBadge, flexDirection: 'row', alignItems: 'center', gap: 8 }}><AppIcon name="search" size={18} color={colors.textMuted} /><TextInput accessibilityLabel="Search buildings" placeholder="Search" placeholderTextColor={colors.textMuted} value={search} onChangeText={setSearch} style={{ ...text, flex: 1, minHeight: 46 }} /></View>
-        <FlatList style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }} data={available} keyExtractor={scheduleBuildingKey} renderItem={({ item }) => <Pressable accessibilityRole="button" disabled={blocked} onPress={() => edit(item)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 58, borderBottomWidth: 0.5, borderColor: colors.border }}><Text style={{ ...text, flex: 1 }}>{item}</Text><AppIcon name="plus" size={18} color={colors.textMuted} /></Pressable>} ListEmptyComponent={<Text style={{ ...muted, paddingVertical: 24 }}>{state.loading ? 'Loading buildings…' : search ? 'No matching buildings.' : state.buildings.length ? 'All your buildings are already scheduled.' : 'Import sellers with building names to get started.'}</Text>} />
+        <FlatList style={{ flexShrink: 1 }} keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 24 }} data={available} keyExtractor={scheduleBuildingKey} renderItem={({ item }) => <Pressable accessibilityRole="button" disabled={blocked} onPress={() => edit(item)} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 58, borderBottomWidth: 0.5, borderColor: colors.border }}><Text style={{ ...text, flex: 1 }}>{item}</Text><AppIcon name="plus" size={18} color={colors.textMuted} /></Pressable>} ListEmptyComponent={<View style={{ paddingVertical: 24, gap: 14, alignItems: 'flex-start' }}><Text style={muted}>{state.loading ? 'Loading buildings…' : search ? 'No matching buildings.' : state.buildings.length ? 'All your buildings are already scheduled.' : 'Import sellers with building names to get started.'}</Text>{!state.loading && !search && !state.buildings.length && onImport ? <Button colors={colors} primary onPress={() => { setSheet(null); onImport(); }} style={{ paddingHorizontal: 18, borderRadius: 22 }}>Import a spreadsheet</Button> : null}</View>} />
       </>}
     </BottomSheet>
   </View>;

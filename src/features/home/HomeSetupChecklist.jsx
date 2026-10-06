@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { IconChevronRight, IconCircle, IconCircleCheckFilled } from "@tabler/icons-react";
 import { supabase } from "../../supabase";
-import { requestNewSpreadsheet } from "../../integration-resume";
+import { openSetupAction } from "./setup-actions";
 import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey } from "../../../shared/setup-checklist";
 
 // "Get set up" for new accounts, after HoneyBook's step-by-step card
@@ -27,6 +27,7 @@ export default function HomeSetupChecklist({ userId, onNavigate }) {
   if (hidden || !status.data) return null;
   const { steps, completed, total, allDone } = buildSetupSteps(status.data);
   if (allDone) return null;
+  const nextId = steps.find((step) => !step.done)?.id;
 
   function hide() {
     setHidden(true);
@@ -34,14 +35,8 @@ export default function HomeSetupChecklist({ userId, onNavigate }) {
   }
 
   function open(step) {
-    if (step.id === "import") {
-      requestNewSpreadsheet();
-      onNavigate?.("spreadsheets");
-    } else if (step.id === "whatsapp") {
-      onNavigate?.("settings", { section: "whatsapp" });
-    } else {
-      onNavigate?.("sellers");
-    }
+    if (step.id === "first-message") onNavigate?.("sellers");
+    else openSetupAction(step, onNavigate);
   }
 
   return (
@@ -66,7 +61,9 @@ export default function HomeSetupChecklist({ userId, onNavigate }) {
                 <strong>{step.title}</strong>
                 <span className="home-muted">{step.text}</span>
               </span>
-              <IconChevronRight className="home-setup-chevron" size={18} stroke={2} aria-hidden="true" />
+              {step.id === nextId
+                ? <span className="setup-next-button home-setup-cta">{step.action}</span>
+                : <IconChevronRight className="home-setup-chevron" size={18} stroke={2} aria-hidden="true" />}
             </button>
           </li>
         ))}

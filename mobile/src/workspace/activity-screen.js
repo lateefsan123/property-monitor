@@ -4,6 +4,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import ContentSkeleton from "../components/ContentSkeleton";
 import MessageFeedList, { LoadMore } from "./message-feed-list";
 import { fetchMessagePage, messageFeedQueryKey, nextFeedCursor } from "./message-feed";
+import SetupNextAction from "./setup-next-action";
 
 const FILTERS = [["all", "All", undefined], ["sent", "Sent", "outbound"], ["replies", "Replies", "inbound"]];
 
@@ -35,7 +36,10 @@ export default function ActivityScreen({ userId, colors, onNavigate }) {
     </View>
     {feed.isPending ? <ContentSkeleton colors={colors} rows={4} label="Loading activity" />
       : feed.error ? <Text style={{ color: colors.textMuted, fontSize: 14 }}>Activity unavailable. Pull down to try again.</Text>
-        : !items.length ? <Text style={{ color: colors.textMuted, fontSize: 14 }}>{filter === "replies" ? "No replies in the last 30 days." : "No messages in the last 30 days."}</Text>
+        : !items.length ? <View style={{ gap: 8 }}>
+          <Text style={{ color: colors.textMuted, fontSize: 14 }}>{filter === "replies" ? "No replies in the last 30 days." : "No messages in the last 30 days."}</Text>
+          <SetupNextAction userId={userId} colors={colors} onNavigate={onNavigate} />
+        </View>
           : <View>
             <MessageFeedList items={items} colors={colors} onOpenSeller={(sellerId) => onNavigate("sellers", { sellerId, sellerTab: "History" })} />
             <LoadMore query={feed} colors={colors} />

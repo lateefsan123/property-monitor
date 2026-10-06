@@ -318,9 +318,9 @@ export default function AppShell({ displayName, subscription, userId }) {
             subscription={subscription}
           />
         ) : currentPage === "activity" ? (
-          <ActivityPage key={userId} userId={userId} onOpenSeller={(id) => { handleNavigate("sellers"); setSavedSellerId(String(id)); setSavedSellerSection("history"); }} />
+          <ActivityPage key={userId} userId={userId} onNavigate={handleNavigate} onOpenSeller={(id) => { handleNavigate("sellers"); setSavedSellerId(String(id)); setSavedSellerSection("history"); }} />
         ) : currentPage === "schedule" ? (
-          <SchedulePage key={userId} userId={userId} />
+          <SchedulePage key={userId} userId={userId} onNavigate={handleNavigate} />
         ) : currentPage === "settings" ? (
           <SettingsPage
             key={`${userId}:${settingsSection || ""}`}

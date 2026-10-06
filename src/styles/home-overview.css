@@ -161,3 +161,14 @@
 .home-setup-step.is-done .home-setup-text strong { color: var(--text-muted); text-decoration: line-through; text-decoration-thickness: 1px; }
 .home-setup-chevron { flex: none; color: var(--text-muted); transition: transform 150ms ease, color 150ms ease; }
 .home-setup-hide { align-self: flex-start; color: var(--text-muted); }
+
+/* Next setup step inside empty states (SetupNextAction.jsx) */
+.setup-next { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 12px; }
+.setup-next-button {
+  min-height: 38px; padding: 8px 16px; border: 0; border-radius: 8px;
+  background: var(--text-name); color: var(--bg-card); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+}
+.setup-next-button:hover { opacity: .88; }
+.is-center > .setup-next, .setup-next.is-center { align-items: center; }
+.home-setup-cta { flex: none; display: inline-flex; align-items: center; }
+.home-setup-step:hover .home-setup-cta { opacity: .88; }
