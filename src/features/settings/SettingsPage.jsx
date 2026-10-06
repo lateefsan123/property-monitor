@@ -160,6 +160,10 @@ export default function SettingsPage({
                 <SettingsToggle label="Monthly reports" checked={data.automation.monthlyReportsEnabled} disabled={data.automation.loading || data.automation.saving}
                   onChange={(value) => data.automation.set("monthlyReportsEnabled", value)} />
               </SettingsItem>
+              <SettingsItem label="Status follow-ups" description="When a seller is due, send the template for their status, then move them on. Stops when they reply. Set templates in Message templates and next steps in Statuses.">
+                <SettingsToggle label="Status follow-ups" checked={data.automation.statusFollowupsEnabled} disabled={data.automation.loading || data.automation.saving}
+                  onChange={(value) => data.automation.set("statusFollowupsEnabled", value)} />
+              </SettingsItem>
               {data.automation.autoWhatsAppEnabled && data.automation.monthlyReportsEnabled && (
                 <SettingsItem label="Daily split" description={(() => {
                   const limit = data.automation.dailyMessageLimit;

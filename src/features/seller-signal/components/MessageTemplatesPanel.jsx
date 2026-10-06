@@ -9,7 +9,7 @@ import {
 import { DEFAULT_MESSAGE_TEMPLATE } from "../insight-utils";
 import RepeatFox from "../../../components/RepeatFox";
 import TemplateAiDialog from './TemplateAiDialog';
-import { TEMPLATE_STATUSES, templateStatusLabels } from "../../../../supabase/functions/_shared/template-status.js";
+import { templateStatusLabels, templateStatusOptions } from "../../../../supabase/functions/_shared/template-status.js";
 import {
   MESSAGE_TEMPLATE_IMAGE_MAX_BYTES,
   MESSAGE_TEMPLATE_IMAGE_TYPES,
@@ -283,7 +283,7 @@ export default function MessageTemplatesPanel({
                 <div className="message-template-status-field" role="group" aria-labelledby="message-template-status-label">
                   <span id="message-template-status-label">Use for</span>
                   <div className="message-template-status-row">
-                    {TEMPLATE_STATUSES.map((status) => {
+                    {templateStatusOptions().map((status) => {
                       const on = statuses.includes(status.id);
                       const owner = templates.find((template) => template.id !== selectedTemplate?.id && template.statuses?.includes(status.id));
                       return (

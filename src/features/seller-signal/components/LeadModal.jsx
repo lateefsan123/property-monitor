@@ -1,7 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import SellerFollowUpControl from './SellerFollowUpControl';
 import { introAttachmentPath } from "../../../../supabase/functions/_shared/intro-attachment.js";
-import { TEMPLATE_STATUSES, pickTemplateForStatus, templateStatusId } from "../../../../supabase/functions/_shared/template-status.js";
+import { pickTemplateForStatus, templateStatusId, templateStatusLabels } from "../../../../supabase/functions/_shared/template-status.js";
 import {
   IconBrandWhatsapp,
   IconCheck,
@@ -111,7 +111,7 @@ export default function LeadModal({
   const statusTemplate = pickTemplateForStatus(templates, lead.status);
   const statusId = templateStatusId(lead.status);
   const matchedStatus = statusTemplate?.statuses?.includes(statusId)
-    ? TEMPLATE_STATUSES.find((status) => status.id === statusId)?.label
+    ? templateStatusLabels([statusId])[0]
     : null;
   const templateOptions = [
     { id: "default", label: statusTemplate ? `${statusTemplate.name} (${matchedStatus || "default"})` : "Default script" },

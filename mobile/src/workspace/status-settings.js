@@ -130,6 +130,22 @@ export default function StatusSettings({ userId, colors }) {
                 );
               })}
             </View>
+            {!draft.builtin_key && custom.some((row) => row.id !== draft.id) ? (
+              <View style={{ gap: 4 }}>
+                <Text style={{ color: colors.textMuted, fontSize: 13 }}>After a status follow-up is sent, move to</Text>
+                {[{ id: null, label: "Stay in this status" }, ...custom.filter((row) => row.id !== draft.id)].map((option) => {
+                  const selected = (draft.next_status_id || null) === option.id;
+                  return (
+                    <Pressable key={option.id || "stay"} accessibilityRole="radio" accessibilityState={{ checked: selected }}
+                      onPress={() => setDraft({ ...draft, next_status_id: option.id })}
+                      style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 46 }}>
+                      <Text style={{ color: colors.text, fontSize: 16 }}>{option.label}</Text>
+                      {selected ? <AppIcon name="check" size={18} color={colors.textName} /> : null}
+                    </Pressable>
+                  );
+                })}
+              </View>
+            ) : null}
             <Button colors={colors} primary disabled={saving || (!draft.builtin_key && !draft.label.trim())} onPress={save}>{saving ? "Saving…" : "Save"}</Button>
             {draft.id && !draft.builtin_key ? <Button colors={colors} disabled={saving} onPress={remove}>Delete status</Button> : null}
           </ScrollView>

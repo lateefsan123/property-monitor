@@ -8,7 +8,7 @@ export const DAILY_AUTOMATION_CAP = 40;
 export { DEFAULT_SEND_INTERVAL_MINUTES, DEFAULT_SEND_WINDOW, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit } from "../supabase/functions/_shared/send-pacing.js";
 import { normalizePacing } from "../supabase/functions/_shared/send-pacing.js";
 
-const PACING_COLUMNS = "send_window_start_hour, send_window_end_hour, send_interval_minutes, daily_message_limit";
+const PACING_COLUMNS = "send_window_start_hour, send_window_end_hour, send_interval_minutes, daily_message_limit, status_followups_enabled";
 const COLUMNS = `auto_whatsapp_enabled, monthly_reports_enabled, monthly_report_daily_share, ${PACING_COLUMNS}`;
 const SHARE_COLUMNS = "auto_whatsapp_enabled, monthly_reports_enabled, monthly_report_daily_share";
 const LEGACY_COLUMNS = "auto_whatsapp_enabled, monthly_reports_enabled";
@@ -24,6 +24,7 @@ function toSettings(data) {
     sendWindowEndHour: pacing.end,
     sendIntervalMinutes: pacing.interval,
     dailyMessageLimit: clampDailyLimit(data?.daily_message_limit),
+    statusFollowupsEnabled: data?.status_followups_enabled === true,
   };
 }
 
@@ -80,6 +81,7 @@ export function createAutomationServices(supabase) {
       row.send_interval_minutes = pacing.interval;
     }
     if (settings.dailyMessageLimit !== undefined) row.daily_message_limit = clampDailyLimit(settings.dailyMessageLimit);
+    if (settings.statusFollowupsEnabled !== undefined) row.status_followups_enabled = Boolean(settings.statusFollowupsEnabled);
 
     let { data, error } = await supabase
       .from("seller_signal_automation_settings")
@@ -92,6 +94,7 @@ export function createAutomationServices(supabase) {
       delete row.send_window_end_hour;
       delete row.send_interval_minutes;
       delete row.daily_message_limit;
+      delete row.status_followups_enabled;
       ({ data, error } = await supabase
         .from("seller_signal_automation_settings")
         .upsert(row, { onConflict: "user_id" })

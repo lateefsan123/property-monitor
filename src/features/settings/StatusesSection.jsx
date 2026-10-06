@@ -49,7 +49,7 @@ function FollowUpSelect({ value, onChange, disabled, label }) {
 // Add or edit a status in a dialog, after Attio's status editor (Mobbin
 // 32cedf09): name, a live preview pill, the colour picker and the follow-up
 // gap, with Cancel and Create/Save. Escape or the backdrop closes it.
-function StatusDialog({ draft, setDraft, saving, error, onCancel, onSave, onDelete, isNew }) {
+function StatusDialog({ draft, setDraft, saving, error, onCancel, onSave, onDelete, isNew, otherStatuses = [] }) {
   useEffect(() => {
     const escape = (event) => { if (event.key === "Escape" && !saving) onCancel(); };
     document.addEventListener("keydown", escape);
@@ -76,6 +76,16 @@ function StatusDialog({ draft, setDraft, saving, error, onCancel, onSave, onDele
           <span>Follow up</span>
           <FollowUpSelect value={draft.follow_up_days} label="Follow up" disabled={saving} onChange={(days) => setDraft({ ...draft, follow_up_days: days })} />
         </label>
+        {otherStatuses.length ? (
+          <label className="stx-field">
+            <span>After a status follow-up is sent, move to</span>
+            <select className="stx-select" value={draft.next_status_id || ""} disabled={saving}
+              onChange={(event) => setDraft({ ...draft, next_status_id: event.target.value || null })}>
+              <option value="">Stay in this status</option>
+              {otherStatuses.map((status) => <option key={status.id} value={status.id}>{status.label}</option>)}
+            </select>
+          </label>
+        ) : null}
         {error && <p className="st-error" role="alert">{error}</p>}
         <div className="stx-dialog-actions">
           {onDelete && <button type="button" className="stx-btn stx-btn-danger" onClick={onDelete} disabled={saving}><IconTrash size={15} stroke={1.8} aria-hidden="true" />Delete</button>}
@@ -211,6 +221,7 @@ export default function StatusesSection({ userId }) {
       {!editing && (error || statuses.error) && <p className="st-error" role="alert">{error || statuses.error?.message}</p>}
       {editing && draft && (
         <StatusDialog draft={draft} setDraft={setDraft} saving={saving} error={error} isNew={editing === "new"}
+          otherStatuses={custom.filter((row) => row.id !== draft.id)}
           onSave={saveDraft} onDelete={editing === "new" ? null : remove} onCancel={closeDialog} />
       )}
     </div>

@@ -12,7 +12,7 @@ import {
   MESSAGE_TEMPLATE_IMAGE_TYPES,
 } from "./message-templates";
 import BottomSheet from "../components/BottomSheet";
-import { TEMPLATE_STATUSES, templateStatusLabels } from "../../../supabase/functions/_shared/template-status.js";
+import { templateStatusLabels, templateStatusOptions } from "../../../supabase/functions/_shared/template-status.js";
 import { Button, Feedback, Icon } from "./ui";
 
 
@@ -208,7 +208,7 @@ export default function MessageTemplateEditor({ templates, initial, userId, colo
             ))}
           </> : sheet === "statuses" ? <>
             <Text style={{ color: colors.textMuted, fontSize: 15, lineHeight: 22 }}>Sellers with these statuses get this template. Others get your default.</Text>
-            {TEMPLATE_STATUSES.map(status => {
+            {templateStatusOptions().map(status => {
               const on = statuses.includes(status.id);
               const owner = !on ? templates.find(template => template.id !== selected?.id && template.statuses?.includes(status.id)) : null;
               return <View key={status.id} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 48 }}>

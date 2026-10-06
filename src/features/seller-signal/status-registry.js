@@ -1,5 +1,6 @@
 import { mergeStatusRules } from "../../../shared/seller-statuses.js";
 import { STATUS_FILTER_OPTIONS, STATUS_RULES } from "./constants";
+import { setTemplateCustomStatuses } from "../../../supabase/functions/_shared/template-status.js";
 
 // STATUS_RULES and STATUS_FILTER_OPTIONS are shared live lists (web and mobile
 // both read them through lead-utils). Loading sellers merges the account's
@@ -20,6 +21,7 @@ export function applyAccountStatuses(rows) {
   STATUS_RULES.splice(0, STATUS_RULES.length, ...merged);
   const custom = merged.filter((rule) => rule.custom).map((rule) => ({ id: rule.id, label: rule.label, color: rule.color }));
   STATUS_FILTER_OPTIONS.splice(0, STATUS_FILTER_OPTIONS.length, ...BASE_FILTERS, ...custom);
+  setTemplateCustomStatuses(custom);
   return merged;
 }
 

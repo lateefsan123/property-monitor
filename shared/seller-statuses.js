@@ -80,7 +80,7 @@ export function createSellerStatusServices(supabase) {
     if (!userId) return [];
     const { data, error } = await supabase
       .from("seller_signal_statuses")
-      .select("id, label, color, follow_up_days, builtin_key, position, created_at")
+      .select("id, label, color, follow_up_days, builtin_key, position, created_at, next_status_id")
       .eq("user_id", userId)
       .order("position", { ascending: true });
     // 42P01/PGRST205: the table isn't in this database yet; built-ins only.
@@ -104,10 +104,12 @@ export function createSellerStatusServices(supabase) {
       position: Number.isInteger(status.position) ? status.position : 0,
       updated_at: new Date().toISOString(),
     };
+    // After a status follow-up is sent, the seller moves to this status.
+    if (!status.builtin_key && "next_status_id" in status) row.next_status_id = status.next_status_id || null;
     const query = status.id
       ? supabase.from("seller_signal_statuses").update(row).eq("id", status.id).eq("user_id", userId)
       : supabase.from("seller_signal_statuses").insert(row);
-    const { data, error } = await query.select("id, label, color, follow_up_days, builtin_key, position, created_at").single();
+    const { data, error } = await query.select("id, label, color, follow_up_days, builtin_key, position, created_at, next_status_id").single();
     if (error) {
       if (error.code === "23505") throw new Error("You already have a status with that name.");
       throw new Error(error.message);

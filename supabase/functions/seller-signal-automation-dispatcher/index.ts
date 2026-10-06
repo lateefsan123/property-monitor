@@ -80,6 +80,8 @@ Deno.serve(async (req) => {
     const passes: Array<[string, string, Record<string, unknown>]> = [
       ["transactionUpdates", "seller-signal-auto-whatsapp", base],
       ["monthlyReports", "seller-signal-monthly-report", { ...base, reportDailyBudget: dailyCap }],
+      // Accounts that turned on status follow-ups (custom status templates).
+      ["statusFollowUps", "seller-signal-status-followups", base],
       ["transactionFill", "seller-signal-auto-whatsapp", { ...base, fill: true }],
       ["monthlyReportFill", "seller-signal-monthly-report", { ...base, reportDailyBudget: dailyCap, fill: true }],
     ];

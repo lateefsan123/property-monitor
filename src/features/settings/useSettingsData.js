@@ -36,6 +36,7 @@ export function useSettingsData(userId) {
     sendWindowEndHour: automation.data?.sendWindowEndHour ?? DEFAULT_SEND_WINDOW.end,
     sendIntervalMinutes: automation.data?.sendIntervalMinutes ?? DEFAULT_SEND_INTERVAL_MINUTES,
     dailyMessageLimit: automation.data?.dailyMessageLimit ?? 40,
+    statusFollowupsEnabled: automation.data?.statusFollowupsEnabled === true,
   };
 
   return {
