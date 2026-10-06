@@ -3,6 +3,8 @@ const UNLIMITED_USER_ID = "441421f9-1089-4694-a66e-ab75b5459003";
 // Dedicated review accounts. These grants expire automatically and cannot
 // be claimed through profile metadata.
 const REVIEW_ACCESS_END = new Map([
+  // Private sales demonstration account with fictional sellers only.
+  ["90dec869-75fa-4294-8bf1-7e4c2384184f", "2026-12-31T23:59:59.000Z"],
   ["50b2ccdb-5bff-4bd4-a97a-9aa12744fae0", "2026-12-31T23:59:59.000Z"],
   ["b53185df-f9d2-417b-ac17-e91e84b00186", "2026-10-06T23:59:59.000Z"],
   ["681e8cae-2326-4045-b7bf-9f6458a06e01", "2026-12-31T23:59:59.000Z"],
