@@ -1,6 +1,7 @@
 import { STATUS_RULES } from "./constants";
 
-const VALID_STATUS_IDS = new Set(STATUS_RULES.map((rule) => rule.id));
+// Checked live: STATUS_RULES gains the account's own statuses after sellers load.
+const VALID_STATUS_IDS = { has: (id) => STATUS_RULES.some((rule) => rule.id === id) };
 
 export function normalizeStatusFilter(value) {
   const rawValues = Array.isArray(value)

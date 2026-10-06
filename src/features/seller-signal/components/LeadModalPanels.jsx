@@ -15,33 +15,15 @@ import {
 } from "@tabler/icons-react";
 import { formatBedsLabel, formatDate, formatPrice, formatPsf, formatRange } from "../formatters";
 import SellerStatusPill from "./SellerStatusPill";
+import { statusChoices } from "../status-registry";
 import { sellerStatusTone } from "./seller-avatar";
 
-// Same choices as the mobile seller sheet.
-const STATUS_ACTIONS = [
-  { id: "prospect", label: "Prospect", value: "Prospect" },
-  { id: "market_appraisal", label: "Appraisal", value: "Appraisal" },
-  { id: "for_sale_available", label: "For Sale", value: "For Sale" },
-];
-
-const EDIT_STATUS_OPTIONS = [
-  { value: "", label: "No status" },
-  { value: "Not Interested", label: "Not Interested" },
-  { value: "Prospect", label: "Prospect" },
-  { value: "Appraisal", label: "Appraisal" },
-  { value: "For Sale", label: "For Sale" },
-];
-
+// Built-in statuses plus the account's own (status-registry.js), the same
+// choices as the mobile seller sheet.
 function getEditStatusOptions(currentStatus) {
-  if (!currentStatus || EDIT_STATUS_OPTIONS.some((option) => option.value === currentStatus)) {
-    return EDIT_STATUS_OPTIONS;
-  }
-
-  return [
-    EDIT_STATUS_OPTIONS[0],
-    { value: currentStatus, label: `${currentStatus} (Current)` },
-    ...EDIT_STATUS_OPTIONS.slice(1),
-  ];
+  const options = [{ value: "", label: "No status" }, ...statusChoices()];
+  if (!currentStatus || options.some((option) => option.value === currentStatus)) return options;
+  return [options[0], { value: currentStatus, label: `${currentStatus} (Current)` }, ...options.slice(1)];
 }
 
 // Edit form in the drawer body; Save and Cancel live in the drawer footer and
@@ -171,12 +153,12 @@ export function SellerDetailsPanel({ lead, buildingLabel, bedroomLabel, unitLabe
             aria-label={`Change status, currently ${lead.statusLabel || "Unknown"}`}
             onClick={() => setStatusOpen((value) => !value)}
           >
-            <SellerStatusPill tone={sellerStatusTone(lead.statusRule?.id)}>{lead.statusLabel || "Unknown"}</SellerStatusPill>
+            <SellerStatusPill tone={sellerStatusTone(lead.statusRule?.id)} color={lead.statusRule?.color}>{lead.statusLabel || "Unknown"}</SellerStatusPill>
             {onUpdateStatus && <IconChevronDown size={15} stroke={1.8} aria-hidden="true" />}
           </button>
           {statusOpen && (
             <div className="seller-pill-menu" role="menu">
-              {STATUS_ACTIONS.map((option) => (
+              {statusChoices({ includeNotInterested: false }).map((option) => (
                 <button
                   key={option.id}
                   type="button"

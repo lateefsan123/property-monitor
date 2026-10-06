@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { IconUsers, IconX } from "@tabler/icons-react";
+import { statusChoices } from "../status-registry";
 
 // Add seller opens in the same right-side drawer as the seller details, with
 // the same fields and footer as Edit seller.
-const STATUS_OPTIONS = [
-  { value: "", label: "No status" },
-  { value: "Prospect", label: "Prospect" },
-  { value: "Appraisal", label: "Appraisal" },
-  { value: "For Sale", label: "For Sale" },
-  { value: "Not Interested", label: "Not Interested" },
-];
+// Built-in statuses plus the account's own (status-registry.js).
+const statusOptions = () => {
+  const choices = statusChoices();
+  const notInterested = choices.filter((choice) => choice.id === "not_interested");
+  return [{ value: "", label: "No status" }, ...choices.filter((choice) => choice.id !== "not_interested"), ...notInterested];
+};
 
 const EMPTY_DRAFT = {
   name: "",
@@ -96,7 +96,7 @@ export default function AddSellerModal({ onClose, onSubmit, submitting, sourceLa
               <div className="seller-edit-field">
                 <span>Status</span>
                 <div className="seller-edit-chips" role="radiogroup" aria-label="Status">
-                  {STATUS_OPTIONS.map((option) => (
+                  {statusOptions().map((option) => (
                     <button
                       key={option.value || "blank"}
                       type="button"

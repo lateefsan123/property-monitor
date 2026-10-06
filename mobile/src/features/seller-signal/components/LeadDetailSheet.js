@@ -13,20 +13,11 @@ import { formatBuildingLabel } from "../lead-utils";
 import { Badge } from "./LeadCard";
 import SellerFollowUpControl from './seller-follow-up-control';
 import { pickSellerImage } from '../seller-contact';
+import { statusChoices } from "../../../../../src/features/seller-signal/status-registry.js";
 import SellerMessageHistory from "./SellerMessageHistory";
 
-const STATUS_ACTIONS = [
-  { id: "prospect", label: "Prospect", value: "Prospect" },
-  { id: "market_appraisal", label: "Appraisal", value: "Appraisal" },
-  { id: "for_sale_available", label: "For Sale", value: "For Sale" },
-];
-
-const EDIT_STATUS_OPTIONS = [
-  { value: "", label: "No status" },
-  { value: "Prospect", label: "Prospect" },
-  { value: "Appraisal", label: "Appraisal" },
-  { value: "For Sale", label: "For Sale" },
-];
+// Built-in statuses plus the account's own (status-registry.js), as on web.
+const statusActions = () => statusChoices({ includeNotInterested: false });
 
 function MessageIcon({ size = 14, color }) {
   return (
@@ -53,15 +44,9 @@ function CheckIcon({ size = 18, color }) {
 }
 
 function getEditStatusOptions(currentStatus) {
-  if (!currentStatus || EDIT_STATUS_OPTIONS.some((option) => option.value === currentStatus)) {
-    return EDIT_STATUS_OPTIONS;
-  }
-
-  return [
-    EDIT_STATUS_OPTIONS[0],
-    { value: currentStatus, label: `${currentStatus} (Current)` },
-    ...EDIT_STATUS_OPTIONS.slice(1),
-  ];
+  const options = [{ value: "", label: "No status" }, ...statusActions()];
+  if (!currentStatus || options.some((option) => option.value === currentStatus)) return options;
+  return [options[0], { value: currentStatus, label: `${currentStatus} (Current)` }, ...options.slice(1)];
 }
 
 function EditForm({ colors, draft, onChange }) {
@@ -355,10 +340,10 @@ export default function LeadDetailSheet({
               </View>
             <View style={s.statusSection}>
               <Pressable accessibilityRole="button" accessibilityLabel="Change seller status" accessibilityState={{ expanded: statusOpen }} onPress={() => setStatusOpen(value => !value)} style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 44 }}>
-                <Text style={{ color: c.text, fontSize: 15 }}>Status</Text><View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}><Badge label={lead.statusLabel || "No status"} statusId={lead.statusRule?.id} colors={c} /><AppIcon name="chevron" size={16} color={c.textMuted} /></View>
+                <Text style={{ color: c.text, fontSize: 15 }}>Status</Text><View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}><Badge label={lead.statusLabel || "No status"} statusId={lead.statusRule?.id} color={lead.statusRule?.color} colors={c} /><AppIcon name="chevron" size={16} color={c.textMuted} /></View>
               </Pressable>
               {statusOpen && <View style={s.statusRow}>
-                {STATUS_ACTIONS.map((option) => {
+                {statusActions().map((option) => {
                   const isActive = lead.statusRule?.id === option.id;
                   return (
                     <Pressable

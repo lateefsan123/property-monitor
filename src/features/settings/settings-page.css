@@ -247,3 +247,34 @@ button.st-profile:hover { background: var(--bg-hover); }
 .st-split-option { min-width: 40px; height: 32px; padding: 0 10px; border: 0; border-radius: 9px; background: none; color: var(--text-muted); font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; font-variant-numeric: tabular-nums; }
 .st-split-option.is-active { background: var(--bg-card); color: var(--text-name); }
 .st-split-option:disabled { cursor: default; opacity: .6; }
+
+/* Statuses (StatusesSection.jsx), after Linear's "Project statuses": grey
+   group headers with a "+", one row per status, inline editor. */
+.st-statuses { overflow: hidden; border: 1px solid var(--border); border-radius: 18px; background: var(--bg-card); padding: 6px; }
+.st-status-group { display: flex; align-items: center; justify-content: space-between; min-height: 36px; margin: 4px 0; padding: 0 6px 0 12px; border-radius: 10px; background: var(--bg-badge); color: var(--text-muted); font-size: 13px; font-weight: 600; }
+.st-status-add { display: inline-grid; place-items: center; width: 28px; height: 28px; padding: 0; border: 0; border-radius: 8px; background: none; color: var(--text-muted); cursor: pointer; }
+.st-status-add:hover:not(:disabled) { background: var(--bg-hover); color: var(--text-name); }
+.st-status-row { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 56px; padding: 8px 12px; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.st-status-row:hover:not(:disabled) { background: var(--bg-hover); }
+.st-status-row:disabled { cursor: default; }
+.st-status-dot { flex: none; width: 12px; height: 12px; border-radius: 50%; background: var(--dot); }
+.st-status-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.st-status-text strong { color: var(--text-name); font-size: 15px; font-weight: 600; }
+.st-status-text small { color: var(--text-muted); font-size: 13px; }
+.st-status-empty { margin: 0; padding: 14px 12px; color: var(--text-muted); font-size: 14px; line-height: 1.5; }
+.st-status-empty-button { display: block; width: 100%; border: 0; background: none; font: inherit; text-align: left; cursor: pointer; border-radius: 10px; }
+.st-status-empty-button:hover { background: var(--bg-hover); color: var(--text-name); }
+.st-status-editor { display: flex; flex-direction: column; gap: 14px; margin: 6px 0; padding: 14px; border: 1px solid var(--border); border-radius: 12px; }
+.st-status-name { min-height: 42px; padding: 0 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-input, var(--bg-card)); color: var(--text-name); font: inherit; font-size: 15px; }
+.st-status-name:focus { border-color: var(--text-name); outline: none; }
+.st-status-colors { display: flex; flex-wrap: wrap; gap: 8px; }
+.st-status-swatch { width: 26px; height: 26px; padding: 0; border: 2px solid transparent; border-radius: 50%; background: var(--swatch); cursor: pointer; box-shadow: inset 0 0 0 2px var(--bg-card); }
+.st-status-swatch.is-active { border-color: var(--text-name); }
+.st-status-field { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-name); font-size: 14px; }
+.st-status-select { min-height: 36px; padding: 0 10px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-card); color: var(--text-name); font: inherit; font-size: 14px; }
+.st-status-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.st-status-delete { margin-right: auto; padding: 8px 4px; border: 0; background: none; color: var(--error-text); font: inherit; font-size: 14px; cursor: pointer; }
+.st-status-cancel, .st-status-save { min-height: 34px; padding: 0 14px; border-radius: 9px; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.st-status-cancel { border: 1px solid var(--border); background: var(--bg-card); color: var(--text-name); }
+.st-status-save { border: 0; background: var(--text-name); color: var(--bg-card); }
+.st-status-save:disabled, .st-status-cancel:disabled { opacity: .5; cursor: default; }

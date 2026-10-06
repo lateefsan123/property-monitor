@@ -4,6 +4,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
 import { followUpPending } from "../_shared/seller-follow-up.js";
 import { pickTemplateForStatus } from "../_shared/template-status.js";
+import { customStatusDays, loadCustomStatusDays } from "../_shared/custom-statuses.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1132,6 +1133,7 @@ Deno.serve(async (req) => {
     // so the per-seller checks below run on them alone (not every seller, every run).
     const candidateLeads = leads.filter((lead: any) =>
       (keysByLead.get(Number(lead.id)) || []).some((key) => (transactionsByKey.get(key) || []).length > 0));
+    const statusDays = await loadCustomStatusDays(adminClient, candidateLeads.map((lead: any) => lead.user_id));
     const existingMessagePairs = await fetchExistingMarketMessagePairs(
       adminClient,
       candidateLeads.map((lead: any) => Number(lead.id)),
@@ -1201,7 +1203,9 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      if (isNotInterestedStatus(lead.status)) {
+      // An account's own status decides first (0 days = don't follow up).
+      const ownDays = customStatusDays(statusDays, lead.user_id, lead.status);
+      if (ownDays === 0 || (ownDays === undefined && isNotInterestedStatus(lead.status))) {
         summary.skipped.notInterested += 1;
         continue;
       }

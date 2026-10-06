@@ -3,6 +3,8 @@ import { PAGE_SIZE, STATUS_RULES } from "./constants";
 import { mapStoredLeadRow, startOfDay, sortLeadsByPriority } from "./lead-utils";
 import { normalizeStatusFilter } from "./status-filter-utils";
 import { selectCountedRows } from "../../../shared/select-counted-rows.js";
+import { ensureAccountStatuses } from "./status-registry";
+import { fetchStatuses } from "./seller-status-services";
 
 const SUPABASE_PAGE_SIZE = 1000;
 const EMPTY_PAGE = { leads: [], sentMap: {}, totalCount: 0, sourceCounts: {} };
@@ -26,6 +28,7 @@ export async function selectAllRows(buildQuery, pageSize = SUPABASE_PAGE_SIZE) {
 }
 
 export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
+  await ensureAccountStatuses(userId, fetchStatuses);
   const [leadRows, sentLeadRows] = await Promise.all([
     selectCountedRows((count) => supabase.from("leads").select("*", count ? { count: "exact" } : {}).eq("user_id", userId).order("id")),
     selectCountedRows((count) => supabase.from("sent_leads").select("lead_id, sent_at", count ? { count: "exact" } : {}).eq("user_id", userId).order("lead_id").order("id")),
@@ -56,14 +59,18 @@ function sanitizeIlikeTerm(value) {
   return String(value || "").trim().replace(/[%_,]/g, " ");
 }
 
-function getStatusKeywords(statusFilter) {
+// PostgREST conditions for the chosen statuses: built-ins by keyword, the
+// account's own by exact (case-insensitive) name.
+function getStatusConditions(statusFilter) {
   const activeStatusIds = normalizeStatusFilter(statusFilter);
-  const keywords = [];
+  const conditions = [];
   for (const statusId of activeStatusIds) {
     const rule = STATUS_RULES.find((item) => item.id === statusId);
-    if (rule?.keywords?.length) keywords.push(...rule.keywords);
+    if (!rule?.keywords?.length) continue;
+    if (rule.exact) conditions.push(`status.ilike.${sanitizeIlikeTerm(rule.label)}`);
+    else conditions.push(...rule.keywords.map((keyword) => `status.ilike.%${keyword}%`));
   }
-  return [...new Set(keywords)];
+  return [...new Set(conditions)];
 }
 
 function applySellerLeadFilters(query, filters = {}) {
@@ -88,9 +95,9 @@ function applySellerLeadFilters(query, filters = {}) {
     next = next.eq("source_id", sourceFilter);
   }
 
-  const keywords = getStatusKeywords(statusFilter);
-  if (keywords.length) {
-    next = next.or(keywords.map((keyword) => `status.ilike.%${keyword}%`).join(","));
+  const statusConditions = getStatusConditions(statusFilter);
+  if (statusConditions.length) {
+    next = next.or(statusConditions.join(","));
   }
 
   const term = sanitizeIlikeTerm(searchTerm);
@@ -137,6 +144,7 @@ export async function fetchSellerLeadPage(options = {}) {
   } = options;
 
   if (!userId) return EMPTY_PAGE;
+  await ensureAccountStatuses(userId, fetchStatuses);
 
   const safePage = Math.max(1, Number(currentPage) || 1);
   const from = (safePage - 1) * pageSize;

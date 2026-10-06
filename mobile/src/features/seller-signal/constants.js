@@ -8,12 +8,9 @@ export const RECENT_TRANSACTIONS_LIMIT = 2;
 export const WHATSAPP_OPEN_DELAY_MS = 600;
 export const MIN_NEW_TRANSACTIONS_TO_REACTIVATE = 2;
 
-export const STATUS_RULES = [
-  { id: "not_interested", label: "Not Interested", days: 0, keywords: ["not interested", "ni", "cold"] },
-  { id: "prospect", label: "Prospect", days: 75, keywords: ["prospect"] },
-  { id: "market_appraisal", label: "Market Appraisal", days: 25, keywords: ["market appraisal", "appraisal", "valuation"] },
-  { id: "for_sale_available", label: "For Sale Available", days: 5, keywords: ["for sale available", "for sale", "available"] },
-];
+// The same live lists as web: loading sellers adds the account's own statuses
+// (src/features/seller-signal/status-registry.js).
+export { STATUS_RULES, STATUS_FILTER_OPTIONS } from "../../../../src/features/seller-signal/constants.js";
 
 export const COLUMN_ALIASES = {
   name: ["name", "seller", "seller name", "owner", "owner name", "ownernameen", "client", "lead name", "full name"],
@@ -24,13 +21,6 @@ export const COLUMN_ALIASES = {
   phone: ["phone", "number", "mobile", "whatsapp", "whatsapp number", "contact number", "phone number", "owner contact"],
   unit: ["unit", "unit number", "unit no", "unitno", "apartment", "apt", "flat", "property number", "room"],
 };
-
-export const STATUS_FILTER_OPTIONS = [
-  { id: "not_interested", label: "Not Interested" },
-  { id: "prospect", label: "Prospect" },
-  { id: "market_appraisal", label: "Appraisal" },
-  { id: "for_sale_available", label: "For Sale" },
-];
 
 export const DATA_FILTER_OPTIONS = [
   { id: "with_data", label: "Market Data" },

@@ -1,5 +1,5 @@
 import { DEFAULT_CADENCE_DAYS, MAX_MEANINGFUL_OVERDUE_DAYS, MILLISECONDS_PER_DAY, STATUS_RULES } from "./constants";
-import { normalizeToken } from "./spreadsheet";
+import { matchStatusRule } from "../../../shared/seller-statuses.js";
 import { canonicalizeBuildingName, parseBuildingAddressValue } from "./building-utils";
 import { dubaiDateKey } from '../../../supabase/functions/_shared/seller-follow-up.js';
 
@@ -135,17 +135,10 @@ function splitImportedBedroomUnit(rawBedroom, rawUnit) {
   };
 }
 
+// Custom statuses match their exact name, then the built-in keywords
+// (shared/seller-statuses.js); STATUS_RULES includes the account's own.
 function resolveStatusRule(rawStatus) {
-  const normalized = normalizeToken(rawStatus);
-  if (!normalized) return null;
-
-  for (const rule of STATUS_RULES) {
-    for (const keyword of rule.keywords) {
-      if (normalized.includes(normalizeToken(keyword))) return rule;
-    }
-  }
-
-  return null;
+  return matchStatusRule(STATUS_RULES, rawStatus);
 }
 
 export function mapLeadRow(record, index, mapping, today) {
@@ -160,13 +153,14 @@ export function mapLeadRow(record, index, mapping, today) {
   const statusRule = resolveStatusRule(status);
   const bedroomInfo = parseBedroom(bedroom);
   const lastContactDate = parseDateValue(lastContactRaw);
-  const isNotInterested = statusRule?.id === "not_interested";
+  // Not Interested, or a status set to "Don't follow up" (0 days).
+  const isNotInterested = statusRule?.id === "not_interested" || (Boolean(statusRule) && Number(statusRule.days) === 0);
   // Leads with no recognized status still cycle on the default cadence so
   // nothing silently falls out of the follow-up queue.
   const cadenceDays = statusRule && !isNotInterested ? statusRule.days : DEFAULT_CADENCE_DAYS;
 
   let isDue = false;
-  let dueLabel = "Not interested";
+  let dueLabel = statusRule?.id === "not_interested" ? "Not interested" : "No follow-up";
   let nextDueDate = null;
   let overdueDays = 0;
 

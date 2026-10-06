@@ -12,6 +12,7 @@ import {
   IconMessageCircle,
   IconMoon,
   IconPlug,
+  IconTag,
   IconUserCircle,
 } from "@tabler/icons-react";
 import { useAssistantPreference } from "../../voice/useAssistantPreference";
@@ -20,6 +21,7 @@ import SchedulePreferences from "../schedule/SchedulePreferences";
 import AccountSection from "./AccountSection";
 import IntegrationsSection from "./IntegrationsSection";
 import SendActivitySection from "./SendActivitySection";
+import StatusesSection from "./StatusesSection";
 import WhatsAppSection from "./WhatsAppSection";
 import { SettingsGroup, SettingsItem, SettingsProfile, SettingsToggle } from "./settings-ui";
 import { useProfile } from "./useProfile";
@@ -40,6 +42,7 @@ const GROUPS = [
   ] },
   { label: "Workspace", items: [
     { id: "automations", label: "Automations", icon: IconBolt },
+    { id: "statuses", label: "Statuses", icon: IconTag },
     { id: "schedule", label: "Schedule", icon: IconCalendarWeek },
     { id: "whatsapp", label: "WhatsApp", icon: IconBrandWhatsapp },
     { id: "activity", label: "Send activity", icon: IconActivity },
@@ -161,6 +164,8 @@ export default function SettingsPage({
             ) : null}
           </div>
         )}
+
+        {section === "statuses" && <StatusesSection userId={userId} />}
 
         {section === "whatsapp" && <WhatsAppSection userId={userId} account={data.account} loading={data.accountsLoading} />}
 

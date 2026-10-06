@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { loadScheduleQueue } from "../_shared/building-schedule.js";
+import { customStatusDays, loadCustomStatusDays } from "../_shared/custom-statuses.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 // Sends each active-pipeline seller a once-a-month recap of sales and Ejari
@@ -904,8 +905,11 @@ Deno.serve(async (req) => {
     const handledLeadIds = await fetchHandledLeadIds(adminClient, userIds, reportMonth);
     const lastSentByLead = await fetchLastReportTimes(adminClient, userIds);
 
+    // An account's own status set to "don't follow up" never gets a report;
+    // otherwise only the active pipeline does, as before.
+    const statusDays = await loadCustomStatusDays(adminClient, userIds);
     const leads = sortLeadsForRotation(
-      allLeads.filter((lead: any) => isActivePipelineStatus(lead.status)),
+      allLeads.filter((lead: any) => customStatusDays(statusDays, lead.user_id, lead.status) !== 0 && isActivePipelineStatus(lead.status)),
       lastSentByLead,
     );
 

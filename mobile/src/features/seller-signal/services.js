@@ -5,6 +5,8 @@ import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
 import { buildMessage, buildRecentTransactions, extractBeds, extractTransactionDate, formatPhoneForWhatsApp, summarizeTransactions } from "./insight-utils";
 import { cleanBuildingName, createLeadInsertRecord, getBuildingKeyVariants, mapStoredLeadRow, sortLeadsByPriority, startOfDay } from "./lead-utils";
 import { buildGoogleCsvUrl, inferMapping, normalizeToken, parseCsvText, rowsToObjects } from "./spreadsheet";
+import { ensureAccountStatuses } from "../../../../src/features/seller-signal/status-registry.js";
+import { fetchStatuses } from "./seller-status-services";
 import { manualSendRequiresTodaysTransaction } from "../../../../shared/whatsapp-send-policy.js";
 
 const IMPORT_TRUNCATION_PATTERN = /\u2026|\.{3,}/;
@@ -116,6 +118,7 @@ async function selectAllRows(buildQuery, pageSize = SUPABASE_PAGE_SIZE) {
 }
 
 export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
+  await ensureAccountStatuses(userId, fetchStatuses);
   const [leadRows, sentLeadRows] = await Promise.all([
     selectAllRows(() => supabase.from("leads").select("*").eq("user_id", userId).order("id")),
     selectAllRows(() => supabase.from("sent_leads").select("lead_id, sent_at").eq("user_id", userId).order("lead_id")),

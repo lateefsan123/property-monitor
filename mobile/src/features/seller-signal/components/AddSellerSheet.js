@@ -1,13 +1,10 @@
 import { useState } from "react";
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import BottomSheet from "../../../components/BottomSheet";
+import { statusChoices } from "../../../../../src/features/seller-signal/status-registry.js";
 
-const STATUS_OPTIONS = [
-  { value: "", label: "None" },
-  { value: "Prospect", label: "Prospect" },
-  { value: "Appraisal", label: "Appraisal" },
-  { value: "For Sale", label: "For Sale" },
-];
+// Built-in statuses plus the account's own (status-registry.js).
+const statusOptions = () => [{ value: "", label: "None" }, ...statusChoices({ includeNotInterested: false })];
 
 const EMPTY_DRAFT = {
   name: "",
@@ -111,7 +108,7 @@ export default function AddSellerSheet({ visible, onClose, onSubmit, submitting,
 
         <Field label="Status" colors={colors}>
           <View style={s.statusRow}>
-            {STATUS_OPTIONS.map((option) => {
+            {statusOptions().map((option) => {
               const active = draft.status === option.value;
               return (
                 <Pressable

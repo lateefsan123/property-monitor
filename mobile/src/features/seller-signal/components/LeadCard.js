@@ -79,8 +79,10 @@ function getBadgePalette({ type, statusId, colors }) {
   return { bg: colors.bgBadge, fg: colors.textBadge };
 }
 
-export function Badge({ label, type, statusId, colors }) {
-  const { bg, fg } = getBadgePalette({ type, statusId, colors });
+// `color` (an account status's own colour) overrides the status palette.
+export function Badge({ label, type, statusId, color, colors }) {
+  const palette = getBadgePalette({ type, statusId, colors });
+  const { bg, fg } = color ? { bg: `${color}26`, fg: color } : palette;
   return (
     <View
       style={{
@@ -165,7 +167,7 @@ export default function LeadCard({
       {(
         <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
           <View style={[s.badges, { flex: 1 }]}>
-            <Badge label={lead.statusLabel} statusId={lead.statusRule?.id} colors={c} />
+            <Badge label={lead.statusLabel} statusId={lead.statusRule?.id} color={lead.statusRule?.color} colors={c} />
             <Badge label={lead.dueLabel} type={lead.isDue ? "due" : "ok"} colors={c} />
             {lead.dataQuality?.level === "review" && <Badge label="Needs review" colors={c} />}
             {lead.newTxSinceSent > 0 && <Badge label={`${lead.newTxSinceSent} new txns`} type="due" colors={c} />}

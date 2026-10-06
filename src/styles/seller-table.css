@@ -111,6 +111,8 @@
 .seller-status--amber { background: #fef3c7; color: #92400e; }
 .seller-status--red { background: var(--badge-due-bg); color: var(--badge-due-text); }
 .seller-status--grey { background: var(--bg-badge); color: var(--text-badge); }
+.seller-status--custom { background: color-mix(in srgb, var(--status-color) 15%, transparent); color: color-mix(in srgb, var(--status-color) 78%, #000); }
+[data-theme="dark"] .seller-status--custom { background: color-mix(in srgb, var(--status-color) 24%, transparent); color: color-mix(in srgb, var(--status-color) 70%, #fff); }
 [data-theme="dark"] .seller-status--green { background: #052e16; color: #4ade80; }
 [data-theme="dark"] .seller-status--blue { background: #172554; color: #93c5fd; }
 [data-theme="dark"] .seller-status--amber { background: #422006; color: #fbbf24; }
