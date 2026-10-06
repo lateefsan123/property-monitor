@@ -130,6 +130,7 @@ export function createWhatsAppMessageServices(supabase) {
   }
 
   // One page of sends and replies, newest first. direction: "outbound" | "inbound" | undefined.
+  // Only messages linked to one of your sellers; numbers that aren't sellers never appear.
   async function fetchMessagePage(userId, { days = FEED_DAYS, direction, cursor, pageSize = PAGE_SIZE, now = new Date() } = {}) {
     if (!userId) return { items: [], nextCursor: null };
     const since = new Date(now);
@@ -138,6 +139,7 @@ export function createWhatsAppMessageServices(supabase) {
       .from("whatsapp_messages")
       .select(MESSAGE_COLUMNS)
       .eq("user_id", userId)
+      .not("lead_id", "is", null)
       .in("status", FEED_STATUSES)
       .gte("created_at", since.toISOString());
     if (direction) query = query.eq("direction", direction);
@@ -148,7 +150,7 @@ export function createWhatsAppMessageServices(supabase) {
       .limit(pageSize + 1);
     if (error) throw new Error(error.message);
     const page = pageOf(data || [], pageSize);
-    return { ...page, items: await attachLeads(userId, page.items) };
+    return { ...page, items: (await attachLeads(userId, page.items)).filter((item) => item.lead) };
   }
 
   // One page of the thread with a seller, newest first; callers show it oldest first.

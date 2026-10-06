@@ -66,6 +66,7 @@ test("a feed page asks for one extra row and returns a cursor when more exist", 
   assert.equal(query.limit, 3);
   assert.deepEqual(query.filters.find(([, column]) => column === "user_id"), ["eq", "user_id", "user-1"]);
   assert.deepEqual(query.filters.find(([, column]) => column === "direction"), ["eq", "direction", "outbound"]);
+  assert.deepEqual(query.filters.find(([, column]) => column === "lead_id"), ["not", "lead_id", "is", null], "only messages linked to a seller");
 });
 
 test("the next page starts strictly after the cursor", async () => {
