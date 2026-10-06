@@ -33,6 +33,8 @@ const supabase = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
       auth: { autoRefreshToken: false, persistSession: false },
     })
   : null;
+// Replies are only saved with database access; say so at startup instead of dropping them silently.
+if (!supabase) logger.warn("SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY is not set; incoming WhatsApp replies will not be saved");
 
 app.use(express.json({ limit: "1mb" }));
 
@@ -191,8 +193,14 @@ async function syncAccount(session) {
 async function persistInboundMessage(session, message) {
   if (!supabase || message?.key?.fromMe) return;
 
-  const fromJid = message?.key?.remoteJid || "";
-  if (!fromJid.endsWith("@s.whatsapp.net")) return;
+  // WhatsApp now addresses most chats by a private "@lid" id; Baileys puts the
+  // sender's phone address in remoteJidAlt. Without this every reply was skipped.
+  const remoteJid = message?.key?.remoteJid || "";
+  const fromJid = remoteJid.endsWith("@s.whatsapp.net") ? remoteJid : message?.key?.remoteJidAlt || "";
+  if (!fromJid.endsWith("@s.whatsapp.net")) {
+    if (remoteJid.endsWith("@lid")) logger.warn({ sessionId: session.id }, "Inbound message has no phone address; not saved");
+    return;
+  }
 
   const providerMessageId = message?.key?.id;
   const from = fromJid.replace("@s.whatsapp.net", "");

@@ -149,7 +149,9 @@ const SENT = DAILY.flatMap((count, day) => Array.from({ length: count }, (_, i) 
   const sentAt = iso(13 - day, 9, 0);
   const at = new Date(new Date(sentAt).getTime() + i * 5 * 60000).toISOString();
   const lead = LEADS[i % LEADS.length];
-  return { id: `msg-${day}-${i}`, user_id: FILM_USER.id, direction: 'outbound', status: day >= 12 && i % 4 === 0 ? 'read' : 'delivered', queued_at: at, sent_at: at, created_at: at, lead_id: lead.id, recipient_phone: leadDigits(lead), body: templateBody(lead), send_source: i % 9 === 0 ? 'manual' : 'auto', initiated_via: 'app' };
+  // Busy days send more messages than there are demo sellers; the second one is the monthly report, not a repeat.
+  const body = i < LEADS.length ? templateBody(lead) : `Hi ${lead.name}, here is this month's report for ${lead.building}. Prices and recent sales are attached.`;
+  return { id: `msg-${day}-${i}`, user_id: FILM_USER.id, direction: 'outbound', status: day >= 12 && i % 4 === 0 ? 'read' : 'delivered', queued_at: at, sent_at: at, created_at: at, lead_id: lead.id, recipient_phone: leadDigits(lead), body, send_source: i % 9 === 0 ? 'manual' : 'auto', initiated_via: 'app' };
 }));
 // Seller replies from today. Older replies are saved without a lead_id, as before replies were linked.
 const REPLIES = [[0, 25, 'Thanks Sara! What do you think mine could get right now?', true], [4, 70, 'Not selling yet, maybe next year. Keep me posted.', false], [1, 95, 'Can you call me after 6?', true]];
