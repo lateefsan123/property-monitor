@@ -19,6 +19,7 @@ import {
   FOOTER_NAVIGATION,
   PAGE_LABELS,
 } from "../../../shared/navigation";
+import DrawerSetupProgress from "./drawer-setup-progress";
 import { Icon } from "./ui";
 const MAIN_NAVIGATION = [...BASE_MAIN_NAVIGATION, { id: "schedule", label: "Schedule", icon: "calendar", kind: "nav" }];
 const NAVIGATION_LOGO = require("../../assets/repeat-ai-logo.png");
@@ -35,6 +36,7 @@ export default function NavigationDrawer({
   children,
   favorites = [],
   favoriteSellers = [],
+  userId,
 }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -260,6 +262,7 @@ export default function NavigationDrawer({
               </Pressable>
             </View>
             <ScrollView contentContainerStyle={{ gap: 12 }}>
+              <DrawerSetupProgress userId={userId} colors={colors} onOpen={() => activate({ kind: "nav", id: "home" })} />
               <View>{TOP_NAVIGATION.filter((item) => item.kind !== "disabled").map(row)}</View>
               {favorites.length > 0 && (
                 <View>

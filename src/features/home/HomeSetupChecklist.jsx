@@ -1,21 +1,25 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { IconChevronRight, IconCircle, IconCircleCheckFilled } from "@tabler/icons-react";
 import { supabase } from "../../supabase";
-import { openSetupAction } from "./setup-actions";
+import { openSetupAction, SETUP_HIDDEN_KEY, SHOW_SETUP_EVENT } from "./setup-actions";
 import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey } from "../../../shared/setup-checklist";
 
 // "Get set up" for new accounts, after HoneyBook's step-by-step card
 // (Mobbin 7c915d6b): progress on the right of the title, one row per step
 // that ticks itself off. It disappears once every step is done or is hidden.
-const HIDDEN_KEY = "home:setup-hidden";
 
 function readHidden(userId) {
-  try { return window.localStorage.getItem(`${HIDDEN_KEY}:${userId}`) === "1"; } catch { return false; }
+  try { return window.localStorage.getItem(`${SETUP_HIDDEN_KEY}:${userId}`) === "1"; } catch { return false; }
 }
 
 export default function HomeSetupChecklist({ userId, onNavigate }) {
   const [hidden, setHidden] = useState(() => readHidden(userId));
+  useEffect(() => {
+    const show = () => setHidden(false);
+    window.addEventListener(SHOW_SETUP_EVENT, show);
+    return () => window.removeEventListener(SHOW_SETUP_EVENT, show);
+  }, []);
   const status = useQuery({
     queryKey: setupChecklistQueryKey(userId),
     enabled: Boolean(userId) && !hidden,
@@ -31,7 +35,7 @@ export default function HomeSetupChecklist({ userId, onNavigate }) {
 
   function hide() {
     setHidden(true);
-    try { window.localStorage.setItem(`${HIDDEN_KEY}:${userId}`, "1"); } catch { /* Hidden for this visit only. */ }
+    try { window.localStorage.setItem(`${SETUP_HIDDEN_KEY}:${userId}`, "1"); } catch { /* Hidden for this visit only. */ }
   }
 
   function open(step) {

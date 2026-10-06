@@ -39,7 +39,7 @@ export default function HomeSetupChecklist({ userId, colors, active = true, onNa
           <Text style={{ color: colors.textMuted, fontSize: 12, fontVariant: ["tabular-nums"] }}>{completed}/{total} completed</Text>
           <View accessibilityRole="progressbar" accessibilityValue={{ min: 0, max: total, now: completed }}
             style={{ width: 64, height: 6, borderRadius: 3, backgroundColor: colors.border, overflow: "hidden" }}>
-            <View style={{ width: `${(completed / total) * 100}%`, height: "100%", borderRadius: 3, backgroundColor: colors.textName }} />
+            <View style={{ width: `${(completed / total) * 100}%`, height: "100%", borderRadius: 3, backgroundColor: "#4cc46f" }} />
           </View>
         </View>
       </View>
@@ -48,7 +48,7 @@ export default function HomeSetupChecklist({ userId, colors, active = true, onNa
           <Pressable key={step.id} accessibilityRole="button" accessibilityState={{ checked: step.done }} accessibilityLabel={`${step.title}${step.done ? ", done" : ""}`}
             onPress={() => open(step)}
             style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 14, borderTopWidth: index ? 1 : 0, borderTopColor: colors.borderLight, opacity: pressed ? 0.6 : 1 })}>
-            <AppIcon name={step.done ? "checkCircleFilled" : "circle"} size={22} color={step.done ? colors.textName : colors.textMuted} />
+            <AppIcon name={step.done ? "checkCircleFilled" : "circle"} size={22} color={step.done ? "#4cc46f" : colors.textMuted} />
             <View style={{ flex: 1, gap: 3 }}>
               <Text style={{ color: step.done ? colors.textMuted : colors.textName, fontSize: 15, fontWeight: "600", textDecorationLine: step.done ? "line-through" : "none" }}>{step.title}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18 }}>{step.text}</Text>

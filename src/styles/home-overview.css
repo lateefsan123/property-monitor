@@ -146,7 +146,7 @@
 .home-setup-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .home-setup-progress { display: flex; align-items: center; gap: 12px; }
 .home-setup-bar { position: relative; width: 120px; height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; }
-.home-setup-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: var(--text-name); transition: width 300ms ease; }
+.home-setup-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: #4cc46f; transition: width 300ms ease; }
 .home-setup-steps { list-style: none; margin: 8px 0 0; padding: 0; }
 .home-setup-steps li + li { border-top: 1px solid var(--border); }
 .home-setup-step {
@@ -155,7 +155,7 @@
 }
 .home-setup-step:hover .home-setup-chevron { transform: translateX(2px); color: var(--text-name); }
 .home-setup-status { flex: none; color: var(--text-muted); }
-.home-setup-step.is-done .home-setup-status { color: var(--text-name); }
+.home-setup-step.is-done .home-setup-status { color: #4cc46f; }
 .home-setup-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
 .home-setup-text strong { color: var(--text-name); font-size: 15px; font-weight: 600; }
 .home-setup-step.is-done .home-setup-text strong { color: var(--text-muted); text-decoration: line-through; text-decoration-thickness: 1px; }

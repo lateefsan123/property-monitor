@@ -16,6 +16,7 @@ import { useSpreadsheetFavorites, requestOpenSpreadsheet } from "../useSpreadshe
 import SavedSidebarItems from "./SavedSidebarItems";
 import { Avatar } from "../../settings/settings-ui";
 import { useProfile } from "../../settings/useProfile";
+import SidebarSetupProgress from "../../home/SidebarSetupProgress";
 import "../../../styles/sidenav-account.css";
 
 function isPlaceholderSourceLabel(source) {
@@ -102,6 +103,8 @@ export default function AppSidebar({
       aria-label="Primary navigation"
       className={`sidenav${collapsed ? " sidenav-collapsed" : ""}`}
     >
+      <SidebarSetupProgress userId={userId} onNavigate={onNavigate} />
+
       <div className="sidenav-group sidenav-group-top">
         {TOP_GROUP.map((item) => (
           <SidenavItem

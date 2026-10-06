@@ -104,6 +104,7 @@ export default function WorkspaceShell({
   const contextualHeader = page === "listing-alerts" ? listingHeader : page === "settings" ? settingsHeader : null;
   return (
     <NavigationDrawer
+      userId={userId}
       page={page}
       headerTitle={page === "schedule" ? "Schedule" : page === "message-template" ? "Templates" : contextualHeader?.title}
       onHeaderBack={contextualHeader?.onBack}
