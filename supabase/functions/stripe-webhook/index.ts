@@ -137,7 +137,13 @@ async function persistSubscription(adminClient: any, userId: string, subscriptio
   const customerId = typeof subscription.customer === "string"
     ? subscription.customer
     : subscription.customer?.id;
-  const price = subscription.items?.data?.[0]?.price;
+  const subscriptionItem = subscription.items?.data?.[0];
+  const price = subscriptionItem?.price;
+  const currentPeriodStart = subscription.current_period_start
+    ?? subscriptionItem?.current_period_start;
+  const currentPeriodEnd = subscription.current_period_end
+    ?? subscriptionItem?.current_period_end;
+  const persistedStatus = subscription.livemode === true ? subscription.status : "test_mode";
 
   if (!customerId) throw new HttpError(409, "Stripe subscription is missing a customer");
 
@@ -148,9 +154,9 @@ async function persistSubscription(adminClient: any, userId: string, subscriptio
       stripe_subscription_id: subscription.id,
       stripe_price_id: price?.id ?? null,
       stripe_product_id: typeof price?.product === "string" ? price.product : price?.product?.id ?? null,
-      status: subscription.status,
-      current_period_start: unixToIso(subscription.current_period_start),
-      current_period_end: unixToIso(subscription.current_period_end),
+      status: persistedStatus,
+      current_period_start: unixToIso(currentPeriodStart),
+      current_period_end: unixToIso(currentPeriodEnd),
       cancel_at_period_end: Boolean(subscription.cancel_at_period_end),
       canceled_at: unixToIso(subscription.canceled_at),
       raw: subscription,
@@ -166,9 +172,15 @@ async function handleSubscriptionEvent(adminClient: any, subscription: any) {
   await persistStripeCustomer(adminClient, userId, subscription);
   await persistSubscription(adminClient, userId, subscription);
 
+  const currentPeriodEnd = subscription.current_period_end
+    ?? subscription.items?.data?.[0]?.current_period_end;
+
   return {
-    status: subscription.status,
-    isActive: ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status),
+    status: subscription.livemode === true ? subscription.status : "test_mode",
+    isActive: subscription.livemode === true
+      && ACTIVE_SUBSCRIPTION_STATUSES.has(subscription.status)
+      && typeof currentPeriodEnd === "number"
+      && currentPeriodEnd * 1000 > Date.now(),
     userId,
   };
 }

@@ -1,6 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { complimentaryAccess } from "../_shared/complimentary-access.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { resolveTrialPeriodDays } from "./trial-policy.js";
+import { getRevenueCatCustomer, revenueCatAccess, stripeAccess } from "../_shared/billing-access.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -114,12 +116,6 @@ async function userHasPriorSubscription(adminClient: any, userId: string) {
   return Boolean(data);
 }
 
-function resolveTrialPeriodDays(input: unknown) {
-  if (typeof input !== "number" || !Number.isInteger(input)) return null;
-  if (input <= 0 || input > 30) return null;
-  return input;
-}
-
 async function ensureStripeCustomer(adminClient: any, user: any) {
   const { data: existing, error } = await adminClient
     .from("stripe_customers")
@@ -173,6 +169,12 @@ Deno.serve(async (req) => {
     }
     const { successUrl, cancelUrl, trialPeriodDays } = await req.json().catch(() => ({}));
     const stripePriceId = requireEnv("STRIPE_MONTHLY_PRICE_ID");
+    const { data: existingBilling, error: existingBillingError } = await adminClient
+      .from("billing_subscriptions").select("status,current_period_end,raw").eq("user_id", user.id).maybeSingle();
+    if (existingBillingError) throw new HttpError(500, "Could not check existing subscription");
+    if (stripeAccess(existingBilling)) throw new HttpError(409, "You already have an active subscription. Manage your existing plan in settings.");
+    const mobileCustomer = await getRevenueCatCustomer(user.id, requireEnv("REVENUECAT_PUBLIC_API_KEY"));
+    if (revenueCatAccess(mobileCustomer)) throw new HttpError(409, "Your mobile subscription already includes web access. Manage it in your app store.");
 
     const checkoutSuccessUrl = assertRedirectUrl(successUrl, "STRIPE_SUCCESS_URL");
     const checkoutCancelUrl = assertRedirectUrl(cancelUrl, "STRIPE_CANCEL_URL");
@@ -180,7 +182,9 @@ Deno.serve(async (req) => {
 
     const requestedTrialDays = resolveTrialPeriodDays(trialPeriodDays);
     const eligibleForTrial = requestedTrialDays !== null
-      && !(await userHasPriorSubscription(adminClient, user.id));
+      && !(await userHasPriorSubscription(adminClient, user.id))
+      && !Object.values(mobileCustomer.subscriber.subscriptions || {}).some((purchase: any) =>
+        purchase.is_sandbox === false && ["app_store", "play_store"].includes(purchase.store));
 
     const body = new URLSearchParams();
     body.set("mode", "subscription");
