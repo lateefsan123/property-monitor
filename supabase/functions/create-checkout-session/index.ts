@@ -201,8 +201,31 @@ Deno.serve(async (req) => {
     if (eligibleForTrial) {
       body.set("subscription_data[trial_period_days]", String(requestedTrialDays));
     }
+    // Match the onboarding: light page, green pill button, Inter, the
+    // Repeat AI logo and the fox as the icon (images served by the website).
+    const branded = new URLSearchParams(body);
+    branded.set("branding_settings[display_name]", "Repeat AI");
+    branded.set("branding_settings[background_color]", "#f7f7f5");
+    branded.set("branding_settings[button_color]", "#33a557");
+    branded.set("branding_settings[border_style]", "pill");
+    branded.set("branding_settings[font_family]", "inter");
+    branded.set("branding_settings[logo][type]", "url");
+    branded.set("branding_settings[logo][url]", "https://repeatai.org/brand/repeat-ai-logo-dark.png");
+    branded.set("branding_settings[icon][type]", "url");
+    branded.set("branding_settings[icon][url]", "https://repeatai.org/brand/repeat-fox-icon.png");
+    branded.set("custom_text[submit][message]", eligibleForTrial
+      ? `Your ${requestedTrialDays}-day free trial starts today. You won't be charged until it ends, and you can cancel anytime in Settings.`
+      : "Cancel anytime in Settings.");
 
-    const checkoutSession = await stripeRequest("/v1/checkout/sessions", body);
+    // Branding is cosmetic: if Stripe ever refuses it, open the plain checkout.
+    let checkoutSession;
+    try {
+      checkoutSession = await stripeRequest("/v1/checkout/sessions", branded);
+    } catch (brandingError) {
+      if (!/branding_settings|custom_text|logo|icon/i.test(String((brandingError as Error)?.message))) throw brandingError;
+      console.warn("Checkout branding refused; using the plain checkout", (brandingError as Error).message);
+      checkoutSession = await stripeRequest("/v1/checkout/sessions", body);
+    }
 
     return jsonResponse({
       checkoutSessionId: checkoutSession.id,
