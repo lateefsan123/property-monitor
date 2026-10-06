@@ -57,3 +57,6 @@
   .onboarding-page .auth-heading { font-size: 28px; }
   .onboarding-page .onboarding-actions { padding-top: 40px; padding-bottom: env(safe-area-inset-bottom, 0px); }
 }
+
+.onboarding-signout { display: block; margin: 28px auto 0; padding: 8px 12px; border: 0; background: none; color: var(--text-muted, #6b7280); font: inherit; font-size: 13px; cursor: pointer; }
+.onboarding-signout:hover { color: var(--text, inherit); text-decoration: underline; }

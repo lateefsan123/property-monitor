@@ -391,3 +391,6 @@
   white-space: nowrap;
   pointer-events: none;
 }
+
+.seller-record-empty-action { display: block; margin: 14px auto 0; height: 40px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--btn-primary-bg); color: var(--btn-primary-text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.seller-record-empty-action:hover { background: var(--btn-primary-hover); }

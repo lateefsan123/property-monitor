@@ -99,6 +99,7 @@ export function Root() {
   const [referralAskedLocally, setReferralAskedLocally] = useState({ userId: null, asked: false });
   const [trialOfferedLocally, setTrialOfferedLocally] = useState({ userId: null, offered: false });
   const [showAuth, setShowAuth] = useState(() => isPublicAuthLocation(window.location));
+  const [authStartsWithSignUp, setAuthStartsWithSignUp] = useState(false);
   const [postAuthAction, setPostAuthAction] = useState(() => readStoredPostAuthAction());
   const [billingState, setBillingState] = useState({
     checkoutPending: false,
@@ -388,6 +389,7 @@ export function Root() {
 
   function openAuth(action = null) {
     updatePostAuthAction(action);
+    setAuthStartsWithSignUp(action === "checkout");
     window.history.pushState({}, "", publicAuthUrl(window.location.href, true));
     setShowAuth(true);
   }
@@ -562,7 +564,7 @@ export function Root() {
       onSubscribe={handleSubscribeFromLanding}
     />
   ) : showAuth ? (
-    <Auth onSignUpSuccess={() => updatePostAuthAction("checkout")} onBack={returnToLanding} />
+    <Auth key={authStartsWithSignUp ? "sign-up" : "sign-in"} startWithSignUp={authStartsWithSignUp} onSignUpSuccess={() => updatePostAuthAction("checkout")} onBack={returnToLanding} />
   ) : (
     <LandingPage
       onGetStarted={() => openAuth("checkout")}

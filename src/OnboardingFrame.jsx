@@ -1,3 +1,4 @@
+import { supabase } from "./supabase";
 import "./styles/onboarding.css";
 
 const ARTWORK = {
@@ -14,6 +15,8 @@ export default function OnboardingFrame({ children, step = "welcome" }) {
         <div className="onboarding-inner">
           <img className="onboarding-brand" src="/brand/repeat-ai-logo.png" alt="Repeat AI" width="140" height="25" />
           {children}
+          {/* Every step waits on saving the account; this is the way out if that keeps failing. */}
+          <button type="button" className="onboarding-signout" onClick={() => { void supabase.auth.signOut?.(); }}>Sign out</button>
         </div>
       </section>
       <aside className="onboarding-art" aria-hidden="true">

@@ -307,6 +307,7 @@ export default function AppShell({ displayName, subscription, userId }) {
           <SellerSignalDashboard
             savedSellerId={savedSellerId}
             savedSellerSection={savedSellerSection}
+            onNavigate={handleNavigate}
             onCloseSavedSeller={() => { setSavedSellerId(null); setSavedSellerSection(null); }}
             billingPortalError={billingPortalState.error}
             billingPortalPending={billingPortalState.pending}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { IconPlus } from "@tabler/icons-react";
 import AddSellerModal from "./components/AddSellerModal";
 import BuildingCleanupPanel from "./components/BuildingCleanupPanel";
@@ -17,6 +17,7 @@ import { useSellerSignalPage } from "./useSellerSignalPage";
 export default function SellerSignalDashboard({
   savedSellerId,
   savedSellerSection = null,
+  onNavigate,
   onCloseSavedSeller,
   billingPortalError,
   billingPortalPending = false,
@@ -29,6 +30,11 @@ export default function SellerSignalDashboard({
   const dashboard = useSellerSignalPage(userId);
   const [addSellerOpen, setAddSellerOpen] = useState(false);
   const { favoriteIds, toggleFavorite, pinnedIds, togglePin } = useSellerFavorites(userId);
+  // A seller opened from Activity that isn't among your sellers (deleted, or never
+  // imported) clears the request instead of reopening on the next row you click.
+  const savedSellerMissing = Boolean(savedSellerId) && !dashboard.loading
+    && !dashboard.leads.some((lead) => String(lead.id) === savedSellerId);
+  useEffect(() => { if (savedSellerMissing) onCloseSavedSeller?.(); }, [savedSellerMissing, onCloseSavedSeller]);
 
   const canAddSeller = dashboard.sourceFilter
     && dashboard.sourceFilter !== "all"
@@ -195,11 +201,12 @@ export default function SellerSignalDashboard({
               const modalLead = dashboard.leads.find((lead) => String(lead.id) === savedSellerId)
                 || dashboard.pagedLeads.find((l) => dashboard.expandedLeads[l.id]);
               if (!modalLead) return null;
+              const openedFromRequest = Boolean(savedSellerId) && String(modalLead.id) === savedSellerId;
               return (
                 <LeadModal
-                  key={`${modalLead.id}:${savedSellerId ? savedSellerSection || "" : ""}`}
+                  key={`${modalLead.id}:${openedFromRequest ? savedSellerSection || "" : ""}`}
                   userId={userId}
-                  initialSection={savedSellerId ? savedSellerSection : null}
+                  initialSection={openedFromRequest ? savedSellerSection : null}
                   copiedLeadId={dashboard.copiedLeadId}
                   editDraft={dashboard.editingLeadId === modalLead.id ? dashboard.editingLeadDraft : null}
                   insight={dashboard.insights[modalLead.id]}
@@ -228,7 +235,10 @@ export default function SellerSignalDashboard({
             })()}
           </>
         ) : (
-          <div className="empty seller-record-empty">No sellers yet. Import a spreadsheet above to get started.</div>
+          <div className="empty seller-record-empty">
+            No sellers yet. Import a spreadsheet to get started.
+            {onNavigate && <button type="button" className="seller-record-empty-action" onClick={() => onNavigate("spreadsheets")}>Import a spreadsheet</button>}
+          </div>
         )}
       </div>
 

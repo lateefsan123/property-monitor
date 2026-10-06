@@ -9,11 +9,12 @@ function getRedirectUrl(redirectToUrl) {
   return new URL(import.meta.env.BASE_URL, window.location.origin).toString();
 }
 
-export default function Auth({ redirectToUrl, onSignUpSuccess, onBack } = {}) {
+// startWithSignUp: free-trial buttons open Create account; Log in opens Sign in.
+export default function Auth({ redirectToUrl, onSignUpSuccess, onBack, startWithSignUp = false } = {}) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(startWithSignUp);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -53,7 +54,7 @@ export default function Auth({ redirectToUrl, onSignUpSuccess, onBack } = {}) {
       else setResetEmailSent(true);
     } else if (isSignUp) {
       const emailRedirectTo = getRedirectUrl(redirectToUrl);
-      const { error: signUpError } = await supabase.auth.signUp({
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -62,7 +63,11 @@ export default function Auth({ redirectToUrl, onSignUpSuccess, onBack } = {}) {
         },
       });
 
+      // With email confirmation on, Supabase answers an existing address with a
+      // user that has no identities and sends no email; say so instead of waiting.
+      const alreadyRegistered = Array.isArray(signUpData?.user?.identities) && signUpData.user.identities.length === 0;
       if (signUpError) setError(signUpError.message);
+      else if (alreadyRegistered) setError("An account with this email already exists. Sign in, or reset your password if you've forgotten it.");
       else {
         onSignUpSuccess?.();
         setPendingEmail(email);
@@ -70,7 +75,11 @@ export default function Auth({ redirectToUrl, onSignUpSuccess, onBack } = {}) {
       }
     } else {
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
-      if (signInError) setError(signInError.message);
+      // An unconfirmed account goes back to the check-your-email view, which can resend the link.
+      if (signInError && (signInError.code === "email_not_confirmed" || /email not confirmed/i.test(signInError.message))) {
+        setPendingEmail(email);
+        setPassword("");
+      } else if (signInError) setError(signInError.message);
     }
 
     setLoading(false);
@@ -288,6 +297,11 @@ export default function Auth({ redirectToUrl, onSignUpSuccess, onBack } = {}) {
                 ? "Create account"
                 : "Sign in"}
             </button>
+            {isSignUp && !isForgotPassword && (
+              <p className="auth-legal">
+                By creating an account you agree to the <a href="/terms" target="_blank" rel="noreferrer">Terms of Use</a> and <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+              </p>
+            )}
           </form>
 
           <p className="auth-toggle">
