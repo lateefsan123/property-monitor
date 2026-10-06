@@ -29,10 +29,10 @@
     "android": {
       "package": "com.lateefsan.sellersignal",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/repeat-ai-icon.png",
+        "foregroundImage": "./assets/repeat-ai-adaptive-foreground.png",
         "backgroundColor": "#000000"
       },
-      "versionCode": 11
+      "versionCode": 12
     },
     "web": {
       "favicon": "./assets/repeat-ai-icon.png"
