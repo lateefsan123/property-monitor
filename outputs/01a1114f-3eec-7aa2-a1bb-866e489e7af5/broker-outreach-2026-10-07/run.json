@@ -328,7 +328,11 @@
       "agency": "Espace Real Estate",
       "phone": "971585771623",
       "source": "https://www.espace.ae/meet-the-team-detail/artem-golenkov",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Artem Golenkov, Lateef here from Repeat AI. I found your contact on the Espace Real Estate website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T17:01:19.532Z",
+      "evidence": "18:01 Sent visibly verified in chat +971 58 577 1623; 1:54 v5 film and exact personalised Artem Golenkov / Espace Real Estate caption.",
+      "verifiedAt": "2026-10-07T17:01:28.171Z"
     },
     {
       "row": 2910,
@@ -1827,7 +1831,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T16:54:22.423Z",
+  "lastAttemptAt": "2026-10-07T17:01:19.532Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 26
+  "confirmedCount": 27
 }
