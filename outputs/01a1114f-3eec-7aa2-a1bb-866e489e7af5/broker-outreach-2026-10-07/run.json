@@ -340,7 +340,11 @@
       "agency": "Exclusive Links",
       "phone": "971501599476",
       "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Bridget Higgins, Lateef here from Repeat AI. I found your contact on the Exclusive Links website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T17:08:05.735Z",
+      "evidence": "18:08 Sent visibly verified in chat +971 50 159 9476; 1:54 v5 film and exact personalised Bridget Higgins / Exclusive Links caption.",
+      "verifiedAt": "2026-10-07T17:08:14.513Z"
     },
     {
       "row": 809,
@@ -1831,7 +1835,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T17:01:19.532Z",
+  "lastAttemptAt": "2026-10-07T17:08:05.735Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 27
+  "confirmedCount": 28
 }
