@@ -3,7 +3,7 @@
   "minimumIntervalMs": 300000,
   "sender": "353899618882",
   "createdAt": "2026-10-07T13:34:59.325Z",
-  "status": "running",
+  "status": "complete",
   "videoPath": "D:/Users/Lateef/Documents/property/video/launch-film/out/repeat-ai-app-film-v5-9x16.mp4",
   "contacts": [
     {
@@ -496,7 +496,11 @@
       "agency": "Elan Real Estate",
       "phone": "971554735755",
       "source": "https://elanrealestate.ae/agent/fasih-uddin/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Fasih Uddin, Lateef here from Repeat AI. I found your contact on the Elan Real Estate website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T18:23:41.002Z",
+      "evidence": "19:23 Sent visibly verified in chat +971 55 473 5755; 1:54 v5 film and exact personalised Fasih Uddin / Elan Real Estate caption.",
+      "verifiedAt": "2026-10-07T18:23:57.987Z"
     },
     {
       "row": 2765,
@@ -1883,7 +1887,8 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T18:16:50.793Z",
+  "lastAttemptAt": "2026-10-07T18:23:41.002Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 39
+  "confirmedCount": 40,
+  "completedAt": "2026-10-07T18:23:57.987Z"
 }
