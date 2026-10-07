@@ -387,7 +387,11 @@
       "agency": "Espace Real Estate",
       "phone": "971506576723",
       "source": "https://www.espace.ae/meet-the-team-detail/artur-ahmedov\nhttps://www.propertyfinder.ae/en/agent/artur-ahmedov-120594",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Artur Ahmedov, Lateef here from Repeat AI. I found your contact on the Espace Real Estate website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T17:27:02.784Z",
+      "evidence": "18:27 Sent visibly verified in Artur chat; business contact info phone +971 50 657 6723 matches ledger; 1:54 v5 film and exact personalised Artur Ahmedov / Espace Real Estate caption.",
+      "verifiedAt": "2026-10-07T17:27:16.015Z"
     },
     {
       "row": 2911,
@@ -1846,7 +1850,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T17:20:21.457Z",
+  "lastAttemptAt": "2026-10-07T17:27:02.784Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 30
+  "confirmedCount": 31
 }
