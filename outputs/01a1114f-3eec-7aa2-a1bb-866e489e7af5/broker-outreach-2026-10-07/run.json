@@ -460,7 +460,11 @@
       "agency": "Exclusive Links",
       "phone": "971521742947",
       "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Carmen Davis, Lateef here from Repeat AI. I found your contact on the Exclusive Links website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T18:04:43.821Z",
+      "evidence": "19:04 Sent visibly verified in chat +971 52 174 2947; 1:54 v5 film and exact personalised Carmen Davis / Exclusive Links caption.",
+      "verifiedAt": "2026-10-07T18:04:51.645Z"
     },
     {
       "row": 811,
@@ -1871,7 +1875,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T17:58:08.503Z",
+  "lastAttemptAt": "2026-10-07T18:04:43.821Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 36
+  "confirmedCount": 37
 }
