@@ -1,0 +1,1729 @@
+{
+  "target": 40,
+  "minimumIntervalMs": 300000,
+  "sender": "353899618882",
+  "createdAt": "2026-10-07T13:34:59.325Z",
+  "status": "running",
+  "videoPath": "D:/Users/Lateef/Documents/property/video/launch-film/out/repeat-ai-app-film-v5-9x16.mp4",
+  "contacts": [
+    {
+      "row": 2906,
+      "name": "Andy Bush",
+      "agency": "Exclusive Links",
+      "phone": "971503846882",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "confirmed",
+      "message": "Hi Andy Bush, Lateef here from Repeat AI. I found your contact on the Exclusive Links website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T13:38:43.494Z",
+      "evidence": "14:38 Delivered; correct +971 50 384 6882 chat; 1:54 video and personalised Andy Bush caption visible",
+      "verifiedAt": "2026-10-07T13:39:41.199Z"
+    },
+    {
+      "row": 3147,
+      "name": "Marcus Abildgaard Sardar",
+      "agency": "Fantastic Frank Dubai",
+      "phone": "971529169766",
+      "source": "https://www.fantasticfrank.com/en/dubai/",
+      "status": "pending"
+    },
+    {
+      "row": 4829,
+      "name": "Jawhar Abboud",
+      "agency": "Live Dubai / LDI",
+      "phone": "971524121114",
+      "source": "https://livedubai.co.uk/agent/",
+      "status": "pending"
+    },
+    {
+      "row": 6194,
+      "name": "Thabo Mothoa",
+      "agency": "Pam Golding Properties Dubai",
+      "phone": "971585224757",
+      "source": "https://www.pamgolding.ae/contact-us/agents",
+      "status": "pending"
+    },
+    {
+      "row": 805,
+      "name": "Alexander Stanton",
+      "agency": "Arabian Estates",
+      "phone": "971585025802",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2455,
+      "name": "Mr. Michael",
+      "agency": "Easy Nest Properties",
+      "phone": "971551975310",
+      "source": "https://easynestproperties.com/agents/page/2/",
+      "status": "pending"
+    },
+    {
+      "row": 2511,
+      "name": "Amal El Khassoumi",
+      "agency": "Elan Real Estate",
+      "phone": "971558279754",
+      "source": "https://elanrealestate.ae/agent/amal-el-khassoumi/",
+      "status": "pending"
+    },
+    {
+      "row": 2759,
+      "name": "Alex Penny",
+      "agency": "Espace Real Estate",
+      "phone": "971585230295",
+      "source": "https://www.espace.ae/meet-the-team-detail/alex-penny",
+      "status": "pending"
+    },
+    {
+      "row": 2907,
+      "name": "Anna Carrera Moyne",
+      "agency": "Exclusive Links",
+      "phone": "971507086384",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 3148,
+      "name": "Shokhrukh Rakhimov",
+      "agency": "Fantastic Frank Dubai",
+      "phone": "971585385577",
+      "source": "https://www.fantasticfrank.com/en/dubai/",
+      "status": "pending"
+    },
+    {
+      "row": 4830,
+      "name": "Mira Gharbieh",
+      "agency": "Live Dubai / LDI",
+      "phone": "971525360148",
+      "source": "https://livedubai.co.uk/agent/",
+      "status": "pending"
+    },
+    {
+      "row": 6195,
+      "name": "Warren Christie",
+      "agency": "Pam Golding Properties Dubai",
+      "phone": "971509301884",
+      "source": "https://www.pamgolding.ae/contact-us/agents",
+      "status": "pending"
+    },
+    {
+      "row": 806,
+      "name": "Amin Labioui",
+      "agency": "Arabian Estates",
+      "phone": "971585929751",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2456,
+      "name": "Mr. Nazir Ahmed",
+      "agency": "Easy Nest Properties",
+      "phone": "971559943066",
+      "source": "https://easynestproperties.com/agents/",
+      "status": "pending"
+    },
+    {
+      "row": 2512,
+      "name": "Anas Muhammad Khan",
+      "agency": "Elan Real Estate",
+      "phone": "971552540323",
+      "source": "https://elanrealestate.ae/agent/anas-muhammad-khan/",
+      "status": "pending"
+    },
+    {
+      "row": 2760,
+      "name": "Andre Stalevski",
+      "agency": "Espace Real Estate",
+      "phone": "971564021115",
+      "source": "https://www.espace.ae/meet-the-team-detail/andre-stalevski",
+      "status": "pending"
+    },
+    {
+      "row": 2908,
+      "name": "Annalize Diedericks",
+      "agency": "Exclusive Links",
+      "phone": "971504508713",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 3149,
+      "name": "Victor Skovgaard Have",
+      "agency": "Fantastic Frank Dubai",
+      "phone": "971528903858",
+      "source": "https://www.fantasticfrank.com/en/dubai/",
+      "status": "pending"
+    },
+    {
+      "row": 807,
+      "name": "Ben Greenwood",
+      "agency": "Arabian Estates",
+      "phone": "971585780900",
+      "source": "https://arabianestates.ae/our-team/ben-greenwood",
+      "status": "pending"
+    },
+    {
+      "row": 2457,
+      "name": "Mr. Yabes Sintan",
+      "agency": "Easy Nest Properties",
+      "phone": "971552287126",
+      "source": "https://easynestproperties.com/agents/",
+      "status": "pending"
+    },
+    {
+      "row": 2513,
+      "name": "Azeem Ahmed",
+      "agency": "Elan Real Estate",
+      "phone": "971526146668",
+      "source": "https://elanrealestate.ae/agent/azeem-ahmed/",
+      "status": "pending"
+    },
+    {
+      "row": 2761,
+      "name": "Anthony Jones",
+      "agency": "Espace Real Estate",
+      "phone": "971585851329",
+      "source": "https://www.espace.ae/meet-the-team-detail/anthony-jones",
+      "status": "pending"
+    },
+    {
+      "row": 2909,
+      "name": "Arno Potgieter",
+      "agency": "Exclusive Links",
+      "phone": "971561159043",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 808,
+      "name": "Callum Wallace",
+      "agency": "Arabian Estates",
+      "phone": "971585624692",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2458,
+      "name": "Ms. Meerab Rahim",
+      "agency": "Easy Nest Properties",
+      "phone": "971553138626",
+      "source": "https://easynestproperties.com/agents/page/2/",
+      "status": "pending"
+    },
+    {
+      "row": 2514,
+      "name": "Azhar Ahmed",
+      "agency": "Elan Real Estate",
+      "phone": "971522569786",
+      "source": "https://elanrealestate.ae/agent/azhar-ahmed/",
+      "status": "pending"
+    },
+    {
+      "row": 2762,
+      "name": "Artem Golenkov",
+      "agency": "Espace Real Estate",
+      "phone": "971585771623",
+      "source": "https://www.espace.ae/meet-the-team-detail/artem-golenkov",
+      "status": "pending"
+    },
+    {
+      "row": 2910,
+      "name": "Bridget Higgins",
+      "agency": "Exclusive Links",
+      "phone": "971501599476",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 809,
+      "name": "Casey Gaggini",
+      "agency": "Arabian Estates",
+      "phone": "971501119715",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2459,
+      "name": "Muhammad Azeem",
+      "agency": "Easy Nest Properties",
+      "phone": "971522093730",
+      "source": "https://easynestproperties.com/agents/",
+      "status": "pending"
+    },
+    {
+      "row": 2515,
+      "name": "Burhan Hussain Haji",
+      "agency": "Elan Real Estate",
+      "phone": "971585962920",
+      "source": "https://elanrealestate.ae/agent/burhan-hussain-haji/",
+      "status": "pending"
+    },
+    {
+      "row": 2763,
+      "name": "Artur Ahmedov",
+      "agency": "Espace Real Estate",
+      "phone": "971506576723",
+      "source": "https://www.espace.ae/meet-the-team-detail/artur-ahmedov\nhttps://www.propertyfinder.ae/en/agent/artur-ahmedov-120594",
+      "status": "pending"
+    },
+    {
+      "row": 2911,
+      "name": "Candida Miranda",
+      "agency": "Exclusive Links",
+      "phone": "971504501394",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 810,
+      "name": "Charlie Harris",
+      "agency": "Arabian Estates",
+      "phone": "971505654784",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2460,
+      "name": "Muhammad Saifullah",
+      "agency": "Easy Nest Properties",
+      "phone": "971527978963",
+      "source": "https://easynestproperties.com/agents/",
+      "status": "pending"
+    },
+    {
+      "row": 2516,
+      "name": "Faizan Hassan",
+      "agency": "Elan Real Estate",
+      "phone": "971552385588",
+      "source": "https://elanrealestate.ae/agent/faizan-hassan/",
+      "status": "pending"
+    },
+    {
+      "row": 2764,
+      "name": "Bharat Singh",
+      "agency": "Espace Real Estate",
+      "phone": "971505520687",
+      "source": "https://www.espace.ae/meet-the-team-detail/bharat-singh",
+      "status": "pending"
+    },
+    {
+      "row": 2912,
+      "name": "Carmen Davis",
+      "agency": "Exclusive Links",
+      "phone": "971521742947",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 811,
+      "name": "Christian Curran",
+      "agency": "Arabian Estates",
+      "phone": "971585488016",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2461,
+      "name": "Muhammad Salman Butt",
+      "agency": "Easy Nest Properties",
+      "phone": "971529516910",
+      "source": "https://easynestproperties.com/agents/",
+      "status": "pending"
+    },
+    {
+      "row": 2517,
+      "name": "Fasih Uddin",
+      "agency": "Elan Real Estate",
+      "phone": "971554735755",
+      "source": "https://elanrealestate.ae/agent/fasih-uddin/",
+      "status": "pending"
+    },
+    {
+      "row": 2765,
+      "name": "Bradley Bennett",
+      "agency": "Espace Real Estate",
+      "phone": "971585248699",
+      "source": "https://www.espace.ae/meet-the-team-detail/bradley-bennett",
+      "status": "pending"
+    },
+    {
+      "row": 2913,
+      "name": "Clementina Kongslund",
+      "agency": "Exclusive Links",
+      "phone": "971556791349",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 812,
+      "name": "Clive Marsh",
+      "agency": "Arabian Estates",
+      "phone": "971585546224",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2462,
+      "name": "Muhammad Tariq",
+      "agency": "Easy Nest Properties",
+      "phone": "971509724923",
+      "source": "https://easynestproperties.com/agents/",
+      "status": "pending"
+    },
+    {
+      "row": 2518,
+      "name": "Fatima Ali Tirmizi",
+      "agency": "Elan Real Estate",
+      "phone": "971557622208",
+      "source": "https://elanrealestate.ae/agent/fatima-ali-tirmizi/",
+      "status": "pending"
+    },
+    {
+      "row": 2766,
+      "name": "Calum Miller",
+      "agency": "Espace Real Estate",
+      "phone": "971507721629",
+      "source": "https://www.espace.ae/meet-the-team-detail/calum-miller",
+      "status": "pending"
+    },
+    {
+      "row": 2914,
+      "name": "Ehab Baher",
+      "agency": "Exclusive Links",
+      "phone": "971508729200",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 813,
+      "name": "Danial Mokhtari",
+      "agency": "Arabian Estates",
+      "phone": "971585566633",
+      "source": "https://arabianestates.ae/our-team/danial-mokhtari",
+      "status": "pending"
+    },
+    {
+      "row": 2463,
+      "name": "Prabhleen Sanghera",
+      "agency": "Easy Nest Properties",
+      "phone": "971582430919",
+      "source": "https://easynestproperties.com/agents/",
+      "status": "pending"
+    },
+    {
+      "row": 2519,
+      "name": "Imran Hussain",
+      "agency": "Elan Real Estate",
+      "phone": "971528879211",
+      "source": "https://elanrealestate.ae/agent/imran-hussain/",
+      "status": "pending"
+    },
+    {
+      "row": 2767,
+      "name": "Cameron Millar",
+      "agency": "Espace Real Estate",
+      "phone": "971585314467",
+      "source": "https://www.espace.ae/meet-the-team-detail/cameron-millar",
+      "status": "pending"
+    },
+    {
+      "row": 2915,
+      "name": "Elena Kiria",
+      "agency": "Exclusive Links",
+      "phone": "971507510799",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 814,
+      "name": "David Marsh",
+      "agency": "Arabian Estates",
+      "phone": "971585045886",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2464,
+      "name": "Salman Mushtaq",
+      "agency": "Easy Nest Properties",
+      "phone": "971509036399",
+      "source": "https://easynestproperties.com/agents/",
+      "status": "pending"
+    },
+    {
+      "row": 2520,
+      "name": "Majid Ahmad",
+      "agency": "Elan Real Estate",
+      "phone": "971528844552",
+      "source": "https://elanrealestate.ae/agent/majid-ahmad/",
+      "status": "pending"
+    },
+    {
+      "row": 2768,
+      "name": "Charlie Clinch",
+      "agency": "Espace Real Estate",
+      "phone": "971585857791",
+      "source": "https://www.espace.ae/meet-the-team-detail/charlie-clinch",
+      "status": "pending"
+    },
+    {
+      "row": 2916,
+      "name": "Evelin Novikova",
+      "agency": "Exclusive Links",
+      "phone": "971559473697",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 815,
+      "name": "Douglas Kisuule",
+      "agency": "Arabian Estates",
+      "phone": "971585419877",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2465,
+      "name": "Saumya",
+      "agency": "Easy Nest Properties",
+      "phone": "971568673131",
+      "source": "https://easynestproperties.com/agents/",
+      "status": "pending"
+    },
+    {
+      "row": 2521,
+      "name": "Mohammad Mohsin",
+      "agency": "Elan Real Estate",
+      "phone": "971563326394",
+      "source": "https://elanrealestate.ae/agent/mohammad-mohsin/",
+      "status": "pending"
+    },
+    {
+      "row": 2769,
+      "name": "Charlie Olive",
+      "agency": "Espace Real Estate",
+      "phone": "971585684733",
+      "source": "https://www.espace.ae/meet-the-team-detail/charlie-olive",
+      "status": "pending"
+    },
+    {
+      "row": 2917,
+      "name": "Fathi Khalaf",
+      "agency": "Exclusive Links",
+      "phone": "971554562981",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 816,
+      "name": "Driss Elmania",
+      "agency": "Arabian Estates",
+      "phone": "971585460601",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2466,
+      "name": "Wali Faisal",
+      "agency": "Easy Nest Properties",
+      "phone": "971585974725",
+      "source": "https://easynestproperties.com/agents/",
+      "status": "pending"
+    },
+    {
+      "row": 2522,
+      "name": "Muhammad Mateen Salik",
+      "agency": "Elan Real Estate",
+      "phone": "971555007202",
+      "source": "https://elanrealestate.ae/agent/muhammad-mateen-salik/",
+      "status": "pending"
+    },
+    {
+      "row": 2770,
+      "name": "Cian Quinlan",
+      "agency": "Espace Real Estate",
+      "phone": "971509498012",
+      "source": "https://www.espace.ae/meet-the-team-detail/cian-quinlan",
+      "status": "pending"
+    },
+    {
+      "row": 2918,
+      "name": "Florentina Clutton",
+      "agency": "Exclusive Links",
+      "phone": "971543777262",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 817,
+      "name": "Elamir Adnan",
+      "agency": "Arabian Estates",
+      "phone": "971555496760",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2523,
+      "name": "Queenie Casipe",
+      "agency": "Elan Real Estate",
+      "phone": "971588003571",
+      "source": "https://elanrealestate.ae/agent/queenie-casipe/",
+      "status": "pending"
+    },
+    {
+      "row": 2771,
+      "name": "Cypress McConnell",
+      "agency": "Espace Real Estate",
+      "phone": "971585408086",
+      "source": "https://www.espace.ae/meet-the-team-detail/cypress-mcconnell",
+      "status": "pending"
+    },
+    {
+      "row": 2919,
+      "name": "Georgia Fleming",
+      "agency": "Exclusive Links",
+      "phone": "971585908115",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 818,
+      "name": "Elina Zosimenko",
+      "agency": "Arabian Estates",
+      "phone": "971585963723",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2524,
+      "name": "Shruti Nanda",
+      "agency": "Elan Real Estate",
+      "phone": "971564653016",
+      "source": "https://elanrealestate.ae/agent/shruti-nanda/",
+      "status": "pending"
+    },
+    {
+      "row": 2772,
+      "name": "Daniel Abraham",
+      "agency": "Espace Real Estate",
+      "phone": "971565557718",
+      "source": "https://www.espace.ae/meet-the-team-detail/daniel-abraham",
+      "status": "pending"
+    },
+    {
+      "row": 2920,
+      "name": "Gvantsa Gagloshvili",
+      "agency": "Exclusive Links",
+      "phone": "971563940985",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 819,
+      "name": "Emma Jean Laycock",
+      "agency": "Arabian Estates",
+      "phone": "971585118300",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2525,
+      "name": "Zafar Iqbal",
+      "agency": "Elan Real Estate",
+      "phone": "971555903343",
+      "source": "https://elanrealestate.ae/agent/zafar-iqbal/",
+      "status": "pending"
+    },
+    {
+      "row": 2773,
+      "name": "Danyaal Ahmed",
+      "agency": "Espace Real Estate",
+      "phone": "971585309874",
+      "source": "https://www.espace.ae/meet-the-team-detail/danyaal-ahmed",
+      "status": "pending"
+    },
+    {
+      "row": 2921,
+      "name": "James Casserley",
+      "agency": "Exclusive Links",
+      "phone": "971523847708",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 820,
+      "name": "Faizal Mulla",
+      "agency": "Arabian Estates",
+      "phone": "971582513585",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2774,
+      "name": "Dhia Tabbal",
+      "agency": "Espace Real Estate",
+      "phone": "971543456048",
+      "source": "https://www.espace.ae/meet-the-team-detail/dhia-tabbal",
+      "status": "pending"
+    },
+    {
+      "row": 2922,
+      "name": "James Gosling",
+      "agency": "Exclusive Links",
+      "phone": "971504511249",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 821,
+      "name": "George Lupson",
+      "agency": "Arabian Estates",
+      "phone": "971585809577",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2775,
+      "name": "Dylan Smith",
+      "agency": "Espace Real Estate",
+      "phone": "971585818059",
+      "source": "https://www.espace.ae/meet-the-team-detail/dylan-smith",
+      "status": "pending"
+    },
+    {
+      "row": 2923,
+      "name": "James Walsh",
+      "agency": "Exclusive Links",
+      "phone": "971505583904",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 822,
+      "name": "Georgia Hargreaves",
+      "agency": "Arabian Estates",
+      "phone": "971585138949",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2776,
+      "name": "Enes Bashota",
+      "agency": "Espace Real Estate",
+      "phone": "971585928240",
+      "source": "https://www.espace.ae/meet-the-team-detail/enes-bashota",
+      "status": "pending"
+    },
+    {
+      "row": 2924,
+      "name": "Joby Fitzgerald",
+      "agency": "Exclusive Links",
+      "phone": "971543999757",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 823,
+      "name": "Grace Karuga",
+      "agency": "Arabian Estates",
+      "phone": "971525688007",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2777,
+      "name": "Eva Larkin",
+      "agency": "Espace Real Estate",
+      "phone": "971551299307",
+      "source": "https://www.espace.ae/meet-the-team-detail/eva-larkin",
+      "status": "pending"
+    },
+    {
+      "row": 2925,
+      "name": "Joe McBride",
+      "agency": "Exclusive Links",
+      "phone": "971557092072",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 824,
+      "name": "Hamza Chqiriba",
+      "agency": "Arabian Estates",
+      "phone": "971521261134",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2778,
+      "name": "Farangis Bakhtierzoda",
+      "agency": "Espace Real Estate",
+      "phone": "971585059995",
+      "source": "https://www.espace.ae/meet-the-team-detail/farangis-bakhtierzoda",
+      "status": "pending"
+    },
+    {
+      "row": 2926,
+      "name": "Karen Alvarez Black",
+      "agency": "Exclusive Links",
+      "phone": "971568604629",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 825,
+      "name": "Hamza Malki",
+      "agency": "Arabian Estates",
+      "phone": "971567759995",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2779,
+      "name": "Felice Molinario",
+      "agency": "Espace Real Estate",
+      "phone": "971521637703",
+      "source": "https://www.espace.ae/meet-the-team-detail/felice-molinario",
+      "status": "pending"
+    },
+    {
+      "row": 2927,
+      "name": "Kathryn Taylor",
+      "agency": "Exclusive Links",
+      "phone": "971526489518",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 826,
+      "name": "Harry Warren",
+      "agency": "Arabian Estates",
+      "phone": "971582836910",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2780,
+      "name": "Fergus Stafford",
+      "agency": "Espace Real Estate",
+      "phone": "971585750920",
+      "source": "https://www.espace.ae/meet-the-team-detail/fergus-stafford",
+      "status": "pending"
+    },
+    {
+      "row": 2928,
+      "name": "Kerry Helbert",
+      "agency": "Exclusive Links",
+      "phone": "971588407285",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 827,
+      "name": "Imad Najib",
+      "agency": "Arabian Estates",
+      "phone": "971509789404",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2781,
+      "name": "Finn Musgrove",
+      "agency": "Espace Real Estate",
+      "phone": "971585196922",
+      "source": "https://www.espace.ae/meet-the-team-detail/finn-musgrove",
+      "status": "pending"
+    },
+    {
+      "row": 2929,
+      "name": "Liaqat Ali",
+      "agency": "Exclusive Links",
+      "phone": "971523551217",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 828,
+      "name": "Jack Evans",
+      "agency": "Arabian Estates",
+      "phone": "971506057553",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2782,
+      "name": "Giada Cattaneo",
+      "agency": "Espace Real Estate",
+      "phone": "971523131501",
+      "source": "https://www.espace.ae/meet-the-team-detail/giada-cattaneo",
+      "status": "pending"
+    },
+    {
+      "row": 2930,
+      "name": "Lisa Mackenzie",
+      "agency": "Exclusive Links",
+      "phone": "971564847538",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 829,
+      "name": "Jack Milne",
+      "agency": "Arabian Estates",
+      "phone": "971585861248",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2783,
+      "name": "Gil Van Gelder",
+      "agency": "Espace Real Estate",
+      "phone": "971505534345",
+      "source": "https://www.espace.ae/meet-the-team-detail/gil-van-gelder",
+      "status": "pending"
+    },
+    {
+      "row": 2931,
+      "name": "Livia Plevova",
+      "agency": "Exclusive Links",
+      "phone": "971505516037",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 830,
+      "name": "Jade Catherine Apollos",
+      "agency": "Arabian Estates",
+      "phone": "971558445591",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2784,
+      "name": "Harry McCracken",
+      "agency": "Espace Real Estate",
+      "phone": "971585630376",
+      "source": "https://www.espace.ae/meet-the-team-detail/harry-mccracken",
+      "status": "pending"
+    },
+    {
+      "row": 2932,
+      "name": "Lyndsay Foster",
+      "agency": "Exclusive Links",
+      "phone": "971527441224",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 831,
+      "name": "Jason Tucker",
+      "agency": "Arabian Estates",
+      "phone": "971588965813",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2785,
+      "name": "Harvyn Rana",
+      "agency": "Espace Real Estate",
+      "phone": "971585660529",
+      "source": "https://www.espace.ae/meet-the-team-detail/harvyn-rana",
+      "status": "pending"
+    },
+    {
+      "row": 2933,
+      "name": "Maram Fouad",
+      "agency": "Exclusive Links",
+      "phone": "971501599464",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 832,
+      "name": "Jennifer Burt",
+      "agency": "Arabian Estates",
+      "phone": "971585383458",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2786,
+      "name": "Hossein Babaei",
+      "agency": "Espace Real Estate",
+      "phone": "971502447370",
+      "source": "https://www.espace.ae/meet-the-team-detail/hossein-babaei",
+      "status": "pending"
+    },
+    {
+      "row": 2934,
+      "name": "Michael Haith",
+      "agency": "Exclusive Links",
+      "phone": "971505574009",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 833,
+      "name": "Joe Chiffi",
+      "agency": "Arabian Estates",
+      "phone": "971585743916",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2787,
+      "name": "Hugo Searle",
+      "agency": "Espace Real Estate",
+      "phone": "971585732996",
+      "source": "https://www.espace.ae/meet-the-team-detail/hugo-searle",
+      "status": "pending"
+    },
+    {
+      "row": 2935,
+      "name": "Mirjam Rakem",
+      "agency": "Exclusive Links",
+      "phone": "971545133550",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 834,
+      "name": "Joshua Brooks",
+      "agency": "Arabian Estates",
+      "phone": "971585779495",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2788,
+      "name": "Iulian Paunescu",
+      "agency": "Espace Real Estate",
+      "phone": "971509950364",
+      "source": "https://www.espace.ae/meet-the-team-detail/iulian-paunescu",
+      "status": "pending"
+    },
+    {
+      "row": 2936,
+      "name": "Mohamed Moustafa",
+      "agency": "Exclusive Links",
+      "phone": "971562602025",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 835,
+      "name": "Kevin Livingstone",
+      "agency": "Arabian Estates",
+      "phone": "971567896837",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2789,
+      "name": "Jack Cavanagh",
+      "agency": "Espace Real Estate",
+      "phone": "971585372297",
+      "source": "https://www.espace.ae/meet-the-team-detail/jack-cavanagh",
+      "status": "pending"
+    },
+    {
+      "row": 2937,
+      "name": "Mohamed Yessaad",
+      "agency": "Exclusive Links",
+      "phone": "971507928688",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 836,
+      "name": "Magomed Kartoev",
+      "agency": "Arabian Estates",
+      "phone": "971509500723",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2790,
+      "name": "Jacob Jackson",
+      "agency": "Espace Real Estate",
+      "phone": "971585383112",
+      "source": "https://www.espace.ae/meet-the-team-detail/jacob-jackson",
+      "status": "pending"
+    },
+    {
+      "row": 2938,
+      "name": "Monika Lukasz",
+      "agency": "Exclusive Links",
+      "phone": "971504264872",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 837,
+      "name": "Mahmoud Abou Ammo Fadi",
+      "agency": "Arabian Estates",
+      "phone": "971585005130",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2791,
+      "name": "James North",
+      "agency": "Espace Real Estate",
+      "phone": "971585471680",
+      "source": "https://www.espace.ae/meet-the-team-detail/james-north",
+      "status": "pending"
+    },
+    {
+      "row": 2939,
+      "name": "Mubash Shaikh",
+      "agency": "Exclusive Links",
+      "phone": "971545786671",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 838,
+      "name": "Marcus Taylor",
+      "agency": "Arabian Estates",
+      "phone": "971585754117",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2792,
+      "name": "James Winter",
+      "agency": "Espace Real Estate",
+      "phone": "971585569558",
+      "source": "https://www.espace.ae/meet-the-team-detail/james-winter",
+      "status": "pending"
+    },
+    {
+      "row": 2940,
+      "name": "Nick Black",
+      "agency": "Exclusive Links",
+      "phone": "971504515267",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 839,
+      "name": "Muneeb Quraishi",
+      "agency": "Arabian Estates",
+      "phone": "971568947864",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2793,
+      "name": "Joel Raines",
+      "agency": "Espace Real Estate",
+      "phone": "971585264096",
+      "source": "https://www.espace.ae/meet-the-team-detail/joel-raines",
+      "status": "pending"
+    },
+    {
+      "row": 2941,
+      "name": "Osama Waheed Fareed",
+      "agency": "Exclusive Links",
+      "phone": "971503907395",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 840,
+      "name": "Nathan Blake",
+      "agency": "Arabian Estates",
+      "phone": "971585906929",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2794,
+      "name": "Jonathan Abraha",
+      "agency": "Espace Real Estate",
+      "phone": "971586098161",
+      "source": "https://www.espace.ae/meet-the-team-detail/jonathan-abraha",
+      "status": "pending"
+    },
+    {
+      "row": 2942,
+      "name": "Polina Traboulsi",
+      "agency": "Exclusive Links",
+      "phone": "971504513959",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 841,
+      "name": "Nils Brunsch",
+      "agency": "Arabian Estates",
+      "phone": "971585585904",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2795,
+      "name": "Joren Huijten",
+      "agency": "Espace Real Estate",
+      "phone": "971558466950",
+      "source": "https://www.espace.ae/meet-the-team-detail/joren-huijten",
+      "status": "pending"
+    },
+    {
+      "row": 2943,
+      "name": "Raisa Bajerean",
+      "agency": "Exclusive Links",
+      "phone": "971503687976",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 843,
+      "name": "Rachel Stephens",
+      "agency": "Arabian Estates",
+      "phone": "971544473078",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2796,
+      "name": "Julia Ferrari",
+      "agency": "Espace Real Estate",
+      "phone": "971585760625",
+      "source": "https://www.espace.ae/meet-the-team-detail/julia-ferrari",
+      "status": "pending"
+    },
+    {
+      "row": 2944,
+      "name": "Ralph Fares",
+      "agency": "Exclusive Links",
+      "phone": "971582216570",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 844,
+      "name": "Roheet Chopra",
+      "agency": "Arabian Estates",
+      "phone": "971585912828",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2797,
+      "name": "Katherine Taboada",
+      "agency": "Espace Real Estate",
+      "phone": "971585797396",
+      "source": "https://www.espace.ae/meet-the-team-detail/katherine-taboada",
+      "status": "pending"
+    },
+    {
+      "row": 2945,
+      "name": "Rebecca Roffe",
+      "agency": "Exclusive Links",
+      "phone": "971507268262",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 845,
+      "name": "Rolla Sayah",
+      "agency": "Arabian Estates",
+      "phone": "971588234885",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2798,
+      "name": "Keisha Brass",
+      "agency": "Espace Real Estate",
+      "phone": "971585958842",
+      "source": "https://www.espace.ae/meet-the-team-detail/keisha-brass",
+      "status": "pending"
+    },
+    {
+      "row": 2946,
+      "name": "Sahar El-Tahan",
+      "agency": "Exclusive Links",
+      "phone": "971557333162",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 846,
+      "name": "Rowan Beale",
+      "agency": "Arabian Estates",
+      "phone": "971508616982",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2799,
+      "name": "Kevin Lopes",
+      "agency": "Espace Real Estate",
+      "phone": "971507558862",
+      "source": "https://www.espace.ae/meet-the-team-detail/kevin-lopes",
+      "status": "pending"
+    },
+    {
+      "row": 2947,
+      "name": "Sandra El Hussein",
+      "agency": "Exclusive Links",
+      "phone": "971556222379",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 847,
+      "name": "Saad Al Hossain",
+      "agency": "Arabian Estates",
+      "phone": "971551441548",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2800,
+      "name": "Kian Kerr",
+      "agency": "Espace Real Estate",
+      "phone": "971585847611",
+      "source": "https://www.espace.ae/meet-the-team-detail/kian-kerr",
+      "status": "pending"
+    },
+    {
+      "row": 2948,
+      "name": "Sara Hall",
+      "agency": "Exclusive Links",
+      "phone": "971543919495",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 848,
+      "name": "Sarkar Mohammed Sadik",
+      "agency": "Arabian Estates",
+      "phone": "971588993391",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2801,
+      "name": "Leah Brightey",
+      "agency": "Espace Real Estate",
+      "phone": "971585902268",
+      "source": "https://www.espace.ae/meet-the-team-detail/leah-brightey",
+      "status": "pending"
+    },
+    {
+      "row": 2949,
+      "name": "Suzie Sholkami",
+      "agency": "Exclusive Links",
+      "phone": "971505520850",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 849,
+      "name": "Sebastian Tyynela",
+      "agency": "Arabian Estates",
+      "phone": "971585979219",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2802,
+      "name": "Margaret Yep",
+      "agency": "Espace Real Estate",
+      "phone": "971506242018",
+      "source": "https://www.espace.ae/meet-the-team-detail/margaret-yep",
+      "status": "pending"
+    },
+    {
+      "row": 2950,
+      "name": "Swati Agarwal",
+      "agency": "Exclusive Links",
+      "phone": "971504262930",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 850,
+      "name": "Seth Baidoo",
+      "agency": "Arabian Estates",
+      "phone": "971528703249",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2803,
+      "name": "Mariya Cain",
+      "agency": "Espace Real Estate",
+      "phone": "971508783480",
+      "source": "https://www.espace.ae/meet-the-team-detail/mariya-cain",
+      "status": "pending"
+    },
+    {
+      "row": 2951,
+      "name": "Thais Garcia Vilhena",
+      "agency": "Exclusive Links",
+      "phone": "971505574008",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 851,
+      "name": "Shohrukh Bahromzoda",
+      "agency": "Arabian Estates",
+      "phone": "971589871133",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2804,
+      "name": "Mark Coady",
+      "agency": "Espace Real Estate",
+      "phone": "971502794588",
+      "source": "https://www.espace.ae/meet-the-team-detail/mark-coady",
+      "status": "pending"
+    },
+    {
+      "row": 2952,
+      "name": "Victoria Beridze",
+      "agency": "Exclusive Links",
+      "phone": "971544329289",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 852,
+      "name": "Siham Al Roosan",
+      "agency": "Arabian Estates",
+      "phone": "971567795018",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2805,
+      "name": "Mark Wortley",
+      "agency": "Espace Real Estate",
+      "phone": "971585684244",
+      "source": "https://www.espace.ae/meet-the-team-detail/mark-wortley",
+      "status": "pending"
+    },
+    {
+      "row": 2953,
+      "name": "Victoria Dewar",
+      "agency": "Exclusive Links",
+      "phone": "971585561813",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 853,
+      "name": "Simone Adlington",
+      "agency": "Arabian Estates",
+      "phone": "971585468393",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2806,
+      "name": "Martin de la Fuente",
+      "agency": "Espace Real Estate",
+      "phone": "971585752466",
+      "source": "https://www.espace.ae/meet-the-team-detail/martin-de-la-fuente",
+      "status": "pending"
+    },
+    {
+      "row": 2954,
+      "name": "Waseem Awan",
+      "agency": "Exclusive Links",
+      "phone": "971564607080",
+      "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
+      "status": "pending"
+    },
+    {
+      "row": 854,
+      "name": "Tarek Tory",
+      "agency": "Arabian Estates",
+      "phone": "971585525329",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2807,
+      "name": "Matthew Montgomery",
+      "agency": "Espace Real Estate",
+      "phone": "971502415087",
+      "source": "https://www.espace.ae/meet-the-team-detail/matthew-montgomery",
+      "status": "pending"
+    },
+    {
+      "row": 855,
+      "name": "Tatsiana Prysmakova",
+      "agency": "Arabian Estates",
+      "phone": "971505250913",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2808,
+      "name": "Mikhail Levinson",
+      "agency": "Espace Real Estate",
+      "phone": "971503868448",
+      "source": "https://www.espace.ae/meet-the-team-detail/mikhail-levinson",
+      "status": "pending"
+    },
+    {
+      "row": 856,
+      "name": "Tetiana Syvak",
+      "agency": "Arabian Estates",
+      "phone": "971585775989",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2809,
+      "name": "Morgan Curtin",
+      "agency": "Espace Real Estate",
+      "phone": "971585534994",
+      "source": "https://www.espace.ae/meet-the-team-detail/morgan-curtin",
+      "status": "pending"
+    },
+    {
+      "row": 857,
+      "name": "Thomas Breeds",
+      "agency": "Arabian Estates",
+      "phone": "971585925170",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2810,
+      "name": "Nader Diab",
+      "agency": "Espace Real Estate",
+      "phone": "971565611665",
+      "source": "https://www.espace.ae/meet-the-team-detail/nader-diab",
+      "status": "pending"
+    },
+    {
+      "row": 858,
+      "name": "Tom Hastings",
+      "agency": "Arabian Estates",
+      "phone": "971585603501",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2811,
+      "name": "Patrick Luft",
+      "agency": "Espace Real Estate",
+      "phone": "971501029047",
+      "source": "https://www.espace.ae/meet-the-team-detail/patrick-luft",
+      "status": "pending"
+    },
+    {
+      "row": 859,
+      "name": "Vikram Biant",
+      "agency": "Arabian Estates",
+      "phone": "971506964079",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2812,
+      "name": "Radovan Herich",
+      "agency": "Espace Real Estate",
+      "phone": "971544522662",
+      "source": "https://www.espace.ae/meet-the-team-detail/radovan-herich",
+      "status": "pending"
+    },
+    {
+      "row": 860,
+      "name": "Worsha Adnan",
+      "agency": "Arabian Estates",
+      "phone": "971557988423",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2813,
+      "name": "Rayan Dool",
+      "agency": "Espace Real Estate",
+      "phone": "971585051319",
+      "source": "https://www.espace.ae/meet-the-team-detail/rayan-dool",
+      "status": "pending"
+    },
+    {
+      "row": 861,
+      "name": "Zara Jonckheere",
+      "agency": "Arabian Estates",
+      "phone": "971552754103",
+      "source": "https://arabianestates.ae/our-team",
+      "status": "pending"
+    },
+    {
+      "row": 2814,
+      "name": "Reece McDonald",
+      "agency": "Espace Real Estate",
+      "phone": "971585629230",
+      "source": "https://www.espace.ae/meet-the-team-detail/reece-mcdonald",
+      "status": "pending"
+    },
+    {
+      "row": 2815,
+      "name": "Richard Agyemang",
+      "agency": "Espace Real Estate",
+      "phone": "971585886142",
+      "source": "https://www.espace.ae/meet-the-team-detail/richard-agyemang",
+      "status": "pending"
+    },
+    {
+      "row": 2816,
+      "name": "Robbie McDonald",
+      "agency": "Espace Real Estate",
+      "phone": "971565977720",
+      "source": "https://www.espace.ae/meet-the-team-detail/robbie-mcdonald",
+      "status": "pending"
+    },
+    {
+      "row": 2817,
+      "name": "Ronald Abboud",
+      "agency": "Espace Real Estate",
+      "phone": "971508073307",
+      "source": "https://www.espace.ae/meet-the-team-detail/ronald-abboud",
+      "status": "pending"
+    },
+    {
+      "row": 2818,
+      "name": "Ruben De Boer",
+      "agency": "Espace Real Estate",
+      "phone": "971585279053",
+      "source": "https://www.espace.ae/meet-the-team-detail/ruben-de-boer",
+      "status": "pending"
+    },
+    {
+      "row": 2819,
+      "name": "Rumbi Kunzekweguta",
+      "agency": "Espace Real Estate",
+      "phone": "971529815758",
+      "source": "https://www.espace.ae/meet-the-team-detail/rumbi-kunzekweguta",
+      "status": "pending"
+    },
+    {
+      "row": 2820,
+      "name": "Ryan Gargan",
+      "agency": "Espace Real Estate",
+      "phone": "971585392592",
+      "source": "https://www.espace.ae/meet-the-team-detail/ryan-gargan",
+      "status": "pending"
+    },
+    {
+      "row": 2821,
+      "name": "Sabir Karimli",
+      "agency": "Espace Real Estate",
+      "phone": "971503892091",
+      "source": "https://www.espace.ae/meet-the-team-detail/sabir-karimli",
+      "status": "pending"
+    },
+    {
+      "row": 2822,
+      "name": "Saima Miah",
+      "agency": "Espace Real Estate",
+      "phone": "971585720614",
+      "source": "https://www.espace.ae/meet-the-team-detail/saima-miah",
+      "status": "pending"
+    },
+    {
+      "row": 2823,
+      "name": "Samuel Cox",
+      "agency": "Espace Real Estate",
+      "phone": "971503943664",
+      "source": "https://www.espace.ae/meet-the-team-detail/samuel-cox",
+      "status": "pending"
+    },
+    {
+      "row": 2824,
+      "name": "Sandra Damanskaite",
+      "agency": "Espace Real Estate",
+      "phone": "971529898140",
+      "source": "https://www.espace.ae/meet-the-team-detail/sandra-damanskaite",
+      "status": "pending"
+    },
+    {
+      "row": 2825,
+      "name": "Sara Faci",
+      "agency": "Espace Real Estate",
+      "phone": "971524663281",
+      "source": "https://www.espace.ae/meet-the-team-detail/sara-faci",
+      "status": "pending"
+    },
+    {
+      "row": 2826,
+      "name": "Simon Beazley",
+      "agency": "Espace Real Estate",
+      "phone": "971522528880",
+      "source": "https://www.espace.ae/meet-the-team-detail/simon-beazley",
+      "status": "pending"
+    },
+    {
+      "row": 2827,
+      "name": "Sukhjit Rupra",
+      "agency": "Espace Real Estate",
+      "phone": "971507188736",
+      "source": "https://www.espace.ae/meet-the-team-detail/sukhjit-rupra",
+      "status": "pending"
+    },
+    {
+      "row": 2828,
+      "name": "Tarek Ghalayini",
+      "agency": "Espace Real Estate",
+      "phone": "971555523971",
+      "source": "https://www.espace.ae/meet-the-team-detail/tarek-ghalayini",
+      "status": "pending"
+    },
+    {
+      "row": 2829,
+      "name": "Tayte Brown",
+      "agency": "Espace Real Estate",
+      "phone": "971585038904",
+      "source": "https://www.espace.ae/meet-the-team-detail/tayte-brown",
+      "status": "pending"
+    },
+    {
+      "row": 2830,
+      "name": "Thomas Anderson",
+      "agency": "Espace Real Estate",
+      "phone": "971585918250",
+      "source": "https://www.espace.ae/meet-the-team-detail/thomas-anderson",
+      "status": "pending"
+    },
+    {
+      "row": 2831,
+      "name": "Tom Rees",
+      "agency": "Espace Real Estate",
+      "phone": "971552347295",
+      "source": "https://www.espace.ae/meet-the-team-detail/tom-rees",
+      "status": "pending"
+    },
+    {
+      "row": 2832,
+      "name": "Vijesh Vattoli",
+      "agency": "Espace Real Estate",
+      "phone": "971503559079",
+      "source": "https://www.espace.ae/meet-the-team-detail/vijesh-vattoli",
+      "status": "pending"
+    },
+    {
+      "row": 2833,
+      "name": "Vlad Radulian",
+      "agency": "Espace Real Estate",
+      "phone": "971508999426",
+      "source": "https://www.espace.ae/meet-the-team-detail/vlad-radulian",
+      "status": "pending"
+    }
+  ],
+  "lastAttemptAt": "2026-10-07T13:38:43.494Z",
+  "automationId": "send-40-broker-introductions",
+  "confirmedCount": 1
+}
