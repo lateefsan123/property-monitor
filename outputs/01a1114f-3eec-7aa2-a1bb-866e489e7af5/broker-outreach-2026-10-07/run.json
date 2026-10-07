@@ -158,7 +158,11 @@
       "agency": "Arabian Estates",
       "phone": "971585929751",
       "source": "https://arabianestates.ae/our-team",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Amin Labioui, Lateef here from Repeat AI. I found your contact on the Arabian Estates website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T15:27:45.811Z",
+      "evidence": "16:27 Sent visibly verified in +971 58 592 9751 chat; 1:54 v5 film and exact personalised Arabian Estates caption.",
+      "verifiedAt": "2026-10-07T15:27:53.768Z"
     },
     {
       "row": 2456,
@@ -1769,7 +1773,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T15:20:47.807Z",
+  "lastAttemptAt": "2026-10-07T15:27:45.811Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 12
+  "confirmedCount": 13
 }
