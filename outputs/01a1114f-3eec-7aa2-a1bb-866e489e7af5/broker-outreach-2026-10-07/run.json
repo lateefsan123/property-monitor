@@ -448,7 +448,11 @@
       "agency": "Espace Real Estate",
       "phone": "971505520687",
       "source": "https://www.espace.ae/meet-the-team-detail/bharat-singh",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Bharat Singh, Lateef here from Repeat AI. I found your contact on the Espace Real Estate website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T17:58:08.503Z",
+      "evidence": "18:58 Sent visibly verified in chat +971 50 552 0687; 1:54 v5 film and exact personalised Bharat Singh / Espace Real Estate caption.",
+      "verifiedAt": "2026-10-07T17:58:15.914Z"
     },
     {
       "row": 2912,
@@ -1867,7 +1871,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T17:51:53.754Z",
+  "lastAttemptAt": "2026-10-07T17:58:08.503Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 35
+  "confirmedCount": 36
 }
