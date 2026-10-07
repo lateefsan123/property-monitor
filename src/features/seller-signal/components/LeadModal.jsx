@@ -1,3 +1,4 @@
+import { isAutomationAccount } from "../../../../supabase/functions/_shared/automation-account.js";
 import { useEffect, useState, useRef } from "react";
 import SellerFollowUpControl from './SellerFollowUpControl';
 import { introAttachmentPath } from "../../../../supabase/functions/_shared/intro-attachment.js";
@@ -264,7 +265,7 @@ export default function LeadModal({
           <>
             <div className="seller-drawer-scroll">
               <div className="seller-drawer-body">
-                <LeadEditForm
+                <LeadEditForm automationAccount={isAutomationAccount(userId)}
                   draft={editDraft}
                   isDeleting={isDeleting}
                   isSaving={isSaving}
@@ -290,7 +291,7 @@ export default function LeadModal({
                 <span className="seller-drawer-avatar" style={avatarStyle} aria-hidden="true">{sellerInitials(name)}</span>
                 <div className="seller-drawer-identity">
                   <h2>{name}</h2>
-                  <p>{displayBuildingLabel}</p>
+                  {!isAutomationAccount(userId) && <p>{displayBuildingLabel}</p>}
                 </div>
               </div>
 
@@ -313,7 +314,7 @@ export default function LeadModal({
                 {activeSection === "details" && (
                   <>
                     <div className="seller-info-card">
-                      <SellerDetailsPanel
+                      <SellerDetailsPanel automationAccount={isAutomationAccount(userId)}
                         lead={lead}
                         buildingLabel={displayBuildingLabel}
                         bedroomLabel={bedroomLabel}
@@ -323,7 +324,7 @@ export default function LeadModal({
                       />
                       {onSaveFollowUp && <SellerFollowUpControl lead={lead} onSave={onSaveFollowUp} />}
                     </div>
-                    <MarketPanel insight={insight} lead={lead} />
+                    {!isAutomationAccount(userId) && <MarketPanel insight={insight} lead={lead} />}
                   </>
                 )}
                 {activeSection === "history" && <SellerMessageHistory userId={userId} lead={lead} />}

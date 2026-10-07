@@ -126,9 +126,9 @@ export default function LeadCard({
           </span>
         </div>
       </td>
-      <td><span className="seller-building" title={buildingTitle}>{building}</span></td>
+      {!automationAccount && <><td><span className="seller-building" title={buildingTitle}>{building}</span></td>
       <td className="seller-unit">{unitLabel || <span className="seller-none">—</span>}</td>
-      <td className="seller-unit">{bedroomLabel || <span className="seller-none">—</span>}</td>
+      <td className="seller-unit">{bedroomLabel || <span className="seller-none">—</span>}</td></>}
       <td><StatusPill tone={statusTone(lead.statusRule?.id)} color={lead.statusRule?.color}>{lead.statusLabel}</StatusPill></td>
       <td>
         {hot ? <StatusPill tone="red">Sold today</StatusPill>

@@ -129,13 +129,13 @@ export default function SellerSignalDashboard({
         />
       )}
 
-      <BuildingCleanupPanel
+      {!isAutomationAccount(userId) && <BuildingCleanupPanel
         aliases={dashboard.buildingAliases}
         cachedBuildings={dashboard.cachedBuildings}
         leads={dashboard.cleanupLeads}
         onSaveAlias={dashboard.actions.saveBuildingAlias}
         savingAliasName={dashboard.savingBuildingAliasName}
-      />
+      />}
 
       <div className="seller-table-surface">
         <SellerFilterBar dashboard={dashboard} userId={userId} />
@@ -162,9 +162,9 @@ export default function SellerSignalDashboard({
                 <thead>
                   <tr>
                     <th>Seller</th>
-                    <th>Building</th>
+                    {!isAutomationAccount(userId) && <><th>Building</th>
                     <th>Unit</th>
-                    <th>Bedrooms</th>
+                    <th>Bedrooms</th></>}
                     <th>Status</th>
                     <th>Follow-up</th>
                     <th>Phone</th>

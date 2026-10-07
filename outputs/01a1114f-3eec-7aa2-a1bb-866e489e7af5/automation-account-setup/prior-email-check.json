@@ -1,0 +1,130 @@
+{
+  "checkedAt": "2026-10-07T21:21:24.958972+00:00",
+  "mailbox": "lateefsanusiit@gmail.com",
+  "query": "in:sent subject:\"Quick idea for your owner follow-ups\"",
+  "sentCount": 20,
+  "importMatches": 0,
+  "method": "Matched recipient emails to original outreach tracker names; compared email, normalized full names and name tokens with imported CSV. No matching identities found. No deletions or status changes required. Preserve these prior-contact exclusions for future imports.",
+  "priorContacts": [
+    {
+      "name": "Emily Hosking",
+      "agency": "haus & haus Real Estate",
+      "email": "emily.h@hausandhaus.com",
+      "matches": []
+    },
+    {
+      "name": "Alice Elizabeth Young",
+      "agency": "White & Co",
+      "email": "alice.young@whiteandcogroup.com",
+      "matches": []
+    },
+    {
+      "name": "Katie Coyle",
+      "agency": "Allsopp & Allsopp - Business Bay Sales",
+      "email": "katie.c@allsoppandallsopp.com",
+      "matches": []
+    },
+    {
+      "name": "Rawy Rayan",
+      "agency": "Driven Properties",
+      "email": "rawy@drivenproperties.com",
+      "matches": []
+    },
+    {
+      "name": "Leon Sieger",
+      "agency": "Savills Real Estate L.L.C - Dubai",
+      "email": "leon.sieger@savills.me",
+      "matches": []
+    },
+    {
+      "name": "James Wood",
+      "agency": "White & Co",
+      "email": "james.wood@whiteandcogroup.com",
+      "matches": []
+    },
+    {
+      "name": "Muntaz Bacai",
+      "agency": "Mahel Real Estate",
+      "email": "mahelrealestate@gmail.com",
+      "matches": []
+    },
+    {
+      "name": "Ben Chandler",
+      "agency": "White & Co",
+      "email": "ben.chandler@whiteandcogroup.com",
+      "matches": []
+    },
+    {
+      "name": "Tarek Abdulkader Zernaji",
+      "agency": "Driven Properties",
+      "email": "tarek.zernaji@drivenproperties.com",
+      "matches": []
+    },
+    {
+      "name": "Ashlee Wharton",
+      "agency": "White & Co",
+      "email": "ashlee@whiteandcogroup.com",
+      "matches": []
+    },
+    {
+      "name": "Imran Miah",
+      "agency": "White & Co",
+      "email": "imran@whiteandcogroup.com",
+      "matches": []
+    },
+    {
+      "name": "Sarah Hussain",
+      "agency": "Allsopp & Allsopp - Business Bay Sales",
+      "email": "sarah.h@allsoppandallsopp.com",
+      "matches": []
+    },
+    {
+      "name": "Angel Uzunov",
+      "agency": "Allsopp & Allsopp - Business Bay Sales",
+      "email": "angel.u@allsoppandallsopp.com",
+      "matches": []
+    },
+    {
+      "name": "Jonathan Potts",
+      "agency": "haus & haus Real Estate",
+      "email": "jonathan.p@hausandhaus.com",
+      "matches": []
+    },
+    {
+      "name": "Shaun Leishman",
+      "agency": "White & Co",
+      "email": "shaun.leishman@whiteandcogroup.com",
+      "matches": []
+    },
+    {
+      "name": "James Neal",
+      "agency": "Strada",
+      "email": "james.n@stradauae.com",
+      "matches": []
+    },
+    {
+      "name": "Luke Dunne",
+      "agency": "White & Co",
+      "email": "luke.dunne@whiteandcogroup.com",
+      "matches": []
+    },
+    {
+      "name": "Archie Murdoch",
+      "agency": "Strada",
+      "email": "archie@stradauae.com",
+      "matches": []
+    },
+    {
+      "name": "Sam Watkinson",
+      "agency": "White & Co",
+      "email": "sam.watkinson@whiteandcogroup.com",
+      "matches": []
+    },
+    {
+      "name": "Benjamin Marshall",
+      "agency": "Savills Real Estate L.L.C - Dubai",
+      "email": "benjamin.marshall@savills.me",
+      "matches": []
+    }
+  ]
+}

@@ -39,7 +39,7 @@ function EditField({ label, children }) {
   );
 }
 
-export function LeadEditForm({ draft, isDeleting, isSaving, onChange, onDelete, onSave }) {
+export function LeadEditForm({ automationAccount = false, draft, isDeleting, isSaving, onChange, onDelete, onSave }) {
   const statusOptions = getEditStatusOptions(draft?.status);
   const busy = isSaving || isDeleting;
   const input = (field, props) => (
@@ -57,11 +57,12 @@ export function LeadEditForm({ draft, isDeleting, isSaving, onChange, onDelete, 
     >
       <EditField label="Name">{input("name", { type: "text", placeholder: "Seller name" })}</EditField>
       <EditField label="Phone">{input("phone", { type: "tel", placeholder: "+971..." })}</EditField>
-      <EditField label="Building">{input("building", { type: "text", placeholder: "Building name" })}</EditField>
+      {!automationAccount && <><EditField label="Building">{input("building", { type: "text", placeholder: "Building name" })}</EditField>
       <div className="seller-edit-row">
         <EditField label="Unit">{input("unit", { type: "text", placeholder: "1203" })}</EditField>
         <EditField label="Bedrooms">{input("bedroom", { type: "text", placeholder: "2BR" })}</EditField>
       </div>
+      </>}
       <div className="seller-edit-field">
         <span>Status</span>
         <div className="seller-edit-chips" role="radiogroup" aria-label="Status">
@@ -100,7 +101,7 @@ export function LeadEditForm({ draft, isDeleting, isSaving, onChange, onDelete, 
 
 // Lightfield-style field list for the seller drawer: icon, label, value,
 // grouped in one rounded card like the mobile sheet's info group.
-export function SellerDetailsPanel({ lead, buildingLabel, bedroomLabel, unitLabel, disabled, onUpdateStatus }) {
+export function SellerDetailsPanel({ automationAccount = false, lead, buildingLabel, bedroomLabel, unitLabel, disabled, onUpdateStatus }) {
   const [statusOpen, setStatusOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const statusRef = useRef(null);
@@ -136,9 +137,9 @@ export function SellerDetailsPanel({ lead, buildingLabel, bedroomLabel, unitLabe
         </button>
       ) : empty("No phone number"),
     },
-    { icon: IconBuildingEstate, label: "Building", value: buildingLabel },
+    ...(!automationAccount ? [{ icon: IconBuildingEstate, label: "Building", value: buildingLabel },
     { icon: IconDoor, label: "Unit", value: unitValue || empty("No unit") },
-    { icon: IconBed, label: "Bedrooms", value: bedroomValue || empty("Not set") },
+    { icon: IconBed, label: "Bedrooms", value: bedroomValue || empty("Not set") }] : []),
     {
       icon: IconCircleDot,
       label: "Status",

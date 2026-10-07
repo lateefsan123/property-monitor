@@ -1,3 +1,4 @@
+import { isAutomationAccount } from "../../../supabase/functions/_shared/automation-account.js";
 import { useDeferredValue, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { MAX_MEANINGFUL_OVERDUE_DAYS } from "./constants";
@@ -185,8 +186,8 @@ export function useSellerSignalPage(userId) {
 
   const leadsData = leadsQuery.data || { leads: EMPTY_LEADS, sentMap: EMPTY_SENT_MAP };
   const leads = useMemo(
-    () => enrichLeadsWithDataQuality(leadsData.leads || EMPTY_LEADS, buildingAliases, cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS),
-    [buildingAliases, cachedBuildingsQuery.data, leadsData.leads],
+    () => enrichLeadsWithDataQuality(leadsData.leads || EMPTY_LEADS, buildingAliases, cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS, userId),
+    [buildingAliases, cachedBuildingsQuery.data, leadsData.leads, userId],
   );
   const cleanupLeadsQuery = useQuery({
     queryKey: sellerBuildingCleanupQueryKey(userId, effectiveSourceFilter),
@@ -200,8 +201,8 @@ export function useSellerSignalPage(userId) {
     staleTime: 15 * 60 * 1000,
   });
   const cleanupLeads = useMemo(
-    () => enrichLeadsWithDataQuality(cleanupLeadsQuery.data || EMPTY_LEADS, buildingAliases, cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS),
-    [buildingAliases, cachedBuildingsQuery.data, cleanupLeadsQuery.data],
+    () => enrichLeadsWithDataQuality(cleanupLeadsQuery.data || EMPTY_LEADS, buildingAliases, cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS, userId),
+    [buildingAliases, cachedBuildingsQuery.data, cleanupLeadsQuery.data, userId],
   );
   const dataQualitySummary = useMemo(() => summarizeLeadDataQuality(leads), [leads]);
   const sentLeads = leadsData.sentMap || EMPTY_SENT_MAP;
@@ -537,7 +538,7 @@ export function useSellerSignalPage(userId) {
     || automationSettingsQuery.error
     || sendActivityQuery.error,
   );
-  const insightNotice = insightTargets.length
+  const insightNotice = isAutomationAccount(userId) ? null : insightTargets.length
     ? marketDataQuery.error
       ? getErrorMessage(marketDataQuery.error)
       : insightsResult.hasTargets && insightsResult.matched === 0 && insightsResult.pending === 0

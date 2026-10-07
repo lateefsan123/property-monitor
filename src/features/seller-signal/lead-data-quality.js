@@ -1,3 +1,4 @@
+import { isAutomationAccount } from "../../../supabase/functions/_shared/automation-account.js";
 import {
   cleanBuildingName,
   findKnownBuildingProjectPrefixMatch,
@@ -442,7 +443,8 @@ function buildQualityLevel(label) {
   return "review";
 }
 
-export function enrichLeadsWithDataQuality(leads, buildingAliases = [], cachedBuildings = []) {
+export function enrichLeadsWithDataQuality(leads, buildingAliases = [], cachedBuildings = [], userId = null) {
+  const propertyRequired = !isAutomationAccount(userId);
   const resolveBuilding = createLeadBuildingResolver(buildingAliases, cachedBuildings);
   const duplicateLookup = buildDuplicateLookup(leads, resolveBuilding);
 
@@ -455,10 +457,10 @@ export function enrichLeadsWithDataQuality(leads, buildingAliases = [], cachedBu
     if (!lead.sourceId) addIssue(issues, "legacy_source", "Legacy source");
     if (!String(lead.name || "").trim()) addIssue(issues, "missing_name", "Missing name");
     if (!String(lead.phone || "").trim()) addIssue(issues, "missing_phone", "Missing phone");
-    if (!String(leadUnit || "").trim()) addIssue(issues, "missing_unit", "Missing unit");
-    if (buildingMatch.status === "missing") addIssue(issues, "missing_building", "Missing building", "error");
-    if (buildingMatch.status === "invalid") addIssue(issues, "invalid_building", buildingMatch.issue?.label || "Invalid building value", "error");
-    if (buildingMatch.status === "unmatched") addIssue(issues, "unmatched_building", "Awaiting a verified building match from Repeat AI", "info");
+    if (propertyRequired && (!String(leadUnit || "").trim())) addIssue(issues, "missing_unit", "Missing unit");
+    if (propertyRequired && (buildingMatch.status === "missing")) addIssue(issues, "missing_building", "Missing building", "error");
+    if (propertyRequired && (buildingMatch.status === "invalid")) addIssue(issues, "invalid_building", buildingMatch.issue?.label || "Invalid building value", "error");
+    if (propertyRequired && (buildingMatch.status === "unmatched")) addIssue(issues, "unmatched_building", "Awaiting a verified building match from Repeat AI", "info");
     if (duplicateLookup[lead.id]) addIssue(issues, "duplicate_lead", `${duplicateLookup[lead.id].count} duplicates`, "error");
 
     const label = buildQualityLabel(issues);
