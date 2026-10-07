@@ -1,9 +1,8 @@
-import { lazy, Suspense, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { usePagePrefetch } from "./usePagePrefetch";
 import SchedulePage from "./features/schedule/SchedulePage";
 import SettingsPage from "./features/settings/SettingsPage";
 import ActivityPage from "./features/activity/ActivityPage";
-const BrokerCampaignPage = lazy(() => import("./features/broker-campaigns/BrokerCampaignPage"));
 import {
   IconActivity,
   IconBuildingEstate,
@@ -33,13 +32,12 @@ import SendVolumeDialog from "./features/seller-signal/components/SendVolumeDial
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
 import { createBillingPortalSession } from "./billing";
 
-const VALID_PAGES = new Set(["home", "sellers", "activity", "broker-campaigns", "listing-alerts", "spreadsheets", "schedule", "settings", "setup"]);
+const VALID_PAGES = new Set(["home", "sellers", "activity", "listing-alerts", "spreadsheets", "schedule", "settings", "setup"]);
 const THEME_STORAGE_KEY = "property:theme";
 
 const PAGE_LABELS = {
   home: "Home",
   activity: "Activity",
-  "broker-campaigns": "Broker outreach",
   schedule: "Schedule",
   settings: "Settings",
   setup: "Setup",
@@ -329,8 +327,6 @@ export default function AppShell({ displayName, subscription, userId }) {
           <ActivityPage key={userId} userId={userId} onNavigate={handleNavigate} onOpenSeller={(id) => { handleNavigate("sellers"); setSavedSellerId(String(id)); setSavedSellerSection("history"); }} />
         ) : currentPage === "schedule" ? (
           <SchedulePage key={userId} userId={userId} onNavigate={handleNavigate} />
-        ) : currentPage === "broker-campaigns" ? (
-          <Suspense fallback={<p>Loading broker outreach…</p>}><BrokerCampaignPage key={userId} userId={userId} onNavigate={handleNavigate} /></Suspense>
         ) : currentPage === "settings" ? (
           <SettingsPage
             key={`${userId}:${settingsSection || ""}`}
