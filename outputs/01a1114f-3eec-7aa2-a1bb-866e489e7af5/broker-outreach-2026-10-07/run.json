@@ -121,7 +121,11 @@
       "agency": "Fantastic Frank Dubai",
       "phone": "971585385577",
       "source": "https://www.fantasticfrank.com/en/dubai/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Shokhrukh Rakhimov, Lateef here from Repeat AI. I found your contact on the Fantastic Frank Dubai website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T15:07:07.523Z",
+      "evidence": "16:07 Sent visibly verified in +971 58 538 5577 chat; 1:54 v5 demo and exact personalised Fantastic Frank Dubai caption.",
+      "verifiedAt": "2026-10-07T15:07:15.512Z"
     },
     {
       "row": 4830,
@@ -1756,7 +1760,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T14:32:23.372Z",
+  "lastAttemptAt": "2026-10-07T15:07:07.523Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 9
+  "confirmedCount": 10
 }
