@@ -134,10 +134,10 @@ export function useSellerSignalPage(userId) {
   const { messageTemplate, messageTemplateImagePath } = useMemo(() => {
     const templateFor = (lead) => pickTemplateForStatus(messageTemplates.templates, lead?.status);
     return {
-      messageTemplate: (lead) => templateFor(lead)?.content || DEFAULT_MESSAGE_TEMPLATE,
+      messageTemplate: (lead) => templateFor(lead)?.content || messageTemplates.activeTemplateContent || DEFAULT_MESSAGE_TEMPLATE,
       messageTemplateImagePath: (lead) => templateFor(lead)?.image_path || null,
     };
-  }, [messageTemplates.templates]);
+  }, [messageTemplates.templates, messageTemplates.activeTemplateContent]);
   const cachedBuildingsQuery = useQuery({
     queryKey: sellerCachedBuildingsQueryKey(),
     enabled: Boolean(userId),

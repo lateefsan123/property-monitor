@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { isAutomationAccount } from "../../../supabase/functions/_shared/automation-account.js";
 import { IconPlus } from "@tabler/icons-react";
 import AddSellerModal from "./components/AddSellerModal";
 import BuildingCleanupPanel from "./components/BuildingCleanupPanel";
@@ -174,6 +175,7 @@ export default function SellerSignalDashboard({
                 <tbody>
                   {dashboard.pagedLeads.map((lead) => (
                     <LeadCard
+                      automationAccount={isAutomationAccount(userId)}
                       key={lead.id}
                       copiedLeadId={dashboard.copiedLeadId}
                       favorited={favoriteIds.has(String(lead.id))}

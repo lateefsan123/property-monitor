@@ -3,7 +3,8 @@
 // moves them to the status's next status. Anyone who has replied is never
 // messaged again by this automation. Pure logic; the edge function
 // (seller-signal-status-followups) does the reading and sending.
-import { pickTemplateForStatusId } from "./template-status.js";
+import { isAutomationAccount } from "./automation-account.js";
+import { templateStatusId, pickTemplateForStatusId } from "./template-status.js";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -18,12 +19,20 @@ function time(value) {
 }
 
 // Statuses that can send: custom, a follow-up gap above 0 and an assigned template.
-export function sendableStatuses(statusRows, templates) {
+export function sendableStatuses(statusRows, templates, userId) {
+  if (isAutomationAccount(userId)) {
+    const defaults = [
+      { id: "prospect", builtin_key: "prospect", label: "Prospect", follow_up_days: 75 },
+      { id: "market_appraisal", builtin_key: "market_appraisal", label: "Appraisal", follow_up_days: 25 },
+      { id: "for_sale_available", builtin_key: "for_sale_available", label: "For Sale", follow_up_days: 5 },
+    ];
+    statusRows = [...defaults.filter((base) => !(statusRows || []).some((row) => row.builtin_key === base.builtin_key)), ...(statusRows || [])];
+  }
   const byId = new Map((statusRows || []).map((row) => [row.id, row]));
   return (statusRows || [])
-    .filter((row) => !row.builtin_key && Number(row.follow_up_days) > 0)
+    .filter((row) => !row.hidden && row.builtin_key !== "not_interested" && (!row.builtin_key || isAutomationAccount(userId)) && Number(row.follow_up_days) > 0)
     .map((row) => {
-      const template = pickTemplateForStatusId(templates, `custom:${row.id}`);
+      const template = pickTemplateForStatusId(templates, row.builtin_key || `custom:${row.id}`);
       const next = row.next_status_id ? byId.get(row.next_status_id) : null;
       return template ? { ...row, template, nextLabel: next && next.id !== row.id ? next.label : null } : null;
     })
@@ -41,9 +50,10 @@ export function lastTouch(lead, outboundTimes = []) {
 // Sellers due a status follow-up, never-contacted first, then the longest waiting.
 export function dueFollowUps({ leads, statuses, outboundByLead = new Map(), repliedLeadIds = new Set(), repliedPhones = new Set(), now = Date.now() }) {
   const byLabel = new Map(statuses.map((status) => [token(status.label), status]));
+  const byBuiltIn = new Map(statuses.filter((status) => status.builtin_key).map((status) => [status.builtin_key, status]));
   const due = [];
   for (const lead of leads || []) {
-    const status = byLabel.get(token(lead.status));
+    const status = byLabel.get(token(lead.status)) || byBuiltIn.get(templateStatusId(lead.status));
     if (!status) continue;
     if (repliedLeadIds.has(Number(lead.id)) || (lead.phone && repliedPhones.has(String(lead.phone)))) continue;
     if (lead.next_follow_up_on && time(lead.next_follow_up_on) > now) continue;

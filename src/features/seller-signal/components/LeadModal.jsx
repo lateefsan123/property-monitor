@@ -332,6 +332,7 @@ export default function LeadModal({
                     edited={messageEdited || Boolean(lead.message_draft)}
                     onSaveMessage={() => saveMessage(message)} savingMessage={savingMessage} saveStatus={messageSaveStatus} saveError={messageSaveError}
                     imageUrl={customImage ? customPreview : templateImageUrl}
+                    mediaType={customImage ? 'image' : selectedTemplate?.media_type || (templateImagePath?.endsWith('.mp4') ? 'video' : 'image')}
                     hasImage={Boolean(customImage || templateImagePath)}
                     imageIncluded={Boolean(customImage || selectedImagePath)}
                     imageFirstMessageOnly={!customImage && followUp}

@@ -256,9 +256,7 @@ export function buildMessage(lead, insight, templateContent = DEFAULT_MESSAGE_TE
     }
   }
 
-  const safeTemplate = String(templateContent || DEFAULT_MESSAGE_TEMPLATE).includes("{{transactions}}")
-    ? String(templateContent || DEFAULT_MESSAGE_TEMPLATE)
-    : DEFAULT_MESSAGE_TEMPLATE;
+  const safeTemplate = String(templateContent || DEFAULT_MESSAGE_TEMPLATE);
 
   return safeTemplate
     .replaceAll("{{name}}", name)

@@ -12,8 +12,12 @@ import TemplateAiDialog from './TemplateAiDialog';
 import { templateStatusLabels, templateStatusOptions } from "../../../../supabase/functions/_shared/template-status.js";
 import {
   MESSAGE_TEMPLATE_IMAGE_MAX_BYTES,
-  MESSAGE_TEMPLATE_IMAGE_TYPES,
+  MESSAGE_TEMPLATE_MEDIA_TYPES,
+  MESSAGE_TEMPLATE_VIDEO_MAX_BYTES,
 } from "../message-template-services";
+import { templateMediaType } from "../../../../supabase/functions/_shared/template-media.js";
+
+import { isAutomationAccount, AUTOMATION_MESSAGE_TEMPLATE } from "../../../../supabase/functions/_shared/automation-account.js";
 
 const NEW_TEMPLATE_ID = "new";
 const MESSAGE_PREVIEW_TRANSACTIONS = "2 bed · AED 2.9M · 992 sqft";
@@ -34,6 +38,7 @@ function getErrorMessage(error) {
 }
 
 export default function MessageTemplatesPanel({
+  userId,
   loading,
   onClose,
   onDelete,
@@ -42,11 +47,15 @@ export default function MessageTemplatesPanel({
   saving,
   templates = [],
 }) {
+  const automationAccount = isAutomationAccount(userId);
+  const initialName = automationAccount ? "Broker introduction" : "Transaction update";
+  const initialMessage = automationAccount ? AUTOMATION_MESSAGE_TEMPLATE : DEFAULT_MESSAGE_TEMPLATE;
   const [selectedId, setSelectedId] = useState(templates[0]?.id || NEW_TEMPLATE_ID);
-  const [name, setName] = useState(templates[0]?.name || "Transaction update");
-  const [content, setContent] = useState(templates[0]?.content || DEFAULT_MESSAGE_TEMPLATE);
+  const [name, setName] = useState(templates[0]?.name || initialName);
+  const [content, setContent] = useState(templates[0]?.content || initialMessage);
   const [statuses, setStatuses] = useState(templates[0]?.statuses || []);
   const [imageFile, setImageFile] = useState(null);
+  const [mediaType, setMediaType] = useState(templateMediaType(templates[0]?.image_path));
   const [imagePreviewUrl, setImagePreviewUrl] = useState(templates[0]?.image_url || null);
   const [removeImage, setRemoveImage] = useState(false);
   const [notice, setNotice] = useState(null);
@@ -110,6 +119,7 @@ export default function MessageTemplatesPanel({
     if (localImageUrlRef.current) URL.revokeObjectURL(localImageUrlRef.current);
     localImageUrlRef.current = null;
     setImageFile(null);
+    setMediaType(templateMediaType(template?.image_path));
     setImagePreviewUrl(template?.image_url || null);
     setRemoveImage(false);
     if (imageInputRef.current) imageInputRef.current.value = "";
@@ -119,8 +129,8 @@ export default function MessageTemplatesPanel({
     if (actionsRef.current) actionsRef.current.open = false;
     const nextTemplate = templates.find((template) => template.id === nextId);
     setSelectedId(nextId);
-    setName(nextTemplate?.name || "Transaction update");
-    setContent(nextTemplate?.content || DEFAULT_MESSAGE_TEMPLATE);
+    setName(nextTemplate?.name || initialName);
+    setContent(nextTemplate?.content || initialMessage);
     setStatuses(nextTemplate?.statuses || []);
     setTemplateImage(nextTemplate);
     setNotice(null);
@@ -188,8 +198,8 @@ export default function MessageTemplatesPanel({
     try {
       await onDelete(selectedTemplate.id);
       setSelectedId(NEW_TEMPLATE_ID);
-      setName("Transaction update");
-      setContent(DEFAULT_MESSAGE_TEMPLATE);
+      setName(initialName);
+      setContent(initialMessage);
       setTemplateImage(null);
       setNotice("Template deleted.");
     } catch (deleteError) {
@@ -202,13 +212,13 @@ export default function MessageTemplatesPanel({
     if (!file) return;
     setError(null);
     setNotice(null);
-    if (!MESSAGE_TEMPLATE_IMAGE_TYPES.includes(file.type)) {
-      setError("Choose a JPG, PNG, or WebP image.");
+    if (!MESSAGE_TEMPLATE_MEDIA_TYPES.includes(file.type)) {
+      setError("Choose a JPG, PNG, WebP image or MP4 video.");
       event.target.value = "";
       return;
     }
-    if (file.size > MESSAGE_TEMPLATE_IMAGE_MAX_BYTES) {
-      setError("Template images must be 5 MB or smaller.");
+    if (file.size > (file.type === 'video/mp4' ? MESSAGE_TEMPLATE_VIDEO_MAX_BYTES : MESSAGE_TEMPLATE_IMAGE_MAX_BYTES)) {
+      setError(file.type === 'video/mp4' ? 'Template videos must be 16 MB or smaller.' : 'Template images must be 5 MB or smaller.');
       event.target.value = "";
       return;
     }
@@ -217,6 +227,7 @@ export default function MessageTemplatesPanel({
     const previewUrl = URL.createObjectURL(file);
     localImageUrlRef.current = previewUrl;
     setImageFile(file);
+    setMediaType(file.type === 'video/mp4' ? 'video' : 'image');
     setImagePreviewUrl(previewUrl);
     setRemoveImage(false);
   }
@@ -283,7 +294,7 @@ export default function MessageTemplatesPanel({
                 <div className="message-template-status-field" role="group" aria-labelledby="message-template-status-label">
                   <span id="message-template-status-label">Use for</span>
                   <div className="message-template-status-row">
-                    {templateStatusOptions().map((status) => {
+                    {templateStatusOptions({ includeNotInterested: automationAccount }).map((status) => {
                       const on = statuses.includes(status.id);
                       const owner = templates.find((template) => template.id !== selectedTemplate?.id && template.statuses?.includes(status.id));
                       return (
@@ -310,7 +321,7 @@ export default function MessageTemplatesPanel({
                 <div className="message-template-token-field">
                   <span>Insert variable</span>
                   <div className="message-template-token-row">
-                    {["{{name}}", "{{building}}", "{{transactions}}"].map((token) => (
+                    {(automationAccount ? ["{{name}}"] : ["{{name}}", "{{building}}", "{{transactions}}"] ).map((token) => (
                       <button key={token} type="button" className="message-template-token" disabled={saving} onClick={() => insertToken(token)}>{token}</button>
                     ))}
                   </div>
@@ -323,7 +334,7 @@ export default function MessageTemplatesPanel({
                 <div className="message-template-chat-bubble">
                   {imagePreviewUrl ? (
                     <div className="message-template-bubble-image">
-                      <img src={imagePreviewUrl} alt="Template image, sent with the first message" />
+                      {mediaType === 'video' ? <video src={imagePreviewUrl} controls preload="metadata" aria-label="Template video, sent with the first message" style={{ width: '100%', maxHeight: 220, borderRadius: 12 }} /> : <img src={imagePreviewUrl} alt="Template image, sent with the first message" />}
                       <div className="message-template-bubble-image-actions">
                         <button type="button" className="message-template-image-action" disabled={saving} onClick={() => imageInputRef.current?.click()}>Replace</button>
                         <button type="button" className="message-template-image-action" disabled={saving} onClick={clearImage}>Remove</button>
@@ -332,12 +343,12 @@ export default function MessageTemplatesPanel({
                   ) : (
                     <button type="button" className="message-template-bubble-slot" disabled={saving} onClick={() => imageInputRef.current?.click()}>
                       <IconPhoto size={22} stroke={1.6} aria-hidden="true" />
-                      <span>Add image</span>
-                      <small>Optional · JPG, PNG or WebP, up to 5 MB</small>
+                      <span>Add image or video</span>
+                      <small>Images up to 5 MB · MP4 video up to 16 MB</small>
                     </button>
                   )}
                   <input ref={imageInputRef} className="message-template-image-input" type="file"
-                    aria-label="Attach template image" accept={MESSAGE_TEMPLATE_IMAGE_TYPES.join(",")} onChange={chooseImage} />
+                    aria-label="Attach template image or video" accept={MESSAGE_TEMPLATE_MEDIA_TYPES.join(",")} onChange={chooseImage} />
                   <p>{previewMessage}</p>
                 </div>
               </aside>

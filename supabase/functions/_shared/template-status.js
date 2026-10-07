@@ -34,8 +34,8 @@ export function setTemplateCustomStatuses(statuses) {
 }
 
 // Built-in statuses, then the account's own: the choices a template offers.
-export function templateStatusOptions() {
-  return [...TEMPLATE_STATUSES, ...customStatuses];
+export function templateStatusOptions({ includeNotInterested = false } = {}) {
+  return [...TEMPLATE_STATUSES, ...(includeNotInterested ? [{ id: "not_interested", label: "Not Interested" }] : []), ...customStatuses];
 }
 
 const isCustomId = (id) => /^custom:[0-9a-f-]{36}$/i.test(String(id || ""));
@@ -55,13 +55,13 @@ export function templateStatusId(rawStatus) {
 
 export function cleanTemplateStatuses(statuses) {
   const ids = Array.isArray(statuses) ? statuses : [];
-  const builtIn = TEMPLATE_STATUSES.map((status) => status.id).filter((id) => ids.includes(id));
+  const builtIn = [...TEMPLATE_STATUSES.map((status) => status.id), "not_interested"].filter((id) => ids.includes(id));
   return [...builtIn, ...[...new Set(ids)].filter(isCustomId)];
 }
 
 export function templateStatusLabels(statuses) {
   const ids = cleanTemplateStatuses(statuses);
-  return templateStatusOptions().filter((status) => ids.includes(status.id)).map((status) => status.label);
+  return templateStatusOptions({ includeNotInterested: true }).filter((status) => ids.includes(status.id)).map((status) => status.label);
 }
 
 // The template assigned to this seller's status, else the default template,

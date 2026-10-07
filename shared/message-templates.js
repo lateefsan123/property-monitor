@@ -1,4 +1,6 @@
+import { requiresTransactionToken } from "../supabase/functions/_shared/automation-account.js";
 import { cleanTemplateStatuses } from "../supabase/functions/_shared/template-status.js";
+import { TEMPLATE_MEDIA_TYPES, TEMPLATE_VIDEO_MAX_BYTES, templateMediaType } from "../supabase/functions/_shared/template-media.js";
 
 // Shared by desktop and native. The authenticated client is supplied by each app.
 export function createMessageTemplateServices(
@@ -18,6 +20,7 @@ export function createMessageTemplateServices(
   const TEMPLATE_IMAGE_PREVIEW_TTL_SECONDS = 60 * 60;
 
   function getImageExtension(file) {
+    if (file.type === "video/mp4") return "mp4";
     if (file.type === "image/png") return "png";
     if (file.type === "image/webp") return "webp";
     return "jpg";
@@ -25,11 +28,12 @@ export function createMessageTemplateServices(
 
   function validateTemplateImage(file) {
     if (!file) return;
-    if (!MESSAGE_TEMPLATE_IMAGE_TYPES.includes(file.type)) {
-      throw new Error("Choose a JPG, PNG, or WebP image.");
+    if (!TEMPLATE_MEDIA_TYPES.includes(file.type)) {
+      throw new Error("Choose a JPG, PNG, WebP image or MP4 video.");
     }
-    if (file.size > MESSAGE_TEMPLATE_IMAGE_MAX_BYTES) {
-      throw new Error("Template images must be 5 MB or smaller.");
+    const limit = file.type === 'video/mp4' ? TEMPLATE_VIDEO_MAX_BYTES : MESSAGE_TEMPLATE_IMAGE_MAX_BYTES;
+    if (file.size > limit) {
+      throw new Error(file.type === 'video/mp4' ? 'Template videos must be 16 MB or smaller.' : 'Template images must be 5 MB or smaller.');
     }
   }
 
@@ -55,6 +59,7 @@ export function createMessageTemplateServices(
     );
     return templates.map((template) => ({
       ...template,
+      media_type: templateMediaType(template.image_path),
       image_url: template.image_path
         ? signedUrlByPath.get(template.image_path) || null
         : null,
@@ -138,10 +143,11 @@ export function createMessageTemplateServices(
     const cleanName = String(name || "").trim();
     const cleanContent = String(content || "").trim();
     if (!cleanName) throw new Error("Give this template a name.");
+    if (!cleanContent) throw new Error('Write a message for this template.');
+    validateTemplateImage(imageFile);
     // Sale updates need the sale details; a template used only for your own
     // statuses (status follow-ups) doesn't.
-    const forOwnStatusesOnly = !isDefault && (statuses || []).some((status) => String(status).startsWith("custom:"));
-    if (!cleanContent.includes("{{transactions}}") && !forOwnStatusesOnly) {
+    if (!cleanContent.includes("{{transactions}}") && requiresTransactionToken({ userId, isDefault, statuses })) {
       throw new Error(
         "Keep {{transactions}} in the template so every message includes the sale details, or use it only for your own statuses.",
       );
@@ -260,6 +266,8 @@ export function createMessageTemplateServices(
     MESSAGE_TEMPLATE_IMAGE_BUCKET,
     MESSAGE_TEMPLATE_IMAGE_MAX_BYTES,
     MESSAGE_TEMPLATE_IMAGE_TYPES,
+    MESSAGE_TEMPLATE_MEDIA_TYPES: TEMPLATE_MEDIA_TYPES,
+    MESSAGE_TEMPLATE_VIDEO_MAX_BYTES: TEMPLATE_VIDEO_MAX_BYTES,
     fetchMessageTemplates,
     addTemplateImagePreviews,
     saveMessageTemplate,

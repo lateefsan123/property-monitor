@@ -31,6 +31,10 @@ async function load(relative) {
 }
 const { buildMessage } = await load('../src/features/seller-signal/insight-utils.js');
 
+test('a saved introduction renders without a building or transactions', () => {
+  assert.equal(buildMessage({ name: 'Andy' }, null, 'Hi {{name}}, meet Repeat AI.'), 'Hi Andy, meet Repeat AI.');
+});
+
 const intro = { id: 'intro', name: 'Intro', content: 'Intro {{transactions}}', is_default: true, statuses: [], image_path: 'u/intro.png', updated_at: '2026-10-01' };
 const appraisal = { id: 'appraisal', name: 'Appraisal follow-up', content: 'Valuation {{transactions}}', is_default: false, statuses: ['market_appraisal'], image_path: null, updated_at: '2026-10-02' };
 const forSale = { id: 'for-sale', name: 'For sale', content: 'Selling {{transactions}}', is_default: false, statuses: ['for_sale_available', 'none'], image_path: 'u/sale.png', updated_at: '2026-10-03' };

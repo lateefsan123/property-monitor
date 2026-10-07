@@ -91,6 +91,7 @@ function MessageTemplatesModal({ onClose, userId }) {
   return (
     <MessageTemplatesPanel
       key={messageTemplates.loading ? "loading" : messageTemplates.activeTemplate?.id || "ready"}
+      userId={userId}
       loading={messageTemplates.loading}
       onClose={onClose}
       onDelete={messageTemplates.deleteTemplate}

@@ -1,4 +1,5 @@
 import "dotenv/config";
+import { baileysMediaContent } from './message-content.js';
 import { createVersionResolver } from './wa-version.js';
 import { registerProfilePhotoRoute } from './profile-photo.js';
 import express from "express";
@@ -530,6 +531,7 @@ app.post("/sessions/:sessionId/messages", requireToken, async (req, res) => {
     const to = normalizePhone(req.body?.to);
     const text = String(req.body?.text || "").trim();
     const imageUrl = String(req.body?.imageUrl || "").trim();
+    const videoUrl = String(req.body?.videoUrl || "").trim();
     if (!to) {
       res.status(400).json({ error: "Recipient phone number is required" });
       return;
@@ -538,8 +540,10 @@ app.post("/sessions/:sessionId/messages", requireToken, async (req, res) => {
       res.status(400).json({ error: "Message text is required" });
       return;
     }
-    if (imageUrl && !/^https:\/\//i.test(imageUrl)) {
-      res.status(400).json({ error: "Image URL must use HTTPS" });
+    let content;
+    try { content = baileysMediaContent({ imageUrl, videoUrl, text }); }
+    catch (error) {
+      res.status(400).json({ error: error.message });
       return;
     }
 
@@ -552,9 +556,7 @@ app.post("/sessions/:sessionId/messages", requireToken, async (req, res) => {
     const jid = jidNormalizedUser(`${to}@s.whatsapp.net`);
     const response = await session.socket.sendMessage(
       jid,
-      imageUrl
-        ? { image: { url: imageUrl }, caption: text }
-        : { text },
+      content,
     );
     res.json({
       messageId: response?.key?.id ? `baileys:${response.key.id}` : null,

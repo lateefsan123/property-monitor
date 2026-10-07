@@ -1,5 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2.99.2';
+import { isAutomationAccount } from '../_shared/automation-account.js';
 import { generateTemplateDraft, validateTemplateBrief } from '../_shared/template-draft.js';
 
 const cors = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };
@@ -21,7 +22,7 @@ Deno.serve(async req => {
     const quota = await db.rpc('reserve_ai_template_draft', { account_id: data.user.id });
     if (quota.error) throw quota.error;
     if (!quota.data) return reply({ error: 'AI drafting has reached its daily limit. Try again tomorrow, or write your template manually.' }, 429);
-    return reply({ draft: await generateTemplateDraft(brief, apiKey) });
+    return reply({ draft: await generateTemplateDraft(brief, apiKey, fetch, isAutomationAccount(data.user.id)) });
   } catch {
     return reply({ error: 'Could not generate a draft. Your template has not changed.' }, 502);
   }

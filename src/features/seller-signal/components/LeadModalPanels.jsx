@@ -311,6 +311,7 @@ export function MessagePanel({
   onSaveMessage, savingMessage, saveStatus, saveError,
   edited,
   imageUrl,
+  mediaType = 'image',
   hasImage = Boolean(imageUrl),
   imageIncluded = true,
   imageFirstMessageOnly = false,
@@ -329,9 +330,9 @@ export function MessagePanel({
   const imageShown = hasImage && imageIncluded;
   const imageLocked = imageFirstMessageOnly || !whatsappConnected;
   const imageHint = !whatsappConnected
-    ? "Connect WhatsApp in Settings to send images."
+    ? "Connect WhatsApp in Settings to send attachments."
     : imageFirstMessageOnly
-      ? "Template images only go with the first message."
+      ? "Template attachments only go with the first message."
       : imageShown
         ? "Sent with this seller's next WhatsApp message."
         : "Optional · for this seller's next message only.";
@@ -351,10 +352,10 @@ export function MessagePanel({
 
       <div className="seller-message-image">
         {imageShown && imageUrl
-          ? <img src={imageUrl} alt="Message attachment preview" />
+          ? mediaType === 'video' ? <video src={imageUrl} controls preload="metadata" aria-label="Message video preview" style={{ width: 64, maxHeight: 88 }} /> : <img src={imageUrl} alt="Message attachment preview" />
           : <span className="seller-message-image-empty" aria-hidden="true"><IconPhoto size={20} stroke={1.6} /></span>}
         <div className="seller-message-image-info">
-          <strong>{imageShown ? "Image attached" : "No image"}</strong>
+          <strong>{imageShown ? `${mediaType === 'video' ? 'Video' : 'Image'} attached` : "No attachment"}</strong>
           <span>{imageHint}</span>
         </div>
         <div className="seller-message-image-actions">

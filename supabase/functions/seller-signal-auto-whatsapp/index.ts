@@ -1,3 +1,5 @@
+import { AUTOMATION_ACCOUNT_ID } from '../_shared/automation-account.js';
+import { templateMediaType, templateMediaPayload } from '../_shared/template-media.js';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
@@ -37,7 +39,6 @@ const DEFAULT_SEND_WINDOW_START_HOUR = 9;
 const DEFAULT_SEND_WINDOW_END_HOUR = 21;
 const TEMPLATE_IMAGE_BUCKET = "seller-signal-template-images";
 const TEMPLATE_IMAGE_SIGNED_URL_TTL_SECONDS = 60 * 60;
-const WHATSAPP_IMAGE_CAPTION_MAX_LENGTH = 1024;
 const DEFAULT_MESSAGE_TEMPLATE = `Hi {{name}}, quick update on recent transactions in {{building}}.
 
 {{transactions}}
@@ -441,21 +442,9 @@ async function baileysFetch(path: string, options: RequestInit = {}) {
   return payload;
 }
 
-function buildGraphPayload(input: { body: string; imageUrl?: string | null; to: string }) {
-  if (input.imageUrl) {
-    if (input.body.length > WHATSAPP_IMAGE_CAPTION_MAX_LENGTH) {
-      throw new HttpError(400, "Image captions must be 1,024 characters or fewer after placeholders are filled.");
-    }
-    return {
-      messaging_product: "whatsapp",
-      to: input.to,
-      type: "image",
-      image: {
-        link: input.imageUrl,
-        caption: input.body,
-      },
-    };
-  }
+function buildGraphPayload(input: { body: string; imageUrl?: string | null; mediaType?: string; to: string }) {
+  if (input.imageUrl) return templateMediaPayload({ ...input, body: String(input.body || '').trim() }, true);
+
   return {
     messaging_product: "whatsapp",
     to: input.to,
@@ -467,28 +456,8 @@ function buildGraphPayload(input: { body: string; imageUrl?: string | null; to: 
   };
 }
 
-function buildBaileysPayload(input: { body: string; imageUrl?: string | null; to: string }) {
-  if (input.imageUrl) {
-    if (input.body.length > WHATSAPP_IMAGE_CAPTION_MAX_LENGTH) {
-      throw new HttpError(400, "Image captions must be 1,024 characters or fewer after placeholders are filled.");
-    }
-    return {
-      to: input.to,
-      type: "image",
-      image: {
-        url: input.imageUrl,
-        caption: input.body,
-      },
-    };
-  }
-  return {
-    to: input.to,
-    type: "text",
-    text: {
-      body: input.body,
-      preview_url: false,
-    },
-  };
+function buildBaileysPayload(input: { body?: string | null; imageUrl?: string | null; mediaType?: string; to: string }) {
+  return templateMediaPayload({ ...input, body: String(input.body || '').trim() });
 }
 
 async function createTemplateImageUrl(adminClient: any, imagePath: string | null) {
@@ -501,13 +470,13 @@ async function createTemplateImageUrl(adminClient: any, imagePath: string | null
   return data.signedUrl;
 }
 
-async function sendViaBaileys(account: any, to: string, body: string, imageUrl: string | null) {
+async function sendViaBaileys(account: any, to: string, body: string, imageUrl: string | null, mediaType = 'image') {
   const sessionId = getBaileysSessionId(account);
   if (!sessionId) throw new HttpError(409, "Baileys session is not configured");
 
   return baileysFetch(`/sessions/${encodeURIComponent(sessionId)}/messages`, {
     method: "POST",
-    body: JSON.stringify({ imageUrl, text: body, to }),
+    body: JSON.stringify({ [mediaType === 'video' ? 'videoUrl' : 'imageUrl']: imageUrl, text: body, to }),
   });
 }
 
@@ -917,7 +886,7 @@ async function sendMessage(
   payload: any,
 ) {
   if (account.provider === "baileys") {
-    const providerPayload = await sendViaBaileys(account, to, body, imageUrl);
+    const providerPayload = await sendViaBaileys(account, to, body, imageUrl, payload.type);
     return {
       providerMessageId: providerPayload?.messageId || null,
       providerPayload,
@@ -1073,6 +1042,8 @@ Deno.serve(async (req) => {
       (disabledSettings || []).map((settings: any) => String(settings.user_id)),
     );
     for (const userId of automationDisabledUserIds) accountByUser.delete(userId);
+    // This account uses status follow-ups, never transaction-triggered updates.
+    accountByUser.delete(AUTOMATION_ACCOUNT_ID);
 
     // Accounts outside their chosen hours, or whose gap since their last
     // automated message hasn't passed, wait for a later run.
@@ -1312,9 +1283,10 @@ Deno.serve(async (req) => {
         );
         const isFollowUp = template?.imagePath && await hasPriorWhatsAppContact(adminClient, { userId: lead.user_id, phone: to, sentAt: lead.sent_at });
         const imageUrl = await createTemplateImageUrl(adminClient, isFollowUp ? null : template?.imagePath || null);
+        const mediaType = templateMediaType(template?.imagePath);
         const payload = account.provider === "baileys"
-          ? buildBaileysPayload({ body, imageUrl, to })
-          : buildGraphPayload({ body, imageUrl, to });
+          ? buildBaileysPayload({ body, imageUrl, mediaType, to })
+          : buildGraphPayload({ body, imageUrl, mediaType, to });
         const messageRow = await insertMessageRow(adminClient, {
           account,
           body,

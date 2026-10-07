@@ -1,3 +1,5 @@
+import { templateMediaType, templateMediaPayload } from '../_shared/template-media.js';
+import { isAutomationAccount } from '../_shared/automation-account.js';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
@@ -14,7 +16,6 @@ const CLIENT_KINDS = new Set(["web", "desktop", "api"]);
 const DUPLICATE_WINDOW_MS = 60_000;
 const TEMPLATE_IMAGE_BUCKET = "seller-signal-template-images";
 const TEMPLATE_IMAGE_SIGNED_URL_TTL_SECONDS = 60 * 60;
-const WHATSAPP_IMAGE_CAPTION_MAX_LENGTH = 1024;
 
 class HttpError extends Error {
   status: number;
@@ -325,7 +326,7 @@ function getTemplateComponents(parameters: unknown) {
 
 function buildGraphPayload(input: {
   body?: string | null;
-  imageUrl?: string | null;
+  imageUrl?: string | null; mediaType?: string;
   templateLanguage?: string | null;
   templateName?: string | null;
   templateParameters?: unknown;
@@ -356,20 +357,8 @@ function buildGraphPayload(input: {
 
   const body = String(input.body || "").trim();
   if (!body) throw new HttpError(400, "message body is required");
-  if (input.imageUrl) {
-    if (body.length > WHATSAPP_IMAGE_CAPTION_MAX_LENGTH) {
-      throw new HttpError(400, "Image captions must be 1,024 characters or fewer after placeholders are filled.");
-    }
-    return {
-      messaging_product: "whatsapp",
-      to: input.to,
-      type: "image",
-      image: {
-        link: input.imageUrl,
-        caption: body,
-      },
-    };
-  }
+  if (input.imageUrl) return templateMediaPayload({ ...input, body: String(input.body || '').trim() }, true);
+
   return {
     messaging_product: "whatsapp",
     to: input.to,
@@ -381,30 +370,8 @@ function buildGraphPayload(input: {
   };
 }
 
-function buildBaileysPayload(input: { body?: string | null; imageUrl?: string | null; to: string }) {
-  const body = String(input.body || "").trim();
-  if (!body) throw new HttpError(400, "message body is required");
-  if (input.imageUrl) {
-    if (body.length > WHATSAPP_IMAGE_CAPTION_MAX_LENGTH) {
-      throw new HttpError(400, "Image captions must be 1,024 characters or fewer after placeholders are filled.");
-    }
-    return {
-      to: input.to,
-      type: "image",
-      image: {
-        url: input.imageUrl,
-        caption: body,
-      },
-    };
-  }
-  return {
-    to: input.to,
-    type: "text",
-    text: {
-      body,
-      preview_url: false,
-    },
-  };
+function buildBaileysPayload(input: { body?: string | null; imageUrl?: string | null; mediaType?: string; to: string }) {
+  return templateMediaPayload({ ...input, body: String(input.body || '').trim() });
 }
 
 async function getConnectedAccount(adminClient: any, userId: string, accountId: string | null) {
@@ -521,13 +488,13 @@ async function resolveTemplateImageUrl(adminClient: any, userId: string, rawImag
   return data.signedUrl;
 }
 
-async function sendViaBaileys(account: any, to: string, body: string, imageUrl: string | null) {
+async function sendViaBaileys(account: any, to: string, body: string, imageUrl: string | null, mediaType = 'image') {
   const sessionId = getBaileysSessionId(account);
   if (!sessionId) throw new HttpError(409, "Baileys session is not configured");
 
   return baileysFetch(`/sessions/${encodeURIComponent(sessionId)}/messages`, {
     method: "POST",
-    body: JSON.stringify({ imageUrl, text: body, to }),
+    body: JSON.stringify({ [mediaType === 'video' ? 'videoUrl' : 'imageUrl']: imageUrl, text: body, to }),
   });
 }
 
@@ -620,7 +587,7 @@ Deno.serve(async (req) => {
     }
     const lead = await getLead(adminClient, userId, input.leadId || null);
     let marketTransactionDate: string | null = null;
-    if (lead && input.requireTodaysTransaction !== false) {
+    if (lead && !isAutomationAccount(userId) && input.requireTodaysTransaction !== false) {
       marketTransactionDate = await assertLeadHasTodaysTransaction(adminClient, userId, lead);
       if (marketTransactionDate) await assertNoLeadMessageForMarketDate(adminClient, userId, lead.id, marketTransactionDate);
     }
@@ -636,19 +603,22 @@ Deno.serve(async (req) => {
     const isFollowUp = !customImage && input.imagePath && await hasPriorWhatsAppContact(adminClient, { userId, phone: to, sentAt: lead?.sent_at });
     const imageUrl = await resolveTemplateImageUrl(adminClient, userId, isFollowUp ? null : input.imagePath, customImage);
 
+    const mediaType = customImage ? 'image' : templateMediaType(input.imagePath);
     const isBaileys = account.provider === "baileys";
     const payload = isBaileys
-      ? buildBaileysPayload({ body: input.body, imageUrl, to })
+      ? buildBaileysPayload({ body: input.body, imageUrl, mediaType, to })
       : buildGraphPayload({
           body: input.body,
           imageUrl,
+          mediaType,
           templateLanguage: input.templateLanguage,
           templateName: input.templateName,
           templateParameters: input.templateParameters,
           to,
           type: input.messageType,
         });
-    const templatePayload = payload.type === "template" && "template" in payload ? payload.template : null;
+    const templatePayload = payload.type === "template" && "template" in payload
+      ? payload.template as { name: string; language: { code: string } } : null;
 
     const { data: messageRow, error: insertError } = await adminClient
       .from("whatsapp_messages")
@@ -684,7 +654,7 @@ Deno.serve(async (req) => {
     let providerMessageId: string | null = null;
 
     if (isBaileys) {
-      providerPayload = await sendViaBaileys(account, to, input.body, imageUrl);
+      providerPayload = await sendViaBaileys(account, to, input.body, imageUrl, mediaType);
       providerMessageId = providerPayload?.messageId || null;
     } else {
       const accessToken = await getAccountSecret(adminClient, account.id);

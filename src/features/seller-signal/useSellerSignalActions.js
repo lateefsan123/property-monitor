@@ -1,4 +1,5 @@
 import { WHATSAPP_OPEN_DELAY_MS } from "./constants";
+import { isAutomationAccount } from "../../../supabase/functions/_shared/automation-account.js";
 import { saveSellerFollowUp, uploadSellerAttachment } from './seller-contact-services';
 import { introAttachmentPath } from "../../../supabase/functions/_shared/intro-attachment.js";
 import { buildMessage, formatPhoneForWhatsApp } from "./insight-utils";
@@ -299,7 +300,7 @@ export function createSellerSignalActions(context) {
     return {
       imagePath: introAttachmentPath(messageTemplateImagePath, lead, sentLeads[lead.id]),
       insight,
-      message: lead.message_draft ?? (insight?.message || buildMessage(lead, insight, messageTemplate)),
+      message: lead.message_draft ?? (isAutomationAccount(userId) ? buildMessage(lead, insight, messageTemplate) : insight?.message || buildMessage(lead, insight, messageTemplate)),
       phone: formatPhoneForWhatsApp(lead.phone),
     };
   }
@@ -342,7 +343,7 @@ export function createSellerSignalActions(context) {
     // sending automatically.
     const isHot = hasTodaysTransactionUpdate(lead.id);
     const canFollowUp = insight?.status === "ready" && (insight.recentTransactions?.length || 0) > 0;
-    if (!isHot && !canFollowUp && !options.customImage && !lead.message_draft?.trim() && !String(options.message || "").trim()) {
+    if (!isAutomationAccount(userId) && !isHot && !canFollowUp && !options.customImage && !lead.message_draft?.trim() && !String(options.message || "").trim()) {
       setActionError("No market data for this building yet - copy the message and personalize it instead.");
       setActionNotice(null);
       return false;
@@ -382,7 +383,7 @@ export function createSellerSignalActions(context) {
         lead,
         message,
         sendSource: options.sendSource || "manual",
-        requireTodaysTransaction: manualSendRequiresTodaysTransaction({ customImage: Boolean(options.customImage), hasTodaysTransaction: isHot }),
+        requireTodaysTransaction: !isAutomationAccount(userId) && manualSendRequiresTodaysTransaction({ customImage: Boolean(options.customImage), hasTodaysTransaction: isHot }),
       });
       const sentAt = result?.sentAt || new Date().toISOString();
       markLeadSentLocally(lead.id, sentAt);

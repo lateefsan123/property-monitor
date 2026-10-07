@@ -1,4 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+import { isAutomationAccount } from "../_shared/automation-account.js";
+import { templateMediaType, templateMediaPayload } from '../_shared/template-media.js';
+import { hasPriorWhatsAppContact } from '../_shared/intro-attachment.js';
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { accountsNotDue, loadLastAutoSends, loadSendPacing } from "../_shared/send-pacing.js";
 import { dueFollowUps, renderFollowUp, sendableStatuses } from "../_shared/status-followups.js";
@@ -62,14 +65,14 @@ function sessionId(account: any) {
   return id.startsWith("baileys:") ? id.slice(8) : null;
 }
 
-async function send(client: any, account: any, to: string, body: string, imageUrl: string | null) {
+async function send(client: any, account: any, to: string, body: string, imageUrl: string | null, mediaType: string) {
   if (account.provider === "baileys") {
     const session = sessionId(account);
     if (!session) throw new Error("WhatsApp session is not configured");
     const response = await fetch(`${requireEnv("BAILEYS_SERVICE_URL").replace(/\/+$/, "")}/sessions/${encodeURIComponent(session)}/messages`, {
       method: "POST",
       headers: { Authorization: `Bearer ${requireEnv("BAILEYS_SERVICE_TOKEN")}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ imageUrl, text: body, to }),
+      body: JSON.stringify({ [mediaType === 'video' ? 'videoUrl' : 'imageUrl']: imageUrl, text: body, to }),
       signal: AbortSignal.timeout(30000),
     });
     const payload = await response.json().catch(() => null);
@@ -78,9 +81,7 @@ async function send(client: any, account: any, to: string, body: string, imageUr
   }
   const secret = await must(client.from("whatsapp_account_secrets").select("access_token").eq("account_id", account.id).maybeSingle());
   if (!(secret as any)?.access_token) throw new Error("WhatsApp account token is not configured");
-  const payload = imageUrl
-    ? { messaging_product: "whatsapp", to, type: "image", image: { link: imageUrl, caption: body } }
-    : { messaging_product: "whatsapp", to, type: "text", text: { body, preview_url: true } };
+  const payload = templateMediaPayload({ to, body, imageUrl, mediaType }, true);
   const response = await fetch(`https://graph.facebook.com/${Deno.env.get("WHATSAPP_GRAPH_API_VERSION") || "v25.0"}/${account.phone_number_id}/messages`, {
     method: "POST",
     headers: { Authorization: `Bearer ${(secret as any).access_token}`, "Content-Type": "application/json" },
@@ -127,15 +128,17 @@ Deno.serve(async (req) => {
     for (const [userId, account] of accountByUser) {
       if (summary.sent + summary.failed >= maxSends) break;
       const statusRows = await must(client.from("seller_signal_statuses")
-        .select("id, label, follow_up_days, builtin_key, next_status_id").eq("user_id", userId));
+        .select("id, label, follow_up_days, builtin_key, next_status_id, hidden").eq("user_id", userId));
       const templates = await must(client.from("seller_signal_message_templates")
         .select("content, image_path, statuses, updated_at").eq("user_id", userId));
-      const statuses = sendableStatuses(statusRows as any[], templates as any[]);
+      const statuses = sendableStatuses(statusRows as any[], templates as any[], userId);
       if (!statuses.length) continue;
 
-      const leads = await must(client.from("leads")
+      let leadQuery = client.from("leads")
         .select("id, user_id, name, phone, building, status, sent_at, last_contact, next_follow_up_on")
-        .eq("user_id", userId).in("status", statuses.map((status) => status.label)).limit(2000));
+        .eq("user_id", userId);
+      if (!isAutomationAccount(userId)) leadQuery = leadQuery.in("status", statuses.map((status: { label: string }) => status.label));
+      const leads = await must(leadQuery.limit(2000));
       if (!(leads as any[])?.length) continue;
       const leadIds = (leads as any[]).map((lead) => Number(lead.id));
       const phones = (leads as any[]).map((lead) => normalizePhone(lead.phone)).filter(Boolean) as string[];
@@ -164,11 +167,13 @@ Deno.serve(async (req) => {
           break;
         }
         let imageUrl: string | null = null;
-        if (status.template.image_path) {
+        if (status.template.image_path && !await hasPriorWhatsAppContact(client, { userId, phone: lead.phone, sentAt: lead.sent_at })) {
           const signed = await client.storage.from(TEMPLATE_IMAGE_BUCKET).createSignedUrl(status.template.image_path, 3600);
+          if (signed.error || !signed.data?.signedUrl) throw new Error('Could not load the template attachment.');
           imageUrl = signed.data?.signedUrl || null;
         }
-        const payload = imageUrl ? { type: "image", to: lead.phone, image: { url: imageUrl, caption: body } } : { type: "text", to: lead.phone, text: { body } };
+        const mediaType = templateMediaType(status.template.image_path);
+        const payload = templateMediaPayload({ to: lead.phone, body, imageUrl, mediaType });
         const { data: claim, error: claimError } = await client.rpc("claim_seller_signal_automation_message", {
           p_user_id: userId,
           p_account_id: account.id,
@@ -188,7 +193,7 @@ Deno.serve(async (req) => {
         if (!(claim as any)?.claimed) break;
         const messageId = (claim as any).message_id;
         try {
-          const { providerMessageId, providerPayload } = await send(client, account, lead.phone, body, imageUrl);
+          const { providerMessageId, providerPayload } = await send(client, account, lead.phone, body, imageUrl, mediaType);
           const sentAt = new Date().toISOString();
           await must(client.from("whatsapp_messages").update({ status: "sent", sent_at: sentAt, meta_message_id: providerMessageId, raw_response: providerPayload || {} }).eq("id", messageId));
           const leadUpdate: Record<string, unknown> = { sent_at: sentAt, next_follow_up_on: null };

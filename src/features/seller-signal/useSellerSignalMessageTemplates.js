@@ -1,3 +1,4 @@
+import { isAutomationAccount, AUTOMATION_MESSAGE_TEMPLATE } from "../../../supabase/functions/_shared/automation-account.js";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { DEFAULT_MESSAGE_TEMPLATE } from "./insight-utils";
 import {
@@ -43,7 +44,7 @@ export function useSellerSignalMessageTemplates(userId) {
 
   return {
     activeTemplate,
-    activeTemplateContent: activeTemplate?.content || DEFAULT_MESSAGE_TEMPLATE,
+    activeTemplateContent: activeTemplate?.content || (isAutomationAccount(userId) ? AUTOMATION_MESSAGE_TEMPLATE : DEFAULT_MESSAGE_TEMPLATE),
     deleteTemplate: (id) => deleteMutation.mutateAsync(id),
     error: templatesQuery.error,
     loading: templatesQuery.isPending,

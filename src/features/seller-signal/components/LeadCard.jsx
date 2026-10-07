@@ -20,6 +20,7 @@ import { sellerAvatarColour as avatarColour, sellerInitials as initials, sellerS
 // avatar and name, building, unit, bedrooms, status and follow-up pills,
 // copyable phone, send, and a menu.
 export default function LeadCard({
+  automationAccount = false,
   copiedLeadId,
   favorited,
   hot,
@@ -75,7 +76,7 @@ export default function LeadCard({
   // recent-market follow-up; without data there is nothing to send one-click.
   const hasTodaySale = insight?.status === "ready" && (insight.hasTodaysTransactions || insight.todaysRecentTransactions?.length > 0);
   const canFollowUp = insight?.status === "ready" && (insight.recentTransactions?.length || 0) > 0;
-  const hasSavedMessage = Boolean(lead.message_draft?.trim());
+  const hasSavedMessage = automationAccount || Boolean(lead.message_draft?.trim());
   const insightPending = !insight || insight.status === "loading";
   const sendLabel = isSent ? "Sent" : hasSavedMessage || insightPending || hasTodaySale ? "Send" : canFollowUp ? "Follow up" : "No data";
   const stop = (event) => event.stopPropagation();
