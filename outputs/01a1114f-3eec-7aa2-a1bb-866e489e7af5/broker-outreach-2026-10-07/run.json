@@ -247,7 +247,7 @@
       "attemptedAt": "2026-10-07T16:16:10.961Z",
       "evidence": "17:16 Sent visibly verified in +971 55 228 7126 chat; 1:54 v5 film and exact personalised Easy Nest Properties caption.",
       "verifiedAt": "2026-10-07T16:16:20.402Z",
-      "replyEvidence": "17:24 incoming quoted reply: Okay just a minute I will check. User added thumbs-up reaction during this wake; no automated reply sent."
+      "replyEvidence": "18:35 local: But I dont have rera. User replied rera? at 18:47 (Read); no automated follow-up sent."
     },
     {
       "row": 2513,
@@ -436,7 +436,11 @@
       "agency": "Elan Real Estate",
       "phone": "971552385588",
       "source": "https://elanrealestate.ae/agent/faizan-hassan/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Faizan Hassan, Lateef here from Repeat AI. I found your contact on the Elan Real Estate website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T17:51:53.754Z",
+      "evidence": "18:51 Sent visibly verified in chat +971 55 238 5588; 1:54 v5 film and exact personalised Faizan Hassan / Elan Real Estate caption.",
+      "verifiedAt": "2026-10-07T17:52:00.815Z"
     },
     {
       "row": 2764,
@@ -1863,7 +1867,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T17:45:46.046Z",
+  "lastAttemptAt": "2026-10-07T17:51:53.754Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 34
+  "confirmedCount": 35
 }
