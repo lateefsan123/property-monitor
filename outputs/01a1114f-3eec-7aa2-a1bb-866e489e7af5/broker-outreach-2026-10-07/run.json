@@ -399,7 +399,11 @@
       "agency": "Exclusive Links",
       "phone": "971504501394",
       "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Candida Miranda, Lateef here from Repeat AI. I found your contact on the Exclusive Links website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T17:32:41.580Z",
+      "evidence": "18:32 Sent visibly verified in chat +971 50 450 1394; 1:54 v5 film and exact personalised Candida Miranda / Exclusive Links caption.",
+      "verifiedAt": "2026-10-07T17:32:48.664Z"
     },
     {
       "row": 810,
@@ -1850,7 +1854,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T17:27:02.784Z",
+  "lastAttemptAt": "2026-10-07T17:32:41.580Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 31
+  "confirmedCount": 32
 }
