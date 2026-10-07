@@ -266,7 +266,11 @@
       "agency": "Espace Real Estate",
       "phone": "971585851329",
       "source": "https://www.espace.ae/meet-the-team-detail/anthony-jones",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Anthony Jones, Lateef here from Repeat AI. I found your contact on the Espace Real Estate website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T16:28:50.892Z",
+      "evidence": "17:28 Sent visibly verified in +971 58 585 1329 chat; 1:54 v5 film and exact personalised Espace Real Estate caption.",
+      "verifiedAt": "2026-10-07T16:28:59.538Z"
     },
     {
       "row": 2909,
@@ -1805,7 +1809,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T16:22:19.291Z",
+  "lastAttemptAt": "2026-10-07T16:28:50.892Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 21
+  "confirmedCount": 22
 }
