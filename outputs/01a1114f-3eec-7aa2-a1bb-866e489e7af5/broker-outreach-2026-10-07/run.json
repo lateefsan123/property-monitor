@@ -218,7 +218,11 @@
       "agency": "Fantastic Frank Dubai",
       "phone": "971528903858",
       "source": "https://www.fantasticfrank.com/en/dubai/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Victor Skovgaard Have, Lateef here from Repeat AI. I found your contact on the Fantastic Frank Dubai website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T16:04:19.198Z",
+      "evidence": "17:04 Sent visibly verified in +971 52 890 3858 chat; 1:54 v5 film and exact personalised Fantastic Frank Dubai caption.",
+      "verifiedAt": "2026-10-07T16:04:27.304Z"
     },
     {
       "row": 807,
@@ -1789,7 +1793,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T15:57:43.247Z",
+  "lastAttemptAt": "2026-10-07T16:04:19.198Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 17
+  "confirmedCount": 18
 }
