@@ -283,7 +283,8 @@
       "caption": "Hi Arno Potgieter, Lateef here from Repeat AI. I found your contact on the Exclusive Links website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
       "attemptedAt": "2026-10-07T16:36:22.718Z",
       "evidence": "17:36 Sent visibly verified in +971 56 115 9043 chat; 1:54 v5 film and exact personalised Exclusive Links caption.",
-      "verifiedAt": "2026-10-07T16:36:31.385Z"
+      "verifiedAt": "2026-10-07T16:36:31.385Z",
+      "replyEvidence": "17:36 incoming: Thank you for contacting Arno - Exclusive Links Real Estate! Feel free to let me know how I can assist you: Secondary Market Sales & Leasing. Appears to be automated greeting; no manual reply sent."
     },
     {
       "row": 808,
@@ -291,7 +292,11 @@
       "agency": "Arabian Estates",
       "phone": "971585624692",
       "source": "https://arabianestates.ae/our-team",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Callum Wallace, Lateef here from Repeat AI. I found your contact on the Arabian Estates website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T16:42:49.399Z",
+      "evidence": "17:42 Sent visibly verified in +971 58 562 4692 chat; 1:54 v5 film and exact personalised Arabian Estates caption.",
+      "verifiedAt": "2026-10-07T16:42:56.779Z"
     },
     {
       "row": 2458,
@@ -1814,7 +1819,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T16:36:22.718Z",
+  "lastAttemptAt": "2026-10-07T16:42:49.399Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 23
+  "confirmedCount": 24
 }
