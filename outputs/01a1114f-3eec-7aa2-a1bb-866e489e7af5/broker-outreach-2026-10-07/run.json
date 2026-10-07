@@ -316,7 +316,11 @@
       "agency": "Elan Real Estate",
       "phone": "971522569786",
       "source": "https://elanrealestate.ae/agent/azhar-ahmed/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Azhar Ahmed, Lateef here from Repeat AI. I found your contact on the Elan Real Estate website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T16:54:22.423Z",
+      "evidence": "17:54 Sent visibly verified in chat +971 52 256 9786; 1:54 v5 film and exact personalised Azhar Ahmed / Elan Real Estate caption.",
+      "verifiedAt": "2026-10-07T16:54:30.422Z"
     },
     {
       "row": 2762,
@@ -1823,7 +1827,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T16:48:52.075Z",
+  "lastAttemptAt": "2026-10-07T16:54:22.423Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 25
+  "confirmedCount": 26
 }
