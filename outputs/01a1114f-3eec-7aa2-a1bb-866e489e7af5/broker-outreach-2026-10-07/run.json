@@ -170,7 +170,11 @@
       "agency": "Easy Nest Properties",
       "phone": "971559943066",
       "source": "https://easynestproperties.com/agents/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Mr. Nazir Ahmed, Lateef here from Repeat AI. I found your contact on the Easy Nest Properties website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T15:33:43.948Z",
+      "evidence": "16:33 Sent visibly verified in +971 55 994 3066 chat; 1:54 v5 film and exact personalised Easy Nest Properties caption.",
+      "verifiedAt": "2026-10-07T15:33:51.325Z"
     },
     {
       "row": 2512,
@@ -1773,7 +1777,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T15:27:45.811Z",
+  "lastAttemptAt": "2026-10-07T15:33:43.948Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 13
+  "confirmedCount": 14
 }
