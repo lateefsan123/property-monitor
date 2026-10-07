@@ -424,7 +424,11 @@
       "agency": "Easy Nest Properties",
       "phone": "971527978963",
       "source": "https://easynestproperties.com/agents/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Muhammad Saifullah, Lateef here from Repeat AI. I found your contact on the Easy Nest Properties website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T17:45:46.046Z",
+      "evidence": "18:45 Sent visibly verified in chat +971 52 797 8963; 1:54 v5 film and exact personalised Muhammad Saifullah / Easy Nest Properties caption.",
+      "verifiedAt": "2026-10-07T17:45:53.760Z"
     },
     {
       "row": 2516,
@@ -1859,7 +1863,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T17:39:12.537Z",
+  "lastAttemptAt": "2026-10-07T17:45:46.046Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 33
+  "confirmedCount": 34
 }
