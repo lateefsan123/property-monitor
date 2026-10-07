@@ -13,7 +13,7 @@
 .sch-icon-btn:hover:not(:disabled) { background: var(--bg-hover); }
 .sch-icon-btn::after { content: attr(data-tooltip); position: absolute; top: calc(100% + 6px); left: 50%; transform: translate(-50%, -4px); padding: 4px 8px; border-radius: 6px; background: var(--text-name); color: var(--bg-card); font-size: 12px; font-weight: 600; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .12s, transform .12s; z-index: 2; }
 .sch-icon-btn:hover::after, .sch-icon-btn:focus-visible::after { opacity: 1; transform: translate(-50%, 0); }
-.sch-add { display: inline-flex; align-items: center; gap: 7px; height: 42px; padding: 0 16px; border: 0; border-radius: 12px; background: var(--btn-primary-bg); color: var(--btn-primary-text); font-size: 14px; font-weight: 600; }
+.sch-add { display: inline-flex; align-items: center; gap: 7px; height: var(--btn-h); padding: 0 16px; border: 0; border-radius: var(--btn-radius); background: var(--btn-primary-bg); color: var(--btn-primary-text); box-shadow: var(--btn-primary-shadow); font-size: var(--btn-font); font-weight: 600; }
 .sch-add:hover:not(:disabled) { background: var(--btn-primary-hover); }
 
 .sch-status { margin: 0; padding: 24px 0; color: var(--text-muted); font-size: 14px; text-align: center; }
@@ -42,14 +42,14 @@
 .sch-empty .sch-primary { width: 100%; max-width: 360px; }
 
 /* Buttons */
-.sch-primary { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 22px; border: 0; border-radius: 12px; background: var(--btn-primary-bg); color: var(--btn-primary-text); font-size: 15px; font-weight: 600; }
+.sch-primary { display: inline-flex; align-items: center; justify-content: center; min-height: var(--btn-h-lg); padding: 0 22px; border: 0; border-radius: var(--btn-radius); background: var(--btn-primary-bg); color: var(--btn-primary-text); box-shadow: var(--btn-primary-shadow); font-size: var(--btn-font-lg); font-weight: 600; }
 .sch-primary:hover:not(:disabled) { background: var(--btn-primary-hover); }
 .sch-primary.is-round { border-radius: 26px; }
 .sch-danger { flex: 1; min-height: 50px; border: 0; border-radius: 25px; background: var(--error-bg, #fde8e8); color: var(--error-text); font-size: 15px; font-weight: 600; }
 
 /* Save bar, only while there are edits */
 .sch-savebar { position: sticky; bottom: 16px; display: flex; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 20px; background: var(--bg-card); box-shadow: 0 12px 32px -12px rgba(0,0,0,.35); }
-.sch-savebar .sch-primary { width: 100%; min-height: 52px; }
+.sch-savebar .sch-primary { width: 100%; }
 .sch-error { margin: 0; color: var(--error-text); font-size: 13px; }
 .sch-note { margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
 .sch-note.is-center { text-align: center; padding: 16px 0; }
@@ -71,7 +71,7 @@
 /* Only the list may shrink; the dropdown and search keep their height. */
 .sch-sheet-body > * { flex-shrink: 0; }
 .sch-sheet-foot { display: flex; gap: 10px; padding: 0 24px 24px; }
-.sch-sheet-foot .sch-primary { flex: 1; min-height: 50px; }
+.sch-sheet-foot .sch-primary { flex: 1; }
 
 .sch-source { display: flex; flex-direction: column; gap: 6px; color: var(--text-muted); font-size: 13px; font-weight: 500; }
 .sch-source select { height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-input); color: var(--text); font: inherit; font-size: 15px; }

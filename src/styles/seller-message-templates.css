@@ -70,7 +70,7 @@ body:has(.message-template-overlay) { overflow: hidden; }
 
 /* Footer */
 .message-template-actions { flex: none; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 24px; border-top: 1px solid var(--bg-card-border, #e6e6e8); }
-.message-template-save { flex-shrink: 0; margin-left: auto; height: 44px; padding: 0 22px; border: 0; border-radius: 12px; color: var(--btn-primary-text, white); background: var(--btn-primary-bg, #101216); font-size: 15px; font-weight: 600; }
+.message-template-save { flex-shrink: 0; margin-left: auto; height: var(--btn-h); padding: 0 20px; border: 0; border-radius: var(--btn-radius); box-shadow: var(--btn-primary-shadow); color: var(--btn-primary-text, white); background: var(--btn-primary-bg, #101216); font-size: 15px; font-weight: 600; }
 .message-template-save:hover:not(:disabled) { background: var(--btn-primary-hover, #1e293b); }
 .message-template-error, .message-template-notice { margin: 0; font-size: 13px; }
 .message-template-error { color: var(--error-text, #b42318); }
@@ -153,6 +153,6 @@ body:has(.message-template-overlay) { overflow: hidden; }
 .template-ai-error { margin: 0; color: var(--error-text, #b42318); font-size: 13px; }
 .template-ai-foot { display: flex; align-items: center; gap: 10px; padding: 14px 24px 20px; border-top: 1px solid var(--bg-card-border, #e6e6e8); }
 .template-ai-foot small { flex: 1; color: var(--text-muted, #84848b); font-size: 12px; }
-.template-ai-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: 44px; padding: 0 18px; border: 1px solid var(--border, #d6d7db); border-radius: 12px; background: transparent; color: var(--text, inherit); font-size: 15px; font-weight: 600; }
+.template-ai-btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; height: var(--btn-h); padding: 0 16px; border: 1px solid var(--btn-secondary-border); border-radius: var(--btn-radius); background: var(--btn-secondary-bg); box-shadow: var(--btn-shadow); color: var(--text, inherit); font-size: 15px; font-weight: 600; }
 .template-ai-btn.is-primary { border-color: var(--btn-primary-bg, #101216); background: var(--btn-primary-bg, #101216); color: var(--btn-primary-text, #fff); }
 .template-ai-btn.is-primary:hover:not(:disabled) { background: var(--btn-primary-hover, #1e293b); }

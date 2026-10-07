@@ -121,7 +121,7 @@
 .seller-message-image-info strong { color: var(--text); font-size: 14px; font-weight: 600; }
 .seller-message-image-info span { color: var(--text-muted); font-size: 12px; line-height: 1.35; }
 .seller-message-image-actions { flex: none; display: flex; align-items: center; gap: 4px; }
-.seller-message-image-actions .seller-drawer-secondary { height: 34px; padding: 0 14px; }
+.seller-message-image-actions .seller-drawer-secondary { height: var(--btn-h-sm); padding: 0 14px; }
 .seller-message-image-actions input[type="file"] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 .seller-message-editor {
   flex: 1; width: 100%; min-height: 320px; box-sizing: border-box; padding: 16px; resize: none;
@@ -165,26 +165,26 @@
 .seller-drawer-footer { flex: none; display: flex; gap: 10px; padding: 14px 28px 18px; border-top: 1px solid var(--border); }
 .seller-drawer-footer.is-split .seller-drawer-primary { flex: 1; }
 .seller-drawer-primary {
-  width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; box-sizing: border-box;
-  border: 0; border-radius: 12px; background: var(--btn-primary-bg); color: var(--btn-primary-text);
-  font: inherit; font-size: 15px; font-weight: 600; text-decoration: none; cursor: pointer;
+  width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: var(--btn-h-lg); box-sizing: border-box;
+  border: 0; border-radius: var(--btn-radius); background: var(--btn-primary-bg); color: var(--btn-primary-text); box-shadow: var(--btn-primary-shadow);
+  font: inherit; font-size: var(--btn-font-lg); font-weight: 600; text-decoration: none; cursor: pointer;
 }
 .seller-drawer-primary:hover:not(:disabled) { background: var(--btn-primary-hover); }
 .seller-drawer-primary:disabled { opacity: 0.5; cursor: default; }
 .seller-drawer-primary.is-whatsapp { background: #25d366; color: #fff; }
 .seller-drawer-primary.is-whatsapp:hover:not(:disabled) { background: #1fbd5a; }
-.seller-drawer-primary.is-outline { border: 1px solid var(--border); background: none; color: var(--text); }
+.seller-drawer-primary.is-outline { border: 1px solid var(--btn-secondary-border); background: var(--btn-secondary-bg); color: var(--text); box-shadow: var(--btn-shadow); }
 .seller-drawer-primary.is-outline:hover:not(:disabled) { background: var(--bg-hover); }
 .seller-drawer-secondary {
-  position: relative; display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 16px;
-  border: 0; border-radius: 10px; background: var(--bg-badge); color: var(--text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; height: var(--btn-h); padding: 0 16px;
+  border: 1px solid var(--btn-secondary-border); border-radius: var(--btn-radius); background: var(--btn-secondary-bg); color: var(--text); box-shadow: var(--btn-shadow); font: inherit; font-size: var(--btn-font); font-weight: 600; cursor: pointer;
 }
-.seller-drawer-secondary:hover:not(:disabled):not(.is-disabled) { background: var(--border); }
+.seller-drawer-secondary:hover:not(:disabled):not(.is-disabled) { background: var(--btn-secondary-hover); }
 .seller-drawer-secondary:disabled, .seller-drawer-secondary.is-disabled { opacity: 0.45; cursor: default; }
 .seller-drawer-secondary:focus-within { outline: 2px solid var(--text-name); outline-offset: 2px; }
-.seller-drawer-secondary.is-strong { background: var(--btn-primary-bg); color: var(--btn-primary-text); }
+.seller-drawer-secondary.is-strong { border-color: var(--btn-primary-bg); background: var(--btn-primary-bg); color: var(--btn-primary-text); box-shadow: var(--btn-primary-shadow); }
 .seller-drawer-secondary.is-strong:hover:not(:disabled) { background: var(--btn-primary-hover); }
-.seller-drawer-secondary.is-danger { background: none; border: 1px solid var(--border); color: var(--error-text); }
+.seller-drawer-secondary.is-danger { color: var(--error-text); }
 .seller-drawer-secondary.is-danger:hover:not(:disabled) { background: var(--bg-hover); }
 .seller-drawer-text-btn { height: 34px; padding: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--text-muted); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
 .seller-drawer-text-btn:hover:not(:disabled) { background: var(--bg-hover); color: var(--text); }

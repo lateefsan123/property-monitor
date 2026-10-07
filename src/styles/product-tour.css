@@ -25,7 +25,7 @@
 .repeat-tour-controls progress::-webkit-progress-value { background: #007f91; border-radius: 8px; }
 .repeat-tour-controls progress::-moz-progress-bar { background: #007f91; }
 .repeat-tour-count { font-size: 11px; color: #666; margin-right: auto; white-space: nowrap; }
-.repeat-tour-next { color: white; background: #007f91; border: 1px solid #007f91; padding: 9px 15px; border-radius: 4px; white-space: nowrap; }
+.repeat-tour-next { color: white; background: #007f91; border: 1px solid #007f91; padding: 0 16px; height: var(--btn-h-sm); border-radius: var(--btn-radius); font-weight: var(--btn-weight); white-space: nowrap; }
 .repeat-tour-back, .repeat-tour-link { background: transparent; color: #323338; border: 0; padding: 8px 4px; }
 .repeat-tour-link { color: #006e80; margin-top: 10px; text-decoration: underline; text-underline-offset: 3px; }
 .repeat-tour-launcher { display: flex; align-items: center; gap: 8px; border: 1px solid #d0d4d9; border-radius: 24px; background: white; color: #323338; box-shadow: 0 3px 12px #0002; padding: 10px 16px; }

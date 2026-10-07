@@ -236,7 +236,8 @@ export default function SellerSignalDashboard({
           </>
         ) : (
           <div className="empty seller-record-empty">
-            No sellers yet. Import a spreadsheet to get started.
+            <p className="seller-record-empty-title">No sellers yet</p>
+            <p>Import a spreadsheet to get started.</p>
             {onNavigate && <button type="button" className="seller-record-empty-action" onClick={() => onNavigate("spreadsheets")}>Import a spreadsheet</button>}
           </div>
         )}

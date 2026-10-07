@@ -62,10 +62,11 @@
 
 /* Buttons */
 .si-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 140px; height: 46px; padding: 0 20px;
-  border: 1px solid var(--border); border-radius: 12px; background: none; color: var(--text); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 140px; height: var(--btn-h-lg); padding: 0 20px;
+  border: 1px solid var(--btn-secondary-border); border-radius: var(--btn-radius); background: var(--btn-secondary-bg); color: var(--text); box-shadow: var(--btn-shadow); font: inherit; font-size: var(--btn-font-lg); font-weight: 600; cursor: pointer;
 }
-.si-btn.is-primary { border-color: var(--btn-primary-bg); background: var(--btn-primary-bg); color: var(--btn-primary-text); }
+.si-btn:hover:not(:disabled) { background: var(--btn-secondary-hover); }
+.si-btn.is-primary { border-color: var(--btn-primary-bg); background: var(--btn-primary-bg); color: var(--btn-primary-text); box-shadow: var(--btn-primary-shadow); }
 .si-btn.is-primary:hover:not(:disabled) { background: var(--btn-primary-hover); }
 .si-btn:disabled { opacity: 0.45; cursor: default; }
 .si-link { height: 34px; padding: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--text-muted); font: inherit; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; }

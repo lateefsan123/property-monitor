@@ -766,12 +766,12 @@ body:has(.seller-settings-overlay) {
   align-items: center;
   justify-content: center;
   gap: 0.45rem;
-  min-height: 2.75rem;
-  padding: 0 0.9rem;
-  border-radius: 6px;
+  min-height: var(--btn-h);
+  padding: 0 16px;
+  border-radius: var(--btn-radius);
   font: inherit;
-  font-size: 0.86rem;
-  font-weight: 850;
+  font-size: var(--btn-font);
+  font-weight: var(--btn-weight);
   white-space: nowrap;
   cursor: pointer;
 }
@@ -780,6 +780,7 @@ body:has(.seller-settings-overlay) {
   border: 1px solid var(--btn-primary-bg);
   background: var(--btn-primary-bg);
   color: var(--btn-primary-text);
+  box-shadow: var(--btn-primary-shadow);
 }
 
 .whatsapp-connect-primary-button:hover:not(:disabled) {
@@ -788,9 +789,10 @@ body:has(.seller-settings-overlay) {
 }
 
 .whatsapp-connect-secondary-button {
-  border: 1px solid color-mix(in srgb, var(--bg-card-border) 84%, transparent);
-  background: transparent;
+  border: 1px solid var(--btn-secondary-border);
+  background: var(--btn-secondary-bg);
   color: var(--text-name);
+  box-shadow: var(--btn-shadow);
 }
 
 .whatsapp-connect-danger-button,

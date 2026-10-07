@@ -10,8 +10,8 @@
 .svd-skip { display: flex; align-items: center; gap: 8px; margin-top: 4px; color: var(--text-secondary); font-size: 13px; cursor: pointer; }
 .svd-skip input { width: 16px; height: 16px; margin: 0; accent-color: var(--text-name); }
 .svd-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
-.svd-btn { min-height: 46px; border: 1px solid var(--border); border-radius: 12px; background: var(--bg-card); color: var(--text); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
-.svd-btn:hover { background: var(--bg-hover); }
-.svd-btn.is-primary { border-color: var(--btn-primary-bg); background: var(--btn-primary-bg); color: var(--btn-primary-text); }
+.svd-btn { min-height: var(--btn-h-lg); border: 1px solid var(--btn-secondary-border); border-radius: var(--btn-radius); background: var(--btn-secondary-bg); color: var(--text); box-shadow: var(--btn-shadow); font: inherit; font-size: var(--btn-font-lg); font-weight: 600; cursor: pointer; }
+.svd-btn:hover { background: var(--btn-secondary-hover); }
+.svd-btn.is-primary { border-color: var(--btn-primary-bg); background: var(--btn-primary-bg); color: var(--btn-primary-text); box-shadow: var(--btn-primary-shadow); }
 .svd-btn.is-primary:hover { background: var(--btn-primary-hover); }
 .svd-btn:focus-visible, .svd-skip input:focus-visible { outline: 2px solid var(--text-name); outline-offset: 2px; }

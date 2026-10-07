@@ -12,8 +12,8 @@
 .seller-view-switch button span { font-variant-numeric: tabular-nums; font-weight: 500; opacity: 0.75; }
 .seller-view-switch button.is-active { background: var(--tab-active-bg); color: var(--tab-active-text); }
 .seller-add-btn {
-  margin-left: auto; display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 18px;
-  border: 0; border-radius: 12px; background: var(--text-name); color: var(--bg); font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  margin-left: auto; display: inline-flex; align-items: center; gap: 8px; height: var(--btn-h); padding: 0 16px;
+  border: 0; border-radius: var(--btn-radius); background: var(--btn-primary-bg); color: var(--btn-primary-text); box-shadow: var(--btn-primary-shadow); font: inherit; font-size: var(--btn-font); font-weight: 600; cursor: pointer;
 }
 .seller-add-btn:disabled { opacity: 0.4; cursor: default; }
 

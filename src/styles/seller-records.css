@@ -23,7 +23,13 @@
 
 .seller-record-empty {
   border-radius: 0 0 8px 8px;
+  padding: 48px 20px;
+  color: var(--text-muted);
+  font-size: 14px;
 }
+
+.seller-record-empty p { margin: 0; }
+.seller-record-empty .seller-record-empty-title { margin-bottom: 8px; color: var(--text-name); font-size: 17px; font-weight: 600; }
 
 /* Lead table (used by listing alerts) */
 .lead-table-wrap {
@@ -392,5 +398,5 @@
   pointer-events: none;
 }
 
-.seller-record-empty-action { display: block; margin: 14px auto 0; height: 40px; padding: 0 18px; border: 0; border-radius: 10px; background: var(--btn-primary-bg); color: var(--btn-primary-text); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
+.seller-record-empty-action { display: block; width: 100%; max-width: 320px; margin: 16px auto 0; height: var(--btn-h-lg); padding: 0 18px; border: 0; border-radius: var(--btn-radius); background: var(--btn-primary-bg); color: var(--btn-primary-text); box-shadow: var(--btn-primary-shadow); font: inherit; font-size: var(--btn-font-lg); font-weight: var(--btn-weight); cursor: pointer; }
 .seller-record-empty-action:hover { background: var(--btn-primary-hover); }

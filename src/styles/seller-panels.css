@@ -1003,18 +1003,20 @@
 }
 
 .sheet-add-btn {
-  padding: 9px 16px;
+  height: var(--btn-h);
+  padding: 0 16px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--btn-radius);
   background: var(--btn-primary-bg, #111);
   color: var(--btn-primary-text, #fff);
-  font-size: 0.8rem;
-  font-weight: 700;
+  box-shadow: var(--btn-primary-shadow);
+  font-size: var(--btn-font);
+  font-weight: var(--btn-weight);
   cursor: pointer;
 }
 
 .sheet-add-btn:hover:not(:disabled) {
-  opacity: 0.88;
+  background: var(--btn-primary-hover);
 }
 
 .sheet-add-btn:disabled {

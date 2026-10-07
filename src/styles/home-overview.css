@@ -118,8 +118,8 @@
 .home-connect-icons { display: flex; gap: 14px; }
 .home-connect-icons img { width: 28px; height: 28px; }
 .home-connect-button {
-  align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 18px;
-  border: 0; border-radius: 24px; background: var(--text-name); color: var(--bg); font: inherit; font-size: 14px; font-weight: 600; cursor: pointer;
+  align-self: flex-start; display: inline-flex; align-items: center; gap: 8px; min-height: var(--btn-h); padding: 0 18px;
+  border: 0; border-radius: var(--btn-radius); background: var(--btn-primary-bg); color: var(--btn-primary-text); box-shadow: var(--btn-primary-shadow); font: inherit; font-size: var(--btn-font); font-weight: var(--btn-weight); cursor: pointer;
 }
 .home-connect-options { display: flex; flex-direction: column; border: 1px solid var(--border); border-radius: 18px; background: var(--bg-card); padding: 4px 16px; }
 .home-connect-options button {
@@ -163,12 +163,15 @@
 .home-setup-hide { align-self: flex-start; color: var(--text-muted); }
 
 /* Next setup step inside empty states (SetupNextAction.jsx) */
-.setup-next { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; margin-top: 12px; }
+/* Centred with a wide main button, like the Schedule empty state (mobile schedule-editor.js). */
+.setup-next { display: flex; flex-direction: column; align-items: center; gap: 14px; margin-top: 16px; text-align: center; }
+.setup-next .setup-next-button { width: 100%; max-width: 320px; min-height: var(--btn-h-lg); font-size: var(--btn-font-lg); }
+.setup-next p { margin: 0; }
 .setup-next-button {
-  min-height: 38px; padding: 8px 16px; border: 0; border-radius: 8px;
-  background: var(--text-name); color: var(--bg-card); font: inherit; font-size: 13px; font-weight: 500; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; min-height: var(--btn-h); padding: 0 16px; border: 0; border-radius: var(--btn-radius);
+  background: var(--btn-primary-bg); color: var(--btn-primary-text); box-shadow: var(--btn-primary-shadow); font: inherit; font-size: var(--btn-font); font-weight: var(--btn-weight); cursor: pointer;
 }
-.setup-next-button:hover { opacity: .88; }
+.setup-next-button:hover { background: var(--btn-primary-hover); }
 .is-center > .setup-next, .setup-next.is-center { align-items: center; }
 .home-setup-cta { flex: none; display: inline-flex; align-items: center; }
 .home-setup-step:hover .home-setup-cta { opacity: .88; }
