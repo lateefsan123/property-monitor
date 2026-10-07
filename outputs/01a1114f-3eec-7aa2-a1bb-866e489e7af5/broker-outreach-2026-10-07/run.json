@@ -36,7 +36,11 @@
       "agency": "Live Dubai / LDI",
       "phone": "971524121114",
       "source": "https://livedubai.co.uk/agent/",
-      "status": "pending"
+      "status": "confirmed",
+      "message": "Hi Jawhar Abboud, Lateef here from Repeat AI. I found your contact on the Live Dubai / LDI website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T13:51:47.821Z",
+      "evidence": "14:51 Sent; +971 52 412 1114 chat; 1:54 video and personalised Jawhar Abboud caption visible",
+      "verifiedAt": "2026-10-07T13:53:05.458Z"
     },
     {
       "row": 6194,
@@ -1727,7 +1731,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T13:45:35.592Z",
+  "lastAttemptAt": "2026-10-07T13:51:47.821Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 2
+  "confirmedCount": 3
 }
