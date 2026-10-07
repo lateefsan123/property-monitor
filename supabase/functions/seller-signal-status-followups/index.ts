@@ -18,6 +18,7 @@ const corsHeaders = {
 };
 const TEMPLATE_IMAGE_BUCKET = "seller-signal-template-images";
 const SENT_STATUSES = ["queued", "sending", "sent", "delivered", "read", "failed"];
+const LOOKUP_BATCH = 200;
 
 const json = (body: unknown, status = 200) =>
   new Response(JSON.stringify(body), { status, headers: { ...corsHeaders, "Content-Type": "application/json" } });
@@ -143,12 +144,19 @@ Deno.serve(async (req) => {
       const leadIds = (leads as any[]).map((lead) => Number(lead.id));
       const phones = (leads as any[]).map((lead) => normalizePhone(lead.phone)).filter(Boolean) as string[];
 
-      const inbound = await must(client.from("whatsapp_messages").select("lead_id, recipient_phone")
-        .eq("user_id", userId).eq("direction", "inbound").or(`lead_id.in.(${leadIds.join(",")}),recipient_phone.in.(${phones.join(",") || "0"})`).limit(5000));
-      const repliedLeadIds = new Set((inbound as any[] || []).map((row) => Number(row.lead_id)).filter(Boolean));
-      const repliedPhones = new Set((inbound as any[] || []).map((row) => String(row.recipient_phone || "")));
-      const outbound = await must(client.from("whatsapp_messages").select("lead_id, created_at")
-        .eq("user_id", userId).eq("direction", "outbound").in("lead_id", leadIds).in("status", SENT_STATUSES).limit(10000));
+      // In batches: 2,000 ids and phones in one filter make a ~40 KB URL, which the REST API rejects (400).
+      const inbound: any[] = [];
+      const outbound: any[] = [];
+      for (let start = 0; start < leadIds.length; start += LOOKUP_BATCH) {
+        const ids = leadIds.slice(start, start + LOOKUP_BATCH);
+        const batchPhones = phones.slice(start, start + LOOKUP_BATCH);
+        inbound.push(...(await must(client.from("whatsapp_messages").select("lead_id, recipient_phone")
+          .eq("user_id", userId).eq("direction", "inbound").or(`lead_id.in.(${ids.join(",")}),recipient_phone.in.(${batchPhones.join(",") || "0"})`).limit(5000)) as any[] || []));
+        outbound.push(...(await must(client.from("whatsapp_messages").select("lead_id, created_at")
+          .eq("user_id", userId).eq("direction", "outbound").in("lead_id", ids).in("status", SENT_STATUSES).limit(10000)) as any[] || []));
+      }
+      const repliedLeadIds = new Set(inbound.map((row) => Number(row.lead_id)).filter(Boolean));
+      const repliedPhones = new Set(inbound.map((row) => String(row.recipient_phone || "")));
       const outboundByLead = new Map<number, string[]>();
       for (const row of outbound as any[] || []) {
         const list = outboundByLead.get(Number(row.lead_id)) || [];
