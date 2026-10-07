@@ -60,7 +60,11 @@
       "agency": "Arabian Estates",
       "phone": "971585025802",
       "source": "https://arabianestates.ae/our-team",
-      "status": "pending"
+      "status": "confirmed",
+      "message": "Hi Alexander Stanton, Lateef here from Repeat AI. I found your contact on the Arabian Estates website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T14:03:21.291Z",
+      "evidence": "15:03 Delivered; +971 58 502 5802 chat; 1:54 video and personalised Alexander Stanton caption visible",
+      "verifiedAt": "2026-10-07T14:03:34.153Z"
     },
     {
       "row": 2455,
@@ -1735,7 +1739,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T13:57:20.658Z",
+  "lastAttemptAt": "2026-10-07T14:03:21.291Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 4
+  "confirmedCount": 5
 }
