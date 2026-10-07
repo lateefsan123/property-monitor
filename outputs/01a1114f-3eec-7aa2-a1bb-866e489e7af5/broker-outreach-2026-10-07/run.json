@@ -97,7 +97,11 @@
       "agency": "Espace Real Estate",
       "phone": "971585230295",
       "source": "https://www.espace.ae/meet-the-team-detail/alex-penny",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Alex Penny, Lateef here from Repeat AI. I found your contact on the Espace Real Estate website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T14:25:57.341Z",
+      "evidence": "15:25 Delivered visibly verified in +971 58 523 0295 chat; 1:54 v5 demo video and exact personalised Espace caption.",
+      "verifiedAt": "2026-10-07T14:26:10.857Z"
     },
     {
       "row": 2907,
@@ -1748,7 +1752,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T14:15:56.605Z",
+  "lastAttemptAt": "2026-10-07T14:25:57.341Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 7
+  "confirmedCount": 8
 }
