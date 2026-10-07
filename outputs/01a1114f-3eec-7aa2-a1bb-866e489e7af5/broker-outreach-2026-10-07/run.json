@@ -484,7 +484,11 @@
       "agency": "Easy Nest Properties",
       "phone": "971529516910",
       "source": "https://easynestproperties.com/agents/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Muhammad Salman Butt, Lateef here from Repeat AI. I found your contact on the Easy Nest Properties website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T18:16:50.793Z",
+      "evidence": "19:16 Sent visibly verified in chat +971 52 951 6910; 1:54 v5 film and exact personalised Muhammad Salman Butt / Easy Nest Properties caption.",
+      "verifiedAt": "2026-10-07T18:16:58.430Z"
     },
     {
       "row": 2517,
@@ -1879,7 +1883,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T18:11:09.318Z",
+  "lastAttemptAt": "2026-10-07T18:16:50.793Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 38
+  "confirmedCount": 39
 }
