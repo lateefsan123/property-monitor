@@ -352,7 +352,11 @@
       "agency": "Arabian Estates",
       "phone": "971501119715",
       "source": "https://arabianestates.ae/our-team",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Casey Gaggini, Lateef here from Repeat AI. I found your contact on the Arabian Estates website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T17:13:53.271Z",
+      "evidence": "18:13 Sent visibly verified in chat +971 50 111 9715; 1:54 v5 film and exact personalised Casey Gaggini / Arabian Estates caption.",
+      "verifiedAt": "2026-10-07T17:14:01.653Z"
     },
     {
       "row": 2459,
@@ -1835,7 +1839,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T17:08:05.735Z",
+  "lastAttemptAt": "2026-10-07T17:13:53.271Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 28
+  "confirmedCount": 29
 }
