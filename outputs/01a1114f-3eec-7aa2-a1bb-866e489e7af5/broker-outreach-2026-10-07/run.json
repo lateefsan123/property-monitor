@@ -279,7 +279,11 @@
       "agency": "Exclusive Links",
       "phone": "971561159043",
       "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Arno Potgieter, Lateef here from Repeat AI. I found your contact on the Exclusive Links website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T16:36:22.718Z",
+      "evidence": "17:36 Sent visibly verified in +971 56 115 9043 chat; 1:54 v5 film and exact personalised Exclusive Links caption.",
+      "verifiedAt": "2026-10-07T16:36:31.385Z"
     },
     {
       "row": 808,
@@ -1810,7 +1814,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T16:28:50.892Z",
+  "lastAttemptAt": "2026-10-07T16:36:22.718Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 22
+  "confirmedCount": 23
 }
