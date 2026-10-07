@@ -37,3 +37,19 @@ Review: https://appstoreconnect.apple.com/apps/6762112437/appstore/reviewsubmiss
 Provider configuration: https://supabase.com/dashboard/project/zrqxaammmrydkekbphqa/auth/providers
 
 Reference: https://supabase.com/docs/guides/auth/social-login/auth-apple
+
+## Resubmission requested
+
+The user requested resubmission without device testing. On October 7, App Store Connect redirected to its Apple Account sign-in page (`authResult=FAILED`); the authenticated session had expired. No reply or resubmission could be completed before login.
+
+Prepared App Review reply:
+
+> Hello App Review,
+>
+> We identified the server-side cause of the Sign in with Apple error reported for version 1.0 (33). Our authentication server had the Apple provider disabled, causing the native Apple identity-token exchange to return `provider_disabled`.
+>
+> We have enabled the Apple provider and configured the allowed native client ID to match this app's bundle identifier, `com.lateefsan.sellersignal`. We verified that the saved provider configuration is enabled and that the live authentication settings endpoint reports Apple enabled.
+>
+> This correction is server-side and applies to the existing build 33 without a new binary. We have not completed a physical-device sign-in test since the configuration change. Please review version 1.0 (33) again with the corrected authentication configuration.
+>
+> Thank you.
