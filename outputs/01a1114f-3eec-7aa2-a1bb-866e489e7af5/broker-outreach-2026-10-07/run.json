@@ -109,7 +109,11 @@
       "agency": "Exclusive Links",
       "phone": "971507086384",
       "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Anna Carrera Moyne, Lateef here from Repeat AI. I found your contact on the Exclusive Links website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T14:32:23.372Z",
+      "evidence": "15:32 Sent visibly verified in +971 50 708 6384 chat; 1:54 v5 demo video and exact personalised Exclusive Links caption.",
+      "verifiedAt": "2026-10-07T14:32:33.528Z"
     },
     {
       "row": 3148,
@@ -1752,7 +1756,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T14:25:57.341Z",
+  "lastAttemptAt": "2026-10-07T14:32:23.372Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 8
+  "confirmedCount": 9
 }
