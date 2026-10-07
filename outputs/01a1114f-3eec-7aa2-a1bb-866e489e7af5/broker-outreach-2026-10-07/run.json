@@ -472,7 +472,11 @@
       "agency": "Arabian Estates",
       "phone": "971585488016",
       "source": "https://arabianestates.ae/our-team",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Christian Curran, Lateef here from Repeat AI. I found your contact on the Arabian Estates website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T18:11:09.318Z",
+      "evidence": "19:11 Sent visibly verified in chat +971 58 548 8016; 1:54 v5 film and exact personalised Christian Curran / Arabian Estates caption.",
+      "verifiedAt": "2026-10-07T18:11:16.862Z"
     },
     {
       "row": 2461,
@@ -1875,7 +1879,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T18:04:43.821Z",
+  "lastAttemptAt": "2026-10-07T18:11:09.318Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 37
+  "confirmedCount": 38
 }
