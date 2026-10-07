@@ -40,7 +40,7 @@ function Automations({ userId, colors }) {
     {[
       ["autoWhatsAppEnabled", "Transaction updates", "Send sellers matching property transaction updates."],
       ["monthlyReportsEnabled", "Monthly reports", "Send each seller a summary of last month's sales in their building, once a month."],
-      ["statusFollowupsEnabled", "Status follow-ups", "When a seller is due, send the template for their status, then move them on. Stops when they reply."],
+      ["statusFollowupsEnabled", "Status follow-ups", "Send the template for a seller's status when they're due. Stops when they reply."],
     ].map(([id, label, description]) => (
       <View key={id} style={{ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 16, borderBottomColor: colors.border, borderBottomWidth: 0.5 }}>
         <View style={{ flex: 1, gap: 6 }}>
