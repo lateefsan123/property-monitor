@@ -48,7 +48,11 @@
       "agency": "Pam Golding Properties Dubai",
       "phone": "971585224757",
       "source": "https://www.pamgolding.ae/contact-us/agents",
-      "status": "pending"
+      "status": "confirmed",
+      "message": "Hi Thabo Mothoa, Lateef here from Repeat AI. I found your contact on the Pam Golding Properties Dubai website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T13:57:20.658Z",
+      "evidence": "14:57 Delivered; +971 58 522 4757 chat; 1:54 video and personalised Thabo Mothoa caption visible",
+      "verifiedAt": "2026-10-07T13:57:32.267Z"
     },
     {
       "row": 805,
@@ -1731,7 +1735,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T13:51:47.821Z",
+  "lastAttemptAt": "2026-10-07T13:57:20.658Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 3
+  "confirmedCount": 4
 }
