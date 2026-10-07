@@ -1,0 +1,490 @@
+{
+  "account": "lateefsanusiwork@gmail.com",
+  "source": "D:\\Users\\Lateef\\Documents\\property\\outputs\\01a0f8a2-ab29-7e22-b0c5-a91a0e8dfbab\\broker-contacts-2026-10-04\\Repeat-AI-broker-call-list.xlsx",
+  "sourceCount": 8823,
+  "eligibleCount": 8745,
+  "omittedCount": 78,
+  "omissions": [
+    {
+      "row": 800,
+      "name": "Aakanksha Chhoda",
+      "phone": "971585311332",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 801,
+      "name": "Aaqib Ahmed",
+      "phone": "971561921275",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 802,
+      "name": "Abdelwaheb Bekhadda",
+      "phone": "971589191008",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 803,
+      "name": "Alba Kuloglija",
+      "phone": "971585693838",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 804,
+      "name": "Alexander James Scriven",
+      "phone": "971504364249",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 805,
+      "name": "Alexander Stanton",
+      "phone": "971585025802",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 806,
+      "name": "Amin Labioui",
+      "phone": "971585929751",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 807,
+      "name": "Ben Greenwood",
+      "phone": "971585780900",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 808,
+      "name": "Callum Wallace",
+      "phone": "971585624692",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 809,
+      "name": "Casey Gaggini",
+      "phone": "971501119715",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 810,
+      "name": "Charlie Harris",
+      "phone": "971505654784",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 811,
+      "name": "Christian Curran",
+      "phone": "971585488016",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 842,
+      "name": "Paloma Iriondo",
+      "phone": "34611752884",
+      "reason": "Invalid UAE mobile"
+    },
+    {
+      "row": 2450,
+      "name": "Haseeb Shaikh",
+      "phone": "971501979664",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2451,
+      "name": "Madha Pramod",
+      "phone": "971506787124",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2452,
+      "name": "Malik Arfat",
+      "phone": "971543714662",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2453,
+      "name": "Mirza Hassan",
+      "phone": "971562737507",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2454,
+      "name": "Mr. Abdul Rahim",
+      "phone": "971501846528",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2455,
+      "name": "Mr. Michael",
+      "phone": "971551975310",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2456,
+      "name": "Mr. Nazir Ahmed",
+      "phone": "971559943066",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2457,
+      "name": "Mr. Yabes Sintan",
+      "phone": "971552287126",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2458,
+      "name": "Ms. Meerab Rahim",
+      "phone": "971553138626",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2459,
+      "name": "Muhammad Azeem",
+      "phone": "971522093730",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2460,
+      "name": "Muhammad Saifullah",
+      "phone": "971527978963",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2461,
+      "name": "Muhammad Salman Butt",
+      "phone": "971529516910",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2506,
+      "name": "Abdul Basith",
+      "phone": "971562304490",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2507,
+      "name": "Abdullah Pervaiz",
+      "phone": "971558957333",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2508,
+      "name": "Adnan Hussain",
+      "phone": "971556250691",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2509,
+      "name": "Ahmed Hussain",
+      "phone": "971503842808",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2510,
+      "name": "Ali Wasiq Tirmizi",
+      "phone": "971558759112",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2511,
+      "name": "Amal El Khassoumi",
+      "phone": "971558279754",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2512,
+      "name": "Anas Muhammad Khan",
+      "phone": "971552540323",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2513,
+      "name": "Azeem Ahmed",
+      "phone": "971526146668",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2514,
+      "name": "Azhar Ahmed",
+      "phone": "971522569786",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2515,
+      "name": "Burhan Hussain Haji",
+      "phone": "971585962920",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2516,
+      "name": "Faizan Hassan",
+      "phone": "971552385588",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2517,
+      "name": "Fasih Uddin",
+      "phone": "971554735755",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2754,
+      "name": "Adam Lewis",
+      "phone": "971507351440",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2755,
+      "name": "Adela Radulian",
+      "phone": "971508999425",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2756,
+      "name": "Alan Murphy",
+      "phone": "971585075866",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2757,
+      "name": "Alastair Armstrong",
+      "phone": "971558211055",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2758,
+      "name": "Alex Calamari",
+      "phone": "971523667902",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2759,
+      "name": "Alex Penny",
+      "phone": "971585230295",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2760,
+      "name": "Andre Stalevski",
+      "phone": "971564021115",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2761,
+      "name": "Anthony Jones",
+      "phone": "971585851329",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2762,
+      "name": "Artem Golenkov",
+      "phone": "971585771623",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2763,
+      "name": "Artur Ahmedov",
+      "phone": "971506576723",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2764,
+      "name": "Bharat Singh",
+      "phone": "971505520687",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2902,
+      "name": "Albert Michael",
+      "phone": "971504746250",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2903,
+      "name": "Alison Brussow",
+      "phone": "971503484421",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2904,
+      "name": "Anas Zaghdoud",
+      "phone": "971563848489",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2905,
+      "name": "Andrew Fraser Tweedie",
+      "phone": "971569711853",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2906,
+      "name": "Andy Bush",
+      "phone": "971503846882",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2907,
+      "name": "Anna Carrera Moyne",
+      "phone": "971507086384",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2908,
+      "name": "Annalize Diedericks",
+      "phone": "971504508713",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2909,
+      "name": "Arno Potgieter",
+      "phone": "971561159043",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2910,
+      "name": "Bridget Higgins",
+      "phone": "971501599476",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2911,
+      "name": "Candida Miranda",
+      "phone": "971504501394",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 2912,
+      "name": "Carmen Davis",
+      "phone": "971521742947",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 3143,
+      "name": "Abdullah Hashmi",
+      "phone": "971551749139",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 3144,
+      "name": "Dean Martin David",
+      "phone": "971525786225",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 3145,
+      "name": "Diana Khouri",
+      "phone": "971547388689",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 3146,
+      "name": "Lola Akhmedova",
+      "phone": "971589476181",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 3147,
+      "name": "Marcus Abildgaard Sardar",
+      "phone": "971529169766",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 3148,
+      "name": "Shokhrukh Rakhimov",
+      "phone": "971585385577",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 3149,
+      "name": "Victor Skovgaard Have",
+      "phone": "971528903858",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 4825,
+      "name": "Ayman Hoque",
+      "phone": "971526049007",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 4826,
+      "name": "Azeem Jawaid",
+      "phone": "971569060197",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 4827,
+      "name": "Hamzah Wilson",
+      "phone": "971543007818",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 4828,
+      "name": "Hassan Lakhani",
+      "phone": "971528851122",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 4829,
+      "name": "Jawhar Abboud",
+      "phone": "971524121114",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 4830,
+      "name": "Mira Gharbieh",
+      "phone": "971525360148",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 6190,
+      "name": "Linda Williams",
+      "phone": "971528674545",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 6191,
+      "name": "Nadeem Agherdien",
+      "phone": "971544779925",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 6192,
+      "name": "Rinie Boshoff",
+      "phone": "971502049121",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 6193,
+      "name": "Robert Peacock",
+      "phone": "971561266330",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 6194,
+      "name": "Thabo Mothoa",
+      "phone": "971585224757",
+      "reason": "Prior outreach or excluded chat"
+    },
+    {
+      "row": 6195,
+      "name": "Warren Christie",
+      "phone": "971509301884",
+      "reason": "Prior outreach or excluded chat"
+    }
+  ],
+  "statusCounts": {
+    "Not contacted": 8823
+  },
+  "sendingEnabled": false,
+  "importedCount": 8745,
+  "verifiedUniquePhones": 8745,
+  "verifiedStatus": "Broker introduction",
+  "sourceId": "97cd92c3-73eb-4cb5-ba9c-b79a690aca59",
+  "userId": "231dbddd-efae-45b6-99ce-a72d68c32043",
+  "verifiedAt": "2026-10-07T21:15:09.184895+00:00",
+  "browserUrl": "http://localhost:5173/#/sellers",
+  "proof": "imported-brokers-visible.png",
+  "notes": "Imported through existing file import UI. Database count and refreshed browser list verified. Agency/role/email/source remain in original workbook and prepared CSV; current importer maps name, phone and status only. Building and unit deliberately blank. UI still flags missing property fields as needs review and groups no-follow-up contacts under Scheduled. Transaction updates, monthly reports and status follow-ups off. No messages sent. No deployment."
+}
