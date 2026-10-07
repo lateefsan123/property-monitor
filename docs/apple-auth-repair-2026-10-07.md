@@ -53,3 +53,16 @@ Prepared App Review reply:
 > This correction is server-side and applies to the existing build 33 without a new binary. We have not completed a physical-device sign-in test since the configuration change. Please review version 1.0 (33) again with the corrected authentication configuration.
 >
 > Thank you.
+
+## Resubmission completed
+
+After the user restored the Apple login session, the reply above was sent and verified in Messages at 4:53 PM Irish time on October 7. Used Update Review for the existing app version and retained build `1.0.0 (33)` when Apple noted a newer build was available. Then selected Resubmit to App Review.
+
+After reloading the submission page, verified at 4:54 PM Irish time:
+
+- Submission `51b6ef38-ca37-46f4-83f6-81e13b1fa19f`: Waiting for Review.
+- iOS App 1.0, build 33: Waiting for Review.
+- Repeat AI Pro Monthly subscription: Waiting for Review.
+- Repeat AI Pro subscription group: Waiting for Review.
+
+Evidence: `outputs/apple-auth-2026-10-07/resubmitted.png`. Physical-device verification remains uncompleted and was disclosed in the sent reply. This is a review submission, not approval or publication. No new binary was uploaded.
