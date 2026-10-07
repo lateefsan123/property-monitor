@@ -308,7 +308,8 @@
       "caption": "Hi Ms. Meerab Rahim, Lateef here from Repeat AI. I found your contact on the Easy Nest Properties website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
       "attemptedAt": "2026-10-07T16:48:52.075Z",
       "evidence": "17:48 Sent visibly verified in +971 55 313 8626 chat; 1:54 v5 film and exact personalised Easy Nest Properties caption.",
-      "verifiedAt": "2026-10-07T16:49:02.786Z"
+      "verifiedAt": "2026-10-07T16:49:02.786Z",
+      "replyEvidence": "17:51 local: hi i a little busy right now, will check in a while (smiling emoji); user thumbs-up reaction visible in chat list."
     },
     {
       "row": 2514,
@@ -364,7 +365,9 @@
       "agency": "Easy Nest Properties",
       "phone": "971522093730",
       "source": "https://easynestproperties.com/agents/",
-      "status": "pending"
+      "status": "skipped",
+      "evidence": "WhatsApp visibly reports +971 52 209 3730 isn't on WhatsApp; no send attempted.",
+      "verifiedAt": "2026-10-07T17:19:48.614Z"
     },
     {
       "row": 2515,
@@ -372,7 +375,11 @@
       "agency": "Elan Real Estate",
       "phone": "971585962920",
       "source": "https://elanrealestate.ae/agent/burhan-hussain-haji/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Burhan Hussain Haji, Lateef here from Repeat AI. I found your contact on the Elan Real Estate website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T17:20:21.457Z",
+      "evidence": "18:20 Sent visibly verified in chat +971 58 596 2920; 1:54 v5 film and exact personalised Burhan Hussain Haji / Elan Real Estate caption.",
+      "verifiedAt": "2026-10-07T17:20:29.774Z"
     },
     {
       "row": 2763,
@@ -1839,7 +1846,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T17:13:53.271Z",
+  "lastAttemptAt": "2026-10-07T17:20:21.457Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 29
+  "confirmedCount": 30
 }
