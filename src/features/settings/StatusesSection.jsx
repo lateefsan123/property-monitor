@@ -71,10 +71,17 @@ function StatusDialog({ draft, setDraft, saving, error, onCancel, onSave, onDele
           <span>Colour</span>
           <ColorPicker value={draft.color} swatches={STATUS_COLOR_OPTIONS} onChange={(color) => setDraft((current) => ({ ...current, color }))} />
         </div>}
-        <label className="stx-field">
+        {!draft.locked && <label className="stx-field">
           <span>Follow up</span>
           <FollowUpSelect value={draft.follow_up_days} label="Follow up" disabled={saving} onChange={(days) => setDraft({ ...draft, follow_up_days: days })} />
-        </label>
+        </label>}
+        {builtIn && (
+          <label className="stx-switch-row">
+            <span>Show in status lists</span>
+            <input type="checkbox" role="switch" className="st-switch" checked={!draft.hidden} disabled={saving}
+              onChange={(event) => setDraft({ ...draft, hidden: !event.target.checked })} />
+          </label>
+        )}
         {!builtIn && otherStatuses.length ? (
           <label className="stx-field">
             <span>Then move to</span>
@@ -96,7 +103,7 @@ function StatusDialog({ draft, setDraft, saving, error, onCancel, onSave, onDele
   );
 }
 
-export default function StatusesSection({ userId }) {
+export default function StatusesSection({ userId, newStatusRequest = 0 }) {
   const client = useQueryClient();
   const statuses = useQuery({ queryKey: statusesQueryKey(userId), enabled: Boolean(userId), queryFn: () => fetchStatuses(userId) });
   const [editing, setEditing] = useState(null);
@@ -136,7 +143,7 @@ export default function StatusesSection({ userId }) {
   }
 
   function saveDraft() {
-    if (draft.builtin_key) return run(() => saveStatus(userId, { id: draft.id, builtin_key: draft.builtin_key, label: draft.builtin_key, follow_up_days: draft.follow_up_days }));
+    if (draft.builtin_key) return run(() => saveStatus(userId, { id: draft.id, builtin_key: draft.builtin_key, label: draft.builtin_key, follow_up_days: draft.follow_up_days, hidden: draft.hidden }));
     return run(async () => {
       const previous = draft.id ? rows.find((row) => row.id === draft.id) : null;
       const saved = await saveStatus(userId, { ...draft, position: draft.position ?? custom.length });
@@ -151,6 +158,17 @@ export default function StatusesSection({ userId }) {
   }
 
 
+  // The page header's "New status" button bumps newStatusRequest.
+  const [handledRequest, setHandledRequest] = useState(newStatusRequest);
+  if (newStatusRequest !== handledRequest) {
+    setHandledRequest(newStatusRequest);
+    if (!busy && custom.length < MAX_STATUSES - BUILT_INS.length) {
+      setError(null);
+      setEditing("new");
+      setDraft({ label: "", color: STATUS_COLOR_OPTIONS[custom.length % STATUS_COLOR_OPTIONS.length], follow_up_days: 14 });
+    }
+  }
+
   const open = (key, nextDraft) => { setError(null); setEditing(key); setDraft(nextDraft); };
   const atLimit = custom.length >= MAX_STATUSES - BUILT_INS.length;
 
@@ -161,7 +179,7 @@ export default function StatusesSection({ userId }) {
           <SettingsItem key={row.id} label={<StatusPill label={row.label} color={row.color || "#6b7280"} />}
             value={followUpLabel(row.follow_up_days)} disabled={busy} onClick={() => open(row.id, { ...row })} />
         ))}
-        <SettingsItem icon={IconPlus} label="New status" disabled={busy || atLimit} onClick={startNew} />
+        {!custom.length && <SettingsItem icon={IconPlus} label="New status" disabled={busy || atLimit} onClick={startNew} />}
       </SettingsGroup>
 
       <SettingsGroup title="Built-in">
@@ -170,9 +188,9 @@ export default function StatusesSection({ userId }) {
           const days = item.locked ? 0 : override?.follow_up_days ?? item.days;
           return (
             <SettingsItem key={item.key} label={<StatusPill label={item.label} color={item.color} />}
-              value={item.locked ? "Never messaged" : followUpLabel(days)}
+              value={override?.hidden ? "Hidden" : item.locked ? "Never messaged" : followUpLabel(days)}
               disabled={busy}
-              onClick={item.locked ? undefined : () => open(item.key, { id: override?.id, builtin_key: item.key, label: item.label, follow_up_days: days })} />
+              onClick={() => open(item.key, { id: override?.id, builtin_key: item.key, label: item.label, follow_up_days: days, hidden: Boolean(override?.hidden), locked: item.locked, color: item.color })} />
           );
         })}
       </SettingsGroup>

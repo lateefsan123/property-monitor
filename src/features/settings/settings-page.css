@@ -292,3 +292,6 @@ button.stx-pill:hover { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pil
 .stx-dialog-actions { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding-top: 4px; }
 .stx-btn-danger { display: inline-flex; align-items: center; gap: 6px; margin-right: auto; border-color: transparent; background: none; color: var(--error-text); }
 .stx-btn-danger:hover:not(:disabled) { background: var(--bg-hover); }
+.st-head.has-action { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 0; background: var(--bg); }
+.st-head-action { display: inline-flex; align-items: center; gap: 6px; }
+.stx-switch-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--text-name); font-size: 14px; }

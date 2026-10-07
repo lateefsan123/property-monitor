@@ -37,7 +37,9 @@ export function mergeStatusRules(baseRules, rows = []) {
     .filter((rule) => !rule.custom)
     .map((rule) => {
       const override = overrides.get(rule.id);
-      return override && rule.id !== "not_interested" ? { ...rule, days: Number(override.follow_up_days) } : rule;
+      if (!override) return rule;
+      const days = rule.id === "not_interested" ? rule.days : Number(override.follow_up_days);
+      return { ...rule, days, hidden: Boolean(override.hidden) };
     });
   const custom = list
     .filter((row) => !row.builtin_key && token(row.label))
@@ -80,7 +82,7 @@ export function createSellerStatusServices(supabase) {
     if (!userId) return [];
     const { data, error } = await supabase
       .from("seller_signal_statuses")
-      .select("id, label, color, follow_up_days, builtin_key, position, created_at, next_status_id")
+      .select("id, label, color, follow_up_days, builtin_key, position, created_at, next_status_id, hidden")
       .eq("user_id", userId)
       .order("position", { ascending: true });
     // 42P01/PGRST205: the table isn't in this database yet; built-ins only.
@@ -106,10 +108,12 @@ export function createSellerStatusServices(supabase) {
     };
     // After a status follow-up is sent, the seller moves to this status.
     if (!status.builtin_key && "next_status_id" in status) row.next_status_id = status.next_status_id || null;
+    // A hidden built-in status leaves pickers and filters; sellers keep it.
+    if (status.builtin_key && "hidden" in status) row.hidden = Boolean(status.hidden);
     const query = status.id
       ? supabase.from("seller_signal_statuses").update(row).eq("id", status.id).eq("user_id", userId)
       : supabase.from("seller_signal_statuses").insert(row);
-    const { data, error } = await query.select("id, label, color, follow_up_days, builtin_key, position, created_at, next_status_id").single();
+    const { data, error } = await query.select("id, label, color, follow_up_days, builtin_key, position, created_at, next_status_id, hidden").single();
     if (error) {
       if (error.code === "23505") throw new Error("You already have a status with that name.");
       throw new Error(error.message);

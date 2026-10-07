@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, Text, View } from "react-native";
+import { Alert, Pressable, ScrollView, Switch, Text, View } from "react-native";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import BottomSheet from "../components/BottomSheet";
 import AppIcon from "../components/AppIcon";
@@ -67,6 +67,8 @@ export default function StatusSettings({ userId, colors }) {
   }
 
   function save() {
+    // Built-in rows are stored under their key, like web.
+    if (draft.builtin_key) return run(() => saveStatus(userId, { id: draft.id, builtin_key: draft.builtin_key, label: draft.builtin_key, follow_up_days: draft.follow_up_days, hidden: draft.hidden }));
     return run(async () => {
       const previous = draft.id ? rows.find((row) => row.id === draft.id) : null;
       const saved = await saveStatus(userId, { ...draft, position: draft.position ?? custom.length });
@@ -89,23 +91,25 @@ export default function StatusSettings({ userId, colors }) {
     <View style={{ gap: 4 }}>
       <Feedback colors={colors} error={statuses.error} loading={statuses.isPending} onRetry={statuses.refetch} />
       <SettingsGroup title="Your statuses" colors={colors}>
-        {custom.map((row) => <Row key={row.id} color={row.color || "#6b7280"} label={row.label} detail={followUpLabel(row.follow_up_days)} colors={colors} onPress={() => { setError(null); setDraft({ ...row }); }} />)}
+        {/* First, so it stays reachable however long the list grows. */}
         <Pressable accessibilityRole="button" disabled={custom.length >= MAX_STATUSES - BUILT_INS.length} onPress={() => { setError(null); setDraft(newDraft()); }}
-          style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, paddingHorizontal: 16, minHeight: 52, opacity: pressed ? 0.6 : 1 })}>
+          style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 14, paddingLeft: 16, opacity: pressed ? 0.6 : 1 })}>
           <AppIcon name="plus" size={20} color={colors.text} />
-          <Text style={{ color: colors.text, fontSize: 16 }}>Add status</Text>
+          <View style={{ flex: 1, minHeight: 52, justifyContent: "center", borderBottomWidth: custom.length ? 0.5 : 0, borderBottomColor: colors.border }}>
+            <Text style={{ color: colors.text, fontSize: 16 }}>Add status</Text>
+          </View>
         </Pressable>
+        {custom.map((row) => <Row key={row.id} color={row.color || "#6b7280"} label={row.label} detail={followUpLabel(row.follow_up_days)} colors={colors} onPress={() => { setError(null); setDraft({ ...row }); }} />)}
       </SettingsGroup>
       <SettingsGroup title="Built-in" colors={colors}>
         {BUILT_INS.map((item, index) => {
           const override = overrides.get(item.key);
           const days = item.locked ? 0 : override ? override.follow_up_days : item.days;
-          return <Row key={item.key} color={item.tone} label={item.label} detail={item.locked ? "Never messaged" : followUpLabel(days)} colors={colors}
-            last={index === BUILT_INS.length - 1} disabled={item.locked}
-            onPress={() => { setError(null); setDraft({ id: override?.id, builtin_key: item.key, label: item.label, follow_up_days: days }); }} />;
+          return <Row key={item.key} color={item.tone} label={item.label} detail={override?.hidden ? "Hidden" : item.locked ? "Never messaged" : followUpLabel(days)} colors={colors}
+            last={index === BUILT_INS.length - 1}
+            onPress={() => { setError(null); setDraft({ id: override?.id, builtin_key: item.key, label: item.label, follow_up_days: days, hidden: Boolean(override?.hidden), locked: item.locked }); }} />;
         })}
       </SettingsGroup>
-      <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 19, paddingHorizontal: 4 }}>Follow-up gaps decide when a seller shows as due. Statuses set to "Don't follow up" are never sent automated messages.</Text>
 
       <BottomSheet visible={Boolean(draft)} onClose={() => !saving && setDraft(null)} colors={colors}>
         {draft ? (
@@ -117,7 +121,13 @@ export default function StatusSettings({ userId, colors }) {
               <ColorPicker value={draft.color || STATUS_COLOR_OPTIONS[0]} colors={colors} swatches={STATUS_COLOR_OPTIONS}
                 onChange={(color) => setDraft((current) => ({ ...current, color }))} />
             </> : null}
-            <View style={{ gap: 4 }}>
+            {draft.builtin_key ? (
+              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", minHeight: 48 }}>
+                <Text style={{ color: colors.text, fontSize: 16 }}>Show in status lists</Text>
+                <Switch accessibilityLabel="Show in status lists" value={!draft.hidden} onValueChange={(value) => setDraft({ ...draft, hidden: !value })} />
+              </View>
+            ) : null}
+            {!draft.locked ? <View style={{ gap: 4 }}>
               <Text style={{ color: colors.textMuted, fontSize: 13 }}>Follow up</Text>
               {FOLLOW_UP_OPTIONS.map((option) => {
                 const selected = Number(draft.follow_up_days) === option.days;
@@ -129,7 +139,7 @@ export default function StatusSettings({ userId, colors }) {
                   </Pressable>
                 );
               })}
-            </View>
+            </View> : null}
             {!draft.builtin_key && custom.some((row) => row.id !== draft.id) ? (
               <View style={{ gap: 4 }}>
                 <Text style={{ color: colors.textMuted, fontSize: 13 }}>After a status follow-up is sent, move to</Text>

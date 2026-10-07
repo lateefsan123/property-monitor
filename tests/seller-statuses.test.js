@@ -74,3 +74,10 @@ test("a missing statuses table means no custom statuses", async () => {
   const days = await loadCustomStatusDays(client, ["u1"]);
   assert.equal(days.size, 0);
 });
+
+test("a hidden built-in still matches sellers who have it", () => {
+  const rules = mergeStatusRules(BASE, [{ id: "p", builtin_key: "prospect", label: "prospect", follow_up_days: 75, hidden: true }]);
+  const prospect = rules.find((rule) => rule.id === "prospect");
+  assert.equal(prospect.hidden, true);
+  assert.equal(matchStatusRule(rules, "Prospect").id, "prospect");
+});

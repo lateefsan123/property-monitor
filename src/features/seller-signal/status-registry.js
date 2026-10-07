@@ -20,7 +20,8 @@ export function applyAccountStatuses(rows) {
   const merged = mergeStatusRules(BASE_RULES, rows);
   STATUS_RULES.splice(0, STATUS_RULES.length, ...merged);
   const custom = merged.filter((rule) => rule.custom).map((rule) => ({ id: rule.id, label: rule.label, color: rule.color }));
-  STATUS_FILTER_OPTIONS.splice(0, STATUS_FILTER_OPTIONS.length, ...BASE_FILTERS, ...custom);
+  const hidden = new Set(merged.filter((rule) => rule.hidden).map((rule) => rule.id));
+  STATUS_FILTER_OPTIONS.splice(0, STATUS_FILTER_OPTIONS.length, ...BASE_FILTERS.filter((option) => !hidden.has(option.id)), ...custom);
   setTemplateCustomStatuses(custom);
   return merged;
 }
@@ -28,8 +29,9 @@ export function applyAccountStatuses(rows) {
 // Choices for status pickers: built-ins in their usual order, then the
 // account's own. `value` is what gets saved on the seller.
 export function statusChoices({ includeNotInterested = true } = {}) {
+  const hidden = new Set(STATUS_RULES.filter((rule) => rule.hidden).map((rule) => rule.id));
   const builtIns = BASE_RULES
-    .filter((rule) => includeNotInterested || rule.id !== "not_interested")
+    .filter((rule) => (includeNotInterested || rule.id !== "not_interested") && !hidden.has(rule.id))
     .map((rule) => ({ id: rule.id, value: BUILT_IN_VALUES[rule.id], label: BUILT_IN_VALUES[rule.id], color: null, custom: false }));
   const custom = STATUS_RULES.filter((rule) => rule.custom)
     .map((rule) => ({ id: rule.id, value: rule.label, label: rule.label, color: rule.color, custom: true }));

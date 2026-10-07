@@ -12,6 +12,7 @@ import {
   IconMessageCircle,
   IconMoon,
   IconPlug,
+  IconPlus,
   IconTag,
   IconUserCircle,
 } from "@tabler/icons-react";
@@ -97,6 +98,7 @@ export default function SettingsPage({
   onCancelPlan,
 }) {
   const [section, setSection] = useState(SECTIONS.some((item) => item.id === initialSection) ? initialSection : "general");
+  const [newStatusRequest, setNewStatusRequest] = useState(0);
   const data = useSettingsData(userId);
   const profile = useProfile(userId);
   const assistantPreference = useAssistantPreference(userId);
@@ -121,8 +123,14 @@ export default function SettingsPage({
       </nav>
 
       <main className="st-content settings-connection-first" aria-labelledby="st-title">
-        <header className="st-head">
+        <header className={`st-head${section === "statuses" ? " has-action" : ""}`}>
           <h2 id="st-title">{current.label}</h2>
+          {/* Pinned with the title so a long list never hides it. */}
+          {section === "statuses" && (
+            <button type="button" className="stx-btn stx-btn-primary st-head-action" onClick={() => setNewStatusRequest((count) => count + 1)}>
+              <IconPlus size={15} stroke={2.2} aria-hidden="true" />New status
+            </button>
+          )}
         </header>
 
         {section === "general" && (
@@ -237,7 +245,7 @@ export default function SettingsPage({
           </div>
         )}
 
-        {section === "statuses" && <StatusesSection userId={userId} />}
+        {section === "statuses" && <StatusesSection userId={userId} newStatusRequest={newStatusRequest} />}
 
         {section === "whatsapp" && <WhatsAppSection userId={userId} account={data.account} loading={data.accountsLoading} />}
 
