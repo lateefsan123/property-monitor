@@ -254,7 +254,11 @@
       "agency": "Elan Real Estate",
       "phone": "971526146668",
       "source": "https://elanrealestate.ae/agent/azeem-ahmed/",
-      "status": "pending"
+      "status": "confirmed",
+      "caption": "Hi Azeem Ahmed, Lateef here from Repeat AI. I found your contact on the Elan Real Estate website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "attemptedAt": "2026-10-07T16:22:19.291Z",
+      "evidence": "17:22 Sent visibly verified in +971 52 614 6668 chat; 1:54 v5 film and exact personalised Elan Real Estate caption.",
+      "verifiedAt": "2026-10-07T16:22:29.006Z"
     },
     {
       "row": 2761,
@@ -1801,7 +1805,7 @@
       "status": "pending"
     }
   ],
-  "lastAttemptAt": "2026-10-07T16:16:10.961Z",
+  "lastAttemptAt": "2026-10-07T16:22:19.291Z",
   "automationId": "send-40-broker-introductions",
-  "confirmedCount": 20
+  "confirmedCount": 21
 }
