@@ -1,6 +1,7 @@
 // Conservative retrieval and validation. The model may choose only a supplied ID;
 // a model's confidence never overrides the number, area or ambiguity checks here.
-const words = { one: '1', two: '2', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9', ten: '10', ii: '2', iii: '3', iv: '4' };
+// DLD writes some numbered communities with lower-case Ls ("Arabian Ranches lll").
+const words = { one: '1', two: '2', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9', ten: '10', ii: '2', iii: '3', iv: '4', ll: '2', lll: '3' };
 const generic = new Set(['the', 'tower', 'towers', 'building', 'residence', 'residences', 'apartment', 'apartments']);
 export function normalizeName(value) {
   return String(value || '').normalize('NFKC').toLowerCase()

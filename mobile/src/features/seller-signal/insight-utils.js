@@ -93,6 +93,7 @@ export function buildRecentTransactions(transactions, fallbackLocation = null, l
         area,
         locationLabel: extractTransactionLocationLabel(transaction, fallbackLocation),
         floor: extractTransactionFloor(transaction),
+        villa: /villa/i.test(String(transaction?.property?.type || transaction?.property_type || "")),
       };
     })
     .filter(Boolean)
@@ -148,8 +149,8 @@ export function buildMessage(lead, insight, templateContent = DEFAULT_MESSAGE_TE
       const parts = [];
       if (transaction.locationLabel && transaction.locationLabel !== "-") parts.push(transaction.locationLabel);
       if (transaction.beds !== null && transaction.beds !== undefined) {
-        parts.push(transaction.beds === 0 ? "Studio" : `${transaction.beds} Bed`);
-      }
+        parts.push(transaction.beds === 0 ? "Studio" : `${transaction.beds} Bed${transaction.villa ? " Villa" : ""}`);
+      } else if (transaction.villa) parts.push("Villa");
       parts.push(formatPriceShort(transaction.price));
       if (transaction.area) parts.push(`${Math.round(transaction.area).toLocaleString("en-US")} sqft`);
       if (transaction.date) parts.push(formatDate(transaction.date));

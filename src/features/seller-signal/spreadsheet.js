@@ -142,7 +142,23 @@ export function rowsToObjects(rows) {
       return record;
     });
 
-  return { headers, records };
+  return withVillaLocation(headers, records);
+}
+
+// Villa sheets often split the location into "Community" and "Sub Community"
+// columns. With no building or project column, they're combined as
+// "Arabian Ranches 3 - Raya" so the seller matches their community's sales.
+export const VILLA_LOCATION_HEADER = "Community / Sub-community";
+function withVillaLocation(headers, records) {
+  const find = (names) => headers.find((header) => names.includes(normalizeToken(header)));
+  const community = find(["community", "mastercommunity"]);
+  const sub = find(["subcommunity", "subcommunityname"]);
+  const hasBuilding = headers.some((header) => ["buildingname", "towername", "building", "tower", "project"].includes(normalizeToken(header)));
+  if (!community || !sub || hasBuilding || headers.includes(VILLA_LOCATION_HEADER)) return { headers, records };
+  for (const record of records) {
+    record[VILLA_LOCATION_HEADER] = [record[community], record[sub]].filter(Boolean).join(" - ");
+  }
+  return { headers: [...headers, VILLA_LOCATION_HEADER], records };
 }
 
 export function buildGoogleCsvUrl(rawUrl) {

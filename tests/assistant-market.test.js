@@ -15,7 +15,7 @@ function fixture({ rows = [sale()], count = rows.length, edgeError = false, owne
     auth: { getUser: async () => ({ data: { user: { id: owner } } }) },
     from(table) {
       const steps = [], q = {};
-      for (const name of ['select', 'or', 'order', 'limit', 'eq', 'ilike', 'gte', 'lte', 'range', 'abortSignal']) q[name] = (...args) => { steps.push([name, ...args]); return q; };
+      for (const name of ['select', 'or', 'order', 'limit', 'eq', 'ilike', 'not', 'gte', 'lte', 'range', 'abortSignal']) q[name] = (...args) => { steps.push([name, ...args]); return q; };
       q.then = (resolve, reject) => Promise.resolve().then(() => {
         calls.push({ table, steps });
         if (table === 'buildings') {

@@ -693,8 +693,8 @@ export default function ListingAlertsScreen({ onBack, theme, userId, embedded = 
               <AppSearchBar
                 colors={colors}
                 inputRef={searchInputRef}
-                placeholder="Search buildings"
-                accessibilityLabel="Search buildings"
+                placeholder="Search buildings or communities"
+                accessibilityLabel="Search buildings or communities"
                 clearLabel="Clear building search"
                 value={searchTerm}
                 onChangeText={handleSearchInputChange}

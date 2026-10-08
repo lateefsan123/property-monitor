@@ -227,7 +227,9 @@ async function fetchListingsWithProviderLocation(
     const params = new URLSearchParams({
       purpose: "for-sale",
       location_ids: providerLocationId,
-      property_type: "apartments",
+      // Villa communities (Arabian Ranches 3, The Valley) list villas and
+      // townhouses; a tower only has apartments, so one list covers both.
+      property_type: "apartments,villas,townhouses",
       sort_order: "latest",
       page: String(page),
       langs: "en",

@@ -111,7 +111,7 @@ export default function ListingAlertsSearchBox({
       <SearchField
         className="is-full"
         inputRef={inputRef}
-        placeholder="Search buildings"
+        placeholder="Search buildings or communities"
         value={searchTerm}
         onChange={handleInputChange}
         onClear={() => { handleInputChange({ target: { value: "" } }); inputRef.current?.focus(); }}

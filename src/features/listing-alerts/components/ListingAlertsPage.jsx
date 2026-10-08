@@ -377,7 +377,7 @@ export default function ListingAlertsPage({ userId }) {
   }, [listingSafePage, listings]);
 
   const listingHeaderText = useMemo(() => {
-    if (!alerts.stats.watchedBuildingCount) return "Watch a building to browse its apartments";
+    if (!alerts.stats.watchedBuildingCount) return "Watch a building or community to browse its listings";
     const lastChecked = formatSyncTimestamp(alerts.alertSummary.lastCheckedAt);
 
     if (selectedBuildingId) {

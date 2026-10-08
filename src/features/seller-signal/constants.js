@@ -20,12 +20,12 @@ export const STATUS_RULES = [
 
 export const COLUMN_ALIASES = {
   name: ["name", "seller", "seller name", "owner", "owner name", "ownernameen", "client", "lead name", "full name"],
-  building: ["building name", "tower name", "building", "tower", "project", "sub community", "subcommunity", "community"],
+  building: ["building name", "tower name", "building", "tower", "project", "community / sub-community", "sub community", "subcommunity", "community"],
   bedroom: ["bedroom", "bedrooms", "beds", "bed", "rooms", "unit type", "bhk"],
   status: ["status", "stage", "category", "lead status", "pipeline", "contact status"],
   lastContact: ["last contact", "last contact date", "contact date", "last followup", "last follow up", "last message", "last contacted", "date"],
   phone: ["phone", "number", "mobile", "whatsapp", "whatsapp number", "contact number", "phone number", "owner contact"],
-  unit: ["unit", "unit number", "unit no", "unitno", "apartment", "apt", "flat", "property number", "room"],
+  unit: ["unit", "unit number", "unit no", "unitno", "apartment", "apt", "flat", "property number", "room", "villa no", "villa number", "plot", "plot no", "plot number"],
 };
 
 export const STATUS_FILTER_OPTIONS = [

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { buildDubaiMarket, dateWindow, fetchDubaiExport } from '../scripts/lib/dubai-market.mjs';
+import { buildDubaiMarket, communityName, dateWindow, fetchDubaiExport, villaCommunity } from '../scripts/lib/dubai-market.mjs';
 import { syncDubaiMarket } from '../scripts/import-dubai-market.mjs';
 import { matchBayutLocation } from '../shared/bayut-location-match.js';
 import { selectCachedBuildings } from '../shared/cached-buildings.js';
@@ -82,4 +82,27 @@ test('building catalogue loads beyond 1000 with stable ordering', async () => {
   } }) };
   assert.deepEqual(await selectCachedBuildings(db), rows);
   assert.deepEqual(orders, ['search_name', 'key', 'search_name', 'key', 'search_name', 'key']);
+});
+
+const villa = { ...base, TRANSACTION_NUMBER: 'v1', PROP_SB_TYPE_EN: 'Villa', PROJECT_EN: 'Arabian Ranches lll - Raya', AREA_EN: 'Wadi Al Safa 5', ACTUAL_AREA: '250', PROCEDURE_AREA: '250', ROOMS_EN: '4 B/R' };
+test('villas in a sub-community also count towards their community, without touching flats', () => {
+  const data = market([villa, { ...villa, TRANSACTION_NUMBER: 'v2', PROJECT_EN: 'ARABIAN RANCHES III - JUNE', AREA_EN: 'ARABIAN RANCHES III' },
+    { ...base, TRANSACTION_NUMBER: 'f1', PROJECT_EN: 'Creek Gate - Tower 1', AREA_EN: 'DUBAI CREEK HARBOUR' }]);
+  const community = data.transactions.filter(t => t.building_key === 'communityarabianranches3');
+  assert.deepEqual(community.map(t => t.source_transaction_id).sort(), ['v1#community', 'v2#community']);
+  assert.ok(data.transactions.some(t => t.source_transaction_id === 'v1' && t.building_key !== 'communityarabianranches3'));
+  assert.equal(data.buildings.find(b => b.key === 'communityarabianranches3').search_name, 'Arabian Ranches 3');
+  // A flat project with a hyphen keeps its own tower only.
+  assert.equal(data.transactions.filter(t => t.source_transaction_id.startsWith('f1')).length, 1);
+});
+test('villas with no DLD project are kept under their community', () => {
+  const data = market([{ ...villa, PROJECT_EN: '', AREA_EN: 'ARABIAN RANCHES I' }, { ...base, TRANSACTION_NUMBER: 'f2', PROJECT_EN: '' }]);
+  assert.deepEqual(data.transactions.map(t => t.building_key), ['communityarabianranches1']);
+  assert.equal(data.summary.skipped.missingProjectOrArea, 1);
+});
+test('community names settle DLD spellings', () => {
+  assert.equal(communityName('Arabain Ranches lll'), 'Arabian Ranches 3');
+  assert.equal(communityName('AR II'), 'Arabian Ranches 2');
+  assert.equal(villaCommunity('The Valley-Nara'), 'The Valley');
+  assert.equal(villaCommunity('Al-Furjan'), null);
 });

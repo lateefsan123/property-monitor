@@ -331,6 +331,7 @@ function buildRecentTransactions(transactions: any[], fallbackLocation: string |
         area,
         locationLabel: extractTransactionLocationLabel(transaction, fallbackLocation),
         floor: transaction?.floor || null,
+        villa: /villa/i.test(String(transaction?.property_type || transaction?.property?.type || "")),
       };
     })
     .filter((transaction): transaction is {
@@ -339,6 +340,7 @@ function buildRecentTransactions(transactions: any[], fallbackLocation: string |
       date: unknown;
       floor: unknown;
       id: unknown;
+      villa: boolean;
       locationLabel: string;
       price: number;
     } => Boolean(transaction))
@@ -360,8 +362,8 @@ function buildMessage(
     const parts = [];
     if (transaction.locationLabel && transaction.locationLabel !== "-") parts.push(transaction.locationLabel);
     if (transaction.beds !== null && transaction.beds !== undefined) {
-      parts.push(transaction.beds === 0 ? "Studio" : `${transaction.beds} Bed`);
-    }
+      parts.push(transaction.beds === 0 ? "Studio" : `${transaction.beds} Bed${transaction.villa ? " Villa" : ""}`);
+    } else if (transaction.villa) parts.push("Villa");
     parts.push(formatPriceShort(transaction.price));
     if (transaction.area) parts.push(`${Math.round(transaction.area).toLocaleString("en-US")} sqft`);
     if (transaction.date) parts.push(formatDate(transaction.date));
