@@ -216,9 +216,12 @@ async function mapImportRows(rawRows) {
   return { mapping, records };
 }
 
+// The sheet's buildings with row and phone counts, for the optional building
+// picker; totalRows counts every row, with or without a building.
 export async function previewSheetBuildings(rawSheetUrl) {
   const { mapping, records } = await fetchSheetRows(rawSheetUrl);
-  if (!mapping.building) throw new Error("Could not find a building column in this sheet.");
+  const totalRows = records.length;
+  if (!mapping.building) return { buildings: [], totalRows };
   const groups = new Map();
   for (const record of records) {
     const building = String(record[mapping.building] || "").replace(/\s+/g, " ").trim();
@@ -229,9 +232,10 @@ export async function previewSheetBuildings(rawSheetUrl) {
     if (phone) current.phones.add(phone);
     groups.set(building, current);
   }
-  return [...groups.values()]
+  const buildings = [...groups.values()]
     .map((item) => ({ building: item.building, rowCount: item.rows, uniquePhoneCount: item.phones.size }))
     .sort((left, right) => right.rowCount - left.rowCount || left.building.localeCompare(right.building));
+  return { buildings, totalRows };
 }
 
 async function insertLeadBatches(leads) {

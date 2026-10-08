@@ -28,6 +28,36 @@ function Option({ selected, onSelect, children }) {
   );
 }
 
+const NO_BUILDINGS = [];
+
+// Buildings with seller counts, searchable, several at once. Long lists show
+// the first 100 matches; search narrows them.
+function BuildingMenu({ options, selected, onChange }) {
+  const [query, setQuery] = useState("");
+  const term = query.trim().toLowerCase();
+  const matches = term ? options.filter((option) => option.label.toLowerCase().includes(term)) : options;
+  const chosen = new Set(selected);
+  const toggle = (key) => onChange(chosen.has(key) ? selected.filter((item) => item !== key) : [...selected, key]);
+  return (
+    <div className="seller-building-menu">
+      <label className="seller-building-search">
+        <IconSearch size={15} stroke={2} aria-hidden="true" />
+        <input type="search" autoFocus placeholder={`Search ${options.length.toLocaleString()} buildings`} aria-label="Search buildings" value={query} onChange={(event) => setQuery(event.target.value)} />
+      </label>
+      <Option selected={!selected.length} onSelect={() => onChange([])}>All buildings</Option>
+      <div className="seller-building-list">
+        {matches.slice(0, 100).map((option) => (
+          <Option key={option.key} selected={chosen.has(option.key)} onSelect={() => toggle(option.key)}>
+            {option.label}<small className="seller-building-count">{option.count.toLocaleString()}</small>
+          </Option>
+        ))}
+        {!matches.length && <p className="seller-pill-empty">No buildings match.</p>}
+        {matches.length > 100 && <p className="seller-pill-empty">{(matches.length - 100).toLocaleString()} more. Search to find them.</p>}
+      </div>
+    </div>
+  );
+}
+
 export default function SellerFilterBar({ dashboard, userId }) {
   const d = dashboard;
   const [open, setOpen] = useState(null);
@@ -45,16 +75,22 @@ export default function SellerFilterBar({ dashboard, userId }) {
 
   const statuses = normalizeStatusFilter(d.statusFilter);
   const sources = [{ id: "all", label: "All spreadsheets" }, ...(d.sourceOptions || [])];
-  const filters = useMemo(() => getSellerViewFilters({ dataFilter: d.dataFilter, dataQualityFilter: d.dataQualityFilter, searchTerm: d.searchTerm, sourceFilter: d.sourceFilter, statusFilter: d.statusFilter, viewTab: d.viewTab }),
-    [d.dataFilter, d.dataQualityFilter, d.searchTerm, d.sourceFilter, d.statusFilter, d.viewTab]);
+  const buildingFilter = d.buildingFilter || NO_BUILDINGS;
+  const buildingOptions = d.buildingOptions || NO_BUILDINGS;
+  const filters = useMemo(() => getSellerViewFilters({ buildingFilter, dataFilter: d.dataFilter, dataQualityFilter: d.dataQualityFilter, searchTerm: d.searchTerm, sourceFilter: d.sourceFilter, statusFilter: d.statusFilter, viewTab: d.viewTab }),
+    [buildingFilter, d.dataFilter, d.dataQualityFilter, d.searchTerm, d.sourceFilter, d.statusFilter, d.viewTab]);
   const activeView = findMatchingSellerView(views, filters);
-  const activeCount = [statuses.length > 0, d.sourceFilter !== "all", d.dataFilter !== "all", d.dataQualityFilter !== "all"].filter(Boolean).length;
+  const activeCount = [statuses.length > 0, d.sourceFilter !== "all", buildingFilter.length > 0, d.dataFilter !== "all", d.dataQualityFilter !== "all"].filter(Boolean).length;
+  const buildingLabel = buildingFilter.length === 1
+    ? buildingOptions.find((option) => option.key === buildingFilter[0])?.label || "Building"
+    : "Building";
   const toggle = (id) => setOpen((value) => (value === id ? null : id));
   const alpha = d.sortOption?.field === "alpha";
 
   function saveViews(next) { setViews(next); writeCustomSellerViews(userId, next); }
   function applyView(view) {
     d.actions.selectSourceFilter(view.filters.sourceFilter || "all");
+    d.actions.selectBuildingFilter?.(view.filters.buildingFilter || []);
     d.actions.selectViewTab(view.filters.viewTab);
     d.actions.selectStatusFilter(view.filters.statusFilter);
     d.actions.selectDataFilter(view.filters.dataFilter);
@@ -65,6 +101,7 @@ export default function SellerFilterBar({ dashboard, userId }) {
   function clearAll() {
     d.actions.selectStatusFilter([]);
     d.actions.selectSourceFilter("all");
+    d.actions.selectBuildingFilter?.([]);
     d.actions.selectDataFilter("all");
     d.actions.selectDataQualityFilter("all");
   }
@@ -89,6 +126,11 @@ export default function SellerFilterBar({ dashboard, userId }) {
       {sources.length > 1 && (
         <Pill label={d.sourceFilter === "all" ? "Spreadsheet" : sources.find((option) => option.id === d.sourceFilter)?.label || "Spreadsheet"} active={d.sourceFilter !== "all"} open={open === "source"} onToggle={() => toggle("source")}>
           {sources.map((option) => <Option key={option.id} selected={d.sourceFilter === option.id} onSelect={() => { d.actions.selectSourceFilter(option.id); setOpen(null); }}>{option.label}</Option>)}
+        </Pill>
+      )}
+      {buildingOptions.length > 1 && (
+        <Pill label={buildingLabel} count={buildingFilter.length > 1 ? buildingFilter.length : 0} active={buildingFilter.length > 0} open={open === "building"} onToggle={() => toggle("building")}>
+          <BuildingMenu options={buildingOptions} selected={buildingFilter} onChange={(next) => d.actions.selectBuildingFilter(next)} />
         </Pill>
       )}
       <Pill label="Market data" active={d.dataFilter !== "all"} open={open === "market"} onToggle={() => toggle("market")}>

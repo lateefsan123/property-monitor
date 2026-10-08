@@ -66,6 +66,13 @@
 .seller-pill-option.is-danger svg { color: var(--error-text); }
 .seller-pill-save { margin-top: 4px; border-top: 1px solid var(--border-light); border-radius: 0 0 9px 9px; color: var(--text-muted); }
 .seller-view-option { display: flex; align-items: center; }
+/* Building filter: search on top, then a scrolling list with seller counts. */
+.seller-pill-menu:has(.seller-building-menu) { width: 300px; max-height: none; overflow: visible; }
+.seller-building-search { display: flex; align-items: center; gap: 8px; height: 38px; margin-bottom: 4px; padding: 0 10px; border: 1px solid var(--border); border-radius: 10px; color: var(--text-muted); }
+.seller-building-search input { flex: 1; min-width: 0; border: 0; outline: none; background: none; color: var(--text); font: inherit; font-size: 14px; }
+.seller-building-list { max-height: 300px; overflow-y: auto; }
+.seller-pill-option > span { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.seller-building-count { margin-left: auto; color: var(--text-muted); font-size: 12px; font-variant-numeric: tabular-nums; }
 .seller-view-delete { display: grid; place-items: center; width: 32px; height: 32px; border: 0; border-radius: 8px; background: none; color: var(--text-faint); cursor: pointer; }
 .seller-view-delete:hover { background: var(--bg-hover); color: var(--error-text); }
 .seller-pill-empty { margin: 6px 10px; color: var(--text-muted); font-size: 13px; }

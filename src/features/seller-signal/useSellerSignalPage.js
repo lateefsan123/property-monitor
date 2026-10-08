@@ -5,7 +5,7 @@ import { MAX_MEANINGFUL_OVERDUE_DAYS } from "./constants";
 import { DEFAULT_MESSAGE_TEMPLATE, formatPhoneForWhatsApp, getTodayTransactionDateKey } from "./insight-utils";
 import { pickTemplateForStatus } from "../../../supabase/functions/_shared/template-status.js";
 import { enrichLeadsWithDataQuality, summarizeLeadDataQuality } from "./lead-data-quality";
-import { filterLeads, paginateLeads, sortLeads } from "./selectors";
+import { buildSellerBuildingOptions, filterLeads, paginateLeads, sortLeads } from "./selectors";
 import { normalizeStatusFilter } from "./status-filter-utils";
 import {
   computeLeadInsights,
@@ -89,6 +89,7 @@ export function useSellerSignalPage(userId) {
   const [copiedLeadId, setCopiedLeadId] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState([]);
+  const [buildingFilter, setBuildingFilter] = useState([]);
   const [sourceFilter, setSourceFilter] = useState(() => {
     if (typeof window === "undefined" || !sourceFilterStorageKey) return "all";
     return window.localStorage.getItem(sourceFilterStorageKey) || "all";
@@ -360,6 +361,14 @@ export function useSellerSignalPage(userId) {
     return dueLeadsOrdered;
   }, [activeStatusIds, cadence.notInterested, cadence.scheduled, dueLeadsOrdered, viewTab]);
 
+  // Every building in this tab (and spreadsheet) with its seller count.
+  const buildingOptions = useMemo(
+    () => buildSellerBuildingOptions(effectiveSourceFilter === "all"
+      ? tabLeads
+      : tabLeads.filter((lead) => (effectiveSourceFilter === LEGACY_SOURCE_ID ? !lead.sourceId : lead.sourceId === effectiveSourceFilter))),
+    [effectiveSourceFilter, tabLeads],
+  );
+
   // "Has market data" filtering needs availability across the whole tab, not
   // just the visible page — one cheap RPC, only when that filter is active.
   const tabBuildingKeys = useMemo(
@@ -396,6 +405,7 @@ export function useSellerSignalPage(userId) {
     () => {
       const base = filterLeads({
         activeLeads: viewTab === "done" ? EMPTY_LEADS : tabLeads,
+        buildingFilter,
         doneLeads: viewTab === "done" ? tabLeads : EMPTY_LEADS,
         dataQualityFilter,
         dataFilter,
@@ -407,7 +417,7 @@ export function useSellerSignalPage(userId) {
       });
       return sortOption.field === "alpha" ? sortLeads(base, sortOption) : base;
     },
-    [dataFilter, dataQualityFilter, deferredSearchTerm, effectiveSourceFilter, marketAvailability, sortOption, statusFilter, tabLeads, viewTab],
+    [buildingFilter, dataFilter, dataQualityFilter, deferredSearchTerm, effectiveSourceFilter, marketAvailability, sortOption, statusFilter, tabLeads, viewTab],
   );
 
   const { totalPages, safePage, pagedLeads } = useMemo(
@@ -610,6 +620,7 @@ export function useSellerSignalPage(userId) {
       setSheetUrl,
       setShowImport,
       setSourceFilter,
+      setBuildingFilter,
       setStatusFilter,
       setViewTab,
     },
@@ -683,6 +694,8 @@ export function useSellerSignalPage(userId) {
     sourceCounts,
     sourceFilter: effectiveSourceFilter,
     sourceOptions,
+    buildingFilter,
+    buildingOptions,
     statusFilter,
     totalPages,
     viewTab,

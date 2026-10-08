@@ -51,6 +51,7 @@ export function createSellerSignalImportActions(context) {
     setSheetUrl,
     setShowImport,
     setSourceFilter,
+    setBuildingFilter,
     setStatusFilter,
     setViewTab,
   } = setters;
@@ -89,6 +90,11 @@ export function createSellerSignalImportActions(context) {
 
   function selectSourceFilter(value) {
     setSourceFilter(value);
+    resetPaging();
+  }
+
+  function selectBuildingFilter(value) {
+    setBuildingFilter(Array.isArray(value) ? value : []);
     resetPaging();
   }
 
@@ -249,6 +255,7 @@ export function createSellerSignalImportActions(context) {
     selectDataFilter,
     selectDataQualityFilter,
     selectSourceFilter,
+    selectBuildingFilter,
     selectStatusFilter,
     selectViewTab,
     toggleAllExpanded,

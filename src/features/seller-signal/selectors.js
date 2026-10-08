@@ -18,8 +18,25 @@ export function splitLeadsBySentStatus(leads, sentLeads) {
   return { activeLeads, doneLeads };
 }
 
+// Building filter: sellers match on their building as written, ignoring case
+// and extra spaces. Options list every building with its seller count.
+export const sellerBuildingKey = (value) => String(value || "").trim().replace(/\s+/g, " ").toLowerCase();
+
+export function buildSellerBuildingOptions(leads) {
+  const options = new Map();
+  for (const lead of leads || []) {
+    const key = sellerBuildingKey(lead.building);
+    if (!key) continue;
+    const option = options.get(key) || { key, label: String(lead.building).trim().replace(/\s+/g, " "), count: 0 };
+    option.count += 1;
+    options.set(key, option);
+  }
+  return [...options.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+}
+
 export function filterLeads({
   activeLeads,
+  buildingFilter = [],
   dataQualityFilter,
   doneLeads,
   dataFilter,
@@ -39,6 +56,11 @@ export function filterLeads({
     } else {
       result = result.filter((lead) => lead.sourceId === sourceFilter);
     }
+  }
+
+  if (buildingFilter.length) {
+    const buildings = new Set(buildingFilter);
+    result = result.filter((lead) => buildings.has(sellerBuildingKey(lead.building)));
   }
 
   if (!isDoneView && hasStatusFilter(statusFilter)) {

@@ -90,6 +90,7 @@ function getStorageKey(userId) {
 }
 
 export function getSellerViewFilters({
+  buildingFilter,
   dataFilter,
   dataQualityFilter,
   searchTerm,
@@ -104,6 +105,7 @@ export function getSellerViewFilters({
     dataFilter: dataFilter || "all",
     dataQualityFilter: dataQualityFilter || "all",
     searchTerm: String(searchTerm || "").trim(),
+    buildingFilter: Array.isArray(buildingFilter) ? [...buildingFilter].sort() : [],
   };
 }
 
@@ -157,6 +159,7 @@ export function findMatchingSellerView(views, filters) {
       && statusFiltersEqual(viewFilters.statusFilter, current.statusFilter)
       && viewFilters.dataFilter === current.dataFilter
       && viewFilters.dataQualityFilter === current.dataQualityFilter
-      && viewFilters.searchTerm === current.searchTerm;
+      && viewFilters.searchTerm === current.searchTerm
+      && viewFilters.buildingFilter.join("|") === current.buildingFilter.join("|");
   }) || null;
 }

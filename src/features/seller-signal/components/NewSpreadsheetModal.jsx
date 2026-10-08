@@ -45,8 +45,11 @@ const isMicrosoftLink = (value) => {
 function UrlStep({ onSubmit, submitting, onClose, maxSelections, onMicrosoftLink }) {
   const [url, setUrl] = useState("");
   const [buildings, setBuildings] = useState([]);
+  const [totalRows, setTotalRows] = useState(null);
   const [selected, setSelected] = useState(() => new Set());
   const [query, setQuery] = useState("");
+  // Importing the whole sheet is the default; picking buildings is optional.
+  const [choosing, setChoosing] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState("");
 
@@ -58,11 +61,13 @@ function UrlStep({ onSubmit, submitting, onClose, maxSelections, onMicrosoftLink
       onMicrosoftLink(trimmed);
       return;
     }
-    if (!buildings.length) {
+    if (totalRows === null) {
       setScanning(true);
       setError("");
       try {
-        setBuildings(await previewSheetBuildings(trimmed));
+        const preview = await previewSheetBuildings(trimmed);
+        setBuildings(preview.buildings);
+        setTotalRows(preview.totalRows);
       } catch (scanError) {
         setError(scanError?.message || "Could not read this sheet. Check it is shared as “Anyone with the link”.");
       } finally {
@@ -70,8 +75,8 @@ function UrlStep({ onSubmit, submitting, onClose, maxSelections, onMicrosoftLink
       }
       return;
     }
-    if (!selected.size) return;
-    const ok = await onSubmit?.(trimmed, [...selected]);
+    if (choosing && !selected.size) return;
+    const ok = await onSubmit?.(trimmed, choosing ? [...selected] : []);
     if (ok) onClose?.();
   }
 
@@ -88,7 +93,7 @@ function UrlStep({ onSubmit, submitting, onClose, maxSelections, onMicrosoftLink
         <input
           type="url"
           value={url}
-          onChange={(event) => { setUrl(event.target.value); if (buildings.length) { setBuildings([]); setSelected(new Set()); } }}
+          onChange={(event) => { setUrl(event.target.value); if (totalRows !== null) { setBuildings([]); setTotalRows(null); setSelected(new Set()); setChoosing(false); } }}
           placeholder="https://docs.google.com/spreadsheets/…"
           autoFocus
           disabled={busy}
@@ -96,13 +101,26 @@ function UrlStep({ onSubmit, submitting, onClose, maxSelections, onMicrosoftLink
       </label>
       {error && <p className="si-error" role="alert">{error}</p>}
 
-      {buildings.length > 0 ? (
+      {totalRows !== null && !choosing ? (
+        <div className="si-buildings">
+          <div className="si-buildings-head">
+            <strong>Ready to import</strong>
+            <span>{totalRows.toLocaleString()} row{totalRows === 1 ? "" : "s"}{buildings.length ? ` · ${buildings.length.toLocaleString()} building${buildings.length === 1 ? "" : "s"}` : ""}</span>
+          </div>
+          <p className="si-hint">Everyone comes in as one spreadsheet. Filter by building on Sellers anytime.</p>
+          {buildings.length > 1 && (
+            <div className="si-buildings-tools">
+              <button type="button" className="si-link" onClick={() => setChoosing(true)}>Only import some buildings</button>
+            </div>
+          )}
+        </div>
+      ) : buildings.length > 0 ? (
         <div className="si-buildings">
           <div className="si-buildings-head">
             <strong>Choose buildings</strong>
             <span>{selected.size} selected · {totals.rows.toLocaleString()} rows · {totals.phones.toLocaleString()} phones</span>
           </div>
-          <p className="si-hint">Each building becomes its own spreadsheet. You can add up to {maxSelections} more.</p>
+          <p className="si-hint">Each building becomes its own spreadsheet. You can add up to {maxSelections} more. <button type="button" className="si-link" onClick={() => { setChoosing(false); setSelected(new Set()); }}>Import all instead</button></p>
           <div className="si-buildings-tools">
             <SearchField className="is-full" value={query} onChange={(event) => setQuery(event.target.value)} onClear={() => setQuery("")} placeholder="Search buildings" />
             <button type="button" className="si-link" onClick={() => setSelected(new Set(filtered.slice(0, maxSelections).map((item) => item.building)))}>Select visible</button>
@@ -136,8 +154,8 @@ function UrlStep({ onSubmit, submitting, onClose, maxSelections, onMicrosoftLink
       )}
 
       <div className="si-footer">
-        <button type="submit" className="si-btn is-primary" disabled={busy || !url.trim() || (buildings.length > 0 && !selected.size)}>
-          {scanning ? "Reading sheet…" : submitting ? "Adding…" : buildings.length ? `Add ${selected.size || ""} ${selected.size === 1 ? "spreadsheet" : "spreadsheets"}`.replace("  ", " ") : "Continue"}
+        <button type="submit" className="si-btn is-primary" disabled={busy || !url.trim() || (choosing && !selected.size)}>
+          {scanning ? "Reading sheet…" : submitting ? "Adding…" : totalRows === null ? "Continue" : !choosing ? "Import all" : `Add ${selected.size || ""} ${selected.size === 1 ? "spreadsheet" : "spreadsheets"}`.replace("  ", " ")}
         </button>
       </div>
     </form>
