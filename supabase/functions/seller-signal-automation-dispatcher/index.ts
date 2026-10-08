@@ -86,14 +86,22 @@ Deno.serve(async (req) => {
       ["monthlyReportFill", "seller-signal-monthly-report", { ...base, reportDailyBudget: dailyCap, fill: true }],
     ];
     const results: Record<string, unknown> = {};
+    const errors: Record<string, string> = {};
     let sent = 0;
+    // Each pass runs on its own: one pass failing (e.g. a 546 resource limit)
+    // must not stop the others from sending.
     for (const [label, functionName, body] of passes) {
-      const result = await invokePipeline(functionName, body);
-      results[label] = result;
-      sent += Number(result?.sent || 0);
+      try {
+        const result = await invokePipeline(functionName, body);
+        results[label] = result;
+        sent += Number(result?.sent || 0);
+      } catch (error) {
+        errors[label] = error instanceof Error ? error.message : "Unknown error";
+      }
     }
 
-    return jsonResponse({ runId, dailyCap, sent, ...results });
+    const failed = Object.keys(errors).length;
+    return jsonResponse({ runId, dailyCap, sent, ...results, ...(failed ? { errors } : {}) }, failed === passes.length ? 500 : 200);
   } catch (error) {
     return jsonResponse({
       runId,
