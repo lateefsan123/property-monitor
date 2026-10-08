@@ -88,16 +88,16 @@ const villa = { ...base, TRANSACTION_NUMBER: 'v1', PROP_SB_TYPE_EN: 'Villa', PRO
 test('villas in a sub-community also count towards their community, without touching flats', () => {
   const data = market([villa, { ...villa, TRANSACTION_NUMBER: 'v2', PROJECT_EN: 'ARABIAN RANCHES III - JUNE', AREA_EN: 'ARABIAN RANCHES III' },
     { ...base, TRANSACTION_NUMBER: 'f1', PROJECT_EN: 'Creek Gate - Tower 1', AREA_EN: 'DUBAI CREEK HARBOUR' }]);
-  const community = data.transactions.filter(t => t.building_key === 'communityarabianranches3');
+  const community = data.transactions.filter(t => t.building_key === 'arabianranches3');
   assert.deepEqual(community.map(t => t.source_transaction_id).sort(), ['v1#community', 'v2#community']);
-  assert.ok(data.transactions.some(t => t.source_transaction_id === 'v1' && t.building_key !== 'communityarabianranches3'));
-  assert.equal(data.buildings.find(b => b.key === 'communityarabianranches3').search_name, 'Arabian Ranches 3');
+  assert.ok(data.transactions.some(t => t.source_transaction_id === 'v1' && t.building_key !== 'arabianranches3'));
+  assert.equal(data.buildings.find(b => b.key === 'arabianranches3').search_name, 'Arabian Ranches 3');
   // A flat project with a hyphen keeps its own tower only.
   assert.equal(data.transactions.filter(t => t.source_transaction_id.startsWith('f1')).length, 1);
 });
 test('villas with no DLD project are kept under their community', () => {
   const data = market([{ ...villa, PROJECT_EN: '', AREA_EN: 'ARABIAN RANCHES I' }, { ...base, TRANSACTION_NUMBER: 'f2', PROJECT_EN: '' }]);
-  assert.deepEqual(data.transactions.map(t => t.building_key), ['communityarabianranches1']);
+  assert.deepEqual(data.transactions.map(t => t.building_key), ['arabianranches1']);
   assert.equal(data.summary.skipped.missingProjectOrArea, 1);
 });
 test('community names settle DLD spellings', () => {
@@ -110,8 +110,13 @@ test('areas with 10+ villa sales get a villa-only community roll-up', () => {
   const rows = Array.from({ length: 10 }, (_, i) => ({ ...villa, TRANSACTION_NUMBER: `h${i}`, PROJECT_EN: 'Maple III', AREA_EN: 'DUBAI HILLS' }));
   rows.push({ ...base, TRANSACTION_NUMBER: 'hf', PROJECT_EN: 'Park Heights', AREA_EN: 'DUBAI HILLS' });
   const data = market(rows);
-  const rollUp = data.transactions.filter(t => t.building_key === 'communitydubaihills');
+  const rollUp = data.transactions.filter(t => t.building_key === 'dubaihills');
   assert.equal(rollUp.length, 10);
   assert.ok(rollUp.every(t => t.source_transaction_id.endsWith('#area') && /villa/i.test(t.property_type)));
-  assert.equal(market(rows.slice(0, 9)).transactions.some(t => t.building_key === 'communitydubaihills'), false);
+  assert.equal(market(rows.slice(0, 9)).transactions.some(t => t.building_key === 'dubaihills'), false);
+});
+test('a community is found from its own name, the way matched sellers look it up', () => {
+  const data = market([villa]);
+  const community = data.buildings.find(b => b.key === 'arabianranches3');
+  assert.equal(community.search_name.toLowerCase().replace(/[^a-z0-9]/g, ''), community.key);
 });

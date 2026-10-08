@@ -16,8 +16,10 @@ export function communityName(value) {
     .split(/\s+/).filter(Boolean).map((word, index) => (index > 0 && NUMERALS[word]) || word);
   return words.map(word => /^\d/.test(word) ? word : word[0].toUpperCase() + word.slice(1)).join(' ');
 }
-// Community keys get a prefix so they can never clash with a "Project, Area" key.
-export const communityKey = value => normalizeToken(`community ${communityName(value)}`);
+// A community's key is its name's token ("Arabian Ranches 3" -> arabianranches3), the
+// same key a matched seller's building name resolves to. "Project, Area" keys
+// include the area, so they don't overlap.
+export const communityKey = value => normalizeToken(communityName(value));
 
 // Areas with at least 10 villa sales in this export. Their roll-up holds
 // villa sales only, and each line says "Villa", so flat sellers aren't misled.
