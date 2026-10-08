@@ -5,7 +5,7 @@ import BottomSheet from "../components/BottomSheet";
 import ContentSkeleton from "../components/ContentSkeleton";
 import MessageFeedList, { LoadMore } from "./message-feed-list";
 import SetupNextAction from "./setup-next-action";
-import { fetchMessagePage, messageFeedQueryKey, nextFeedCursor } from "./message-feed";
+import { fetchMessagePage, latestPerSeller, messageFeedQueryKey, nextFeedCursor } from "./message-feed";
 
 // The last 7 days, a page at a time; mounted only while the sheet is open.
 function AllMessages({ userId, colors, onOpenSeller }) {
@@ -18,7 +18,7 @@ function AllMessages({ userId, colors, onOpenSeller }) {
   if (feed.isPending) return <ContentSkeleton colors={colors} rows={4} label="Loading messages" />;
   if (feed.error) return <Text style={{ color: colors.textMuted, fontSize: 14 }}>Messages unavailable.</Text>;
   return <View>
-    <MessageFeedList items={feed.data.pages.flatMap((page) => page.items)} colors={colors} onOpenSeller={onOpenSeller} />
+    <MessageFeedList items={latestPerSeller(feed.data.pages.flatMap((page) => page.items))} colors={colors} onOpenSeller={onOpenSeller} />
     <LoadMore query={feed} colors={colors} />
   </View>;
 }
@@ -32,7 +32,7 @@ export default function HomeMessageFeed({ userId, query, colors, onOpenSeller, o
   return <View style={{ gap: 6, backgroundColor: colors.bgCard, borderRadius: 18, paddingHorizontal: 16, paddingVertical: 14 }}>
     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
       <Text accessibilityRole="header" style={{ color: colors.textName, fontSize: 15, fontWeight: "600" }}>Recent messages</Text>
-      {query.data?.nextCursor ? <Pressable accessibilityRole="button" onPress={() => setShowAll(true)} style={{ minHeight: 36, justifyContent: "center", paddingLeft: 12 }}>
+      {query.data?.hasMore ? <Pressable accessibilityRole="button" onPress={() => setShowAll(true)} style={{ minHeight: 36, justifyContent: "center", paddingLeft: 12 }}>
         <Text style={{ color: colors.text, fontSize: 13 }}>Show all</Text>
       </Pressable> : null}
     </View>

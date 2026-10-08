@@ -149,6 +149,10 @@
 .home-setup-bar > span { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: #4cc46f; transition: width 300ms ease; }
 .home-setup-steps { list-style: none; margin: 8px 0 0; padding: 0; }
 .home-setup-steps li + li { border-top: 1px solid var(--border); }
+.home-setup-item { display: flex; align-items: center; gap: 12px; }
+.home-setup-item .home-setup-step { flex: 1; min-width: 0; }
+.home-setup-skip { flex: none; color: var(--text-muted); font-size: 13px; }
+.home-setup-step.is-skipped .home-setup-text strong { color: var(--text-muted); }
 .home-setup-step {
   display: flex; align-items: center; gap: 14px; width: 100%; min-height: 64px; padding: 14px 0;
   border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;

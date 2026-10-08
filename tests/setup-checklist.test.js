@@ -29,11 +29,22 @@ test("status queries are scoped to the user", async () => {
     };
     return chain;
   };
-  const status = await fetchSetupStatus({ from: builder }, "user-1");
-  assert.deepEqual(status, { leadCount: 3, whatsappConnected: true, scheduled: true, watching: true, messageSent: false });
+  const auth = { getUser: () => Promise.resolve({ data: { user: { user_metadata: { setup_hidden: true, setup_skipped: ["watch", "import"] } } }, error: null }) };
+  const status = await fetchSetupStatus({ from: builder, auth }, "user-1");
+  // Hiding and skips come from the account; required steps can't be skipped.
+  assert.deepEqual(status, { leadCount: 3, whatsappConnected: true, scheduled: true, watching: true, messageSent: false, hidden: true, skipped: ["watch"] });
   for (const table of ["leads", "whatsapp_accounts", "seller_signal_building_schedules", "listing_alerts_watchlists", "listing_alerts_tracked_listings", "whatsapp_messages"]) {
     assert.ok(filters.some(([t, c, v]) => t === table && c === "user_id" && v === "user-1"), table);
   }
+});
+
+test("skipped optional steps count as complete; required ones never skip", () => {
+  const result = buildSetupSteps({ leadCount: 1, whatsappConnected: true, skipped: ["schedule", "watch", "first-message", "import"] });
+  assert.equal(result.completed, 5);
+  assert.equal(result.allDone, true);
+  const unskippable = buildSetupSteps({ leadCount: 0, skipped: ["import", "whatsapp"] });
+  assert.equal(unskippable.steps.find((step) => step.id === "import").skipped, false);
+  assert.equal(unskippable.completed, 0);
 });
 
 test("empty states offer import first, then WhatsApp, then nothing", () => {

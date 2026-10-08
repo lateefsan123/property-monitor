@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createWhatsAppMessageServices, formatMessageWhen, groupFeedByDay, messageSourceLabel, messageText, normalizeSellerPhone } from "../shared/whatsapp-messages.js";
+import { createWhatsAppMessageServices, formatMessageWhen, groupFeedByDay, latestPerSeller, messageSourceLabel, messageText, normalizeSellerPhone } from "../shared/whatsapp-messages.js";
 
 // Minimal chainable stand-in for the Supabase query builder that records calls.
 // tables[name] is rows, or a function of the recorded query returning rows.
@@ -113,4 +113,15 @@ test("groupFeedByDay labels today and yesterday", () => {
   ], now);
   assert.deepEqual(groups.map((group) => group.title), ["Today · Monday 5 Oct", "Yesterday · Sunday 4 Oct", "Thursday 1 Oct"]);
   assert.equal(groups.length, 3);
+});
+
+test("feeds show one row per person: their newest message", () => {
+  const items = [
+    { id: 5, lead_id: 1, body: "newest from 1" },
+    { id: 4, lead_id: 2, body: "newest from 2" },
+    { id: 3, lead_id: 1, body: "older from 1" },
+    { id: 2, lead_id: 1, body: "oldest from 1" },
+  ];
+  assert.deepEqual(latestPerSeller(items).map((item) => item.body), ["newest from 1", "newest from 2"]);
+  assert.deepEqual(latestPerSeller(undefined), []);
 });

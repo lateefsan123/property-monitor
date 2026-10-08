@@ -49,6 +49,18 @@ export function messageStatusLabel(message) {
   return STATUS_LABELS[message.status] || "";
 }
 
+// One row per person: each seller's newest message. Feeds are newest first,
+// so the first row seen for a seller is the one kept.
+export function latestPerSeller(items) {
+  const seen = new Set();
+  return (items || []).filter((item) => {
+    const key = String(item.lead_id ?? item.recipient_phone ?? item.id);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
 // Groups feed items into Today / Yesterday / weekday sections, newest first.
 export function groupFeedByDay(items, now = new Date()) {
   const dayKey = (value) => {
@@ -153,6 +165,13 @@ export function createWhatsAppMessageServices(supabase) {
     return { ...page, items: (await attachLeads(userId, page.items)).filter((item) => item.lead) };
   }
 
+  // Home's preview: the newest message from each of the last few people.
+  async function fetchRecentPeople(userId, { days = FEED_DAYS, count = 4 } = {}) {
+    const page = await fetchMessagePage(userId, { days, pageSize: 40 });
+    const people = latestPerSeller(page.items);
+    return { items: people.slice(0, count), hasMore: people.length > count || Boolean(page.nextCursor) };
+  }
+
   // One page of the thread with a seller, newest first; callers show it oldest first.
   async function fetchSellerThreadPage(userId, lead, { cursor, pageSize = THREAD_PAGE_SIZE } = {}) {
     if (!userId || !lead?.id) return { items: [], nextCursor: null };
@@ -176,5 +195,5 @@ export function createWhatsAppMessageServices(supabase) {
     return pageOf(data || [], pageSize);
   }
 
-  return { fetchMessagePage, fetchSellerThreadPage };
+  return { fetchMessagePage, fetchRecentPeople, fetchSellerThreadPage };
 }

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { IconX } from "@tabler/icons-react";
 import MessageFeedList, { LoadMore } from "../activity/MessageFeedList";
-import { fetchMessagePage, messageFeedQueryKey, nextFeedCursor } from "./message-feed-services";
+import { fetchMessagePage, fetchRecentPeople, latestPerSeller, messageFeedQueryKey, nextFeedCursor } from "./message-feed-services";
 import SetupNextAction from "./SetupNextAction";
 
 const PREVIEW_COUNT = 4;
@@ -23,7 +23,7 @@ function AllMessagesDialog({ userId, onClose, onOpenSeller }) {
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [onClose]);
-  const items = feed.data?.pages.flatMap((page) => page.items) || [];
+  const items = latestPerSeller(feed.data?.pages.flatMap((page) => page.items));
   return (
     <div className="home-drops-modal-overlay" role="presentation" onClick={onClose}>
       <div className="home-drops-modal" role="dialog" aria-modal="true" aria-label="Recent messages" onClick={(event) => event.stopPropagation()}>
@@ -51,7 +51,7 @@ export default function HomeMessageShortcut({ userId, onOpenSeller, onNavigate }
   const latest = useQuery({
     queryKey: messageFeedQueryKey(userId, "latest"),
     enabled: Boolean(userId),
-    queryFn: () => fetchMessagePage(userId, { days: 7, pageSize: PREVIEW_COUNT }),
+    queryFn: () => fetchRecentPeople(userId, { days: 7, count: PREVIEW_COUNT }),
     staleTime: 60 * 1000,
   });
   const items = latest.data?.items || [];
@@ -68,7 +68,7 @@ export default function HomeMessageShortcut({ userId, onOpenSeller, onNavigate }
           )
             : <>
               <MessageFeedList items={items} compact onOpenSeller={onOpenSeller} />
-              {latest.data.nextCursor && <button type="button" className="home-text-button message-feed-more" onClick={() => setShowAll(true)}>Show all</button>}
+              {latest.data.hasMore && <button type="button" className="home-text-button message-feed-more" onClick={() => setShowAll(true)}>Show all</button>}
             </>}
       {showAll && <AllMessagesDialog userId={userId} onClose={() => setShowAll(false)} onOpenSeller={onOpenSeller} />}
     </section>

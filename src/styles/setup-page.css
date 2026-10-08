@@ -30,6 +30,11 @@
 .setup-step-body { color: var(--text-muted); font-size: 13px; line-height: 1.45; }
 .setup-step-chevron { flex: none; color: var(--text-name); transition: transform .15s; }
 .setup-step:hover .setup-step-chevron { transform: translateX(2px); }
+/* Skip sits inside the card, left of the chevron, as its own button. */
+.setup-step-row { position: relative; }
+.setup-step-row:has(.setup-step-skip) .setup-step { padding-right: 104px; }
+.setup-step-skip { position: absolute; top: 50%; right: 46px; transform: translateY(-50%); color: var(--text-muted); font-size: 13px; }
+.setup-step.is-skipped .setup-step-title strong { color: var(--text-muted); }
 .setup-error { margin: 0; color: var(--error-text); font-size: 14px; }
 
 .setup-rail { display: flex; flex-direction: column; gap: 24px; }

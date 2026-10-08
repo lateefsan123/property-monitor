@@ -22,7 +22,7 @@ import HomeSetupChecklist from "./home-setup-checklist";
 import { supabase } from "../supabase";
 import { fetchSetupStatus, setupChecklistQueryKey } from "../../../shared/setup-checklist.js";
 import { openSetupAction } from "./setup-next-action";
-import { fetchMessagePage, messageFeedQueryKey } from "./message-feed";
+import { fetchRecentPeople, messageFeedQueryKey } from "./message-feed";
 
 export default function WorkspaceHome({ userId, displayName, colors, active = true, onNavigate, onAskRepeat }) {
   useQuery(messageTemplatesOptions(userId));
@@ -54,7 +54,7 @@ export default function WorkspaceHome({ userId, displayName, colors, active = tr
   });
   const feed = useQuery({
     queryKey: messageFeedQueryKey(userId, "latest"),
-    queryFn: () => fetchMessagePage(userId, { days: 7, pageSize: 3 }),
+    queryFn: () => fetchRecentPeople(userId, { days: 7, count: 3 }),
     enabled: Boolean(userId),
   });
   const drops = useQuery({

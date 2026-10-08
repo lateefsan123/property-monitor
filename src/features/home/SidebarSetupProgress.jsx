@@ -1,12 +1,14 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IconChevronRight } from "@tabler/icons-react";
 import { supabase } from "../../supabase";
-import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey } from "../../../shared/setup-checklist";
+import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey, updateSetupPreferences } from "../../../shared/setup-checklist";
 
 // HoneyBook's "Set up your account" block at the top of the sidebar (Mobbin
 // 7c915d6b): title and chevron, a green progress bar, "n/3 completed". It
-// stays until every step is done and opens the Setup page.
+// stays until every step is done or skipped, opens the Setup page and brings
+// back a hidden Home checklist.
 export default function SidebarSetupProgress({ userId, onNavigate }) {
+  const client = useQueryClient();
   const status = useQuery({
     queryKey: setupChecklistQueryKey(userId),
     enabled: Boolean(userId),
@@ -18,6 +20,7 @@ export default function SidebarSetupProgress({ userId, onNavigate }) {
   if (allDone) return null;
 
   function open() {
+    if (status.data.hidden) updateSetupPreferences(client, supabase, userId, { hidden: false });
     onNavigate?.("setup");
   }
 

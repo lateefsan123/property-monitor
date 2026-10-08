@@ -1,14 +1,14 @@
 import { Pressable, Text, View } from "react-native";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import AppIcon from "../components/AppIcon";
 import { supabase } from "../supabase";
-import { useWorkspacePreference } from "./preferences";
-import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey } from "../../../shared/setup-checklist.js";
+import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey, updateSetupPreferences } from "../../../shared/setup-checklist.js";
 
 // Mobile copy of web's sidebar block (src/features/home/SidebarSetupProgress.jsx),
-// after HoneyBook's "Set up your account": stays until every step is done.
+// after HoneyBook's "Set up your account": stays until every step is done or
+// skipped, and brings back a hidden Home checklist.
 export default function DrawerSetupProgress({ userId, colors, onOpen }) {
-  const hidden = useWorkspacePreference(userId, "setup-checklist-hidden", false);
+  const client = useQueryClient();
   const status = useQuery({
     queryKey: setupChecklistQueryKey(userId),
     enabled: Boolean(userId),
@@ -20,7 +20,7 @@ export default function DrawerSetupProgress({ userId, colors, onOpen }) {
   if (allDone) return null;
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`Set up your account, ${completed} of ${total} completed`}
-      onPress={() => { if (hidden.value) hidden.set(false); onOpen(); }}
+      onPress={() => { if (status.data.hidden) updateSetupPreferences(client, supabase, userId, { hidden: false }); onOpen(); }}
       style={({ pressed }) => ({ marginHorizontal: 12, marginTop: 4, marginBottom: 4, paddingHorizontal: 14, paddingTop: 11, paddingBottom: 10, gap: 8, borderWidth: 1, borderColor: colors.border, borderRadius: 8, backgroundColor: pressed ? colors.bgBadge : "transparent" })}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
         <Text style={{ color: colors.textName, fontSize: 15, fontWeight: "600" }}>Set up your account</Text>

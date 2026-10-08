@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   IconBrandWhatsapp,
   IconCalendarWeek,
@@ -6,13 +6,14 @@ import {
   IconChevronRight,
   IconCircle,
   IconCircleCheckFilled,
+  IconCircleDashed,
   IconDownload,
   IconTemplate,
 } from "@tabler/icons-react";
 import { supabase } from "../../supabase";
 import { integrationRequest } from "../../integration-client";
 import { integrationStatusOptions } from "../../integration-query";
-import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey } from "../../../shared/setup-checklist";
+import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey, updateSetupPreferences } from "../../../shared/setup-checklist";
 import { openSetupAction } from "./setup-actions";
 import "../../styles/setup-page.css";
 
@@ -25,21 +26,31 @@ const PROVIDERS = [
   { id: "google", feature: "calendar", name: "Google Calendar", icon: "https://www.gstatic.com/images/branding/product/2x/calendar_2020q4_48dp.png" },
 ];
 
-function StepRow({ step, onOpen }) {
+function StepRow({ step, onOpen, onToggleSkip }) {
   return (
-    <button type="button" className={`setup-step${step.done ? " is-done" : ""}`} onClick={() => onOpen(step)}>
-      {step.done
-        ? <IconCircleCheckFilled className="setup-step-status" size={22} aria-label="Done" />
-        : <IconCircle className="setup-step-status" size={22} stroke={1.4} aria-label="To do" />}
-      <span className="setup-step-text">
-        <span className="setup-step-title">
-          <strong>{step.title}</strong>
-          <span className="setup-step-time">{step.time}</span>
+    <div className="setup-step-row">
+      <button type="button" className={`setup-step${step.done ? " is-done" : ""}${step.skipped ? " is-skipped" : ""}`} onClick={() => onOpen(step)}>
+        {step.done
+          ? <IconCircleCheckFilled className="setup-step-status" size={22} aria-label="Done" />
+          : step.skipped
+            ? <IconCircleDashed className="setup-step-status" size={22} stroke={1.4} aria-label="Skipped" />
+            : <IconCircle className="setup-step-status" size={22} stroke={1.4} aria-label="To do" />}
+        <span className="setup-step-text">
+          <span className="setup-step-title">
+            <strong>{step.title}</strong>
+            <span className="setup-step-time">{step.skipped ? "Skipped" : step.time}</span>
+          </span>
+          <span className="setup-step-body">{step.text}</span>
         </span>
-        <span className="setup-step-body">{step.text}</span>
-      </span>
-      <IconChevronRight className="setup-step-chevron" size={20} stroke={2} aria-hidden="true" />
-    </button>
+        <IconChevronRight className="setup-step-chevron" size={20} stroke={2} aria-hidden="true" />
+      </button>
+      {step.skippable && !step.done && (
+        <button type="button" className="home-text-button setup-step-skip" onClick={() => onToggleSkip(step)}
+          aria-label={step.skipped ? `Undo skip: ${step.title}` : `Skip: ${step.title}`}>
+          {step.skipped ? "Undo" : "Skip"}
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -56,6 +67,7 @@ function RailCard({ title, onOpen, children }) {
 }
 
 export default function SetupPage({ userId, displayName, onNavigate, onAction }) {
+  const client = useQueryClient();
   const status = useQuery({
     queryKey: setupChecklistQueryKey(userId),
     enabled: Boolean(userId),
@@ -69,6 +81,11 @@ export default function SetupPage({ userId, displayName, onNavigate, onAction })
   function openStep(step) {
     if (step.id === "first-message") onNavigate?.("sellers");
     else openSetupAction(step, onNavigate);
+  }
+
+  function toggleSkip(step) {
+    const skipped = status.data?.skipped || [];
+    updateSetupPreferences(client, supabase, userId, { skipped: step.skipped ? skipped.filter((id) => id !== step.id) : [...skipped, step.id] });
   }
 
   return (
@@ -91,7 +108,7 @@ export default function SetupPage({ userId, displayName, onNavigate, onAction })
             </p>
           ) : (
             <div className="setup-steps">
-              {steps.map((step) => <StepRow key={step.id} step={step} onOpen={openStep} />)}
+              {steps.map((step) => <StepRow key={step.id} step={step} onOpen={openStep} onToggleSkip={toggleSkip} />)}
             </div>
           )}
         </section>

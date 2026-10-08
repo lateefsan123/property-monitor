@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import MessageFeedList, { LoadMore } from "./MessageFeedList";
-import { fetchMessagePage, messageFeedQueryKey, nextFeedCursor } from "../home/message-feed-services";
+import { fetchMessagePage, latestPerSeller, messageFeedQueryKey, nextFeedCursor } from "../home/message-feed-services";
 import SetupNextAction from "../home/SetupNextAction";
 import "../../styles/activity-page.css";
 
@@ -22,7 +22,8 @@ export default function ActivityPage({ userId, onOpenSeller, onNavigate }) {
     // Refocusing would refetch every loaded page; sends refresh it instead.
     refetchOnWindowFocus: false,
   });
-  const items = feed.data?.pages.flatMap((page) => page.items) || [];
+  // One row per person: their newest message.
+  const items = latestPerSeller(feed.data?.pages.flatMap((page) => page.items));
 
   return (
     <div className="activity-page">

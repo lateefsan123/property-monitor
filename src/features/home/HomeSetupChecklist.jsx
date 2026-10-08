@@ -1,46 +1,37 @@
-import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { IconChevronRight, IconCircle, IconCircleCheckFilled } from "@tabler/icons-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { IconChevronRight, IconCircle, IconCircleCheckFilled, IconCircleDashed } from "@tabler/icons-react";
 import { supabase } from "../../supabase";
-import { openSetupAction, SETUP_HIDDEN_KEY, SHOW_SETUP_EVENT } from "./setup-actions";
-import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey } from "../../../shared/setup-checklist";
+import { openSetupAction } from "./setup-actions";
+import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey, updateSetupPreferences } from "../../../shared/setup-checklist";
 
 // "Get set up" for new accounts, after HoneyBook's step-by-step card
 // (Mobbin 7c915d6b): progress on the right of the title, one row per step
-// that ticks itself off. It disappears once every step is done or is hidden.
-
-function readHidden(userId) {
-  try { return window.localStorage.getItem(`${SETUP_HIDDEN_KEY}:${userId}`) === "1"; } catch { return false; }
-}
-
+// that ticks itself off. Optional steps can be skipped. Hiding it is saved on
+// the account, so it stays hidden until it's reopened from the sidebar.
 export default function HomeSetupChecklist({ userId, onNavigate }) {
-  const [hidden, setHidden] = useState(() => readHidden(userId));
-  useEffect(() => {
-    const show = () => setHidden(false);
-    window.addEventListener(SHOW_SETUP_EVENT, show);
-    return () => window.removeEventListener(SHOW_SETUP_EVENT, show);
-  }, []);
+  const client = useQueryClient();
   const status = useQuery({
     queryKey: setupChecklistQueryKey(userId),
-    enabled: Boolean(userId) && !hidden,
+    enabled: Boolean(userId),
     queryFn: () => fetchSetupStatus(supabase, userId),
     // Refetch whenever Home opens, so a step done elsewhere ticks straight away.
     staleTime: 0,
   });
 
-  if (hidden || !status.data) return null;
+  if (!status.data || status.data.hidden) return null;
   const { steps, completed, total, allDone } = buildSetupSteps(status.data);
   if (allDone) return null;
-  const nextId = steps.find((step) => !step.done)?.id;
-
-  function hide() {
-    setHidden(true);
-    try { window.localStorage.setItem(`${SETUP_HIDDEN_KEY}:${userId}`, "1"); } catch { /* Hidden for this visit only. */ }
-  }
+  const nextId = steps.find((step) => !step.done && !step.skipped)?.id;
+  const save = (patch) => updateSetupPreferences(client, supabase, userId, patch);
 
   function open(step) {
     if (step.id === "first-message") onNavigate?.("sellers");
     else openSetupAction(step, onNavigate);
+  }
+
+  function toggleSkip(step) {
+    const skipped = status.data.skipped || [];
+    save({ skipped: step.skipped ? skipped.filter((id) => id !== step.id) : [...skipped, step.id] });
   }
 
   return (
@@ -56,11 +47,13 @@ export default function HomeSetupChecklist({ userId, onNavigate }) {
       </div>
       <ol className="home-setup-steps">
         {steps.map((step) => (
-          <li key={step.id}>
-            <button type="button" className={`home-setup-step${step.done ? " is-done" : ""}`} onClick={() => open(step)}>
+          <li key={step.id} className="home-setup-item">
+            <button type="button" className={`home-setup-step${step.done ? " is-done" : ""}${step.skipped ? " is-skipped" : ""}`} onClick={() => open(step)}>
               {step.done
                 ? <IconCircleCheckFilled className="home-setup-status" size={22} aria-label="Done" />
-                : <IconCircle className="home-setup-status" size={22} stroke={1.6} aria-label="To do" />}
+                : step.skipped
+                  ? <IconCircleDashed className="home-setup-status" size={22} stroke={1.6} aria-label="Skipped" />
+                  : <IconCircle className="home-setup-status" size={22} stroke={1.6} aria-label="To do" />}
               <span className="home-setup-text">
                 <strong>{step.title}</strong>
                 <span className="home-muted">{step.text}</span>
@@ -69,10 +62,16 @@ export default function HomeSetupChecklist({ userId, onNavigate }) {
                 ? <span className="setup-next-button home-setup-cta">{step.action}</span>
                 : <IconChevronRight className="home-setup-chevron" size={18} stroke={2} aria-hidden="true" />}
             </button>
+            {step.skippable && !step.done && (
+              <button type="button" className="home-text-button home-setup-skip" onClick={() => toggleSkip(step)}
+                aria-label={step.skipped ? `Undo skip: ${step.title}` : `Skip: ${step.title}`}>
+                {step.skipped ? "Undo" : "Skip"}
+              </button>
+            )}
           </li>
         ))}
       </ol>
-      <button type="button" className="home-text-button home-setup-hide" onClick={hide}>Hide checklist</button>
+      <button type="button" className="home-text-button home-setup-hide" onClick={() => save({ hidden: true })}>Hide checklist</button>
     </section>
   );
 }

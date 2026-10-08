@@ -3,7 +3,7 @@ import { Pressable, RefreshControl, ScrollView, Text, View } from "react-native"
 import { useInfiniteQuery } from "@tanstack/react-query";
 import ContentSkeleton from "../components/ContentSkeleton";
 import MessageFeedList, { LoadMore } from "./message-feed-list";
-import { fetchMessagePage, messageFeedQueryKey, nextFeedCursor } from "./message-feed";
+import { fetchMessagePage, latestPerSeller, messageFeedQueryKey, nextFeedCursor } from "./message-feed";
 import SetupNextAction from "./setup-next-action";
 
 const FILTERS = [["all", "All", undefined], ["sent", "Sent", "outbound"], ["replies", "Replies", "inbound"]];
@@ -21,7 +21,8 @@ export default function ActivityScreen({ userId, colors, onNavigate }) {
     getNextPageParam: nextFeedCursor,
     enabled: Boolean(userId),
   });
-  const items = feed.data?.pages.flatMap((page) => page.items) || [];
+  // One row per person: their newest message.
+  const items = latestPerSeller(feed.data?.pages.flatMap((page) => page.items));
   async function refresh() {
     setRefreshing(true);
     try { await feed.refetch(); } finally { setRefreshing(false); }

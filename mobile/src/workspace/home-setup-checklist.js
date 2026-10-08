@@ -1,17 +1,17 @@
 import { useEffect } from "react";
 import { Pressable, Text, View } from "react-native";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import AppIcon from "../components/AppIcon";
 import { supabase } from "../supabase";
-import { useWorkspacePreference } from "./preferences";
 import { openSetupAction } from "./setup-next-action";
-import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey } from "../../../shared/setup-checklist.js";
+import { buildSetupSteps, fetchSetupStatus, setupChecklistQueryKey, updateSetupPreferences } from "../../../shared/setup-checklist.js";
 
 // Mobile copy of web Home's "Get set up" card (src/features/home/HomeSetupChecklist.jsx):
-// progress beside the title, one row per step that ticks itself off.
+// progress beside the title, one row per step that ticks itself off, Skip on
+// optional steps. Hiding it is saved on the account until the drawer reopens it.
 export default function HomeSetupChecklist({ userId, colors, active = true, onNavigate }) {
-  const hidden = useWorkspacePreference(userId, "setup-checklist-hidden", false);
-  const enabled = Boolean(userId) && !hidden.pending && !hidden.value;
+  const client = useQueryClient();
+  const enabled = Boolean(userId);
   const status = useQuery({
     queryKey: setupChecklistQueryKey(userId),
     enabled,
@@ -21,14 +21,20 @@ export default function HomeSetupChecklist({ userId, colors, active = true, onNa
   // Home stays mounted behind other pages; recheck when it comes back into view.
   useEffect(() => { if (active && enabled) refetch(); }, [active, enabled, refetch]);
 
-  if (hidden.pending || hidden.value || !status.data) return null;
+  if (!status.data || status.data.hidden) return null;
   const { steps, completed, total, allDone } = buildSetupSteps(status.data);
   if (allDone) return null;
-  const nextId = steps.find((step) => !step.done)?.id;
+  const nextId = steps.find((step) => !step.done && !step.skipped)?.id;
+  const save = (patch) => updateSetupPreferences(client, supabase, userId, patch);
 
   function open(step) {
     if (step.id === "first-message") onNavigate("sellers");
     else openSetupAction(step, onNavigate);
+  }
+
+  function toggleSkip(step) {
+    const skipped = status.data.skipped || [];
+    save({ skipped: step.skipped ? skipped.filter((id) => id !== step.id) : [...skipped, step.id] });
   }
 
   return (
@@ -45,23 +51,30 @@ export default function HomeSetupChecklist({ userId, colors, active = true, onNa
       </View>
       <View style={{ marginTop: 6 }}>
         {steps.map((step, index) => (
-          <Pressable key={step.id} accessibilityRole="button" accessibilityState={{ checked: step.done }} accessibilityLabel={`${step.title}${step.done ? ", done" : ""}`}
+          <Pressable key={step.id} accessibilityRole="button" accessibilityState={{ checked: step.done }}
+            accessibilityLabel={`${step.title}${step.done ? ", done" : step.skipped ? ", skipped" : ""}`}
             onPress={() => open(step)}
             style={({ pressed }) => ({ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 14, borderTopWidth: index ? 1 : 0, borderTopColor: colors.borderLight, opacity: pressed ? 0.6 : 1 })}>
-            <AppIcon name={step.done ? "checkCircleFilled" : "circle"} size={22} color={step.done ? "#4cc46f" : colors.textMuted} />
+            <AppIcon name={step.done ? "checkCircleFilled" : step.skipped ? "circleSkipped" : "circle"} size={22} color={step.done ? "#4cc46f" : colors.textMuted} />
             <View style={{ flex: 1, gap: 3 }}>
-              <Text style={{ color: step.done ? colors.textMuted : colors.textName, fontSize: 15, fontWeight: "600", textDecorationLine: step.done ? "line-through" : "none" }}>{step.title}</Text>
+              <Text style={{ color: step.done || step.skipped ? colors.textMuted : colors.textName, fontSize: 15, fontWeight: "600", textDecorationLine: step.done ? "line-through" : "none" }}>{step.title}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 18 }}>{step.text}</Text>
             </View>
             {step.id === nextId
               ? <View style={{ paddingHorizontal: 12, minHeight: 32, justifyContent: "center", borderRadius: 16, backgroundColor: colors.btnPrimaryBg }}>
                 <Text style={{ color: colors.btnPrimaryText, fontSize: 13, fontWeight: "600" }}>{step.action}</Text>
               </View>
-              : <AppIcon name="chevron" size={17} color={colors.textMuted} />}
+              : null}
+            {step.skippable && !step.done
+              ? <Pressable accessibilityRole="button" accessibilityLabel={step.skipped ? `Undo skip: ${step.title}` : `Skip: ${step.title}`}
+                hitSlop={8} onPress={() => toggleSkip(step)} style={{ minHeight: 32, justifyContent: "center" }}>
+                <Text style={{ color: colors.textMuted, fontSize: 13 }}>{step.skipped ? "Undo" : "Skip"}</Text>
+              </Pressable>
+              : step.id !== nextId ? <AppIcon name="chevron" size={17} color={colors.textMuted} /> : null}
           </Pressable>
         ))}
       </View>
-      <Pressable accessibilityRole="button" onPress={() => hidden.set(true)} style={{ minHeight: 44, justifyContent: "center", alignSelf: "flex-start" }}>
+      <Pressable accessibilityRole="button" onPress={() => save({ hidden: true })} style={{ minHeight: 44, justifyContent: "center", alignSelf: "flex-start" }}>
         <Text style={{ color: colors.textMuted, fontSize: 13 }}>Hide checklist</Text>
       </Pressable>
     </View>
