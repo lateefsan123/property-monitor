@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, clampDailyLimit, formatHour, formatInterval, messagesThatFit } from "../../../shared/automation-settings.js";
+import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, clampDailyLimit, formatHour, formatInterval, messagesThatFit, suggestedInterval } from "../../../shared/automation-settings.js";
 import {
   IconActivity,
   IconAdjustmentsHorizontal,
@@ -224,11 +224,22 @@ export default function SettingsPage({
               const pacing = { start: data.automation.sendWindowStartHour, end: data.automation.sendWindowEndHour, interval: data.automation.sendIntervalMinutes };
               const limit = data.automation.dailyMessageLimit;
               const fit = messagesThatFit(pacing, limit);
+              const suggested = suggestedInterval(pacing, limit);
               return (
-                <p className="st-note">
-                  {formatHour(pacing.start)} to {formatHour(pacing.end)}, one every {formatInterval(pacing.interval)}: up to {fit} message{fit === 1 ? "" : "s"} a day
-                  {fit < limit ? `, fewer than your ${limit} a day. Widen the hours or shorten the gap to send them all.` : `, your daily limit.`}
-                </p>
+                <>
+                  <p className="st-note">
+                    {formatHour(pacing.start)} to {formatHour(pacing.end)}, one every {formatInterval(pacing.interval)}: up to {fit} message{fit === 1 ? "" : "s"} a day
+                    {fit < limit ? `, fewer than your ${limit} a day. Widen the hours or shorten the gap to send them all.` : `, your daily limit.`}
+                  </p>
+                  {/* Spreading messages out looks less like spam to WhatsApp than sending them in a burst. */}
+                  {suggested !== pacing.interval && (
+                    <div className="st-suggest">
+                      <p className="st-note">Suggested: one every {formatInterval(suggested)} spreads your {limit} message{limit === 1 ? "" : "s"} across the day, which WhatsApp is less likely to flag.</p>
+                      <button type="button" className="stx-btn" disabled={data.automation.loading || data.automation.saving}
+                        onClick={() => data.automation.set("sendIntervalMinutes", suggested)}>Use {formatInterval(suggested)}</button>
+                    </div>
+                  )}
+                </>
               );
             })()}
           </div>

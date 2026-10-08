@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BackHandler, Pressable, ScrollView, Text, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAutomationSettings, saveAutomationSettings } from "./automation-settings";
-import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit } from "../../../shared/automation-settings.js";
+import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit, suggestedInterval } from "../../../shared/automation-settings.js";
 import BottomSheet from "../components/BottomSheet";
 import { fetchWhatsAppSendActivity } from "./send-activity";
 import ActivityDateFilter from './activity-date-filter';
@@ -76,6 +76,7 @@ function SendPacing({ settings, colors, saving, onChange }) {
   const pacing = { start: settings.sendWindowStartHour, end: settings.sendWindowEndHour, interval: settings.sendIntervalMinutes };
   const limit = settings.dailyMessageLimit || DAILY_AUTOMATION_CAP;
   const fit = messagesThatFit(pacing, limit);
+  const suggested = suggestedInterval(pacing, limit);
   const hourColumn = (label, hours, value, onPick) => <View style={{ flex: 1, gap: 4 }}>
     <Text style={{ color: colors.textMuted, fontSize: 13, paddingBottom: 4 }}>{label}</Text>
     <ScrollView style={{ maxHeight: 320 }}>
@@ -128,6 +129,13 @@ function SendPacing({ settings, colors, saving, onChange }) {
     <Text style={{ color: colors.textMuted, fontSize: 13, lineHeight: 20 }}>
       {formatHour(pacing.start)} to {formatHour(pacing.end)}, one every {formatInterval(pacing.interval)}: up to {fit} message{fit === 1 ? "" : "s"} a day{fit < limit ? `, fewer than your ${limit}. Widen the hours or shorten the gap to send them all.` : ", your daily limit."} Shared between updates and reports.
     </Text>
+    {suggested !== pacing.interval ? <View style={{ gap: 10, padding: 14, borderRadius: 12, backgroundColor: colors.bgBadge }}>
+      <Text style={{ color: colors.text, fontSize: 14, lineHeight: 20 }}>Suggested: one every {formatInterval(suggested)} spreads your {limit} message{limit === 1 ? "" : "s"} across the day, which WhatsApp is less likely to flag.</Text>
+      <Pressable accessibilityRole="button" disabled={saving} onPress={() => onChange({ sendIntervalMinutes: suggested })}
+        style={({ pressed }) => ({ alignSelf: "flex-start", minHeight: 36, paddingHorizontal: 14, justifyContent: "center", borderRadius: 10, backgroundColor: colors.bgCard, opacity: saving ? 0.4 : pressed ? 0.6 : 1 })}>
+        <Text style={{ color: colors.text, fontSize: 14, fontWeight: "600" }}>Use {formatInterval(suggested)}</Text>
+      </Pressable>
+    </View> : null}
     <BottomSheet visible={hoursOpen} onClose={() => setHoursOpen(false)} colors={colors}>
       <View style={{ padding: 20, paddingTop: 4, gap: 16 }}>
         <Text accessibilityRole="header" style={{ color: colors.textName, fontSize: 21, fontWeight: "700" }}>Send between</Text>

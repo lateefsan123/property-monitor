@@ -29,6 +29,14 @@ export function messagesThatFit({ start, end, interval }, dailyCap = 40) {
   return Math.min(dailyCap, Math.floor(minutes / interval));
 }
 
+// The widest gap that still fits every message in the window, so the day's
+// messages are spread out instead of sent in a burst. Falls back to the
+// shortest gap when even that can't fit them all.
+export function suggestedInterval({ start, end }, dailyLimit = 40) {
+  const fits = SEND_INTERVAL_OPTIONS.filter((interval) => messagesThatFit({ start, end, interval }, dailyLimit) >= dailyLimit);
+  return fits.length ? Math.max(...fits) : SEND_INTERVAL_OPTIONS[0];
+}
+
 export async function loadSendPacing(client, userIds, defaults = DEFAULT_SEND_WINDOW) {
   const result = new Map();
   const ids = [...new Set((userIds || []).map(String).filter(Boolean))];

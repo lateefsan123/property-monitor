@@ -5,7 +5,7 @@ export const MONTHLY_REPORT_SHARE_OPTIONS = [5, 10, 15, 20];
 export const DEFAULT_MONTHLY_REPORT_SHARE = 10;
 export const DAILY_AUTOMATION_CAP = 40;
 // Send hours (Dubai) and the gap between automated messages, per account.
-export { DEFAULT_SEND_INTERVAL_MINUTES, DEFAULT_SEND_WINDOW, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit } from "../supabase/functions/_shared/send-pacing.js";
+export { DEFAULT_SEND_INTERVAL_MINUTES, DEFAULT_SEND_WINDOW, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit, suggestedInterval } from "../supabase/functions/_shared/send-pacing.js";
 import { normalizePacing } from "../supabase/functions/_shared/send-pacing.js";
 
 const PACING_COLUMNS = "send_window_start_hour, send_window_end_hour, send_interval_minutes, daily_message_limit, status_followups_enabled";

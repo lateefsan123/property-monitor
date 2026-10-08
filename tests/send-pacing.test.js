@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { accountsNotDue, formatHour, loadSendPacing, messagesThatFit, normalizePacing } from "../supabase/functions/_shared/send-pacing.js";
+import { accountsNotDue, formatHour, loadSendPacing, messagesThatFit, normalizePacing, suggestedInterval } from "../supabase/functions/_shared/send-pacing.js";
 
 test("pacing falls back to 9 am to 9 pm every 5 minutes", () => {
   assert.deepEqual(normalizePacing(null), { start: 9, end: 21, interval: 5 });
@@ -59,4 +59,11 @@ test("the daily limit stays between 1 and 40", async () => {
   assert.equal(clampDailyLimit(99), 40);
   assert.equal(clampDailyLimit("12"), 12);
   assert.equal(clampDailyLimit(undefined), 40);
+});
+
+test("suggests the widest gap that still fits every message in the window", () => {
+  assert.equal(suggestedInterval({ start: 9, end: 21 }, 20), 30);
+  assert.equal(suggestedInterval({ start: 9, end: 21 }, 40), 15);
+  assert.equal(suggestedInterval({ start: 9, end: 21 }, 5), 60);
+  assert.equal(suggestedInterval({ start: 9, end: 12 }, 40), 5);
 });

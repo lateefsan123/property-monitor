@@ -69,6 +69,9 @@ button.st-profile:hover { background: var(--bg-hover); }
 .st-secondary.is-danger { color: var(--error-text); }
 .st-text-btn { border: 0; background: none; color: inherit; font-weight: 600; text-decoration: underline; padding: 0; }
 .st-note { margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.5; }
+.st-suggest { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: 12px; background: var(--bg-badge); }
+.st-suggest .st-note { color: var(--text); }
+.st-suggest .stx-btn { flex: none; white-space: nowrap; }
 .st-error { margin: 0; color: var(--error-text); font-size: 13px; line-height: 1.5; }
 .st-ok { margin: 0; color: var(--badge-ok-text); font-size: 14px; }
 .st-schedule-card .sch-prefs { padding: 0 20px; }
