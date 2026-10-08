@@ -49,6 +49,20 @@ export function findCandidates(raw, catalogue) {
     .map(c => ({ ...c, score: similarity(input, c.project), input }))
     .filter(c => c.score >= 0.65).sort((a, b) => b.score - a.score || a.id.localeCompare(b.id)).slice(0, 8);
 }
+// Options for a name sent to review that leaves out a number, e.g.
+// "Arabian Ranches" -> Arabian Ranches 1, 2 and 3. Never used to match
+// automatically; the broker picks one.
+export function numberedChoices(raw, catalogue) {
+  const input = normalizeName(raw);
+  if (!input || /\d/.test(input) || input.split(' ').length < 2) return [];
+  const seen = new Set();
+  // normalizeName leaves only letters, digits and single spaces, so a plain
+  // prefix check is exact: "arabian ranches" + " " + digits.
+  return catalogue.filter(c => c.project.startsWith(`${input} `) && /^\d+$/.test(c.project.slice(input.length + 1))
+    && !seen.has(c.project) && seen.add(c.project))
+    .sort((a, b) => a.project.localeCompare(b.project, 'en', { numeric: true })).slice(0, 6)
+    .map(c => ({ ...c, score: similarity(input, c.project), input }));
+}
 export function safeCandidate(candidates) {
   const [best, next] = candidates;
   if (!best || best.score < 0.84 || (next && best.score - next.score < 0.12)) return null;

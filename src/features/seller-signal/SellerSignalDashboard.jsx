@@ -130,6 +130,7 @@ export default function SellerSignalDashboard({
       )}
 
       {!isAutomationAccount(userId) && <BuildingCleanupPanel
+        userId={userId}
         aliases={dashboard.buildingAliases}
         cachedBuildings={dashboard.cachedBuildings}
         leads={dashboard.cleanupLeads}

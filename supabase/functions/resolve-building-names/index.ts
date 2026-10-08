@@ -1,6 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2.99.2';
-import { acceptAiChoice, askBuildingAi, buildCatalogue, findCandidates, safeCandidate } from '../_shared/building-resolution.js';
+import { acceptAiChoice, askBuildingAi, buildCatalogue, findCandidates, numberedChoices, safeCandidate } from '../_shared/building-resolution.js';
 
 const reply = (body: unknown, status = 200) => Response.json(body, { status });
 Deno.serve(async (req) => {
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
         }
         update = { status: chosen ? 'matched' : 'review', building_key: chosen?.id || null,
           method: chosen ? method : null, reason: chosen ? 'Catalogue and identity checks passed' : 'No unambiguous verified building match',
-          candidates: candidates.map(c => ({ key: c.id, name: c.name, score: c.score })) };
+          candidates: (chosen || candidates.length ? candidates : numberedChoices(job.raw_name, catalogue)).map(c => ({ key: c.id, name: c.name, score: c.score })) };
       } catch {
         update = { status: job.attempts < 3 ? 'pending' : 'review', reason: 'Matching temporarily unavailable; retained for retry or internal review' };
       }

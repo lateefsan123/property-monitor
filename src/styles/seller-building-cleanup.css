@@ -144,3 +144,23 @@
     width: 100%;
   }
 }
+
+/* "Which building?" (BuildingCleanupPanel.jsx): one row per unclear name with
+   its options as buttons. */
+.building-choice-card { padding: 18px 20px 8px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg-card); }
+.building-choice-card h2 { margin: 0; color: var(--text-name); font-size: 16px; font-weight: 600; }
+.building-choice-card > p { margin: 4px 0 6px; color: var(--text-muted); font-size: 14px; line-height: 1.45; }
+.building-choice-card ul { margin: 0; padding: 0; list-style: none; }
+.building-choice-card li { display: flex; flex-direction: column; gap: 10px; padding: 14px 0; }
+.building-choice-card li + li { border-top: 1px solid var(--border-light); }
+.building-choice-name { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+.building-choice-name strong { color: var(--text-name); font-size: 15px; font-weight: 600; overflow-wrap: anywhere; }
+.building-choice-name span { flex: none; color: var(--text-muted); font-size: 13px; }
+.building-choice-options { display: flex; flex-wrap: wrap; gap: 8px; }
+.building-choice-option { height: var(--btn-h-sm); padding: 0 14px; border: 1px solid var(--btn-secondary-border); border-radius: var(--btn-radius); background: var(--btn-secondary-bg); color: var(--text-name); box-shadow: var(--btn-shadow); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; transition: background-color 0.15s ease; }
+.building-choice-option:hover:not(:disabled) { background: var(--btn-secondary-hover); }
+.building-choice-skip, .building-choice-more { height: var(--btn-h-sm); padding: 0 10px; border: 0; border-radius: var(--btn-radius); background: none; color: var(--text-muted); font: inherit; font-size: 14px; font-weight: 500; cursor: pointer; }
+.building-choice-skip:hover:not(:disabled), .building-choice-more:hover { background: var(--bg-hover); color: var(--text); }
+.building-choice-option:disabled, .building-choice-skip:disabled { opacity: 0.5; cursor: default; }
+.building-choice-more { margin: 0 0 10px -10px; }
+.building-choice-option:focus-visible, .building-choice-skip:focus-visible, .building-choice-more:focus-visible { outline: 2px solid var(--text-name); outline-offset: 2px; }
