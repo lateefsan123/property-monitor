@@ -106,3 +106,12 @@ test('community names settle DLD spellings', () => {
   assert.equal(villaCommunity('The Valley-Nara'), 'The Valley');
   assert.equal(villaCommunity('Al-Furjan'), null);
 });
+test('areas with 10+ villa sales get a villa-only community roll-up', () => {
+  const rows = Array.from({ length: 10 }, (_, i) => ({ ...villa, TRANSACTION_NUMBER: `h${i}`, PROJECT_EN: 'Maple III', AREA_EN: 'DUBAI HILLS' }));
+  rows.push({ ...base, TRANSACTION_NUMBER: 'hf', PROJECT_EN: 'Park Heights', AREA_EN: 'DUBAI HILLS' });
+  const data = market(rows);
+  const rollUp = data.transactions.filter(t => t.building_key === 'communitydubaihills');
+  assert.equal(rollUp.length, 10);
+  assert.ok(rollUp.every(t => t.source_transaction_id.endsWith('#area') && /villa/i.test(t.property_type)));
+  assert.equal(market(rows.slice(0, 9)).transactions.some(t => t.building_key === 'communitydubaihills'), false);
+});

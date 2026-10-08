@@ -5,6 +5,7 @@ export const MARKET_SOURCE = 'dld_citywide';
 const RESIDENTIAL_TYPES = new Set(['flat', 'residential flats', 'villa', 'residential / attached villas', 'hotel apartment']);
 const label = value => String(value || '').replace(/\s+/g, ' ').trim();
 export const COMMUNITY_COPY_SUFFIX = '#community';
+export const AREA_COPY_SUFFIX = '#area';
 export const isVilla = type => /villa/i.test(label(type));
 
 // One name per villa community across DLD's spellings: "Arabian Ranches lll",
@@ -17,6 +18,18 @@ export function communityName(value) {
 }
 // Community keys get a prefix so they can never clash with a "Project, Area" key.
 export const communityKey = value => normalizeToken(`community ${communityName(value)}`);
+
+// Areas with at least 10 villa sales in this export. Their roll-up holds
+// villa sales only, and each line says "Villa", so flat sellers aren't misled.
+function villaAreasOf(records) {
+  const counts = new Map();
+  for (const row of records) {
+    if (!isVilla(row.PROP_SB_TYPE_EN)) continue;
+    const area = normalizeToken(row.AREA_EN);
+    counts.set(area, (counts.get(area) || 0) + 1);
+  }
+  return new Set([...counts].filter(([, count]) => count >= 10).map(([area]) => area));
+}
 
 // "Arabian Ranches lll - Raya" -> "Arabian Ranches lll"; "The Valley-Nara" -> "The Valley".
 // A hyphen without spaces only splits after two or more words, so "Al-Furjan" stays whole.
@@ -71,6 +84,7 @@ export function buildDubaiMarket(csv, period) {
   const areas = new Map();
   const skipped = {};
   const skip = reason => { skipped[reason] = (skipped[reason] || 0) + 1; };
+  const villaAreas = villaAreasOf(records);
   for (const row of records) {
     const procedure = label(row.PROCEDURE_EN).toLowerCase();
     if (!/^(sale|sell)(\b|\s)/.test(procedure) || /mortgage|gift|lease|rent/.test(procedure)) { skip('nonSale'); continue; }
@@ -126,6 +140,14 @@ export function buildDubaiMarket(csv, period) {
       const copyName = communityName(community);
       buildings.set(copyKey, { key: copyKey, search_name: copyName, location_name: copyName, source_project: copyName, source_area: '' });
       transactions.set(`${id}${COMMUNITY_COPY_SUFFIX}`, { ...transaction, source_transaction_id: `${id}${COMMUNITY_COPY_SUFFIX}`, building_key: copyKey });
+    }
+    // Many DLD areas are the community brokers name (DUBAI HILLS, TOWN SQUARE,
+    // VILLANOVA), so every villa sale there also counts towards the area's community.
+    const areaCommunity = villa && sourceProject && villaAreas.has(normalizeToken(area)) ? communityKey(area) : null;
+    if (areaCommunity && areaCommunity !== key && areaCommunity !== (community && communityKey(community))) {
+      const areaName = communityName(area);
+      buildings.set(areaCommunity, { key: areaCommunity, search_name: areaName, location_name: areaName, source_project: areaName, source_area: '' });
+      transactions.set(`${id}${AREA_COPY_SUFFIX}`, { ...transaction, source_transaction_id: `${id}${AREA_COPY_SUFFIX}`, building_key: areaCommunity });
     }
     const areaKey = normalizeToken(area);
     const stats = areas.get(areaKey) || { area, transactions: 0, projects: new Set() };

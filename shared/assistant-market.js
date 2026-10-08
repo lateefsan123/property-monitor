@@ -99,9 +99,9 @@ export function createAssistantMarket({ supabase, now = () => new Date() }) {
     const base = columns => {
       let q = supabase.from('transactions').select(columns, { count: 'exact' });
       if (building) q = q.eq('building_key', building.key);
-      // Villa sales are also copied under their community ("#community" IDs);
-      // area-wide counts leave the copies out so no sale is counted twice.
-      else q = q.not('source_transaction_id', 'like', '%#community');
+      // Villa sales are also copied under their community ("#community" and
+      // "#area" IDs); area-wide counts leave the copies out so no sale counts twice.
+      else q = q.not('source_transaction_id', 'like', '%#%');
       if (filters.area) q = q.ilike('full_location', `%${filters.area}%`);
       return q;
     };
