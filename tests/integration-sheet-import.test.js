@@ -11,19 +11,32 @@ function fixture(responses) {
 }
 test('connected Google import reads more than the preview and preserves cells without truncation', async () => {
   const rows = [['Name', 'Building'], ...Array.from({ length: 150 }, (_, index) => [`Seller ${index}`, 'Forte'])];
-  const f = fixture([{ values: rows }]);
+  const f = fixture([{ sheets: [{ properties: { title: "Seller's list", gridProperties: { rowCount: 151 } } }] }, { values: rows }]);
   const result = await f.read({ ...owner, input: { operation: 'rows', fileId: 'sheet_1', sheetName: "Seller's list" } });
   assert.deepEqual(result.rows, rows);
   assert.equal(result.kind, 'sheet-import');
-  assert.equal(decodeURIComponent(f.calls[0].url.pathname).endsWith("/values/'Seller''s list'"), true);
+  assert.equal(result.nextStart, null);
+  assert.equal(decodeURIComponent(f.calls[1].url.pathname).endsWith("/values/'Seller''s list'!A1:CV151"), true);
   assert.equal(f.identities[0].userId, 'alice');
   assert.equal(f.calls[0].options.redirect, 'error');
 });
 test('oversized and empty worksheets fail instead of importing a partial result', async () => {
-  for (const values of [[['Name']], Array.from({ length: 10002 }, () => ['seller']), [['Name'], Array(101).fill('cell')]]) {
-    const f = fixture([{ values }]);
+  const meta = rowCount => ({ sheets: [{ properties: { title: 'Sellers', gridProperties: { rowCount } } }] });
+  for (const [rowCount, values] of [[1, [['Name']]], [2, [['Name'], Array(101).fill('cell')]], [60002, []]]) {
+    const f = fixture([meta(rowCount), { values }]);
     await assert.rejects(f.read({ ...owner, input: { operation: 'rows', fileId: 'sheet', sheetName: 'Sellers' } }), { code: 'invalid_input' });
   }
+});
+test('large Google worksheets come back 2,000 rows at a time', async () => {
+  const meta = { sheets: [{ properties: { title: 'Sellers', gridProperties: { rowCount: 27001 } } }] };
+  const first = fixture([meta, { values: Array.from({ length: 2000 }, (_, i) => [`r${i}`]) }]);
+  const page1 = await first.read({ ...owner, input: { operation: 'rows', fileId: 'sheet', sheetName: 'Sellers' } });
+  assert.equal(page1.nextStart, 2001);
+  const last = fixture([meta, { values: [['last']] }]);
+  const page14 = await last.read({ ...owner, input: { operation: 'rows', fileId: 'sheet', sheetName: 'Sellers', start: 26001 } });
+  assert.equal(page14.nextStart, null);
+  assert.equal(decodeURIComponent(last.calls[1].url.pathname).endsWith("/values/'Sellers'!A26001:CV27001"), true);
+  await assert.rejects(first.read({ ...owner, provider: 'microsoft', input: { operation: 'rows', fileId: 'sheet', sheetName: 'Sellers', start: 2 } }), { code: 'invalid_input' });
 });
 test('Excel sharing link resolves through Graph only and workbook reads require scoped owner', async () => {
   const f = fixture([{ id: 'file!1', name: 'Sellers.xlsx', parentReference: { driveId: 'drive!1' } }, { text: [['Name'], ['Alice']], rowCount: 2 }]);

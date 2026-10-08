@@ -112,6 +112,12 @@ export function formatSourceLabel(source) {
   return label || `Spreadsheet ${Number(source.sort_order ?? 0) + 1}`;
 }
 
+// Rows that had no name with a phone or building, so they weren't imported.
+export function unidentifiedText(result) {
+  const count = Number(result?.unidentifiedCount || 0);
+  return count > 0 ? ` ${count} row${count === 1 ? "" : "s"} had no name with a phone or building, so ${count === 1 ? "it wasn't" : "they weren't"} imported.` : "";
+}
+
 export function formatImportSuccessMessage(label, result) {
   const count = Number(result?.count || 0);
   const skippedCount = Number(result?.skippedCount || 0);
@@ -150,7 +156,7 @@ export function formatImportSuccessMessage(label, result) {
   }
   if (skippedCount > 0) sentenceParts.push(`skipped ${skippedText}`);
 
-  return `${sentenceParts.join("; ")}.${qualityText}`;
+  return `${sentenceParts.join("; ")}.${unidentifiedText(result)}${qualityText}`;
 }
 
 export function formatImportErrorMessage(label, message) {

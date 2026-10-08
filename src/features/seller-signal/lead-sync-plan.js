@@ -48,10 +48,16 @@ export function buildLeadSyncPlan(existingRows, incomingLeads) {
   const updates = [];
   let matchedCount = 0;
   let skippedDuplicateCount = 0;
+  // Rows with no name plus phone or building can't be told apart, so they're
+  // left out; the import message says how many.
+  let unidentifiedCount = 0;
 
   for (const lead of incomingLeads || []) {
     const keys = buildLeadIdentityKeys(lead);
-    if (!keys.length) continue;
+    if (!keys.length) {
+      unidentifiedCount += 1;
+      continue;
+    }
 
     if (keys.some((key) => seenIncomingKeys.has(key))) {
       skippedDuplicateCount += 1;
@@ -81,5 +87,5 @@ export function buildLeadSyncPlan(existingRows, incomingLeads) {
     if (Object.keys(fills).length) updates.push({ id: existing.id, fields: fills });
   }
 
-  return { toInsert, updates, matchedCount, skippedDuplicateCount };
+  return { toInsert, updates, matchedCount, skippedDuplicateCount, unidentifiedCount };
 }

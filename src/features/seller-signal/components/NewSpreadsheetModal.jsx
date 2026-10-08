@@ -14,6 +14,7 @@ import { parseSpreadsheetFile } from "../file-import";
 import { previewSheetBuildings } from "../lead-import-services";
 import ConnectedSpreadsheetPicker, { SheetProviderIcon } from "./ConnectedSpreadsheetPicker";
 import { SHEET_PROVIDERS } from "./sheet-providers";
+import { readConnectedSheetRows } from "../../../../shared/connected-sheet-rows.js";
 import "../../../styles/spreadsheet-import.css";
 
 // Import spreadsheet: the same four choices as the mobile app (file, link,
@@ -265,17 +266,11 @@ export default function NewSpreadsheetModal({
     setConnectedBusy(true);
     setConnectedError("");
     try {
-      const result = await integrationRequest({
-        action: "read",
-        provider,
-        feature: "sheets",
-        input: { operation: "rows", fileId: file.id, ...(file.driveId ? { driveId: file.driveId } : {}), sheetName },
-      }, undefined, userId);
-      if (result?.kind !== "sheet-import" || !Array.isArray(result.rows)) throw new Error("Could not read this worksheet. Try again.");
+      const rawRows = await readConnectedSheetRows(integrationRequest, { provider, file, sheetName, userId });
       const ok = await onImportRows({
         key: `${provider}:${file.driveId || ""}:${file.id}:${sheetName}`,
         label: `${file.name.replace(/\.(xlsx|xls|csv)$/i, "")} · ${sheetName}`,
-        rawRows: result.rows,
+        rawRows,
       });
       if (ok) onClose?.();
     } catch (error) {

@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { replaceUserLeadsFromRows } from "./lead-import-services";
+import { unidentifiedText } from "./page-helpers";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   clearLeadsForSource,
@@ -61,12 +62,12 @@ function formatImportNotice(source, result) {
   const skippedText = `${skippedCount} duplicate row${skippedCount === 1 ? "" : "s"}`;
 
   if (skippedCount > 0) {
-    return label
+    return (label
       ? `Imported ${countText} from ${label}. Skipped ${skippedText} from the sheet.`
-      : `Imported ${countText}. Skipped ${skippedText} from the sheet.`;
+      : `Imported ${countText}. Skipped ${skippedText} from the sheet.`) + unidentifiedText(result);
   }
 
-  return label ? `Imported ${countText} from ${label}.` : `Imported ${countText}.`;
+  return (label ? `Imported ${countText} from ${label}.` : `Imported ${countText}.`) + unidentifiedText(result);
 }
 
 function sellerLeadsQueryKey(userId) {

@@ -14,6 +14,7 @@ import { useSellerSignalPage, leadSourcesQueryKey } from "../features/seller-sig
 import { leadsQueryKey } from "../features/seller-signal/useHomeLeadSummary";
 import { createLeadSource, replaceUserLeadsFromRows, replaceUserLeadsFromSheet } from "../features/seller-signal/services";
 import { parseSpreadsheetFile } from "../features/seller-signal/file-import";
+import { readConnectedSheetRows } from "../../../shared/connected-sheet-rows.js";
 import { SourceRow, LegacySourceCard } from "../screens/SpreadsheetScreen";
 import { Button, Feedback, Field, Icon } from "./ui";
 
@@ -80,9 +81,7 @@ export default function WorkspaceSpreadsheets({ userId, colors, request, onNavig
       const sheetUrl = url.trim();
       if (connected) {
         const { provider, file, sheetName } = connected;
-        const result = await integrationRequest({ action: 'read', provider, feature: 'sheets', input: { operation: 'rows', fileId: file.id, ...(file.driveId ? { driveId: file.driveId } : {}), sheetName } }, undefined, userId);
-        if (result.kind !== 'sheet-import' || !Array.isArray(result.rows)) throw new Error('Could not read this worksheet. Please retry.');
-        rows = result.rows; label = `${file.name} · ${sheetName}`; key = `${provider}:${file.driveId || ''}:${file.id}:${sheetName}`;
+        rows = await readConnectedSheetRows(integrationRequest, { provider, file, sheetName, userId }); label = `${file.name} · ${sheetName}`; key = `${provider}:${file.driveId || ''}:${file.id}:${sheetName}`;
       } else if (fromFile) {
         const picked = await DocumentPicker.getDocumentAsync({
           type: ['text/csv', 'text/comma-separated-values', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],

@@ -143,6 +143,7 @@ async function buildImportResult(allLeads, plan, options = {}) {
     updatedCount: plan.updates.length,
     totalRows,
     skippedCount: plan.skippedDuplicateCount,
+    unidentifiedCount: plan.unidentifiedCount,
     quality: buildImportQualityReport(allLeads, plan.toInsert, { cachedBuildings }),
   };
 }
