@@ -126,12 +126,12 @@ function expandCommonAbbreviations(value) {
     .replace(/\bapt\.?\b/gi, "Apartment");
 }
 
+// One pattern built once: this runs for every variant of every building name,
+// and rebuilding ten regexes per call made big accounts slow to load.
+const NUMBER_WORD_PATTERN = new RegExp(`\\b(?:${Object.keys(NUMBER_WORDS).join("|")})\\b`, "gi");
+
 function replaceNumberWords(value) {
-  let next = String(value || "");
-  for (const [word, digit] of Object.entries(NUMBER_WORDS)) {
-    next = next.replace(new RegExp(`\\b${word}\\b`, "gi"), digit);
-  }
-  return next;
+  return String(value || "").replace(NUMBER_WORD_PATTERN, (word) => NUMBER_WORDS[word.toLowerCase()]);
 }
 
 function toggleLeadingArticle(value) {

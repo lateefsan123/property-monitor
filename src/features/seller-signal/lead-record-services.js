@@ -7,6 +7,7 @@ import { ensureAccountStatuses } from "./status-registry";
 import { fetchStatuses } from "./seller-status-services";
 
 const SUPABASE_PAGE_SIZE = 1000;
+const SELLER_LIST_COLUMNS = "id, name, building, bedroom, unit, phone, status, last_contact, sent_at, next_follow_up_on, source_id, notes, message_draft";
 const EMPTY_PAGE = { leads: [], sentMap: {}, totalCount: 0, sourceCounts: {} };
 
 export async function selectAllRows(buildQuery, pageSize = SUPABASE_PAGE_SIZE) {
@@ -30,7 +31,8 @@ export async function selectAllRows(buildQuery, pageSize = SUPABASE_PAGE_SIZE) {
 export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
   await ensureAccountStatuses(userId, fetchStatuses);
   const [leadRows, sentLeadRows] = await Promise.all([
-    selectCountedRows((count) => supabase.from("leads").select("*", count ? { count: "exact" } : {}).eq("user_id", userId).order("id")),
+    // Only the fields mapStoredLeadRow uses; 6 pages at a time for big accounts.
+    selectCountedRows((count) => supabase.from("leads").select(SELLER_LIST_COLUMNS, count ? { count: "exact" } : {}).eq("user_id", userId).order("id"), 1000, 6),
     selectCountedRows((count) => supabase.from("sent_leads").select("lead_id, sent_at", count ? { count: "exact" } : {}).eq("user_id", userId).order("lead_id").order("id")),
   ]);
 

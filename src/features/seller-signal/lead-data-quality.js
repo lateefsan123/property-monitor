@@ -443,14 +443,42 @@ function buildQualityLevel(label) {
   return "review";
 }
 
+// Matching a building name is the slow part, and big accounts repeat the same
+// few thousand names across tens of thousands of sellers: match each name once.
+function memoizeByName(fn) {
+  const cache = new Map();
+  return (value) => {
+    const key = String(value ?? "");
+    if (!cache.has(key)) cache.set(key, fn(value));
+    return cache.get(key);
+  };
+}
+
+// The matches are kept between calls while the aliases and building list are
+// the same (the page re-runs this on every alias refresh, once a minute).
+let sharedResolver = { signature: null, resolve: null };
+function resolverFor(buildingAliases, cachedBuildings) {
+  const signature = JSON.stringify([
+    (buildingAliases || []).map((alias) => [alias.aliasName, alias.canonicalName]),
+    (cachedBuildings || []).length,
+    cachedBuildings?.[0]?.key || "",
+    cachedBuildings?.[cachedBuildings.length - 1]?.key || "",
+  ]);
+  if (sharedResolver.signature !== signature) {
+    sharedResolver = { signature, resolve: memoizeByName(createLeadBuildingResolver(buildingAliases, cachedBuildings)) };
+  }
+  return sharedResolver.resolve;
+}
+
 export function enrichLeadsWithDataQuality(leads, buildingAliases = [], cachedBuildings = [], userId = null) {
   const propertyRequired = !isAutomationAccount(userId);
-  const resolveBuilding = createLeadBuildingResolver(buildingAliases, cachedBuildings);
+  const resolveBuilding = resolverFor(buildingAliases, cachedBuildings);
+  const parseAddress = memoizeByName(parseBuildingAddressValue);
   const duplicateLookup = buildDuplicateLookup(leads, resolveBuilding);
 
   return (leads || []).map((lead) => {
     const buildingMatch = resolveBuilding(lead.building);
-    const addressParts = parseBuildingAddressValue(lead.building);
+    const addressParts = parseAddress(lead.building);
     const leadUnit = lead.unit || (addressParts.unit ? `Unit ${addressParts.unit}` : "");
     const issues = [];
 

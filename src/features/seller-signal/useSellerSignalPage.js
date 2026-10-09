@@ -17,7 +17,6 @@ import {
   fetchBuildingMarketData,
   fetchCachedBuildings,
   fetchDldFallbackTransactions,
-  fetchSellerBuildingCleanupLeads,
   fetchWhatsAppSendActivity,
   fetchUserLeads,
   fetchWhatsAppAccounts,
@@ -47,7 +46,6 @@ import {
   formatSourceLabel,
 } from "./page-helpers";
 import {
-  sellerBuildingCleanupQueryKey,
   sellerAutomationSettingsQueryKey,
   sellerDldFallbackQueryKey,
   sellerHotBuildingsQueryKey,
@@ -190,20 +188,12 @@ export function useSellerSignalPage(userId) {
     () => enrichLeadsWithDataQuality(leadsData.leads || EMPTY_LEADS, buildingAliases, cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS, userId),
     [buildingAliases, cachedBuildingsQuery.data, leadsData.leads, userId],
   );
-  const cleanupLeadsQuery = useQuery({
-    queryKey: sellerBuildingCleanupQueryKey(userId, effectiveSourceFilter),
-    // Deferred until the visible lead list has loaded so it never competes
-    // with first paint; it only powers the building-cleanup panel.
-    enabled: Boolean(userId) && !leadsQuery.isPending,
-    queryFn: () => fetchSellerBuildingCleanupLeads({
-      userId,
-      sourceFilter: effectiveSourceFilter,
-    }),
-    staleTime: 15 * 60 * 1000,
-  });
+  // The building panel's sellers come from the list already loaded (every
+  // seller with a building in the chosen spreadsheet), not a second download.
   const cleanupLeads = useMemo(
-    () => enrichLeadsWithDataQuality(cleanupLeadsQuery.data || EMPTY_LEADS, buildingAliases, cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS, userId),
-    [buildingAliases, cachedBuildingsQuery.data, cleanupLeadsQuery.data, userId],
+    () => leads.filter((lead) => String(lead.building || "").trim() && (effectiveSourceFilter === "all"
+      || (effectiveSourceFilter === LEGACY_SOURCE_ID ? !lead.sourceId : lead.sourceId === effectiveSourceFilter))),
+    [effectiveSourceFilter, leads],
   );
   const dataQualitySummary = useMemo(() => summarizeLeadDataQuality(leads), [leads]);
   const sentLeads = leadsData.sentMap || EMPTY_SENT_MAP;
@@ -542,7 +532,6 @@ export function useSellerSignalPage(userId) {
     leadsQuery.error
     || leadSourcesQuery.error
     || buildingAliasesQuery.error
-    || cleanupLeadsQuery.error
     || cachedBuildingsQuery.error
     || whatsappAccountsQuery.error
     || automationSettingsQuery.error
