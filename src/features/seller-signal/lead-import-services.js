@@ -263,14 +263,14 @@ async function insertWithRetry(rows, attempts) {
 // and counted, and the rest of the import carries on.
 async function insertLeadBatches(leads) {
   let inserted = 0;
-  let failed = 0;
+  let unsaved = [];
   let lastError = null;
   // Whole batches get three tries; halves of a failed batch get one each.
   async function save(rows, attempts = 3) {
     const error = await insertWithRetry(rows, attempts);
     if (!error) { inserted += rows.length; return; }
     lastError = error;
-    if (rows.length === 1) { failed += 1; return; }
+    if (rows.length === 1) { unsaved.push(rows[0]); return; }
     const middle = Math.ceil(rows.length / 2);
     await save(rows.slice(0, middle), 1);
     await save(rows.slice(middle), 1);
@@ -278,9 +278,18 @@ async function insertLeadBatches(leads) {
   for (let index = 0; index < leads.length; index += IMPORT_BATCH_SIZE) {
     await save(leads.slice(index, index + IMPORT_BATCH_SIZE));
     // Nothing saving at all (signed out, offline): stop rather than skip everyone.
-    if (!inserted && failed >= IMPORT_BATCH_SIZE) throw new Error(lastError?.message || "Could not save sellers. Check your connection and try again.");
+    if (!inserted && unsaved.length >= IMPORT_BATCH_SIZE) throw new Error(lastError?.message || "Could not save sellers. Check your connection and try again.");
   }
-  return { inserted, failed };
+  // Rows skipped during a dropped connection usually save a moment later:
+  // two final passes, a few seconds apart, before any are reported.
+  for (let pass = 1; pass <= 2 && unsaved.length; pass += 1) {
+    await wait(3000 * pass);
+    const retry = unsaved;
+    unsaved = [];
+    for (let index = 0; index < retry.length; index += 20) await save(retry.slice(index, index + 20));
+  }
+  if (unsaved.length) console.warn("Import rows not saved:", unsaved.length, lastError?.message || lastError);
+  return { inserted, failed: unsaved.length };
 }
 
 export async function insertLead({ userId, sourceId, fields }) {
