@@ -476,34 +476,36 @@ export function enrichLeadsWithDataQuality(leads, buildingAliases = [], cachedBu
   const parseAddress = memoizeByName(parseBuildingAddressValue);
   const duplicateLookup = buildDuplicateLookup(leads, resolveBuilding);
 
-  return (leads || []).map((lead) => {
-    const buildingMatch = resolveBuilding(lead.building);
-    const addressParts = parseAddress(lead.building);
-    const leadUnit = lead.unit || (addressParts.unit ? `Unit ${addressParts.unit}` : "");
-    const issues = [];
+  return (leads || []).map((lead) => withDataQuality(lead, resolveBuilding(lead.building), parseAddress(lead.building), duplicateLookup[lead.id] || null, propertyRequired));
+}
 
-    if (!lead.sourceId) addIssue(issues, "legacy_source", "Legacy source");
-    if (!String(lead.name || "").trim()) addIssue(issues, "missing_name", "Missing name");
-    if (!String(lead.phone || "").trim()) addIssue(issues, "missing_phone", "Missing phone");
-    if (propertyRequired && (!String(leadUnit || "").trim())) addIssue(issues, "missing_unit", "Missing unit");
-    if (propertyRequired && (buildingMatch.status === "missing")) addIssue(issues, "missing_building", "Missing building", "error");
-    if (propertyRequired && (buildingMatch.status === "invalid")) addIssue(issues, "invalid_building", buildingMatch.issue?.label || "Invalid building value", "error");
-    if (propertyRequired && (buildingMatch.status === "unmatched")) addIssue(issues, "unmatched_building", "Awaiting a verified building match from Repeat AI", "info");
-    if (duplicateLookup[lead.id]) addIssue(issues, "duplicate_lead", `${duplicateLookup[lead.id].count} duplicates`, "error");
+// One seller's building match and data-quality badge. The server-side seller
+// list passes the saved match and duplicate count from the database.
+export function withDataQuality(lead, buildingMatch, addressParts, duplicate, propertyRequired) {
+  const leadUnit = lead.unit || (addressParts.unit ? `Unit ${addressParts.unit}` : "");
+  const issues = [];
 
-    const label = buildQualityLabel(issues);
-    return {
-      ...lead,
-      buildingMatch,
-      resolvedBuilding: buildingMatch.canonicalName || lead.building || "",
-      dataQuality: {
-        label,
-        level: buildQualityLevel(label),
-        issues,
-        duplicate: duplicateLookup[lead.id] || null,
-      },
-    };
-  });
+  if (!lead.sourceId) addIssue(issues, "legacy_source", "Legacy source");
+  if (!String(lead.name || "").trim()) addIssue(issues, "missing_name", "Missing name");
+  if (!String(lead.phone || "").trim()) addIssue(issues, "missing_phone", "Missing phone");
+  if (propertyRequired && (!String(leadUnit || "").trim())) addIssue(issues, "missing_unit", "Missing unit");
+  if (propertyRequired && (buildingMatch.status === "missing")) addIssue(issues, "missing_building", "Missing building", "error");
+  if (propertyRequired && (buildingMatch.status === "invalid")) addIssue(issues, "invalid_building", buildingMatch.issue?.label || "Invalid building value", "error");
+  if (propertyRequired && (buildingMatch.status === "unmatched")) addIssue(issues, "unmatched_building", "Awaiting a verified building match from Repeat AI", "info");
+  if (duplicate) addIssue(issues, "duplicate_lead", `${duplicate.count} duplicates`, "error");
+
+  const label = buildQualityLabel(issues);
+  return {
+    ...lead,
+    buildingMatch,
+    resolvedBuilding: buildingMatch.canonicalName || lead.building || "",
+    dataQuality: {
+      label,
+      level: buildQualityLevel(label),
+      issues,
+      duplicate,
+    },
+  };
 }
 
 export function summarizeLeadDataQuality(leads) {

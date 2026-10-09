@@ -2,6 +2,16 @@ export function sellerLeadsQueryKey(userId) {
   return ["seller-signal", "leads", userId];
 }
 
+// One page of the server-side seller list. It sits under the full-list key,
+// so every refresh of the seller list refreshes these pages too.
+export function sellerListQueryKey(userId, params) {
+  return [...sellerLeadsQueryKey(userId), "list", params];
+}
+
+export function sellerListQueryPrefix(userId) {
+  return [...sellerLeadsQueryKey(userId), "list"];
+}
+
 export function sellerSourcesQueryKey(userId) {
   return ["seller-signal", "sources", userId];
 }

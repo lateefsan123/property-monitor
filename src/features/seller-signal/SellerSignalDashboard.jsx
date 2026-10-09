@@ -28,7 +28,7 @@ export default function SellerSignalDashboard({
   subscription,
   userId,
 }) {
-  const dashboard = useSellerSignalPage(userId);
+  const dashboard = useSellerSignalPage(userId, { focusLeadId: savedSellerId });
   const [addSellerOpen, setAddSellerOpen] = useState(false);
   const { favoriteIds, toggleFavorite, pinnedIds, togglePin } = useSellerFavorites(userId);
   // A seller opened from Activity that isn't among your sellers (deleted, or never
@@ -134,6 +134,7 @@ export default function SellerSignalDashboard({
         aliases={dashboard.buildingAliases}
         cachedBuildings={dashboard.cachedBuildings}
         leads={dashboard.cleanupLeads}
+        buildingCounts={dashboard.cleanupBuildingCounts}
         onSaveAlias={dashboard.actions.saveBuildingAlias}
         savingAliasName={dashboard.savingBuildingAliasName}
       />}

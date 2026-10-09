@@ -11,6 +11,7 @@ import {
   EMPTY_LEADS_DATA,
   getErrorMessage,
   LEGACY_SOURCE_ID,
+  restoreLeadsCache,
   updateLeadsCache,
 } from "./page-helpers";
 import {
@@ -138,7 +139,7 @@ export function createSellerSignalActions(context) {
       await queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) });
     } catch (persistError) {
       setActionError(getErrorMessage(persistError));
-      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
+      restoreLeadsCache(queryClient, userId, previousData);
     }
   }
 
@@ -158,7 +159,7 @@ export function createSellerSignalActions(context) {
       await updateLeadStatusMutation.mutateAsync({ leadId, status });
     } catch (statusError) {
       setActionError(getErrorMessage(statusError));
-      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
+      restoreLeadsCache(queryClient, userId, previousData);
     }
   }
 
@@ -210,7 +211,7 @@ export function createSellerSignalActions(context) {
       await queryClient.invalidateQueries({ queryKey: sellerBuildingCleanupQueryPrefix(userId) });
     } catch (saveError) {
       setActionError(getErrorMessage(saveError));
-      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
+      restoreLeadsCache(queryClient, userId, previousData);
     } finally {
       setSavingLeadId(null);
     }
@@ -219,22 +220,19 @@ export function createSellerSignalActions(context) {
   async function saveMessage(leadId, message) {
     if (!userId || !leadId) throw new Error("Please sign in again.");
     await updateLeadMutation.mutateAsync({ leadId, updates: { message_draft: message } });
-    queryClient.setQueryData(sellerLeadsQueryKey(userId), current => current ? { ...current, leads: current.leads.map(lead => lead.id === leadId ? { ...lead, message_draft: message } : lead) } : current);
+    updateLeadsCache(queryClient, userId, (current) => ({ ...current, leads: current.leads.map((lead) => (lead.id === leadId ? { ...lead, message_draft: message } : lead)) }));
   }
 
   async function saveNotes(leadId, notes) {
     if (!leadId) return;
     try {
       await updateLeadMutation.mutateAsync({ leadId, updates: { notes } });
-      queryClient.setQueryData(sellerLeadsQueryKey(userId), (current) => {
-        if (!current?.leads) return current;
-        return {
-          ...current,
-          leads: current.leads.map((lead) =>
-            lead.id === leadId ? { ...lead, notes: notes.trim() || "" } : lead,
-          ),
-        };
-      });
+      updateLeadsCache(queryClient, userId, (current) => ({
+        ...current,
+        leads: current.leads.map((lead) =>
+          lead.id === leadId ? { ...lead, notes: notes.trim() || "" } : lead,
+        ),
+      }));
     } catch (saveError) {
       setActionError(getErrorMessage(saveError));
     }
@@ -286,7 +284,7 @@ export function createSellerSignalActions(context) {
       await queryClient.invalidateQueries({ queryKey: sellerBuildingCleanupQueryPrefix(userId) });
     } catch (deleteError) {
       setActionError(getErrorMessage(deleteError));
-      queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData || EMPTY_LEADS_DATA);
+      restoreLeadsCache(queryClient, userId, previousData);
       setExpandedLeads(previousExpandedLeads);
       setEditingLeadId(previousEditingLeadId);
       setEditingLeadDraft(previousEditingLeadDraft);

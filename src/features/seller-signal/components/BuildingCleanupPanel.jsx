@@ -13,7 +13,9 @@ function readDismissed(userId) {
 // "Which building?": building names that match more than one place, e.g.
 // "Arabian Ranches" (1, 2 or 3). One tap saves the match for every seller with
 // that name; "Not sure" hides it. Shows only when something needs picking.
-export default function BuildingCleanupPanel({ userId, leads, aliases, onSaveAlias, savingAliasName }) {
+// buildingCounts (server-side seller list): sellers per building name, from the
+// database, used instead of counting the loaded sellers.
+export default function BuildingCleanupPanel({ userId, leads, buildingCounts = null, aliases, onSaveAlias, savingAliasName }) {
   const client = useQueryClient();
   const [dismissed, setDismissed] = useState(() => readDismissed(userId));
   const [expanded, setExpanded] = useState(false);
@@ -26,16 +28,18 @@ export default function BuildingCleanupPanel({ userId, leads, aliases, onSaveAli
 
   const rows = useMemo(() => {
     const answered = new Set((aliases || []).map((alias) => automaticAliasKey(alias.aliasName)));
-    const sellers = new Map();
-    for (const lead of leads || []) {
-      const key = automaticAliasKey(lead.building);
-      if (key) sellers.set(key, (sellers.get(key) || 0) + 1);
+    const sellers = buildingCounts ? new Map(buildingCounts) : new Map();
+    if (!buildingCounts) {
+      for (const lead of leads || []) {
+        const key = automaticAliasKey(lead.building);
+        if (key) sellers.set(key, (sellers.get(key) || 0) + 1);
+      }
     }
     return (choicesQuery.data || [])
       .map((choice) => ({ ...choice, key: automaticAliasKey(choice.rawName), sellers: sellers.get(automaticAliasKey(choice.rawName)) || 0 }))
       .filter((choice) => choice.sellers > 0 && !answered.has(choice.key) && !dismissed.has(choice.key))
       .sort((a, b) => b.sellers - a.sellers);
-  }, [aliases, choicesQuery.data, dismissed, leads]);
+  }, [aliases, buildingCounts, choicesQuery.data, dismissed, leads]);
 
   if (!rows.length) return null;
   const visible = expanded ? rows : rows.slice(0, VISIBLE_ROWS);

@@ -50,6 +50,7 @@ import {
   sellerDldFallbackQueryKey,
   sellerHotBuildingsQueryKey,
   sellerLeadsQueryKey,
+  sellerListQueryKey,
   sellerMarketAvailabilityQueryKey,
   sellerMarketDataQueryKey,
   sellerSendActivityQueryKey,
@@ -58,18 +59,25 @@ import {
   sellerWhatsAppAccountsQueryKey,
 } from "./queryKeys";
 import { createSellerSignalActions } from "./useSellerSignalActions";
+import { useSellerListMode } from "./seller-list-mode";
+import { fetchSellerBuildingCounts, fetchSellerListPage, sellerListDay } from "./seller-list-services";
+import { useSellerBuildingIndex } from "./useSellerBuildingIndex";
+import { PAGE_SIZE } from "./constants";
 import { useSellerSignalBuildingAliases } from "./useSellerSignalBuildingAliases";
 import { useSellerSignalMessageTemplates } from "./useSellerSignalMessageTemplates";
 
 const EMPTY_CACHED_BUILDINGS = [];
 const EMPTY_KEYS = [];
+const EMPTY_HOT = new Set();
 const EMPTY_INSIGHTS_RESULT = { hasTargets: false, matched: 0, pending: 0, updates: {} };
 
 function leadBuildingKeys(lead) {
   return getBuildingKeyVariants(lead.resolvedBuilding || lead.building);
 }
 
-export function useSellerSignalPage(userId) {
+// focusLeadId: a seller opened from elsewhere (Activity, the sidebar), loaded
+// on its own when the server-side list doesn't have it on the current page.
+export function useSellerSignalPage(userId, { focusLeadId = null } = {}) {
   const queryClient = useQueryClient();
   const legacySheetStorageKey = userId ? `seller-signal:legacy-sheet-url:${userId}` : null;
   const sourceFilterStorageKey = userId ? `seller-signal:source-filter:${userId}` : null;
@@ -117,6 +125,15 @@ export function useSellerSignalPage(userId) {
   const [deletingLeadId, setDeletingLeadId] = useState(null);
   const [addingLead, setAddingLead] = useState(false);
   const deferredSearchTerm = useDeferredValue(searchTerm);
+  const listMode = useSellerListMode(userId);
+  const serverMode = listMode.mode === "server";
+  const modeReady = listMode.mode !== null;
+  // The server list waits for typing to pause instead of querying each key.
+  const [serverSearch, setServerSearch] = useState(searchTerm);
+  useEffect(() => {
+    const timer = setTimeout(() => setServerSearch(searchTerm), 250);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
   const leadSourcesQuery = useQuery({
     queryKey: sellerSourcesQueryKey(userId),
@@ -178,7 +195,8 @@ export function useSellerSignalPage(userId) {
 
   const leadsQuery = useQuery({
     queryKey: sellerLeadsQueryKey(userId),
-    enabled: Boolean(userId),
+    // Big accounts use the server-side list instead of loading every seller.
+    enabled: Boolean(userId) && modeReady && !serverMode,
     queryFn: () => fetchUserLeads(userId),
     staleTime: 2 * 60 * 1000,
   });
@@ -309,7 +327,7 @@ export function useSellerSignalPage(userId) {
 
   const hotBuildingsQuery = useQuery({
     queryKey: sellerHotBuildingsQueryKey(userId, todayDateKey, dueBuildingKeys),
-    enabled: Boolean(userId) && dueBuildingKeys.length > 0,
+    enabled: Boolean(userId) && !serverMode && dueBuildingKeys.length > 0,
     queryFn: () => fetchBuildingKeysWithTransactionsOn(dueBuildingKeys, todayDateKey),
     staleTime: 10 * 60 * 1000,
   });
@@ -410,10 +428,81 @@ export function useSellerSignalPage(userId) {
     [buildingFilter, dataFilter, dataQualityFilter, deferredSearchTerm, effectiveSourceFilter, marketAvailability, sortOption, statusFilter, tabLeads, viewTab],
   );
 
-  const { totalPages, safePage, pagedLeads } = useMemo(
+  const clientPage = useMemo(
     () => paginateLeads(filteredLeads, currentPage),
     [currentPage, filteredLeads],
   );
+
+  // Server-side list: one page plus every count, filtered and ordered by
+  // seller_list_page with the same rules as above.
+  const listDayKey = sellerListDay().todayKey;
+  const serverParams = useMemo(() => ({
+    view: viewTab,
+    source: effectiveSourceFilter,
+    statusIds: [...normalizeStatusFilter(statusFilter)].sort(),
+    buildingKeys: [...buildingFilter].sort(),
+    dataFilter,
+    qualityFilter: dataQualityFilter,
+    search: serverSearch,
+    sortField: sortOption.field,
+    sortDir: sortOption.direction,
+    page: currentPage,
+    pageSize: PAGE_SIZE,
+    day: listDayKey,
+  }), [buildingFilter, currentPage, dataFilter, dataQualityFilter, effectiveSourceFilter, listDayKey, serverSearch, sortOption.direction, sortOption.field, statusFilter, viewTab]);
+  const serverListQuery = useQuery({
+    queryKey: sellerListQueryKey(userId, serverParams),
+    enabled: Boolean(userId) && serverMode,
+    queryFn: ({ signal }) => fetchSellerListPage(userId, serverParams, signal),
+    placeholderData: (previous) => previous,
+    staleTime: 30 * 1000,
+  });
+  const optionsParams = useMemo(() => ({
+    options: true,
+    view: viewTab,
+    source: effectiveSourceFilter,
+    statusIds: normalizeStatusFilter(statusFilter).includes("not_interested") ? ["not_interested"] : [],
+    buildingKeys: [],
+    dataFilter: "all",
+    qualityFilter: "all",
+    search: "",
+    sortField: "added",
+    sortDir: "desc",
+    page: 1,
+    pageSize: 0,
+    withBuildingOptions: true,
+    day: listDayKey,
+  }), [effectiveSourceFilter, listDayKey, statusFilter, viewTab]);
+  const serverOptionsQuery = useQuery({
+    queryKey: sellerListQueryKey(userId, optionsParams),
+    enabled: Boolean(userId) && serverMode,
+    queryFn: ({ signal }) => fetchSellerListPage(userId, optionsParams, signal),
+    placeholderData: (previous) => previous,
+    staleTime: 5 * 60 * 1000,
+  });
+  const serverPage = serverListQuery.data;
+  const focusOnPage = !focusLeadId || (serverPage?.leads || []).some((lead) => String(lead.id) === String(focusLeadId));
+  const focusQuery = useQuery({
+    queryKey: sellerListQueryKey(userId, { focus: String(focusLeadId), day: listDayKey }),
+    enabled: Boolean(userId) && serverMode && Boolean(serverPage) && !focusOnPage,
+    queryFn: ({ signal }) => fetchSellerListPage(userId, { ...serverParams, leadIds: [Number(focusLeadId)] }, signal),
+    staleTime: 30 * 1000,
+  });
+  const buildingCountsQuery = useQuery({
+    queryKey: sellerListQueryKey(userId, { buildingCounts: effectiveSourceFilter }),
+    enabled: Boolean(userId) && serverMode,
+    queryFn: () => fetchSellerBuildingCounts(effectiveSourceFilter),
+    staleTime: 5 * 60 * 1000,
+  });
+  useSellerBuildingIndex(userId, buildingAliasesQuery.data, cachedBuildingsQuery.data, serverMode);
+  // A missing or failing server list falls back to the full list for this visit.
+  const serverFailed = serverMode && serverListQuery.isError && !serverListQuery.data;
+  const { fallBack } = listMode;
+  useEffect(() => { if (serverFailed) fallBack(); }, [fallBack, serverFailed]);
+
+  const pagedLeads = serverMode ? (serverPage?.leads || EMPTY_LEADS) : clientPage.pagedLeads;
+  const totalPages = serverMode ? (serverPage?.totalPages || 1) : clientPage.totalPages;
+  const safePage = serverMode ? (serverPage?.safePage || 1) : clientPage.safePage;
 
   const insightTargets = useMemo(
     () => pagedLeads.filter((lead) => lead.building).map(buildInsightTarget),
@@ -514,7 +603,24 @@ export function useSellerSignalPage(userId) {
     [leadSources, sourceCounts],
   );
 
-  const isAllExpanded = filteredLeads.length > 0 && filteredLeads.every((lead) => expandedLeads[lead.id]);
+  // What the page and actions see: the full list, or the server page plus an opened seller.
+  const knownLeads = useMemo(() => {
+    if (!serverMode) return leads;
+    const extra = (focusQuery.data?.leads || []).filter((lead) => !pagedLeads.some((item) => item.id === lead.id));
+    return extra.length ? [...pagedLeads, ...extra] : pagedLeads;
+  }, [focusQuery.data, leads, pagedLeads, serverMode]);
+  const listedLeads = serverMode ? pagedLeads : filteredLeads;
+  const knownSentLeads = useMemo(
+    () => (serverMode ? { ...(focusQuery.data?.sentMap || {}), ...(serverPage?.sentMap || {}) } : sentLeads),
+    [focusQuery.data, sentLeads, serverMode, serverPage],
+  );
+  const cleanupBuildingCounts = useMemo(() => {
+    if (!serverMode) return null;
+    const counts = new Map();
+    for (const row of buildingCountsQuery.data || []) counts.set(row.building_key, Number(row.sellers));
+    return counts;
+  }, [buildingCountsQuery.data, serverMode]);
+  const isAllExpanded = listedLeads.length > 0 && listedLeads.every((lead) => expandedLeads[lead.id]);
   const sendAllCount = useMemo(
     () => pagedLeads.filter((lead) => {
       const phone = formatPhoneForWhatsApp(lead.phone);
@@ -548,9 +654,11 @@ export function useSellerSignalPage(userId) {
       : null;
   const error = actionError || fetchError || insightNotice;
   const notice = actionNotice;
-  const loading = leadsQuery.isPending && !leadsQuery.data;
+  const loading = !modeReady || (serverMode
+    ? (!serverPage || (!focusOnPage && focusQuery.isPending))
+    : (leadsQuery.isPending && !leadsQuery.data));
   const refreshing =
-    (leadsQuery.isFetching && !leadsQuery.isPending)
+    (serverMode ? serverListQuery.isFetching && Boolean(serverPage) : (leadsQuery.isFetching && !leadsQuery.isPending))
     || (insightTargets.length > 0 && (marketDataQuery.isFetching || dldFallbackQuery.isFetching));
   const actions = createSellerSignalActions({
     addingLead,
@@ -560,7 +668,7 @@ export function useSellerSignalPage(userId) {
     editingLeadId,
     effectiveSourceFilter,
     expandedLeads,
-    filteredLeads,
+    filteredLeads: listedLeads,
     importLeadsMutation,
     importLegacyLeadsMutation,
     importing,
@@ -569,13 +677,13 @@ export function useSellerSignalPage(userId) {
     leadSources,
     legacySheetStorageKey,
     legacySheetUrl,
-    leads,
+    leads: knownLeads,
     messageTemplate,
     messageTemplateImagePath,
     pagedLeads,
     persistLeadSourceMutation,
     queryClient,
-    sentLeads,
+    sentLeads: knownSentLeads,
     connectWhatsAppAccountMutation,
     connectedWhatsAppAccount,
     sendWhatsAppMessageMutation,
@@ -621,6 +729,7 @@ export function useSellerSignalPage(userId) {
     cachedBuildings: cachedBuildingsQuery.data || EMPTY_CACHED_BUILDINGS,
     copiedLeadId,
     cleanupLeads,
+    cleanupBuildingCounts,
     automation: {
       enabled: automationSettingsQuery.data?.autoWhatsAppEnabled !== false,
       monthlyReportsEnabled: automationSettingsQuery.data?.monthlyReportsEnabled === true,
@@ -639,18 +748,18 @@ export function useSellerSignalPage(userId) {
     connectingWhatsAppAccount: connectWhatsAppAccountMutation.isPending,
     dataFilter,
     dataQualityFilter,
-    dataQualitySummary,
+    dataQualitySummary: serverMode ? { trusted: 0, partial: 0, review: 0, ...(serverPage?.quality || {}) } : dataQualitySummary,
     deletingLeadId,
-    dueCount: cadence.due.length,
+    dueCount: serverMode ? (serverPage?.counts?.due || 0) : cadence.due.length,
     editingLeadDraft,
     editingLeadId,
     error,
     expandedLeads,
-    filteredLeads,
-    filteredLeadCount: filteredLeads.length,
-    hasLeads: leads.length > 0,
-    leads,
-    hotLeadIds,
+    filteredLeads: listedLeads,
+    filteredLeadCount: serverMode ? (serverPage?.total || 0) : filteredLeads.length,
+    hasLeads: serverMode ? (serverPage?.counts?.total_leads || 0) > 0 : leads.length > 0,
+    leads: knownLeads,
+    hotLeadIds: serverMode ? (serverPage?.hotLeadIds || EMPTY_HOT) : hotLeadIds,
     importing,
     importingLegacy,
     importingSourceId,
@@ -671,20 +780,20 @@ export function useSellerSignalPage(userId) {
     refreshing,
     safePage,
     savingLeadId,
-    scheduledCount: cadence.scheduled.length,
+    scheduledCount: serverMode ? (serverPage?.counts?.scheduled || 0) : cadence.scheduled.length,
     searchTerm,
     sendAllCount,
-    sentLeads,
+    sentLeads: knownSentLeads,
     savingBuildingAliasName: upsertBuildingAliasMutation.isPending
       ? upsertBuildingAliasMutation.variables?.aliasName
       : null,
     sheetUrl,
     showImport,
-    sourceCounts,
+    sourceCounts: serverMode ? { legacy: serverPage?.counts?.legacy || 0 } : sourceCounts,
     sourceFilter: effectiveSourceFilter,
     sourceOptions,
     buildingFilter,
-    buildingOptions,
+    buildingOptions: serverMode ? (serverOptionsQuery.data?.buildingOptions || EMPTY_LEADS) : buildingOptions,
     statusFilter,
     totalPages,
     viewTab,

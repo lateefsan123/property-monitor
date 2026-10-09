@@ -1,7 +1,7 @@
 import { buildMessage } from "./insight-utils";
 import { formatDateInputValue } from "./lead-utils";
 import { fetchLeadSources } from "./services";
-import { sellerLeadsQueryKey } from "./queryKeys";
+import { sellerLeadsQueryKey, sellerListQueryPrefix } from "./queryKeys";
 
 const MAX_LEAD_SOURCES = 10;
 
@@ -80,8 +80,19 @@ export function buildErroredInsights(targets, message, messageTemplate) {
   return updates;
 }
 
+// Instant feedback after an action: patch the full seller list if it's
+// loaded, and refresh server-side list pages (which have no full list).
 export function updateLeadsCache(queryClient, userId, updater) {
-  queryClient.setQueryData(sellerLeadsQueryKey(userId), (current) => updater(current || EMPTY_LEADS_DATA));
+  if (queryClient.getQueryData(sellerLeadsQueryKey(userId))) {
+    queryClient.setQueryData(sellerLeadsQueryKey(userId), (current) => updater(current || EMPTY_LEADS_DATA));
+  }
+  void queryClient.invalidateQueries({ queryKey: sellerListQueryPrefix(userId) });
+}
+
+// Undo after a failed action. Never writes an empty list in its place.
+export function restoreLeadsCache(queryClient, userId, previousData) {
+  if (previousData) queryClient.setQueryData(sellerLeadsQueryKey(userId), previousData);
+  void queryClient.invalidateQueries({ queryKey: sellerListQueryPrefix(userId) });
 }
 
 function isPlaceholderSourceLabel(source) {
