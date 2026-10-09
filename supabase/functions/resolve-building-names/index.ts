@@ -1,6 +1,6 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2.99.2';
-import { acceptAiChoice, askBuildingAi, buildCatalogue, findCandidates, numberedChoices, safeCandidate } from '../_shared/building-resolution.js';
+import { acceptAiChoice, askBuildingAi, buildCatalogue, findCandidates, numberedChoices, resolveDeterministic, safeCandidate } from '../_shared/building-resolution.js';
 
 const reply = (body: unknown, status = 200) => Response.json(body, { status });
 Deno.serve(async (req) => {
@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     if (!dryRunName && !claimed.data?.length) return reply({ processed: 0 });
     const rows = [];
     for (let offset = 0; ; offset += 1000) {
-      const page = await db.from('buildings').select('key,search_name,source_project,source_area').order('key').range(offset, offset + 999);
+      const page = await db.from('buildings').select('key,search_name,source_project,source_area,source').order('key').range(offset, offset + 999);
       if (page.error) throw page.error;
       rows.push(...page.data);
       if (page.data.length < 1000) break;
@@ -47,8 +47,10 @@ Deno.serve(async (req) => {
       try {
         const candidates = findCandidates(job.raw_name, catalogue);
         const safe = safeCandidate(candidates);
-        let chosen = safe?.score === 1 ? safe : null;
-        let method = 'exact';
+        // Exact, filler-word and tower-to-development matches need no AI.
+        const certain = resolveDeterministic(job.raw_name, catalogue);
+        let chosen = certain;
+        let method = certain?.method || 'exact';
         if (!chosen && safe) {
           const apiKey = Deno.env.get('OPENAI_API_KEY');
           if (!apiKey) throw new Error('AI configuration unavailable');

@@ -5,6 +5,7 @@ import { templateMediaType, templateMediaPayload } from '../_shared/template-med
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { loadAutomaticAliases } from "../_shared/automatic-aliases.js";
 import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
 import { followUpPending } from "../_shared/seller-follow-up.js";
 import { pickTemplateForStatus } from "../_shared/template-status.js";
@@ -622,6 +623,8 @@ function getAliasLookupKey(userId: string, aliasKey: string) {
 }
 
 const GLOBAL_ALIAS_USER_KEY = "*";
+// Automatic building matches used by the last alias lookup (run summary).
+let automaticMatchesLoaded = 0;
 
 async function fetchBuildingAliasLookup(adminClient: any, userIds: string[], aliasKeys: string[]) {
   const lookup = new Map<string, Set<string>>();
@@ -681,6 +684,14 @@ async function fetchBuildingAliasLookup(adminClient: any, userIds: string[], ali
     addAliases(userAliases.filter((alias) => wanted.has(cleanString(alias.alias_key) || "")), "user");
   }
 
+  // Automatic matches (the Sellers page's), where neither the account nor a
+  // global alias already covers that name.
+  const explicit = new Set(lookup.keys());
+  const automatic = await loadAutomaticAliases(adminClient, uniqueUserIds, new Set(uniqueAliasKeys));
+  automaticMatchesLoaded = automatic.length;
+  addAliases(automatic.filter((alias: any) => !explicit.has(getAliasLookupKey(String(alias.user_id), alias.alias_key))
+    && !explicit.has(getAliasLookupKey(GLOBAL_ALIAS_USER_KEY, alias.alias_key))), "user");
+
   return lookup;
 }
 
@@ -698,6 +709,9 @@ function expandLeadBuildingKeysWithAliases(lead: any, baseKeys: string[], aliasL
 
     for (const canonicalName of canonicalNames) {
       for (const key of getBuildingKeyVariants(canonicalName)) keys.add(key);
+      // DLD keys keep the area ("Peninsula Three, Business Bay" ->
+      // peninsulathreebusinessbay), which the variants above strip.
+      keys.add(normalizeToken(canonicalName));
     }
   }
 
@@ -1235,6 +1249,7 @@ Deno.serve(async (req) => {
       automationDisabledUsers: automationDisabledUserIds.size,
       scanned: leads.length,
       candidates: candidateLeads.length,
+      automaticMatches: automaticMatchesLoaded,
       nearby: { considered: nearbyLeads.length, sales: 0, listings: 0, nothingToSend: 0 },
       nearbyPreviews: [] as string[],
       eligible: 0,

@@ -3,6 +3,7 @@ import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { customStatusDays, loadCustomStatusDays } from "../_shared/custom-statuses.js";
 import { accountsNotDue, loadLastAutoSends, loadSendPacing } from "../_shared/send-pacing.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { loadAutomaticAliases } from "../_shared/automatic-aliases.js";
 import { baileysReachabilityError, isNotOnWhatsApp, markNotOnWhatsApp } from "../_shared/whatsapp-reachability.js";
 
 // Sends each active-pipeline seller a once-a-month recap of sales and Ejari
@@ -465,6 +466,13 @@ async function fetchBuildingAliasLookup(adminClient: any, userIds: string[], ali
     }
   }
 
+  // Automatic matches (the Sellers page's), where neither the account nor a
+  // global alias already covers that name.
+  const explicit = new Set(lookup.keys());
+  const automatic = await loadAutomaticAliases(adminClient, uniqueUserIds, new Set(uniqueAliasKeys));
+  addAliases(automatic.filter((alias: any) => !explicit.has(getAliasLookupKey(String(alias.user_id), alias.alias_key))
+    && !explicit.has(getAliasLookupKey(GLOBAL_ALIAS_USER_KEY, alias.alias_key))), "user");
+
   return lookup;
 }
 
@@ -479,6 +487,9 @@ function expandLeadBuildingKeysWithAliases(lead: any, baseKeys: string[], aliasL
 
     for (const canonicalName of canonicalNames) {
       for (const key of getBuildingKeyVariants(canonicalName)) keys.add(key);
+      // DLD keys keep the area ("Peninsula Three, Business Bay" ->
+      // peninsulathreebusinessbay), which the variants above strip.
+      keys.add(normalizeToken(canonicalName));
     }
   }
 
