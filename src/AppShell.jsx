@@ -30,6 +30,7 @@ import ProductTour from "./components/ProductTour";
 import VoicePanel from "./voice/VoicePanel";
 import SendVolumeDialog from "./features/seller-signal/components/SendVolumeDialog";
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
+import { useSavedSellerList } from "./features/seller-signal/useSavedSellerList";
 import { createBillingPortalSession } from "./billing";
 
 const VALID_PAGES = new Set(["home", "sellers", "activity", "listing-alerts", "spreadsheets", "schedule", "settings", "setup"]);
@@ -109,6 +110,7 @@ export default function AppShell({ displayName, subscription, userId }) {
   const [savedSellerSection, setSavedSellerSection] = useState(null);
   const [settingsSection, setSettingsSection] = useState(null);
   const prefetchPage = usePagePrefetch(userId, currentPage);
+  useSavedSellerList(userId);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
   const [assistantOpen, setAssistantOpen] = useState(false);

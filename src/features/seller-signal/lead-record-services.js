@@ -5,6 +5,7 @@ import { normalizeStatusFilter } from "./status-filter-utils";
 import { readPage, selectCountedRows } from "../../../shared/select-counted-rows.js";
 import { ensureAccountStatuses } from "./status-registry";
 import { fetchStatuses } from "./seller-status-services";
+import { readSellerList, saveSellerList } from "./seller-list-cache";
 
 const SUPABASE_PAGE_SIZE = 1000;
 const SELLER_LIST_COLUMNS = "id, name, building, bedroom, unit, phone, status, last_contact, sent_at, next_follow_up_on, source_id, notes, message_draft";
@@ -35,7 +36,20 @@ export async function fetchUserLeads(userId, today = startOfDay(new Date())) {
     selectCountedRows((count) => supabase.from("leads").select(SELLER_LIST_COLUMNS, count ? { count: "exact" } : {}).eq("user_id", userId).order("id"), 1000, 6),
     selectCountedRows((count) => supabase.from("sent_leads").select("lead_id, sent_at", count ? { count: "exact" } : {}).eq("user_id", userId).order("lead_id").order("id")),
   ]);
+  saveSellerList(userId, leadRows || [], sentLeadRows || []);
+  return mapUserLeadRows(leadRows, sentLeadRows, today);
+}
 
+// The list saved on this device from the last load, or null.
+export async function readSavedUserLeads(userId, today = startOfDay(new Date())) {
+  const saved = await readSellerList(userId);
+  if (!saved) return null;
+  // Custom statuses decide who's due, so load them before mapping.
+  await ensureAccountStatuses(userId, fetchStatuses);
+  return { ...mapUserLeadRows(saved.leadRows, saved.sentLeadRows, today), savedAt: saved.savedAt };
+}
+
+function mapUserLeadRows(leadRows, sentLeadRows, today) {
   const sentMap = {};
   for (const row of leadRows || []) {
     if (!row.sent_at) continue;
