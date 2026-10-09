@@ -2,7 +2,7 @@ import { supabase } from "../../supabase";
 import { PAGE_SIZE, STATUS_RULES } from "./constants";
 import { mapStoredLeadRow, startOfDay, sortLeadsByPriority } from "./lead-utils";
 import { normalizeStatusFilter } from "./status-filter-utils";
-import { selectCountedRows } from "../../../shared/select-counted-rows.js";
+import { readPage, selectCountedRows } from "../../../shared/select-counted-rows.js";
 import { ensureAccountStatuses } from "./status-registry";
 import { fetchStatuses } from "./seller-status-services";
 
@@ -15,7 +15,7 @@ export async function selectAllRows(buildQuery, pageSize = SUPABASE_PAGE_SIZE) {
 
   while (true) {
     const to = from + pageSize - 1;
-    const { data, error } = await buildQuery().range(from, to);
+    const { data, error } = await readPage(() => buildQuery().range(from, to));
     if (error) throw new Error(error.message);
 
     const batch = data || [];
