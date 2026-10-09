@@ -280,8 +280,11 @@ export function useSpreadsheetsPage(userId) {
     try {
       const key = `${userId}:${rowsKey}`;
       if (pendingFileSource.current?.key !== key) {
-        if (!canAddSource) throw new Error("You can have up to 10 spreadsheets.");
-        const source = await createLeadSource(userId, {
+        // Importing a file with the same name again continues that spreadsheet:
+        // sellers already in it are matched, so only missing rows are added.
+        const existing = leadSources.find((item) => !item.sheet_url && String(item.label || "").trim() === String(label || "").trim());
+        if (!existing && !canAddSource) throw new Error("You can have up to 10 spreadsheets.");
+        const source = existing || await createLeadSource(userId, {
           label,
           sheet_url: null,
           sort_order: getNextLeadSourceSortOrder(leadSources),

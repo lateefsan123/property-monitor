@@ -138,7 +138,8 @@ async function buildImportResult(allLeads, plan, options = {}) {
   const totalRows = allLeads.length;
   const cachedBuildings = options.cachedBuildings || [];
   return {
-    count: plan.toInsert.length,
+    count: options.saved ? options.saved.inserted : plan.toInsert.length,
+    failedCount: options.saved?.failed || 0,
     matchedCount: plan.matchedCount,
     updatedCount: plan.updates.length,
     totalRows,
@@ -238,12 +239,48 @@ export async function previewSheetBuildings(rawSheetUrl) {
   return { buildings, totalRows };
 }
 
-async function insertLeadBatches(leads) {
-  for (let index = 0; index < leads.length; index += IMPORT_BATCH_SIZE) {
-    const batch = leads.slice(index, index + IMPORT_BATCH_SIZE);
-    const { error } = await supabase.from("leads").insert(batch);
-    if (error) throw new Error(error.message);
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// One insert, retried twice after a short pause: a dropped connection
+// ("Failed to fetch") on one batch used to stop a 27,000-row import part-way.
+async function insertWithRetry(rows, attempts) {
+  let lastError = null;
+  for (let attempt = 0; attempt < attempts; attempt += 1) {
+    if (attempt) await wait(800 * attempt);
+    try {
+      const { error } = await supabase.from("leads").insert(rows);
+      if (!error) return null;
+      lastError = error;
+    } catch (error) {
+      lastError = error;
+    }
   }
+  return lastError;
+}
+
+// Saves sellers 200 at a time. A batch that still fails after retrying is
+// split in half until the rows that won't save are found; those are skipped
+// and counted, and the rest of the import carries on.
+async function insertLeadBatches(leads) {
+  let inserted = 0;
+  let failed = 0;
+  let lastError = null;
+  // Whole batches get three tries; halves of a failed batch get one each.
+  async function save(rows, attempts = 3) {
+    const error = await insertWithRetry(rows, attempts);
+    if (!error) { inserted += rows.length; return; }
+    lastError = error;
+    if (rows.length === 1) { failed += 1; return; }
+    const middle = Math.ceil(rows.length / 2);
+    await save(rows.slice(0, middle), 1);
+    await save(rows.slice(middle), 1);
+  }
+  for (let index = 0; index < leads.length; index += IMPORT_BATCH_SIZE) {
+    await save(leads.slice(index, index + IMPORT_BATCH_SIZE));
+    // Nothing saving at all (signed out, offline): stop rather than skip everyone.
+    if (!inserted && failed >= IMPORT_BATCH_SIZE) throw new Error(lastError?.message || "Could not save sellers. Check your connection and try again.");
+  }
+  return { inserted, failed };
 }
 
 export async function insertLead({ userId, sourceId, fields }) {
@@ -348,9 +385,9 @@ export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
   const existingRows = await fetchExistingLeadRows(userId, null);
   const plan = buildLeadSyncPlan(existingRows, incomingLeads);
   await applyLeadFieldFills(userId, plan.updates);
-  await insertLeadBatches(plan.toInsert);
+  const saved = await insertLeadBatches(plan.toInsert);
 
-  return buildImportResult(incomingLeads, plan, { cachedBuildings });
+  return buildImportResult(incomingLeads, plan, { cachedBuildings, saved });
 }
 
 export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }) {
@@ -402,7 +439,7 @@ async function importUserLeadRecords({ userId, source, mapping, records }) {
   const existingRows = await fetchExistingLeadRows(userId, sourceId);
   const plan = buildLeadSyncPlan(existingRows, incomingLeads);
   await applyLeadFieldFills(userId, plan.updates);
-  await insertLeadBatches(plan.toInsert);
+  const saved = await insertLeadBatches(plan.toInsert);
 
-  return buildImportResult(incomingLeads, plan, { cachedBuildings });
+  return buildImportResult(incomingLeads, plan, { cachedBuildings, saved });
 }

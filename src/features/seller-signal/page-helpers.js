@@ -115,7 +115,10 @@ export function formatSourceLabel(source) {
 // Rows that had no name with a phone or building, so they weren't imported.
 export function unidentifiedText(result) {
   const count = Number(result?.unidentifiedCount || 0);
-  return count > 0 ? ` ${count} row${count === 1 ? "" : "s"} had no name with a phone or building, so ${count === 1 ? "it wasn't" : "they weren't"} imported.` : "";
+  const failed = Number(result?.failedCount || 0);
+  const missing = count > 0 ? ` ${count} row${count === 1 ? "" : "s"} had no name with a phone or building, so ${count === 1 ? "it wasn't" : "they weren't"} imported.` : "";
+  const unsaved = failed > 0 ? ` ${failed} row${failed === 1 ? "" : "s"} couldn't be saved; import the sheet again to retry ${failed === 1 ? "it" : "them"}.` : "";
+  return missing + unsaved;
 }
 
 export function formatImportSuccessMessage(label, result) {
