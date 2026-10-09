@@ -164,6 +164,10 @@ export default function SettingsPage({
                 <SettingsToggle label="Transaction updates" checked={data.automation.autoWhatsAppEnabled} disabled={data.automation.loading || data.automation.saving}
                   onChange={(value) => data.automation.set("autoWhatsAppEnabled", value)} />
               </SettingsItem>
+              <SettingsItem label="Nearby sales" description="When a seller's building has no recent sales, send recent sales nearby instead, or what's listed for sale in their building.">
+                <SettingsToggle label="Nearby sales" checked={data.automation.nearbySalesEnabled} disabled={data.automation.loading || data.automation.saving}
+                  onChange={(value) => data.automation.set("nearbySalesEnabled", value)} />
+              </SettingsItem>
               <SettingsItem label="Monthly reports" description="Send each seller a summary of last month's sales in their building, once a month.">
                 <SettingsToggle label="Monthly reports" checked={data.automation.monthlyReportsEnabled} disabled={data.automation.loading || data.automation.saving}
                   onChange={(value) => data.automation.set("monthlyReportsEnabled", value)} />

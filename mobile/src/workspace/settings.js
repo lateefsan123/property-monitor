@@ -39,6 +39,7 @@ function Automations({ userId, colors }) {
     <Feedback colors={colors} error={query.error || mutation.error} loading={query.isPending} onRetry={query.refetch} />
     {[
       ["autoWhatsAppEnabled", "Transaction updates", "Send sellers matching property transaction updates."],
+      ["nearbySalesEnabled", "Nearby sales", "When a seller's building has no recent sales, send recent sales nearby instead, or what's listed for sale in their building."],
       ["monthlyReportsEnabled", "Monthly reports", "Send each seller a summary of last month's sales in their building, once a month."],
       ["statusFollowupsEnabled", "Status follow-ups", "Send the template for a seller's status when they're due. Stops when they reply."],
     ].map(([id, label, description]) => (

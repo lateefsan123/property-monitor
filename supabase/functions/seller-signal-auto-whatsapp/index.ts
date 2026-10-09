@@ -1,5 +1,6 @@
 import { AUTOMATION_ACCOUNT_ID } from '../_shared/automation-account.js';
 import { baileysReachabilityError, isNotOnWhatsApp, markNotOnWhatsApp } from "../_shared/whatsapp-reachability.js";
+import { buildListingsMessage, leadArea, listingSnapshot, loadBuildingAreas, loadListingSnapshots, loadNearbySalesUsers, nearbyTemplate, saleArea } from "../_shared/nearby-sales.ts";
 import { templateMediaType, templateMediaPayload } from '../_shared/template-media.js';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { loadScheduleQueue } from "../_shared/building-schedule.js";
@@ -28,6 +29,8 @@ const DEFAULT_DAILY_CAP = 40;
 // 1,000 rows, so fetchScannableLeads paginates until the full set is loaded.
 const DEFAULT_MAX_LEADS_PER_RUN = 0;
 const DEFAULT_LOOKBACK_DAYS = 2;
+// Nearby sales: sellers per account looked at each run (one is sent at most).
+const NEARBY_LEADS_PER_ACCOUNT = 60;
 // Per-seller cooldown: hot buildings trade several times a week, and unlimited
 // per-date alerts meant the same sellers got 3-4 messages a fortnight while
 // the daily cap starved everyone else (max observed: 4 in 14 days).
@@ -368,6 +371,7 @@ function buildMessage(
   transactions: any[],
   fallbackLocation: string | null,
   templateContent = DEFAULT_MESSAGE_TEMPLATE,
+  nearby = false,
 ) {
   const name = cleanString(lead.name) || "there";
   const cleanedBuilding = cleanBuildingName(lead.building) || "your building";
@@ -385,9 +389,10 @@ function buildMessage(
     transactionLines.push(`- ${parts.join(" | ")}`);
   }
 
-  const safeTemplate = String(templateContent || DEFAULT_MESSAGE_TEMPLATE).includes("{{transactions}}")
+  const chosenTemplate = String(templateContent || DEFAULT_MESSAGE_TEMPLATE).includes("{{transactions}}")
     ? String(templateContent || DEFAULT_MESSAGE_TEMPLATE)
     : DEFAULT_MESSAGE_TEMPLATE;
+  const safeTemplate = nearby ? nearbyTemplate(chosenTemplate) : chosenTemplate;
 
   return safeTemplate
     .replaceAll("{{name}}", name)
@@ -703,10 +708,11 @@ function expandLeadBuildingKeysWithAliases(lead: any, baseKeys: string[], aliasL
 
 // One query for the lookback days (a few hundred rows across Dubai), filtered to
 // the sellers' buildings in memory, instead of one query per 100 building keys.
-async function fetchRecentTransactions(adminClient: any, buildingKeys: string[], dateKeys: string[]) {
+// salesByArea (nearby sales): also collects every sale by DLD area.
+async function fetchRecentTransactions(adminClient: any, buildingKeys: string[], dateKeys: string[], salesByArea?: Map<string, any[]>) {
   const transactionsByKey = new Map<string, any[]>();
   const wanted = new Set(buildingKeys.filter(Boolean));
-  if (!wanted.size || !dateKeys.length) return transactionsByKey;
+  if ((!wanted.size && !salesByArea) || !dateKeys.length) return transactionsByKey;
   for (let from = 0; ; from += DATA_PAGE_SIZE) {
     const { data, error } = await adminClient
       .from("transactions")
@@ -718,9 +724,16 @@ async function fetchRecentTransactions(adminClient: any, buildingKeys: string[],
     if (error) throw new HttpError(500, error.message);
     const page = data || [];
     for (const transaction of page) {
-      if (!wanted.has(transaction.building_key)) continue;
       const amount = Number(transaction?.amount);
       if (!Number.isFinite(amount) || amount < MIN_SALE_AMOUNT) continue;
+      // "#community"/"#area" rows copy real sales for community matching.
+      const area = salesByArea && !String(transaction.building_key || "").includes("#") ? saleArea(transaction) : null;
+      if (area) {
+        const sales = salesByArea!.get(area) || [];
+        sales.push(transaction);
+        salesByArea!.set(area, sales);
+      }
+      if (!wanted.has(transaction.building_key)) continue;
       const list = transactionsByKey.get(transaction.building_key) || [];
       list.push(transaction);
       transactionsByKey.set(transaction.building_key, list);
@@ -1154,15 +1167,45 @@ Deno.serve(async (req) => {
       for (const key of keys) allBuildingKeys.add(key);
     }
 
-    const transactionsByKey = await fetchRecentTransactions(adminClient, [...allBuildingKeys], activeDateKeys);
+    const nearbyUsers = await loadNearbySalesUsers(adminClient, [...accountByUser.keys()]);
+    // Dry runs can preview nearby sales for an account without turning it on.
+    if (dryRun && Array.isArray(input?.previewNearbyUserIds)) {
+      for (const id of input.previewNearbyUserIds) if (accountByUser.has(String(id))) nearbyUsers.add(String(id));
+    }
+    const salesByArea = nearbyUsers.size ? new Map<string, any[]>() : undefined;
+    const transactionsByKey = await fetchRecentTransactions(adminClient, [...allBuildingKeys], activeDateKeys, salesByArea);
     // Only sellers whose building had a sale in the lookback can be sent anything,
     // so the per-seller checks below run on them alone (not every seller, every run).
     const candidateLeads = leads.filter((lead: any) =>
       (keysByLead.get(Number(lead.id)) || []).some((key) => (transactionsByKey.get(key) || []).length > 0));
-    const statusDays = await loadCustomStatusDays(adminClient, candidateLeads.map((lead: any) => lead.user_id));
+
+    // Nearby sales (accounts that turned it on): after those sellers, a few
+    // others not contacted within the cooldown, sent sales in their area or,
+    // failing that, what's listed in their building.
+    const candidateIds = new Set(candidateLeads.map((lead: any) => Number(lead.id)));
+    const nearbyLeads: any[] = [];
+    const nearbyPerUser = new Map<string, number>();
+    for (const lead of nearbyUsers.size ? leads : []) {
+      const userId = String(lead.user_id);
+      if (!nearbyUsers.has(userId) || candidateIds.has(Number(lead.id))) continue;
+      const sentAtMs = lead.sent_at ? new Date(lead.sent_at).getTime() : 0;
+      if (sentAtMs && cooldownMs > 0 && startedAt.getTime() - sentAtMs < cooldownMs) continue;
+      if ((nearbyPerUser.get(userId) || 0) >= NEARBY_LEADS_PER_ACCOUNT) continue;
+      nearbyPerUser.set(userId, (nearbyPerUser.get(userId) || 0) + 1);
+      nearbyLeads.push(lead);
+    }
+    const buildingAreas = nearbyLeads.length
+      ? await loadBuildingAreas(adminClient, nearbyLeads.flatMap((lead: any) => keysByLead.get(Number(lead.id)) || []))
+      : new Map<string, string>();
+    const areaByLead = new Map<number, string | null>();
+    for (const lead of nearbyLeads) areaByLead.set(Number(lead.id), leadArea(keysByLead.get(Number(lead.id)) || [], buildingAreas));
+    const listingSnapshots = await loadListingSnapshots(adminClient, nearbyLeads.map((lead: any) => stripLocationSuffix(cleanBuildingName(lead.building)) || ""));
+    let listingLookups = 1; // Bayut lookups allowed this run; each building is cached a week.
+
+    const statusDays = await loadCustomStatusDays(adminClient, [...candidateLeads, ...nearbyLeads].map((lead: any) => lead.user_id));
     const existingMessagePairs = await fetchExistingMarketMessagePairs(
       adminClient,
-      candidateLeads.map((lead: any) => Number(lead.id)),
+      [...candidateLeads, ...nearbyLeads].map((lead: any) => Number(lead.id)),
       activeDateKeys,
     );
     const existingRecipientDateKeys = await fetchExistingMarketRecipientDateKeys(
@@ -1192,6 +1235,8 @@ Deno.serve(async (req) => {
       automationDisabledUsers: automationDisabledUserIds.size,
       scanned: leads.length,
       candidates: candidateLeads.length,
+      nearby: { considered: nearbyLeads.length, sales: 0, listings: 0, nothingToSend: 0 },
+      nearbyPreviews: [] as string[],
       eligible: 0,
       attempted: 0,
       sent: 0,
@@ -1201,7 +1246,7 @@ Deno.serve(async (req) => {
         cooldown: 0,
         manualFollowUp: 0,
         noPhone: 0,
-        noTodayTransactions: leads.length - candidateLeads.length,
+        noTodayTransactions: leads.length - candidateLeads.length - nearbyLeads.length,
         notInterested: 0,
         duplicateClaim: 0,
         duplicateRecipientDate: 0,
@@ -1217,7 +1262,13 @@ Deno.serve(async (req) => {
     };
 
     // Queue the candidates; count today's sends per building across all sellers.
-    const scheduleQueue = await loadScheduleQueue(adminClient, candidateLeads, startedAt, leads);
+    const ownQueue = await loadScheduleQueue(adminClient, candidateLeads, startedAt, leads);
+    const nearbyQueue = await loadScheduleQueue(adminClient, nearbyLeads, startedAt, leads);
+    // Sellers with sales in their own building always go first.
+    const scheduleQueue = {
+      *[Symbol.iterator]() { yield* ownQueue; yield* nearbyQueue; },
+      recordSend(lead: any) { ownQueue.recordSend(lead); nearbyQueue.recordSend(lead); },
+    };
     let scheduleScanned = 0;
     for (const lead of scheduleQueue) {
       if (maxLeads > 0 && scheduleScanned >= maxLeads) break;
@@ -1245,11 +1296,45 @@ Deno.serve(async (req) => {
       }
 
       const keys = keysByLead.get(leadId) || [];
+      const isNearby = !candidateIds.has(leadId);
       // Prefer the freshest transaction date that has not been messaged yet
       // (today first, then the lookback days).
       let matchedTransactions: any[] = [];
       let matchedDateKey: string | null = null;
-      for (const key of keys) {
+      let listings: any = null;
+      if (isNearby) {
+        // One message per account per run: don't look further once it's used.
+        const accountId = String(lead.user_id || "");
+        if (sentThisRun.has(accountId) || cappedUsers.has(accountId) || (dailyAutoMessageCounts.get(accountId) || 0) >= dailyCap) {
+          summary.skipped[sentThisRun.has(accountId) ? "spacing" : "dailyCap"] += 1;
+          continue;
+        }
+        const areaSales = salesByArea?.get(areaByLead.get(leadId) || "") || [];
+        for (const dateKey of activeDateKeys) {
+          if (existingMessagePairs.has(`${leadId}:${dateKey}`)) continue;
+          const forDate = areaSales.filter((transaction: any) => transaction.date === dateKey);
+          if (forDate.length) {
+            matchedTransactions = forDate;
+            matchedDateKey = dateKey;
+            break;
+          }
+        }
+        if (!matchedDateKey && !existingMessagePairs.has(`${leadId}:${todayDateKey}`)) {
+          // Searched without the area suffix ("Burj Vista 1, Downtown Dubai").
+          const building = stripLocationSuffix(cleanBuildingName(lead.building)) || "";
+          const result = await listingSnapshot(adminClient, building, keys, listingLookups > 0, listingSnapshots);
+          if (result.fetched) listingLookups -= 1;
+          if (Number(result.snapshot?.listing_count) > 0) {
+            listings = result.snapshot;
+            matchedDateKey = todayDateKey;
+          }
+        }
+        if (!matchedDateKey) {
+          summary.nearby.nothingToSend += 1;
+          continue;
+        }
+      }
+      for (const key of isNearby ? [] : keys) {
         const transactions = transactionsByKey.get(key) || [];
         if (!transactions.length) continue;
         for (const dateKey of activeDateKeys) {
@@ -1264,7 +1349,7 @@ Deno.serve(async (req) => {
         if (matchedDateKey) break;
       }
 
-      if (!matchedTransactions.length || !matchedDateKey) {
+      if (!isNearby && (!matchedTransactions.length || !matchedDateKey)) {
         const hadAnyTransactions = keys.some((key) => (transactionsByKey.get(key) || []).length > 0);
         if (hadAnyTransactions) summary.skipped.alreadySentForDate += 1;
         else summary.skipped.noTodayTransactions += 1;
@@ -1299,7 +1384,15 @@ Deno.serve(async (req) => {
 
       if (dryRun) {
         scheduleQueue.recordSend(lead);
-        summary.dryRunMatches.push({ leadId, transactionCount: matchedTransactions.length, transactionDate: matchedDateKey });
+        summary.dryRunMatches.push({ leadId, transactionCount: matchedTransactions.length, transactionDate: matchedDateKey, ...(isNearby ? { nearby: listings ? "listings" : "sales" } : {}) } as any);
+        if (isNearby) summary.nearby[listings ? "listings" : "sales"] += 1;
+        // A few nearby messages as they'd read, to check the wording.
+        if (isNearby && summary.nearbyPreviews.length < 3) {
+          const picked = pickTemplateForStatus(templatesByUser.get(lead.user_id) || [], lead.status);
+          summary.nearbyPreviews.push(listings
+            ? buildListingsMessage(cleanString(lead.name) || "there", cleanBuildingName(lead.building) || "your building", listings)
+            : buildMessage(lead, matchedTransactions, null, picked?.content, true));
+        }
         existingRecipientDateKeys.add(recipientDateKey);
         const projectedDailyCount = currentDailyCount + 1;
         dailyAutoMessageCounts.set(userId, projectedDailyCount);
@@ -1326,12 +1419,15 @@ Deno.serve(async (req) => {
       try {
         const picked = pickTemplateForStatus(templatesByUser.get(lead.user_id) || [], lead.status);
         const template = picked ? { content: picked.content, imagePath: cleanString(picked.image_path) } : null;
-        const body = buildMessage(
-          lead,
-          matchedTransactions,
-          cleanBuildingName(lead.building),
-          template?.content,
-        );
+        const body = listings
+          ? buildListingsMessage(cleanString(lead.name) || "there", cleanBuildingName(lead.building) || "your building", listings)
+          : buildMessage(
+            lead,
+            matchedTransactions,
+            isNearby ? null : cleanBuildingName(lead.building),
+            template?.content,
+            isNearby,
+          );
         const isFollowUp = template?.imagePath && await hasPriorWhatsAppContact(adminClient, { userId: lead.user_id, phone: to, sentAt: lead.sent_at });
         const imageUrl = await createTemplateImageUrl(adminClient, isFollowUp ? null : template?.imagePath || null);
         const mediaType = templateMediaType(template?.imagePath);
@@ -1408,6 +1504,7 @@ Deno.serve(async (req) => {
         existingMessagePairs.add(`${leadId}:${matchedDateKey}`);
         existingRecipientDateKeys.add(recipientDateKey);
         summary.sent += 1;
+        if (isNearby) summary.nearby[listings ? "listings" : "sales"] += 1;
         scheduleQueue.recordSend(lead);
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unknown error";

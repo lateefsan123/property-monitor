@@ -8,7 +8,7 @@ export const DAILY_AUTOMATION_CAP = 40;
 export { DEFAULT_SEND_INTERVAL_MINUTES, DEFAULT_SEND_WINDOW, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit, suggestedInterval } from "../supabase/functions/_shared/send-pacing.js";
 import { normalizePacing } from "../supabase/functions/_shared/send-pacing.js";
 
-const PACING_COLUMNS = "send_window_start_hour, send_window_end_hour, send_interval_minutes, daily_message_limit, status_followups_enabled";
+const PACING_COLUMNS = "send_window_start_hour, send_window_end_hour, send_interval_minutes, daily_message_limit, status_followups_enabled, nearby_sales_enabled";
 const COLUMNS = `auto_whatsapp_enabled, monthly_reports_enabled, monthly_report_daily_share, ${PACING_COLUMNS}`;
 const SHARE_COLUMNS = "auto_whatsapp_enabled, monthly_reports_enabled, monthly_report_daily_share";
 const LEGACY_COLUMNS = "auto_whatsapp_enabled, monthly_reports_enabled";
@@ -25,6 +25,8 @@ function toSettings(data) {
     sendIntervalMinutes: pacing.interval,
     dailyMessageLimit: clampDailyLimit(data?.daily_message_limit),
     statusFollowupsEnabled: data?.status_followups_enabled === true,
+    // Off unless the account turns it on.
+    nearbySalesEnabled: data?.nearby_sales_enabled === true,
   };
 }
 
@@ -82,6 +84,7 @@ export function createAutomationServices(supabase) {
     }
     if (settings.dailyMessageLimit !== undefined) row.daily_message_limit = clampDailyLimit(settings.dailyMessageLimit);
     if (settings.statusFollowupsEnabled !== undefined) row.status_followups_enabled = Boolean(settings.statusFollowupsEnabled);
+    if (settings.nearbySalesEnabled !== undefined) row.nearby_sales_enabled = Boolean(settings.nearbySalesEnabled);
 
     let { data, error } = await supabase
       .from("seller_signal_automation_settings")
@@ -95,6 +98,7 @@ export function createAutomationServices(supabase) {
       delete row.send_interval_minutes;
       delete row.daily_message_limit;
       delete row.status_followups_enabled;
+      delete row.nearby_sales_enabled;
       ({ data, error } = await supabase
         .from("seller_signal_automation_settings")
         .upsert(row, { onConflict: "user_id" })

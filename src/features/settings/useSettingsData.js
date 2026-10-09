@@ -37,6 +37,7 @@ export function useSettingsData(userId) {
     sendIntervalMinutes: automation.data?.sendIntervalMinutes ?? DEFAULT_SEND_INTERVAL_MINUTES,
     dailyMessageLimit: automation.data?.dailyMessageLimit ?? 40,
     statusFollowupsEnabled: automation.data?.statusFollowupsEnabled === true,
+    nearbySalesEnabled: automation.data?.nearbySalesEnabled === true,
   };
 
   return {
