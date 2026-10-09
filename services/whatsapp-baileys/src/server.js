@@ -554,6 +554,20 @@ app.post("/sessions/:sessionId/messages", requireToken, async (req, res) => {
     }
 
     const jid = jidNormalizedUser(`${to}@s.whatsapp.net`);
+    // Don't send to numbers that aren't on WhatsApp; callers flag the seller.
+    // If the lookup itself fails, send as before.
+    let registered = true;
+    try {
+      // Registered numbers come back with exists: true; others aren't listed.
+      const results = await session.socket.onWhatsApp(jid);
+      if (Array.isArray(results)) registered = results.some((item) => item?.exists);
+    } catch (error) {
+      logger.warn({ error, sessionId: req.params.sessionId }, "Could not check whether the number is on WhatsApp");
+    }
+    if (!registered) {
+      res.status(422).json({ error: "This number isn't on WhatsApp.", code: "not_on_whatsapp" });
+      return;
+    }
     const response = await session.socket.sendMessage(
       jid,
       content,

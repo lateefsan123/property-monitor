@@ -1,4 +1,5 @@
 import { AUTOMATION_ACCOUNT_ID } from '../_shared/automation-account.js';
+import { baileysReachabilityError, isNotOnWhatsApp, markNotOnWhatsApp } from "../_shared/whatsapp-reachability.js";
 import { templateMediaType, templateMediaPayload } from '../_shared/template-media.js';
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { loadScheduleQueue } from "../_shared/building-schedule.js";
@@ -157,7 +158,21 @@ function replaceNumberWords(value: unknown) {
     .replace(/\bfive\b/gi, "5");
 }
 
+// Sellers share a few dozen building names, and each name's variants take
+// hundreds of regex passes: computing them once per name keeps a run well
+// inside the function's CPU limit (per seller, runs failed with 546).
+const buildingKeyCache = new Map<string, string[]>();
+
 function getBuildingKeyVariants(raw: unknown) {
+  const name = String(raw ?? "");
+  const cached = buildingKeyCache.get(name);
+  if (cached) return cached;
+  const keys = computeBuildingKeyVariants(name);
+  buildingKeyCache.set(name, keys);
+  return keys;
+}
+
+function computeBuildingKeyVariants(raw: unknown) {
   const cleaned = cleanBuildingName(raw);
   const variants = new Set<string>();
   const addVariant = (value: unknown) => {
@@ -438,7 +453,7 @@ async function baileysFetch(path: string, options: RequestInit = {}) {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new HttpError(502, payload?.error || `Baileys service request failed with ${response.status}`);
+    throw baileysReachabilityError(payload) || new HttpError(502, payload?.error || `Baileys service request failed with ${response.status}`);
   }
 
   return payload;
@@ -532,6 +547,7 @@ async function fetchScannableLeads(adminClient: any, userIds: string[], maxLeads
       .from("leads")
       .select("id, user_id, name, phone, building, sent_at, status, next_follow_up_on")
       .in("user_id", userIds)
+      .is("whatsapp_missing_at", null)
       .not("phone", "is", null)
       .neq("phone", "")
       .not("building", "is", null)
@@ -663,7 +679,10 @@ async function fetchBuildingAliasLookup(adminClient: any, userIds: string[], ali
   return lookup;
 }
 
-function expandLeadBuildingKeysWithAliases(lead: any, baseKeys: string[], aliasLookup: Map<string, Set<string>>) {
+function expandLeadBuildingKeysWithAliases(lead: any, baseKeys: string[], aliasLookup: Map<string, Set<string>>, cache?: Map<string, string[]>) {
+  const cacheKey = `${lead.user_id}|${lead.building}`;
+  const cached = cache?.get(cacheKey);
+  if (cached) return cached;
   const keys = new Set(baseKeys);
   for (const aliasKey of baseKeys) {
     const userCanonicalNames = aliasLookup.get(getAliasLookupKey(String(lead.user_id || ""), aliasKey));
@@ -677,7 +696,9 @@ function expandLeadBuildingKeysWithAliases(lead: any, baseKeys: string[], aliasL
     }
   }
 
-  return [...keys];
+  const expanded = [...keys];
+  cache?.set(cacheKey, expanded);
+  return expanded;
 }
 
 // One query for the lookback days (a few hundred rows across Dubai), filtered to
@@ -830,6 +851,31 @@ async function claimAutoSend(adminClient: any, input: {
   if (error?.code === "23505") return null;
   if (error) throw new HttpError(500, error.message);
   return data;
+}
+
+const STUCK_SEND_MINUTES = 15;
+const STUCK_SEND_ERROR = "Not confirmed: the send was interrupted, so it may not have arrived.";
+
+// A run that stops mid-send (e.g. a crash) leaves its message and claim as
+// "sending" forever. After 15 minutes, call them failed. The claim stays, so
+// that seller isn't re-sent the same sale (it may have arrived).
+async function settleStuckSends(adminClient: any, now: Date) {
+  const cutoff = new Date(now.getTime() - STUCK_SEND_MINUTES * 60 * 1000).toISOString();
+  const failedAt = now.toISOString();
+  const { error: messageError } = await adminClient
+    .from("whatsapp_messages")
+    .update({ status: "failed", error_message: STUCK_SEND_ERROR, failed_at: failedAt })
+    .eq("status", "sending")
+    .eq("send_source", "auto")
+    .is("meta_message_id", null)
+    .lt("created_at", cutoff);
+  if (messageError) console.warn("Could not settle stuck messages", messageError.message);
+  const { error: eventError } = await adminClient
+    .from("seller_signal_auto_whatsapp_events")
+    .update({ status: "failed", error_message: STUCK_SEND_ERROR })
+    .eq("status", "sending")
+    .lt("created_at", cutoff);
+  if (eventError) console.warn("Could not settle stuck claims", eventError.message);
 }
 
 async function markAutoEvent(adminClient: any, eventId: string, updates: Record<string, unknown>) {
@@ -1016,6 +1062,8 @@ Deno.serve(async (req) => {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
+    if (!dryRun) await settleStuckSends(adminClient, startedAt);
+
     const { data: accountRows, error: accountsError } = await adminClient
       .from("whatsapp_accounts")
       .select("id, user_id, provider, phone_number_id, display_phone_number, connection_status, raw_account, connected_at")
@@ -1099,8 +1147,9 @@ Deno.serve(async (req) => {
 
     const keysByLead = new Map<number, string[]>();
     const allBuildingKeys = new Set<string>();
+    const expandedKeysCache = new Map<string, string[]>();
     for (const lead of leads || []) {
-      const keys = expandLeadBuildingKeysWithAliases(lead, baseKeysByLead.get(Number(lead.id)) || [], aliasLookup);
+      const keys = expandLeadBuildingKeysWithAliases(lead, baseKeysByLead.get(Number(lead.id)) || [], aliasLookup, expandedKeysCache);
       keysByLead.set(Number(lead.id), keys);
       for (const key of keys) allBuildingKeys.add(key);
     }
@@ -1364,6 +1413,7 @@ Deno.serve(async (req) => {
         const message = error instanceof Error ? error.message : "Unknown error";
         summary.failed += 1;
         summary.failures.push({ leadId, error: message });
+        if (isNotOnWhatsApp(error)) await markNotOnWhatsApp(adminClient, lead.user_id, lead.id);
         if (messageRowId && !providerAccepted) {
           await adminClient
             .from("whatsapp_messages")

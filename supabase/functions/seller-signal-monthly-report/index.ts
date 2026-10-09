@@ -3,6 +3,7 @@ import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { customStatusDays, loadCustomStatusDays } from "../_shared/custom-statuses.js";
 import { accountsNotDue, loadLastAutoSends, loadSendPacing } from "../_shared/send-pacing.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { baileysReachabilityError, isNotOnWhatsApp, markNotOnWhatsApp } from "../_shared/whatsapp-reachability.js";
 
 // Sends each active-pipeline seller a once-a-month recap of sales and Ejari
 // rentals registered in their building. Sends share the automatic WhatsApp
@@ -134,7 +135,20 @@ function replaceNumberWords(value: unknown) {
     .replace(/\bfive\b/gi, "5");
 }
 
+// Computed once per building name: per seller, the regex passes add up to the
+// function's CPU limit on big accounts.
+const buildingKeyCache = new Map<string, string[]>();
+
 function getBuildingKeyVariants(raw: unknown) {
+  const name = String(raw ?? "");
+  const cached = buildingKeyCache.get(name);
+  if (cached) return cached;
+  const keys = computeBuildingKeyVariants(name);
+  buildingKeyCache.set(name, keys);
+  return keys;
+}
+
+function computeBuildingKeyVariants(raw: unknown) {
   const cleaned = cleanBuildingName(raw);
   const variants = new Set<string>();
   const addVariant = (value: unknown) => {
@@ -310,7 +324,7 @@ async function baileysFetch(path: string, options: RequestInit = {}) {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new HttpError(502, payload?.error || `Baileys service request failed with ${response.status}`);
+    throw baileysReachabilityError(payload) || new HttpError(502, payload?.error || `Baileys service request failed with ${response.status}`);
   }
 
   return payload;
@@ -481,6 +495,7 @@ async function fetchScannableLeads(adminClient: any, userIds: string[]) {
       .from("leads")
       .select("id, user_id, name, phone, building, status")
       .in("user_id", userIds)
+      .is("whatsapp_missing_at", null)
       .not("phone", "is", null)
       .neq("phone", "")
       .not("building", "is", null)
@@ -1110,6 +1125,7 @@ Deno.serve(async (req) => {
         summary.sent += 1;
         scheduleQueue.recordSend(lead);
       } catch (error) {
+        if (isNotOnWhatsApp(error)) await markNotOnWhatsApp(adminClient, lead.user_id, lead.id);
         const message = error instanceof Error ? error.message : "Unknown error";
         summary.failed += 1;
         summary.failures.push({ leadId, error: message });

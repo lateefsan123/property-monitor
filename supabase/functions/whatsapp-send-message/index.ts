@@ -4,6 +4,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
 import { isSellerAttachment } from "../_shared/seller-follow-up.js";
+import { baileysReachabilityError, isNotOnWhatsApp, markNotOnWhatsApp } from "../_shared/whatsapp-reachability.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -67,7 +68,7 @@ async function baileysFetch(path: string, options: RequestInit = {}) {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new HttpError(502, payload?.error || `Baileys service request failed with ${response.status}`);
+    throw baileysReachabilityError(payload) || new HttpError(502, payload?.error || `Baileys service request failed with ${response.status}`);
   }
 
   return payload;
@@ -654,7 +655,13 @@ Deno.serve(async (req) => {
     let providerMessageId: string | null = null;
 
     if (isBaileys) {
-      providerPayload = await sendViaBaileys(account, to, input.body, imageUrl, mediaType);
+      try {
+        providerPayload = await sendViaBaileys(account, to, input.body, imageUrl, mediaType);
+      } catch (error) {
+        // Flag the seller so automations stop trying this number.
+        if (isNotOnWhatsApp(error) && lead?.id) await markNotOnWhatsApp(adminClient, userId, lead.id);
+        throw error;
+      }
       providerMessageId = providerPayload?.messageId || null;
     } else {
       const accessToken = await getAccountSecret(adminClient, account.id);
@@ -702,7 +709,7 @@ Deno.serve(async (req) => {
       sentAt,
     });
   } catch (error) {
-    const status = error instanceof HttpError ? error.status : 500;
+    const status = error instanceof HttpError ? error.status : isNotOnWhatsApp(error) ? 422 : 500;
     const message = error instanceof Error ? error.message : "Unknown error";
 
     if (adminClient && messageRowId) {

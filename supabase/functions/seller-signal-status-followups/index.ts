@@ -3,6 +3,7 @@ import { isAutomationAccount } from "../_shared/automation-account.js";
 import { templateMediaType, templateMediaPayload } from '../_shared/template-media.js';
 import { hasPriorWhatsAppContact } from '../_shared/intro-attachment.js';
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { baileysReachabilityError, isNotOnWhatsApp, markNotOnWhatsApp } from "../_shared/whatsapp-reachability.js";
 import { accountsNotDue, loadLastAutoSends, loadSendPacing } from "../_shared/send-pacing.js";
 import { dueFollowUps, renderFollowUp, sendableStatuses } from "../_shared/status-followups.js";
 
@@ -77,7 +78,7 @@ async function send(client: any, account: any, to: string, body: string, imageUr
       signal: AbortSignal.timeout(30000),
     });
     const payload = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(payload?.error || `WhatsApp service failed with ${response.status}`);
+    if (!response.ok) throw baileysReachabilityError(payload) || new Error(payload?.error || `WhatsApp service failed with ${response.status}`);
     return { providerMessageId: payload?.messageId || null, providerPayload: payload };
   }
   const secret = await must(client.from("whatsapp_account_secrets").select("access_token").eq("account_id", account.id).maybeSingle());
@@ -137,7 +138,8 @@ Deno.serve(async (req) => {
 
       let leadQuery = client.from("leads")
         .select("id, user_id, name, phone, building, status, sent_at, last_contact, next_follow_up_on")
-        .eq("user_id", userId);
+        .eq("user_id", userId)
+        .is("whatsapp_missing_at", null);
       if (!isAutomationAccount(userId)) leadQuery = leadQuery.in("status", statuses.map((status: { label: string }) => status.label));
       const leads = await must(leadQuery.limit(2000));
       if (!(leads as any[])?.length) continue;
@@ -213,7 +215,12 @@ Deno.serve(async (req) => {
           // A failed or unconfirmed send stays recorded as a touch, so it is
           // never resent straight away; it shows as failed in Activity.
           const message = error instanceof Error ? error.message : "Send failed";
-          await client.from("whatsapp_messages").update({ status: "failed", error_message: `Status follow-up not confirmed: ${message}. Check WhatsApp before resending.` }).eq("id", messageId);
+          const unreachable = isNotOnWhatsApp(error);
+          if (unreachable) await markNotOnWhatsApp(client, userId, lead.id);
+          await client.from("whatsapp_messages").update({
+            status: "failed",
+            error_message: unreachable ? message : `Status follow-up not confirmed: ${message}. Check WhatsApp before resending.`,
+          }).eq("id", messageId);
           summary.failed += 1;
           summary.errors.push(message);
         }
