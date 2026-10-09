@@ -258,3 +258,23 @@ export async function persistLeadSentState(userId, leadId, isSent) {
 
   return sentAt;
 }
+
+// Sellers per spreadsheet, counted in the database ("legacy" = no spreadsheet),
+// so the Spreadsheets list stays right even if the full seller list is still
+// loading or a load failed.
+export async function fetchSourceSellerCounts(userId, sourceIds = []) {
+  if (!userId) return {};
+  const count = (sourceId) => {
+    let query = supabase.from("leads").select("id", { count: "exact", head: true }).eq("user_id", userId);
+    query = sourceId ? query.eq("source_id", sourceId) : query.is("source_id", null);
+    return readPage(() => query);
+  };
+  const ids = [...new Set(sourceIds.filter(Boolean))];
+  const results = await Promise.all([...ids.map(count), count(null)]);
+  const counts = {};
+  results.forEach((result, index) => {
+    if (result.error) throw new Error(result.error.message);
+    counts[index < ids.length ? ids[index] : "legacy"] = result.count || 0;
+  });
+  return counts;
+}

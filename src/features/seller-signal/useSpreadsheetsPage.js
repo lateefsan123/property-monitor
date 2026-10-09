@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { replaceUserLeadsFromRows } from "./lead-import-services";
 import { unidentifiedText } from "./page-helpers";
+import { fetchSourceSellerCounts } from "./lead-record-services";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   clearLeadsForSource,
@@ -160,14 +161,27 @@ export function useSpreadsheetsPage(userId) {
     mutationFn: ({ rawSheetUrl }) => replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }),
   });
 
+  // Counted in the database, under the leads key so every refresh of the
+  // seller list refreshes these too; falls back to the loaded list.
+  const sourceIdsKey = leadSources.map((source) => source.id).join(",");
+  const sourceCountsQuery = useQuery({
+    queryKey: [...sellerLeadsQueryKey(userId), "source-counts", sourceIdsKey],
+    enabled: Boolean(userId) && leadSourcesQuery.isSuccess,
+    queryFn: () => fetchSourceSellerCounts(userId, sourceIdsKey ? sourceIdsKey.split(",") : []),
+    staleTime: 30 * 1000,
+  });
   const sourceCounts = useMemo(() => {
+    if (sourceCountsQuery.data) {
+      const { legacy = 0, ...bySource } = sourceCountsQuery.data;
+      return { ...bySource, [LEGACY_SOURCE_ID]: legacy };
+    }
     const counts = {};
     for (const lead of leads) {
       const key = lead.sourceId || LEGACY_SOURCE_ID;
       counts[key] = (counts[key] || 0) + 1;
     }
     return counts;
-  }, [leads]);
+  }, [leads, sourceCountsQuery.data]);
 
   const loading = (leadsQuery.isPending && !leadsQuery.data) || (leadSourcesQuery.isPending && !leadSourcesQuery.data);
   const fetchError = leadsQuery.error
