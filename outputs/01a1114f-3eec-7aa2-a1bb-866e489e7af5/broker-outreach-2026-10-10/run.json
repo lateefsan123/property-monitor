@@ -1,10 +1,10 @@
 {
   "target": 10,
-  "confirmedCount": 3,
+  "confirmedCount": 4,
   "status": "active",
   "sender": "353899618882",
   "minimumIntervalMs": 300000,
-  "lastAttemptAt": "2026-10-10T09:14:43.641728+00:00",
+  "lastAttemptAt": "2026-10-10T09:21:43.322494+00:00",
   "videoPath": "D:/Users/Lateef/Documents/property/video/launch-film/out/repeat-ai-app-film-v5-9x16.mp4",
   "captionTemplate": "Hi {name}, Lateef here from Repeat AI. I found your contact on the {agency} website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
   "contacts": [
@@ -59,7 +59,14 @@
       "agency": "Easy Nest Properties",
       "phone": "971509724923",
       "source": "https://easynestproperties.com/agents/",
-      "status": "pending"
+      "status": "confirmed",
+      "attemptedAt": "2026-10-10T09:21:43.322494+00:00",
+      "message": "Hi Muhammad Tariq, Lateef here from Repeat AI. I found your contact on the Easy Nest Properties website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "preflight": "Same verified Repeat Ai session; You +353899618882 visible. Matching recipient +971509724923, empty chat with encryption notice only, no draft or opt-out. Prior logs checked. v5 filename, 1:54 video and full personalised caption verified.",
+      "deliveryState": "Sent",
+      "verifiedAt": "2026-10-10T09:22:05.860118+00:00",
+      "evidence": "WhatsApp AX showed matching recipient +971509724923, exact personalised caption, 1:54 video and button 10:21 Sent after one Send click.",
+      "proofScreenshot": "D:\\Users\\Lateef\\Documents\\property\\outputs\\01a1114f-3eec-7aa2-a1bb-866e489e7af5\\broker-outreach-2026-10-10\\04-muhammad-tariq-sent.png"
     },
     {
       "row": 2518,
