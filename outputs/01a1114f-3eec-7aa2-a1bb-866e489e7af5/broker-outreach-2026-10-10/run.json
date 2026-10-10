@@ -1,7 +1,7 @@
 {
   "target": 10,
   "confirmedCount": 4,
-  "status": "active",
+  "status": "blocked_login",
   "sender": "353899618882",
   "minimumIntervalMs": 300000,
   "lastAttemptAt": "2026-10-10T09:21:43.322494+00:00",
@@ -1420,5 +1420,8 @@
       "source": "https://www.espace.ae/meet-the-team-detail/vlad-radulian",
       "status": "pending"
     }
-  ]
+  ],
+  "blockedAt": "2026-10-10T09:27:21.577843+00:00",
+  "blocker": "Chrome WhatsApp tab 2141411412 shows Scan to log in. No new send attempted. User must log back in with Repeat Ai +353899618882; verify sender before resuming.",
+  "blockerProof": "D:\\Users\\Lateef\\Documents\\property\\outputs\\01a1114f-3eec-7aa2-a1bb-866e489e7af5\\broker-outreach-2026-10-10\\login-required.png"
 }
