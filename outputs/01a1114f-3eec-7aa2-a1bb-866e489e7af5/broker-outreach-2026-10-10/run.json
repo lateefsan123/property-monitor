@@ -1,10 +1,10 @@
 {
   "target": 10,
-  "confirmedCount": 1,
+  "confirmedCount": 2,
   "status": "active",
   "sender": "353899618882",
   "minimumIntervalMs": 300000,
-  "lastAttemptAt": "2026-10-10T09:01:23.079114+00:00",
+  "lastAttemptAt": "2026-10-10T09:07:58.154845+00:00",
   "videoPath": "D:/Users/Lateef/Documents/property/video/launch-film/out/repeat-ai-app-film-v5-9x16.mp4",
   "captionTemplate": "Hi {name}, Lateef here from Repeat AI. I found your contact on the {agency} website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
   "contacts": [
@@ -29,7 +29,14 @@
       "agency": "Exclusive Links",
       "phone": "971556791349",
       "source": "https://www.exclusive-links.com/about-exclusive-links/meet-the-team/",
-      "status": "pending"
+      "status": "confirmed",
+      "attemptedAt": "2026-10-10T09:07:58.154845+00:00",
+      "message": "Hi Clementina Kongslund, Lateef here from Repeat AI. I found your contact on the Exclusive Links website. Repeat AI follows up with your sellers on WhatsApp using personalised messages and recent sales in their building. Here's a short demo. You can take a look at https://repeatai.org, and I'm happy to help you get set up. If it's not for you, just let me know.",
+      "preflight": "Same verified Repeat Ai session; You number +353899618882 visible. Matching recipient +971556791349. Empty chat with encryption notice only, no draft or opt-out. Prior logs checked. v5 filename, 1:54 video and full personalised caption verified.",
+      "deliveryState": "Sent",
+      "verifiedAt": "2026-10-10T09:08:19.306670+00:00",
+      "evidence": "WhatsApp AX showed matching +971556791349, full personalised Clementina caption, video 1:54 and button 10:08 Sent after one Send click.",
+      "proofScreenshot": "D:\\Users\\Lateef\\Documents\\property\\outputs\\01a1114f-3eec-7aa2-a1bb-866e489e7af5\\broker-outreach-2026-10-10\\02-clementina-sent.png"
     },
     {
       "row": 812,
