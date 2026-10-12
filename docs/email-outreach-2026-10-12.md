@@ -80,3 +80,23 @@ is explicitly `outreach`. EAS monthly credits were exhausted and the new package
 had no remote signing key, so the cloud build did not run. A local Android build
 uses an isolated generated folder under `tmp/outreach-android-build` instead of
 changing the original app's native project. The user approved the SDK/NDK license.
+
+## Delivered October 12
+
+Production API deployment is ready at https://repeatai.org from commit 1358aa5f.
+Live outreach POST rejects unauthenticated requests with 401; cron requests
+without the secret also return 401. The work account's 8,498 contacts remain paused.
+
+The local ARM64 release build succeeded from the short isolated `D:/ro/mobile`
+path. The APK is independently signed with a private key outside the repository;
+Android v2/v3 signature verification passes. Package `com.lateefsan.repeatoutreach`,
+version 1.0.0 (1), label Repeat AI Outreach, size 54,278,157 bytes.
+SHA256: `B98CCE01B15FE2966BB700665A0486369636863748F63EDDD59244AE587D20DB`.
+
+The APK is available locally at
+`outputs/email-outreach-delivery-2026-10-12/repeat-ai-outreach.apk` and in a private
+32,293,809-byte ZIP download, verified with an HTTP 206 range response. Unzip on
+Android and open the APK to install. The download expires after seven days.
+Sign in to the Repeat AI work account, connect Gmail as lateef@getrepeatai.com,
+and review the paused campaign before choosing Start. Installation and Gmail
+authorization on the user's physical phone have not been tested.
