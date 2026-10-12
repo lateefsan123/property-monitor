@@ -137,3 +137,27 @@ assets. Android package versionCode is 3, architecture is arm64-v8a, and APK v2/
 signatures verify with the same certificate as build 2. Scoped JavaScript lint
 passes. The private ZIP download returned HTTP 206 for a range request.
 Actual launch on a physical Android phone remains unverified.
+
+## Android update 4: original app design
+
+Every outreach screen is now built from the original app's own components and
+layouts: Home (date, greeting, metrics card with a "View all" row, titled
+cards), Contacts (the Sellers list: tab pills, search, hairline-separated cards
+and status badges), Email templates (the Templates list and full-screen editor
+with Insert details and Preview), Schedule (the Schedule cards and day circles)
+and Settings (the grouped settings layout). The shell matches WorkspaceShell:
+the same drawer, page transitions and sign-out sheet. Property features
+(buildings, listings, transactions, seller onboarding) are not included.
+Campaign behaviour is unchanged and the campaign stays paused; nothing is sent.
+
+Film mode (`EXPO_PUBLIC_FILM=1 REPEAT_APP_VARIANT=outreach`) serves an offline
+paused campaign, so both apps can be compared signed in at the same phone size
+(375x812, light and dark) without touching real accounts.
+
+Build 4: versionCode 4, arm64-v8a, signed with the same certificate as build 3
+(APK v2/v3 verified), 24 registered startup assets.
+`outputs/email-outreach-delivery-2026-10-12/repeat-ai-outreach-v4.apk`,
+SHA256 `92FAEE1E304F67CE2C31201FD0BB2B6CCAF1E3F3588DB883D972F95D690487BB`.
+Gradle needed `-Pkotlin.compiler.execution.strategy=in-process` on this PC.
+Launch on a physical Android phone is not verified: the only adb device was a
+watch.

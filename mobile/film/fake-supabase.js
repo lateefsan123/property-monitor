@@ -221,9 +221,23 @@ const realFetch = globalThis.fetch?.bind(globalThis);
 const INTEGRATIONS = [
   { provider: 'google', feature: 'sheets', connected: true, configured: true, canBrowse: true, canReadWorkbook: true },
   { provider: 'microsoft', feature: 'sheets', connected: false, configured: true },
-  { provider: 'google', feature: 'email', connected: true, configured: true },
+  { provider: 'google', feature: 'email', connected: true, configured: true, canSend: true },
   { provider: 'google', feature: 'calendar', connected: true, configured: true },
 ];
+// The outreach edition's paused email campaign (REPEAT_APP_VARIANT=outreach).
+const OUTREACH_CONTACTS = [
+  ['Omar Haddad', 'Harbor Real Estate', 'sent', 1], ['Priya Nair', 'Skyline Homes', 'pending', 0], ['Daniel Ruiz', 'Marina Gate Realty', 'replied', 1],
+  ['Aisha Rahman', 'Creekside Properties', 'pending', 0], ['Tom Becker', 'Palm Brokers', 'done', 3], ['Lina Saleh', 'Downtown Living', 'pending', 0],
+].map(([name, agency, status, step]) => ({ name, agency, status, step, email: `${name.split(' ')[0].toLowerCase()}@${agency.split(' ')[0].toLowerCase()}.example` }));
+const OUTREACH_CAMPAIGN = {
+  status: 'paused', sender: 'lateef@getrepeatai.com', total: 8498, lastAttemptAt: null, rampStartedAt: null, issue: null,
+  counts: { pending: 8460, sent: 24, replied: 6, done: 8 }, contacts: OUTREACH_CONTACTS,
+  templates: [
+    { subject: 'Seller follow-ups at {agency}', body: "Hi {first_name},\n\nI'm Lateef from Repeat AI. We help brokers follow up with sellers using recent sales in their building.\n\nWould this be useful for your team at {agency}?\n\nLateef\nRepeat AI" },
+    { subject: 'Seller follow-ups at {agency}', body: "Hi {first_name},\n\nFollowing up on Repeat AI. Would you like a quick walkthrough for {agency}?\n\nLateef\nRepeat AI" },
+    { subject: 'Seller follow-ups at {agency}', body: "Hi {first_name},\n\nOne last note about Repeat AI. I'll leave it here if the timing isn't right.\n\nLateef\nRepeat AI" },
+  ],
+};
 // Ask Repeat's scripted typed answer, consistent with the fixtures (Act One: 5 recorded
 // drops). It only claims what the assistant's tools can do: it can't judge who is due
 // or send WhatsApp messages.
@@ -252,6 +266,7 @@ globalThis.fetch = async (input, init = {}) => {
     }
     return json({ items: [], hasMore: false });
   }
+  if (url.includes('/api/outreach')) return json({ campaign: OUTREACH_CAMPAIGN });
   if (url.includes('/api/voice') && body.action === 'chat') {
     await new Promise((resolve) => setTimeout(resolve, 900));
     return json({ output: [{ role: 'assistant', content: ASSISTANT_REPLY }] });
