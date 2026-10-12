@@ -1,6 +1,10 @@
 {
   "crons": [
     {
+      "path": "/api/email-outreach-cron",
+      "schedule": "*/15 * * * *"
+    },
+    {
       "path": "/api/email-summary-cron",
       "schedule": "*/15 * * * *"
     }
