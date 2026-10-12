@@ -116,3 +116,24 @@ Build 2 uses the same package and signing key so it can update the installed
 outreach APK. Login and template screens were visually checked at 390x844;
 the template preview used local fixtures, not an authenticated phone session.
 Physical-device Google sign-in still needs the user's account chooser step.
+
+## Startup correction, build 3
+
+The user reported an immediate launch crash. Inspection of the delivered build 2
+found its embedded Expo asset manifest still contained only build 1's icon.
+The newly bundled Ionicons font was absent from that manifest. Expo therefore
+could not resolve its local URI, and the root font-loading error was thrown.
+The new APK verifier reproduces that packaging failure on build 2.
+
+`scripts/build-outreach-android.ps1` now forces the Expo updates resource task
+before assembling, because that task's inputs track the entrypoint path without
+tracking imported assets. `scripts/verify-outreach-apk.py` checks startup font,
+artwork and bundle entries before delivery. Font errors now show an on-screen
+diagnostic instead of being rethrown. The native emulator could not boot on this
+PC without its virtualization driver; the user's phone was unavailable over USB.
+
+Build 3 completed successfully and the APK verifier passes with 23 registered
+assets. Android package versionCode is 3, architecture is arm64-v8a, and APK v2/v3
+signatures verify with the same certificate as build 2. Scoped JavaScript lint
+passes. The private ZIP download returned HTTP 206 for a range request.
+Actual launch on a physical Android phone remains unverified.

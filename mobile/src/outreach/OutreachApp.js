@@ -25,7 +25,7 @@ const NAV = [
 const TITLES = {home:'Home',contacts:'Contacts',templates:'Email templates',schedule:'Schedule',settings:'Settings'};
 export default function OutreachApp() {
   const [loaded,error]=useFonts(Ionicons.font);
-  if(error)throw error;
+  if(error)return <SafeAreaProvider><View style={{flex:1,justifyContent:'center',padding:24,gap:12,backgroundColor:'#fff'}}><Text accessibilityRole="alert" style={{fontSize:20,color:'#111'}}>Could not load the app's icons</Text><Text selectable style={{color:'#555'}}>Close and reopen the app. If this continues, share this detail: {error.message}</Text></View></SafeAreaProvider>;
   return <SafeAreaProvider>{loaded ? <OutreachSession /> : <ActivityIndicator accessibilityLabel="Loading app" />}</SafeAreaProvider>;
 }
 function OutreachSession() {
