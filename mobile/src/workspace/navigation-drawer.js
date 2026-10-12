@@ -37,6 +37,9 @@ export default function NavigationDrawer({
   favorites = [],
   favoriteSellers = [],
   userId,
+  topNavigation = TOP_NAVIGATION,
+  mainNavigation = MAIN_NAVIGATION,
+  showSetup = true,
 }) {
   const { width } = useWindowDimensions();
   const insets = useSafeAreaInsets();
@@ -262,8 +265,8 @@ export default function NavigationDrawer({
               </Pressable>
             </View>
             <ScrollView contentContainerStyle={{ gap: 12 }}>
-              <DrawerSetupProgress userId={userId} colors={colors} onOpen={() => activate({ kind: "nav", id: "home" })} />
-              <View>{TOP_NAVIGATION.filter((item) => item.kind !== "disabled").map(row)}</View>
+              {showSetup && <DrawerSetupProgress userId={userId} colors={colors} onOpen={() => activate({ kind: "nav", id: "home" })} />}
+              <View>{topNavigation.filter((item) => item.kind !== "disabled").map(row)}</View>
               {favorites.length > 0 && (
                 <View>
                   {favorites.map((source) =>
@@ -280,7 +283,7 @@ export default function NavigationDrawer({
                 <Text style={{ color: colors.textMuted, fontSize: 12, fontWeight: "600", paddingHorizontal: 23, paddingBottom: 4 }}>Saved sellers</Text>
                 {favoriteSellers.map(seller => row({ id: `seller:${seller.id}`, label: seller.name || "Unnamed seller", icon: "starFilled", kind: "action" }))}
               </View>}
-              <View>{MAIN_NAVIGATION.map(row)}</View>
+              <View>{mainNavigation.map(row)}</View>
             </ScrollView>
             <View
               style={{

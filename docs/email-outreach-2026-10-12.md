@@ -100,3 +100,19 @@ Android and open the APK to install. The download expires after seven days.
 Sign in to the Repeat AI work account, connect Gmail as lateef@getrepeatai.com,
 and review the paused campaign before choosing Start. Installation and Gmail
 authorization on the user's physical phone have not been tested.
+
+## Android update 2
+
+The outreach edition now reuses the original `AuthScreen` (including Google
+sign-in), `NavigationDrawer`, theme, cards, fields and buttons. Its navigation
+contains Home, Contacts, Email templates, Schedule and Settings. The original
+app retains its default navigation and `seller-signal` authentication scheme.
+The outreach callback `repeat-outreach://auth/callback` was added to the live
+Supabase redirect allowlist and read back. Callback tests cover successful
+session restoration, cancellation, missing tokens and rejection of another
+app's callback. Billing, outreach and drawer gesture tests also pass.
+
+Build 2 uses the same package and signing key so it can update the installed
+outreach APK. Login and template screens were visually checked at 390x844;
+the template preview used local fixtures, not an authenticated phone session.
+Physical-device Google sign-in still needs the user's account chooser step.

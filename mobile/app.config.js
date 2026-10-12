@@ -2,7 +2,7 @@
 export default ({ config }) => {
   if (process.env.REPEAT_APP_VARIANT !== 'outreach') return config;
   return { ...config, name:'Repeat AI Outreach', scheme:'repeat-outreach',
-    android:{...config.android,package:'com.lateefsan.repeatoutreach',versionCode:1},
+    android:{...config.android,package:'com.lateefsan.repeatoutreach',versionCode:2},
     ios:{...config.ios,bundleIdentifier:'com.lateefsan.repeatoutreach',buildNumber:'1'},
     extra:{...config.extra,outreachEdition:true},
   };

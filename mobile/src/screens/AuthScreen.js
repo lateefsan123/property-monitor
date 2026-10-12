@@ -21,9 +21,9 @@ const TERMS_URL = "https://repeatai.org/terms";
 
 WebBrowser.maybeCompleteAuthSession();
 
-function getAuthRedirectUri() {
+function getAuthRedirectUri(scheme = "seller-signal") {
   return makeRedirectUri({
-    scheme: "seller-signal",
+    scheme,
     path: AUTH_REDIRECT_PATH,
   });
 }
@@ -55,7 +55,7 @@ async function createSessionFromUrl(url) {
 }
 
 
-export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery, embedded = false, initialSignUp = false, preview = false, onPreviewComplete, onBack, onClose }) {
+export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery, embedded = false, initialSignUp = false, preview = false, onPreviewComplete, onBack, onClose, authScheme = "seller-signal" }) {
   const insets = useSafeAreaInsets();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,11 +66,11 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery, emb
   const [appleLoading, setAppleLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
-  const redirectTo = getAuthRedirectUri();
+  const redirectTo = getAuthRedirectUri(authScheme);
   const incomingUrl = Linking.useURL();
 
   useEffect(() => {
-    if (!incomingUrl || preview) return;
+    if (!incomingUrl || preview || incomingUrl.split(/[?#]/)[0] !== redirectTo) return;
 
     createSessionFromUrl(incomingUrl)
       .then((result) => {
@@ -79,7 +79,7 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery, emb
       .catch((err) => {
         setError(err.message || "Sign-in failed");
       });
-  }, [incomingUrl, onPasswordRecovery, preview]);
+  }, [incomingUrl, onPasswordRecovery, preview, redirectTo]);
 
   useEffect(() => {
     if (Platform.OS !== "ios") return;
@@ -147,7 +147,9 @@ export default function AuthScreen({ onReplayOnboarding, onPasswordRecovery, emb
       const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
 
       if (result.type === "success") {
-        await createSessionFromUrl(result.url);
+        if (result.url.split(/[?#]/)[0] !== redirectTo) throw new Error("Unexpected sign-in callback.");
+        const sessionResult = await createSessionFromUrl(result.url);
+        if (!sessionResult.ok) throw new Error("Google sign-in did not return a session. Please try again.");
       } else if (result.type !== "cancel") {
         setError(`Google sign-in did not complete in the app (${result.type}).`);
       }

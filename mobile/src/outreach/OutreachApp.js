@@ -1,37 +1,54 @@
+import "react-native-url-polyfill/auto";
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { ActivityIndicator, Alert, BackHandler, ScrollView, StatusBar, Switch, Text, View } from 'react-native';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useFonts } from 'expo-font';
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { supabase } from '../supabase';
+import AuthScreen from '../screens/AuthScreen';
+import ResetPasswordScreen from '../screens/ResetPasswordScreen';
+import NavigationDrawer from '../workspace/navigation-drawer';
+import { Button, Card, Field, Feedback } from '../workspace/ui';
+import { useThemePreference } from '../hooks/useThemePreference';
+import { getTheme } from '../theme';
 import { connectOutreachGmail, outreachRequest } from './client';
 import { OUTREACH_SENDER, OUTREACH_TEMPLATES } from '../../../shared/email-outreach';
-import brandIcon from '../../assets/repeat-ai-icon.png';
 
-function Action({children,onPress,disabled}) { return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={[styles.button,disabled && {opacity:0.45}]}><Text style={styles.buttonText}>{children}</Text></Pressable>; }
-export default function OutreachApp() { return <SafeAreaProvider><OutreachSession /></SafeAreaProvider>; }
+const TOP = [{id:'home',label:'Home',icon:'home',kind:'nav'}];
+const NAV = [
+  {id:'contacts',label:'Contacts',icon:'users',kind:'nav'},
+  {id:'templates',label:'Email templates',icon:'message',kind:'nav'},
+  {id:'schedule',label:'Schedule',icon:'calendar',kind:'nav'},
+];
+const TITLES = {home:'Home',contacts:'Contacts',templates:'Email templates',schedule:'Schedule',settings:'Settings'};
+export default function OutreachApp() {
+  const [loaded,error]=useFonts(Ionicons.font);
+  if(error)throw error;
+  return <SafeAreaProvider>{loaded ? <OutreachSession /> : <ActivityIndicator accessibilityLabel="Loading app" />}</SafeAreaProvider>;
+}
 function OutreachSession() {
-  const [session,setSession]=useState(undefined);
+  const [session,setSession]=useState(undefined),[recovering,setRecovering]=useState(false),[error,setError]=useState('');
+  const [theme,setTheme]=useThemePreference();
   useEffect(()=>{
     let live=true;
-    supabase.auth.getSession().then(({data})=>{if(live)setSession(data.session);});
-    const {data}=supabase.auth.onAuthStateChange((_,next)=>{if(live)setSession(next);});
+    supabase.auth.getSession().then(({data,error})=>{if(live){setSession(data.session);if(error)setError(error.message);}});
+    const {data}=supabase.auth.onAuthStateChange((event,next)=>{if(live){setSession(next);if(event==='PASSWORD_RECOVERY')setRecovering(true);}});
     return ()=>{live=false;data.subscription.unsubscribe();};
   },[]);
-  return <SafeAreaView style={styles.root}>{session === undefined ? <ActivityIndicator /> : session ? <Campaign key={session.user.id} userId={session.user.id} /> : <SignIn />}</SafeAreaView>;
+  if(error)return <Text accessibilityRole="alert">{error}</Text>;
+  if(session===undefined)return <ActivityIndicator accessibilityLabel="Restoring your account" />;
+  if(recovering)return <ResetPasswordScreen onComplete={()=>setRecovering(false)} />;
+  if(!session)return <AuthScreen authScheme="repeat-outreach" onPasswordRecovery={()=>setRecovering(true)} />;
+  return <Campaign key={session.user.id} userId={session.user.id} email={session.user.email} displayName={session.user.user_metadata?.full_name || 'Lateef'} theme={theme} setTheme={setTheme} />;
 }
-function SignIn() {
-  const [email,setEmail]=useState('lateefsanusiwork@gmail.com'),[password,setPassword]=useState(''),[error,setError]=useState(''),[busy,setBusy]=useState(false);
-  async function login() {
-    setBusy(true);setError('');
-    try {const {error}=await supabase.auth.signInWithPassword({email:email.trim(),password});if(error)throw error;}
-    catch {setError('Could not sign in. Use your existing Repeat AI account.');}
-    finally {setBusy(false);}
-  }
-  return <ScrollView contentContainerStyle={styles.content}><Brand /><Text style={styles.subtitle}>Sign in to your existing Repeat AI account to manage outreach.</Text><TextInput accessibilityLabel="Repeat AI account email" style={styles.input} value={email} onChangeText={setEmail} autoCapitalize="none" keyboardType="email-address" /><TextInput accessibilityLabel="Password" style={styles.input} secureTextEntry value={password} onChangeText={setPassword} /><Action disabled={busy} onPress={login}>Sign in</Action>{error ? <Text accessibilityRole="alert">{error}</Text> : null}</ScrollView>;
-}
-function Brand() {return <View style={styles.brand}><Image source={brandIcon} style={{width:48,height:48,borderRadius:12}} /><View><Text style={styles.title}>Repeat AI Outreach</Text><Text style={styles.subtitle}>Your broker email campaigns</Text></View></View>;}
-function Campaign({userId}) {
+export function Campaign({userId,email,displayName,theme,setTheme}) {
+  const colors=getTheme(theme),[page,setPage]=useState('home');
+  const heading={color:colors.textName,fontSize:20,fontWeight:'600'};
+  const body={color:colors.text,fontSize:15,lineHeight:23};
+  const muted={color:colors.textMuted,fontSize:14,lineHeight:21};
+  useEffect(()=>{const listener=BackHandler.addEventListener('hardwareBackPress',()=>{if(page==='home')return false;setPage('home');return true;});return ()=>listener.remove();},[page]);
   const [campaign,setCampaign]=useState(null),[templates,setTemplates]=useState(OUTREACH_TEMPLATES),[busy,setBusy]=useState(false),[error,setError]=useState('');
   useEffect(()=>{
     const controller=new AbortController();
@@ -54,20 +71,34 @@ function Campaign({userId}) {
     if(rejected)Alert.alert('Import complete',`${rejected} invalid rows were skipped. Valid contacts are saved; duplicate addresses are excluded.`);
     return result;
   }
-  function start() {Alert.alert('Start this email sequence?',`Send these three emails from ${OUTREACH_SENDER}. Start at 5 emails/day, ramp to 30 including follow-ups, weekdays 9–17 Dubai time. Replies stop the sequence. A send already in progress may finish after pausing.`,[{text:'Cancel',style:'cancel'},{text:'Start',onPress:()=>run(()=>outreachRequest(userId,{action:'configure',active:true}))}]);}
-  return <ScrollView contentContainerStyle={styles.content}><Brand /><Text style={styles.subtitle}>{OUTREACH_SENDER}</Text>
-    <View style={styles.card}><Text style={styles.heading}>{campaign?.status || 'Not set up'}</Text><Text>{campaign?.total || 0} contacts · {campaign?.counts?.sent || 0} awaiting follow-up · {campaign?.counts?.done || 0} finished</Text><Text style={styles.subtitle}>Weekdays, 9am–5pm Dubai. 5 → 10 → 20 → 30 emails/day. Follow-ups count toward the limit.</Text>{campaign?.issue ? <Text accessibilityRole="alert">{campaign.issue}</Text> : null}</View>
-    {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-    <Action disabled={busy} onPress={()=>run(()=>connectOutreachGmail(userId))}>Connect outreach Gmail</Action>
-    <Action disabled={busy || campaign?.status === 'active'} onPress={()=>run(importFile)}>Import broker CSV</Action>
-    <Action disabled={busy} onPress={()=>run(()=>outreachRequest(userId,{action:'status'}))}>Refresh status</Action>
-    {campaign?.status === 'active' ? <Action disabled={busy} onPress={()=>run(()=>outreachRequest(userId,{action:'configure',active:false}))}>Pause sending</Action> : <Action disabled={busy || !campaign?.total || Boolean(campaign?.counts?.held || campaign?.counts?.sending) || JSON.stringify(templates)!==JSON.stringify(campaign?.templates)} onPress={start}>Review and start</Action>}
-    <Text style={styles.heading}>Email sequence</Text><Text style={styles.subtitle}>Draft wording. Personalise with {'{first_name}'} and {'{agency}'}. Any reply stops further emails.</Text>
-    {templates.map((t,i)=><View style={styles.card} key={i}><Text style={styles.heading}>Email {i+1}{i===1 ? ' · 3 days later' : i===2 ? ' · 7 days after email 2' : ''}</Text><TextInput accessibilityLabel={`Email ${i+1} subject`} style={styles.input} editable={!busy && !campaign?.lastAttemptAt && campaign?.status !== 'active'} value={t.subject} onChangeText={v=>setTemplates(ts=>ts.map((x,j)=>j===i ? {...x,subject:v} : x))} /><TextInput accessibilityLabel={`Email ${i+1} body`} style={[styles.input,{minHeight:180}]} multiline editable={!busy && !campaign?.lastAttemptAt && campaign?.status !== 'active'} value={t.body} onChangeText={v=>setTemplates(ts=>ts.map((x,j)=>j===i ? {...x,body:v} : x))} /></View>)}
-    <Action disabled={busy || !campaign || Boolean(campaign.lastAttemptAt) || campaign.status === 'active'} onPress={()=>run(()=>outreachRequest(userId,{action:'templates',templates}))}>Save email drafts</Action>
-    <Text style={styles.subtitle}>A reply-unsubscribe footer is added to every email. Unconfirmed sends pause for manual review and are never retried automatically.</Text>
-    {campaign?.contacts?.map(c=><View key={c.email} style={styles.card}><Text style={styles.heading}>{c.name}</Text><Text>{c.agency}</Text><Text>{c.status} · {c.step}/3</Text>{c.status==='held' ? <Action disabled={busy} onPress={()=>run(()=>outreachRequest(userId,{action:'exclude',emails:[c.email]}))}>Exclude from further emails</Action> : null}</View>)}
-    <Action disabled={busy} onPress={()=>supabase.auth.signOut()}>Sign out</Action>
-  </ScrollView>;
+  function start() {Alert.alert('Start this email sequence?',`Send these three emails from ${OUTREACH_SENDER}. Start at 5 emails/day, ramp to 30 including follow-ups, weekdays 9â€“17 Dubai time. Replies stop the sequence. A send already in progress may finish after pausing.`,[{text:'Cancel',style:'cancel'},{text:'Start',onPress:()=>run(()=>outreachRequest(userId,{action:'configure',active:true}))}]);}
+  const locked=busy || Boolean(campaign?.lastAttemptAt) || campaign?.status==='active';
+  const signOut=()=>Alert.alert('Sign out of Repeat AI?','',[{text:'Cancel',style:'cancel'},{text:'Sign out',onPress:()=>run(async()=>{const {error}=await supabase.auth.signOut({scope:'local'});if(error)throw error;})}]);
+  return <><StatusBar barStyle={colors.isDark ? 'light-content' : 'dark-content'} /><NavigationDrawer userId={userId} page={page} headerTitle={TITLES[page]} hideCreate colors={colors} topNavigation={TOP} mainNavigation={NAV} showSetup={false} onNavigate={setPage} onAction={id=>id==='signout' ? signOut() : setPage(id)}>
+    <ScrollView contentContainerStyle={{padding:20,gap:18,paddingBottom:40}} keyboardShouldPersistTaps="handled">
+      <Feedback colors={colors} error={error} />
+      {page==='home' && <>
+        <Text style={{...heading,fontSize:26}}>Welcome back, {displayName.split(' ')[0]}</Text>
+        <Text style={muted}>Your email outreach, in one place.</Text>
+        <Card colors={colors}><Text style={heading}>Campaign {campaign?.status || 'loading'}</Text><Text style={body}>{(campaign?.total || 0).toLocaleString()} contacts</Text><Text style={muted}>{campaign?.counts?.sent || 0} awaiting follow-up · {campaign?.counts?.done || 0} finished</Text>{campaign?.issue ? <Text style={{...body,color:colors.errorText}}>{campaign.issue}</Text> : null}
+          {campaign?.status==='active' ? <Button colors={colors} disabled={busy} onPress={()=>run(()=>outreachRequest(userId,{action:'configure',active:false}))}>Pause sending</Button> : <Button colors={colors} primary disabled={busy || !campaign?.total || Boolean(campaign?.counts?.held || campaign?.counts?.sending) || JSON.stringify(templates)!==JSON.stringify(campaign?.templates)} onPress={start}>Review and start</Button>}
+        </Card>
+        <Card colors={colors}><Text style={heading}>Outreach inbox</Text><Text style={body}>{OUTREACH_SENDER}</Text><Button colors={colors} icon="mail" disabled={busy} onPress={()=>run(()=>connectOutreachGmail(userId))}>Connect Gmail</Button></Card>
+        <Button colors={colors} onPress={()=>setPage('templates')}>Review email templates</Button>
+        <Button colors={colors} disabled={busy} onPress={()=>run(()=>outreachRequest(userId,{action:'status'}))}>Refresh status</Button>
+      </>}
+      {page==='contacts' && <>
+        <Text style={heading}>{(campaign?.total || 0).toLocaleString()} contacts</Text><Text style={muted}>Showing the first {campaign?.contacts?.length || 0} contacts. Existing conversations and excluded contacts are checked before sending.</Text>
+        <Button colors={colors} icon="table" disabled={busy || campaign?.status==='active'} onPress={()=>run(importFile)}>Import broker CSV</Button>
+        {campaign?.contacts?.map(c=><Card key={c.email} colors={colors}><Text style={heading}>{c.name}</Text><Text style={muted}>{c.agency}</Text><Text style={body}>{c.email}</Text><Text style={muted}>{c.status} · {c.step}/3 emails</Text>{c.status==='held' ? <Button colors={colors} disabled={busy} onPress={()=>run(()=>outreachRequest(userId,{action:'exclude',emails:[c.email]}))}>Exclude from further emails</Button> : null}</Card>)}
+      </>}
+      {page==='templates' && <>
+        <Text style={heading}>Your email sequence</Text><Text style={muted}>Personalise with {'{first_name}'} and {'{agency}'}. Any reply stops follow-ups.</Text>
+        {templates.map((t,i)=><Card colors={colors} key={i}><Text style={heading}>Email {i+1}</Text><Text style={muted}>{i===0 ? 'Introduction' : i===1 ? '3 days after the introduction' : '7 days after email 2'}</Text><Field colors={colors} label={`Email ${i+1} subject`} editable={!locked} value={t.subject} onChangeText={v=>setTemplates(ts=>ts.map((x,j)=>j===i ? {...x,subject:v} : x))} /><Field colors={colors} label={`Email ${i+1} body`} multiline numberOfLines={9} editable={!locked} value={t.body} onChangeText={v=>setTemplates(ts=>ts.map((x,j)=>j===i ? {...x,body:v} : x))} /></Card>)}
+        <Button colors={colors} primary disabled={locked || !campaign} onPress={()=>run(()=>outreachRequest(userId,{action:'templates',templates}))}>Save email drafts</Button><Text style={muted}>A reply-unsubscribe footer is included in every email.</Text>
+      </>}
+      {page==='schedule' && <><Text style={heading}>Sending schedule</Text><Card colors={colors}><Text style={body}>Monday–Friday · 9am–5pm Dubai</Text><Text style={muted}>Week 1: 5 emails/day{ '\n' }Week 2: 10 emails/day{ '\n' }Week 3: 20 emails/day{ '\n' }Week 4 onward: 30 emails/day</Text><Text style={muted}>Follow-ups count toward the daily limit. Emails are spaced at least 30 minutes apart.</Text></Card><Text style={muted}>Replies, opt-outs and bounces stop further contact. Unconfirmed sends pause for review.</Text></>}
+      {page==='settings' && <><Text style={heading}>Account</Text><Card colors={colors}><Text style={body}>{email}</Text><Text style={muted}>Repeat AI Outreach</Text></Card><Card colors={colors}><Text style={heading}>Appearance</Text><View style={{flexDirection:'row',justifyContent:'space-between',alignItems:'center'}}><Text style={body}>Dark mode</Text><Switch accessibilityLabel="Dark mode" value={colors.isDark} onValueChange={v=>setTheme(v ? 'dark' : 'light')} /></View></Card><Card colors={colors}><Text style={heading}>Sending inbox</Text><Text style={body}>{OUTREACH_SENDER}</Text><Button colors={colors} disabled={busy} onPress={()=>run(()=>connectOutreachGmail(userId))}>Connect Gmail</Button></Card><Button colors={colors} onPress={signOut}>Sign out</Button></>}
+    </ScrollView>
+  </NavigationDrawer></>;
 }
-const styles=StyleSheet.create({root:{flex:1,backgroundColor:'#f7f7f8'},content:{padding:22,gap:14,paddingBottom:50},brand:{flexDirection:'row',gap:12,alignItems:'center'},title:{fontSize:23,fontWeight:'700',color:'#111'},subtitle:{fontSize:14,lineHeight:21,color:'#666'},heading:{fontSize:17,fontWeight:'600',marginBottom:7},card:{padding:16,backgroundColor:'#fff',borderRadius:16,gap:6},input:{borderWidth:1,borderColor:'#ddd',padding:12,borderRadius:10,backgroundColor:'#fff',fontSize:15,textAlignVertical:'top'},button:{padding:14,borderRadius:12,backgroundColor:'#111',alignItems:'center'},buttonText:{color:'#fff',fontSize:15,fontWeight:'600'},error:{color:'#b42318'}});
