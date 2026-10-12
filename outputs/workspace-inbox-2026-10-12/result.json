@@ -4,7 +4,7 @@
   "nameVerifiedInAdminList": true,
   "photoUpload": "Profile photo updated successfully",
   "photoVerifiedInGoogleAccount": true,
-  "gmailTopRightAvatar": "Still shows L after refresh; icon visibility not yet verified",
+  "gmailTopRightAvatar": "Repeat AI icon visible in top-right account menu; small header badge still L after refresh. Menu name remains stale Latee Sanusi; admin user list and Google Account name verified Lateef Sanusi.",
   "signature": "Lateef\nRepeat AI",
   "signatureVerifiedAfterSave": true,
   "signatureLinks": 0,
@@ -14,5 +14,6 @@
     "reply/forward"
   ],
   "organizationSettingsChanged": false,
-  "emailsSent": 0
+  "emailsSent": 0,
+  "gmailAccountMenuPhotoVerified": true
 }
