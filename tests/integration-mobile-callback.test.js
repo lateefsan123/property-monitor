@@ -12,3 +12,10 @@ test('native callback uses a fixed app scheme and preserves opaque state/code', 
 test('web, malformed and unsupported callbacks never open a native destination', () => {
   for (const callback of [{ provider: 'google', state: 'a'.repeat(43) }, { provider: 'evil', state: `m_${'a'.repeat(43)}` }, { provider: 'google', state: 'm_bad' }]) assert.equal(mobileIntegrationCallback(callback), null);
 });
+
+test('outreach fork gets its own fixed callback without intercepting the main app', () => {
+  const state=`o_${'b'.repeat(43)}`;
+  const url=new URL(mobileIntegrationCallback({provider:'google',state,code:'code',returnUrl:'evil://other'}));
+  assert.equal(url.protocol,'repeat-outreach:');assert.equal(url.hostname,'integrations');
+  assert.equal(url.searchParams.get('state'),state);assert.equal(url.searchParams.has('returnUrl'),false);
+});

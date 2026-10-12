@@ -3,6 +3,7 @@ import process from 'node:process';
 import integrations from '../api/integrations/index.js';
 import voice from '../api/voice/index.js';
 import desktopDownload from '../api/desktop/download.js';
+import outreach from '../api/outreach/index.js';
 
 // Local Vite serves the same handler as Vercel. Secrets remain in Node only.
 export function integrationDevPlugin() {
@@ -15,7 +16,7 @@ export function integrationDevPlugin() {
       }
       // Download app: same redirect to the latest Windows installer as on Vercel.
       server.middlewares.use('/api/desktop/download', (req, res) => { desktopDownload(req, res).catch(() => { res.statusCode = 502; res.end(); }); });
-      for (const [path, handler, limit] of [['/api/integrations', integrations, 12000], ['/api/voice', voice, 140000]]) server.middlewares.use(path, async (req, res) => {
+      for (const [path, handler, limit] of [['/api/integrations', integrations, 12000], ['/api/voice', voice, 140000], ['/api/outreach', outreach, 500000]]) server.middlewares.use(path, async (req, res) => {
         let body = '';
         try {
           for await (const chunk of req) {
