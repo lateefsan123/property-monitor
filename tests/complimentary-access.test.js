@@ -18,6 +18,15 @@ test('other accounts cannot obtain unlimited access through email or editable me
   assert.equal(hasActiveSubscription({ source: 'complimentary', unlimited: false, status: 'active' }), false);
 });
 
+test('verified work account receives unlimited access without allowing email impersonation', () => {
+  const access = complimentaryAccess({ id: '231dbddd-efae-45b6-99ce-a72d68c32043' });
+  assert.equal(access.unlimited, true);
+  assert.equal(access.amount, 0);
+  assert.equal(hasActiveSubscription(access, Date.parse('2100-01-01')), true);
+  assert.equal(complimentaryAccess({ id: 'another-user', email: 'lateefsanusiwork@gmail.com',
+    user_metadata: { id: '231dbddd-efae-45b6-99ce-a72d68c32043', unlimited: true } }), null);
+});
+
 test('store reviewer has temporary access that expires at the agreed boundary', () => {
   const reviewer = { id: '681e8cae-2326-4045-b7bf-9f6458a06e01' };
   const expiry = Date.parse('2026-12-31T23:59:59.000Z');

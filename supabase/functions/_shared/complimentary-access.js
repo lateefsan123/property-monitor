@@ -1,5 +1,8 @@
-// Confirmed account ID from Auth. Email/profile edits cannot grant this access.
-const UNLIMITED_USER_ID = "441421f9-1089-4694-a66e-ab75b5459003";
+// Confirmed account IDs from Auth. Email/profile edits cannot grant this access.
+const UNLIMITED_USER_IDS = new Set([
+  "441421f9-1089-4694-a66e-ab75b5459003",
+  "231dbddd-efae-45b6-99ce-a72d68c32043", // Owner's work / automation account.
+]);
 // Dedicated review accounts. These grants expire automatically and cannot
 // be claimed through profile metadata.
 const REVIEW_ACCESS_END = new Map([
@@ -11,7 +14,7 @@ const REVIEW_ACCESS_END = new Map([
 ]);
 
 export function complimentaryAccess(user, now = Date.now()) {
-  const isOwner = user?.id === UNLIMITED_USER_ID;
+  const isOwner = UNLIMITED_USER_IDS.has(user?.id);
   const reviewEnd = REVIEW_ACCESS_END.get(user?.id);
   if (!isOwner && !(Date.parse(reviewEnd) > now)) return null;
   return {
