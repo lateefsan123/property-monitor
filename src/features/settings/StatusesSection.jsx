@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useCallback, useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
@@ -128,7 +129,7 @@ export default function StatusesSection({ userId, newStatusRequest = 0 }) {
       setEditing(null);
       setDraft(null);
     } catch (failure) {
-      setError(failure?.message || "Could not save. Try again.");
+      setError(userFacingError(failure));
     } finally {
       setSaving(false);
     }
@@ -195,7 +196,7 @@ export default function StatusesSection({ userId, newStatusRequest = 0 }) {
         })}
       </SettingsGroup>
 
-      {!editing && (error || statuses.error) && <p className="st-error" role="alert">{error || statuses.error?.message}</p>}
+      {!editing && (error || statuses.error) && <p className="st-error" role="alert">{error || userFacingError(statuses.error)}</p>}
       {editing && draft && (
         <StatusDialog draft={draft} setDraft={setDraft} saving={saving} error={error} isNew={editing === "new"}
           otherStatuses={custom.filter((row) => row.id !== draft.id)}

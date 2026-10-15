@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../../supabase';
@@ -33,16 +34,16 @@ export default function BrokerCampaignPage({userId,onNavigate}) {
       if(action==='active' && !linked) throw new Error('Connect the selected WhatsApp number in Settings first.');
       await checked(supabase.from('broker_campaigns').update({status:action}).eq('id',campaign.id).eq('user_id',userId));
     }
-  },onSettled:()=>{cache.invalidateQueries({queryKey:['broker-campaigns',userId]});cache.invalidateQueries({queryKey:['broker-contacts',userId]});},onError:e=>setError(e.message)});
+  },onSettled:()=>{cache.invalidateQueries({queryKey:['broker-campaigns',userId]});cache.invalidateQueries({queryKey:['broker-contacts',userId]});},onError:e=>setError(userFacingError(e))});
   const sample=contacts.data?.find(c=>c.status==='ready') || contacts.data?.[0];
   let preview='',followupPreview='',previewError='';
   if(sample && campaign) {
     try {preview=renderBrokerMessage(campaign.intro_template,sample,campaign.demo_url);followupPreview=renderBrokerMessage(campaign.followup_template,sample,campaign.demo_url);}
-    catch(e) {previewError=e.message;}
+    catch(e) {previewError=userFacingError(e, 'Check the name, agency and message fields, then try again.');}
   }
   return <main className="broker-campaign-page">
     <header><h1>Broker outreach</h1><p>Introduce Repeat AI, then follow up once after three days. Replies stop the sequence.</p></header>
-    {campaigns.error && <p role="alert">Could not load campaigns: {campaigns.error.message}</p>}
+    {campaigns.error && <p role="alert">Could not load campaigns: {userFacingError(campaigns.error)}</p>}
     {error && <p role="alert">{error}</p>}
     <section className="broker-card"><h2>Your campaigns</h2>
       {campaigns.isPending ? <p>Loading campaigns…</p> : !campaigns.data?.length ? <p>Create a draft below to get started.</p> : <>
@@ -54,7 +55,7 @@ export default function BrokerCampaignPage({userId,onNavigate}) {
         <p>Messages go out during your account’s Dubai sending hours. An unconfirmed send waits for manual review.</p>
         {previewError && <p role="alert">Check the message templates: {previewError}</p>}
         {preview && !previewError && <div className="broker-preview"><h3>First message preview</h3><p>{preview}</p><h3>Follow-up after {campaign.followup_days} days</h3><p>{followupPreview}</p></div>}
-        {contacts.error && <p role="alert">Could not load contacts: {contacts.error.message}</p>}
+        {contacts.error && <p role="alert">Could not load contacts: {userFacingError(contacts.error)}</p>}
         <table><thead><tr><th>Broker</th><th>Agency</th><th>Status</th></tr></thead><tbody>{contacts.data?.map(c=><tr key={c.id}><td>{c.name}</td><td>{c.agency}</td><td>{c.status}</td></tr>)}</tbody></table>
       </>}
     </section>

@@ -1,4 +1,5 @@
-import { COLUMN_ALIASES, HEADER_SCAN_LIMIT } from "./constants";
+import { UserFacingError } from "../../../shared/user-facing-errors.js";
+import { COLUMN_ALIASES, HEADER_SCAN_LIMIT } from "./constants.js";
 
 export function normalizeToken(value) {
   return String(value || "").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -11,11 +12,6 @@ function inferColumn(headers, aliases) {
   for (const alias of normalizedAliases) {
     const exactMatch = normalizedHeaders.find((header) => header.normalized === alias);
     if (exactMatch) return exactMatch.header;
-  }
-
-  for (const alias of normalizedAliases.filter((candidate) => candidate.length >= 5)) {
-    const partialMatch = normalizedHeaders.find((header) => header.normalized.includes(alias));
-    if (partialMatch) return partialMatch.header;
   }
 
   return null;
@@ -91,27 +87,31 @@ export function parseCsvText(text) {
     if (character !== "\r") field += character;
   }
 
+  if (inQuotes) throw new UserFacingError("The CSV has an unfinished quoted cell. Export it again and retry.");
   row.push(field);
   if (row.some((value) => String(value).trim() !== "")) rows.push(row);
   return rows;
 }
 
 function makeHeadersUnique(headers) {
-  const counts = {};
+  const used = new Set();
   return headers.map((header) => {
     const base = String(header || "").trim() || "Column";
-    counts[base] = (counts[base] || 0) + 1;
-    return counts[base] === 1 ? base : `${base} (${counts[base]})`;
+    let unique = base;
+    let count = 1;
+    while (used.has(unique) || unique === "__row") unique = `${base} (${++count})`;
+    used.add(unique);
+    return unique;
   });
 }
 
-export function rowsToObjects(rows) {
+export function rowsToObjects(rows, { headerRowIndex: selectedHeader } = {}) {
   if (!rows.length) return { headers: [], records: [] };
 
   let headerRowIndex = 0;
   let bestScore = -1;
 
-  for (let rowIndex = 0; rowIndex < Math.min(rows.length, HEADER_SCAN_LIMIT); rowIndex += 1) {
+  for (let rowIndex = 0; rowIndex < Math.min(rows.length - 1, HEADER_SCAN_LIMIT); rowIndex += 1) {
     const candidateHeaders = rows[rowIndex].map((value, index) => {
       const label = String(value || "").trim();
       return label || `Column ${index + 1}`;
@@ -124,25 +124,39 @@ export function rowsToObjects(rows) {
     }
   }
 
+  if (Number.isInteger(selectedHeader) && selectedHeader >= 0 && selectedHeader < rows.length) headerRowIndex = selectedHeader;
+
   const headers = makeHeadersUnique(
-    rows[headerRowIndex].map((value, index) => {
-      const label = String(value || "").trim();
+    Array.from({ length: rows.reduce((width, row) => Math.max(width, row.length), 0) }, (_, index) => {
+      const label = String(rows[headerRowIndex][index] ?? "").trim();
       return label || `Column ${index + 1}`;
     }),
   );
 
   const records = rows
     .slice(headerRowIndex + 1)
-    .filter((row) => row.some((value) => String(value || "").trim() !== ""))
     .map((row, dataIndex) => {
-      const record = { __row: headerRowIndex + 2 + dataIndex };
+      if (!row.some(value => String(value ?? "").trim())) return null;
+      const record = Object.create(null);
+      record.__row = headerRowIndex + 2 + dataIndex;
       headers.forEach((header, columnIndex) => {
         record[header] = String(row[columnIndex] ?? "").trim();
       });
       return record;
-    });
+    }).filter(Boolean);
 
-  return withVillaLocation(headers, records);
+  const named = withFullName(headers, records);
+  return { ...withVillaLocation(named.headers, named.records), headerRowIndex };
+}
+
+function withFullName(headers, records) {
+  if (inferMapping(headers).name) return { headers, records };
+  const first = headers.find(header => ['firstname', 'givenname'].includes(normalizeToken(header)));
+  const last = headers.find(header => ['lastname', 'surname', 'familyname'].includes(normalizeToken(header)));
+  if (!first || !last) return { headers, records };
+  const label = 'First + last name';
+  for (const record of records) record[label] = [record[first], record[last]].filter(Boolean).join(' ');
+  return { headers: [...headers, label], records };
 }
 
 // Villa sheets often split the location into "Community" and "Sub Community"

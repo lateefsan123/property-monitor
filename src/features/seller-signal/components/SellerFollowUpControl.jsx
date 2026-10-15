@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { useRef, useState } from 'react';
 import { IconClock } from '@tabler/icons-react';
 import { followUpAfterDays } from '../../../../supabase/functions/_shared/seller-follow-up.js';
@@ -20,7 +21,7 @@ export default function SellerFollowUpControl({ lead, onSave }) {
     if (locked.current) return;
     locked.current = true; setBusy(true); setError('');
     try { await onSave(lead.id, { days, contactedToday, clear }); setOpen(false); setContactedToday(false); }
-    catch (failure) { setError(failure.message); }
+    catch (failure) { setError(userFacingError(failure)); }
     finally { locked.current = false; setBusy(false); }
   }
   const summary = lead.nextFollowUpOn ? `Scheduled for ${lead.nextFollowUpOn}` : lead.dueLabel || 'Never contacted';

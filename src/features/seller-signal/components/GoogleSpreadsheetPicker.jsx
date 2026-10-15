@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { useEffect, useState } from 'react';
 import SearchField from '../../../components/SearchField';
 
@@ -12,7 +13,7 @@ export default function GoogleSpreadsheetPicker({ request, onSelect, onBrowse, d
     const controller = new AbortController();
     request({ action: 'read', provider: 'google', feature: 'sheets', input }, controller.signal)
       .then(value => { if (!controller.signal.aborted) { setResult(value); setLoading(false); } })
-      .catch(error => { if (!controller.signal.aborted) { setError(error.message); setLoading(false); } });
+      .catch(error => { if (!controller.signal.aborted) { setError(userFacingError(error)); setLoading(false); } });
     return () => controller.abort();
   }, [request, input]);
   function load(value) { onBrowse(); setError(''); setResult(null); setLoading(true); setInput(value); }

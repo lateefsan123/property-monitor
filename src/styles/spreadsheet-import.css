@@ -5,7 +5,7 @@
   background: rgba(0, 0, 0, 0.32); animation: si-fade 0.16s ease-out;
 }
 .si-modal {
-  width: min(560px, 100%); max-height: min(720px, calc(100dvh - 48px)); display: flex; flex-direction: column;
+  width: min(560px, 100%); min-width: 0; box-sizing: border-box; max-height: min(720px, calc(100dvh - 48px)); display: flex; flex-direction: column;
   border: 1px solid var(--border); border-radius: 20px; background: var(--bg-card); color: var(--text);
   box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.5); animation: si-rise 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
@@ -147,3 +147,14 @@
   .si-body { padding: 0 18px 20px; }
   .si-footer .si-btn { flex: 1; }
 }
+
+/* Import review stays usable with wide CRM exports and narrow screens. */
+.si-mapping { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.si-field select { width: 100%; min-width: 0; padding: 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--text); font: inherit; }
+.si-sample { overflow-x: auto; border: 1px solid var(--border); border-radius: 8px; }
+.si-sample table { border-collapse: collapse; width: 100%; font-size: 12px; }
+.si-sample caption { text-align: left; padding: 8px; color: var(--text-muted); }
+.si-sample th, .si-sample td { padding: 8px; text-align: left; border-bottom: 1px solid var(--border); min-width: 100px; max-width: 220px; overflow-wrap: anywhere; }
+.si-step progress { width: 100%; }
+.si-modal select:focus-visible { outline: 2px solid var(--text-name); outline-offset: 2px; }
+@media (max-width: 560px) { .si-mapping { grid-template-columns: 1fr; } }

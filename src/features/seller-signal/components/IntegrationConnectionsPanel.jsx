@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { integrationStatusOptions } from '../../../integration-query';
@@ -36,12 +37,12 @@ export default function IntegrationConnectionsPanel({ userId, request = integrat
         setConfirmId('');
         setOpenId('');
       }
-    } catch (error) { setError(error.message); }
+    } catch (error) { setError(userFacingError(error)); }
     finally { setBusy(''); }
   }
   return <section className="integration-connections" aria-label="App connections">
     <p className="integration-intro">Your everyday tools, all in one place.</p>
-    {(error || status.error) && <div className="integration-error" role="alert">{error || status.error.message} <button type="button" onClick={() => { setError(''); void status.refetch(); }}>Try again</button></div>}
+    {(error || status.error) && <div className="integration-error" role="alert">{error || userFacingError(status.error)} <button type="button" onClick={() => { setError(''); void status.refetch(); }}>Try again</button></div>}
     <div className="integration-list" aria-busy={status.isPending}>{ITEMS.map(([provider, feature, name, description, logo]) => {
       const connection = connections?.find(item => item.provider === provider && item.feature === feature);
       const id = `${provider}-${feature}`;

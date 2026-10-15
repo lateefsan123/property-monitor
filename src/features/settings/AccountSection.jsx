@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useEffect, useRef, useState } from "react";
 import { IconCreditCard, IconLogout, IconPencil, IconTrash, IconUser, IconUserCircle } from "@tabler/icons-react";
 import { supabase } from "../../supabase";
@@ -39,7 +40,7 @@ function EditProfileDialog({ userId, name: initialName, avatarUrl: initialAvatar
     setMenu(false);
     if (!file) return;
     setError("");
-    try { setPhoto(await avatarDataUrlFromFile(file)); } catch (failure) { setError(failure.message); }
+    try { setPhoto(await avatarDataUrlFromFile(file)); } catch (failure) { setError(userFacingError(failure)); }
   }
 
   async function save(event) {
@@ -54,7 +55,7 @@ function EditProfileDialog({ userId, name: initialName, avatarUrl: initialAvatar
       await saveAvatarProfile(supabase, userId, { username: trimmed, full_name: trimmed, avatar_url: photo || null });
       onClose();
     } catch (failure) {
-      setError(failure.message || "Could not save your profile. Please try again.");
+      setError(userFacingError(failure));
       setBusy(false);
     }
   }
@@ -110,7 +111,7 @@ export default function AccountSection({ userId, profile, subscriptionLabel, onM
       if (rpcError) throw rpcError;
       await supabase.auth.signOut({ scope: "local" });
     } catch (failure) {
-      setError(failure.message || "Failed to delete account");
+      setError(userFacingError(failure));
       setBusy(false);
     }
   }

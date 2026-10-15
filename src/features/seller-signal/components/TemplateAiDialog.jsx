@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { useEffect, useRef, useState } from "react";
 import { IconBolt, IconCalendarStats, IconMoodSmile, IconX } from "@tabler/icons-react";
 import RepeatFox from "../../../components/RepeatFox";
@@ -59,7 +60,7 @@ export default function TemplateAiDialog({ message, disabled, onClose, onApply }
       const next = await requestTemplateDraft(supabase, brief);
       if (active.current) setDrafts((current) => ({ ...current, [runMode]: next }));
     } catch (failure) {
-      if (active.current) setError(failure.message);
+      if (active.current) setError(userFacingError(failure));
     } finally {
       lock.current = false;
       if (active.current) setBusy(false);

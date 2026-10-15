@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   IconAlertCircle,
@@ -110,10 +111,7 @@ function getSignupData(message) {
 }
 
 function getSignupError(signupData) {
-  return signupData?.error_message
-    || signupData?.error
-    || signupData?.message
-    || "WhatsApp signup did not complete.";
+  return userFacingError(signupData?.error || signupData?.error_message || signupData?.message, "WhatsApp signup did not complete. Please try connecting again.") || "WhatsApp signup did not complete. Please try connecting again.";
 }
 
 function getAccountLabel(account) {
@@ -236,7 +234,7 @@ export default function WhatsAppConnectionPanel({
       pendingRef.current = { code: null, signup: null };
     } catch (error) {
       setStatus("idle");
-      setLocalError(error instanceof Error ? error.message : "Could not connect WhatsApp.");
+      setLocalError(userFacingError(error, "Could not connect WhatsApp."));
     } finally {
       finalizingRef.current = false;
     }
@@ -266,7 +264,7 @@ export default function WhatsAppConnectionPanel({
 
     if (nextStatus === "error" || nextStatus === "pairing_code_error" || nextAccount?.connection_status === "error") {
       setStatus("idle");
-      setLocalError(nextAccount?.last_error || result?.session?.lastError || "Could not connect WhatsApp.");
+      setLocalError(userFacingError(nextAccount?.last_error || result?.session?.lastError, "Could not connect WhatsApp. Please try linking again."));
       return;
     }
 
@@ -329,7 +327,7 @@ export default function WhatsAppConnectionPanel({
       } catch (error) {
         if (!cancelled) {
           setStatus("idle");
-          setLocalError(error instanceof Error ? error.message : "Could not check WhatsApp connection.");
+          setLocalError(userFacingError(error, "Could not check WhatsApp connection."));
         }
       }
 
@@ -383,7 +381,7 @@ export default function WhatsAppConnectionPanel({
       applyBaileysResult(result);
     } catch (error) {
       setStatus("idle");
-      setLocalError(error instanceof Error ? error.message : "Could not request WhatsApp pairing code.");
+      setLocalError(userFacingError(error, "Could not request WhatsApp pairing code."));
     }
   }
 
@@ -404,7 +402,7 @@ export default function WhatsAppConnectionPanel({
       applyBaileysResult(result);
     } catch (error) {
       setStatus("idle");
-      setLocalError(error instanceof Error ? error.message : "Could not request WhatsApp QR code.");
+      setLocalError(userFacingError(error, "Could not request WhatsApp QR code."));
     }
   }
 
@@ -429,7 +427,7 @@ export default function WhatsAppConnectionPanel({
       setConfirmDisconnect(false);
       setStatus("idle");
     } catch (error) {
-      setLocalError(error instanceof Error ? error.message : "Could not disconnect WhatsApp.");
+      setLocalError(userFacingError(error, "Could not disconnect WhatsApp."));
     } finally {
       setDisconnecting(false);
     }
@@ -489,7 +487,7 @@ export default function WhatsAppConnectionPanel({
       });
     } catch (error) {
       setStatus("idle");
-      setLocalError(error instanceof Error ? error.message : "Could not start WhatsApp signup.");
+      setLocalError(userFacingError(error, "Could not start WhatsApp signup."));
     }
   }
 

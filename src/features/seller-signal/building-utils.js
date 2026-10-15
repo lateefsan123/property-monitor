@@ -1,5 +1,5 @@
-import { normalizeToken } from "./spreadsheet";
-import { DOWNTOWN_DUBAI_BUILDINGS, DOWNTOWN_DUBAI_BUILDING_ALIASES } from "./building-registry";
+import { normalizeToken } from "./spreadsheet.js";
+import { DOWNTOWN_DUBAI_BUILDINGS, DOWNTOWN_DUBAI_BUILDING_ALIASES } from "./building-registry.js";
 
 const NUMBER_WORDS = {
   one: "1",

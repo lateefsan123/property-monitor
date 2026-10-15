@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { useEffect, useRef, useState } from "react";
 import {
   IconAlertTriangle,
@@ -270,7 +271,7 @@ export function MarketPanel({ insight, lead }) {
       </div>
 
       {insight?.status === "loading" && <p className="seller-drawer-muted">Loading market data…</p>}
-      {insight?.status === "error" && <p className="seller-message-error">{insight.error}</p>}
+      {insight?.status === "error" && <p className="seller-message-error">{userFacingError(insight.error, "We couldn’t load recent sales. Please try again.")}</p>}
       {!insight?.status && <p className="seller-drawer-muted">No market data available yet.</p>}
 
       {ready && (

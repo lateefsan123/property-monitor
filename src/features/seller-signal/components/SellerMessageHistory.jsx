@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { formatMessageWhen, groupFeedByDay, messageSourceLabel, messageStatusLabel, messageText, messageTime } from "../../../../shared/whatsapp-messages.js";
 import { fetchSellerThreadPage, nextFeedCursor, sellerThreadQueryKey } from "../../home/message-feed-services";
@@ -34,7 +35,7 @@ export default function SellerMessageHistory({ userId, lead }) {
           const meta = inbound ? time : [time, messageSourceLabel(message), messageStatusLabel(message)].filter(Boolean).join(" · ");
           return <div key={message.id} className={`message-thread-item ${inbound ? "is-inbound" : "is-outbound"}`}>
             <p className="message-thread-bubble">{messageText(message)}</p>
-            <time className={`message-thread-meta${failed ? " is-failed" : ""}`} dateTime={sentAt} title={new Date(sentAt).toLocaleString("en-GB")}>{failed && message.error_message ? `${meta} · ${message.error_message}` : meta}</time>
+            <time className={`message-thread-meta${failed ? " is-failed" : ""}`} dateTime={sentAt} title={new Date(sentAt).toLocaleString("en-GB")}>{failed && message.error_message ? `${meta} · ${userFacingError(message.error_message, "Sending failed. Check your WhatsApp connection.")}` : meta}</time>
           </div>;
         })}
       </section>

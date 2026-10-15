@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   IconCheck,
@@ -34,7 +35,7 @@ function renderMessagePreview(templateContent) {
 }
 
 function getErrorMessage(error) {
-  return error instanceof Error ? error.message : String(error || "Could not save the template.");
+  return userFacingError(error, "Could not save the template. Please try again.");
 }
 
 export default function MessageTemplatesPanel({

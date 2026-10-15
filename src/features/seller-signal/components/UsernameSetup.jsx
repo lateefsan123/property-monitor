@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { useEffect, useRef, useState } from "react";
 import { supabase } from "../../../supabase";
 import OnboardingFrame, { FoxSays } from "../../../OnboardingFrame";
@@ -69,7 +70,7 @@ export default function UsernameSetup({ initialName = "", initialAvatar = "", on
       const dataUrl = await downscaleImageToDataUrl(file);
       setAvatarDataUrl(dataUrl);
     } catch (uploadError) {
-      setError(uploadError.message);
+      setError(userFacingError(uploadError));
     } finally {
       setUploading(false);
     }
@@ -92,7 +93,7 @@ export default function UsernameSetup({ initialName = "", initialAvatar = "", on
       });
       onComplete?.({ username: trimmed, avatarDataUrl: user.user_metadata?.avatar_url || "" });
     } catch (updateError) {
-      setError(updateError.message);
+      setError(userFacingError(updateError));
       setSaving(false);
       return;
     }

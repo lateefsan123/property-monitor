@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useEffect, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { QRCodeSVG } from "qrcode.react";
@@ -150,12 +151,12 @@ export default function WhatsAppSection({ userId, account, loading }) {
           <button type="button" className="st-primary" onClick={() => { setError(null); setSheet("pair"); }}>{waiting ? "Continue linking" : "Link a number"}</button>
         </section>
       )}
-      {!sheet && error ? <p className="st-error" role="alert">{error.message}</p> : null}
+      {!sheet && error ? <p className="st-error" role="alert">{userFacingError(error)}</p> : null}
 
       {sheet ? (
         <Dialog busy={busy} onClose={() => setSheet(null)}
           title={sheet === "pair" ? "Add WhatsApp number" : sheet === "disconnect" ? "Disconnect WhatsApp?" : "WhatsApp number"}>
-          {error ? <p className="st-error" role="alert">{error.message}</p> : null}
+          {error ? <p className="st-error" role="alert">{userFacingError(error)}</p> : null}
           {sheet === "pair" ? (
             <>
               {!waiting ? (

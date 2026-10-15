@@ -1,8 +1,7 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   IconArrowLeft,
   IconChevronRight,
-  IconCloudUpload,
   IconLink,
   IconTable,
   IconX,
@@ -10,7 +9,10 @@ import {
 import SearchField from "../../../components/SearchField";
 import { beginIntegrationConnect, integrationRequest } from "../../../integration-client";
 import { rememberSpreadsheetImport, takeSpreadsheetImport } from "../../../integration-resume";
-import { parseSpreadsheetFile } from "../file-import";
+import FileImportStep from "./FileImportStep";
+import ImportReview from "./ImportReview";
+import { prepareImportRows } from "../import-preview.js";
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { previewSheetBuildings } from "../lead-import-services";
 import ConnectedSpreadsheetPicker, { SheetProviderIcon } from "./ConnectedSpreadsheetPicker";
 import { SHEET_PROVIDERS } from "./sheet-providers";
@@ -42,8 +44,10 @@ const isMicrosoftLink = (value) => {
   }
 };
 
-function UrlStep({ onSubmit, submitting, onClose, maxSelections, onMicrosoftLink }) {
+function UrlStep({ onImportRows, submitting, onClose, maxSelections, onMicrosoftLink, onBusyChange }) {
   const [url, setUrl] = useState("");
+  const [rawRows, setRawRows] = useState(null);
+  const [reviewing, setReviewing] = useState(false);
   const [buildings, setBuildings] = useState([]);
   const [totalRows, setTotalRows] = useState(null);
   const [selected, setSelected] = useState(() => new Set());
@@ -66,18 +70,18 @@ function UrlStep({ onSubmit, submitting, onClose, maxSelections, onMicrosoftLink
       setError("");
       try {
         const preview = await previewSheetBuildings(trimmed);
+        setRawRows(preview.rawRows);
         setBuildings(preview.buildings);
         setTotalRows(preview.totalRows);
       } catch (scanError) {
-        setError(scanError?.message || "Could not read this sheet. Check it is shared as “Anyone with the link”.");
+        setError(userFacingError(scanError, "Could not read this sheet. Check it is shared as Anyone with the link."));
       } finally {
         setScanning(false);
       }
       return;
     }
     if (choosing && !selected.size) return;
-    const ok = await onSubmit?.(trimmed, choosing ? [...selected] : []);
-    if (ok) onClose?.();
+    setReviewing(true);
   }
 
   const filtered = buildings.filter((item) => item.building.toLowerCase().includes(query.trim().toLowerCase()));
@@ -85,6 +89,16 @@ function UrlStep({ onSubmit, submitting, onClose, maxSelections, onMicrosoftLink
     ? { rows: result.rows + item.rowCount, phones: result.phones + item.uniquePhoneCount }
     : result, { rows: 0, phones: 0 });
   const busy = submitting || scanning;
+
+  if (reviewing) return <ImportReview rawRows={rawRows} label="Google Sheet" onBack={() => setReviewing(false)} onBusyChange={onBusyChange} onImport={async options => {
+    const selections = choosing ? [...selected].map(building => [building]) : [[]];
+    for (const selectedBuildings of selections) {
+      const label = selectedBuildings[0] || `Google Sheet ${url.match(/\/d\/([^/]+)/)?.[1]?.slice(0, 12) || 'import'}`;
+      const ok = await onImportRows({ key: `${url}:${label}`, label, sheetUrl: url.trim(), selectedBuildings, ...options });
+      if (!ok) return;
+    }
+    onClose?.();
+  }} />;
 
   return (
     <form id="si-url-form" className="si-step" onSubmit={handleSubmit}>
@@ -162,83 +176,9 @@ function UrlStep({ onSubmit, submitting, onClose, maxSelections, onMicrosoftLink
   );
 }
 
-function FileStep({ onImportFile, onClose, submitting, onBusyChange }) {
-  const [file, setFile] = useState(null);
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [dragging, setDragging] = useState(false);
-  const lock = useRef(false);
-  const inputRef = useRef(null);
-
-  function pick(next) {
-    if (!next) return;
-    if (!/\.(xlsx|xls|csv)$/i.test(next.name)) {
-      setError("Choose an .xlsx, .xls or .csv file.");
-      return;
-    }
-    setFile(next);
-    setError("");
-  }
-
-  async function handleImport(event) {
-    event.preventDefault();
-    if (!file || lock.current || submitting) return;
-    lock.current = true;
-    setBusy(true);
-    onBusyChange(true);
-    setError("");
-    try {
-      const rows = await parseSpreadsheetFile(file);
-      if (await onImportFile(file, rows)) onClose();
-    } catch (err) {
-      setError(err.message || "Could not import this file.");
-    } finally {
-      lock.current = false;
-      setBusy(false);
-      onBusyChange(false);
-    }
-  }
-
-  const disabled = busy || submitting;
-  return (
-    <form className="si-step" onSubmit={handleImport}>
-      <label
-        className={`si-drop${dragging ? " is-dragging" : ""}${file ? " has-file" : ""}`}
-        onDragOver={(event) => { event.preventDefault(); if (!disabled) setDragging(true); }}
-        onDragLeave={() => setDragging(false)}
-        onDrop={(event) => { event.preventDefault(); setDragging(false); if (!disabled) pick(event.dataTransfer.files?.[0]); }}
-      >
-        <input ref={inputRef} type="file" accept=".xlsx,.xls,.csv" aria-label="Choose spreadsheet file" disabled={disabled}
-          onChange={(event) => { pick(event.target.files?.[0]); event.target.value = ""; }} />
-        {file ? (
-          <>
-            <span className="si-drop-icon is-file" aria-hidden="true"><IconTable size={28} stroke={1.5} /></span>
-            <strong>{file.name}</strong>
-            <span>{(file.size / 1024 / 1024).toFixed(file.size > 1024 * 1024 ? 1 : 2)} MB · click to choose a different file</span>
-          </>
-        ) : (
-          <>
-            <span className="si-drop-icon" aria-hidden="true"><IconCloudUpload size={28} stroke={1.5} /></span>
-            <strong>Drop your spreadsheet here</strong>
-            <span>or <u>browse your computer</u> · Excel or CSV, one worksheet, up to 10 MB</span>
-          </>
-        )}
-      </label>
-      {error && <p className="si-error" role="alert">{error}</p>}
-      <div className="si-footer">
-        <button type="submit" className="si-btn is-primary" disabled={!file || disabled}>
-          {disabled ? "Importing…" : "Import sellers"}
-        </button>
-      </div>
-    </form>
-  );
-}
-
 export default function NewSpreadsheetModal({
   userId,
   onClose,
-  onSubmit,
-  onImportFile,
   onImportRows,
   submitting,
   maxSelections = 10,
@@ -249,6 +189,7 @@ export default function NewSpreadsheetModal({
   const [fileBusy, setFileBusy] = useState(false);
   const [connectedBusy, setConnectedBusy] = useState(false);
   const [connectedError, setConnectedError] = useState("");
+  const [connectedReview, setConnectedReview] = useState(null);
   const locked = submitting || fileBusy || connectedBusy;
 
   useEffect(() => {
@@ -265,6 +206,7 @@ export default function NewSpreadsheetModal({
 
   function go(next) {
     setConnectedError("");
+    setConnectedReview(null);
     if (next === "microsoft") setExcelUrl("");
     setMode(next);
   }
@@ -285,14 +227,10 @@ export default function NewSpreadsheetModal({
     setConnectedError("");
     try {
       const rawRows = await readConnectedSheetRows(integrationRequest, { provider, file, sheetName, userId });
-      const ok = await onImportRows({
-        key: `${provider}:${file.driveId || ""}:${file.id}:${sheetName}`,
-        label: `${file.name.replace(/\.(xlsx|xls|csv)$/i, "")} · ${sheetName}`,
-        rawRows,
-      });
-      if (ok) onClose?.();
+      prepareImportRows(rawRows);
+      setConnectedReview({ rawRows, key: `${provider}:${file.driveId || ""}:${file.id}:${sheetName}`, label: `${file.name.replace(/\.(xlsx|xls|csv)$/i, "")} · ${sheetName}` });
     } catch (error) {
-      setConnectedError(error.message || "Could not import this worksheet.");
+      setConnectedError(userFacingError(error, "Could not read this worksheet. Please try again."));
     } finally {
       setConnectedBusy(false);
     }
@@ -349,11 +287,12 @@ export default function NewSpreadsheetModal({
             </ul>
           )}
 
-          {mode === "file" && <FileStep onImportFile={onImportFile} onClose={onClose} submitting={submitting} onBusyChange={setFileBusy} />}
+          {mode === "file" && <FileImportStep onImportRows={onImportRows} onClose={onClose} submitting={submitting} onBusyChange={setFileBusy} />}
 
           {mode === "url" && (
             <UrlStep
-              onSubmit={onSubmit}
+              onImportRows={onImportRows}
+              onBusyChange={setFileBusy}
               submitting={submitting}
               onClose={onClose}
               maxSelections={maxSelections}
@@ -361,7 +300,11 @@ export default function NewSpreadsheetModal({
             />
           )}
 
-          {provider && (
+          {provider && connectedReview && <ImportReview rawRows={connectedReview.rawRows} label={connectedReview.label} onBack={() => setConnectedReview(null)} onBusyChange={setConnectedBusy} onImport={async options => {
+            const ok = await onImportRows({ ...connectedReview, ...options });
+            if (ok) onClose?.();
+          }} />}
+          {provider && !connectedReview && (
             <div className="si-step">
               <ConnectedSpreadsheetPicker
                 key={`${provider}:${excelUrl}`}

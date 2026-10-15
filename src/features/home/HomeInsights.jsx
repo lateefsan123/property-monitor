@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { IconBuildingEstate, IconChevronRight, IconX } from "@tabler/icons-react";
@@ -111,7 +112,7 @@ export default function HomeInsights({ userId, onNavigate, onOpenSeller }) {
   return (
     <>
       {failure && (
-        <p className="home-error" role="alert">{failure.message || "Could not load your overview."}{" "}
+        <p className="home-error" role="alert">{userFacingError(failure, "Could not load your overview.")}{" "}
           <button type="button" className="home-text-button" onClick={() => { leads.refetch(); activity.refetch(); drops.refetch(); }}>Try again</button>
         </p>
       )}

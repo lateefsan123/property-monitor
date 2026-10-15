@@ -1,3 +1,4 @@
+import { userFacingError } from "../shared/user-facing-errors.js";
 import { useState } from "react";
 import { supabase } from "./supabase";
 import OnboardingFrame, { OnboardingInfo } from "./OnboardingFrame";
@@ -41,7 +42,7 @@ export default function HowItWorksScreen({ onContinue, onBack, initialIndex = 0 
       if (updateError) throw updateError;
       onContinue?.();
     } catch (failure) {
-      setError(failure?.message || "Could not save. Try again.");
+      setError(userFacingError(failure));
     } finally {
       setSaving(false);
     }

@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useEffect, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { IconChevronRight, IconX } from "@tabler/icons-react";
@@ -80,7 +81,7 @@ export default function IntegrationsSection({ userId }) {
         await beginIntegrationConnect(integrationRequest, provider, feature, capability);
       }
     } catch (failure) {
-      setError(failure.message);
+      setError(userFacingError(failure));
     } finally {
       setPending("");
     }
@@ -93,7 +94,7 @@ export default function IntegrationsSection({ userId }) {
   return (
     <div className="st-stack">
       {error || status.error ? (
-        <p className="st-error" role="alert">{error || status.error.message} <button type="button" className="st-text-btn" onClick={() => { setError(""); void status.refetch(); }}>Try again</button></p>
+        <p className="st-error" role="alert">{error || userFacingError(status.error)} <button type="button" className="st-text-btn" onClick={() => { setError(""); void status.refetch(); }}>Try again</button></p>
       ) : null}
       {!connections && status.isFetching ? <p className="st-note" role="status">Loading connections…</p> : null}
       {connections ? groups.filter(([, items]) => items.length).map(([title, items]) => (

@@ -1,6 +1,7 @@
-import { DEFAULT_CADENCE_DAYS, MAX_MEANINGFUL_OVERDUE_DAYS, MILLISECONDS_PER_DAY, STATUS_RULES } from "./constants";
+import { UserFacingError } from "../../../shared/user-facing-errors.js";
+import { DEFAULT_CADENCE_DAYS, MAX_MEANINGFUL_OVERDUE_DAYS, MILLISECONDS_PER_DAY, STATUS_RULES } from "./constants.js";
 import { matchStatusRule } from "../../../shared/seller-statuses.js";
-import { canonicalizeBuildingName, parseBuildingAddressValue } from "./building-utils";
+import { canonicalizeBuildingName, parseBuildingAddressValue } from "./building-utils.js";
 import { dubaiDateKey } from '../../../supabase/functions/_shared/seller-follow-up.js';
 
 export function startOfDay(dateValue) {
@@ -63,6 +64,7 @@ export function parseDateValue(rawValue) {
     ) {
       return startOfDay(parsed);
     }
+    return null;
   }
 
   match = raw.match(/^(\d{4})[./-](\d{1,2})[./-](\d{1,2})$/);
@@ -79,6 +81,7 @@ export function parseDateValue(rawValue) {
     ) {
       return startOfDay(parsed);
     }
+    return null;
   }
 
   const direct = new Date(raw);
@@ -350,6 +353,9 @@ export function createLeadInsertRecord(record, mapping, userId, options = {}) {
   if (!name && !resolvedBuilding && !phone) return null;
 
   const lastContactDate = parseDateValue(lastContactRaw);
+  if (String(lastContactRaw || "").trim() && !lastContactDate && !/^(never|n\/a|na|none|-|not contacted|never contacted)$/i.test(String(lastContactRaw).trim())) {
+    throw new UserFacingError(`Row ${record.__row || ""} has an unrecognized last-contact date. Use day/month/year or year-month-day, or leave it blank if never contacted.`);
+  }
 
   return {
     user_id: userId,
@@ -359,7 +365,7 @@ export function createLeadInsertRecord(record, mapping, userId, options = {}) {
     unit: resolvedUnit || null,
     phone: phone || null,
     status: resolvedStatus || null,
-    last_contact: lastContactDate ? lastContactDate.toISOString().split("T")[0] : null,
+    last_contact: lastContactDate ? formatDateInputValue(lastContactDate) : null,
     source_id: sourceId,
   };
 }

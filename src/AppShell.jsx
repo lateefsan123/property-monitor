@@ -1,3 +1,4 @@
+import { userFacingError } from "../shared/user-facing-errors.js";
 import { useEffect, useState } from "react";
 import { usePagePrefetch } from "./usePagePrefetch";
 import SchedulePage from "./features/schedule/SchedulePage";
@@ -213,7 +214,7 @@ export default function AppShell({ displayName, subscription, userId }) {
       window.location.assign(portalUrl);
     } catch (error) {
       setBillingPortalState({
-        error: error instanceof Error ? error.message : "Could not open Stripe billing",
+        error: userFacingError(error, "Could not open Stripe billing"),
         pending: false,
       });
     }

@@ -1,3 +1,4 @@
+import { userFacingError } from "../shared/user-facing-errors.js";
 import { useState } from "react";
 import { supabase } from "./supabase";
 import { IconBrandLinkedin, IconCalendarEvent, IconDots, IconRobot, IconSearch, IconShare, IconUsers } from "@tabler/icons-react";
@@ -30,7 +31,7 @@ export default function HowDidYouHearScreen({ onContinue, onBack }) {
     });
     setSaving(false);
     if (updateError) {
-      setError(updateError.message);
+      setError(userFacingError(updateError));
       return;
     }
     onContinue?.(referralSource || null);

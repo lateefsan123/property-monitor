@@ -1,3 +1,4 @@
+import { userFacingError } from "../shared/user-facing-errors.js";
 import { useState } from "react";
 import { supabase } from "./supabase";
 import { IconBell, IconCheck, IconPlayerPlayFilled } from "@tabler/icons-react";
@@ -29,7 +30,7 @@ export default function TrialOfferScreen({ onStartTrial, onSkip, onBack, checkou
       data: { trial_offered: true },
     });
     if (updateError) {
-      setError(updateError.message);
+      setError(userFacingError(updateError));
       return false;
     }
     return true;

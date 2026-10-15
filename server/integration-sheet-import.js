@@ -18,7 +18,7 @@ export async function readSpreadsheetImport({ userId, provider, input, tokens, f
   if ([fileId, driveId, folderId].some(value => value !== undefined && !validId(value)) || (['tabs', 'rows'].includes(operation) && !fileId)) throw new IntegrationError('invalid_input');
   if (operation === 'rows' && (typeof sheetName !== 'string' || !sheetName || sheetName.length > 100 || [...sheetName].some(char => char.charCodeAt(0) < 32))) throw new IntegrationError('invalid_input');
   if (query !== undefined && (typeof query !== 'string' || query.length > 100)) throw new IntegrationError('invalid_input');
-  if (start !== undefined && (provider !== 'google' || !Number.isInteger(start) || start < 1 || start > MAX_IMPORT_ROWS + 1)) throw new IntegrationError('invalid_input');
+  if (start !== undefined && (!Number.isInteger(start) || start < 1 || start > MAX_IMPORT_ROWS + 1)) throw new IntegrationError('invalid_input');
   if (pageToken !== undefined && (typeof pageToken !== 'string' || !/^[\x21-\x7e]{1,2048}$/.test(pageToken))) throw new IntegrationError('invalid_input');
   let link;
   if (operation === 'resolve') {
@@ -54,12 +54,22 @@ export async function readSpreadsheetImport({ userId, provider, input, tokens, f
     return { kind: 'worksheet-list', items: provider === 'google' ? (data.sheets || []).map(item => ({ name: item.properties.title })) : (data.value || []).map(item => ({ name: item.name })) };
   }
   if (provider === 'google') return readGoogleRows(get, fileId, sheetName, start || 1);
-  const data = await get(`${base}/workbook/worksheets/${enc(sheetName)}/usedRange(valuesOnly=true)`, { '$select': 'text,rowCount,columnCount' });
+  const worksheet = `${base}/workbook/worksheets/${enc(sheetName)}`;
+  const meta = await get(`${worksheet}/usedRange(valuesOnly=true)`, { '$select': 'rowCount,rowIndex,columnCount,columnIndex' });
+  const rowCount = Number(meta.rowCount) + Number(meta.rowIndex || 0);
+  const columnCount = Number(meta.columnCount) + Number(meta.columnIndex || 0);
+  if (!Number.isInteger(rowCount) || !Number.isInteger(columnCount)) throw new IntegrationError('unavailable');
+  if (rowCount < 2) fail('This worksheet needs column headings and at least one seller.');
+  if (rowCount > MAX_IMPORT_ROWS + 1 || columnCount > 100) fail('Import up to 60,000 sellers and 100 columns at once. Split this worksheet before importing.');
+  const first = start || 1;
+  const end = Math.min(first + GOOGLE_ROW_CHUNK - 1, rowCount);
+  if (first > end) throw new IntegrationError('changed');
+  const data = await get(`${worksheet}/range(address='A${first}:CV${end}')`, { '$select': 'text,rowCount' });
   const rows = data.text;
-  if (Number.isInteger(data.rowCount) && data.rowCount !== rows?.length) throw new IntegrationError('unavailable');
-  if (!Array.isArray(rows) || rows.length < 2) fail('This worksheet needs column headings and at least one seller.');
-  if (rows.length > 10001 || rows.some(row => !Array.isArray(row) || row.length > 100)) fail('Import up to 10,000 sellers and 100 columns at once. Split this worksheet before importing.');
-  return { kind: 'sheet-import', rows: rows.map(row => row.map(cell => String(cell ?? ''))) };
+  if (!Array.isArray(rows) || rows.length !== end - first + 1 || (Number.isInteger(data.rowCount) && data.rowCount !== rows.length)) throw new IntegrationError('unavailable');
+  if (rows.some(row => !Array.isArray(row) || row.length > 100)) throw new IntegrationError('unavailable');
+  return { kind: 'sheet-import', rows: rows.map(row => row.map(cell => String(cell ?? ''))), nextStart: end < rowCount ? end + 1 : null };
+
 }
 
 // One chunk of a Google worksheet: rows start..start+1999 (1-based, row 1 is
@@ -73,7 +83,7 @@ async function readGoogleRows(get, fileId, sheetName, start) {
   const rowCount = Number(sheet.properties.gridProperties?.rowCount) || 0;
   if (rowCount > MAX_IMPORT_ROWS + 1) fail(`Import up to ${MAX_IMPORT_ROWS.toLocaleString('en-US')} sellers at once. Split this worksheet before importing.`);
   const end = Math.min(start + GOOGLE_ROW_CHUNK - 1, Math.max(rowCount, start));
-  const data = await get(`https://sheets.googleapis.com/v4/spreadsheets/${enc(fileId)}/values/${enc(`${quoted}!A${start}:CV${end}`)}`, { valueRenderOption: 'FORMATTED_VALUE' });
+  const data = await get(`https://sheets.googleapis.com/v4/spreadsheets/${enc(fileId)}/values/${enc(`${quoted}!${start}:${end}`)}`, { valueRenderOption: 'FORMATTED_VALUE' });
   const values = Array.isArray(data.values) ? data.values : [];
   if (start === 1 && values.length < 2) fail('This worksheet needs column headings and at least one seller.');
   if (values.some(row => !Array.isArray(row) || row.length > 100)) fail('Import up to 100 columns at once. Remove unused columns before importing.');

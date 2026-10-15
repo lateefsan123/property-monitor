@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useEffect, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -44,7 +45,7 @@ function DateFilter({ value, onApply }) {
       validateActivityRange(next);
       onApply({ preset, range: next });
       setOpen(false);
-    } catch (failure) { setError(failure.message); }
+    } catch (failure) { setError(userFacingError(failure)); }
   }
 
   return (
@@ -119,7 +120,7 @@ export default function SendActivitySection({ userId }) {
         <DateFilter value={{ ...selection, range }} onApply={setSelection} />
       </div>
       {query.isPending ? <p className="st-note" role="status">Loading activity…</p> : null}
-      {query.error ? <p className="st-error" role="alert">{query.error.message} <button type="button" className="st-text-btn" onClick={() => query.refetch()}>Try again</button></p> : null}
+      {query.error ? <p className="st-error" role="alert">{userFacingError(query.error)} <button type="button" className="st-text-btn" onClick={() => query.refetch()}>Try again</button></p> : null}
       {data ? (
         <>
           {warnings.map((warning) => (

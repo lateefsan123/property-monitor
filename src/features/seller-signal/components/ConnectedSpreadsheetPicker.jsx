@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { IconChevronRight, IconFileSpreadsheet, IconFolder, IconTable } from "@tabler/icons-react";
@@ -48,7 +49,7 @@ export default function ConnectedSpreadsheetPicker({ userId, provider, busy, onC
     try {
       await onConnect(capability);
     } catch (error) {
-      setConnectError(error.message || "Could not start the connection. Try again.");
+      setConnectError(userFacingError(error));
       setConnecting(false);
     }
   }
@@ -78,7 +79,7 @@ export default function ConnectedSpreadsheetPicker({ userId, provider, busy, onC
   if (error) {
     return (
       <div className="si-state is-error" role="alert">
-        <span>{error.message || "Could not load your spreadsheets."}</span>
+        <span>{userFacingError(error, "Could not load your spreadsheets.")}</span>
         <button type="button" className="si-link" onClick={() => { void status.refetch(); void files.refetch(); }}>Try again</button>
       </div>
     );

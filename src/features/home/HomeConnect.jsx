@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { IconChevronRight } from "@tabler/icons-react";
@@ -31,7 +32,7 @@ export function HomeConnectionPrompt({ feature, connections = [] }) {
   async function connect(provider) {
     setBusy(provider); setError("");
     try { await beginIntegrationConnect(integrationRequest, provider, feature, feature === "calendar" ? "events" : undefined); }
-    catch (failure) { setError(failure.message || "Could not connect. Please try again."); setBusy(""); }
+    catch (failure) { setError(userFacingError(failure)); setBusy(""); }
   }
   return (
     <div className="home-connect">
@@ -84,10 +85,10 @@ export function EmailBrief({ query, connectedProviders = [] }) {
         )}
       </div>
       {query.isPending && <p className="home-muted" role="status">Loading your briefing…</p>}
-      {error && <p className="home-error" role="alert">{error.message || String(error)} <button type="button" className="home-text-button" onClick={query.retry}>Try again</button></p>}
+      {error && <p className="home-error" role="alert">{userFacingError(error)} <button type="button" className="home-text-button" onClick={query.retry}>Try again</button></p>}
       {data && !data.available && <p className="home-muted">Email summaries are not available yet. Please try again later.</p>}
       {working && <p className="home-muted" aria-live="polite">Preparing your briefing…</p>}
-      {data?.error && <p className="home-muted" role="alert">{data.error}</p>}
+      {data?.error && <p className="home-muted" role="alert">{userFacingError(data.error, "We couldn’t load this connection. Please try again.")}</p>}
       {summary ? <p className="home-brief">{summary.overview}</p>
         : data?.available && !working && !error && !data.error ? <p className="home-muted">{data.enabled ? "Your briefing will appear here when it’s ready." : "Turn on your daily email briefing."}</p> : null}
     </div>
@@ -105,17 +106,17 @@ export function CalendarToday({ userId, connections, connectionError, retryConne
     enabled: Boolean(userId && providerKey), staleTime: 30000, refetchInterval: providerKey ? 60000 : false,
     queryFn: async ({ signal }) => Promise.all(providerKey.split(",").map(async (provider) => {
       try { return { provider, ...await integrationRequest({ action: "read", provider, feature: "calendar", input: { start: day.start, end: day.end } }, signal, userId) }; }
-      catch (failure) { if (signal.aborted) throw failure; return { provider, error: failure.message }; }
+      catch (failure) { if (signal.aborted) throw failure; return { provider, error: userFacingError(failure) }; }
     })),
   });
   if (!connections) return connectionError
-    ? <p className="home-error" role="alert">{connectionError.message} <button type="button" className="home-text-button" onClick={retryConnections}>Try again</button></p>
+    ? <p className="home-error" role="alert">{userFacingError(connectionError)} <button type="button" className="home-text-button" onClick={retryConnections}>Try again</button></p>
     : <p className="home-muted" role="status">Loading your calendar…</p>;
   if (!connected.length) return <HomeConnectionPrompt feature="calendar" connections={connections} />;
   const results = query.data || [];
   const events = results.flatMap((result) => (result.items || []).map((event) => ({ ...event, provider: result.provider })))
     .sort((a, b) => Number(Boolean(b.allDay)) - Number(Boolean(a.allDay)) || calendarTime(a).localeCompare(calendarTime(b)));
-  const failure = results.find((result) => result.error)?.error || query.error?.message;
+  const failure = results.find((result) => result.error)?.error || userFacingError(query.error);
   return (
     <div className="home-panel">
       <div className="home-panel-head"><ProviderIcons feature="calendar" only={connected.map((item) => item.provider)} /><h3>Today</h3></div>

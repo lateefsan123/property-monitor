@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { isAutomationAccount } from "../../../../supabase/functions/_shared/automation-account.js";
 import { useEffect, useState, useRef } from "react";
 import SellerFollowUpControl from './SellerFollowUpControl';
@@ -76,7 +77,7 @@ export default function LeadModal({
   async function saveMessage(value) {
     setSavingMessage(true); setMessageSaveStatus(""); setMessageSaveError("");
     try { await onSaveMessage(lead.id, value); setDraftMessage(null); setTemplateChoice("default"); setMessageSaveStatus(value === null ? "Template restored" : "Message saved"); }
-    catch (error) { setMessageSaveError(error.message || "Could not save. Try again."); }
+    catch (error) { setMessageSaveError(userFacingError(error)); }
     finally { setSavingMessage(false); }
   }
   const [imageExcluded, setImageExcluded] = useState(false);
@@ -193,7 +194,7 @@ export default function LeadModal({
               const sent = await onSendWhatsApp?.(lead.id, { imagePath: selectedImagePath, message, customImage });
               if (sent) { setCustomImage(null); setImageExcluded(true); }
               else setAttachmentError('Message was not sent. Your attachment is still selected.');
-            } catch (failure) { setAttachmentError(failure.message); }
+            } catch (failure) { setAttachmentError(userFacingError(failure)); }
             finally { sendLock.current = false; setSending(false); }
           }}
         >

@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useEffect, useRef, useState } from "react";
 import { IconCircleCheckFilled, IconPencil, IconPlus, IconSettings, IconX } from "@tabler/icons-react";
 import { supabase } from "../../supabase";
@@ -88,7 +89,7 @@ export default function SchedulePage({ userId, client = supabase, onNavigate }) 
 
       {state.loading ? <p className="sch-status" role="status">Loading your schedule…</p> : null}
       {state.loadError ? (
-        <div className="sch-status is-error" role="alert">{state.loadError.message} <button type="button" className="sch-retry" onClick={state.retry}>Retry</button></div>
+        <div className="sch-status is-error" role="alert">{userFacingError(state.loadError)} <button type="button" className="sch-retry" onClick={state.retry}>Retry</button></div>
       ) : null}
 
       {scheduled.length ? (
@@ -119,7 +120,7 @@ export default function SchedulePage({ userId, client = supabase, onNavigate }) 
 
       {state.dirty ? (
         <div className="sch-savebar">
-          {state.error ? <p role="alert" className="sch-error">{state.error.message}</p> : null}
+          {state.error ? <p role="alert" className="sch-error">{userFacingError(state.error)}</p> : null}
           <button type="button" className="sch-primary is-round" disabled={blocked || !state.dirty} onClick={state.save}>
             {state.saving ? "Saving…" : state.saved ? "Saved" : "Save schedule"}
           </button>

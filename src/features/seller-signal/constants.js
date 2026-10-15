@@ -19,12 +19,12 @@ export const STATUS_RULES = [
 ];
 
 export const COLUMN_ALIASES = {
-  name: ["name", "seller", "seller name", "owner", "owner name", "ownernameen", "client", "lead name", "full name"],
-  building: ["building name", "tower name", "building", "tower", "project", "community / sub-community", "sub community", "subcommunity", "community"],
+  name: ["name", "seller", "seller name", "owner", "owner name", "ownernameen", "client", "lead name", "full name", "contact name", "proprietor", "first + last name"],
+  building: ["building name", "tower name", "building", "tower", "project", "project name", "buildingnameen", "projectnameen", "development", "community / sub-community", "sub community", "subcommunity", "community"],
   bedroom: ["bedroom", "bedrooms", "beds", "bed", "rooms", "unit type", "bhk"],
-  status: ["status", "stage", "category", "lead status", "pipeline", "contact status"],
-  lastContact: ["last contact", "last contact date", "contact date", "last followup", "last follow up", "last message", "last contacted", "date"],
-  phone: ["phone", "number", "mobile", "whatsapp", "whatsapp number", "contact number", "phone number", "owner contact"],
+  status: ["status", "stage", "lead status", "pipeline", "contact status"],
+  lastContact: ["last contact", "last contact date", "contact date", "last followup", "last follow up", "last message", "last contacted"],
+  phone: ["phone", "mobile", "whatsapp", "whatsapp number", "contact number", "phone number", "owner contact", "mobile number", "mobile no", "owner mobile", "cellular", "telephone"],
   unit: ["unit", "unit number", "unit no", "unitno", "apartment", "apt", "flat", "property number", "room", "villa no", "villa number", "plot", "plot no", "plot number"],
 };
 

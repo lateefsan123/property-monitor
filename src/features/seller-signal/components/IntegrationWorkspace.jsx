@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../../shared/user-facing-errors.js";
 import { useRef, useState } from 'react';
 import GoogleSpreadsheetPicker from './GoogleSpreadsheetPicker';
 
@@ -14,7 +15,7 @@ export default function IntegrationWorkspace({ provider, feature, connection, re
   async function run(action) {
     if (lock.current) return;
     lock.current = true; setBusy(true); setError(''); setNotice('');
-    try { await action(); } catch (error) { setError(error.message); }
+    try { await action(); } catch (error) { setError(userFacingError(error)); }
     finally { lock.current = false; setBusy(false); }
   }
   function read(input = {}) {

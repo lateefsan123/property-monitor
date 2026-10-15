@@ -1,3 +1,4 @@
+import { userFacingError } from "../shared/user-facing-errors.js";
 import { StrictMode, Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClientProvider } from "@tanstack/react-query";
@@ -188,7 +189,7 @@ export function Root() {
       setBillingState((currentState) => ({
         ...currentState,
         checkoutPending: false,
-        error: error instanceof Error ? error.message : "Could not start Stripe checkout",
+        error: userFacingError(error, "Could not start Stripe checkout"),
       }));
     }
   }, [updatePostAuthAction]);
@@ -288,7 +289,7 @@ export function Root() {
 
         setBillingState((currentState) => billingFailureState(
           currentState, sessionUserId,
-          error instanceof Error ? error.message : "Could not load subscription status",
+          userFacingError(error, "Could not load subscription status"),
         ));
       } finally {
         loading = false;
@@ -347,7 +348,7 @@ export function Root() {
         setBillingState((currentState) => ({
           ...currentState,
           checkoutPending: false,
-          error: error instanceof Error ? error.message : "Could not finalize checkout",
+          error: userFacingError(error, "Could not finalize checkout"),
           initialized: true,
           subscriptionLoading: false,
           userId: sessionUserId,

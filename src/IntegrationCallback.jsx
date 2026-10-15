@@ -1,3 +1,4 @@
+import { userFacingError } from "../shared/user-facing-errors.js";
 import { useEffect, useState } from 'react';
 import { integrationRequest } from './integration-client';
 import { mobileIntegrationCallback } from './integration-mobile-callback';
@@ -18,7 +19,7 @@ export default function IntegrationCallback() {
     if (mobileReturn) { window.location.replace(mobileReturn); return; }
     let active = true;
     // StrictMode remounts must not consume the one-time OAuth code twice.
-    completion ||= integrationRequest(callback).then(value => ({ value }), error => ({ error: error.message }));
+    completion ||= integrationRequest(callback).then(value => ({ value }), error => ({ error: userFacingError(error) }));
     completion.then(result => { if (active) setResult(result); });
     return () => { active = false; };
   }, []);

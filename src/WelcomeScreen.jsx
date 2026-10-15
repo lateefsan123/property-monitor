@@ -1,3 +1,4 @@
+import { userFacingError } from "../shared/user-facing-errors.js";
 import { useState } from "react";
 import { supabase } from "./supabase";
 import OnboardingFrame, { FoxSays } from "./OnboardingFrame";
@@ -16,7 +17,7 @@ export default function WelcomeScreen({ displayName, onContinue }) {
     });
     setSaving(false);
     if (updateError) {
-      setError(updateError.message);
+      setError(userFacingError(updateError));
       return;
     }
     onContinue?.();

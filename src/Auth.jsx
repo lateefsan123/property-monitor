@@ -1,3 +1,4 @@
+import { userFacingError } from "../shared/user-facing-errors.js";
 import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
 import "./styles/auth-home-link.css";
@@ -50,7 +51,7 @@ export default function Auth({ redirectToUrl, onSignUpSuccess, onBack, startWith
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo,
       });
-      if (resetError) setError(resetError.message);
+      if (resetError) setError(userFacingError(resetError));
       else setResetEmailSent(true);
     } else if (isSignUp) {
       const emailRedirectTo = getRedirectUrl(redirectToUrl);
@@ -66,7 +67,7 @@ export default function Auth({ redirectToUrl, onSignUpSuccess, onBack, startWith
       // With email confirmation on, Supabase answers an existing address with a
       // user that has no identities and sends no email; say so instead of waiting.
       const alreadyRegistered = Array.isArray(signUpData?.user?.identities) && signUpData.user.identities.length === 0;
-      if (signUpError) setError(signUpError.message);
+      if (signUpError) setError(userFacingError(signUpError));
       else if (alreadyRegistered) setError("An account with this email already exists. Sign in, or reset your password if you've forgotten it.");
       else {
         onSignUpSuccess?.();
@@ -79,7 +80,7 @@ export default function Auth({ redirectToUrl, onSignUpSuccess, onBack, startWith
       if (signInError && (signInError.code === "email_not_confirmed" || /email not confirmed/i.test(signInError.message))) {
         setPendingEmail(email);
         setPassword("");
-      } else if (signInError) setError(signInError.message);
+      } else if (signInError) setError(userFacingError(signInError));
     }
 
     setLoading(false);
@@ -93,7 +94,7 @@ export default function Auth({ redirectToUrl, onSignUpSuccess, onBack, startWith
       provider: "google",
       options: { redirectTo },
     });
-    if (oauthError) setError(oauthError.message);
+    if (oauthError) setError(userFacingError(oauthError));
   }
 
   async function handleResendVerification() {
@@ -107,7 +108,7 @@ export default function Auth({ redirectToUrl, onSignUpSuccess, onBack, startWith
     });
     setResendLoading(false);
     if (resendError) {
-      setError(resendError.message);
+      setError(userFacingError(resendError));
     } else {
       setResendNotice("Verification email sent again.");
       setResendCooldown(RESEND_COOLDOWN_SECONDS);

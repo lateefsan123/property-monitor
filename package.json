@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "test:imports": "node --test tests/lead-import-reliability.test.js tests/spreadsheet-file-import.test.js tests/integration-sheet-import.test.js tests/connected-sheet-rows.test.js tests/seller-message-save.test.js tests/user-facing-errors.test.js",
     "desktop:dev": "npm --prefix desktop run dev",
     "desktop:download:test": "node --test tests/desktop-download.test.js",
     "desktop:test": "npm --prefix desktop test",

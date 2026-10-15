@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { buildMessage } from "./insight-utils";
 import { formatDateInputValue } from "./lead-utils";
 import { fetchLeadSources } from "./services";
@@ -12,13 +13,7 @@ export const EMPTY_LEADS = [];
 export const EMPTY_SOURCES = [];
 export const EMPTY_SENT_MAP = {};
 
-export function getErrorMessage(error) {
-  if (!error) return null;
-  if (typeof error === "string") return error;
-  if (error instanceof Error) return error.message || "Unexpected error";
-  if (typeof error?.message === "string") return error.message;
-  return "Unexpected error";
-}
+export const getErrorMessage = userFacingError;
 
 function normalizeSources(sources) {
   if (!Array.isArray(sources)) return [];
@@ -123,11 +118,11 @@ export function formatSourceLabel(source) {
   return label || `Spreadsheet ${Number(source.sort_order ?? 0) + 1}`;
 }
 
-// Rows that had no name with a phone or building, so they weren't imported.
+// Rows that had too little information to identify the seller, so they weren't imported.
 export function unidentifiedText(result) {
   const count = Number(result?.unidentifiedCount || 0);
   const failed = Number(result?.failedCount || 0);
-  const missing = count > 0 ? ` ${count} row${count === 1 ? "" : "s"} had no name with a phone or building, so ${count === 1 ? "it wasn't" : "they weren't"} imported.` : "";
+  const missing = count > 0 ? ` ${count} row${count === 1 ? "" : "s"} had too little information to identify the seller, so ${count === 1 ? "it wasn't" : "they weren't"} imported.` : "";
   const unsaved = failed > 0 ? ` ${failed} row${failed === 1 ? "" : "s"} couldn't be saved; import the sheet again to retry ${failed === 1 ? "it" : "them"}.` : "";
   return missing + unsaved;
 }

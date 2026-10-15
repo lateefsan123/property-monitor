@@ -1,3 +1,4 @@
+import { userFacingError } from "../shared/user-facing-errors.js";
 import { useState } from "react";
 import { supabase } from "./supabase";
 
@@ -24,7 +25,7 @@ export default function ResetPassword({ onComplete }) {
     setLoading(false);
 
     if (updateError) {
-      setError(updateError.message);
+      setError(userFacingError(updateError));
       return;
     }
 

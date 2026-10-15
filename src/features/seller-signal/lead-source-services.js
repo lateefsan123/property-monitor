@@ -35,6 +35,7 @@ export async function createLeadSource(userId, fields = {}) {
     building_name: fields.building_name || null,
     sheet_url: fields.sheet_url || null,
     selected_buildings: fields.selected_buildings || [],
+    import_options: fields.import_options || null,
     sort_order: fields.sort_order ?? 0,
   };
 
@@ -57,6 +58,7 @@ export async function upsertLeadSource(source) {
     building_name: source.building_name || null,
     sheet_url: source.sheet_url || null,
     selected_buildings: source.selected_buildings || [],
+    ...(source.import_options !== undefined ? { import_options: source.import_options } : {}),
     sort_order: source.sort_order ?? 0,
   };
 

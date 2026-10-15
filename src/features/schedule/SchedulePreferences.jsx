@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../supabase";
 import { createBuildingScheduleServices } from "../../../shared/building-schedule-services.js";
@@ -38,8 +39,8 @@ export default function SchedulePreferences({ userId, client = supabase, classNa
         </label>
       ))}
       <p className="sch-note" aria-live="polite">
-        {query.error ? <span className="sch-error">{query.error.message}</span>
-          : mutation.error ? <span className="sch-error">{mutation.error.message}</span>
+        {query.error ? <span className="sch-error">{userFacingError(query.error)}</span>
+          : mutation.error ? <span className="sch-error">{userFacingError(mutation.error)}</span>
             : query.isPending ? "Loading…"
               : mutation.isPending ? "Saving…" : "Changes save automatically. All schedules use Dubai time."}
       </p>

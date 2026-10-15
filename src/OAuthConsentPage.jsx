@@ -1,3 +1,4 @@
+import { userFacingError } from "../shared/user-facing-errors.js";
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, ArrowRight, Puzzle, SquarePen } from "lucide-react";
 import { supabase } from "./supabase";
@@ -87,7 +88,7 @@ export default function OAuthConsentPage({ session }) {
       if (ignore) return;
 
       if (authError || !data) {
-        setError(authError?.message ?? "OAuth authorization request was not found or has expired.");
+        setError(userFacingError(authError, "This connection request has expired. Start connecting again.") || "This connection request has expired. Start connecting again.");
         setLoading(false);
         return;
       }
@@ -126,7 +127,7 @@ export default function OAuthConsentPage({ session }) {
 
     if (result.error || !result.data?.redirect_url) {
       setPendingDecision(null);
-      setError(result.error?.message ?? "Unable to finish OAuth authorization.");
+      setError(userFacingError(result.error, "Unable to finish authorization. Please try again."));
       return;
     }
 

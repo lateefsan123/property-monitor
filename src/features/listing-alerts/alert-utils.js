@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { fetchBayutWatchedBuildings } from "./api";
 import { parseSelectedListingKeys, parseVerifiedAt, toLocationId } from "./change-detection";
 
@@ -40,21 +41,7 @@ export function getLoadedListingCount(building) {
   return Number.isFinite(building?.listingCount) ? building.listingCount : 0;
 }
 
-export function getErrorMessage(error) {
-  if (!error) return "Unexpected error";
-  if (typeof error === "string") return error;
-  if (error instanceof Error) return error.message || "Unexpected error";
-  if (typeof error?.message === "string") return error.message;
-  if (typeof error?.error === "string") return error.error;
-  if (typeof error?.error?.message === "string") return error.error.message;
-  if (typeof error?.details === "string") return error.details;
-  if (typeof error?.hint === "string") return error.hint;
-  try {
-    return JSON.stringify(error);
-  } catch {
-    return String(error);
-  }
-}
+export const getErrorMessage = userFacingError;
 
 export function sortBuildings(left, right) {
   const verifiedDelta = parseVerifiedAt(right.latestVerifiedAt) - parseVerifiedAt(left.latestVerifiedAt);

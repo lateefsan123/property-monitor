@@ -1,3 +1,4 @@
+import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useState } from "react";
 import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, clampDailyLimit, formatHour, formatInterval, messagesThatFit, suggestedInterval } from "../../../shared/automation-settings.js";
 import {
@@ -223,7 +224,7 @@ export default function SettingsPage({
                 </div>
               </SettingsItem>
             </SettingsGroup>
-            {data.automation.error ? <p className="st-error" role="alert">{data.automation.error.message}</p> : null}
+            {data.automation.error ? <p className="st-error" role="alert">{userFacingError(data.automation.error)}</p> : null}
             {(() => {
               const pacing = { start: data.automation.sendWindowStartHour, end: data.automation.sendWindowEndHour, interval: data.automation.sendIntervalMinutes };
               const limit = data.automation.dailyMessageLimit;

@@ -16,7 +16,7 @@ test('connected Google import reads more than the preview and preserves cells wi
   assert.deepEqual(result.rows, rows);
   assert.equal(result.kind, 'sheet-import');
   assert.equal(result.nextStart, null);
-  assert.equal(decodeURIComponent(f.calls[1].url.pathname).endsWith("/values/'Seller''s list'!A1:CV151"), true);
+  assert.equal(decodeURIComponent(f.calls[1].url.pathname).endsWith("/values/'Seller''s list'!1:151"), true);
   assert.equal(f.identities[0].userId, 'alice');
   assert.equal(f.calls[0].options.redirect, 'error');
 });
@@ -35,11 +35,11 @@ test('large Google worksheets come back 2,000 rows at a time', async () => {
   const last = fixture([meta, { values: [['last']] }]);
   const page14 = await last.read({ ...owner, input: { operation: 'rows', fileId: 'sheet', sheetName: 'Sellers', start: 26001 } });
   assert.equal(page14.nextStart, null);
-  assert.equal(decodeURIComponent(last.calls[1].url.pathname).endsWith("/values/'Sellers'!A26001:CV27001"), true);
-  await assert.rejects(first.read({ ...owner, provider: 'microsoft', input: { operation: 'rows', fileId: 'sheet', sheetName: 'Sellers', start: 2 } }), { code: 'invalid_input' });
+  assert.equal(decodeURIComponent(last.calls[1].url.pathname).endsWith("/values/'Sellers'!26001:27001"), true);
+  await assert.rejects(first.read({ ...owner, provider: 'microsoft', input: { operation: 'rows', fileId: 'sheet', sheetName: 'Sellers', start: 0 } }), { code: 'invalid_input' });
 });
 test('Excel sharing link resolves through Graph only and workbook reads require scoped owner', async () => {
-  const f = fixture([{ id: 'file!1', name: 'Sellers.xlsx', parentReference: { driveId: 'drive!1' } }, { text: [['Name'], ['Alice']], rowCount: 2 }]);
+  const f = fixture([{ id: 'file!1', name: 'Sellers.xlsx', parentReference: { driveId: 'drive!1' } }, { rowCount: 2, columnCount: 1 }, { text: [['Name'], ['Alice']], rowCount: 2 }]);
   const result = await f.read({ ...owner, provider: 'microsoft', input: { operation: 'resolve', url: 'https://tenant.sharepoint.com/:x:/s/team/link' } });
   assert.equal(result.file.driveId, 'drive!1');
   assert.equal(f.calls[0].url.origin, 'https://graph.microsoft.com');
@@ -63,4 +63,21 @@ test('OneDrive pagination stays on the selected folder and excludes unsupported 
   assert.equal(result.nextPageToken, 'next');
   assert.deepEqual(result.items.map(item => item.id), ['one', 'folder']);
   assert.equal(f.calls[0].url.searchParams.get('$skiptoken'), 'before');
+});
+
+
+test('large Microsoft worksheets are read in bounded pages, including blank leading rows', async () => {
+  const meta = { rowCount: 26415, rowIndex: 2, columnCount: 5, columnIndex: 1 };
+  const f = fixture([meta, { text: Array.from({ length: 2000 }, (_, i) => [String(i)]), rowCount: 2000 }]);
+  const first = await f.read({ ...owner, provider: 'microsoft', input: { operation: 'rows', fileId: 'sheet', sheetName: 'Sellers' } });
+  assert.equal(first.nextStart, 2001);
+  assert.equal(f.calls[0].url.searchParams.get('$select'), 'rowCount,rowIndex,columnCount,columnIndex');
+  assert.ok(decodeURIComponent(f.calls[1].url.pathname).endsWith("range(address='A1:CV2000')"));
+  const last = fixture([meta, { text: Array.from({ length: 417 }, () => ['seller']), rowCount: 417 }]);
+  assert.equal((await last.read({ ...owner, provider: 'microsoft', input: { operation: 'rows', fileId: 'sheet', sheetName: 'Sellers', start: 26001 } })).nextStart, null);
+});
+
+test('Microsoft rejects truncated provider pages instead of reporting a partial sheet', async () => {
+  const f = fixture([{ rowCount: 2001, columnCount: 5 }, { text: [['only one row']], rowCount: 1 }]);
+  await assert.rejects(f.read({ ...owner, provider: 'microsoft', input: { operation: 'rows', fileId: 'sheet', sheetName: 'Sellers' } }), { code: 'unavailable' });
 });

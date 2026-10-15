@@ -1,20 +1,16 @@
-import { aiMapColumns } from "../../ai-mapper";
+import { collectSuspiciousImportRows, buildSuspiciousImportError } from "./import-validation";
 import { supabase } from "../../supabase";
-import { IMPORT_BATCH_SIZE, IMPORT_SAMPLE_ROW_LIMIT } from "./constants";
-import { canonicalizeBuildingName, parseBuildingAddressValue } from "./building-utils";
+import { saveImportBatches } from "./import-batches.js";
+import { prepareImportRows, validateImportMapping } from "./import-preview.js";
+import { UserFacingError } from "../../../shared/user-facing-errors.js";
+import { canonicalizeBuildingName } from "./building-utils";
 import { fetchCachedBuildings } from "./building-cache-services";
 import { createLeadBuildingResolver, getInvalidBuildingValueIssue } from "./lead-data-quality";
-import { createLeadInsertRecord } from "./lead-utils";
+import { prepareImportLeads } from "./prepare-import-leads.js";
 import { selectAllRows } from "./lead-record-services";
 import { buildLeadSyncPlan } from "./lead-sync-plan";
 import { buildImportQualityReport } from "./import-quality-report";
-import { buildGoogleCsvUrl, inferMapping, parseCsvText, rowsToObjects } from "./spreadsheet";
-
-const IMPORT_TRUNCATION_PATTERN = /\u2026|\.{3,}/;
-const IMPORT_TRUNCATION_FIELDS = [
-  { key: "building", label: "building" },
-  { key: "unit", label: "unit" },
-];
+import { buildGoogleCsvUrl, parseCsvText } from "./spreadsheet";
 
 function emptyToNull(value) {
   const trimmed = String(value ?? "").trim();
@@ -23,107 +19,9 @@ function emptyToNull(value) {
 
 function emptyBuildingToNull(value) {
   const invalidIssue = getInvalidBuildingValueIssue(value);
-  if (invalidIssue) throw new Error(invalidIssue.label);
+  if (invalidIssue) throw new UserFacingError(invalidIssue.label);
   const canonical = canonicalizeBuildingName(value);
   return canonical || null;
-}
-
-function containsImportTruncation(value) {
-  const raw = String(value || "").trim();
-  return Boolean(raw) && IMPORT_TRUNCATION_PATTERN.test(raw);
-}
-
-function getSuspiciousImportField(field, value) {
-  if (containsImportTruncation(value)) {
-    if (field.key !== "building") {
-      return {
-        label: field.label,
-        value: summarizeImportValue(value),
-        reason: "possible truncation",
-      };
-    }
-
-    const address = parseBuildingAddressValue(value);
-    if (!address.recoverableTruncation) {
-      return {
-        label: field.label,
-        value: summarizeImportValue(value),
-        reason: "possible truncation",
-      };
-    }
-  }
-
-  if (field.key === "building") {
-    const invalidIssue = getInvalidBuildingValueIssue(value);
-    if (invalidIssue) {
-      return {
-        label: field.label,
-        value: summarizeImportValue(value),
-        reason: invalidIssue.label,
-      };
-    }
-  }
-
-  return null;
-}
-
-function summarizeImportValue(value, limit = 44) {
-  const raw = String(value || "").replace(/\s+/g, " ").trim();
-  if (raw.length <= limit) return raw;
-  return `${raw.slice(0, limit - 3).trim()}...`;
-}
-
-function collectSuspiciousImportRows(records, mapping, options = {}) {
-  const {
-    defaultBuilding = null,
-    overrideBuilding = false,
-    maxExamples = 5,
-  } = options;
-
-  let count = 0;
-  const examples = [];
-
-  for (const record of records || []) {
-    const values = {
-      name: mapping.name ? record[mapping.name] : "",
-      building: overrideBuilding ? (defaultBuilding || "") : (mapping.building ? record[mapping.building] : (defaultBuilding || "")),
-      unit: mapping.unit ? record[mapping.unit] : "",
-    };
-
-    const flaggedFields = IMPORT_TRUNCATION_FIELDS
-      .map((field) => getSuspiciousImportField(field, values[field.key]))
-      .filter(Boolean);
-
-    if (!flaggedFields.length) continue;
-
-    count += 1;
-    if (examples.length < maxExamples) {
-      examples.push({
-        rowNumber: record.__row || "?",
-        flaggedFields,
-      });
-    }
-  }
-
-  return { count, examples };
-}
-
-function buildSuspiciousImportError(summary) {
-  if (!summary?.count) return null;
-
-  const exampleText = summary.examples
-    .map((example) => {
-      const fields = example.flaggedFields
-        .map((field) => `${field.label} "${field.value}" (${field.reason})`)
-        .join(", ");
-      return `row ${example.rowNumber}: ${fields}`;
-    })
-    .join("; ");
-
-  const remaining = summary.count - summary.examples.length;
-  const remainingText = remaining > 0 ? ` (+${remaining} more)` : "";
-
-  return `Import blocked: ${summary.count} row(s) contain building or unit values that cannot be trusted.${remainingText} ${exampleText} Fix the sheet values and re-import.`;
 }
 
 async function fetchImportCachedBuildings() {
@@ -135,16 +33,17 @@ async function fetchImportCachedBuildings() {
 }
 
 async function buildImportResult(allLeads, plan, options = {}) {
-  const totalRows = allLeads.length;
+  const totalRows = options.totalRows ?? allLeads.length;
   const cachedBuildings = options.cachedBuildings || [];
   return {
     count: options.saved ? options.saved.inserted : plan.toInsert.length,
     failedCount: options.saved?.failed || 0,
+    failedRows: options.saved?.failedRows || [],
     matchedCount: plan.matchedCount,
     updatedCount: plan.updates.length,
     totalRows,
     skippedCount: plan.skippedDuplicateCount,
-    unidentifiedCount: plan.unidentifiedCount,
+    unidentifiedCount: plan.unidentifiedCount + totalRows - allLeads.length,
     quality: buildImportQualityReport(allLeads, plan.toInsert, { cachedBuildings }),
   };
 }
@@ -168,61 +67,52 @@ async function applyLeadFieldFills(userId, updates) {
   for (let index = 0; index < updates.length; index += SYNC_UPDATE_CONCURRENCY) {
     const batch = updates.slice(index, index + SYNC_UPDATE_CONCURRENCY);
     await Promise.all(batch.map(async ({ id, fields }) => {
-      const { error } = await supabase
+      let query = supabase
         .from("leads")
         .update(fields)
         .eq("user_id", userId)
         .eq("id", id);
+      // A user may edit a seller while a large import is running. Only fill
+      // fields that are still empty when the update actually reaches the DB.
+      for (const field of Object.keys(fields)) {
+        query = field === 'last_contact' ? query.is(field, null) : query.or(`${field}.is.null,${field}.eq.`);
+      }
+      const { error } = await query;
       if (error) throw new Error(error.message);
     }));
   }
 }
 
-async function fetchSheetRows(rawSheetUrl) {
-  const sheetUrl = String(rawSheetUrl || "").trim();
-  if (!sheetUrl) throw new Error("Paste a Google Sheet URL first.");
-
-  const csvUrl = buildGoogleCsvUrl(sheetUrl);
-  if (!csvUrl) throw new Error("Invalid Google Sheet URL. Paste the full URL from your browser.");
-
-  let response;
-  try {
-    response = await fetch(csvUrl);
-  } catch {
-    throw new Error("Could not fetch the sheet. Make sure the link is public (Share > Anyone with the link) and paste the full URL or sheet ID.");
-  }
-
-  if (!response.ok) {
-    throw new Error(`Failed to load sheet (${response.status}). Make sure the sheet is shared publicly or "Anyone with the link".`);
-  }
-
-  const csvText = await response.text();
-  const rawRows = parseCsvText(csvText);
-  return mapImportRows(rawRows);
+async function fetchSheetRows(rawSheetUrl, options) {
+  return mapImportRows(await readPublicSheetRows(rawSheetUrl), options);
 }
 
-async function mapImportRows(rawRows) {
-  const { headers, records } = rowsToObjects(rawRows);
-  if (!headers.length) throw new Error("Sheet has no header row.");
-
-  let mapping = inferMapping(headers);
-  if (!(mapping.name && mapping.building)) {
-    mapping = await aiMapColumns(headers, rawRows.slice(0, IMPORT_SAMPLE_ROW_LIMIT));
-  }
-
-  if (!mapping.name && !mapping.building && !mapping.phone) {
-    throw new Error("Could not map any columns. Make sure the sheet has seller names, buildings, or phone numbers.");
-  }
-
+function mapImportRows(rawRows, options = {}) {
+  const { headers, records, mapping: inferred } = prepareImportRows(rawRows, options);
+  const mapping = options.mapping || inferred;
+  validateImportMapping(headers, mapping);
   return { mapping, records };
+}
+
+export async function readPublicSheetRows(rawSheetUrl) {
+  const csvUrl = buildGoogleCsvUrl(String(rawSheetUrl || "").trim());
+  if (!csvUrl) throw new UserFacingError("Paste a valid Google Sheet link first.");
+  let response;
+  try { response = await fetch(csvUrl, { signal: AbortSignal.timeout(30000) }); }
+  catch { throw new UserFacingError("We couldn’t read this sheet. Check your connection and that the sheet is shared as Anyone with the link."); }
+  if (!response.ok) throw new UserFacingError("We couldn’t open this sheet. Check that it is shared as Anyone with the link, or connect your Google account.");
+  const text = await response.text();
+  if (/^\s*</.test(text)) throw new UserFacingError("This link opened a web page instead of a spreadsheet. Check the sharing settings or import a file.");
+  return parseCsvText(text);
 }
 
 // The sheet's buildings with row and phone counts, for the optional building
 // picker; totalRows counts every row, with or without a building.
 export async function previewSheetBuildings(rawSheetUrl) {
-  const { mapping, records } = await fetchSheetRows(rawSheetUrl);
+  const rawRows = await readPublicSheetRows(rawSheetUrl);
+  const { mapping, records } = prepareImportRows(rawRows);
   const totalRows = records.length;
-  if (!mapping.building) return { buildings: [], totalRows };
+  if (!mapping.building) return { buildings: [], totalRows, rawRows };
   const groups = new Map();
   for (const record of records) {
     const building = String(record[mapping.building] || "").replace(/\s+/g, " ").trim();
@@ -236,72 +126,26 @@ export async function previewSheetBuildings(rawSheetUrl) {
   const buildings = [...groups.values()]
     .map((item) => ({ building: item.building, rowCount: item.rows, uniquePhoneCount: item.phones.size }))
     .sort((left, right) => right.rowCount - left.rowCount || left.building.localeCompare(right.building));
-  return { buildings, totalRows };
+  return { buildings, totalRows, rawRows };
 }
 
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-// One insert, retried twice after a short pause: a dropped connection
-// ("Failed to fetch") on one batch used to stop a 27,000-row import part-way.
-async function insertWithRetry(rows, attempts) {
-  let lastError = null;
-  for (let attempt = 0; attempt < attempts; attempt += 1) {
-    if (attempt) await wait(800 * attempt);
-    try {
-      const { error } = await supabase.from("leads").insert(rows);
-      if (!error) return null;
-      lastError = error;
-    } catch (error) {
-      lastError = error;
-    }
-  }
-  return lastError;
-}
-
-// Saves sellers 200 at a time. A batch that still fails after retrying is
-// split in half until the rows that won't save are found; those are skipped
-// and counted, and the rest of the import carries on.
-async function insertLeadBatches(leads) {
-  let inserted = 0;
-  let unsaved = [];
-  let lastError = null;
-  // Whole batches get three tries; halves of a failed batch get one each.
-  async function save(rows, attempts = 3) {
-    const error = await insertWithRetry(rows, attempts);
-    if (!error) { inserted += rows.length; return; }
-    lastError = error;
-    if (rows.length === 1) { unsaved.push(rows[0]); return; }
-    const middle = Math.ceil(rows.length / 2);
-    await save(rows.slice(0, middle), 1);
-    await save(rows.slice(middle), 1);
-  }
-  for (let index = 0; index < leads.length; index += IMPORT_BATCH_SIZE) {
-    await save(leads.slice(index, index + IMPORT_BATCH_SIZE));
-    // Nothing saving at all (signed out, offline): stop rather than skip everyone.
-    if (!inserted && unsaved.length >= IMPORT_BATCH_SIZE) throw new Error(lastError?.message || "Could not save sellers. Check your connection and try again.");
-  }
-  // Rows skipped during a dropped connection usually save a moment later:
-  // two final passes, a few seconds apart, before any are reported.
-  for (let pass = 1; pass <= 2 && unsaved.length; pass += 1) {
-    await wait(3000 * pass);
-    const retry = unsaved;
-    unsaved = [];
-    for (let index = 0; index < retry.length; index += 20) await save(retry.slice(index, index + 20));
-  }
-  if (unsaved.length) console.warn("Import rows not saved:", unsaved.length, lastError?.message || lastError);
-  return { inserted, failed: unsaved.length };
+function insertLeadBatches(leads, onProgress) {
+  return saveImportBatches(leads, {
+    onProgress,
+    write: rows => supabase.from("leads").upsert(rows, { onConflict: "user_id,import_key", ignoreDuplicates: true }).abortSignal(AbortSignal.timeout(30000)),
+  });
 }
 
 export async function insertLead({ userId, sourceId, fields }) {
-  if (!userId) throw new Error("Sign in required.");
-  if (!sourceId) throw new Error("Pick a spreadsheet first.");
+  if (!userId) throw new UserFacingError("Sign in required.");
+  if (!sourceId) throw new UserFacingError("Pick a spreadsheet first.");
 
   const name = emptyToNull(fields?.name);
   const building = emptyBuildingToNull(fields?.building);
   const phone = emptyToNull(fields?.phone);
 
   if (!name && !building && !phone) {
-    throw new Error("Enter a name, building, or phone at minimum.");
+    throw new UserFacingError("Enter a name, building, or phone at minimum.");
   }
 
   const payload = {
@@ -379,41 +223,40 @@ export async function replaceLegacyLeadsFromSheet({ userId, rawSheetUrl }) {
 
   const suspiciousRows = collectSuspiciousImportRows(records, mapping);
   const suspiciousImportError = buildSuspiciousImportError(suspiciousRows);
-  if (suspiciousImportError) throw new Error(suspiciousImportError);
+  if (suspiciousImportError) throw new UserFacingError(suspiciousImportError);
 
-  const incomingLeads = records
-    .map((record) => createLeadInsertRecord(record, mapping, userId, {
+  const incomingLeads = await prepareImportLeads(records, mapping, userId, {
       sourceId: null,
       defaultStatus: "Prospect",
       resolveBuilding,
-    }))
-    .filter(Boolean);
+    });
 
-  if (!incomingLeads.length) throw new Error("No valid leads found in sheet.");
+  if (!incomingLeads.length) throw new UserFacingError("No valid leads found in sheet.");
 
   const existingRows = await fetchExistingLeadRows(userId, null);
   const plan = buildLeadSyncPlan(existingRows, incomingLeads);
   await applyLeadFieldFills(userId, plan.updates);
   const saved = await insertLeadBatches(plan.toInsert);
 
-  return buildImportResult(incomingLeads, plan, { cachedBuildings, saved });
+  return buildImportResult(incomingLeads, plan, { cachedBuildings, saved, totalRows: records.length });
 }
 
 export async function replaceUserLeadsFromSheet({ userId, source, rawSheetUrl }) {
-  const { mapping, records } = await fetchSheetRows(rawSheetUrl || source?.sheet_url);
+  const { mapping, records } = await fetchSheetRows(rawSheetUrl || source?.sheet_url, source?.import_options || {});
   return importUserLeadRecords({ userId, source, mapping, records });
 }
 
-export async function replaceUserLeadsFromRows({ userId, source, rawRows }) {
-  const { mapping, records } = await mapImportRows(rawRows);
-  return importUserLeadRecords({ userId, source, mapping, records });
+export async function replaceUserLeadsFromRows({ userId, source, rawRows, mapping: selectedMapping, headerRowIndex, onProgress }) {
+  const { mapping, records } = mapImportRows(rawRows, { mapping: selectedMapping, headerRowIndex });
+  return importUserLeadRecords({ userId, source, mapping, records, onProgress });
 }
 
-async function importUserLeadRecords({ userId, source, mapping, records }) {
-  if (!userId) throw new Error("Sign in required.");
-  if (source?.user_id !== userId) throw new Error("Choose a spreadsheet owned by your account.");
+async function importUserLeadRecords({ userId, source, mapping, records, onProgress }) {
+  if (!userId) throw new UserFacingError("Sign in required.");
+  if (source?.user_id !== userId) throw new UserFacingError("Choose a spreadsheet owned by your account.");
   const selectedBuildings = Array.isArray(source?.selected_buildings) ? source.selected_buildings : [];
   const selectedBuildingSet = new Set(selectedBuildings);
+  if (selectedBuildingSet.size && !mapping.building) throw new UserFacingError("Choose a building column to import the selected buildings.");
   const importRecords = selectedBuildingSet.size && mapping.building
     ? records.filter((record) => selectedBuildingSet.has(String(record[mapping.building] || "").replace(/\s+/g, " ").trim()))
     : records;
@@ -428,27 +271,25 @@ async function importUserLeadRecords({ userId, source, mapping, records }) {
     overrideBuilding,
   });
   const suspiciousImportError = buildSuspiciousImportError(suspiciousRows);
-  if (suspiciousImportError) throw new Error(suspiciousImportError);
+  if (suspiciousImportError) throw new UserFacingError(suspiciousImportError);
 
   const sourceId = source?.id || null;
-  if (!sourceId) throw new Error("Choose a spreadsheet source first.");
+  if (!sourceId) throw new UserFacingError("Choose a spreadsheet source first.");
 
-  const incomingLeads = importRecords
-    .map((record) => createLeadInsertRecord(record, mapping, userId, {
+  const incomingLeads = await prepareImportLeads(importRecords, mapping, userId, {
       sourceId,
       defaultStatus,
       defaultBuilding,
       overrideBuilding,
       resolveBuilding,
-    }))
-    .filter(Boolean);
+    });
 
-  if (!incomingLeads.length) throw new Error("No valid leads found in sheet.");
+  if (!incomingLeads.length) throw new UserFacingError("No valid leads found in sheet.");
 
   const existingRows = await fetchExistingLeadRows(userId, sourceId);
   const plan = buildLeadSyncPlan(existingRows, incomingLeads);
   await applyLeadFieldFills(userId, plan.updates);
-  const saved = await insertLeadBatches(plan.toInsert);
+  const saved = await insertLeadBatches(plan.toInsert, onProgress);
 
-  return buildImportResult(incomingLeads, plan, { cachedBuildings, saved });
+  return buildImportResult(incomingLeads, plan, { cachedBuildings, saved, totalRows: importRecords.length });
 }

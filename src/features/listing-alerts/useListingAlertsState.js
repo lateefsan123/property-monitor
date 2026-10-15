@@ -33,12 +33,7 @@ function getStoredSyncErrorMessage(summary) {
   const fetchErrorCount = Number.isFinite(summary?.fetchErrorCount) ? summary.fetchErrorCount : 0;
   if (!fetchErrorCount) return null;
 
-  const firstError = summary?.lastFetchErrorMessage || "Bayut live listing fetch failed.";
-  if (firstError.toLowerCase().includes("not subscribed")) {
-    return "Bayut live listing sync is blocked: the RapidAPI key is not subscribed to uae-real-estate2.";
-  }
-
-  return `Bayut live listing sync failed for ${fetchErrorCount} ${fetchErrorCount === 1 ? "building" : "buildings"}: ${firstError}`;
+  return "Some listings couldn’t be refreshed. Your saved listings are still available. Please try again shortly.";
 }
 
 function cachedListingState(cache, userId, feedBuildings) {

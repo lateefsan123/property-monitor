@@ -1,117 +1,21 @@
+import { MAX_LEAD_SOURCES, LEGACY_SOURCE_ID, EMPTY_LEADS, EMPTY_SOURCES, normalizeSourceDraft, formatSourceLabel, formatImportNotice, sellerLeadsQueryKey, sellerSourcesQueryKey, sellerInsightsQueryPrefix, getNextLeadSourceSortOrder, fetchSellerSources } from "./spreadsheet-page-helpers";
+import { userFacingError, UserFacingError } from "../../../shared/user-facing-errors.js";
+import { prepareImportRows, validateImportMapping } from "./import-preview.js";
 import { useMemo, useRef, useState } from "react";
 import { replaceUserLeadsFromRows } from "./lead-import-services";
-import { unidentifiedText } from "./page-helpers";
 import { fetchSourceSellerCounts } from "./lead-record-services";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   clearLeadsForSource,
   createLeadSource,
   deleteLeadSource,
-  fetchLeadSources,
   fetchUserLeads,
   replaceLegacyLeadsFromSheet,
   replaceUserLeadsFromSheet,
   upsertLeadSource,
 } from "./services";
 
-const MAX_LEAD_SOURCES = 10;
-const LEGACY_SOURCE_ID = "legacy";
-const EMPTY_LEADS = [];
-const EMPTY_SOURCES = [];
-
-function getErrorMessage(error) {
-  if (!error) return null;
-  if (typeof error === "string") return error;
-  if (error instanceof Error) return error.message || "Unexpected error";
-  if (typeof error?.message === "string") return error.message;
-  return "Unexpected error";
-}
-
-function isPlaceholderSourceLabel(source) {
-  const label = String(source?.label || "").trim();
-  return Boolean(label) && /^Spreadsheet\s+\d+$/i.test(label);
-}
-
-function getSourceName(source) {
-  if (!source) return "";
-  const buildingName = String(source.building_name || "").trim();
-  const label = String(source.label || "").trim();
-  if (buildingName && (!label || isPlaceholderSourceLabel(source))) return buildingName;
-  return label || buildingName || "";
-}
-
-function normalizeSourceDraft(source) {
-  if (!source) return source;
-  return {
-    ...source,
-    label: getSourceName(source),
-    building_name: null,
-  };
-}
-
-function formatSourceLabel(source) {
-  if (!source) return "";
-  const label = getSourceName(source);
-  return label || `Spreadsheet ${Number(source.sort_order ?? 0) + 1}`;
-}
-
-function formatImportNotice(source, result) {
-  const label = formatSourceLabel(source);
-  const count = Number(result?.count || 0);
-  const skippedCount = Number(result?.skippedCount || 0);
-  const countText = `${count} lead${count === 1 ? "" : "s"}`;
-  const skippedText = `${skippedCount} duplicate row${skippedCount === 1 ? "" : "s"}`;
-
-  if (skippedCount > 0) {
-    return (label
-      ? `Imported ${countText} from ${label}. Skipped ${skippedText} from the sheet.`
-      : `Imported ${countText}. Skipped ${skippedText} from the sheet.`) + unidentifiedText(result);
-  }
-
-  return (label ? `Imported ${countText} from ${label}.` : `Imported ${countText}.`) + unidentifiedText(result);
-}
-
-function sellerLeadsQueryKey(userId) {
-  return ["seller-signal", "leads", userId];
-}
-
-function sellerSourcesQueryKey(userId) {
-  return ["seller-signal", "sources", userId];
-}
-
-function sellerInsightsQueryPrefix(userId) {
-  return ["seller-signal", "insights", userId];
-}
-
-function normalizeSources(sources) {
-  if (!Array.isArray(sources)) return [];
-  return sources.map((source) => ({
-    ...source,
-    type: "building",
-  }));
-}
-
-function isVisibleSource(source) {
-  return Boolean(String(source?.building_name || source?.label || source?.sheet_url || "").trim());
-}
-
-function limitLeadSources(sources) {
-  if (!Array.isArray(sources)) return [];
-  return normalizeSources(sources)
-    .filter(isVisibleSource)
-    .sort((left, right) => (left.sort_order ?? 0) - (right.sort_order ?? 0))
-    .slice(0, MAX_LEAD_SOURCES);
-}
-
-function getNextLeadSourceSortOrder(sources) {
-  if (!Array.isArray(sources) || !sources.length) return 0;
-  return sources.reduce((max, source) => Math.max(max, Number(source.sort_order ?? -1)), -1) + 1;
-}
-
-async function fetchSellerSources(userId) {
-  const sources = await fetchLeadSources(userId);
-  return limitLeadSources(sources);
-}
+const getErrorMessage = userFacingError;
 
 export function useSpreadsheetsPage(userId) {
   const queryClient = useQueryClient();
@@ -284,9 +188,11 @@ export function useSpreadsheetsPage(userId) {
   // One-time import of already-read rows (uploaded file or a connected
   // Google/Excel worksheet). A retry with the same key reuses the source it
   // created, so a failed import never leaves duplicate spreadsheets.
-  async function importRows({ key: rowsKey, label, rawRows }) {
+  async function importRows({ key: rowsKey, label, rawRows, mapping, headerRowIndex, onProgress, selectedBuildings = [], sheetUrl = null }) {
     if (fileImportBusy.current) return false;
-    if (!userId) throw new Error("Sign in required.");
+    if (!userId) throw new UserFacingError("Sign in required.");
+    const preview = prepareImportRows(rawRows, { headerRowIndex });
+    validateImportMapping(preview.headers, mapping || preview.mapping);
     fileImportBusy.current = true;
     setAddingSource(true);
     setActionError(null);
@@ -296,18 +202,26 @@ export function useSpreadsheetsPage(userId) {
       if (pendingFileSource.current?.key !== key) {
         // Importing a file with the same name again continues that spreadsheet:
         // sellers already in it are matched, so only missing rows are added.
-        const existing = leadSources.find((item) => !item.sheet_url && String(item.label || "").trim() === String(label || "").trim());
-        if (!existing && !canAddSource) throw new Error("You can have up to 10 spreadsheets.");
+        const existing = leadSources.find((item) => (sheetUrl ? item.sheet_url === sheetUrl : !item.sheet_url) && String(item.label || "").trim() === String(label || "").trim());
+        if (!existing && !canAddSource) throw new UserFacingError("You can have up to 10 spreadsheets.");
         const source = existing || await createLeadSource(userId, {
           label,
-          sheet_url: null,
+          selected_buildings: selectedBuildings,
+          sheet_url: sheetUrl,
+          import_options: { mapping: mapping || preview.mapping, headerRowIndex: preview.headerRowIndex },
           sort_order: getNextLeadSourceSortOrder(leadSources),
         });
         pendingFileSource.current = { key, source };
       }
-      const { source } = pendingFileSource.current;
+      const source = { ...pendingFileSource.current.source, import_options: { mapping: mapping || preview.mapping, headerRowIndex: preview.headerRowIndex } };
+      await upsertLeadSource(source);
       setImportingSourceId(source.id);
-      const result = await replaceUserLeadsFromRows({ userId, source, rawRows });
+      const result = await replaceUserLeadsFromRows({ userId, source, rawRows, mapping, headerRowIndex, onProgress });
+      if (result.failedCount) {
+        const failure = new UserFacingError(`${result.count.toLocaleString()} sellers saved; ${result.failedCount.toLocaleString()} rows couldn’t be saved. Download those rows to check them, then import the corrected sheet again.`);
+        failure.failedRows = result.failedRows;
+        throw failure;
+      }
       pendingFileSource.current = null;
       setActionNotice(formatImportNotice(source, result));
       return true;
