@@ -26,4 +26,12 @@ The `Import reliability` GitHub workflow runs the suite on pushes to main and pu
 
 ## Release
 
-Web release verification is recorded separately after deployment. Tests do not prove Albert's reason for cancelling, nor do they guarantee every possible third-party spreadsheet format.
+Code commit: `cfd41d5219edf54ed5a2f8cad961696aee46a1b2`. Deployed from an isolated archive of that commit, excluding unrelated working-tree edits and temporary fixtures. No Git push was made.
+
+Vercel project `sellersignal` / `prj_0EIEj4PTFw0qgKWI5gWyGHmLmSJg`, team `team_AMNOPJKtbLn31h3rZ7WvAde3`. Production deployment `dpl_CxMzCWu8gqJan1TMg8imVnyesVHr` was built with production settings and staged using `--skip-domain`; build completed successfully. Staged HTML, JS and worker returned 200; a read-only GET to the integrations endpoint returned the expected 405 / Allow: POST.
+
+Promoted on 15 October 2026 around 10:01 UTC. Readback from https://repeatai.org returned the new HTML referencing `index-C49xpaZL.js`; that bundle, `file-import-worker-D14ejcs5.js` and `index-BQ-ix3YS.css` all returned 200 with correct content types. The public homepage and login rendered, with no browser error logs. Vercel reported READY and no error/fatal runtime logs in the immediate verification window. Authenticated customer imports were not exercised in production.
+
+Browser evidence is saved locally under `outputs/import-reliability-20261015/`: `review.jpg`, `safe-error.jpg` and `mobile-safe-error.jpg`. These are synthetic local test screenshots, not customer data.
+
+Tests do not prove Albert's reason for cancelling, nor do they guarantee every possible third-party spreadsheet format.
