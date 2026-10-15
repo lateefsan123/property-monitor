@@ -4,6 +4,7 @@ import { customStatusDays, loadCustomStatusDays } from "../_shared/custom-status
 import { accountsNotDue, loadLastAutoSends, loadSendPacing } from "../_shared/send-pacing.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { loadAutomaticAliases } from "../_shared/automatic-aliases.js";
+import { loadTransactionBuildingMatches } from "../_shared/transaction-building-matches.js";
 import { baileysReachabilityError, isNotOnWhatsApp, markNotOnWhatsApp } from "../_shared/whatsapp-reachability.js";
 
 // Sends each active-pipeline seller a once-a-month recap of sales and Ejari
@@ -953,11 +954,14 @@ Deno.serve(async (req) => {
     }
 
     const aliasLookup = await fetchBuildingAliasLookup(adminClient, userIds, [...baseBuildingKeys]);
+    const transactionBuildingMatches = await loadTransactionBuildingMatches(adminClient, leads, aliasLookup, getBuildingKeyVariants);
 
     const keysByLead = new Map<number, string[]>();
     const allBuildingKeys = new Set<string>();
     for (const lead of leads) {
       const keys = expandLeadBuildingKeysWithAliases(lead, baseKeysByLead.get(Number(lead.id)) || [], aliasLookup);
+      const transactionMatch = transactionBuildingMatches.matches.get(`${lead.user_id}|${lead.building}`);
+      if (transactionMatch && !keys.includes(transactionMatch.key)) keys.push(transactionMatch.key);
       keysByLead.set(Number(lead.id), keys);
       for (const key of keys) allBuildingKeys.add(key);
     }
@@ -990,6 +994,7 @@ Deno.serve(async (req) => {
       reportDailyBudget,
       scanned: allLeads.length,
       activePipeline: leads.length,
+      transactionBuildingMatching: transactionBuildingMatches.summary,
       eligible: 0,
       attempted: 0,
       sent: 0,
@@ -1079,7 +1084,9 @@ Deno.serve(async (req) => {
       try {
         const name = cleanString(lead.name)?.split(/\s+/)[0] || "there";
         const body = buildReportMessage({
-          buildingLabel: cleanBuildingName(lead.building) || "your building",
+          buildingLabel: transactionBuildingMatches.matches.get(`${lead.user_id}|${lead.building}`)?.scope === 'development'
+            ? transactionBuildingMatches.matches.get(`${lead.user_id}|${lead.building}`)!.name
+            : cleanBuildingName(lead.building) || "your building",
           monthLabel,
           name,
           rentals,

@@ -15,8 +15,7 @@ export async function loadAutomaticAliases(client, userIds, wantedKeys) {
         .in('user_id', ids.slice(start, start + 100)).eq('status', 'matched')
         .order('id', { ascending: true }).range(from, from + PAGE - 1);
       if (error) {
-        console.warn('Could not load automatic building matches', error.message);
-        return rows;
+        throw new Error(`Could not load automatic building matches: ${error.message}`);
       }
       for (const row of data || []) {
         const key = aliasKey(row.raw_name);

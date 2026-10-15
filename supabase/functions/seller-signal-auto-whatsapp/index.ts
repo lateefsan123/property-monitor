@@ -6,6 +6,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { loadAutomaticAliases } from "../_shared/automatic-aliases.js";
+import { loadTransactionBuildingMatches } from "../_shared/transaction-building-matches.js";
 import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
 import { followUpPending } from "../_shared/seller-follow-up.js";
 import { pickTemplateForStatus } from "../_shared/template-status.js";
@@ -1101,6 +1102,7 @@ Deno.serve(async (req) => {
 
     const accountByUser = new Map<string, any>();
     for (const account of accountRows || []) {
+      if (dryRun && input?.userId && account.user_id !== input.userId) continue;
       if (!accountByUser.has(account.user_id)) accountByUser.set(account.user_id, account);
     }
 
@@ -1173,10 +1175,13 @@ Deno.serve(async (req) => {
     );
 
     const keysByLead = new Map<number, string[]>();
+    const transactionBuildingMatches = await loadTransactionBuildingMatches(adminClient, leads, aliasLookup, getBuildingKeyVariants);
     const allBuildingKeys = new Set<string>();
     const expandedKeysCache = new Map<string, string[]>();
     for (const lead of leads || []) {
       const keys = expandLeadBuildingKeysWithAliases(lead, baseKeysByLead.get(Number(lead.id)) || [], aliasLookup, expandedKeysCache);
+      const transactionMatch = transactionBuildingMatches.matches.get(`${lead.user_id}|${lead.building}`);
+      if (transactionMatch && !keys.includes(transactionMatch.key)) keys.push(transactionMatch.key);
       keysByLead.set(Number(lead.id), keys);
       for (const key of keys) allBuildingKeys.add(key);
     }
@@ -1250,6 +1255,7 @@ Deno.serve(async (req) => {
       scanned: leads.length,
       candidates: candidateLeads.length,
       automaticMatches: automaticMatchesLoaded,
+      transactionBuildingMatching: transactionBuildingMatches.summary,
       nearby: { considered: nearbyLeads.length, sales: 0, listings: 0, nothingToSend: 0 },
       nearbyPreviews: [] as string[],
       eligible: 0,
@@ -1371,6 +1377,8 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      if (!matchedDateKey) continue;
+
       const recipientDateKey = getRecipientDateKey(lead.user_id, to, matchedDateKey);
       if (!recipientDateKey || existingRecipientDateKeys.has(recipientDateKey)) {
         summary.skipped.duplicateRecipientDate += 1;
@@ -1437,7 +1445,9 @@ Deno.serve(async (req) => {
         const body = listings
           ? buildListingsMessage(cleanString(lead.name) || "there", cleanBuildingName(lead.building) || "your building", listings)
           : buildMessage(
-            lead,
+            transactionBuildingMatches.matches.get(`${lead.user_id}|${lead.building}`)?.scope === 'development' && !isNearby
+              ? { ...lead, building: transactionBuildingMatches.matches.get(`${lead.user_id}|${lead.building}`)!.name }
+              : lead,
             matchedTransactions,
             isNearby ? null : cleanBuildingName(lead.building),
             template?.content,
