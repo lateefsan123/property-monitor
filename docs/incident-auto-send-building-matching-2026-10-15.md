@@ -44,6 +44,12 @@ recipients passed the existing daily-cap simulation, including sixteen previousl
 untouched St Regis records across four source labels. The dry run sent zero
 messages. It also selected Zada, Ahad, Burj Vista and City Center recipients.
 
+The normal scheduled dispatch at 08:50 UTC / 09:50 Dublin succeeded (HTTP 200,
+sent: 1, no dispatcher errors). Its outbound record for a Burj Vista 2 seller
+was marked sent at 08:50:06 UTC with no error. Delivery/read receipts were still
+absent at verification. The preceding 08:45 dispatch returned a transient
+Supabase gateway 520; the following scheduled run recovered without intervention.
+
 The audit still reports names that cannot be safely linked to the current DLD
 catalogue. These are reported for review rather than guessed. A missing mapping
 is distinct from proof that no transaction occurred. Older transaction sources
