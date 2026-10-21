@@ -22,7 +22,7 @@ services/
 /supabase/migrations/
 /supabase/tests/
 /supabase/config.toml
-video/
+/video/
 docs/
 tests/
 *.log
