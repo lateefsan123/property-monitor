@@ -1,0 +1,79 @@
+/* Seller export how-to. The extension's own stylesheet supplies the window's
+   look; this file stages the frame, a neutral browser and an unbranded CRM. */
+html, body { margin: 0; background: #e9ebee; overflow: hidden; }
+/* The video is always light, whatever the capturing browser prefers. */
+.frame { --bg: #f5f5f5; --card: #ffffff; --border: #e8e8e8; --border-light: #f0f0f0; --hover: #f6f6f6;
+  --text: #1e293b; --text-name: #0f172a; --muted: #64748b; --faint: #94a3b8;
+  --primary: #0f172a; --primary-hover: #1e293b; --primary-text: #ffffff; --accent: #0a7082; --accent-soft: #e6f2f4;
+  --ok-bg: #f0fdf4; --ok-text: #15803d; color-scheme: light; }
+.frame { position: relative; overflow: hidden; font-family: Inter, system-ui, sans-serif; color: #0f172a;
+  background: radial-gradient(1200px 700px at 30% 20%, #f8fafc, #e6e9ed); }
+.scene, .titlecard { position: absolute; inset: 0; }
+.mark { display: inline-flex; width: 22px; height: 22px; }
+.mark svg { width: 100%; height: 100%; }
+
+/* Title and end cards */
+.titlecard { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; }
+.titlecard .mark.big { width: 76px; height: 76px; color: #0f172a; }
+.titlecard h1 { margin: 6px 0 0; font-size: 64px; letter-spacing: -.03em; font-weight: 600; }
+.titlecard p { margin: 0; font-size: 30px; color: #64748b; }
+
+/* Browser */
+.browser { position: absolute; background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 30px 80px rgba(15, 23, 42, .16), 0 0 0 1px rgba(15, 23, 42, .08); }
+.browser-bar { display: flex; align-items: center; gap: 18px; height: 64px; padding: 0 22px; background: #f1f3f5; border-bottom: 1px solid #e2e5e9; }
+.browser-bar .dots { display: flex; gap: 8px; }
+.browser-bar .dots i { width: 13px; height: 13px; border-radius: 50%; background: #d5d9de; }
+.browser-bar .url { flex: 1; height: 38px; display: flex; align-items: center; padding: 0 18px; border-radius: 19px; background: #fff; color: #475569; font-size: 17px; }
+.ext-slot { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; border-radius: 12px; }
+.ext-icon { display: inline-flex; width: 26px; height: 26px; color: #0f172a; }
+.ext-icon svg { width: 100%; height: 100%; }
+.browser-page { position: relative; height: calc(100% - 64px); overflow: hidden; }
+
+/* Repeat AI Spreadsheets page */
+.rpage { padding: 40px 64px; }
+.rpage-top { display: flex; align-items: center; gap: 10px; font-size: 20px; }
+.rpage-top .mark { width: 28px; height: 28px; }
+.rpage-title { font-size: 40px; letter-spacing: -.02em; font-weight: 600; margin: 34px 0 26px; }
+.rcard { display: flex; justify-content: space-between; align-items: center; gap: 30px; padding: 30px 32px; background: #fff; border: 1px solid #e8e8e8; border-radius: 18px; box-shadow: 0 1px 2px rgba(15,23,42,.05); }
+.rcard h2 { margin: 0 0 8px; font-size: 26px; font-weight: 600; }
+.rcard p { margin: 0; font-size: 19px; color: #64748b; }
+.rcard-actions { display: flex; align-items: center; gap: 12px; }
+.rcard-actions button.primary, .rcard-actions button.secondary { min-height: 54px; padding: 0 26px; font-size: 18px; border-radius: 12px; }
+.rcard-actions button.link { font-size: 17px; }
+.dropzone { display: flex; align-items: center; justify-content: center; height: 150px; border: 2px dashed #cbd5e1; border-radius: 18px; color: #64748b; font-size: 21px; }
+.rlist { margin-top: 26px; display: grid; gap: 12px; }
+.rrow { display: flex; align-items: center; gap: 18px; padding: 20px 24px; background: #fff; border: 1px solid #e8e8e8; border-radius: 14px; font-size: 20px; }
+.rrow b { flex: 1; font-weight: 600; }
+.rrow span { color: #64748b; }
+.rrow .ok { color: #15803d; }
+.xls { display: inline-flex; align-items: center; justify-content: center; padding: 4px 8px; border-radius: 6px; background: #e7f3ec; color: #15803d !important; font-size: 13px; font-weight: 700; letter-spacing: .04em; }
+
+/* Unbranded CRM */
+.crm { position: relative; height: 100%; padding: 30px 40px; background: #fafbfc; font-family: Arial, Helvetica, sans-serif; color: #1f2937; }
+.crm-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 18px; }
+.crm-head h1 { margin: 0; font-size: 30px; }
+.crm-head span { color: #6b7280; font-size: 17px; }
+.crm-table { width: 100%; border-collapse: collapse; font-size: 17px; background: #fff; border: 1px solid #e5e7eb; display: block; height: 690px; overflow: hidden; }
+.crm-table thead, .crm-table tbody { display: table; width: 100%; table-layout: fixed; }
+.crm-table th { text-align: left; padding: 14px 16px; background: #f3f4f6; color: #4b5563; font-weight: 600; border-bottom: 1px solid #e5e7eb; position: relative; z-index: 1; }
+.crm-table td { padding: 0 16px; height: 46px; border-bottom: 1px solid #f1f2f4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.crm-foot { display: flex; justify-content: space-between; margin-top: 14px; color: #6b7280; font-size: 16px; }
+.scan-band { position: absolute; left: 40px; right: 40px; height: 46px; background: rgba(10, 112, 130, .08); border-top: 2px solid rgba(10, 112, 130, .35); pointer-events: none; }
+
+/* Extension window (inner styles come from workspace.css) */
+.popup { position: absolute; z-index: 5; background: #f5f5f5; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(15, 23, 42, .22), 0 0 0 1px rgba(15, 23, 42, .08); transform-origin: top right; }
+.ext-app { padding: 22px 26px 24px; }
+.ext-app .top { margin-bottom: 26px; }
+.ext-app .footer { position: static; margin: 18px 0 0; padding: 0; background: none; }
+.ext-app .footer .notice { margin: 0 0 12px; }
+.ext-app .buildings { max-height: none; }
+
+/* Downloads, cursor and captions */
+.downloads { position: absolute; z-index: 6; width: 560px; padding: 18px 20px 12px; background: #fff; border-radius: 16px; box-shadow: 0 24px 60px rgba(15, 23, 42, .2), 0 0 0 1px rgba(15, 23, 42, .08); }
+.downloads > p { margin: 0 0 10px; font-size: 18px; font-weight: 600; color: #0f172a; }
+.downloads .file { display: flex; align-items: center; gap: 14px; padding: 14px 4px; border-top: 1px solid #f0f0f0; font-size: 20px; }
+.downloads .file b { flex: 1; font-weight: 600; }
+.downloads .file span:last-child { color: #64748b; font-size: 17px; }
+.cursor { position: absolute; width: 34px; height: 34px; margin: -4px 0 0 -6px; pointer-events: none; }
+.cursor .ring { position: absolute; left: 6px; top: 4px; width: 46px; height: 46px; border-radius: 50%; border: 3px solid #0a7082; }
+.caption { position: absolute; left: 50%; bottom: 34px; transform: translateX(-50%); padding: 14px 28px; border-radius: 999px; background: rgba(15, 23, 42, .9); color: #fff; font-size: 26px; font-weight: 500; white-space: nowrap; }

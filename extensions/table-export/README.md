@@ -39,7 +39,7 @@ tests all modes in the browser. These controls are only for the replica.
    **Preview sellers & columns** to review them. Unzip and upload
    the Excel files through Repeat AI's existing spreadsheet importer.
 
-This is an unpacked build, not a Chrome Web Store release. The real White & Co
+This is an unpacked build, not a Chrome Web Store release. The real customer CRM
 viewer has only been supplied as a photograph; compatibility with its DOM must
 still be checked in an authorized session. Do not claim production validation.
 

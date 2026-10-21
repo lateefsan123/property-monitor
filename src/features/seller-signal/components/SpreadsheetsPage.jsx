@@ -18,6 +18,7 @@ import {
 } from "../useSpreadsheetFavorites";
 import SpreadsheetDetailModal from "./SpreadsheetDetailModal";
 import NewSpreadsheetModal from "./NewSpreadsheetModal";
+import CrmExportCard from "./CrmExportCard";
 import { peekNewSpreadsheetRequest, peekSpreadsheetImport, takeNewSpreadsheetRequest, takeSpreadsheetImport } from "../../../integration-resume";
 
 function isPlaceholderSourceLabel(source) {
@@ -454,6 +455,8 @@ export default function SpreadsheetsPage({ userId }) {
       {!page.canAddSource && (
         <p className="sheet-limit-note">Maximum 10 spreadsheets.</p>
       )}
+
+      {!page.loading && <CrmExportCard />}
 
       {newSheetOpen && (
         <NewSpreadsheetModal

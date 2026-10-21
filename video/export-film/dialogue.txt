@@ -1,0 +1,15 @@
+Here's how to get your sellers out of your CRM and into Repeat AI.
+
+First, add the Repeat AI extension to Chrome. You'll find it in Repeat AI, under Spreadsheets.
+
+Then open your seller list in your CRM, like you normally would.
+
+Click the Repeat AI icon, and press Find my sellers.
+
+It goes through every page for you. Just leave the list open while it works.
+
+When it's done, you'll see your sellers sorted by building. Untick any building you don't need.
+
+Press Download, and you get a separate spreadsheet for each building.
+
+Upload them to Repeat AI, and you're all set.
