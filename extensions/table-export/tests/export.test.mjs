@@ -26,6 +26,20 @@ function unpack(bytes) {
   assert.equal(view.getUint32(pos, true), 0x02014b50);
   return files;
 }
+test('automatic mapping asks for clarification when a required heading is ambiguous', () => {
+  const mapping = inferMapping([
+    { id: 'owner', label: 'Owner name' },
+    { id: 'phone1', label: 'Phone' },
+    { id: 'phone2', label: 'WhatsApp' },
+    { id: 'tower', label: 'Tower' },
+  ]);
+  assert.equal(mapping.name, 'owner');
+  assert.equal(mapping.building, 'tower');
+  assert.equal(mapping.phone, '');
+  assert.ok(validateMapping(mapping));
+  mapping.phone = 'phone2';
+  assert.equal(validateMapping(mapping), '');
+});
 test('selected buildings round-trip through Repeat AI’s real file parser and mapping', async () => {
   const input = setup(); input.groups = input.groups.filter(g => g.name !== 'Celestia B');
   const output = await createExport(input), files = unpack(output.zip);

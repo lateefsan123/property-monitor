@@ -1,8 +1,10 @@
 # Local validation — 21 October 2026
 
-- `node --test extensions/table-export/tests/export.test.mjs`: 12 passing tests.
+- `node --test extensions/table-export/tests/export.test.mjs`: 13 passing tests.
   Includes the real Repeat AI file parser, column aliases, duplicate handling,
   formula-like text, and 26,414 exported sellers split into 10,000/10,000/6,414.
+  Ambiguous required headings now remain unselected and block download until
+  the user chooses the appropriate column.
 - ESLint passed for extension source, background worker and replica scripts.
 - Root `npm run build` and the extension build passed.
 - Nine real-browser replica checks passed: static table, virtual rows/columns,
@@ -15,6 +17,11 @@
   parsed through Repeat AI's importer, preserving text phones and unit zeros.
 - The extension ZIP passed independent CRC validation. Its manifest requests
   only `activeTab` and `scripting`, with no host permissions.
+- The simplified UI was checked in Chrome: one-table selection and loading
+  settings were hidden; a changed worksheet was rediscovered without a refresh
+  step. A 48-seller capture reached an enabled download with column mapping
+  collapsed. Changing the source during a scan blocked the incomplete capture;
+  removing that capture allowed the healthy sheet to download.
 
 These checks cover the replica and export pipeline. They do not establish
 compatibility with a particular live CRM or test Chrome's installed-extension

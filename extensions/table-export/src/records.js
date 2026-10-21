@@ -6,7 +6,8 @@ export const text = value => String(value ?? '').replace(/\u00a0/g, ' ').trim();
 export function inferMapping(columns) {
   return Object.fromEntries(Object.keys(fields).map(field => {
     const aliases = new Set(COLUMN_ALIASES[field].map(token));
-    return [field, columns.find(c => aliases.has(token(c.label)))?.id || ''];
+    const matches = columns.filter(c => aliases.has(token(c.label)));
+    return [field, matches.length === 1 ? matches[0].id : ''];
   }));
 }
 export function validateMapping(mapping) {

@@ -19,7 +19,8 @@ node extensions/table-export/serve.mjs
 Open `http://127.0.0.1:4186`. The replica contains synthetic Dubai South sellers
 and exercises the same collector, mapping UI and Excel writer as the extension.
 Try virtual rows/columns, pagination, delayed infinite scroll, missing totals,
-and incomplete data. **Run capture checks** tests all modes in the browser.
+and incomplete data under **Developer test settings**. **Run capture checks**
+tests all modes in the browser. These controls are only for the replica.
 
 ## Install locally
 
@@ -28,10 +29,14 @@ and incomplete data. **Run capture checks** tests all modes in the browser.
    choose **Load unpacked**, and select the folder containing `manifest.json`.
 3. Open a permitted source sheet and click the extension. Its separate window
    keeps already captured sheets in memory while you move between worksheets.
-4. Choose the table, optionally supply its expected row count, and collect it.
+4. Click **Find my sellers**. A single table is selected automatically; the tool
+   only asks you to choose when it finds several. Scrolling and pagination are
+   automatic. Recovery options only appear if a sheet cannot be collected.
    Start on page one when following pagination. The scan scrolls the source page;
    leave its filters, sort order and selected worksheet unchanged while scanning.
-5. Check mappings and counts, choose buildings, and download. Unzip and upload
+5. Choose buildings and download. Columns are matched automatically; missing or
+   ambiguous required headings open a matching prompt. You can also expand
+   **Preview leads & edit columns** to review them. Unzip and upload
    the Excel files through Repeat AI's existing spreadsheet importer.
 
 This is an unpacked build, not a Chrome Web Store release. The real White & Co
@@ -58,7 +63,9 @@ still be checked in an authorized session. Do not claim production validation.
   count for that page, collect it, then navigate and add the next page. Table
   replacement or navigation during a scan marks it incomplete. Original scroll
   offsets are restored; pagination is left on the last visited page.
-- Other worksheets are added explicitly: open one, refresh tables, and collect.
+- Other worksheets are added explicitly: open one and click **Add another
+  sheet**. Tables are rediscovered automatically; if the previous choice no
+  longer matches, the tool asks which seller list to use.
   The tool does not enumerate private sheets or auto-click arbitrary controls.
   Same-origin frames covered by activeTab are considered. For inaccessible
   frames, open the frame as its own page and activate the extension there.

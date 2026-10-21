@@ -38,3 +38,7 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px s
 .footer button { width: 100%; padding: 14px; }
 [hidden] { display: none !important; }
 @media(max-width: 440px) { #app { padding: 16px; } .mapping { grid-template-columns: 1fr; } h1 { font-size: 25px; } }
+
+details { margin: 14px 0; }
+summary { cursor: pointer; color: #365e50; font-size: 12px; font-weight: 650; padding: 8px 0; }
+summary:focus-visible { outline: 3px solid #74bca7; outline-offset: 2px; }
