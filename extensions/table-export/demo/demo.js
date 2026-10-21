@@ -22,10 +22,11 @@ document.querySelector('#run-checks').onclick = async () => {
   button.disabled = true; document.querySelector('#app').inert = true; document.querySelector('#source-container').inert = true; output.textContent = 'Running the real collector against synthetic tables…\n';
   let passed = 0;
   try {
-    for (const mode of ['static', 'virtual', 'pagination', 'lazy', 'unknown', 'mismatch']) {
-      fixture.setup(mode, 72);
-      const trace = [];
-      const capture = await scanTable(fixture.root, { waitMs: 100, idleMs: 350, maxMs: 120000, trace: value => trace.push(value) });
+    for (const mode of ['static', 'virtual', 'slow virtual', 'pagination', 'lazy', 'unknown', 'mismatch']) {
+      fixture.setup(mode === 'slow virtual' ? 'virtual' : mode, 72, '', { renderDelayMs: mode === 'slow virtual' ? 900 : 0 });
+      const trace = [], started = performance.now();
+      const capture = await scanTable(fixture.root, { maxMs: 120000, trace: value => trace.push(value) });
+      const elapsed = ((performance.now() - started) / 1000).toFixed(1);
       if (capture.rows.length !== 72 || capture.issues.length && mode !== 'mismatch') throw new Error(`${mode}: captured ${capture.rows.length}/72. ${capture.issues.join('; ')} Trace: ${JSON.stringify(trace)}`);
       if (mode === 'mismatch' ? !capture.issues.length : !!capture.issues.length) throw new Error(`${mode}: ${capture.issues.join('; ') || 'should report mismatch'}`);
       if (mode === 'unknown' && capture.verified) throw new Error('Unknown total must require review');
@@ -40,7 +41,7 @@ document.querySelector('#run-checks').onclick = async () => {
           if (rows.length !== 25 || !rows[0].includes('Phone')) throw new Error('Spreadsheet round trip failed');
         }
       }
-      output.textContent += `PASS ${mode}: 72 rows, ${capture.columns.length} columns${mode === 'mismatch' ? ', download correctly blocked' : ''}\n`; passed++;
+      output.textContent += `PASS ${mode}: 72 rows, ${capture.columns.length} columns, ${elapsed}s${mode === 'mismatch' ? ', download correctly blocked' : ''}\n`; passed++;
     }
     fixture.setup('pagination', 72);
     const pageOnly = await scanTable(fixture.root, { waitMs: 100, idleMs: 350, paginate: false, expectedRows: 24 });

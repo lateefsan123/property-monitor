@@ -7,7 +7,7 @@ export function sampleRows(total) {
 }
 export function createFixture() {
   const viewport = document.querySelector('#viewport'), summary = document.querySelector('#summary'), next = document.querySelector('#next');
-  let mode, rows, root, page = 0, loaded = 24, loading = false, generation = 0;
+  let mode, rows, root, page = 0, loaded = 24, loading = false, generation = 0, renderDelayMs = 0;
   function td(tag, text) { const el = document.createElement(tag); el.textContent = text; return el; }
   function gridRow(index, values, header = false) {
     const row = document.createElement('div'); row.className = `grid-row${header ? ' grid-head' : ''}`; row.setAttribute('role', 'row'); row.setAttribute('aria-rowindex', header ? '1' : String(index + 2));
@@ -33,7 +33,13 @@ export function createFixture() {
     next.hidden = mode !== 'pagination'; next.disabled = (page + 1) * 24 >= rows.length;
   }
   viewport.addEventListener('scroll', () => {
-    if (mode === 'virtual') renderGrid();
+    if (mode === 'virtual') {
+      if (!renderDelayMs) renderGrid();
+      else if (!loading) {
+        loading = true; root.setAttribute('aria-busy', 'true'); const capturedGeneration = generation;
+        setTimeout(() => { if (generation !== capturedGeneration) return; renderGrid(); loading = false; root.setAttribute('aria-busy', 'false'); }, renderDelayMs);
+      }
+    }
     if (mode === 'lazy' && !loading && loaded < rows.length && viewport.scrollTop >= viewport.scrollHeight - viewport.clientHeight - 5) {
       loading = true; root.setAttribute('aria-busy', 'true'); const capturedGeneration = generation;
       setTimeout(() => { if (generation !== capturedGeneration) return; loaded += 24; loading = false; renderTable(); root.setAttribute('aria-busy', 'false'); }, 450);
@@ -45,7 +51,8 @@ export function createFixture() {
     setTimeout(() => { if (generation !== capturedGeneration) return; page++; loading = false; renderTable(); root.setAttribute('aria-busy', 'false'); viewport.scrollTop = 0; }, 350);
   };
   return {
-    setup(type = 'virtual', total = 144, building = '') {
+    setup(type = 'virtual', total = 144, building = '', options = {}) {
+      renderDelayMs = options.renderDelayMs || 0;
       generation++; mode = type; rows = sampleRows(total).filter(row => !building || row[1] === building); page = 0; loaded = 24; loading = false; viewport.replaceChildren(); viewport.scrollTop = 0; viewport.scrollLeft = 0;
       root = document.createElement(mode === 'virtual' ? 'div' : 'table'); root.setAttribute('aria-label', 'Dubai South sample sellers'); root.setAttribute('aria-colcount', String(labels.length));
       if (mode === 'virtual') {

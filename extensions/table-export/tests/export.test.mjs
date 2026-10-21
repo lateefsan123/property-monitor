@@ -65,6 +65,17 @@ test('Excel cells cannot execute source text as formulas', () => {
   const wb = XLSX.read(bytes, { type: 'array' });
   values.forEach((v, i) => { const cell = wb.Sheets.Sellers[XLSX.utils.encode_cell({ r: 1, c: i })]; assert.equal(cell.t, 's'); assert.equal(cell.v, v); assert.equal(cell.f, undefined); });
 });
+test('reordered custom columns survive export alongside automatically matched headings', async () => {
+  const columns = ['Custom note', 'WhatsApp', 'Tower', 'Owner name', 'Unit'].map((label, i) => ({ id: String(i), label, order: i }));
+  const rows = [{ 0: 'Call after 6', 1: '+971501234567', 2: 'Tenora', 3: 'Sample Owner', 4: '00009' }];
+  const data = combineCaptures([{ columns, rows }]), mapping = inferMapping(data.columns);
+  assert.equal(validateMapping(mapping), '');
+  const bytes = workbookBytes(data.rows, data.columns, mapping);
+  const parsed = await parseSpreadsheetFile({ name: 'custom.xlsx', size: bytes.length, arrayBuffer: async () => bytes.buffer });
+  for (const [label, value] of Object.entries({ 'Custom note': 'Call after 6', Phone: '+971501234567', Building: 'Tenora', Name: 'Sample Owner', Unit: '00009' })) {
+    assert.equal(parsed[1][parsed[0].indexOf(label)], value);
+  }
+});
 test('26,414 sellers produce importer-sized files with no lost rows', async () => {
   const c = capture(26414); c.rows.forEach(row => { row['1'] = 'Celestia A'; });
   const output = await createExport(setup(c));

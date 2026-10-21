@@ -1,16 +1,24 @@
 # Local validation — 21 October 2026
 
-- `node --test extensions/table-export/tests/export.test.mjs`: 13 passing tests.
+- `node --test extensions/table-export/tests/export.test.mjs`: 14 passing tests.
   Includes the real Repeat AI file parser, column aliases, duplicate handling,
   formula-like text, and 26,414 exported sellers split into 10,000/10,000/6,414.
   Ambiguous required headings now remain unselected and block download until
   the user chooses the appropriate column.
+  Reordered aliases and an extra custom column also round-trip through the
+  actual importer without changing the phone, unit or custom text values.
 - ESLint passed for extension source, background worker and replica scripts.
 - Root `npm run build` and the extension build passed.
-- Nine real-browser replica checks passed: static table, virtual rows/columns,
+- Ten real-browser replica checks passed: static table, virtual rows/columns,
+  virtual cells with a deliberate 900 ms rendering delay,
   pagination, delayed loading, unknown total, mismatched total, single-page
   capture, conflicting entered total, and cancellation. Incomplete captures
   were blocked from export.
+- With automatic timing, the 72-row fixture completed in 0.4 seconds for the
+  ordinary table and 14.5 seconds for the virtual grid in this Chrome run.
+  Deliberately slow virtual rendering took 29.9 seconds and preserved all nine
+  columns. These are fixture timings, not live-CRM benchmarks or a measured
+  before/after speed ratio. Full timing results appear in Developer test settings.
 - The interactive demo collected 144 synthetic records and nine columns.
   Selecting Celestia A and Tenora downloaded two Excel files with 48 records
   each. The actual browser download passed independent ZIP CRC validation and

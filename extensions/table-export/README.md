@@ -53,11 +53,17 @@ still be checked in an authorized session. Do not claim production validation.
   Conflicting identities, missing columns, merged cells and mismatched totals
   block export. Canvas-only spreadsheets are not supported.
 - Vertical and horizontal scrolling overlap viewports. Loading indicators are
-  respected, scroll events are awaited before reading recycled cells, browser
+  respected, scroll events and a quiet period after DOM updates are awaited
+  before reading recycled cells, and browser
   scroll anchoring is temporarily disabled and restored, the bottom is revisited
   until stable, and configurable waits allow
   slow pages. No finite idle window proves completeness when a site publishes
   no count: those captures require explicit count review before download.
+- Automatic collection uses a 150 ms quiet window, extends it while cells are
+  changing or loading, skips unchanged scroll positions, and alternates left-to-
+  right/right-to-left column sweeps to avoid redundant return trips. Slow-page
+  recovery overrides remain available. Source count and missing-column checks
+  still block incomplete exports.
 - Automatic pagination supports same-document Next controls near the table.
   Full-page Next links are not followed: turn pagination off, supply the expected
   count for that page, collect it, then navigate and add the next page. Table

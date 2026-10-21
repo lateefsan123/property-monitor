@@ -4,7 +4,7 @@ import { snapshot, scrollContainers, nextControl, expectedRows, isBusy } from '.
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const signature = root => JSON.stringify(snapshot(root).rows);
 export async function scanTable(root, options = {}, progress = () => {}, signal = new AbortController().signal) {
-  const waitMs = Math.max(100, options.waitMs || 650);
+  const waitMs = Math.max(100, options.waitMs || 150);
   const idleMs = Math.max(waitMs * 3, options.idleMs || 2500);
   const maxMs = options.maxMs || 20 * 60 * 1000;
   const maxRows = options.maxRows || 100000;
@@ -23,17 +23,25 @@ export async function scanTable(root, options = {}, progress = () => {}, signal 
     if (collector.rows.size > maxRows) throw new Error('Collection exceeded 100,000 rows. Filter the sheet into smaller sections.');
   }
   async function settled() {
-    await sleep(waitMs); guard();
     const deadline = Date.now() + (options.loadTimeoutMs || 30000);
-    while (isBusy(root)) {
-      if (Date.now() > deadline) throw new Error('The table is still loading. Wait for it to finish, then scan again.');
-      await sleep(waitMs); guard();
+    let changedAt = Date.now();
+    const observer = new MutationObserver(() => { changedAt = Date.now(); });
+    observer.observe(root, { subtree: true, childList: true, characterData: true, attributes: true });
+    try {
+      for (;;) {
+        await sleep(Math.min(waitMs, 100)); guard();
+        if (isBusy(root)) changedAt = Date.now();
+        else if (Date.now() - changedAt >= waitMs) return;
+        if (Date.now() > deadline) throw new Error('The table is still loading. Wait for it to finish, then scan again.');
+      }
+    } finally {
+      observer.disconnect();
     }
   }
   async function move(el, axis, value) {
     guard();
     const property = axis === 'x' ? 'scrollLeft' : 'scrollTop';
-    if (Math.abs(el[property] - value) < 1) { await settled(); return; }
+    if (Math.abs(el[property] - value) < 1) return;
     // A timeout alone can outrun virtual-grid rendering in a background tab:
     // wait for the browser's actual scroll event before reading the new cells.
     await new Promise((resolve, reject) => {
@@ -67,15 +75,19 @@ export async function scanTable(root, options = {}, progress = () => {}, signal 
   async function horizontal() {
     const { x } = scrollContainers(root); remember(x);
     if (!x) { collect(); return; }
-    await move(x, 'x', 0); collect();
+    // Alternate direction on successive row windows instead of returning left
+    // after every sweep. Both edges and overlapping columns are still read.
+    const rightward = x.scrollLeft <= (x.scrollWidth - x.clientWidth) / 2;
+    await move(x, 'x', rightward ? 0 : x.scrollWidth - x.clientWidth); collect();
     for (;;) {
       const before = x.scrollLeft;
-      if (before >= x.scrollWidth - x.clientWidth - 2) break;
-      await move(x, 'x', Math.min(x.scrollWidth - x.clientWidth, before + Math.max(1, Math.floor(x.clientWidth * 0.75))));
+      const edge = rightward ? x.scrollWidth - x.clientWidth : 0;
+      if (Math.abs(before - edge) <= 2) break;
+      const step = Math.max(1, Math.floor(x.clientWidth * 0.75));
+      await move(x, 'x', rightward ? Math.min(edge, before + step) : Math.max(0, before - step));
       collect();
       if (Math.abs(x.scrollLeft - before) < 1) throw new Error('Horizontal scrolling stopped before the last column. Try a standard table view.');
     }
-    await move(x, 'x', 0);
   }
   try {
     await settled();
@@ -102,8 +114,7 @@ export async function scanTable(root, options = {}, progress = () => {}, signal 
           const before = y.scrollTop;
           await move(y, 'y', Math.min(y.scrollHeight - y.clientHeight, before + Math.max(1, Math.floor(y.clientHeight * 0.7))));
           if (y.scrollTop === before) throw new Error('Scrolling stopped before the end of the table.');
-        }
-        await settled();
+        } else await settled();
       }
       if (options.paginate === false) break;
       const next = nextControl(root);

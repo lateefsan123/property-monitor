@@ -16,7 +16,7 @@ export function mountWorkspace(host, bridge) {
     <label id="table-wrap" hidden>Which table has your sellers?<select id="table" aria-label="Source table"></select></label>
     <div class="row"><button id="scan" class="primary">Find my sellers</button><button id="stop" hidden>Stop</button></div>
     <details id="scan-options" hidden><summary>Help with this sheet</summary><p class="muted">Try allowing extra time, or collect one page at a time.</p>
-    <div class="row"><label>Loading time<select id="speed"><option value="650">Automatic</option><option value="1500">Allow extra time</option><option value="3000">Allow more time</option></select></label>
+    <div class="row"><label>Loading time<select id="speed"><option value="150">Automatic</option><option value="1500">Allow extra time</option><option value="3000">Allow more time</option></select></label>
     <label>Expected rows (optional)<input id="expected" type="number" min="1" max="100000" placeholder="Total shown by your sheet"></label></div>
     <label class="check"><input id="paginate" type="checkbox" checked>Include every page</label><button id="refresh" class="quiet">Find tables again</button></details>
     <div id="captures"></div><p id="add-hint" class="muted" hidden><small>Need another sheet? Open it in the source tab, then collect again. Keep this window open.</small></p></section>
