@@ -15,7 +15,7 @@ const MARK = '<svg viewBox="0 0 32 32" aria-hidden="true"><rect x="3" y="4.5" wi
 const SEARCH = '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9" r="5.5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m13.2 13.2 3.3 3.3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>';
 
 export function mountWorkspace(host, bridge) {
-  host.innerHTML = `<header class="top"><span class="mark">${MARK}</span><span class="brand-name">Repeat AI</span><span class="brand-tag">Seller export</span></header>
+  host.innerHTML = `<header class="top"><span class="mark">${MARK}</span><span class="brand-name">Repeat AI</span></header>
     <section id="collect" class="stage">
       <div id="intro"><h1 id="collect-title">Export your sellers</h1>
       <p id="collect-hint" class="lead">Open your seller list, then click below.</p></div>
@@ -31,13 +31,12 @@ export function mountWorkspace(host, bridge) {
         <label class="check"><input id="paginate" type="checkbox" checked><span>Include every page</span></label><button id="refresh" class="link">Look for the list again</button></details>
     </section>
     <section id="review" class="stage" hidden>
-      <div class="review-head"><h2 id="review-title"></h2><p id="totals" class="hint"></p></div>
+      <div class="review-head"><h2 id="review-title"></h2></div>
       <details id="column-review" class="columns"><summary id="column-summary">Preview sellers &amp; columns</summary><p id="mapping-hint" class="hint"></p><div id="mapping" class="mapping"></div><div id="preview" class="preview"></div></details>
       <div id="search-wrap" class="search">${SEARCH}<input id="search" type="search" aria-label="Find a building" placeholder="Find a building"></div>
       <div id="list-tools" class="list-tools"><span id="list-count" class="hint"></span><span><button id="all" class="link">Select all</button><button id="none" class="link">Clear</button></span></div>
       <div id="buildings" class="buildings" role="group" aria-label="Buildings"></div>
-      <label id="confirm-wrap" class="check confirm" hidden><input id="confirm" type="checkbox"><span>Your list didn’t show a total, so I’ve checked the seller count myself.</span></label>
-      <p class="more-links"><button id="add-sheet" class="link">Add another sheet</button><button id="restart" class="link">Start over</button></p>
+      <label id="confirm-wrap" class="check confirm" hidden><input id="confirm" type="checkbox"><span>The seller count looks right</span></label>
       <div class="footer"><div id="result" role="status" aria-live="polite"></div><p id="selection"></p><button id="download" class="primary">Download spreadsheets</button></div>
     </section>`;
   const $ = id => host.querySelector(`#${id}`);
@@ -59,7 +58,6 @@ export function mountWorkspace(host, bridge) {
     stage();
     $('scan').disabled = running || exporting || discovering || !$('table').value;
     $('scan').hidden = running || captures.length > 0;
-    $('add-sheet').disabled = $('restart').disabled = running || exporting || discovering;
     $('refresh').disabled = running || exporting || discovering; $('table').disabled = running || exporting || discovering;
     host.querySelectorAll('#speed,#expected,#paginate').forEach(el => { el.disabled = running || exporting; });
     $('stop').hidden = !running;
@@ -69,12 +67,11 @@ export function mountWorkspace(host, bridge) {
     // The count check only matters once nothing else blocks the download.
     $('confirm-wrap').hidden = !unknown || blocked;
     const chosen = groups.filter(g => selected.has(g.key));
-    const sellers = chosen.reduce((n, g) => n + g.rows.length, 0);
     // Only speak up when something needs doing; the button says the rest.
     $('selection').textContent = issue || (blocked ? 'Remove the unfinished sheet to continue.' : chosen.length ? '' : 'Choose at least one building.');
     $('selection').className = 'warn';
     $('selection').hidden = !$('selection').textContent;
-    $('download').textContent = exporting ? 'Preparing spreadsheets…' : chosen.length ? `Download ${plural(chosen.length, 'spreadsheet')} · ${plural(sellers, 'seller')}` : 'Download spreadsheets';
+    $('download').textContent = exporting ? 'Downloading…' : 'Download';
     $('download').disabled = running || exporting || !!issue || blocked || !chosen.length || (unknown && !$('confirm').checked);
     host.querySelectorAll('#mapping select,#search,#all,#none,#confirm,#buildings input,[data-remove]').forEach(el => { el.disabled = running || exporting || el.dataset.missing === 'true'; });
   }
@@ -88,9 +85,7 @@ export function mountWorkspace(host, bridge) {
       input.onchange = () => { input.checked ? selected.add(group.key) : selected.delete(group.key); buttons(); };
       const title = node('span', undefined, 'name'); title.append(node('span', group.name));
       // Only mention missing details where they actually exist.
-      const gaps = [group.missingPhone && plural(group.missingPhone, 'missing phone'), group.phoneNeedsReview && `${plural(group.phoneNeedsReview, 'phone')} to check`, group.missingName && plural(group.missingName, 'missing name')].filter(Boolean);
-      if (!group.key) title.append(node('small', 'Not exported: no building name'));
-      else if (gaps.length) title.append(node('small', gaps.join(' · '), 'gap'));
+      if (!group.key) title.append(node('small', 'No building name'));
       label.append(input, title, node('b', group.rows.length.toLocaleString())); $('buildings').append(label);
     }
     if (!shown.length) $('buildings').append(node('p', search ? `No buildings match “${$('search').value.trim()}”.` : 'No buildings found. Check the building column under Preview sellers & columns.', 'empty'));
@@ -107,6 +102,7 @@ export function mountWorkspace(host, bridge) {
     $('review').hidden = !data.rows.length; $('mapping').replaceChildren();
     const issue = validateMapping(mapping);
     $('column-review').open = !!issue;
+    $('column-review').hidden = !issue;
     // Column matching sits out of the way unless it needs an answer.
     $('review').insertBefore($('column-review'), issue ? $('search-wrap') : $('confirm-wrap'));
     $('column-review').classList.toggle('needs', !!issue);
@@ -117,12 +113,11 @@ export function mountWorkspace(host, bridge) {
       for (const col of data.columns) select.append(option(col.id, col.label));
       select.value = mapping[field]; select.onchange = () => {
         mapping[field] = select.value; const next = validateMapping(mapping);
-        $('mapping-hint').textContent = next || 'Columns matched. Choose your buildings below.'; $('column-review').classList.toggle('needs', !!next);
+        $('mapping-hint').textContent = next || 'Done. You can download now.'; $('column-review').classList.toggle('needs', !!next);
         $('column-summary').textContent = next ? 'Match your columns to continue' : 'Preview sellers & columns'; renderGroups(true);
       };
       label.append(select); $('mapping').append(label);
     }
-    $('totals').textContent = `Untick any you don’t need.${data.duplicates ? ` ${plural(data.duplicates, 'duplicate')} removed.` : ''}`;
     const table = node('table'), head = node('tr');
     data.columns.forEach(c => head.append(node('th', c.label))); table.append(head);
     data.rows.slice(0, 5).forEach(row => { const tr = node('tr'); data.columns.forEach(c => tr.append(node('td', row[c.id] || ''))); table.append(tr); });
@@ -138,7 +133,7 @@ export function mountWorkspace(host, bridge) {
       const remove = node('button', 'Remove', 'link'); remove.dataset.remove = 'true'; remove.setAttribute('aria-label', `Remove sheet ${index + 1}`); remove.onclick = () => { captures.splice(index, 1); renderCaptures(); renderData(); buttons(); };
       line.append(remove); item.append(line);
       if (capture.issues.length || !capture.finished) item.append(node('p', capture.issues.join(' ') || 'This sheet wasn’t finished. Remove it and collect it again.', 'notice error'));
-      else if (!capture.verified) item.append(node('p', 'Your list didn’t show a total, so we can’t confirm every seller was found. Check the count before downloading.', 'notice warning'));
+      else if (!capture.verified) item.append(node('p', 'We couldn’t check the total. Make sure the count looks right.', 'notice warning'));
       $('captures').append(item);
     });
   }
@@ -168,8 +163,6 @@ export function mountWorkspace(host, bridge) {
     buttons();
   }
   $('refresh').onclick = refresh;
-  $('add-sheet').onclick = () => $('scan').click();
-  $('restart').onclick = () => { captures = []; renderCaptures(); renderData(); message(''); buttons(); };
   $('table').onchange = buttons;
   $('scan').onclick = async () => {
     running = true; $('progress-count').textContent = '0'; message(''); buttons();
@@ -195,7 +188,7 @@ export function mountWorkspace(host, bridge) {
       const output = await createExport({ ...data, mapping, captures, groups: groups.filter(g => selected.has(g.key)) }, value => result(value, 'quiet'));
       const url = URL.createObjectURL(new Blob([output.zip], { type: 'application/zip' }));
       const anchor = node('a'); anchor.href = url; anchor.download = `Repeat-AI-buildings-${new Date().toISOString().slice(0, 10)}.zip`; host.append(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
-      result(`Downloaded ${plural(output.report.files.length, 'spreadsheet')} with ${plural(output.report.totalExported, 'seller')}. Unzip the file, then add the spreadsheets in Repeat AI.`, 'success');
+      result('Downloaded. Now add the spreadsheets to Repeat AI.', 'success');
     } catch (cause) { result(cause.message || 'The spreadsheets couldn’t be made. Choose fewer buildings and try again.', 'error'); }
     exporting = false; buttons();
   };
