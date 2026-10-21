@@ -47,7 +47,7 @@ export default defineConfig([
   {
     // Launch-film pages are standalone render entries: no hot reload, and
     // window.seek(t) drives React through a module-level setter by design.
-    files: ['video/launch-film/*.jsx'],
+    files: ['video/launch-film/*.jsx', 'video/export-film/*.jsx'],
     rules: {
       'react-refresh/only-export-components': 'off',
       'react-hooks/globals': 'off',

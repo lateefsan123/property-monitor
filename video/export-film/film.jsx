@@ -4,6 +4,7 @@
 // the CRM is a neutral, unbranded stand-in. All sellers are fictional.
 import { createRoot } from 'react-dom/client';
 import { useState } from 'react';
+import { flushSync } from 'react-dom';
 import '../../extensions/table-export/workspace.css';
 import './film.css';
 import { clamp, lerp, spring, track } from '../launch-film/motion.js';
@@ -268,18 +269,21 @@ function Film({ t }) {
   </div>;
 }
 
+const params = new URLSearchParams(location.search);
+const scale = params.get('play') === '0' ? 1 : Math.min(innerWidth / W, innerHeight / H);
+let setTime = () => {};
 function App() {
-  const params = new URLSearchParams(location.search);
-  const [t, setTime] = useState(Number(params.get('t') || 0));
-  window.seek = (value) => { setTime(value); return true; };
-  window.filmSize = { width: W, height: H, duration: DURATION, name: CUT };
-  if (params.get('play') !== '0' && !window.__loop) {
-    window.__loop = true;
-    const t0 = performance.now();
-    const loop = () => { setTime(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); };
-    requestAnimationFrame(loop);
-  }
-  const scale = params.get('play') === '0' ? 1 : Math.min(innerWidth / W, innerHeight / H);
+  const [t, setT] = useState(Number(params.get('t') || 0));
+  setTime = (value) => flushSync(() => setT(value));
   return <div style={{ transform: `scale(${scale})`, transformOrigin: '0 0' }}><Film t={t} /></div>;
 }
+
 createRoot(document.getElementById('root')).render(<App />);
+window.seek = (t) => { setTime(t); return true; };
+window.filmSize = { width: W, height: H, duration: DURATION, name: CUT };
+
+if (!navigator.webdriver && params.get('play') !== '0') {
+  const t0 = performance.now();
+  const loop = () => { setTime(((performance.now() - t0) / 1000) % DURATION); requestAnimationFrame(loop); };
+  requestAnimationFrame(loop);
+}
