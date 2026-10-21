@@ -520,9 +520,9 @@ export function useSellerSignalPage(userId, { focusLeadId = null } = {}) {
   );
 
   const marketDataQuery = useQuery({
-    queryKey: sellerMarketDataQueryKey(userId, insightBuildingKeys),
+    queryKey: [...sellerMarketDataQueryKey(userId, insightBuildingKeys), insightTargets.map(target => target.building)],
     enabled: Boolean(userId) && insightBuildingKeys.length > 0,
-    queryFn: () => fetchBuildingMarketData(insightBuildingKeys),
+    queryFn: () => fetchBuildingMarketData(insightBuildingKeys, insightTargets.map(target => target.building)),
     placeholderData: (previousData) => previousData,
     staleTime: 10 * 60 * 1000,
   });

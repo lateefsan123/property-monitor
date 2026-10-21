@@ -11,6 +11,7 @@ import {
   cleanBuildingName,
   getBuildingKeyVariants,
 } from "../src/features/seller-signal/building-utils";
+import { createMarketBuildingResolver } from './market-building-resolver.js';
 
 // A seller's message from their market insight: today's sales when there are
 // any, otherwise recent ones. Callers can rebuild it whenever templates change.
@@ -22,6 +23,7 @@ export function buildInsightMessage(lead, insight, messageTemplate) {
 }
 
 export function createLeadInsightServices(supabase) {
+  const loadMarketResolver = createMarketBuildingResolver(supabase);
   const TRANSACTION_COLUMNS =
     "building_key, amount, category, date, floor, beds, property_type, builtup_area_sqft, location_name, full_location, latitude, longitude";
   const PER_BUILDING_TRANSACTION_LIMIT = 200;
@@ -190,23 +192,33 @@ export function createLeadInsightServices(supabase) {
     return transactionsByBuilding;
   }
 
-  async function fetchBuildingMarketData(buildingKeys) {
+  async function fetchBuildingMarketData(buildingKeys, buildingNames = []) {
     const uniqueKeys = [...new Set(buildingKeys)].filter(Boolean);
     if (!uniqueKeys.length) {
       return { buildingLookup: {}, transactionsByBuilding: {} };
     }
 
-    const [{ data: buildingRows, error: buildingError }, availableKeySet] =
+    const [{ data: buildingRows, error: buildingError }, resolveMarketBuilding] =
       await Promise.all([
         supabase
           .from("buildings")
           .select("key, search_name, location_name")
           .in("key", uniqueKeys),
-        fetchAvailableBuildingKeys(uniqueKeys),
+        loadMarketResolver(),
       ]);
 
     if (buildingError) throw new Error(buildingError.message);
 
+    // Resolve complete names (including area/tower context), never loose key
+    // variants. The same conservative resolver is used by automated sends.
+    const marketMatches = new Map();
+    for (const name of buildingNames) {
+      const match = resolveMarketBuilding(name);
+      if (match) marketMatches.set(name, match);
+    }
+    const availableKeySet = await fetchAvailableBuildingKeys([
+      ...new Set([...uniqueKeys, ...[...marketMatches.values()].map(match => match.key)]),
+    ]);
     const transactionsByBuilding = await fetchTransactionsForKeys([
       ...availableKeySet,
     ]);
@@ -214,6 +226,16 @@ export function createLeadInsightServices(supabase) {
     const buildingLookup = {};
     for (const building of buildingRows || [])
       buildingLookup[building.key] = building;
+
+    // Give the exact seller lookup the current feed, even if a legacy tower
+    // key has older rows. Do not relabel development-level sales as tower sales.
+    for (const [name, match] of marketMatches) {
+      const transactions = transactionsByBuilding[match.key];
+      if (!transactions?.length) continue;
+      const key = getBuildingKeyVariants(name)[0];
+      transactionsByBuilding[key] = transactions;
+      buildingLookup[key] = { key: match.key, search_name: match.name };
+    }
 
     return { buildingLookup, transactionsByBuilding };
   }

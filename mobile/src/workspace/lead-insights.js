@@ -17,6 +17,7 @@ export async function fetchLeadInsights(leads, template) {
     }));
   const data = await fetchBuildingMarketData(
     targets.flatMap((lead) => getBuildingKeyVariants(lead.building)),
+    targets.map((lead) => lead.building),
   );
   return computeLeadInsights(targets, data, {}, template);
 }
