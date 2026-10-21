@@ -1,0 +1,5 @@
+Download it, then unzip the file.
+
+In Chrome, open the extensions page, turn on Developer mode, click Load unpacked, and choose the folder.
+
+Then pin it, so it's always one click away.
