@@ -66,12 +66,13 @@ still be checked in an authorized session. Do not claim production validation.
   still block incomplete exports.
 - Automatic pagination supports same-document Next controls near the table.
   Full-page Next links are not followed: turn pagination off, supply the expected
-  count for that page, collect it, then navigate and add the next page. Table
+  count for that page, collect it, then navigate to the next page and run it again. Table
   replacement or navigation during a scan marks it incomplete. Original scroll
   offsets are restored; pagination is left on the last visited page.
-- Other worksheets are added explicitly: open one and click **Add another
-  sheet**. Tables are rediscovered automatically; if the previous choice no
-  longer matches, the tool asks which seller list to use.
+- One seller list is collected per run. For sellers on another worksheet,
+  open it and run the extension again; each run downloads its own files.
+  Tables are rediscovered automatically; if there are several on the page,
+  the tool asks which seller list to use.
   The tool does not enumerate private sheets or auto-click arbitrary controls.
   Same-origin frames covered by activeTab are considered. For inaccessible
   frames, open the frame as its own page and activate the extension there.
