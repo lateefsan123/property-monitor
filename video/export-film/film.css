@@ -25,7 +25,7 @@ html, body { margin: 0; background: #e9ebee; overflow: hidden; }
 .browser-bar .dots i { width: 13px; height: 13px; border-radius: 50%; background: #d5d9de; }
 .browser-bar .url { flex: 1; height: 38px; display: flex; align-items: center; padding: 0 18px; border-radius: 19px; background: #fff; color: #475569; font-size: 17px; }
 .ext-slot { display: inline-flex; width: 44px; height: 44px; align-items: center; justify-content: center; border-radius: 12px; }
-.ext-icon { display: inline-flex; width: 26px; height: 26px; color: #0f172a; }
+.ext-icon { display: block; width: 28px; height: 28px; }
 .ext-icon svg { width: 100%; height: 100%; }
 .browser-page { position: relative; height: calc(100% - 64px); overflow: hidden; }
 
@@ -49,16 +49,26 @@ html, body { margin: 0; background: #e9ebee; overflow: hidden; }
 .xls { display: inline-flex; align-items: center; justify-content: center; padding: 4px 8px; border-radius: 6px; background: #e7f3ec; color: #15803d !important; font-size: 13px; font-weight: 700; letter-spacing: .04em; }
 
 /* Unbranded CRM */
-.crm { position: relative; height: 100%; padding: 30px 40px; background: #fafbfc; font-family: Arial, Helvetica, sans-serif; color: #1f2937; }
-.crm-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 18px; }
-.crm-head h1 { margin: 0; font-size: 30px; }
-.crm-head span { color: #6b7280; font-size: 17px; }
-.crm-table { width: 100%; border-collapse: collapse; font-size: 17px; background: #fff; border: 1px solid #e5e7eb; display: block; height: 690px; overflow: hidden; }
+.crm { position: relative; height: 100%; padding: 24px 32px; background: #fff; font-family: Arial, Helvetica, sans-serif; color: #1f2937; }
+.crm-head { display: flex; align-items: center; gap: 28px; }
+.crm-head h1 { margin: 0; font-size: 26px; font-weight: 700; letter-spacing: .01em; }
+.crm-search { display: inline-flex; align-items: center; justify-content: center; width: 42px; height: 42px; border-radius: 8px; background: #4f5bd5; color: #fff; }
+.crm-search svg { width: 22px; height: 22px; }
+.crm-crumbs { margin: 14px 0 16px; color: #4f5bd5; font-size: 15px; }
+.crm-table { width: 100%; border-collapse: collapse; font-size: 15px; background: #fff; border: 1px solid #e5e7eb; display: block; height: 640px; overflow: hidden; }
 .crm-table thead, .crm-table tbody { display: table; width: 100%; table-layout: fixed; }
-.crm-table th { text-align: left; padding: 14px 16px; background: #f3f4f6; color: #4b5563; font-weight: 600; border-bottom: 1px solid #e5e7eb; position: relative; z-index: 1; }
-.crm-table td { padding: 0 16px; height: 46px; border-bottom: 1px solid #f1f2f4; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.crm-foot { display: flex; justify-content: space-between; margin-top: 14px; color: #6b7280; font-size: 16px; }
-.scan-band { position: absolute; left: 40px; right: 40px; height: 46px; background: rgba(10, 112, 130, .08); border-top: 2px solid rgba(10, 112, 130, .35); pointer-events: none; }
+.crm-table th { text-align: left; padding: 10px 12px 10px; background: #fff; color: #1e3a8a; font-weight: 500; font-size: 16px; border: 1px solid #e5e7eb; position: relative; z-index: 1; }
+.crm-table th.no, .crm-table td.no { width: 70px; text-align: center; }
+.crm-filter { display: flex; gap: 6px; margin-bottom: 8px; }
+.crm-filter i { flex: 1; height: 28px; border: 1px solid #d1d5db; border-radius: 6px; }
+.crm-filter b { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 6px; background: #4f5bd5; color: #fff; }
+.crm-filter b svg { width: 16px; height: 16px; }
+.crm-table td { padding: 0 12px; height: 46px; border: 1px solid #eef0f3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #374151; }
+.crm-tabs { display: flex; align-items: center; gap: 10px; margin-top: 14px; font-size: 16px; color: #374151; }
+.crm-tabs span { padding: 9px 18px; border-radius: 4px; }
+.crm-tabs span.on { background: #1f9a9a; color: #fff; font-weight: 600; }
+.crm-tabs em { margin-left: auto; font-style: normal; color: #6b7280; }
+.scan-band { position: absolute; left: 32px; right: 32px; height: 46px; background: rgba(10, 112, 130, .08); border-top: 2px solid rgba(10, 112, 130, .35); pointer-events: none; }
 
 /* Extension window (inner styles come from workspace.css) */
 .popup { position: absolute; z-index: 5; background: #f5f5f5; border-radius: 16px; overflow: hidden; box-shadow: 0 24px 60px rgba(15, 23, 42, .22), 0 0 0 1px rgba(15, 23, 42, .08); transform-origin: top right; }
@@ -111,7 +121,7 @@ html, body { margin: 0; background: #e9ebee; overflow: hidden; }
 .xcard b { display: block; font-size: 19px; }
 .xcard span { color: #6b7280; font-size: 15px; }
 .xcard p { margin: 10px 0 0; color: #4b5563; font-size: 16px; line-height: 1.45; }
-.xicon { display: inline-flex; flex: none; width: 48px; height: 48px; color: #0f172a; }
+.xicon { display: block; flex: none; width: 48px; height: 48px; }
 .xicon.small { width: 28px; height: 28px; }
 .pinmenu { position: absolute; z-index: 6; width: 420px; padding: 18px 18px 10px; background: #fff; border-radius: 14px; box-shadow: 0 24px 60px rgba(15, 23, 42, .2), 0 0 0 1px rgba(15, 23, 42, .08); }
 .pinmenu > p { margin: 0 0 8px; font-size: 18px; font-weight: 600; }

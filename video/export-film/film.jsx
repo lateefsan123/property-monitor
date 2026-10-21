@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { flushSync } from 'react-dom';
 import '../../extensions/table-export/workspace.css';
 import './film.css';
+import APP_ICON from '../../extensions/table-export/icon-128.png';
 import { clamp, lerp, spring, track } from '../launch-film/motion.js';
 import { CAPTIONS, CUT, DURATION, T } from './pacing.mjs';
 
@@ -14,14 +15,20 @@ const W = 1920, H = 1080;
 const BUILDINGS = ['Celestia A', 'Celestia B', 'Tenora'];
 const FIRST = ['Omar', 'Priya', 'Daniel', 'Aisha', 'Tom', 'Lina', 'Marco', 'Sara', 'James', 'Nadia', 'Ravi', 'Elena', 'Yusuf', 'Chloe', 'Hassan', 'Mia'];
 const LAST = ['Haddad', 'Nair', 'Ruiz', 'Rahman', 'Becker', 'Saleh', 'Rossi', 'Khan', 'Whitmore', 'Petrova', 'Mehta', 'Grant', 'Okafor', 'Silva', 'Ali', 'Novak'];
-const ROWS = Array.from({ length: 144 }, (_, i) => ({
-  name: `${FIRST[i % 16]} ${LAST[(i * 7 + 3) % 16]}`,
-  building: BUILDINGS[i % 3],
-  unit: String(100 + ((i * 37) % 1900)),
-  beds: i % 4 === 0 ? 'Studio' : `${i % 4} bed`,
-  phone: `+971 5${i % 6} ${String(1000000 + i * 7919).slice(0, 3)} ${String(1000000 + i * 7919).slice(3, 7)}`,
-  status: ['Prospect', 'Appraisal', 'For sale', 'Prospect'][i % 4],
-}));
+const MIDDLE = ['Abdul', 'Kumar', 'Saeed', 'Anil', 'Faisal', 'Maria', 'Iqbal', 'Omar'];
+// Laid out like a typical broker CRM sheet: one row per unit, building by building.
+const ROWS = Array.from({ length: 144 }, (_, i) => {
+  const building = BUILDINGS[Math.floor(i / 48)], n = i % 48;
+  return {
+    name: `${FIRST[(i * 5) % 16]} ${MIDDLE[i % 8]} ${LAST[(i * 7 + 3) % 16]}`.toUpperCase(),
+    building: building.toUpperCase(),
+    // Made-up figures: no real units, sizes or plot numbers.
+    unit: String((2 + Math.floor(n / 6)) * 100 + 1 + (n % 6)),
+    rooms: n % 11 === 4 ? 'Office' : String(1 + ((n * 5) % 3)),
+    size: String(58 + ((n * 37 + i) % 90)),
+    land: `P-${String(310 + Math.floor(i / 48) * 27).padStart(4, '0')}`,
+  };
+});
 
 const ease = (x) => { const p = clamp(x); return p < 0.5 ? 2 * p * p : 1 - Math.pow(-2 * p + 2, 2) / 2; };
 const fade = (t, start, end, d = 0.45) => clamp((t - start) / d) * (end === undefined ? 1 : clamp((end - t) / d));
@@ -48,7 +55,7 @@ function Browser({ url, children, icon = 0, iconPress = 0, puzzle = false, puzzl
       <span className="dots"><i /><i /><i /></span>
       <span className="url">{url}</span>
       {puzzle ? <span className="puzzle" style={{ transform: `scale(${1 - 0.12 * puzzlePress})` }}>{PUZZLE}</span> : null}
-      <span className="ext-slot" style={{ opacity: icon, transform: `scale(${(0.6 + 0.4 * icon) * (1 - 0.12 * iconPress)})` }}><span className="ext-icon">{MARK}</span></span>
+      <span className="ext-slot" style={{ opacity: icon, transform: `scale(${(0.6 + 0.4 * icon) * (1 - 0.12 * iconPress)})` }}><img className="ext-icon" src={APP_ICON} alt="" /></span>
     </div>
     <div className="browser-page">{children}</div>
   </div>;
@@ -79,20 +86,23 @@ function RepeatPage({ t, mode }) {
   </div>;
 }
 
-// A plain CRM list. During the scan it scrolls page by page.
+// An unbranded CRM sheet: a search box over each column, one tab per project.
+const COLUMNS = [['building', 'building name'], ['unit', 'unit number'], ['rooms', 'rooms'], ['size', 'size'], ['land', 'land number'], ['name', 'name']];
+const SEARCH = <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5" fill="none" stroke="currentColor" strokeWidth="2.2" /><path d="m16 16 4.5 4.5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" /></svg>;
 function CrmPage({ t }) {
   const scan = clamp((t - T.scanStart) / (T.scanEnd - T.scanStart));
   const pages = 6, page = Math.min(pages, 1 + Math.floor(scan * pages));
   const within = (scan * pages) % 1;
   const offset = scan >= 1 ? 0 : ease(clamp(within * 1.6)) * 11;
   const start = (page - 1) * 24 + Math.floor(offset);
-  const rows = ROWS.slice(start, start + 14);
+  const rows = ROWS.slice(start, start + 13);
   return <div className="crm">
-    <div className="crm-head"><h1>Sellers</h1><span>144 records</span></div>
-    <table className="crm-table"><thead><tr><th>Name</th><th>Building</th><th>Unit</th><th>Bedrooms</th><th>Mobile</th><th>Status</th></tr></thead>
-      <tbody style={{ transform: `translateY(${-(offset % 1) * 46}px)` }}>{rows.map((r, i) => <tr key={start + i}><td>{r.name}</td><td>{r.building}</td><td>{r.unit}</td><td>{r.beds}</td><td>{r.phone}</td><td>{r.status}</td></tr>)}</tbody></table>
-    <div className="crm-foot"><span>Page {page} of {pages}</span><span className="pager">‹ Previous · Next ›</span></div>
-    {t > T.scanStart && t < T.scanEnd ? <div className="scan-band" style={{ top: 120 + ((t * 260) % 620) }} /> : null}
+    <div className="crm-head"><h1>SELLERS 2026</h1><span className="crm-search">{SEARCH}</span></div>
+    <p className="crm-crumbs">Home › Documents › All data › Sellers 2026</p>
+    <table className="crm-table"><thead><tr><th className="no">Sl.No</th>{COLUMNS.map(([key, label]) => <th key={key}><span className="crm-filter"><i /><b>{SEARCH}</b></span>{label}</th>)}</tr></thead>
+      <tbody style={{ transform: `translateY(${-(offset % 1) * 46}px)` }}>{rows.map((r, i) => <tr key={start + i}><td className="no">{start + i + 1}</td>{COLUMNS.map(([key]) => <td key={key}>{r[key]}</td>)}</tr>)}</tbody></table>
+    <div className="crm-tabs">{['Residence', 'Avenue One', 'Marina Court', 'CELESTIA', 'Courtyard One', 'Harbour View'].map((name) => <span key={name} className={name === 'CELESTIA' ? 'on' : ''}>{name}</span>)}<em>Page {page} of {pages}</em></div>
+    {t > T.scanStart && t < T.scanEnd ? <div className="scan-band" style={{ top: 228 + ((t * 260) % 560) }} /> : null}
   </div>;
 }
 
@@ -188,8 +198,8 @@ function ExtensionsPage({ t }) {
       <button style={{ transform: `scale(${1 - 0.05 * loadPress})` }}>Load unpacked</button><button>Pack extension</button><button>Update</button>
     </div>
     {loaded ? <div className="xcard" style={{ opacity: card, transform: `translateY(${(1 - card) * 12}px)` }}>
-      <span className="xicon">{MARK}</span>
-      <div><b>Repeat AI • Table to spreadsheets</b><span>0.1.0</span><p>Collect a web table, choose buildings, and download separate Excel files for Repeat AI.</p></div>
+      <img className="xicon" src={APP_ICON} alt="" />
+      <div><b>Repeat AI • Table to spreadsheets</b><span>0.1.1</span><p>Collect a web table, choose buildings, and download separate Excel files for Repeat AI.</p></div>
       <span className="xswitch on"><i style={{ transform: 'translateX(20px)' }} /></span>
     </div> : <p className="xempty">No extensions yet.</p>}
   </div>;
@@ -216,7 +226,7 @@ function PinMenu({ t }) {
   const pinned = t >= T.pinned;
   return <div className="pinmenu" style={{ left: BROWSER.x + BROWSER.w - 30 - 420, top: BROWSER.y + 70, opacity: clamp(show * 1.5), transform: `translateY(${(1 - show) * -8}px)` }}>
     <p>Extensions</p>
-    <div className="pinrow"><span className="xicon small">{MARK}</span><b>Repeat AI • Table to spreadsheets</b><span className={`pin${pinned ? ' on' : ''}`}>📌</span></div>
+    <div className="pinrow"><img className="xicon small" src={APP_ICON} alt="" /><b>Repeat AI • Table to spreadsheets</b><span className={`pin${pinned ? ' on' : ''}`}>📌</span></div>
   </div>;
 }
 
