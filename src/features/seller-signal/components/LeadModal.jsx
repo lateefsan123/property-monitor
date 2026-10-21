@@ -142,7 +142,7 @@ export default function LeadModal({
   }
 
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
-  const displayBuildingLabel = insight?.locationName || formatBuildingLabel(lead.resolvedBuilding || lead.building) || lead.building || "No building";
+  const displayBuildingLabel = formatBuildingLabel(lead.resolvedBuilding || lead.building) || insight?.locationName || "No building";
   const bedroomLabel = formatLeadBedroom(lead.bedroom);
   const unitLabel = formatLeadUnit(lead.unit || extractUnitFromBuilding(lead.building));
   const whatsappUrl = whatsappPhone

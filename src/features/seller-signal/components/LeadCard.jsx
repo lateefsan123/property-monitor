@@ -66,7 +66,7 @@ export default function LeadCard({
   const name = lead.name || "Unnamed";
   const message = lead.message_draft ?? insight?.message ?? null;
   const whatsappPhone = formatPhoneForWhatsApp(lead.phone);
-  const building = insight?.locationName || formatBuildingLabel(lead.resolvedBuilding || lead.building) || lead.resolvedBuilding || lead.building || "-";
+  const building = formatBuildingLabel(lead.resolvedBuilding || lead.building) || insight?.locationName || "-";
   const buildingTitle = lead.resolvedBuilding && lead.resolvedBuilding !== lead.building ? `${building} (from ${lead.building})` : building;
   const bedroomLabel = formatLeadBedroom(lead.bedroom);
   const unitLabel = formatLeadUnit(lead.unit || extractUnitFromBuilding(lead.building));
