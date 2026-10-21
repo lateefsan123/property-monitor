@@ -18,7 +18,7 @@
   ordinary table and 14.5 seconds for the virtual grid in this Chrome run.
   Deliberately slow virtual rendering took 29.9 seconds and preserved all nine
   columns. These are fixture timings, not live-CRM benchmarks or a measured
-  before/after speed ratio. Full timing results appear in Developer test settings.
+  before/after speed ratio. Full timing results appear under Developer in the demo.
 - The interactive demo collected 144 synthetic records and nine columns.
   Selecting Celestia A and Tenora downloaded two Excel files with 48 records
   each. The actual browser download passed independent ZIP CRC validation and

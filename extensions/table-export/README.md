@@ -19,7 +19,7 @@ node extensions/table-export/serve.mjs
 Open `http://127.0.0.1:4186`. The replica contains synthetic Dubai South sellers
 and exercises the same collector, mapping UI and Excel writer as the extension.
 Try virtual rows/columns, pagination, delayed infinite scroll, missing totals,
-and incomplete data under **Developer test settings**. **Run capture checks**
+and incomplete data under **Developer** (below the sample CRM). **Run capture checks**
 tests all modes in the browser. These controls are only for the replica.
 
 ## Install locally
@@ -36,7 +36,7 @@ tests all modes in the browser. These controls are only for the replica.
    leave its filters, sort order and selected worksheet unchanged while scanning.
 5. Choose buildings and download. Columns are matched automatically; missing or
    ambiguous required headings open a matching prompt. You can also expand
-   **Preview leads & edit columns** to review them. Unzip and upload
+   **Preview sellers & columns** to review them. Unzip and upload
    the Excel files through Repeat AI's existing spreadsheet importer.
 
 This is an unpacked build, not a Chrome Web Store release. The real White & Co
