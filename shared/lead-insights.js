@@ -227,12 +227,19 @@ export function createLeadInsightServices(supabase) {
     for (const building of buildingRows || [])
       buildingLookup[building.key] = building;
 
-    // Give the exact seller lookup the current feed, even if a legacy tower
-    // key has older rows. Do not relabel development-level sales as tower sales.
+    // Compare feeds before aliasing any keys: one seller's alias must not
+    // affect another seller's choice. Legacy feeds can also be more current.
+    const storedTransactionsByBuilding = { ...transactionsByBuilding };
+    const latestDate = rows => Math.max(0, ...rows.map(row => extractTransactionDate(row)?.getTime() || 0));
+    // Give the exact seller lookup the current feed when it is at least as
+    // recent. Do not relabel development-level sales as tower sales.
     for (const [name, match] of marketMatches) {
-      const transactions = transactionsByBuilding[match.key];
+      const transactions = storedTransactionsByBuilding[match.key];
       if (!transactions?.length) continue;
-      const key = getBuildingKeyVariants(name)[0];
+      const keys = getBuildingKeyVariants(name);
+      const legacy = findTransactionsForKeys(keys, storedTransactionsByBuilding);
+      if (latestDate(legacy.transactions) > latestDate(transactions)) continue;
+      const key = keys[0];
       transactionsByBuilding[key] = transactions;
       buildingLookup[key] = { key: match.key, search_name: match.name };
     }

@@ -68,6 +68,16 @@ test('legacy sales remain available when the resolved feed has no transactions',
   assert.equal(service.computeLeadInsights([{ id: 1, building: 'Forte T2' }], data).updates[1].recentTransactions[0].price, 3000000);
 });
 
+test('a resolved market feed cannot replace more recent legacy sales with older dates', async () => {
+  const fresherLegacy = sale('fortet2', '2026-10-20', 3100000);
+  const service = createLeadInsightServices(fixture({ transactions: [fresherLegacy, newSale] }).client);
+  const data = await service.fetchBuildingMarketData(['fortet2'], ['Forte T2']);
+  const insight = service.computeLeadInsights([{ id: 1, building: 'Forte T2' }], data).updates[1];
+  assert.equal(insight.recentTransactions[0].price, 3100000);
+  assert.match(insight.message, /20 Oct 2026/);
+  assert.equal(insight.locationName, 'Forte T2');
+});
+
 test('catalogue pagination and in-flight caching do not drop matches after the first 1000 buildings', async () => {
   const { client, reads } = fixture({ catalogue: [...Array.from({ length: 1000 }, (_, i) => ({ ...currentBuilding, key: `a${i}`, source_project: `Fixture ${i}`, search_name: `Fixture ${i}` })), currentBuilding] });
   const load = createMarketBuildingResolver(client);
