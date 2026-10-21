@@ -16,49 +16,50 @@ const SEARCH = '<svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="9" cy="9
 
 export function mountWorkspace(host, bridge) {
   host.innerHTML = `<header class="top"><span class="mark">${MARK}</span><span class="brand-name">Repeat AI</span><span class="brand-tag">Seller export</span></header>
-    <ol class="steps" aria-label="Steps"><li data-step="1">Find sellers</li><li data-step="2">Choose buildings</li><li data-step="3">Download</li></ol>
     <section id="collect" class="stage">
       <div id="intro"><h1 id="collect-title">Export your sellers</h1>
-      <p id="collect-hint" class="lead">Open your seller list in your CRM, then click below. We’ll go through every page and sort your sellers by building.</p></div>
+      <p id="collect-hint" class="lead">Open your seller list, then click below.</p></div>
       <label id="table-wrap" class="field" hidden>Which list has your sellers?<select id="table" aria-label="Source table"></select></label>
       <div id="progress" class="progress" hidden><div class="bar" aria-hidden="true"><span></span></div>
         <p class="count"><strong id="progress-count">0</strong> sellers found</p><p class="hint">Keep your seller list open and unchanged while we read it.</p></div>
       <div id="message" role="status" aria-live="polite"></div>
       <div id="captures" class="captures"></div>
       <div class="actions"><button id="scan" class="primary">Find my sellers</button><button id="stop" class="link" hidden>Stop</button></div>
-      <p id="add-hint" class="hint" hidden>Open the other sheet in your CRM first. Sellers you’ve already found stay here.</p>
       <details id="scan-options" class="help" hidden><summary>Help with this sheet</summary><p class="hint">If the list loads slowly, allow extra time. You can also collect one page at a time.</p>
         <div class="row"><label class="field">Loading time<select id="speed"><option value="150">Automatic</option><option value="1500">Allow extra time</option><option value="3000">Allow more time</option></select></label>
         <label class="field">Expected sellers (optional)<input id="expected" type="number" min="1" max="100000" placeholder="Total shown in your list"></label></div>
         <label class="check"><input id="paginate" type="checkbox" checked><span>Include every page</span></label><button id="refresh" class="link">Look for the list again</button></details>
     </section>
     <section id="review" class="stage" hidden>
-      <div class="review-head"><h2>Choose buildings</h2><p id="totals" class="hint"></p></div>
+      <div class="review-head"><h2 id="review-title"></h2><p id="totals" class="hint"></p></div>
       <details id="column-review" class="columns"><summary id="column-summary">Preview sellers &amp; columns</summary><p id="mapping-hint" class="hint"></p><div id="mapping" class="mapping"></div><div id="preview" class="preview"></div></details>
-      <div class="search">${SEARCH}<input id="search" type="search" aria-label="Find a building" placeholder="Find a building"></div>
-      <div class="list-tools"><span id="list-count" class="hint"></span><span><button id="all" class="link">Select all</button><button id="none" class="link">Clear</button></span></div>
+      <div id="search-wrap" class="search">${SEARCH}<input id="search" type="search" aria-label="Find a building" placeholder="Find a building"></div>
+      <div id="list-tools" class="list-tools"><span id="list-count" class="hint"></span><span><button id="all" class="link">Select all</button><button id="none" class="link">Clear</button></span></div>
       <div id="buildings" class="buildings" role="group" aria-label="Buildings"></div>
       <label id="confirm-wrap" class="check confirm" hidden><input id="confirm" type="checkbox"><span>Your list didn’t show a total, so I’ve checked the seller count myself.</span></label>
-      <div class="footer"><div id="result" role="status" aria-live="polite"></div><p id="selection"></p><button id="download" class="primary">Download spreadsheets</button><p class="hint">Then add them in Repeat AI under Spreadsheets.</p></div>
+      <p class="more-links"><button id="add-sheet" class="link">Add another sheet</button><button id="restart" class="link">Start over</button></p>
+      <div class="footer"><div id="result" role="status" aria-live="polite"></div><p id="selection"></p><button id="download" class="primary">Download spreadsheets</button></div>
     </section>`;
   const $ = id => host.querySelector(`#${id}`);
   let captures = [], data = { rows: [], columns: [], duplicates: 0 }, mapping = {}, groups = [], selected = new Set(), running = false, exporting = false;
-  let pollTimer, discovering = false, tableCount = 0, downloaded = false;
+  let pollTimer, discovering = false, tableCount = 0;
   function result(value, kind = '') { $('result').textContent = value; $('result').className = value ? `notice ${kind}` : ''; }
   function message(value, kind = '') { $('message').textContent = value; $('message').className = value ? `notice ${kind}` : ''; if (kind === 'error') $('scan-options').hidden = false; }
   // The page's stage drives the step markers and what each section shows.
   function stage() {
     const value = running ? 'collecting' : captures.length ? 'review' : 'intro';
     host.dataset.stage = value;
-    const step = downloaded ? 3 : value === 'review' ? 2 : 1;
-    host.querySelectorAll('.steps li').forEach(li => { const n = Number(li.dataset.step); li.className = n < step ? 'done' : n === step ? 'current' : ''; li.toggleAttribute('aria-current', n === step); });
     $('intro').hidden = value === 'review';
+    $('collect-title').textContent = running ? 'Finding your sellers' : 'Export your sellers';
+    $('collect-hint').hidden = running;
+    $('collect').classList.toggle('quiet-stage', value === 'review');
     $('progress').hidden = !running;
   }
   function buttons() {
     stage();
     $('scan').disabled = running || exporting || discovering || !$('table').value;
-    $('scan').hidden = running;
+    $('scan').hidden = running || captures.length > 0;
+    $('add-sheet').disabled = $('restart').disabled = running || exporting || discovering;
     $('refresh').disabled = running || exporting || discovering; $('table').disabled = running || exporting || discovering;
     host.querySelectorAll('#speed,#expected,#paginate').forEach(el => { el.disabled = running || exporting; });
     $('stop').hidden = !running;
@@ -69,9 +70,11 @@ export function mountWorkspace(host, bridge) {
     $('confirm-wrap').hidden = !unknown || blocked;
     const chosen = groups.filter(g => selected.has(g.key));
     const sellers = chosen.reduce((n, g) => n + g.rows.length, 0);
-    $('selection').textContent = issue || (blocked ? 'Remove the unfinished sheet to continue.' : chosen.length ? `${plural(chosen.length, 'building')} · ${plural(sellers, 'seller')}` : 'Choose at least one building.');
-    $('selection').className = issue || blocked ? 'warn' : '';
-    $('download').textContent = exporting ? 'Preparing spreadsheets…' : chosen.length ? `Download ${plural(chosen.length, 'spreadsheet')}` : 'Download spreadsheets';
+    // Only speak up when something needs doing; the button says the rest.
+    $('selection').textContent = issue || (blocked ? 'Remove the unfinished sheet to continue.' : chosen.length ? '' : 'Choose at least one building.');
+    $('selection').className = 'warn';
+    $('selection').hidden = !$('selection').textContent;
+    $('download').textContent = exporting ? 'Preparing spreadsheets…' : chosen.length ? `Download ${plural(chosen.length, 'spreadsheet')} · ${plural(sellers, 'seller')}` : 'Download spreadsheets';
     $('download').disabled = running || exporting || !!issue || blocked || !chosen.length || (unknown && !$('confirm').checked);
     host.querySelectorAll('#mapping select,#search,#all,#none,#confirm,#buildings input,[data-remove]').forEach(el => { el.disabled = running || exporting || el.dataset.missing === 'true'; });
   }
@@ -91,18 +94,21 @@ export function mountWorkspace(host, bridge) {
       label.append(input, title, node('b', group.rows.length.toLocaleString())); $('buildings').append(label);
     }
     if (!shown.length) $('buildings').append(node('p', search ? `No buildings match “${$('search').value.trim()}”.` : 'No buildings found. Check the building column under Preview sellers & columns.', 'empty'));
-    $('list-count').textContent = plural(groups.filter(g => g.key).length, 'building');
+    const named = groups.filter(g => g.key);
+    $('list-count').textContent = plural(named.length, 'building');
+    $('review-title').textContent = `${plural(data.rows.length, 'seller')} in ${plural(named.length, 'building')}`;
+    // Short lists need no search or bulk controls.
+    $('search-wrap').hidden = groups.length <= 6 && !search;
+    $('list-tools').hidden = groups.length <= 6;
     buttons();
   }
   function renderData() {
-    data = combineCaptures(captures); mapping = inferMapping(data.columns); $('confirm').checked = false; downloaded = false; result('');
-    $('review').hidden = !data.rows.length; $('add-hint').hidden = !captures.length; $('mapping').replaceChildren();
-    $('scan').textContent = captures.length ? '+ Add another sheet' : 'Find my sellers';
-    $('scan').className = captures.length ? 'link' : 'primary';
-    $('collect-title').textContent = 'Export your sellers';
-    $('collect-hint').hidden = !!captures.length;
+    data = combineCaptures(captures); mapping = inferMapping(data.columns); $('confirm').checked = false; result('');
+    $('review').hidden = !data.rows.length; $('mapping').replaceChildren();
     const issue = validateMapping(mapping);
     $('column-review').open = !!issue;
+    // Column matching sits out of the way unless it needs an answer.
+    $('review').insertBefore($('column-review'), issue ? $('search-wrap') : $('confirm-wrap'));
     $('column-review').classList.toggle('needs', !!issue);
     $('column-summary').textContent = issue ? 'Match your columns to continue' : 'Preview sellers & columns';
     $('mapping-hint').textContent = issue || 'We matched your columns automatically. Change them here if anything looks wrong.';
@@ -116,7 +122,7 @@ export function mountWorkspace(host, bridge) {
       };
       label.append(select); $('mapping').append(label);
     }
-    $('totals').textContent = `${plural(data.rows.length, 'seller')} found${data.duplicates ? ` · ${plural(data.duplicates, 'duplicate')} removed` : ''}. Every column from your list is kept.`;
+    $('totals').textContent = `Untick any you don’t need.${data.duplicates ? ` ${plural(data.duplicates, 'duplicate')} removed.` : ''}`;
     const table = node('table'), head = node('tr');
     data.columns.forEach(c => head.append(node('th', c.label))); table.append(head);
     data.rows.slice(0, 5).forEach(row => { const tr = node('tr'); data.columns.forEach(c => tr.append(node('td', row[c.id] || ''))); table.append(tr); });
@@ -124,7 +130,9 @@ export function mountWorkspace(host, bridge) {
   }
   function renderCaptures() {
     $('captures').replaceChildren();
+    const listed = captures.length > 1 || captures.some(c => c.issues.length || !c.finished || !c.verified);
     captures.forEach((capture, index) => {
+      if (!listed) return;
       const item = node('div', undefined, 'capture'), line = node('div', undefined, 'capture-line');
       line.append(node('span', `${captures.length > 1 ? `Sheet ${index + 1}` : 'Your list'} · ${plural(capture.rows.length, 'seller')}`));
       const remove = node('button', 'Remove', 'link'); remove.dataset.remove = 'true'; remove.setAttribute('aria-label', `Remove sheet ${index + 1}`); remove.onclick = () => { captures.splice(index, 1); renderCaptures(); renderData(); buttons(); };
@@ -160,6 +168,8 @@ export function mountWorkspace(host, bridge) {
     buttons();
   }
   $('refresh').onclick = refresh;
+  $('add-sheet').onclick = () => $('scan').click();
+  $('restart').onclick = () => { captures = []; renderCaptures(); renderData(); message(''); buttons(); };
   $('table').onchange = buttons;
   $('scan').onclick = async () => {
     running = true; $('progress-count').textContent = '0'; message(''); buttons();
@@ -185,7 +195,6 @@ export function mountWorkspace(host, bridge) {
       const output = await createExport({ ...data, mapping, captures, groups: groups.filter(g => selected.has(g.key)) }, value => result(value, 'quiet'));
       const url = URL.createObjectURL(new Blob([output.zip], { type: 'application/zip' }));
       const anchor = node('a'); anchor.href = url; anchor.download = `Repeat-AI-buildings-${new Date().toISOString().slice(0, 10)}.zip`; host.append(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
-      downloaded = true;
       result(`Downloaded ${plural(output.report.files.length, 'spreadsheet')} with ${plural(output.report.totalExported, 'seller')}. Unzip the file, then add the spreadsheets in Repeat AI.`, 'success');
     } catch (cause) { result(cause.message || 'The spreadsheets couldn’t be made. Choose fewer buildings and try again.', 'error'); }
     exporting = false; buttons();
