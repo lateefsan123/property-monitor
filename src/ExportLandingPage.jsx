@@ -44,7 +44,7 @@ export default function ExportLandingPage({ isAuthenticated = false, onGetExtens
           </div>
           <div className="xl-nav-actions">
             {isAuthenticated ? null : <button type="button" className="xl-login" onClick={onSignIn}>Log in</button>}
-            <button type="button" className="xl-nav-cta" onClick={onGetExtension}>Try it free</button>
+            <button type="button" className="xl-nav-cta" onClick={onGetExtension}>Get started</button>
           </div>
         </nav>
       </header>
@@ -57,7 +57,7 @@ export default function ExportLandingPage({ isAuthenticated = false, onGetExtens
           </div>
           <div className="xl-hero-action">
             {cta}
-            <p><IconBrandChrome size={18} stroke={1.8} aria-hidden="true" /> For Chrome. Free for 7 days.</p>
+            <p><IconBrandChrome size={18} stroke={1.8} aria-hidden="true" /> For Chrome. Part of Repeat AI Pro.</p>
           </div>
         </section>
 
