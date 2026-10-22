@@ -1,0 +1,132 @@
+/* Seller export sales page. Hero measured from Aboard's extension page at a
+   1920px window (sizes scale with the window: 1vw = 19.2px there); the steps
+   follow folk's extension section. Repeat AI's black and warm greys replace
+   Aboard's purple. */
+#root:has(> .xl) { padding: 0; }
+
+.xl {
+  --ink: #0b0b0d;
+  --ink-soft: #5f5a55;
+  --line: #e7e3dd;
+  --pill: #f3f1ed;
+  --stage: #0b0b0d;
+  color-scheme: light;
+  min-height: 100vh;
+  background: #fff;
+  color: var(--ink);
+  font-family: "Geist", "Inter", system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
+}
+.xl :where(button) { appearance: none; background: none; border: 0; color: inherit; font: inherit; cursor: pointer; padding: 0; }
+.xl a { color: inherit; text-decoration: none; }
+.xl :where(button, a):focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 6px; }
+
+/* Nav: a rounded bar inset 76px, 88px tall. */
+.xl-nav-wrap { position: sticky; top: 0; z-index: 20; padding: clamp(10px, 2.1vw, 41px) clamp(12px, 3.96vw, 76px) 0; }
+.xl-nav {
+  display: flex; align-items: center; gap: 24px;
+  height: clamp(60px, 4.58vw, 88px); padding: 0 clamp(14px, 1.88vw, 36px) 0 clamp(18px, 1.88vw, 36px);
+  border-radius: 999px; background: color-mix(in srgb, var(--pill) 92%, transparent); backdrop-filter: blur(12px);
+}
+.xl-logo { display: flex; align-items: center; gap: 10px; font-weight: 650; font-size: clamp(17px, 1.3vw, 25px); letter-spacing: -0.02em; }
+.xl-logo img { width: clamp(26px, 1.67vw, 32px); height: auto; border-radius: 8px; }
+.xl-nav-links { display: flex; gap: clamp(20px, 1.6vw, 31px); margin: 0 auto; font-size: clamp(15px, 1.15vw, 22px); }
+.xl-nav-links a:hover { opacity: 0.65; }
+.xl-nav-actions { display: flex; align-items: center; gap: clamp(16px, 2.1vw, 40px); }
+.xl-login { font-size: clamp(15px, 1.15vw, 22px); }
+.xl-nav-cta {
+  height: clamp(42px, 2.97vw, 57px); padding: 0 clamp(18px, 2.66vw, 51px); border-radius: 999px;
+  background: var(--ink); color: #fff; font-weight: 600; font-size: clamp(15px, 1.15vw, 22px);
+}
+
+/* Hero: badge and headline on the left, the install button on the right. */
+.xl-hero, .xl-stage, .xl-how, .xl-video, .xl-points, .xl-pricing, .xl-footer {
+  width: min(1584px, calc(100% - 2 * clamp(20px, 8.75vw, 168px))); margin-inline: auto;
+}
+.xl-hero { display: flex; align-items: center; justify-content: space-between; gap: 32px; padding-top: clamp(48px, 5.26vw, 101px); }
+.xl-badge {
+  display: inline-flex; align-items: center; height: clamp(32px, 2.45vw, 47px); padding: 0 clamp(14px, 1.35vw, 26px);
+  border: 2px solid var(--ink); border-radius: 999px;
+  font-size: clamp(12px, 1.04vw, 20px); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+}
+.xl-hero h1 { margin: clamp(18px, 2.2vw, 42px) 0 0; font-size: clamp(42px, 5vw, 96px); line-height: 1.04; font-weight: 700; letter-spacing: -0.045em; max-width: 14ch; }
+.xl-hero-action { display: grid; justify-items: end; gap: clamp(14px, 1.9vw, 36px); flex: none; padding-top: clamp(30px, 2.6vw, 50px); }
+.xl-hero-action p { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--ink-soft); font-size: clamp(14px, 1.15vw, 22px); }
+.xl-cta {
+  display: inline-flex; align-items: center; justify-content: center; gap: 12px;
+  height: clamp(52px, 3.96vw, 76px); padding: 0 clamp(28px, 3.3vw, 64px); border-radius: 999px;
+  background: var(--ink); color: #fff; font-weight: 600; font-size: clamp(16px, 1.25vw, 24px); letter-spacing: -0.01em;
+  transition: transform 120ms ease, background-color 120ms ease;
+}
+.xl-cta:hover { background: #26262a; }
+.xl-cta:active { transform: scale(0.98); }
+
+/* Stage: 645px dark panel, 40px corners, screenshot inset and cut off at the bottom. */
+.xl-stage {
+  position: relative; overflow: hidden; margin-top: clamp(40px, 4.7vw, 90px);
+  height: clamp(300px, 33.6vw, 645px); border-radius: clamp(20px, 2.1vw, 40px);
+  background: radial-gradient(120% 90% at 50% 0%, #2b2622 0%, var(--stage) 62%);
+}
+.xl-stage img {
+  position: absolute; left: 6.9%; top: clamp(36px, 4.8vw, 92px); width: 86.2%; height: auto;
+  border-radius: 12px 12px 0 0; box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+}
+
+/* How it works: folk's centred heading, steps on the left, screen on the right. */
+.xl-how { padding-top: clamp(80px, 8.3vw, 160px); text-align: center; }
+.xl-how h2, .xl-video h2, .xl-pricing h2 { margin: 0; font-size: clamp(32px, 3.1vw, 60px); line-height: 1.08; font-weight: 700; letter-spacing: -0.04em; }
+.xl-lead { margin: clamp(16px, 2.6vw, 50px) auto 0; max-width: 40em; color: var(--ink); font-size: clamp(17px, 1.35vw, 26px); }
+.xl-how-body { display: grid; grid-template-columns: minmax(260px, 404px) 1fr; gap: clamp(32px, 8.4vw, 160px); align-items: start; margin-top: clamp(40px, 4.2vw, 80px); text-align: left; }
+.xl-steps { display: grid; border-top: 1px solid var(--line); }
+.xl-step {
+  display: flex; align-items: flex-start; gap: 16px; padding: clamp(20px, 1.8vw, 34px) 4px; text-align: left;
+  border-bottom: 1px solid var(--line); font-size: clamp(16px, 1.2vw, 22px); color: var(--ink-soft);
+}
+.xl-step.is-active { color: var(--ink); border-bottom: 2px solid var(--ink); }
+.xl-step-num { display: inline-flex; flex: none; width: 1.6em; justify-content: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+.xl-step-text { display: grid; gap: 6px; }
+.xl-step-text strong { font-weight: 550; }
+.xl-step-text span { color: var(--ink-soft); font-size: 0.82em; line-height: 1.5; }
+.xl-shot { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: #f7f6f4; box-shadow: 0 20px 60px rgba(11, 11, 13, 0.08); }
+.xl-shot img { display: block; width: 100%; height: auto; animation: xl-in 220ms ease; }
+@keyframes xl-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.xl-video { padding-top: clamp(80px, 8.3vw, 160px); text-align: center; }
+.xl-video video { display: block; width: 100%; margin-top: clamp(28px, 2.6vw, 50px); aspect-ratio: 16 / 9; border-radius: clamp(14px, 1.25vw, 24px); background: #000; }
+
+.xl-points { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(20px, 2.5vw, 48px); padding-top: clamp(72px, 7vw, 136px); }
+.xl-point h3 { margin: 16px 0 6px; font-size: clamp(17px, 1.2vw, 22px); font-weight: 600; letter-spacing: -0.01em; }
+.xl-point p { margin: 0; color: var(--ink-soft); font-size: clamp(15px, 1vw, 18px); }
+
+.xl-pricing { padding: clamp(80px, 8.3vw, 160px) 0 clamp(72px, 7vw, 136px); text-align: center; }
+.xl-plan {
+  display: grid; justify-items: center; gap: 10px; max-width: 460px; margin: clamp(28px, 2.6vw, 50px) auto 0;
+  padding: clamp(28px, 2.3vw, 44px); border: 1px solid var(--line); border-radius: 24px;
+}
+.xl-plan p { margin: 0; }
+.xl-plan-name { font-weight: 600; font-size: 18px; }
+.xl-plan-price { font-size: 18px; color: var(--ink-soft); }
+.xl-plan-price strong { color: var(--ink); font-size: 44px; letter-spacing: -0.03em; }
+.xl-plan-trial { color: var(--ink-soft); }
+.xl-plan ul { display: grid; gap: 8px; margin: 14px 0 22px; padding: 0; list-style: none; text-align: left; }
+.xl-plan li { position: relative; padding-left: 26px; }
+.xl-plan li::before { content: ""; position: absolute; left: 4px; top: 0.55em; width: 10px; height: 6px; border-left: 2px solid var(--ink); border-bottom: 2px solid var(--ink); transform: rotate(-45deg); }
+
+.xl-footer { display: flex; justify-content: space-between; gap: 16px; padding: 28px 0 40px; border-top: 1px solid var(--line); color: var(--ink-soft); font-size: 14px; }
+.xl-footer nav { display: flex; gap: 20px; }
+
+@media (max-width: 900px) {
+  .xl-nav-links { display: none; }
+  .xl-nav-actions { margin-left: auto; }
+  .xl-hero { flex-direction: column; align-items: flex-start; }
+  .xl-hero-action { justify-items: start; }
+  .xl-how-body { grid-template-columns: 1fr; }
+  .xl-points { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 560px) {
+  .xl-login { display: none; }
+  .xl-stage { height: 64vw; }
+  .xl-points { grid-template-columns: 1fr; }
+  .xl-footer { flex-direction: column; }
+}

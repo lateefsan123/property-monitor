@@ -18,6 +18,23 @@ import {
 } from "./billing";
 import ResetPassword from "./ResetPassword.jsx";
 import WelcomeScreen from "./WelcomeScreen.jsx";
+const ExportLandingPage = lazy(() => import("./ExportLandingPage.jsx"));
+
+// The seller export sales page lives on getrepeatai.com and at /export. Accounts
+// and billing stay on repeatai.org, so that domain's buttons hand over to it.
+const EXPORT_HOST = /(^|\.)getrepeatai\.com$/i;
+const APP_ORIGIN = "https://repeatai.org";
+const AFTER_SIGNUP_PAGE_KEY = "repeat-ai:after-signup-page";
+function rememberSpreadsheetsAfterSignup() {
+  try { window.localStorage.setItem(AFTER_SIGNUP_PAGE_KEY, "spreadsheets"); } catch { /* optional */ }
+}
+function takeAfterSignupPage() {
+  try {
+    const page = window.localStorage.getItem(AFTER_SIGNUP_PAGE_KEY);
+    window.localStorage.removeItem(AFTER_SIGNUP_PAGE_KEY);
+    return page;
+  } catch { return null; }
+}
 import HowDidYouHearScreen from "./HowDidYouHearScreen.jsx";
 import TrialOfferScreen from "./TrialOfferScreen.jsx";
 import HowItWorksScreen from "./HowItWorksScreen.jsx";
@@ -489,6 +506,23 @@ export function Root() {
     );
   }
 
+  const onExportHost = EXPORT_HOST.test(window.location.hostname);
+  if ((onExportHost || window.location.pathname.replace(/\/$/, "") === "/export") && !showAuth) {
+    let getExtension;
+    if (onExportHost) getExtension = () => window.location.assign(`${APP_ORIGIN}/export#login`);
+    else if (hasActiveBillingSubscription) getExtension = () => window.location.assign("/#/spreadsheets");
+    else getExtension = () => { rememberSpreadsheetsAfterSignup(); handleSubscribeFromLanding(); };
+    return (
+      <Suspense fallback={null}>
+        <ExportLandingPage
+          isAuthenticated={Boolean(session)}
+          onGetExtension={getExtension}
+          onSignIn={onExportHost ? () => window.location.assign(`${APP_ORIGIN}/#login`) : () => openAuth()}
+        />
+      </Suspense>
+    );
+  }
+
   if (window.location.pathname.replace(/\/$/, "") === "/pricing" && !showAuth) {
     const pricingAction = hasActiveBillingSubscription
       ? () => window.location.assign("/")
@@ -585,6 +619,8 @@ export function Root() {
   }
 
   if (session && hasActiveBillingSubscription) {
+    // Came from the extension page: open Spreadsheets, where the download is.
+    if (!window.location.hash && takeAfterSignupPage() === "spreadsheets") window.location.hash = "/spreadsheets";
     return <App session={session} subscription={billingState.subscription} />;
   }
 
