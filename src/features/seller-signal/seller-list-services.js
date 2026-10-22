@@ -39,6 +39,8 @@ export async function fetchSellerListPage(userId, params, signal) {
       p_hot_date: day.hotDate,
       p_lead_ids: params.leadIds || null,
       p_with_building_options: Boolean(params.withBuildingOptions),
+      // Sent only when picked, so the list still loads on a database without the filter.
+      ...(params.bedBuckets?.length ? { p_bed_filter: params.bedBuckets } : {}),
     });
     if (signal) request = request.abortSignal(signal);
     return request;

@@ -34,8 +34,31 @@ export function buildSellerBuildingOptions(leads) {
   return [...options.values()].sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
 }
 
+// Bedroom filter: a seller's bedroom cell maps to one bucket. Blank or
+// unreadable cells match none. Same rules as public.seller_bed_bucket.
+export const BED_FILTER_OPTIONS = [
+  { id: "studio", label: "Studio" },
+  { id: "1", label: "1 bed" },
+  { id: "2", label: "2 bed" },
+  { id: "3", label: "3 bed" },
+  { id: "4", label: "4+ bed" },
+];
+
+export function sellerBedBucket(value) {
+  const raw = String(value || "").toLowerCase();
+  if (!raw.trim()) return "";
+  if (raw.includes("studio")) return "studio";
+  const match = raw.match(/\d+/);
+  if (!match) return "";
+  const beds = Number(match[0]);
+  if (beds === 0) return "studio";
+  if (beds <= 3) return String(beds);
+  return beds <= 8 ? "4" : "";
+}
+
 export function filterLeads({
   activeLeads,
+  bedFilter = [],
   buildingFilter = [],
   dataQualityFilter,
   doneLeads,
@@ -61,6 +84,11 @@ export function filterLeads({
   if (buildingFilter.length) {
     const buildings = new Set(buildingFilter);
     result = result.filter((lead) => buildings.has(sellerBuildingKey(lead.building)));
+  }
+
+  if (bedFilter.length) {
+    const buckets = new Set(bedFilter);
+    result = result.filter((lead) => buckets.has(sellerBedBucket(lead.bedroom)));
   }
 
   if (!isDoneView && hasStatusFilter(statusFilter)) {

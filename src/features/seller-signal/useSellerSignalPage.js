@@ -96,6 +96,7 @@ export function useSellerSignalPage(userId, { focusLeadId = null } = {}) {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState([]);
   const [buildingFilter, setBuildingFilter] = useState([]);
+  const [bedFilter, setBedFilter] = useState([]);
   const [sourceFilter, setSourceFilter] = useState(() => {
     if (typeof window === "undefined" || !sourceFilterStorageKey) return "all";
     return window.localStorage.getItem(sourceFilterStorageKey) || "all";
@@ -413,6 +414,7 @@ export function useSellerSignalPage(userId, { focusLeadId = null } = {}) {
     () => {
       const base = filterLeads({
         activeLeads: viewTab === "done" ? EMPTY_LEADS : tabLeads,
+        bedFilter,
         buildingFilter,
         doneLeads: viewTab === "done" ? tabLeads : EMPTY_LEADS,
         dataQualityFilter,
@@ -425,7 +427,7 @@ export function useSellerSignalPage(userId, { focusLeadId = null } = {}) {
       });
       return sortOption.field === "alpha" ? sortLeads(base, sortOption) : base;
     },
-    [buildingFilter, dataFilter, dataQualityFilter, deferredSearchTerm, effectiveSourceFilter, marketAvailability, sortOption, statusFilter, tabLeads, viewTab],
+    [bedFilter, buildingFilter, dataFilter, dataQualityFilter, deferredSearchTerm, effectiveSourceFilter, marketAvailability, sortOption, statusFilter, tabLeads, viewTab],
   );
 
   const clientPage = useMemo(
@@ -441,6 +443,7 @@ export function useSellerSignalPage(userId, { focusLeadId = null } = {}) {
     source: effectiveSourceFilter,
     statusIds: [...normalizeStatusFilter(statusFilter)].sort(),
     buildingKeys: [...buildingFilter].sort(),
+    bedBuckets: [...bedFilter].sort(),
     dataFilter,
     qualityFilter: dataQualityFilter,
     search: serverSearch,
@@ -449,7 +452,7 @@ export function useSellerSignalPage(userId, { focusLeadId = null } = {}) {
     page: currentPage,
     pageSize: PAGE_SIZE,
     day: listDayKey,
-  }), [buildingFilter, currentPage, dataFilter, dataQualityFilter, effectiveSourceFilter, listDayKey, serverSearch, sortOption.direction, sortOption.field, statusFilter, viewTab]);
+  }), [bedFilter, buildingFilter, currentPage, dataFilter, dataQualityFilter, effectiveSourceFilter, listDayKey, serverSearch, sortOption.direction, sortOption.field, statusFilter, viewTab]);
   const serverListQuery = useQuery({
     queryKey: sellerListQueryKey(userId, serverParams),
     enabled: Boolean(userId) && serverMode,
@@ -718,6 +721,7 @@ export function useSellerSignalPage(userId, { focusLeadId = null } = {}) {
       setShowImport,
       setSourceFilter,
       setBuildingFilter,
+      setBedFilter,
       setStatusFilter,
       setViewTab,
     },
@@ -792,6 +796,7 @@ export function useSellerSignalPage(userId, { focusLeadId = null } = {}) {
     sourceCounts: serverMode ? { legacy: serverPage?.counts?.legacy || 0 } : sourceCounts,
     sourceFilter: effectiveSourceFilter,
     sourceOptions,
+    bedFilter,
     buildingFilter,
     buildingOptions: serverMode ? (serverOptionsQuery.data?.buildingOptions || EMPTY_LEADS) : buildingOptions,
     statusFilter,

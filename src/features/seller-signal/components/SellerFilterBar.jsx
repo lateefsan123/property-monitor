@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { IconAdjustmentsHorizontal, IconCheck, IconChevronDown, IconSearch, IconTrash, IconX } from "@tabler/icons-react";
 import { STATUS_FILTER_OPTIONS } from "../constants";
+import { BED_FILTER_OPTIONS } from "../selectors";
 import { createCustomSellerView, findMatchingSellerView, getSellerViewFilters, readCustomSellerViews, writeCustomSellerViews } from "../saved-views";
 import { normalizeStatusFilter, toggleStatusFilterValue } from "../status-filter-utils";
 
@@ -77,13 +78,18 @@ export default function SellerFilterBar({ dashboard, userId }) {
   const sources = [{ id: "all", label: "All spreadsheets" }, ...(d.sourceOptions || [])];
   const buildingFilter = d.buildingFilter || NO_BUILDINGS;
   const buildingOptions = d.buildingOptions || NO_BUILDINGS;
-  const filters = useMemo(() => getSellerViewFilters({ buildingFilter, dataFilter: d.dataFilter, dataQualityFilter: d.dataQualityFilter, searchTerm: d.searchTerm, sourceFilter: d.sourceFilter, statusFilter: d.statusFilter, viewTab: d.viewTab }),
-    [buildingFilter, d.dataFilter, d.dataQualityFilter, d.searchTerm, d.sourceFilter, d.statusFilter, d.viewTab]);
+  const bedFilter = d.bedFilter || NO_BUILDINGS;
+  const filters = useMemo(() => getSellerViewFilters({ bedFilter, buildingFilter, dataFilter: d.dataFilter, dataQualityFilter: d.dataQualityFilter, searchTerm: d.searchTerm, sourceFilter: d.sourceFilter, statusFilter: d.statusFilter, viewTab: d.viewTab }),
+    [bedFilter, buildingFilter, d.dataFilter, d.dataQualityFilter, d.searchTerm, d.sourceFilter, d.statusFilter, d.viewTab]);
   const activeView = findMatchingSellerView(views, filters);
-  const activeCount = [statuses.length > 0, d.sourceFilter !== "all", buildingFilter.length > 0, d.dataFilter !== "all", d.dataQualityFilter !== "all"].filter(Boolean).length;
+  const activeCount = [statuses.length > 0, d.sourceFilter !== "all", buildingFilter.length > 0, bedFilter.length > 0, d.dataFilter !== "all", d.dataQualityFilter !== "all"].filter(Boolean).length;
   const buildingLabel = buildingFilter.length === 1
     ? buildingOptions.find((option) => option.key === buildingFilter[0])?.label || "Building"
     : "Building";
+  const bedLabel = bedFilter.length === 1
+    ? BED_FILTER_OPTIONS.find((option) => option.id === bedFilter[0])?.label || "Bedrooms"
+    : "Bedrooms";
+  const toggleBed = (id) => d.actions.selectBedFilter(bedFilter.includes(id) ? bedFilter.filter((item) => item !== id) : [...bedFilter, id]);
   const toggle = (id) => setOpen((value) => (value === id ? null : id));
   const alpha = d.sortOption?.field === "alpha";
 
@@ -91,6 +97,7 @@ export default function SellerFilterBar({ dashboard, userId }) {
   function applyView(view) {
     d.actions.selectSourceFilter(view.filters.sourceFilter || "all");
     d.actions.selectBuildingFilter?.(view.filters.buildingFilter || []);
+    d.actions.selectBedFilter?.(view.filters.bedFilter || []);
     d.actions.selectViewTab(view.filters.viewTab);
     d.actions.selectStatusFilter(view.filters.statusFilter);
     d.actions.selectDataFilter(view.filters.dataFilter);
@@ -102,6 +109,7 @@ export default function SellerFilterBar({ dashboard, userId }) {
     d.actions.selectStatusFilter([]);
     d.actions.selectSourceFilter("all");
     d.actions.selectBuildingFilter?.([]);
+    d.actions.selectBedFilter?.([]);
     d.actions.selectDataFilter("all");
     d.actions.selectDataQualityFilter("all");
   }
@@ -133,6 +141,12 @@ export default function SellerFilterBar({ dashboard, userId }) {
           <BuildingMenu options={buildingOptions} selected={buildingFilter} onChange={(next) => d.actions.selectBuildingFilter(next)} />
         </Pill>
       )}
+      <Pill label={bedLabel} count={bedFilter.length > 1 ? bedFilter.length : 0} active={bedFilter.length > 0} open={open === "beds"} onToggle={() => toggle("beds")}>
+        <Option selected={!bedFilter.length} onSelect={() => d.actions.selectBedFilter([])}>Any bedrooms</Option>
+        {BED_FILTER_OPTIONS.map((option) => (
+          <Option key={option.id} selected={bedFilter.includes(option.id)} onSelect={() => toggleBed(option.id)}>{option.label}</Option>
+        ))}
+      </Pill>
       <Pill label="Market data" active={d.dataFilter !== "all"} open={open === "market"} onToggle={() => toggle("market")}>
         {[["all", "Any"], ["with_data", "Available"], ["no_data", "Unavailable"]].map(([id, label]) => (
           <Option key={id} selected={d.dataFilter === id} onSelect={() => { d.actions.selectDataFilter(id); setOpen(null); }}>{label}</Option>

@@ -125,6 +125,9 @@ function scenarios(list) {
     out.push({ view, search: someName.toLowerCase() });
     for (const source of sources) out.push({ view, source });
     if (someBuildings.length) out.push({ view, buildings: someBuildings });
+    out.push({ view, beds: ["studio"] });
+    out.push({ view, beds: ["1", "2"] });
+    out.push({ view, beds: ["4"] });
   }
   out.push({ view: "active", statuses: ["not_interested"] });
   out.push({ view: "active", statuses: ["prospect", "not_interested"] });
@@ -145,7 +148,7 @@ async function expected(list, s) {
   }
   const filtered = filterLeads({
     activeLeads: s.view === "done" ? [] : tabLeads, doneLeads: s.view === "done" ? tabLeads : [],
-    buildingFilter: s.buildings || [], dataQualityFilter: s.quality || "all", dataFilter: s.data || "all", insights,
+    bedFilter: s.beds || [], buildingFilter: s.buildings || [], dataQualityFilter: s.quality || "all", dataFilter: s.data || "all", insights,
     searchTerm: s.search || "", sourceFilter: s.source || "all", statusFilter: s.statuses || [], viewTab: s.view,
   });
   const sorted = s.sort ? sortLeads(filtered, { field: "alpha", direction: s.sort === "alpha-asc" ? "asc" : "desc" }) : filtered;
@@ -158,6 +161,7 @@ async function serverPage(userId, s, page, today, hotDate, withOptions = false) 
     p_data_filter: s.data || "all", p_quality_filter: s.quality || "all", p_search: s.search || "",
     p_sort_field: s.sort ? "alpha" : "added", p_sort_dir: s.sort === "alpha-asc" ? "asc" : "desc",
     p_page: page, p_page_size: 500, p_time_zone: "Asia/Dubai", p_today: today, p_hot_date: hotDate, p_with_building_options: withOptions,
+    p_bed_filter: s.beds || [],
   });
   if (error) throw new Error(error.message);
   return data;
