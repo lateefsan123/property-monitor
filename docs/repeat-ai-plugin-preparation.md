@@ -1,6 +1,67 @@
 # Repeat AI plugin release preparation
 
-## Current state (2026-09-30)
+## Current state (2026-10-22): corrected package, resubmission blocked
+
+OpenAI rejected version 0.1.0 on 13 October because the plugin name or
+description did not meet its quality standards. The live dashboard confirms
+`Changes required` and `Not published`; the rejection email gives no more
+specific wording feedback.
+
+Version 0.1.1 keeps the Repeat AI display name and changes the subtitle to
+`Manage property seller leads`. The description now explains saved seller
+contacts, notes/status changes and confirmed individual WhatsApp actions in
+plain language. Subscription wording and implementation details were removed
+from the public listing. Billing enforcement and the existing confirmation
+requirements remain in the unchanged seller-workspace skill and service.
+
+The portable and compatibility manifests match, and the generated legacy
+submission JSON was refreshed. The manifests use the existing portal package
+identifier `app-6abc34a9bfb8819187668196e47b6952`, as required by upload validation.
+The demo recording URL and version-specific release notes are included in the
+portable manifest so the new ZIP flow preserves those review materials.
+
+- Corrected upload: `outputs/plugin-review/repeat-ai-0.1.1-resubmission.zip`.
+- SHA256: `3c8dcb20f0624474856f98b3956e900d3e3b29633ed3787390e8c6878c686a68`.
+- Local checks passed for JSON, matching metadata/versions, published field
+  limits, reviewer-case counts, referenced assets/URLs and six-file ZIP integrity.
+  Reviewer credentials and the legacy JSON import are excluded from the ZIP.
+- OpenAI blocked the corrected ZIP with: `Keep the existing MCP connection` /
+  `Configure the existing MCP app before updating its plugin ZIP.`
+- The existing MCP pane shows `Configuration unavailable`, `Endpoint unavailable`,
+  authentication/domain verification unavailable, and no MCP key. Rescan and
+  diagnostics download are disabled; the pane offers no setup or edit control.
+- The production service health, advertised OAuth resource metadata, domain
+  challenge and privacy page returned HTTP 200. Unauthenticated MCP returned
+  HTTP 401 as expected, and the review video returned HTTP 206 with `video/mp4`.
+  These public availability checks do not establish authenticated reviewer access.
+- No new draft was accepted or submitted, and nothing was published. Existing
+  plugin/service configuration and unrelated working-tree changes were preserved.
+
+### Prepared request to the review team (not sent)
+
+> Hello OpenAI review team,
+>
+> We have addressed the name/description feedback for Repeat AI 0.1.0 in
+> version 0.1.1. The display name remains our product brand, Repeat AI. The new
+> subtitle is "Manage property seller leads", and the description now explains
+> saved seller contacts, follow-up notes and confirmed WhatsApp actions in plain
+> language, without subscription wording or implementation details.
+>
+> We cannot resubmit the corrected ZIP for the existing plugin
+> `asdk_app_6abc34a9bfb8819187668196e47b6952`. Upload validation says: "Keep the
+> existing MCP connection. Configure the existing MCP app before updating its
+> plugin ZIP." The MCP pane shows Configuration unavailable and Endpoint
+> unavailable; there is no configuration control, and rescan is disabled.
+>
+> Our production service and advertised OAuth resource metadata are reachable,
+> and the domain challenge and review recording remain available. Please restore
+> the existing MCP configuration or provide the supported steps to upload and
+> resubmit the corrected package while preserving this plugin and endpoint.
+>
+> Thank you,
+> Lateef Sanusi
+
+## Initial submission (2026-09-30)
 
 The Personal organization is identity verified. Repeat AI 0.1.0 was submitted
 under the user-selected lateefsanusi68@gmail.com account. Listing fields,

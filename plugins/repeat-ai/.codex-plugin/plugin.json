@@ -1,7 +1,7 @@
 {
-  "name": "repeat-ai",
-  "version": "0.1.0",
-  "description": "Find and manage seller leads and connected WhatsApp activity in your Repeat AI account.",
+  "name": "app-6abc34a9bfb8819187668196e47b6952",
+  "version": "0.1.1",
+  "description": "Manage your saved property seller leads and WhatsApp follow-ups in Repeat AI.",
   "author": {
     "name": "Lateef Ayomide Sanusi",
     "url": "https://repeatai.org"
@@ -9,8 +9,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Repeat AI",
-    "shortDescription": "Manage seller follow-ups",
-    "longDescription": "Use your connected Repeat AI account to find seller leads, read seller details, and review connected WhatsApp accounts and message history. Add seller records, update notes or contact status, and request individual WhatsApp messages with explicit confirmation. Intended for property agents managing their own seller workspace. Requires a Repeat AI account and an eligible subscription. Writes require approval in a supported native form or on a separate Repeat AI page using email/password sign-in. This plugin does not currently provide property-listing search, spreadsheet imports, calendar scheduling, or email tools.",
+    "shortDescription": "Manage property seller leads",
+    "longDescription": "Search your saved property seller contacts in Repeat AI, view their details and notes, and review connected WhatsApp accounts and message history. Add contacts, update notes or follow-up status, and send individual WhatsApp messages after confirming each action. Requires a connected Repeat AI account with access to the seller workspace.",
     "developerName": "Lateef Ayomide Sanusi",
     "category": "Productivity",
     "capabilities": [
@@ -20,6 +20,7 @@
       "Request confirmed WhatsApp messages"
     ],
     "websiteURL": "https://repeatai.org",
+    "supportURL": "https://repeatai.org/support",
     "privacyPolicyURL": "https://seller-signal-mcp-production.up.railway.app/privacy",
     "termsOfServiceURL": "https://repeatai.org/terms",
     "logo": "./assets/icon.png",
