@@ -52,6 +52,7 @@ export default function LandingPage({
             <img src="/brand/repeat-ai-logo.png" alt="Repeat AI" className="landing-brand-logo" width="140" height="25" />
           </a>
           <nav className="landing-nav" aria-label="Account">
+            <a className="landing-nav-link" href="/export">Extension</a>
             <a className="landing-nav-link" href="/pricing" aria-current={pricingOnly ? "page" : undefined}>Pricing</a>
             <button type="button" className="landing-nav-link" onClick={accountAction}>
               {accountActionLabel}

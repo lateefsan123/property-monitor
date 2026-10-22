@@ -518,6 +518,7 @@ export function Root() {
           isAuthenticated={Boolean(session)}
           onGetExtension={getExtension}
           onSignIn={onExportHost ? () => window.location.assign(`${APP_ORIGIN}/#login`) : () => openAuth()}
+          onSignOut={handleSignOutFromLanding}
         />
       </Suspense>
     );

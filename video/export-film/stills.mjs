@@ -14,7 +14,7 @@ const shots = {
   'step-crm': T.crm + 1.5,
   'step-scan': T.scanStart + 2.5,
   'step-list': T.untick + 0.8,
-  'step-files': T.files + 2.4,
+  'step-files': T.files + 1.95,
 };
 const { browser, page, seek } = await openFilm('16x9', '../export-film/film');
 await page.addStyleTag({ content: '.caption, .cursor { display: none !important; }' });

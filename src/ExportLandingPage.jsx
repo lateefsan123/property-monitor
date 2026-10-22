@@ -1,140 +1,131 @@
-import { useState } from "react";
-import { IconBrandChrome, IconDownload, IconLock, IconFileSpreadsheet, IconFiles, IconBuildingEstate } from "@tabler/icons-react";
+import { useEffect, useState } from "react";
+import LandingClosing from "./LandingClosing";
+import "./styles/landing.css";
+import "./styles/landing-overview.css";
+import "./styles/landing-product-story.css";
+import "./styles/landing-dark.css";
 import "./styles/export-landing.css";
 
 // Sales page for the seller export extension (getrepeatai.com and /export).
-// Hero follows Aboard's extension page (Mobbin f2b2832d), the steps follow
-// folk's extension section (Mobbin 55ff2354).
+// Built from the main landing's own header, hero, product-story sections and
+// closing, so both pages look like one site. Shots come from the how-to film.
 const STEPS = [
-  { id: "open", title: "Open your seller list", body: "Use your CRM as normal. Any filters you set stay in place.", image: "/export/step-crm.webp" },
-  { id: "find", title: "Press Find my sellers", body: "It reads every page for you, even when the CRM only shows 100 at a time.", image: "/export/step-scan.webp" },
-  { id: "pick", title: "Pick your buildings", body: "Your sellers are sorted by building. Untick the ones you don't need.", image: "/export/step-list.webp" },
-  { id: "download", title: "Download the spreadsheets", body: "One Excel file per building, ready to upload to Repeat AI.", image: "/export/step-files.webp" },
+  {
+    id: "export-open",
+    title: "Open your seller list.",
+    description: "Use your CRM as normal. Any filters you set stay in place.",
+    image: "/export/step-crm.webp",
+    alt: "A CRM seller list with building, unit, rooms, size and name columns, and the Repeat AI icon in the browser toolbar.",
+    color: "#dcecf7",
+  },
+  {
+    id: "export-find",
+    title: "Every page, one click.",
+    description: "Press Find my sellers. It reads every page for you, even when the CRM only shows 100 at a time.",
+    image: "/export/step-scan.webp",
+    alt: "The Repeat AI extension finding sellers while it moves through the CRM's pages.",
+    color: "#f7dfd1",
+  },
+  {
+    id: "export-pick",
+    title: "Sorted by building.",
+    description: "Your sellers are grouped by building. Untick the ones you don't need.",
+    image: "/export/step-list.webp",
+    alt: "144 sellers in 3 buildings, with one building unticked.",
+    color: "#e6dff4",
+  },
+  {
+    id: "export-download",
+    title: "One spreadsheet per building.",
+    description: "Download them and upload to Repeat AI. Your list is read in your browser and never leaves your computer.",
+    image: "/export/step-files.webp",
+    alt: "Chrome's downloads panel with one Excel file for each chosen building.",
+    color: "#dde9d4",
+  },
 ];
 
-const POINTS = [
-  { icon: IconFiles, title: "Every page, one click", body: "Hundreds of pages of sellers without copying a row by hand." },
-  { icon: IconBuildingEstate, title: "Sorted by building", body: "One spreadsheet per building, so each list is ready to work." },
-  { icon: IconFileSpreadsheet, title: "Works with your CRM", body: "If your sellers are in a table in Chrome, it can read them." },
-  { icon: IconLock, title: "Stays on your computer", body: "Your list is read and saved in your browser. Nothing is uploaded." },
-];
-
-export default function ExportLandingPage({ isAuthenticated = false, onGetExtension, onSignIn }) {
-  const [step, setStep] = useState(STEPS[0].id);
-  const active = STEPS.find((item) => item.id === step) || STEPS[0];
-  const cta = (
-    <button type="button" className="xl-cta" onClick={onGetExtension}>
-      <IconDownload size={20} stroke={2.2} aria-hidden="true" />
-      <span>Get the extension</span>
-    </button>
-  );
+export default function ExportLandingPage({ isAuthenticated = false, onGetExtension, onSignIn, onSignOut }) {
+  const [headerScrolled, setHeaderScrolled] = useState(false);
+  useEffect(() => {
+    const update = () => setHeaderScrolled(window.scrollY > 8);
+    update();
+    window.addEventListener("scroll", update, { passive: true });
+    return () => window.removeEventListener("scroll", update);
+  }, []);
+  const accountAction = isAuthenticated ? onSignOut : onSignIn;
+  const accountActionLabel = isAuthenticated ? "Sign out" : "Log in";
 
   return (
-    <div className="xl">
-      <header className="xl-nav-wrap">
-        <nav className="xl-nav" aria-label="Main">
-          <a className="xl-logo" href="https://repeatai.org" aria-label="Repeat AI">
-            <img src="/logo.png" alt="" width="28" height="28" />
-            <span>Repeat AI</span>
+    <div className="landing landing-dark xl">
+      <div className={`landing-header-frame${headerScrolled ? " is-scrolled" : ""}`}>
+        <header className="landing-header">
+          <a className="landing-brand" href="https://repeatai.org" aria-label="Repeat AI home">
+            <img src="/brand/repeat-ai-logo.png" alt="Repeat AI" className="landing-brand-logo" width="140" height="25" />
           </a>
-          <div className="xl-nav-links">
-            <a href="#how">How it works</a>
-            <a href="#video">Video</a>
-            <a href="#pricing">Pricing</a>
-          </div>
-          <div className="xl-nav-actions">
-            {isAuthenticated ? null : <button type="button" className="xl-login" onClick={onSignIn}>Log in</button>}
-            <button type="button" className="xl-nav-cta" onClick={onGetExtension}>Get started</button>
-          </div>
-        </nav>
-      </header>
+          <nav className="landing-nav" aria-label="Account">
+            <a className="landing-nav-link" href="#export-how" aria-current="page">Extension</a>
+            <a className="landing-nav-link" href="https://repeatai.org/pricing">Pricing</a>
+            {accountAction ? <button type="button" className="landing-nav-link" onClick={accountAction}>{accountActionLabel}</button> : null}
+          </nav>
+        </header>
+      </div>
 
-      <main>
-        <section className="xl-hero" aria-labelledby="xl-title">
-          <div className="xl-hero-text">
-            <span className="xl-badge">Chrome extension</span>
-            <h1 id="xl-title">Get your sellers out of any CRM</h1>
+      <section className="landing-hero" aria-labelledby="xl-headline">
+        <div className="landing-hero-copy">
+          <h1 className="landing-headline" id="xl-headline">
+            Get your sellers out of <em>any</em> CRM.
+          </h1>
+          <p className="landing-sub">
+            A Chrome extension for Repeat AI. Open your seller list, press one button,{" "}
+            <br className="landing-hero-break" />
+            and get a spreadsheet for every building.
+          </p>
+          <div className="landing-hero-actions">
+            <button type="button" className="landing-cta landing-cta-lg" onClick={onGetExtension}>Get the extension</button>
+            <p className="landing-hero-note">Part of Repeat AI Pro</p>
           </div>
-          <div className="xl-hero-action">
-            {cta}
-            <p><IconBrandChrome size={18} stroke={1.8} aria-hidden="true" /> For Chrome. Part of Repeat AI Pro.</p>
-          </div>
-        </section>
-
-        <div className="xl-stage">
-          <img src="/export/hero.webp" alt="The Repeat AI extension open over a CRM seller list, showing 144 sellers in 3 buildings" width="1600" height="900" />
         </div>
+        <figure className="landing-product-artwork xl-art xl-hero-art" style={{ "--product-artwork-background": "#f3f0ea" }}>
+          <img src="/export/hero.webp" alt="The Repeat AI extension open over a CRM seller list, showing 144 sellers in 3 buildings." width="1600" height="900" fetchPriority="high" />
+        </figure>
+      </section>
 
-        <section className="xl-how" id="how" aria-labelledby="xl-how-title">
-          <h2 id="xl-how-title">Your whole seller list in one click</h2>
-          <p className="xl-lead">Open your list, press one button, and get a spreadsheet for every building.</p>
-          <div className="xl-how-body">
-            <div className="xl-steps" role="tablist" aria-label="How it works">
-              {STEPS.map((item, index) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  id={`xl-tab-${item.id}`}
-                  aria-selected={item.id === active.id}
-                  aria-controls="xl-step-panel"
-                  className={`xl-step${item.id === active.id ? " is-active" : ""}`}
-                  onClick={() => setStep(item.id)}
-                >
-                  <span className="xl-step-num">{index + 1}</span>
-                  <span className="xl-step-text">
-                    <strong>{item.title}</strong>
-                    {item.id === active.id ? <span>{item.body}</span> : null}
-                  </span>
-                </button>
-              ))}
-            </div>
-            <div className="xl-shot" id="xl-step-panel" role="tabpanel" aria-labelledby={`xl-tab-${active.id}`}>
-              <img key={active.id} src={active.image} alt={active.title} width="1600" height="900" />
-            </div>
-          </div>
-        </section>
+      <section className="landing-product-story" id="export-how" aria-labelledby="export-how-heading">
+        <div className="landing-product-story-inner">
+          <h2 id="export-how-heading">How it works.</h2>
+          <p>Four steps, and the extension does the paging for you.</p>
+          <ol className="xl-steps">
+            {STEPS.map((step, index) => (
+              <li key={step.id} id={step.id}>
+                <figure className="landing-product-artwork xl-art" style={{ "--product-artwork-background": step.color }}>
+                  <img src={step.image} alt={step.alt} width="1600" height="900" loading="lazy" decoding="async" />
+                </figure>
+                <h3><span>{index + 1}</span>{step.title}</h3>
+                <p>{step.description}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
 
-        <section className="xl-video" id="video" aria-labelledby="xl-video-title">
-          <h2 id="xl-video-title">See it work in a minute</h2>
-          <video controls preload="metadata" poster="/export/video-poster.webp" src="/video/seller-export-how-to.mp4" />
-        </section>
+      <section className="landing-product-story" id="export-video" aria-labelledby="export-video-heading">
+        <div className="landing-product-story-inner">
+          <h2 id="export-video-heading">See it work in a minute.</h2>
+          <p>From installing the extension to uploading your spreadsheets.</p>
+          <figure className="landing-product-artwork xl-video">
+            <video controls preload="metadata" poster="/export/video-poster.webp" src="/video/seller-export-how-to.mp4" />
+          </figure>
+        </div>
+      </section>
 
-        <section className="xl-points" aria-label="Why brokers use it">
-          {POINTS.map((point) => (
-            <div key={point.title} className="xl-point">
-              <point.icon size={26} stroke={1.7} aria-hidden="true" />
-              <h3>{point.title}</h3>
-              <p>{point.body}</p>
-            </div>
-          ))}
-        </section>
-
-        <section className="xl-pricing" id="pricing" aria-labelledby="xl-pricing-title">
-          <h2 id="xl-pricing-title">Included with Repeat AI</h2>
-          <div className="xl-plan">
-            <p className="xl-plan-name">Repeat AI Pro</p>
-            <p className="xl-plan-price"><strong>€25</strong> / month</p>
-            <p className="xl-plan-trial">First 7 days free. Cancel any time.</p>
-            <ul>
-              <li>The seller export extension</li>
-              <li>Upload your spreadsheets and see who to call each day</li>
-              <li>Recent sales in your sellers' buildings</li>
-            </ul>
-            {cta}
-          </div>
-        </section>
-      </main>
-
-      <footer className="xl-footer">
-        <span>© {new Date().getFullYear()} Repeat AI</span>
-        <nav aria-label="Footer">
-          <a href="https://repeatai.org">repeatai.org</a>
-          <a href="https://repeatai.org/privacy">Privacy</a>
-          <a href="https://repeatai.org/terms">Terms</a>
-          <a href="https://repeatai.org/support">Support</a>
-        </nav>
-      </footer>
+      <LandingClosing
+        homePrefix="https://repeatai.org/"
+        isAuthenticated={false}
+        onGetStarted={onGetExtension}
+        onSubscribe={onGetExtension}
+        accountAction={accountAction}
+        accountActionLabel={accountActionLabel}
+      />
     </div>
   );
 }
