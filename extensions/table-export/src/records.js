@@ -11,7 +11,7 @@ export function inferMapping(columns) {
   }));
 }
 export function validateMapping(mapping) {
-  if (!mapping.name || !mapping.phone || !mapping.building) return 'Choose the name, phone and building columns before downloading.';
+  if (!mapping.name || !mapping.phone) return 'Choose the name and phone columns before downloading.';
   const selected = Object.values(mapping).filter(Boolean);
   return new Set(selected).size !== selected.length ? 'Each field needs its own column.' : '';
 }
@@ -71,8 +71,8 @@ export function combineCaptures(captures) {
 export function groupBuildings(rows, mapping) {
   const groups = new Map();
   for (const row of rows) {
-    const name = text(row[mapping.building]);
-    const key = name.normalize('NFKC').replace(/\s+/g, ' ').toLowerCase();
+    const name = mapping.building ? text(row[mapping.building]) : 'Sellers';
+    const key = mapping.building ? name.normalize('NFKC').replace(/\s+/g, ' ').toLowerCase() : '__all_sellers__';
     if (!groups.has(key)) groups.set(key, { key, name: name || 'Missing building', rows: [], missingPhone: 0, missingName: 0, phoneNeedsReview: 0 });
     const group = groups.get(key);
     group.rows.push(row);

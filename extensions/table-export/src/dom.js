@@ -36,7 +36,13 @@ export function snapshot(root) {
   const serial = columns.find(c => /^(slno|sno|srno|serialno|serialnumber|row|rowno|no)$/.test(token(c.label)) || c.label === '#');
   const dataRows = allRows.filter(r => !headingRows.includes(r) && r !== header && !r.closest('tfoot'));
   const problems = new Set();
-  const rows = dataRows.map((row, i) => {
+  // Expanded detail panels are not records. Keep genuinely incomplete data
+  // rows so the collector still blocks missing cells instead of hiding data loss.
+  const recordRows = dataRows.filter(row => {
+    const rowCells = cells(row);
+    return !(rowCells.length === 1 && (rowCells[0].colSpan || 1) > 1);
+  });
+  const rows = recordRows.map((row, i) => {
     const rowCells = cells(row);
     if (rowCells.some(c => (c.colSpan || 1) > 1 || (c.rowSpan || 1) > 1)) problems.add('Merged cells are not supported. Choose a flat table view.');
     const values = Object.fromEntries(rowCells.map((c, index) => [columnId(c, index), cellText(c)]));

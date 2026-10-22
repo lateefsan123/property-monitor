@@ -132,7 +132,7 @@ test('bad captures and ambiguous field mappings cannot be exported', async () =>
   const input = setup(); input.captures[0].issues = ['Count mismatch'];
   await assert.rejects(createExport(input), /incomplete captures/);
   assert.match(validateMapping({ name: 'a', phone: 'a', building: 'b' }), /own column/);
-  assert.match(validateMapping({ building: 'a' }), /name, phone/);
+  assert.match(validateMapping({ building: 'a' }), /name.*phone/);
 });
 test('missing phone/building counts remain visible; no made-up values', () => {
   const c = capture(3); c.rows[0]['1'] = '';
@@ -143,4 +143,32 @@ test('missing phone/building counts remain visible; no made-up values', () => {
 test('Unicode ZIP names and bytes survive local archive framing', () => {
   const data = new Uint8Array([0, 1, 255, 17]);
   assert.deepEqual(unpack(zipFiles([{ name: 'برج.xlsx', data }]))[0], { name: 'برج.xlsx', data });
+});
+
+
+test('contacts without a building export one Sellers workbook with all source values', async () => {
+  const columns = ['Name', 'Phone', 'Email'].map((label, i) => ({ id: String(i), label, order: i }));
+  const rows = [{ 0: 'Alice', 1: '+971501234567', 2: 'alice@example.invalid' }, { 0: 'Bob', 1: '0500000002', 2: '' }];
+  const c = { ...capture(), columns, rows, expected: 2 };
+  const input = setup(c);
+  assert.equal(input.mapping.building, '');
+  assert.equal(validateMapping(input.mapping), '');
+  assert.equal(input.groups.length, 1);
+  const output = await createExport(input);
+  const books = unpack(output.zip).filter(f => f.name.endsWith('.xlsx'));
+  assert.equal(books.length, 1);
+  assert.equal(books[0].name, 'Sellers.xlsx');
+  const wb = XLSX.read(books[0].data, { type: 'array' });
+  assert.deepEqual(XLSX.utils.sheet_to_json(wb.Sheets.Sellers, { header: 1 }), [['Name', 'Phone', 'Email'], ...rows.map(Object.values)]);
+  assert.equal(output.report.totalExported, 2);
+  assert.equal(output.report.files[0].building, null);
+});
+
+test('a mapped building still excludes blank building rows; missing phone remains required', async () => {
+  const input = setup();
+  input.groups = [{ key: '', name: 'Missing building', rows: input.rows }];
+  await assert.rejects(createExport(input), /without a building/);
+  assert.ok(validateMapping({ name: 'name', building: '' }));
+  assert.ok(validateMapping({ phone: 'phone', building: '' }));
+  assert.match(validateMapping({ name: 'same', phone: 'same' }), /own column/);
 });

@@ -59,7 +59,10 @@ export async function scanTable(root, options = {}, progress = () => {}, signal 
       const abort = () => { cleanup(); reject(new Error('Collection stopped. Clear this partial capture and scan again.')); };
       const timer = setTimeout(() => { cleanup(); reject(new Error('Scrolling did not render. Keep the source tab visible, then collect again.')); }, options.loadTimeoutMs || 30000);
       target.addEventListener('scroll', done, { once: true }); signal.addEventListener('abort', abort, { once: true });
+      const before = el[property];
       el[property] = value;
+      // Clamped/unchanged positions do not dispatch a scroll event.
+      if (Math.abs(el[property] - before) < 1) done();
     });
     await settled();
   }
@@ -81,6 +84,10 @@ export async function scanTable(root, options = {}, progress = () => {}, signal 
     progress({ rows: collector.rows.size, pages: pages + 1, expected, elapsedMs: Date.now() - started });
   }
   async function horizontal() {
+    const virtualColumns = Number(root.getAttribute('aria-colcount')) > snapshot(root).columns.length
+      || (root.tagName !== 'TABLE' && root.matches('[role="grid"],[role="treegrid"]'));
+    // Ordinary tables already expose cells beyond the horizontal viewport.
+    if (!virtualColumns) { collect(); return; }
     const { x } = scrollContainers(root); remember(x);
     if (!x) { collect(); return; }
     // Alternate direction on successive row windows instead of returning left

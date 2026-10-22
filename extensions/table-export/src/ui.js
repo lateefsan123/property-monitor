@@ -80,7 +80,7 @@ export function mountWorkspace(host, bridge) {
     if (reset) selected = new Set(groups.filter(g => g.key).map(g => g.key));
     const search = $('search').value.trim().toLowerCase(); $('buildings').replaceChildren();
     const shown = groups.filter(g => g.name.toLowerCase().includes(search));
-    for (const group of shown) {
+    for (const group of mapping.building ? shown : []) {
       const label = node('label', undefined, `building${group.key ? '' : ' excluded'}`), input = node('input'); input.type = 'checkbox'; input.checked = selected.has(group.key); input.disabled = !group.key; input.dataset.missing = String(!group.key); input.setAttribute('aria-label', group.name);
       input.onchange = () => { input.checked ? selected.add(group.key) : selected.delete(group.key); buttons(); };
       const title = node('span', undefined, 'name'); title.append(node('span', group.name));
@@ -88,13 +88,14 @@ export function mountWorkspace(host, bridge) {
       if (!group.key) title.append(node('small', 'No building name'));
       label.append(input, title, node('b', group.rows.length.toLocaleString())); $('buildings').append(label);
     }
-    if (!shown.length) $('buildings').append(node('p', search ? `No buildings match “${$('search').value.trim()}”.` : 'No buildings found. Check the building column under Preview sellers & columns.', 'empty'));
+    if (mapping.building && !shown.length) $('buildings').append(node('p', search ? `No buildings match “${$('search').value.trim()}”.` : 'No buildings found. Check the building column under Preview sellers & columns.', 'empty'));
     const named = groups.filter(g => g.key);
     $('list-count').textContent = plural(named.length, 'building');
-    $('review-title').textContent = `${plural(data.rows.length, 'seller')} in ${plural(named.length, 'building')}`;
+    $('review-title').textContent = `${plural(data.rows.length, 'seller')}${mapping.building ? ` in ${plural(named.length, 'building')}` : ''}`;
     // Short lists need no search or bulk controls.
-    $('search-wrap').hidden = groups.length <= 6 && !search;
-    $('list-tools').hidden = groups.length <= 6;
+    $('search-wrap').hidden = !mapping.building || (groups.length <= 6 && !search);
+    $('list-tools').hidden = !mapping.building || groups.length <= 6;
+    $('buildings').hidden = !mapping.building;
     buttons();
   }
   function renderData() {
@@ -187,7 +188,7 @@ export function mountWorkspace(host, bridge) {
     try {
       const output = await createExport({ ...data, mapping, captures, groups: groups.filter(g => selected.has(g.key)) }, value => result(value, 'quiet'));
       const url = URL.createObjectURL(new Blob([output.zip], { type: 'application/zip' }));
-      const anchor = node('a'); anchor.href = url; anchor.download = `Repeat-AI-buildings-${new Date().toISOString().slice(0, 10)}.zip`; host.append(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
+      const anchor = node('a'); anchor.href = url; anchor.download = `Repeat-AI-${mapping.building ? 'buildings' : 'sellers'}-${new Date().toISOString().slice(0, 10)}.zip`; host.append(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
       result('Downloaded. Now add the spreadsheets to Repeat AI.', 'success');
     } catch (cause) { result(cause.message || 'The spreadsheets couldn’t be made. Choose fewer buildings and try again.', 'error'); }
     exporting = false; buttons();

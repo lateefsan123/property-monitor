@@ -2,7 +2,8 @@
 
 A local Chrome/Edge Manifest V3 extension. It reads rendered web tables and ARIA
 grids, groups selected sellers by building, and downloads a ZIP of separate
-single-sheet `.xlsx` files plus a capture report. No Salesforce connection,
+single-sheet `.xlsx` files plus a capture report. Contact lists without a building
+column export one `Sellers.xlsx` workbook. No Salesforce connection,
 Repeat AI login, backend, telemetry or credentials are used. It only runs after
 the user clicks the extension; permissions are `activeTab` and `scripting`.
 
@@ -34,7 +35,8 @@ tests all modes in the browser. These controls are only for the replica.
    automatic. Recovery options only appear if a sheet cannot be collected.
    Start on page one when following pagination. The scan scrolls the source page;
    leave its filters, sort order and selected worksheet unchanged while scanning.
-5. Choose buildings and download. Columns are matched automatically; missing or
+5. Choose buildings and download. Lists without a building column download one
+   `Sellers.xlsx` spreadsheet instead. Name and Phone headings are required. Columns are matched automatically; missing or
    ambiguous required headings open a matching prompt. You can also expand
    **Preview sellers & columns** to review them. Unzip and upload
    the Excel files through Repeat AI's existing spreadsheet importer.
@@ -51,7 +53,7 @@ still be checked in an authorized session. Do not claim production validation.
 - Normal HTML tables and ARIA grids work when cells expose text. Virtual grids
   need stable row/column indexes (ARIA, common data attributes, or serial numbers).
   Conflicting identities, missing columns, merged cells and mismatched totals
-  block export. Canvas-only spreadsheets are not supported.
+  block export. Single-cell spanning detail panels are ignored. Canvas-only spreadsheets are not supported.
 - Vertical and horizontal scrolling overlap viewports. Loading indicators are
   respected, scroll events and a quiet period after DOM updates are awaited
   before reading recycled cells, and browser
@@ -97,3 +99,15 @@ target site before distributing it to customers.
 
 Chrome API references: [activeTab](https://developer.chrome.com/docs/extensions/develop/concepts/activeTab)
 and [scripting](https://developer.chrome.com/docs/extensions/reference/api/scripting).
+
+
+## LeadHub regression fixture
+
+With `playwright-core` available, run `node extensions/table-export/test-pages/check-ev-leadhub.mjs`
+while the replica server above is running. It bundles the synthetic LeadHub page,
+checks 392 contacts across four pages, the no-building workbook/UI, malformed rows,
+clamped scrolling, and the replica's virtual-grid checks. The runner uses the cached
+Windows Chromium at `%LOCALAPPDATA%/ms-playwright/chromium-1217/chrome-win64/chrome.exe`.
+`PLAYWRIGHT_CORE_MODULE` may point to a file URL for a temporary installation instead
+of changing this project's dependencies. Screenshots are written to
+`test-pages/results/`. This fixture is not a live LeadHub compatibility claim.

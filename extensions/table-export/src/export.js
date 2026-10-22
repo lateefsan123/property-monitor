@@ -35,7 +35,7 @@ export function workbookBytes(rows, columns, mapping) {
 export async function createExport({ groups, columns, mapping, captures, duplicates }, progress = () => {}) {
   const issue = validateMapping(mapping);
   if (issue) throw new Error(issue);
-  if (!groups.length) throw new Error('Select at least one building.');
+  if (!groups.length) throw new Error(mapping.building ? 'Select at least one building.' : 'No sellers to export.');
   if (captures.some(c => c.issues.length || !c.finished)) throw new Error('Remove incomplete captures and scan them again before downloading.');
   const files = [], used = new Set(), counts = [];
   async function chunks(rows) {
@@ -46,7 +46,7 @@ export async function createExport({ groups, columns, mapping, captures, duplica
     return [...await chunks(rows.slice(0, half)), ...await chunks(rows.slice(half))];
   }
   for (const group of groups) {
-    if (!group.key) throw new Error('Rows without a building cannot be exported as a building file.');
+    if (mapping.building && !group.key) throw new Error('Rows without a building cannot be exported as a building file.');
     const parts = [];
     for (let start = 0; start < group.rows.length; start += 10000) {
       await new Promise(resolve => setTimeout(resolve, 0));
@@ -54,11 +54,11 @@ export async function createExport({ groups, columns, mapping, captures, duplica
       progress(`Preparing ${group.name}: ${Math.min(start + 10000, group.rows.length).toLocaleString()} rows`);
     }
     parts.forEach((part, i) => {
-      const base = `${safeFileName(group.name)}${parts.length > 1 ? ` - part ${i + 1}` : ''}`;
+      const base = `${safeFileName(mapping.building ? group.name : 'Sellers')}${parts.length > 1 ? ` - part ${i + 1}` : ''}`;
       let name = `${base}.xlsx`, suffix = 1;
       while (used.has(name.toLowerCase())) name = `${base} (${++suffix}).xlsx`;
       used.add(name.toLowerCase()); files.push({ name, data: part.data });
-      counts.push({ file: name, building: group.name, records: part.rows });
+      counts.push({ file: name, building: mapping.building ? group.name : null, records: part.rows });
     });
   }
   const report = {
