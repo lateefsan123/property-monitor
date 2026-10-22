@@ -3,7 +3,9 @@
 // monthly reports when both automations are on; the rest go to transaction updates.
 export const MONTHLY_REPORT_SHARE_OPTIONS = [5, 10, 15, 20];
 export const DEFAULT_MONTHLY_REPORT_SHARE = 10;
+// Messages per day: 40 unless the account raises it, up to 45.
 export const DAILY_AUTOMATION_CAP = 40;
+export const DAILY_AUTOMATION_MAX = 45;
 // Send hours (Dubai) and the gap between automated messages, per account.
 export { DEFAULT_SEND_INTERVAL_MINUTES, DEFAULT_SEND_WINDOW, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit, suggestedInterval } from "../supabase/functions/_shared/send-pacing.js";
 import { normalizePacing } from "../supabase/functions/_shared/send-pacing.js";
@@ -30,10 +32,10 @@ function toSettings(data) {
   };
 }
 
-// Messages per Dubai day an account chooses, 1 to the 40 hard maximum.
+// Messages per Dubai day an account chooses: 1 to 45, 40 when not set.
 export function clampDailyLimit(value) {
   const number = Math.round(Number(value));
-  return Number.isFinite(number) && number >= 1 ? Math.min(DAILY_AUTOMATION_CAP, number) : DAILY_AUTOMATION_CAP;
+  return Number.isFinite(number) && number >= 1 ? Math.min(DAILY_AUTOMATION_MAX, number) : DAILY_AUTOMATION_CAP;
 }
 
 const missingColumn = (error) => error?.code === "42703" || error?.code === "PGRST204";

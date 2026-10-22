@@ -22,7 +22,9 @@ const DATA_PAGE_SIZE = 1000;
 // them out of the recap stats (a 3K row would wreck the month's price range).
 const MIN_SALE_AMOUNT = 100_000;
 const DEFAULT_MAX_SENDS_PER_RUN = 1;
-const DEFAULT_DAILY_CAP = 40;
+// The ceiling for any account; each account's own limit (40 unless raised) is
+// applied by claim_seller_signal_automation_message.
+const DEFAULT_DAILY_CAP = 45;
 const DEFAULT_REPORT_DAILY_BUDGET = 40;
 const DEFAULT_SEND_WINDOW_START_HOUR = 9;
 const DEFAULT_SEND_WINDOW_END_HOUR = 21;
@@ -844,7 +846,7 @@ Deno.serve(async (req) => {
     // combined auto sends reach this budget, reports yield and the remaining
     // headroom belongs to same-day transaction alerts alone.
     const reportDailyBudget = Math.max(1, Math.min(dailyCap, Math.floor(getNumber(input?.reportDailyBudget, getNumber(Deno.env.get("SELLER_SIGNAL_MONTHLY_REPORT_DAILY_BUDGET"), DEFAULT_REPORT_DAILY_BUDGET)))));
-    // Fill pass: may use transaction-update slots left unused today (still 40 at most).
+    // Fill pass: may use transaction-update slots left unused today (still within the account's own limit).
     const fill = Boolean(input?.fill);
     const reportMonth = resolveReportMonth(input?.reportMonth, startedAt);
     const monthBounds = getMonthBounds(reportMonth);

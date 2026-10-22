@@ -26,7 +26,9 @@ const DATA_PAGE_SIZE = 1000;
 const MIN_SALE_AMOUNT = 100_000;
 const RECENT_TRANSACTIONS_LIMIT = 2;
 const DEFAULT_MAX_SENDS_PER_RUN = 2;
-const DEFAULT_DAILY_CAP = 40;
+// The ceiling for any account; each account's own limit (40 unless raised) is
+// applied by claim_seller_signal_automation_message.
+const DEFAULT_DAILY_CAP = 45;
 // Zero means scan every eligible lead. PostgREST caps a single response at
 // 1,000 rows, so fetchScannableLeads paginates until the full set is loaded.
 const DEFAULT_MAX_LEADS_PER_RUN = 0;
@@ -1023,7 +1025,7 @@ Deno.serve(async (req) => {
     const enabled = Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_ENABLED") === "true";
     const maxSends = Math.max(1, Math.floor(getNumber(input?.maxSends, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_MAX_SENDS_PER_RUN"), DEFAULT_MAX_SENDS_PER_RUN))));
     const dailyCap = Math.max(1, Math.min(DEFAULT_DAILY_CAP, Math.floor(getNumber(input?.dailyCap, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_DAILY_CAP"), DEFAULT_DAILY_CAP)))));
-    // Fill pass: may use monthly-report slots left unused today (still 40 at most).
+    // Fill pass: may use monthly-report slots left unused today (still within the account's own limit).
     const fill = Boolean(input?.fill);
     // Users refused by the daily cap or the monthly report split are skipped for the rest of this run.
     const cappedUsers = new Set<string>();

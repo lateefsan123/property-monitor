@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BackHandler, Pressable, ScrollView, Text, View } from "react-native";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { fetchAutomationSettings, saveAutomationSettings } from "./automation-settings";
-import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit, suggestedInterval } from "../../../shared/automation-settings.js";
+import { DAILY_AUTOMATION_CAP, DAILY_AUTOMATION_MAX, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, formatHour, formatInterval, messagesThatFit, suggestedInterval } from "../../../shared/automation-settings.js";
 import BottomSheet from "../components/BottomSheet";
 import { fetchWhatsAppSendActivity } from "./send-activity";
 import ActivityDateFilter from './activity-date-filter';
@@ -95,12 +95,12 @@ function SendPacing({ settings, colors, saving, onChange }) {
     <View style={{ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 16, borderBottomColor: colors.border, borderBottomWidth: 0.5 }}>
       <View style={{ flex: 1, gap: 6 }}>
         <Text style={{ color: colors.text, fontSize: 16, fontWeight: "600" }}>Messages per day</Text>
-        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>How many automated WhatsApp messages go out each day, up to {DAILY_AUTOMATION_CAP}.</Text>
+        <Text style={{ color: colors.textMuted, fontSize: 14, lineHeight: 20 }}>How many automated WhatsApp messages go out each day. {DAILY_AUTOMATION_CAP} by default, up to {DAILY_AUTOMATION_MAX}.</Text>
       </View>
       <View style={{ flexDirection: "row", alignItems: "center", borderRadius: 10, backgroundColor: colors.bgBadge }}>
         {stepButton("Fewer messages", limit - 1, limit <= 1)}
         <Text accessibilityLabel={`${limit} messages a day`} style={{ minWidth: 28, textAlign: "center", color: colors.text, fontSize: 16, fontWeight: "700", fontVariant: ["tabular-nums"] }}>{limit}</Text>
-        {stepButton("More messages", limit + 1, limit >= DAILY_AUTOMATION_CAP)}
+        {stepButton("More messages", limit + 1, limit >= DAILY_AUTOMATION_MAX)}
       </View>
     </View>
     <Pressable accessibilityRole="button" disabled={saving} onPress={() => setHoursOpen(true)}

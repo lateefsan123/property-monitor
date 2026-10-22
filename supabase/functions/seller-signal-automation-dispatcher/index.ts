@@ -5,7 +5,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-auto-whatsapp-token",
 };
 
-const DEFAULT_DAILY_CAP = 40;
+// The ceiling for any account; each account's own limit (40 unless raised) is
+// applied by claim_seller_signal_automation_message.
+const DEFAULT_DAILY_CAP = 45;
 // Sends per pass, across accounts (one each); keeps a run well inside the time limit.
 const MAX_ACCOUNTS_PER_PASS = 10;
 

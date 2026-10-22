@@ -105,7 +105,7 @@ Deno.serve(async (req) => {
     const input = await req.json().catch(() => ({}));
     const dryRun = Boolean(input?.dryRun);
     const maxSends = Math.max(1, Math.min(10, Math.floor(Number(input?.maxSends) || 1)));
-    const dailyCap = Math.max(1, Math.min(40, Math.floor(Number(input?.dailyCap) || 40)));
+    const dailyCap = Math.max(1, Math.min(45, Math.floor(Number(input?.dailyCap) || 45)));
     const client = createClient(requireEnv("SUPABASE_URL"), requireEnv("SUPABASE_SERVICE_ROLE_KEY"), {
       auth: { autoRefreshToken: false, persistSession: false },
     });

@@ -1,6 +1,6 @@
 import { userFacingError } from "../../../shared/user-facing-errors.js";
 import { useState } from "react";
-import { DAILY_AUTOMATION_CAP, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, clampDailyLimit, formatHour, formatInterval, messagesThatFit, suggestedInterval } from "../../../shared/automation-settings.js";
+import { DAILY_AUTOMATION_CAP, DAILY_AUTOMATION_MAX, MONTHLY_REPORT_SHARE_OPTIONS, SEND_INTERVAL_OPTIONS, clampDailyLimit, formatHour, formatInterval, messagesThatFit, suggestedInterval } from "../../../shared/automation-settings.js";
 import {
   IconActivity,
   IconAdjustmentsHorizontal,
@@ -75,7 +75,7 @@ function DailyLimitStepper({ value, onChange, disabled }) {
       <input inputMode="numeric" aria-label="Messages per day" value={text} disabled={disabled}
         onChange={(event) => setText(event.target.value.replace(/[^0-9]/g, "").slice(0, 2))}
         onBlur={() => commit(text)} onKeyDown={(event) => { if (event.key === "Enter") event.currentTarget.blur(); }} />
-      <button type="button" aria-label="More messages" disabled={disabled || value >= DAILY_AUTOMATION_CAP} onClick={() => commit(value + 1)}>+</button>
+      <button type="button" aria-label="More messages" disabled={disabled || value >= DAILY_AUTOMATION_MAX} onClick={() => commit(value + 1)}>+</button>
     </div>
   );
 }
@@ -195,7 +195,7 @@ export default function SettingsPage({
               )}
             </SettingsGroup>
             <SettingsGroup title="Sending">
-              <SettingsItem label="Messages per day" description={`How many automated WhatsApp messages go out each day, up to ${DAILY_AUTOMATION_CAP}.`}>
+              <SettingsItem label="Messages per day" description={`How many automated WhatsApp messages go out each day. ${DAILY_AUTOMATION_CAP} by default, up to ${DAILY_AUTOMATION_MAX}.`}>
                 <DailyLimitStepper value={data.automation.dailyMessageLimit} disabled={data.automation.loading || data.automation.saving}
                   onChange={(value) => data.automation.set("dailyMessageLimit", value)} />
               </SettingsItem>

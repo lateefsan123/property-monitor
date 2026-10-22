@@ -52,11 +52,12 @@ test("hours read naturally", () => {
   assert.equal(formatHour(24), "midnight");
 });
 
-test("the daily limit stays between 1 and 40", async () => {
+test("the daily limit is 40 unless raised, up to 45", async () => {
   const { clampDailyLimit } = await import("../shared/automation-settings.js");
   assert.equal(clampDailyLimit(25), 25);
   assert.equal(clampDailyLimit(0), 40);
-  assert.equal(clampDailyLimit(99), 40);
+  assert.equal(clampDailyLimit(45), 45);
+  assert.equal(clampDailyLimit(99), 45);
   assert.equal(clampDailyLimit("12"), 12);
   assert.equal(clampDailyLimit(undefined), 40);
 });
