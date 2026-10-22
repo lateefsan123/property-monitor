@@ -61,6 +61,19 @@ export function discoverTables(doc = document) {
       } catch { return []; }
     });
 }
+// The table on the page with the same headings (after an app re-rendered it).
+export function findTableLike(headings, doc = document) {
+  const wanted = new Set(headings.map(token).filter(Boolean));
+  const need = Math.min(3, wanted.size);
+  for (const root of doc.querySelectorAll(rootSelector)) {
+    if (!visible(root) || root.closest('[data-repeat-export-ui]') || root.parentElement?.closest(rootSelector)) continue;
+    try {
+      const labels = snapshot(root).columns.map(c => token(c.label));
+      if (need && labels.filter(label => wanted.has(label)).length >= need) return root;
+    } catch { /* not a readable table */ }
+  }
+  return null;
+}
 export function scopeFor(root) {
   const known = root.closest('.dataTables_wrapper,.dt-container,[data-export-container],.ag-root-wrapper');
   if (known) return known;
@@ -72,11 +85,43 @@ export function scopeFor(root) {
   }
   return root.parentElement;
 }
+// The largest ancestor that still holds only this table: CRM toolbars often
+// put the result count and the pager above the table, outside its wrapper.
+export function pagerScope(root) {
+  let scope = root.parentElement || root;
+  for (let el = scope.parentElement, level = 0; el && el !== document.body && level < 8; el = el.parentElement, level++) {
+    if ([...el.querySelectorAll(rootSelector)].filter(visible).length !== 1) break;
+    scope = el;
+  }
+  return scope;
+}
+const number = value => Number(value.replaceAll(',', ''));
+// Text outside the table itself, line by line ("392 Results", "1/4").
+function scopeLines(root) {
+  const lines = [];
+  const walker = document.createTreeWalker(pagerScope(root), NodeFilter.SHOW_TEXT, {
+    acceptNode: node => (root.contains(node) || !node.parentElement || !visible(node.parentElement) ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT),
+  });
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const line = text(node.textContent);
+    if (line) lines.push(line);
+  }
+  return lines;
+}
+const PAGE_OF = /^(\d+)\s*(?:\/|of)\s*(\d+)$/i;
 export function expectedRows(root) {
   const scope = scopeFor(root);
   const info = scope?.querySelector('.dataTables_info,.dt-info,[role="status"],[data-row-summary]')?.textContent || '';
   const match = info.match(/showing\s+([\d,]+)\s+(?:to|[-–])\s+[\d,]+\s+of\s+([\d,]+)\s+(?:entries|rows|records|results)/i);
   if (match) return { count: Number(match[2].replaceAll(',', '')), startsAt: Number(match[1].replaceAll(',', '')), source: 'page counter' };
+  // CRM toolbars: "392 Results" or "1–100 of 392 contacts", plus a "1/4" page box.
+  const lines = scopeLines(root);
+  const page = lines.map(line => line.match(PAGE_OF)).find(Boolean);
+  for (const line of lines) {
+    const total = line.match(/^([\d,]+)\s+(?:results|records|contacts|leads|entries|rows|items)$/i)
+      || line.match(/\bof\s+([\d,]+)\s*(?:results|records|contacts|leads|entries|rows|items)?$/i);
+    if (total && !PAGE_OF.test(line)) return { count: number(total[1]), startsAt: page && Number(page[1]) > 1 ? 2 : 1, source: 'page counter' };
+  }
   const count = Number(root.getAttribute('aria-rowcount'));
   if (count > 0) {
     const headers = rowsOf(root).filter((r, i) => r.closest('thead') || r.querySelector('[role="columnheader"]') || (i === 0 && r.querySelector('th:not([scope="row"])'))).length;
@@ -97,21 +142,45 @@ export function scrollContainers(root) {
   };
   return { x: candidates.find(el => isScrollable(el, 'x')), y: candidates.find(el => isScrollable(el, 'y')) };
 }
+const NEXT_LABEL = /^(next(?: page)?|go to next page|›|»|>)$/;
+// Icon-only arrows: their names live in classes, test ids or the icon itself.
+const NEXT_HINT = /(^|[^a-z])(next|chevron-?right|arrow-?right|caret-?right|angle-?right|keyboard-?arrow-?right|navigate-?next|forward)([^a-z]|$)/i;
+const hints = el => [el, ...el.querySelectorAll('*')].slice(0, 12)
+  .map(n => [n.getAttribute('aria-label'), n.getAttribute('title'), n.getAttribute('data-testid'), n.getAttribute('data-icon'), n.getAttribute('class'), n.getAttribute('name')].filter(Boolean).join(' ')).join(' ');
+function isNext(el) {
+  const label = text(el.getAttribute('aria-label') || el.getAttribute('title') || el.innerText).toLowerCase();
+  if (NEXT_LABEL.test(label) || el.matches('.paginate_button.next,.dt-paging-button.next')) return true;
+  return !text(el.innerText) && NEXT_HINT.test(hints(el)) && !/prev|left|back/i.test(label);
+}
+function isDisabled(el) {
+  return el.disabled || el.getAttribute('aria-disabled') === 'true' || el.classList.contains('disabled') || !!el.closest('.disabled,[aria-disabled="true"]')
+    || getComputedStyle(el).pointerEvents === 'none';
+}
+// Icon-only pager with a "1/4" box: the button straight after the box is Next.
+function afterPageBox(controls, scope) {
+  const box = [...scope.querySelectorAll('*')].find(el => visible(el) && !el.children.length && PAGE_OF.test(text(el.textContent)));
+  if (!box) return null;
+  return controls.find(el => !text(el.innerText) && (box.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING)) || null;
+}
 export function nextControl(root) {
-  const scope = scopeFor(root);
-  const controls = [...(scope?.querySelectorAll('button,a,[role="button"]') || [])].filter(visible);
-  const matches = controls.filter(el => {
-    if (el.closest(rootSelector)) return false;
-    const label = text(el.getAttribute('aria-label') || el.getAttribute('title') || el.innerText).toLowerCase();
-    return /^(next(?: page)?|go to next page|›|»|>)$/.test(label) || el.matches('.paginate_button.next,.dt-paging-button.next');
-  });
-  if (matches.length > 1) throw new Error('More than one Next control was found. Capture pages separately to avoid changing the wrong table.');
-  const el = matches[0];
-  if (!el) return null;
-  const disabled = el.disabled || el.getAttribute('aria-disabled') === 'true' || el.classList.contains('disabled') || !!el.closest('.disabled');
-  if (disabled) return null;
+  // "4/4": the last page, even if the arrow still looks clickable.
+  const page = scopeLines(root).map(line => line.match(PAGE_OF)).find(Boolean);
+  if (page && Number(page[1]) >= Number(page[2])) return null;
+  let el = null;
+  for (const scope of [scopeFor(root), pagerScope(root)]) {
+    const controls = [...(scope?.querySelectorAll('button,a,[role="button"]') || [])].filter(c => visible(c) && !c.closest(rootSelector) && !c.closest('[data-repeat-export-ui]'));
+    const matches = controls.filter(isNext);
+    // A pager above and below the same table is two copies of one control.
+    el = matches.find(c => !isDisabled(c)) || matches[0] || afterPageBox(controls, scope);
+    if (el) break;
+  }
+  if (!el || isDisabled(el)) return null;
   const href = el.getAttribute('href');
-  if (href && !href.startsWith('#') && !href.startsWith('javascript:')) throw new Error('Next opens a new page. Capture this page with automatic pagination off, then add the next page separately.');
+  if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
+    // App routers render Next as a link to the same page with a new query.
+    const target = new URL(href, location.href);
+    if (target.origin !== location.origin || target.pathname !== location.pathname) throw new Error('Next opens a new page. Capture this page with automatic pagination off, then add the next page separately.');
+  }
   return el;
 }
 export function isBusy(root) {

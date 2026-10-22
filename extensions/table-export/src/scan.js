@@ -1,5 +1,5 @@
 import { RowCollector } from './records.js';
-import { snapshot, scrollContainers, nextControl, expectedRows, isBusy } from './dom.js';
+import { snapshot, scrollContainers, nextControl, expectedRows, isBusy, findTableLike } from './dom.js';
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 const signature = root => JSON.stringify(snapshot(root).rows);
@@ -15,10 +15,18 @@ export async function scanTable(root, options = {}, progress = () => {}, signal 
   const expected = publishedExpected ?? manualExpected;
   if (publishedExpected !== null && manualExpected !== null && publishedExpected !== manualExpected) issues.add(`The entered total (${manualExpected}) differs from the source total (${publishedExpected}). Check the expected row count.`);
   const originalScroll = new Map();
-  let pages = 0, steps = 0, finished = false, error = '';
+  // Some apps rebuild the whole table when the page changes; follow the new one.
+  const headings = snapshot(root).columns.map(c => c.label);
+  function relocate() {
+    if (root.isConnected) return true;
+    const replacement = findTableLike(headings);
+    if (replacement) root = replacement;
+    return Boolean(replacement);
+  }
+  let pages = 0, steps = 0, finished = false, error = '', transitioning = false;
   function guard() {
     if (signal.aborted) throw new Error('Collection stopped. These rows are a partial capture; clear it and scan again before exporting.');
-    if (!root.isConnected) throw new Error('The table was replaced or the sheet changed. Clear this capture and scan the current sheet again.');
+    if (!relocate() && !transitioning) throw new Error('The table was replaced or the sheet changed. Clear this capture and scan the current sheet again.');
     if (Date.now() - started > maxMs || steps++ > 30000) throw new Error('Collection reached its time limit. Narrow the page filter or capture smaller sections.');
     if (collector.rows.size > maxRows) throw new Error('Collection exceeded 100,000 rows. Filter the sheet into smaller sections.');
   }
@@ -117,14 +125,19 @@ export async function scanTable(root, options = {}, progress = () => {}, signal 
         } else await settled();
       }
       if (options.paginate === false) break;
+      // Every row is in: some pagers never disable Next on the last page.
+      if (expected !== null && collector.rows.size >= expected) break;
       const next = nextControl(root);
       if (!next) break;
       const before = signature(root); next.click();
       const deadline = Date.now() + (options.loadTimeoutMs || 30000);
+      // While the next page loads the table may briefly disappear.
+      transitioning = true;
       do {
         await settled();
         if (Date.now() > deadline) throw new Error('Next did not load a different page. The capture is incomplete.');
-      } while (signature(root) === before);
+      } while (!relocate() || signature(root) === before);
+      transitioning = false;
       pages++;
     }
     finished = true;
