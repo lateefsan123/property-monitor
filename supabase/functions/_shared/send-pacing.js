@@ -3,9 +3,11 @@
 // (seller_signal_automation_settings.send_window_start_hour / _end_hour /
 // send_interval_minutes). The dispatcher runs every 5 minutes, so a gap
 // counts as passed up to 90 seconds early to absorb scheduler drift.
+// Accounts that never chose a gap get 15 minutes: 40 messages spread over the
+// day rather than a burst, which is what gets numbers flagged.
 export const SEND_INTERVAL_OPTIONS = [5, 10, 15, 30, 60];
 export const DEFAULT_SEND_WINDOW = { start: 9, end: 21 };
-export const DEFAULT_SEND_INTERVAL_MINUTES = 5;
+export const DEFAULT_SEND_INTERVAL_MINUTES = 15;
 const DRIFT_MS = 90 * 1000;
 
 function hour(value, fallback) {
@@ -78,6 +80,17 @@ export async function loadLastAutoSends(client, userIds, now = new Date()) {
   return result;
 }
 
+// Gaps of 15 minutes or more get a little extra wait (up to a fifth of the
+// gap) so sends don't land on an exact rhythm. The 5-minute scheduler rounds
+// it up, so a 15-minute gap becomes 15 or 20 and 40 still fit 9 am to 9 pm.
+// Derived from the account and its last send, so every run agrees.
+export function jitterMs(userId, lastSendMs, interval) {
+  if (interval < 15) return 0;
+  let hash = 2166136261;
+  for (const char of `${userId}:${lastSendMs}`) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619) >>> 0;
+  return Math.floor((hash / 4294967296) * (interval / 5) * 60 * 1000);
+}
+
 // Accounts that must wait this run, with the reason: outside their hours, or
 // their gap since the last automated message hasn't passed.
 export function accountsNotDue({ pacing, lastSends, now = new Date(), dubaiHour, enforceWindow = true }) {
@@ -88,7 +101,7 @@ export function accountsNotDue({ pacing, lastSends, now = new Date(), dubaiHour,
       continue;
     }
     const last = lastSends.get(userId);
-    if (last && now.getTime() - last < interval * 60 * 1000 - DRIFT_MS) waiting.set(userId, "spacing");
+    if (last && now.getTime() - last < interval * 60 * 1000 + jitterMs(userId, last, interval) - DRIFT_MS) waiting.set(userId, "spacing");
   }
   return waiting;
 }

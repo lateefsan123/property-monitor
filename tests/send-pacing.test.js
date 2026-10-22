@@ -1,10 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { accountsNotDue, formatHour, loadSendPacing, messagesThatFit, normalizePacing, suggestedInterval } from "../supabase/functions/_shared/send-pacing.js";
+import { accountsNotDue, formatHour, jitterMs, loadSendPacing, messagesThatFit, normalizePacing, suggestedInterval } from "../supabase/functions/_shared/send-pacing.js";
 
-test("pacing falls back to 9 am to 9 pm every 5 minutes", () => {
-  assert.deepEqual(normalizePacing(null), { start: 9, end: 21, interval: 5 });
-  assert.deepEqual(normalizePacing({ send_window_start_hour: 22, send_window_end_hour: 8, send_interval_minutes: 7 }), { start: 9, end: 21, interval: 5 });
+test("pacing falls back to 9 am to 9 pm every 15 minutes", () => {
+  assert.deepEqual(normalizePacing(null), { start: 9, end: 21, interval: 15 });
+  assert.deepEqual(normalizePacing({ send_window_start_hour: 22, send_window_end_hour: 8, send_interval_minutes: 7 }), { start: 9, end: 21, interval: 15 });
   assert.deepEqual(normalizePacing({ send_window_start_hour: 10, send_window_end_hour: 14, send_interval_minutes: 10 }), { start: 10, end: 14, interval: 10 });
 });
 
@@ -39,9 +39,9 @@ test("pacing loads per account and survives missing columns", async () => {
   const ok = { from: () => ({ select() { return this; }, in: () => Promise.resolve({ data: [{ user_id: "a", send_window_start_hour: 10, send_window_end_hour: 18, send_interval_minutes: 15 }], error: null }) }) };
   const pacing = await loadSendPacing(ok, ["a", "b"]);
   assert.deepEqual(pacing.get("a"), { start: 10, end: 18, interval: 15 });
-  assert.deepEqual(pacing.get("b"), { start: 9, end: 21, interval: 5 });
+  assert.deepEqual(pacing.get("b"), { start: 9, end: 21, interval: 15 });
   const missing = { from: () => ({ select() { return this; }, in: () => Promise.resolve({ data: null, error: { code: "42703", message: "no column" } }) }) };
-  assert.deepEqual((await loadSendPacing(missing, ["a"])).get("a"), { start: 9, end: 21, interval: 5 });
+  assert.deepEqual((await loadSendPacing(missing, ["a"])).get("a"), { start: 9, end: 21, interval: 15 });
 });
 
 test("hours read naturally", () => {
@@ -66,4 +66,16 @@ test("suggests the widest gap that still fits every message in the window", () =
   assert.equal(suggestedInterval({ start: 9, end: 21 }, 40), 15);
   assert.equal(suggestedInterval({ start: 9, end: 21 }, 5), 60);
   assert.equal(suggestedInterval({ start: 9, end: 12 }, 40), 5);
+});
+
+test("gaps of 15 minutes or more get a stable extra wait of up to a fifth", () => {
+  assert.equal(jitterMs("a", 1000, 5), 0);
+  const waits = Array.from({ length: 200 }, (_, i) => jitterMs("acct", 1_700_000_000_000 + i * 60_000, 15));
+  assert.ok(waits.every((ms) => ms >= 0 && ms < 3 * 60 * 1000));
+  assert.ok(new Set(waits.map((ms) => Math.floor(ms / 60_000))).size === 3, "spreads across the range");
+  assert.equal(jitterMs("acct", 42, 15), jitterMs("acct", 42, 15));
+  // The 5-minute scheduler turns each gap into 15 or 20 minutes; 40 still fit 9 am to 9 pm.
+  const gaps = waits.map((ms) => (15 * 60_000 + ms - 90_000 <= 15 * 60_000 ? 15 : 20));
+  const average = gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length;
+  assert.ok((12 * 60) / average >= 40, `average gap ${average}`);
 });
