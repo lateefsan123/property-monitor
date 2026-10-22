@@ -43,3 +43,4 @@ The first attempts failed locally while another session's TypeScript checks were
 - 6 October 2026: update group `09fef909-1b13-4129-844f-570f9250b42d` from main `aa4f06c3`. WhatsApp number formatting for 00971 and +971 (0) numbers, Activity and History refresh after a send, History matching by number only for unlinked rows. The web app was deployed from the same commit.
 
 Publish with `EXPO_PUBLIC_FILM` unset (for example `env -u EXPO_PUBLIC_FILM eas update ...`). Film mode swaps the Supabase client for the offline demo backend, so a film-mode bundle must never ship. After publishing, check that `dist/_expo/static/js/{ios,android}` contain no demo strings such as "Sara Haddad Properties".
+- 22 October 2026: update group `a743885d-a0b4-4f26-b67e-f45aad74c3e1` from main `3c6decd6`. Daily automated messages 40 by default, up to 45 in Settings; the nearby sales toggle (off unless turned on). No demo strings in the bundle. The web app was deployed from the same commit.
