@@ -37,29 +37,37 @@ portable manifest so the new ZIP flow preserves those review materials.
 - No new draft was accepted or submitted, and nothing was published. Existing
   plugin/service configuration and unrelated working-tree changes were preserved.
 
-### Prepared request to the review team (not sent)
+### Review-team recovery request (sent 2026-10-22)
 
-> Hello OpenAI review team,
->
-> We have addressed the name/description feedback for Repeat AI 0.1.0 in
-> version 0.1.1. The display name remains our product brand, Repeat AI. The new
-> subtitle is "Manage property seller leads", and the description now explains
-> saved seller contacts, follow-up notes and confirmed WhatsApp actions in plain
-> language, without subscription wording or implementation details.
->
-> We cannot resubmit the corrected ZIP for the existing plugin
-> `asdk_app_6abc34a9bfb8819187668196e47b6952`. Upload validation says: "Keep the
-> existing MCP connection. Configure the existing MCP app before updating its
-> plugin ZIP." The MCP pane shows Configuration unavailable and Endpoint
-> unavailable; there is no configuration control, and rescan is disabled.
->
-> Our production service and advertised OAuth resource metadata are reachable,
-> and the domain challenge and review recording remain available. Please restore
-> the existing MCP configuration or provide the supported steps to upload and
-> resubmit the corrected package while preserving this plugin and endpoint.
->
-> Thank you,
-> Lateef Sanusi
+At 14:45 Europe/Dublin, sent a reply from the plugin owner's
+`lateefsanusi68@gmail.com` account to the rejection email's designated reply
+address, `openai-review@openai.com`. The subject is
+`Re: ChatGPT Plugin Submission Rejected[asdk_app_6abc34a9bfb8819187668196e47b6952]`.
+
+The reply includes the complete revised public listing, explains the upload
+blocker and missing configuration controls, and asks the review team to restore
+the existing connection or provide supported recovery/resubmission steps.
+It also asks whether the attached corrected package can be reviewed directly.
+
+Attached and verified in the sent message:
+
+- `repeat-ai-0.1.1-resubmission.zip` (380K), with the SHA256 recorded above.
+- `repeat-ai-plugin-mcp-2026-10-22-support.jpg` (62K), showing the current
+  unavailable MCP configuration and disabled rescan control.
+
+Gmail displayed `Message sent`. A targeted Sent-mail search and message readback
+confirmed the recipient, revised listing text, timestamp and both attachments.
+The dashboard was checked again before sending and still shows
+`Configuration unavailable`, with no setup/edit control. This email is a
+recovery request, not a new portal submission or an approval.
+
+- Sent message: https://mail.google.com/mail/u/0/#search/in%3Asent+to%3Aopenai-review%40openai.com+after%3A2026%2F10%2F21/KtbxLwHLtgnvsJhrjkpnpjjXbKxndjmNVV
+- Sent-message screenshot: `C:/Users/lateef/.codex/artifacts/repeat-ai-openai-review-reply-sent-2026-10-22.jpg`.
+- Exact sent text: `C:/Users/lateef/.codex/artifacts/repeat-ai-openai-review-reply-2026-10-22.txt`.
+
+Next: use OpenAI's supported recovery instructions or restored configuration,
+then upload 0.1.1, complete the dashboard checks and submit it for review.
+No response or restoration was observed during this follow-up.
 
 ## Initial submission (2026-09-30)
 
