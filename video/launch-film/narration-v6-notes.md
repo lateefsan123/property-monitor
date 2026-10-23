@@ -18,3 +18,7 @@ Large-v3-turbo and small.en failed with `mkl_malloc` allocation errors on this b
 Use **take 2 provisionally for picture alignment**. Subjective delivery, pronunciation and final mix still require listening review; automated checks do not establish naturalness or user approval. Take 1 was shared inline for audition. Do not overwrite either original.
 
 Claude Code session for the visual production: `15196f7d-19a6-4aa0-ad21-49cbdac30616`. The first code pass uses provisional timing; a follow-up must load the supplied audio timing, replace placeholders with real isolated demo captures, finish both aspect ratios and cutdowns, and verify the encoded exports. No video is final merely because the narration exists.
+
+## User response and selected take
+
+The user responded "Perfect" after take 1 was shared inline, then requested accurate JavaScript UI/mouse interactions and polished transitions/sound. Treat **take 1 as the chosen performance**. Base.en subsequently verified take 1 too: every scripted token was recovered after colour/color, two thousand/2000 and spoken URL formatting normalisation. Its earlier tiny.en "or"/"your" difference was not reproduced by base.en. `out/audio-timing-v6.json` now points to take 1 and its exact paragraph anchors. Use that file as the source of truth; supersede the earlier provisional take-2 choice. The original downloads remain unchanged.
