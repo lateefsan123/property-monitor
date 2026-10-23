@@ -198,7 +198,7 @@ function SortMenu({ field, direction, onChange }) {
   );
 }
 
-function SelectionBar({ count, total, onSelectAll, onClear, onCopyLink, onPin, onUnpin, canCopyLink, allPinned }) {
+function SelectionBar({ count, total, onSelectAll, onClear, onCopyLink, onPin, onUnpin, onDelete, canCopyLink, canDelete, deleting, allPinned }) {
   return (
     <div className="selection-bar" role="toolbar" aria-label="Selection actions">
       <button
@@ -235,6 +235,15 @@ function SelectionBar({ count, total, onSelectAll, onClear, onCopyLink, onPin, o
         onClick={allPinned ? onUnpin : onPin}
       >
         {allPinned ? "Unpin" : "Pin"}
+      </button>
+      <button
+        type="button"
+        className="selection-bar-action is-destructive"
+        onClick={onDelete}
+        disabled={!canDelete || deleting}
+        title={canDelete ? undefined : "The legacy spreadsheet can't be deleted here"}
+      >
+        {deleting ? "Deleting…" : "Delete"}
       </button>
     </div>
   );
@@ -449,6 +458,11 @@ export default function SpreadsheetsPage({ userId }) {
           }}
           onPin={() => setManyPinned(Array.from(selected), true)}
           onUnpin={() => setManyPinned(Array.from(selected), false)}
+          canDelete={!selected.has("legacy")}
+          deleting={Boolean(page.clearingSourceId)}
+          onDelete={async () => {
+            if (await page.actions.removeSources(Array.from(selected))) clearSelection();
+          }}
         />
       )}
 

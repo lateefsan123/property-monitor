@@ -349,6 +349,37 @@ export function useSpreadsheetsPage(userId) {
     }
   }
 
+  // Removes several spreadsheets and their sellers after one confirmation.
+  async function removeSources(sourceIds) {
+    const sources = leadSources.filter((item) => sourceIds.includes(String(item.id)));
+    if (!sources.length) return false;
+    const sellers = sources.reduce((sum, source) => sum + (sourceCounts[source.id] || 0), 0);
+    const what = sources.length === 1 ? `"${formatSourceLabel(sources[0]) || "this spreadsheet"}"` : `${sources.length} spreadsheets`;
+    if (!window.confirm(`Delete ${what} and ${sellers} seller${sellers === 1 ? "" : "s"}? This can't be undone.`)) return false;
+
+    setActionError(null);
+    setActionNotice(null);
+    try {
+      for (const source of sources) {
+        setClearingSourceId(source.id);
+        await clearLeadsForSource(userId, source.id);
+        await deleteLeadSource(userId, source.id);
+      }
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: sellerLeadsQueryKey(userId) }),
+        queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) }),
+      ]);
+      queryClient.removeQueries({ queryKey: sellerInsightsQueryPrefix(userId) });
+      return true;
+    } catch (removeError) {
+      setActionError(getErrorMessage(removeError));
+      await queryClient.invalidateQueries({ queryKey: sellerSourcesQueryKey(userId) });
+      return false;
+    } finally {
+      setClearingSourceId(null);
+    }
+  }
+
   return {
     error,
     notice,
@@ -370,6 +401,7 @@ export function useSpreadsheetsPage(userId) {
       importRows,
       addSource,
       clearSource,
+      removeSources,
       importFromSheet,
       importLegacySheet,
       saveLeadSource,
