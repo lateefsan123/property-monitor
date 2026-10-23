@@ -1,0 +1,210 @@
+@The seller's other WhatsApps|building transactions|Show a fictional building transaction and the matching seller; compose the relevant update.
+You own a Dubai apartment. It is Tuesday.|Any property available sir?|A similar two-bed in your building sold this week. Want the details?|Which floor?|Have a reason to follow up.
+The owner has heard 'serious buyer' before.|I have a very serious buyer.|Would a summary of recent sales in your building be useful?|Send it over.|Specific beats serious.
+The third 'market update' today.|The market is very hot.|Would you like the recorded sales for your building last month?|For two-beds only.|A market update should contain an update.
+An owner opens six identical messages.|Dear valued owner, any availability?|A sale was recorded in your building. Want to see the comparison?|What size was it?|Give them something to open.
+The agent who specialises in everywhere.|I specialise in every area of Dubai.|I focus on this building. May I send the latest recorded sale?|Yes, this building only.|Start with their building.
+When 'great opportunity' needs explaining.|I have an amazing opportunity for you.|Would you like to compare your asking price with a recent building sale?|That would help.|Less mystery. More relevance.
+The owner asks one reasonable question.|The market is moving fast!|Here are the recent recorded sales. We can compare the similar units.|Are these completed sales?|Bring something concrete.
+A seller is tired of mystery buyers.|Buyer waiting. Urgent.|Before discussing buyers, would you like an update on local sales?|Okay, show me.|Earn the next conversation.
+The owner who checks every claim.|Your neighbour sold for a record price.|A sale was recorded nearby. Let us check the size before comparing.|Exactly. Mine is different.|Context belongs beside the number.
+The most overused word in the inbox.|Exclusive opportunity!|There is a new recorded sale in your building. Want the details?|What changed?|An actual update is enough.
+When the owner replies with one word.|Interested?|Would you like the recent sales for your building?|Yes.|Give 'yes' a clear meaning.
+The message with no reason attached.|Just reaching out.|A building sale gives us a useful starting point. Want the comparison?|Which unit type?|Reach out with a reason.
+The owner who only wants building news.|Dubai is booming!|Would you prefer updates about your building rather than the whole market?|My building, please.|Make the update smaller and better.
+The broker sends a headline. The owner wants detail.|Property prices soar!|Want to check what actually sold in your building last month?|Yes, not asking prices.|Headlines are not comparables.
+The penthouse gets a studio comparison.|Look what this studio sold for.|Let us compare similar units before drawing a conclusion.|Mine is a penthouse.|Relevant does not mean identical.
+When a sales number needs a date.|A unit sold at this price.|This sale was recorded last month. Want the date and unit details?|Yes, when exactly?|Dates belong in updates.
+The owner who already knows the headline.|Did you hear about Dubai property?|Would recent transactions in your own building be more useful?|Much more.|Their building is the story.
+The empty 'quick update'.|Quick update: still looking to sell?|There is a recorded sale worth reviewing. Want me to send it?|Send the details first.|Put the update in the update.
+The owner who asks for evidence.|Trust me, prices are up.|I can share the recorded transactions and we can compare them.|That is useful.|Show your working.
+An owner reads the message twice.|Good news for all owners!|Want a short summary of sales recorded in your building?|Yes, short please.|Make relevance easy to spot.
+@The introduction loop|message templates|Open the actual mobile template editor and preview first-contact versus follow-up wording; demonstrate deliberate template selection.
+You have met this broker four times.|Hello, my name is Alex. I am a broker.|Following up on our appraisal conversation. Would an updated comparison help?|Yes. We spoke yesterday.|Your second message is not your first.
+The seller has your business card already.|Allow me to introduce myself again.|Do you want to revisit the valuation we discussed?|I remember you.|Remember the conversation too.
+The fourth welcome message.|Welcome! I specialise in your building.|Any changes to your selling timeline since we last spoke?|Still next quarter.|Follow up from where you left off.
+When the broker card becomes a jump scare.|Hello again. Here is my business card again.|I have the sales summary we discussed. Shall I send it?|Yes, the summary.|The update is the useful part.
+The owner knows your name. You do not know the stage.|I would like to introduce our services.|Following up on your appraisal. Would next week suit a review?|Tuesday works.|Match the message to the stage.
+The seller replies with your own name.|My name is Alex, property consultant.|Is the current listing price still the one you want to review?|Alex. I know.|You can skip the introduction now.
+A follow-up wearing a first-contact costume.|Nice to meet you!|You mentioned waiting until your tenancy ends. Is that still the plan?|Yes, after renewal.|Use the context you already have.
+The world's longest reintroduction.|Let me tell you about our company again.|Would you like to revisit the appraisal this month?|That is why we are talking.|Give the next message a next step.
+The introduction that ate the update.|I am an experienced professional broker...|There is new building sales activity to discuss. Want the details?|Lead with that.|Put the news first.
+When every message says 'firstly'.|Firstly, let me introduce myself.|Picking up from our last conversation: are you ready to review options?|Yes, now is better.|Pick up. Do not restart.
+A seller tests whether anyone is listening.|Hello owner, are you selling?|You said you were holding for now. Has that changed?|Still holding.|A useful follow-up can end with 'not yet'.
+The agent who keeps resetting the relationship.|We have not spoken before.|Thanks for the call earlier. Want the comparison we discussed?|We just spoke.|The template needs a reality check.
+The buyer presentation sent to a seller.|Here is our buyer introduction.|Here is the appraisal summary for your property.|That is the one I need.|The right template has the right job.
+When the first-contact paragraph survives every edit.|Dear owner, pleased to introduce...|Did you get a chance to review the valuation?|I have a question about it.|Get to the conversation.
+The owner has become the broker's biographer.|I am Alex from the same agency...|Would you like another look at your listing plan?|I could write your introduction.|Familiarity should change the message.
+The 'nice to meet you' after a viewing.|Nice to meet you virtually.|Thanks for showing me the apartment. Shall I send the appraisal?|Yes, please.|Acknowledge what just happened.
+The template preview saves an awkward send.|Hello [NAME], I am [BROKER].|Hi Sara, here is the building update we discussed.|Much better.|Preview before the person does.
+The owner gets an essay. They asked for a date.|Here is a full introduction to our services.|Would Thursday suit the appraisal?|Thursday afternoon.|Answer the actual next question.
+When a follow-up finally sounds like one.|Hello, I specialise in real estate.|You asked me to check back this month. Is now a good time?|Yes, thanks for remembering.|That is a follow-up.
+The broker discovers the delete key.|Hello, my name is... again.|Any update on the listing since our last chat?|We reduced the asking price.|Keep the context. Lose the repetition.
+@Wrong status, wrong conversation|custom statuses|Show the seller status, create or select an appropriate status, and preview matching message wording; saved changes must be visible.
+Your property is already listed.|Would you consider putting it on the market?|Is the listing price still current?|It has been listed for weeks.|Know the stage before the message.
+An appraisal lead gets a viewing request.|Can I arrange a viewing tomorrow?|Would you like to review the appraisal first?|We have not discussed value yet.|Do not skip the conversation.
+The owner is holding. The template is selling.|Ready to sign the listing today?|Are you still planning to hold the property?|Yes, still holding.|A status should mean something.
+The hot lead is buried in 'everyone'.|I will check the whole spreadsheet later.|You asked to move quickly. Can we review the next step today?|Yes, this afternoon.|Make the urgent conversations visible.
+The seller has exchanged. The message has not.|Any interest in selling your apartment?|Congratulations on the sale. Thanks for the update.|It is already sold.|Update the status when life changes.
+One pipeline stage for every human being.|Hello owner. Same question for everyone.|Are we discussing an appraisal or an active listing?|Appraisal first.|Different stages deserve different messages.
+The status called 'maybe maybe'.|I put everyone under Miscellaneous.|Let us give this stage a clear name and follow-up schedule.|I am waiting for tenancy expiry.|Name the actual situation.
+The rented unit gets an empty-apartment pitch.|Your vacant apartment is ideal for viewings.|Is the tenant still in place? We can plan around that.|Yes, until March.|Read the stage, not your assumption.
+The owner only asked for a valuation.|Can we publish the listing today?|Would a valuation discussion be useful first?|Yes, just a valuation.|Appraisal is not a listing instruction.
+The active listing gets an introduction.|Thinking of selling one day?|Any update on the property already on the market?|We have a viewing booked.|For Sale means it is already for sale.
+The custom status finally earns its colour.|I remember the important ones by memory.|Let us keep these sellers in a clear follow-up group.|Call me after the holiday.|Colour should carry meaning.
+The price-review conversation is lost.|Same message to all sellers today.|You wanted to revisit the asking price. Shall we review it?|Yes, this week.|Make the next step visible.
+The owner said 'after renewal'.|Are you selling today?|Shall we revisit this after your tenancy renewal?|Exactly.|Capture the stage. Respect the timing.
+The seller comes back after six months.|We need to start from scratch.|You were waiting for a better time. Has your plan changed?|I am ready now.|A status can change. The history still matters.
+The broker has twenty priorities marked priority.|Everyone is my hottest lead.|Let us separate active sellers from longer-term conversations.|I need to move this month.|Everything urgent means nothing urgent.
+The appraisal is finished. The stage is not.|Would you like your first appraisal?|Do you want to discuss the valuation I sent?|Yes, about that figure.|Move the seller forward when the conversation moves.
+The owner wants to test the market.|So you are definitely selling now.|Would you like to review options before deciding?|I am exploring.|A label should not invent intent.
+A status name only one person understands.|You are in category X17B.|I have you down for an appraisal follow-up.|Now that makes sense.|Use names you can act on.
+The colour-coded list with no follow-up plan.|Orange means... I forgot.|This group is due for a review every two weeks.|Good, I wanted a check-in then.|Give the colour a schedule.
+The listing was paused yesterday.|Can we book another viewing?|Is the property still paused, or are you ready to restart?|Still paused.|Let the message catch up.
+@The follow-up clock|follow-up frequency and Scheduled|Show a seller's follow-up cadence and the actual Due today or Scheduled view. Scheduling is a reminder/cadence demonstration, not a promise to book appointments automatically.
+The follow-up arrives before the answer.|Just checking again. Again.|I will check back at the interval we discussed.|Give me a little time.|Follow-up is not a stopwatch.
+'Check back next month' meets tomorrow.|Any update since yesterday?|I have you scheduled for next month, as discussed.|Thank you.|Remember the date they gave you.
+The broker trusts future memory.|I will definitely remember this one.|Let us put the next follow-up on the schedule.|It is after my trip.|Future you needs a system.
+The seller who is always 'later'.|I will message at some point.|You said next month. I will keep the follow-up there.|Perfect.|Give later a place.
+When every seller is due every day.|Everyone gets a daily check-in.|Different statuses need different follow-up intervals.|I am not moving that quickly.|One cadence does not fit everyone.
+The follow-up is three months late.|Sorry, this slipped my mind.|You asked for a check-in this month. Still useful?|Yes, timing is better now.|Due today beats remembered eventually.
+The scheduled list gets discovered.|I have no idea who is coming up next.|These are the sellers scheduled after today.|That is next week's work.|See the next conversation coming.
+The broker's alarm says 'owner thing'.|I set an alarm but forgot who it was.|This seller is due for an appraisal follow-up.|That is the one.|A reminder needs a person and a purpose.
+The seller says 'not this week'.|How about tomorrow then?|I will move the follow-up to a more suitable interval.|Next month works.|Not now is useful information.
+A month flies by in one calendar swipe.|I thought we spoke last week.|It is time for the follow-up we planned.|Yes, a lot has changed.|Time passes. Keep the thread.
+The busy morning without a starting point.|I will open every seller and decide.|Start with the sellers due today.|That is a manageable list.|Make the next action obvious.
+The status changes. The cadence stays yesterday.|You are now ready to sell. See you in six months.|Let us review the follow-up schedule for this stage.|I need something sooner.|The rhythm should fit the conversation.
+When 'soon' becomes a date.|I will get back to you soon.|Let us choose when this follow-up should come around.|After the weekend.|Put a shape on soon.
+The broker writes it on a coffee receipt.|I have your follow-up on this receipt.|Let us keep your seller follow-up in the workspace.|Please do.|Coffee receipts are not a pipeline.
+The owner returns from a holiday.|Are you still away? Every day.|You said to check back after your trip. Good time now?|Yes, I am back.|Give the conversation room.
+A daily list made of yesterday's guesses.|These people are probably due.|Here is who the current schedule marks due today.|Start there.|A list is better than a guess.
+The broker sees next week before next week.|Monday will be a surprise.|Scheduled shows the conversations coming up.|Now I can plan.|Make Monday less mysterious.
+One-day cadence for a six-month plan.|Any change since this morning?|Let us use a longer follow-up interval for this stage.|That suits me.|Match the rhythm to the plan.
+The seller changed plans between follow-ups.|I assumed you were still waiting.|Has your selling timeline changed since we last spoke?|Yes, we are moving sooner.|Schedules start conversations. People update them.
+The end of 'I meant to message you'.|I was going to follow up, honestly.|You came up in today's follow-ups. Still want to review options?|Yes, let's talk.|Make intention easier to act on.
+@The midnight message|sending window and message interval|Show the actual Dubai sending window and message spacing settings. Distinguish queued automated sends from manual messages and other app notifications.
+Your follow-up has arrived at 11:47pm.|Good evening! Quick property question.|Let us discuss the building update during the day.|Tomorrow, please.|Good content. Better timing.
+The phone lights up during dinner.|Urgent: are you selling?|I will keep automated updates within my chosen sending hours.|This can wait.|Set a window. Give people an evening.
+The broker confuses days with minutes.|Thirty-minute gap means every seller hears twice an hour.|Days control the seller's cadence. Minutes space queued sends.|Those are different things.|Two clocks. Two jobs.
+The daily limit becomes a high score.|I must hit the limit today.|The limit is a ceiling. Relevant follow-ups come first.|Good.|A ceiling is not a target.
+A Sunday alarm labelled 'property'.|Just one quick question before bed.|Let us keep these updates inside the configured hours.|Please.|The message can wait for the window.
+Five messages land like one notification storm.|Send everything at once.|Use the interval setting to space automated sends.|That is clearer.|Set the pace of the queue.
+When Dubai time gets forgotten.|It is daytime somewhere.|The sending window is set in Dubai time.|I live in Dubai.|Use the clock your settings use.
+A short window meets a long queue.|The limit says twenty, so twenty must go out.|Hours, interval and eligibility affect what can send.|So twenty is a maximum?|Exactly. Maximum is not a promise.
+The seller wakes up before the broker.|Why did this arrive while I was asleep?|Let us review the automated sending window.|Please do.|Check the clock before the queue.
+The interval slider gets the wrong explanation.|This sets when the same owner hears again.|This spaces automated messages across the queue.|And my follow-up days?|Separate setting. Separate job.
+The broker cannot remember which clock they changed.|I made it thirty. Thirty what?|Thirty minutes between automated sends.|That explains it.|Show the unit. Avoid the confusion.
+The queue reaches closing time.|Keep sending until the list is empty.|Automated sends belong inside the chosen hours.|The list can wait.|Hours are a boundary.
+The day starts with a burst of follow-ups.|All at once should save time.|Let us choose a reasonable gap between automated messages.|Show me the setting.|Pace belongs in the plan.
+The broker wants a quiet evening too.|I need to watch every send all night.|Set the sending window and review the activity.|I would rather finish dinner.|Give the work a window.
+When a low daily limit looks like a failure.|Only a few messages? That is bad.|Were they eligible and relevant within the configured window?|That is the better question.|Count useful conversations, not a quota.
+The owner asks why every update is late.|Your building news arrives at bedtime.|I will review my Dubai sending hours.|Thank you.|Timing is part of the message.
+The queue is not a race.|Faster means better follow-up.|Choose message spacing that fits your workflow.|I want steady.|Steady is a setting too.
+The wrong control gets all the blame.|My weekly cadence should slow the queue.|Weekly cadence and queue spacing solve different problems.|Show both.|Separate the controls before explaining them.
+A broker schedules around a different timezone.|Nine means my laptop's nine, right?|The interface labels these sending hours in Dubai time.|I should check that.|Read the timezone beside the hours.
+The control panel becomes three simple questions.|I do not understand all these numbers.|How often per seller? How far apart? During which hours?|Now I get it.|Three questions. Three controls.
+@While you're filming|configured automation|Agent POV: show reviewed templates, eligible sellers and connected WhatsApp, then configured automation/activity. Content creation and replying remain human work.
+The ring light is finally switched on.|I kept stopping mid-take to send the same seller update.|The routine follow-ups are set. I still answer the replies.|Right. This is the kitchen.|Build your brand. Keep your follow-ups organised.
+The best light arrives during follow-up time.|Golden hour and my follow-up routine keep fighting.|The routine updates can go out while I film. I check what sent afterwards.|The light does not have a reschedule button.|Give good light its moment.
+The microphone test becomes a seller-list check.|Testing, one, two... who have I forgotten?|I checked my follow-ups before recording. The routine ones have a setup now.|Testing, one, two. Finally.|Less mental tab switching.
+The same intro has been filmed six times.|I keep stopping to draft another routine update.|The repeatable messages are set up. Learning my lines is still on me.|Welcome to the building. At last.|Keep your voice for the camera.
+The agent finally records the neighbourhood guide.|This guide has lived in my drafts for a month.|Routine follow-up work has a place. I can go film the streets I know.|First stop: the place everyone asks about.|Put your local knowledge on camera.
+Your tripod has become a phone stand for messaging.|I bought this for video. I use it for my seller list.|Templates and configured follow-ups handle the repeatable part.|Today the tripod gets its actual job back.|Tools should make room for the work.
+The videographer asks if we are ready.|Give me a minute. I am typing the same update again.|My follow-up setup is reviewed. Let us get the first shot.|Camera rolling.|Show up prepared in both places.
+The apartment tour keeps turning into a typing session.|This is the kitchen. Also, I need to message three owners.|I can finish the tour and review follow-up activity after.|Back to the kitchen.|One task deserves one take.
+The content plan is ambitious. The draft count is zero.|I planned five videos and spent the afternoon on routine messages.|I am organising the repeatable follow-ups before filming one good video.|One finished video is a start.|Make room for the thing you planned.
+The agent has time to explain the floor plan.|I rush this part because I am thinking about my seller list.|The routine follow-ups have a system. The actual conversations are still mine.|Here is why this layout works.|Spend attention where it helps.
+A video about the building actually gets made.|I know this building well. I rarely get time to explain it.|My seller follow-ups are organised. Today I am filming what I know.|Start with the question owners keep asking.|Turn local knowledge into something useful.
+The caption finally gets written.|I can write messages all day but never my own caption.|I have reviewed the routine follow-up setup. This block is for my content.|Keep it useful. Keep it short.|Leave room to show your expertise.
+The agent stays for the second camera angle.|I usually leave before the detail shots.|The routine updates are set up. I will check what sent after the shoot.|Get the view from this corner too.|Make space for a better job.
+The voiceover survives to the last sentence.|I stop recording whenever I remember a follow-up.|Due today gives that thought somewhere to go. Automation covers configured eligible sends.|And that is the end of the tour.|Your memory should not be the workflow.
+The agent records the FAQ they keep answering.|Every week someone asks about this layout.|I have set up the routine follow-ups. Now I can answer this properly on camera.|Here is the short answer.|Do the personal work once, well.
+The balcony shot does not end in a spreadsheet.|The camera points at the view. I point at the seller list.|I reviewed my sending setup before coming out.|Now let us actually show the view.|Be present in the shot.
+The agent films a real answer instead of a generic pitch.|I wanted to post more, but routine work filled the day.|The routine follow-ups are set up. Today I am answering one question owners keep asking.|No dancing required.|More room for useful content.
+The social media manager gets an actual reply.|Can you send the clips? I have been asking all week.|I have organised my follow-up routine. The clips are filmed today.|Sending the footage now.|Keep both kinds of follow-through.
+The agent makes the thumbnail before midnight.|I always leave my own content until everything else is done.|The repeatable messages have a system. This video finally gets a slot.|This one actually has a cover.|Your business needs visibility too.
+The filming block stops being imaginary.|My calendar says film. My phone says type.|I sorted the follow-up routine before the shoot. Now let me finish a take.|Camera on. Seller list organised.|Give the block a chance.
+@One broker, two mornings|Due today and configured automation|Agent split-screen: stage the same morning in two lanes; right lane shows a brief real setup/activity insert. Do not use invented time-saving numbers or guaranteed outcomes.
+Two mornings. Same coffee.|Left: I open the spreadsheet and try to remember who is due.|Right: I check Due today, review the eligible follow-ups and start the day.|Both coffees are real. Only one is still warm.|A clearer start to the day.
+Two ways to prepare for a viewing.|Left: I draft routine updates in the lobby.|Right: My configured follow-ups are reviewed; I read the viewing notes.|The viewing still needs me.|Automate the repeatable part.
+The same Monday, different first tabs.|Left: Which of these files is current?|Right: I open the seller workspace and filter the group I need.|Monday has enough surprises.|Start with one clear workspace.
+Before the office gets busy.|Left: I type the same introduction again.|Right: I review the correct template before using it.|I still decide what it says.|Reuse the structure. Keep the judgement.
+Two agents hear 'can we move quickly?'|Left: I hope I remember which seller said that.|Right: I update the seller's status and review the next step.|The label is useful because I changed it.|Make changing plans visible.
+The same list, two ways to work it.|Left: I scroll through everyone.|Right: I filter to the appraisals I need today.|The list got smaller. The people did not disappear.|Focus on the conversation in front of you.
+One appointment runs over.|Left: My whole manual follow-up routine is waiting.|Right: Configured eligible sends can run; I review activity after the appointment.|The appointment still gets my attention.|The queue and the conversation have different jobs.
+Two ways to finish Friday.|Left: I send until I hit a number.|Right: I review activity, due sellers and the configured limits.|A target is not a reason to message.|Finish with a useful review.
+The same owner's name appears twice in your thoughts.|Left: I cannot remember whether I already sent it.|Right: I check the seller and send activity before deciding.|Check first. Then act.|Let the activity answer the question.
+The same template, different previews.|Left: I assume all the fields look right.|Right: I read the personalised preview before using it.|Both are one message. Only one was checked.|Preview is part of preparation.
+The same new import arrives.|Left: Another file goes onto the desktop.|Right: I import it, review the result and organise the sellers.|The file is a starting point.|Make the import usable.
+Two plans for next week.|Left: I will probably remember everyone.|Right: I open Scheduled and see who is coming up.|Future me votes for the right side.|Give next week a list.
+Two versions of 'I am on the way'.|Left: I type routine messages while trying to leave.|Right: Follow-ups are configured; I leave and check again when parked.|The road is not a workspace.|Take the workspace with you. Use it safely.
+Two ways to handle a change of plan.|Left: I leave yesterday's status in place.|Right: I edit the seller and check the follow-up rule.|The app needs the update too.|A system works with current information.
+The same afternoon lull.|Left: I search for a reason to contact someone.|Right: I review recorded building sales for a relevant update.|Relevance still needs a human check.|Start with something worth saying.
+Two ways to set the pace.|Left: I confuse weekly follow-ups with a queue interval.|Right: I set days per seller and minutes between sends separately.|Different labels. Different jobs.|Know which clock you are changing.
+Two versions of the end-of-day thought.|Left: Did I forget someone?|Right: I check due sellers and send activity before closing.|A check beats a guess.|Close the laptop with a clearer picture.
+Two kinds of busy.|Left: I am typing the same thing to different stages.|Right: I select the appropriate template and preview it.|Busy is not a message strategy.|Give each stage its own wording.
+The same good idea for a video.|Left: I save it and return to routine typing.|Right: My routine is configured. I record the idea while it is fresh.|One idea actually leaves the notes app.|Give good ideas a production slot.
+Two morning lists. One important reply.|Left: I keep sending routine messages.|Right: I stop and handle the seller's real question myself.|The reply is the work that matters.|Make room for the human part.
+@The broker after hours|sending window and workflow review|Agent POV with ordinary lifestyle footage and real settings/activity insert; illustrate a possible routine, never promise specific time savings or that all work stops automatically.
+Dinner is getting cold.|I am still deciding who needs the same routine update.|I reviewed my follow-up setup and sending hours before dinner.|I can still handle an important reply when needed.|Give routine work a boundary.
+The gym bag has become office storage.|I brought my laptop again. Just in case.|The configured follow-ups have a window. I can review activity after training.|Today the bag contains gym things.|Build a routine you can leave for a while.
+The coffee with a friend is actually a meeting with a spreadsheet.|I keep saying one second.|I organised the follow-up list before coming out.|How was your week? Let me actually listen.|Be present somewhere besides the inbox.
+The walk turns into a stationary typing session.|I came out for a walk and found a bench to work from.|My repeatable follow-ups are configured. Replies still get my attention later.|The walk can continue.|Leave room between the work.
+The agent closes the laptop. Then opens it.|What if I forgot a seller?|I can check Due today and activity instead of guessing.|That is the check I needed.|Replace the worry with a review.
+The weekend starts with a reasonable plan.|I will do routine follow-ups whenever I remember.|I reviewed the sending window and the upcoming schedule.|Now I know what is coming.|A plan can be quiet.
+The holiday photo contains a spreadsheet reflection.|I am supposed to be looking at the view.|The routine is configured. I still choose when to review conversations.|First, the view.|Keep the routine. Keep the perspective.
+The agent finally gets through a chapter.|I check my phone after every paragraph.|I reviewed activity and tomorrow's follow-ups before opening the book.|Next chapter.|A clearer stopping point helps.
+The evening content idea is more than a saved note.|I have enough energy for one useful video, not another routine typing session.|The configured follow-ups have their place. This idea gets a take.|Record it before you overthink it.|Use the space intentionally.
+The school pickup is not an admin slot.|I keep trying to finish a message before leaving.|I review my routine before I go and reply when I am safely stopped.|Time to put the phone away.|People need your attention too.
+The agent's phone has two jobs.|Every notification feels like another routine task.|I review the actual reply and handle the conversation myself.|This one deserves a call.|Automation is not the relationship.
+The sunset is not a desktop wallpaper today.|I normally see this view behind an open spreadsheet.|The repeatable follow-ups are configured; I will review activity later.|Let us actually watch it.|Make room for something outside the list.
+The agent stops inventing emergency admin.|I should probably message everyone again.|I check who is due instead of sending another blanket update.|Not everyone needs a message today.|A smaller list can be the right list.
+The last job before heading out.|I am deciding the whole week in my head.|Scheduled shows the upcoming follow-ups I want to review.|Tomorrow has a place now.|Give tomorrow somewhere to live.
+The train ride becomes a planning slot.|I open five files to find one seller.|The mobile workspace lets me review the seller I need.|One seller. One next step.|Keep the workspace close.
+The friend asks what Repeat actually does.|So it sells houses while you sleep?|No. I configure routine follow-ups; I handle replies and the actual selling.|That makes more sense.|Less routine. Still your business.
+The agent leaves the office without a second laptop bag.|I am bringing everything home to do the same messages.|My templates and follow-up setup are reviewed. Conversations still need me.|The bag feels different today.|Put the repeatable work in a system.
+The agent checks the window, not the weather.|Why am I still thinking about automated sends tonight?|I review the Dubai sending hours and activity.|Now I know the boundary I set.|Settings should answer a real question.
+The weekend starts with tomorrow's list visible.|I do not want to forget the follow-up after this viewing.|I update the seller and check the upcoming schedule.|Now it is not living only in my head.|Give memory some support.
+The quiet evening has an important interruption.|I thought automation meant I would never reply again.|No. Routine sends can be configured. This seller needs a real answer.|I will call them myself.|Make room for the conversation.
+@Two brokers, one problem|templates, statuses and automation|Two-character agent sketch using one actor in two positions. Show one real feature per episode; do not depict unsupported auto-replies or automatic appointments.
+The agent with a ring light and no finished videos.|Broker A: How do you ever finish filming?|Broker B: I organised the repeatable follow-ups first. I still handle replies.|A: So I still have to learn my lines?|The camera is still your job.
+The agent who thinks automation is a substitute broker.|A: Does it negotiate the deal for me?|B: No. I set routine follow-ups. I negotiate.|A: Good. I like that part.|Keep the work that needs you.
+The agent whose best content is in drafts.|A: I have twenty video ideas.|B: I have one filming block and my follow-up setup reviewed.|A: Annoyingly practical.|An idea needs room to become a video.
+The broker who calls every lead hot.|A: All my sellers are urgent.|B: Mine have statuses that reflect the conversations.|A: Even the one who said next year?|Give priority a meaning.
+The colleague with the same introduction forever.|A: My message is perfect. I send it every time.|B: Even after the appraisal?|A: I see the issue.|Different stages. Different wording.
+The colleague measures success by sends.|A: I hit my daily limit.|B: Did the messages suit the sellers?|A: New question unlocked.|A limit is not a strategy.
+The broker with one follow-up schedule for everyone.|A: Weekly for the entire database.|B: What about the owner selling next year?|A: Also weekly.|Let the stage set the rhythm.
+The content day gets its first boundary.|A: I stop recording every time I remember a seller.|B: Put the follow-up in the workspace before the shoot.|A: And then finish the take?|Exactly that.
+The broker who thinks thirty means thirty days.|A: I changed the interval to thirty.|B: That setting is minutes between automated sends.|A: Let us read the labels together.|Know the control before the claim.
+The colleague sends a message at midnight.|A: I finally caught up.|B: What sending hours did you choose?|A: I should probably check.|The clock belongs in the setup.
+The agent refuses to look at the preview.|A: It is a template. What could be wrong?|B: The name, building or wording. Let us preview it.|A: Okay, good point.|Reusable still deserves a review.
+The broker with three versions of the seller list.|A: Final, final two, and definitely final.|B: Which one did you actually import and review?|A: I need a moment.|Make the starting point clear.
+The colleague hears 'AI' and expects a holiday.|A: So I can disappear?|B: No. You can organise routine follow-ups and focus on actual conversations.|A: That is still useful.|Less routine is enough of a benefit.
+The broker does all their local research from headlines.|A: Prices are up everywhere.|B: Shall we check the recorded sales for this building?|A: That would be more specific.|Bring it back to the building.
+The content creator still needs a seller workflow.|A: My reel looks great.|B: Great. Who is due a follow-up today?|A: Open the list with me.|Visibility and follow-through belong together.
+The spreadsheet specialist meets the status filter.|A: I can find every appraisal with enough scrolling.|B: Or filter by Appraisal.|A: Please do not time me.|Less searching. More context.
+The broker thinks a name token makes a message personal.|A: It says their first name. Personalised.|B: It also asks them to list a property already listed.|A: Right.|The situation matters too.
+The colleague finishes a viewing with no next step.|A: I will remember to check in.|B: Shall we update the seller before the next appointment?|A: Do it now.|Small updates keep the system useful.
+The agent worries automation will sound like a robot.|A: Will it send something I would never say?|B: Read your template and preview it. You control the wording.|A: Remove 'esteemed property holder'.|Keep your own voice.
+Two brokers finally agree on the job.|A: More posts or more follow-ups?|B: Useful content and a follow-up system. We need both.|A: And actual conversations.|Grow the brand. Keep the relationships.
+@Show me the setting|verified product demonstration|Founder or narrator with current mobile UI. Use real supported controls, fictional data and a short accurate demonstration. No invented user results.
+Show me who needs a follow-up today.|A long seller list is not today's action list.|Open Due today and explain what the current schedule marks due.|This is where I start the review.|Make today's work visible.
+Show me what comes after today.|A future follow-up should not live only in memory.|Open Scheduled and point to a fictional upcoming seller.|This is a schedule, not a booked appointment.|Know what is coming.
+Show me one status that fits my workflow.|Built-in labels are a starting point.|Create a custom status, choose a colour and a follow-up interval, then save.|Now assign it to a demo seller.|Give the stage a clear name.
+Show me what changes when a seller changes.|Your workspace needs the latest conversation.|Edit the seller's status, save and show the result.|A human made that update.|Keep the system current.
+Show me the days, not the minutes.|Follow-up cadence is about the same seller.|Open the status follow-up interval and explain its unit.|This controls days between follow-ups.|Name the clock you mean.
+Show me the minutes, not the days.|Queue spacing solves a different problem.|Open the automated message interval and show a supported value.|This is minutes between automated sends.|One setting. One clear explanation.
+Show me which timezone this uses.|Sending hours need a timezone beside them.|Open the window settings and show the Dubai label.|Read the hours before saving.|The label matters.
+Show me why the daily limit is not a target.|A maximum is not a reason to send.|Show the daily limit with the configured interval and window.|Eligibility and timing still affect sends.|A ceiling, not a scoreboard.
+Show me a follow-up that skips the introduction.|The owner already knows the broker.|Preview an Appraisal follow-up beside first-contact wording.|Choose the appropriate template deliberately.|Continue the conversation.
+Show me the message before it leaves.|A template is not finished until the preview looks right.|Show a fictional name and building filling the actual preview.|Check the details and wording.|Preview before you trust it.
+Show me the broker card rule.|An introduction image is different from the message text.|Demonstrate the actual supported first-message card setting and preview.|Do not claim text switches automatically.|Explain the control that exists.
+Show me just the appraisal sellers.|The list is easier to work when the group is clear.|Apply the Appraisal status filter and show the changed results.|Clear the filter to show the full list again.|Filter the task, not the person.
+Show me one building at a time.|A specialist needs a focused view.|Filter demo sellers by a building and verify the result.|This is fictional data for the demo.|Make the building the focus.
+Show me a view worth saving.|The same useful filter does not need to be rebuilt every time.|Save a supported seller view, reopen it and show the applied filters.|Verify this flow in the current mobile app first.|Keep the useful view close.
+Show me what actually sent.|A queue is not proof of a sent message.|Open activity and distinguish sent, failed and queued states where present.|Describe only the state shown.|Check activity. Do not assume.
+Show me a manual message.|Not every conversation belongs in automation.|Open the seller's manual message composer and preview the text.|Stop before sending to a real person.|Some messages need your hands.
+Show me a building sale without the hype.|An asking price and a recorded sale are different things.|Display a clearly fictional recorded transaction and its date.|Explain which units would actually be comparable.|Context before a conclusion.
+Show me Ask Repeat in one useful question.|A small research task is enough of a demonstration.|Ask a supported building-sales question using demo data.|Keep the Early access label; verify the answer against the fixture.|A short answer to a specific question.
+Show me the phone version between appointments.|The workspace should make sense away from the desk.|Open a demo seller on mobile and review the next follow-up.|Film while safely stationary.|Take the context with you.
+Show me the setup before the automation.|The configuration is part of the product.|Show the reviewed template, seller status, connected WhatsApp and sending settings.|Only then demonstrate an eligible test update in isolation.|The routine starts with a deliberate setup.
