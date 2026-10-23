@@ -50,6 +50,22 @@ export function summarizeSales(rows, filters, complete = true) {
   } };
 }
 
+export function rankBuildings(rows, limit = 10) {
+  const groups = new Map();
+  for (const row of rows) {
+    const name = String(row.location_name || '').trim();
+    if (!name) continue;
+    if (!groups.has(name)) groups.set(name, []);
+    groups.get(name).push(Number(row.amount));
+  }
+  return [...groups].map(([name, amounts]) => {
+    amounts.sort((a, b) => a - b);
+    const mid = (amounts.length - 1) / 2;
+    return { name, sales: amounts.length, totalValueAed: amounts.reduce((a, b) => a + b, 0),
+      medianPriceAed: (amounts[Math.floor(mid)] + amounts[Math.ceil(mid)]) / 2 };
+  }).sort((a, b) => b.sales - a.sales || b.totalValueAed - a.totalValueAed || a.name.localeCompare(b.name)).slice(0, limit);
+}
+
 export function createAssistantMarket({ supabase, now = () => new Date() }) {
   const salesLocations = new Map(), listingLocations = new Map();
   async function query(builder, signal) {
@@ -137,7 +153,10 @@ export function createAssistantMarket({ supabase, now = () => new Date() }) {
       meta: coverage.latestRecordedSale ? 'Ask for the latest available sales, or refresh the data source.' : 'A current sales source is needed.',
     } : null;
     const caveat = 'Imported sales only, not all Dubai sales. Asking prices are excluded. Source is the shared DLD/Bayut import; individual rows do not retain provider provenance. Unknown/non-sale categories and values below AED 100,000 are excluded. Comparable candidates are not a valuation.';
-    return { kind: 'market-sales', title: `${building?.name || filters.area} sales`, source: 'Repeat AI imported sales (CSV / market cache)',
+    // Area-wide answers also rank the area's buildings by imported sales, from every
+    // eligible row (not the 20 displayed), and only when the scan is complete.
+    const buildings = !building && complete && eligible.length ? rankBuildings(eligible) : null;
+    return { kind: 'market-sales', title: `${building?.name || filters.area} sales`, buildings, source: 'Repeat AI imported sales (CSV / market cache)',
       priceType: 'recorded_sale', queriedAt: now().toISOString(), filters, coverage, summary: empty ? null : summary, emptyState,
       complete, scannedRows: rows.length, matchingRows, total: complete && !empty ? eligible.length : null,
       note: `${filters.start} – ${filters.end} · ${empty ? 'No matching records available for this request; market activity is unknown.' : complete ? `${eligible.length} imported sales; showing up to 20.` : 'Too many records. Narrow the dates or building; totals and averages are withheld.'} Imported coverage only.`,
@@ -179,6 +198,8 @@ export function marketResultCards(result) {
     cards.push({ title: `${s.count} imported sales`, detail: `Average ${money(s.averagePriceAed)} · Median ${money(s.medianPriceAed)}`,
       meta: s.pricePerSqftAed === null ? 'Price per sq ft unavailable' : `${money(s.pricePerSqftAed)} / sq ft · Area-weighted, ${s.pricePerSqftSampleSize} sales with sizes` });
   }
+  for (const [i, item] of (result.buildings || []).entries()) cards.push({ title: `${i + 1}. ${item.name}`,
+    detail: `${item.sales} ${item.sales === 1 ? 'sale' : 'sales'} · Median ${money(item.medianPriceAed)}`, meta: `Total ${money(item.totalValueAed)} · Imported sales` });
   for (const item of result.items) cards.push({ title: item.name, detail: `${money(item.amountAed)}${item.beds !== null ? ` · ${item.beds === '0' ? 'Studio' : `${item.beds} bed`}` : ''}${item.areaSqft ? ` · ${Math.round(item.areaSqft).toLocaleString('en-GB')} sq ft` : ''}`,
     meta: result.kind === 'market-sales' ? `Sold ${item.date}` : `Asking price${item.updatedAt ? ` · Updated ${String(item.updatedAt).slice(0, 10)}` : ' · Update date unavailable'}` });
   return cards;

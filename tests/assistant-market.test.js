@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { createAssistantMarket, marketResultCards, salesFilters, summarizeSales } from '../shared/assistant-market.js';
+import { createAssistantMarket, marketResultCards, rankBuildings, salesFilters, summarizeSales } from '../shared/assistant-market.js';
 import { createVoiceWorkspace } from '../shared/voice-workspace.js';
 import { executeVoiceTool, VOICE_TOOLS } from '../shared/voice-tools.js';
 import { marketInstructions, ASSISTANT_PROMPTS } from '../shared/assistant-prompts.js';
@@ -171,4 +171,16 @@ test('voice and text share market tools and source guardrails, with Dubai date c
   assert.match(config.delegation.responses.instructions, /individual|per-row provider/);
   assert.match(marketInstructions(new Date('2026-08-31T22:00:00Z')), /2026-09-01/);
   assert.equal(ASSISTANT_PROMPTS.length, 4); assert.ok(!ASSISTANT_PROMPTS.join(' ').includes('account'));
+});
+
+test('area sales rank buildings from every eligible sale, building queries do not', async () => {
+  const rows = [sale(2000000, 1000, { id: 1, location_name: 'Burj Vista 1' }), sale(3000000, 1000, { id: 2, location_name: 'Burj Vista 1' }),
+    sale(5000000, 1000, { id: 3, location_name: 'Act One' }), sale(1000, 1000, { id: 4, location_name: 'Act One' })];
+  assert.deepEqual(rankBuildings(rows.slice(0, 3)).map(b => [b.name, b.sales, b.medianPriceAed]), [['Burj Vista 1', 2, 2500000], ['Act One', 1, 5000000]]);
+  const { market } = fixture({ rows });
+  const area = await market.read('market_sales', { ...args, building_key: '', area: 'Downtown Dubai' });
+  assert.deepEqual(area.buildings.map(b => [b.name, b.sales]), [['Burj Vista 1', 2], ['Act One', 1]]);
+  assert.equal(marketResultCards(area)[1].title, '1. Burj Vista 1');
+  await market.read('market_locations', { query: 'Forte 2', source: 'sales' });
+  assert.equal((await market.read('market_sales', args)).buildings, null);
 });
