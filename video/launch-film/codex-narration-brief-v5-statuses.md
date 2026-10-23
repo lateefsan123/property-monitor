@@ -49,3 +49,26 @@ Checks: all 15 files fully decode with ffmpeg; ffprobe confirms mono MP3, 44.1 k
 Issues: the browser download-event helper timed out on the first download, although the original MP3 downloaded successfully to the Windows Downloads folder; it was copied byte-for-byte to the requested destination. The first attempt at line 5 accidentally retained line 4 in the editor; transcript checking caught this, those two downloaded candidates were moved to `out/v5s-rejected/`, the editor was fully cleared, and three correct standalone line-5 takes were generated. Do not use the rejected files. Eleven v4 returned two candidates per generation; the first pair plus the first candidate of a regeneration supplied each requested set of three. Unused fourth candidates remain in ElevenLabs history.
 
 Credits displayed before/after: **107,527 → 106,665** (862 existing credits). No credits purchased, subscription/billing changes, deployment or product edits. No commit made, as requested by this brief.
+
+## Pickup 6 (requested 23 October 2026, same voice, settings and delivery rules)
+
+Line 6 replaces line 5 in the film:
+
+6. `Ask which buildings sold the most last month, and it ranks them for you.`
+
+Three takes, unprocessed: `out/vo-v5s-pickup-6-take-<n>.mp3`, with word timings beside each
+as before. Existing credits only. Append a short results note below this section.
+
+### Pickup 6 results — 23 October 2026
+
+Generated three distinct original takes of the exact line above in ElevenLabs with the same approved settings: Brady J - Confident Real Estate Agent (`SGoiiadNvlgcANZ3wLyn`), Eleven v4, stability 0.5, similarity 0.75, clone strength 0, style/effects off, automatic language, MP3 44.1 kHz / 192 kbps. Editor was cleared before entering the standalone line. No tags, speed changes, trimming or other processing applied.
+
+| Take | Original file | Duration |
+|---|---|---|
+| 1 | `out/vo-v5s-pickup-6-take-1.mp3` | 4.127 s |
+| 2 | `out/vo-v5s-pickup-6-take-2.mp3` | 4.049 s |
+| 3 | `out/vo-v5s-pickup-6-take-3.mp3` | 3.971 s |
+
+All three fully decode. ffprobe confirms mono MP3, 44.1 kHz and 192 kbps; SHA256 hashes are distinct. Local Whisper small.en recovered all 14 scripted words in each take, in order, with punctuation differences only. Word timings are alongside each MP3 as `.words.json`; metadata, hashes and transcripts are in `out/v5s-pickup-6-checks.json`. Naturalness and fit beside the original take remain listening-review decisions.
+
+Existing credits: **106,665 → 106,593** (72 credits). The editor returned two candidates initially and two on regeneration; the first pair plus regeneration candidate 1 are the requested takes. The unused fourth candidate remains in ElevenLabs history. No generation/download failures this time, no purchases or billing changes, and no edits to the film or other takes. No commit made, as requested.

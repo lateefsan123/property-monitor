@@ -6,6 +6,7 @@
 import { mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { openApp } from './app-browser.mjs';
+import { rankBuildings, summarizeSales } from '../../shared/assistant-market.js';
 import { TAKES } from './app-pacing-v5s.mjs';
 
 const out = path.join(import.meta.dirname, 'out', 'app', TAKES);
@@ -26,7 +27,28 @@ const SALES = {
   items: [['2026-08-27', 3150000, '2', 1010], ['2026-08-21', 2900000, '2', 965], ['2026-08-14', 1720000, '1', 600], ['2026-08-09', 4350000, '3', 1450], ['2026-08-03', 2600000, '2', 880]]
     .map(([date, amountAed, beds, areaSqft]) => ({ name: 'Forte 2', date, amountAed, beds, areaSqft })),
 };
+// Ranking an area's buildings (area-wide market_sales with its buildings ranking).
+// Fictional September sales in Downtown Dubai, ranked by the app's own rankBuildings.
+const RANK_QUESTION = 'Which buildings in Downtown sold the most last month?';
+const RANK_SPOKEN = 'Burj Vista 1 led Downtown with nine imported sales in September, then Act One with seven and Boulevard Point with six.';
+const RANK_ROWS = [['Burj Vista 1', 9, 2650000], ['Act One', 7, 1980000], ['Boulevard Point', 6, 3420000], ['Forte 2', 5, 2900000], ['Claren Tower 2', 4, 2150000]]
+  .flatMap(([name, sales, median], b) => Array.from({ length: sales }, (_, i) => ({
+    location_name: name, amount: median + (i - Math.floor(sales / 2)) * 85000, category: 'Sales', beds: String(1 + ((i + b) % 3)),
+    property_type: 'Apartment', builtup_area_sqft: 700 + ((i * 7 + b * 3) % 9) * 110, date: `2026-09-${String(28 - ((i * 5 + b * 3) % 27)).padStart(2, '0')}`,
+  })));
+const RANK_FILTERS = { start: '2026-09-01', end: '2026-09-30', beds: null, min: null, max: null, area: 'Downtown Dubai', propertyType: '' };
+const { eligible: rankEligible, summary: rankSummary } = summarizeSales(RANK_ROWS, RANK_FILTERS);
+const RANKING = {
+  kind: 'market-sales', title: 'Downtown Dubai sales', total: rankEligible.length, emptyState: null, summary: rankSummary,
+  buildings: rankBuildings(rankEligible),
+  note: `2026-09-01 – 2026-09-30 · ${rankEligible.length} imported sales; showing up to 20. Imported coverage only.`,
+  items: [...rankEligible].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 20)
+    .map((row) => ({ name: row.location_name, date: row.date, amountAed: row.amount, beds: row.beds, areaSqft: row.builtup_area_sqft })),
+};
 const SCENES = {
+  rankAsking: { state: 'listening', captions: { you: RANK_QUESTION, assistant: '' } },
+  rankThinking: { state: 'listening', loading: true, captions: { you: RANK_QUESTION, assistant: '' } },
+  rankAnswer: { state: 'listening', captions: { you: RANK_QUESTION, assistant: RANK_SPOKEN }, result: RANKING },
   listening: { state: 'listening' },
   asking: { state: 'listening', captions: { you: QUESTION, assistant: '' } },
   thinking: { state: 'listening', loading: true, captions: { you: QUESTION, assistant: '' } },
@@ -102,6 +124,8 @@ await take('schedule', ['nav:Schedule', 'wait:2500', 'shot:schedule', 'tap:Edit 
   'tap:Opera Grand, Thursday', 'shot:sched-th', 'tap:Opera Grand, Saturday', 'shot:sched-sa', 'tap:Done', 'wait:1500', 'shot:schedule-updated']);
 await take('ask', ['wait:1500', 'tap:Ask Repeat, voice or chat', 'wait:1200', 'shot:ask-open', 'find:Start voice conversation',
   'fill:Message Repeat AI=Any price drops in Act One?', 'shot:ask-typed', 'tap:Send message', 'wait:2600', 'shot:ask-reply']);
+await take('rank', ['wait:1500', 'tap:Ask Repeat, voice or chat', 'wait:1200', 'scene:listening', 'shot:rank-listening',
+  'scene:rankAsking', 'shot:rank-asking', 'scene:rankThinking', 'shot:rank-thinking', 'scene:rankAnswer', 'wait:600', 'shot:rank-answer']);
 await take('voice', ['wait:1500', 'tap:Ask Repeat, voice or chat', 'wait:1200', 'scene:listening', 'shot:voice-listening',
   'scene:asking', 'shot:voice-asking', 'scene:thinking', 'shot:voice-thinking', 'scene:answer', 'wait:600', 'shot:voice-answer',
   'scene:confirm', 'wait:600', 'shot:voice-confirm', 'find:Confirm change']);

@@ -24,8 +24,7 @@ cue('message sent', CHAT.sent, at => s.pop(at, 540, 0.17));
 cue('read receipt', CHAT.read, at => tap(at, 0.075));
 cue('reply received', CHAT.reply, at => s.chime(at, [76, 79], 0.095, 0.11));
 cue('schedule saved', screenAt('schedule-updated'), at => s.chime(at, [72, 76], 0.07, 0.09));
-cue('assistant reply', screenAt('voice-answer'), at => s.pop(at, 620, 0.10));
-cue('status saved', screenAt('cs-saved'), at => s.pop(at, 540, 0.12));
+cue('assistant reply', screenAt('rank-answer'), at => s.pop(at, 620, 0.10));
 cue('status set', screenAt('cs-set'), at => s.chime(at, [72, 79], 0.06, 0.09));
 cue('logo settle', CLOSE.logo, at => {
   s.chime(at, [60, 67, 72], 0.065, 0.12);
