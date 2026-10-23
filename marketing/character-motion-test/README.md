@@ -9,3 +9,13 @@ The original generated drawing is copied unchanged as `approved-broker.png`. Can
 Reproduce from the repository root: `node marketing/character-motion-test/render.mjs`. Requires the already installed `video/node_modules/playwright-core`, local Playwright Chromium and ffmpeg. Generated output is under `out/`, excluded from Git. A local static server is needed for the browser player; the live Canvas source can also be opened locally.
 
 Checks: representative frames at 0, 1.5, 3 and 5.8 seconds rendered without page errors; neutral and tilted states inspected. ffprobe confirms 7.000 seconds, 720×720 H.264 at 30 fps with AAC audio. Full audio/video decode passed. The approved source drawing and unrelated film code were not edited. No posting or deployment.
+
+## Jointed walking experiment — 23 October 2026
+
+Added `walk.html`, `render-walk.mjs` and `watch-walk.html` as a separate experiment. The first phone/tripod test is preserved. The new rig uses the approved raster head over a newly drawn body in the same simple palette; it is a rigged adaptation, not a claim that every walking pose was recovered from the original image.
+
+The two legs have hip, knee and ankle positions solved using equal-length two-bone inverse kinematics. Feet move backward relative to the body during stance at the same speed that the body travels forward; swing lifts a foot and brings it ahead. Alternating arms, covered shoulder/hip joints, subtle lean, a body bob and a head sway complete the motion. The local live page can switch between walking across the frame and walking in place. The exported MP4 shows travel across a plain stage and loops by leaving/re-entering beyond the frame edges. It has no audio.
+
+Checks: every frame of the 240-frame timeline has finite knee positions, reachable leg targets and ground contact during stance. Representative poses were inspected at 2.1, 2.33, 3 and 3.23 seconds. MP4 output is 8 seconds, 30 fps, H.264 at 800×640. The first export hit an odd CSS screenshot height (641px), which H.264 4:2:0 cannot encode; explicit output scaling fixes the encoder dimension. This is still a prototype with a single viewing angle, not a production multi-view character rig or a full animated episode. No purchases, paid generation, social posts or deployment.
+
+Reproduce: `node marketing/character-motion-test/render-walk.mjs`. Use `--check` for pose/ground checks without an MP4 encode. Outputs are in the existing ignored `out/` folder.
