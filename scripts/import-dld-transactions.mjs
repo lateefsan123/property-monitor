@@ -616,6 +616,15 @@ function summarizeMatchedBuildings(buildingsByKey) {
     );
 }
 
+// Building-key filters go in the request URL; thousands of keys at once make
+// a URL the API rejects ("Bad Request"), so they're sent in chunks.
+const KEY_FILTER_CHUNK = 150;
+function chunked(values, size = KEY_FILTER_CHUNK) {
+  const chunks = [];
+  for (let index = 0; index < values.length; index += size) chunks.push(values.slice(index, index + size));
+  return chunks;
+}
+
 async function syncIntoSupabase({ buildingsByKey, envMap, dryRun, refreshBuildingKeys = [] }) {
   const supabaseUrl = getEnvValue(envMap, ["SUPABASE_URL", "VITE_SUPABASE_URL"]);
   const serviceRoleKey = getEnvValue(envMap, ["SUPABASE_SERVICE_ROLE_KEY"]);
@@ -635,12 +644,15 @@ async function syncIntoSupabase({ buildingsByKey, envMap, dryRun, refreshBuildin
   let buildingRows = [];
   const sourceManagedKeys = new Set();
   if (buildingKeys.length) {
-    const { data: existingBuildingRows, error: existingBuildingsError } = await supabase
-      .from("buildings")
-      .select("key, location_id, source")
-      .in("key", buildingKeys);
-
-    if (existingBuildingsError) throw new Error(existingBuildingsError.message);
+    const existingBuildingRows = [];
+    for (const keys of chunked(buildingKeys)) {
+      const { data, error: existingBuildingsError } = await supabase
+        .from("buildings")
+        .select("key, location_id, source")
+        .in("key", keys);
+      if (existingBuildingsError) throw new Error(existingBuildingsError.message);
+      existingBuildingRows.push(...(data || []));
+    }
 
     const existingLocationIds = new Map((existingBuildingRows || []).map((row) => [row.key, row.location_id || null]));
     for (const row of existingBuildingRows || []) if (row.source) sourceManagedKeys.add(row.key);
@@ -659,8 +671,10 @@ async function syncIntoSupabase({ buildingsByKey, envMap, dryRun, refreshBuildin
     if (buildingsError) throw new Error(buildingsError.message);
   }
 
-  const { error: deleteError } = await supabase.from("transactions").delete().in("building_key", buildingKeysToRefresh).is("source", null);
-  if (deleteError) throw new Error(deleteError.message);
+  for (const keys of chunked(buildingKeysToRefresh)) {
+    const { error: deleteError } = await supabase.from("transactions").delete().in("building_key", keys).is("source", null);
+    if (deleteError) throw new Error(deleteError.message);
+  }
 
   let insertedTransactions = 0;
   let batch = [];
