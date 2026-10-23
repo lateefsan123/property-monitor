@@ -1,16 +1,16 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { accountsNotDue, formatHour, jitterMs, loadSendPacing, messagesThatFit, normalizePacing, suggestedInterval } from "../supabase/functions/_shared/send-pacing.js";
+import { accountsNotDue, catchUpInterval, formatHour, jitterMs, loadSendPacing, messagesThatFit, normalizePacing, suggestedInterval } from "../supabase/functions/_shared/send-pacing.js";
 
 test("pacing falls back to 9 am to 9 pm every 15 minutes", () => {
-  assert.deepEqual(normalizePacing(null), { start: 9, end: 21, interval: 15 });
-  assert.deepEqual(normalizePacing({ send_window_start_hour: 22, send_window_end_hour: 8, send_interval_minutes: 7 }), { start: 9, end: 21, interval: 15 });
-  assert.deepEqual(normalizePacing({ send_window_start_hour: 10, send_window_end_hour: 14, send_interval_minutes: 10 }), { start: 10, end: 14, interval: 10 });
+  assert.deepEqual(normalizePacing(null), { start: 9, end: 21, interval: 15, limit: 40 });
+  assert.deepEqual(normalizePacing({ send_window_start_hour: 22, send_window_end_hour: 8, send_interval_minutes: 7 }), { start: 9, end: 21, interval: 15, limit: 40 });
+  assert.deepEqual(normalizePacing({ send_window_start_hour: 10, send_window_end_hour: 14, send_interval_minutes: 10 }), { start: 10, end: 14, interval: 10, limit: 40 });
 });
 
 test("messages that fit respect the window, the gap and the daily limit", () => {
   assert.equal(messagesThatFit({ start: 9, end: 21, interval: 5 }), 40);
-  assert.equal(messagesThatFit({ start: 10, end: 14, interval: 10 }), 24);
+  assert.equal(messagesThatFit({ start: 10, end: 14, interval: 10, limit: 40 }), 24);
   assert.equal(messagesThatFit({ start: 9, end: 10, interval: 60 }), 1);
 });
 
@@ -38,10 +38,10 @@ test("accounts wait outside their hours or until their gap has passed", () => {
 test("pacing loads per account and survives missing columns", async () => {
   const ok = { from: () => ({ select() { return this; }, in: () => Promise.resolve({ data: [{ user_id: "a", send_window_start_hour: 10, send_window_end_hour: 18, send_interval_minutes: 15 }], error: null }) }) };
   const pacing = await loadSendPacing(ok, ["a", "b"]);
-  assert.deepEqual(pacing.get("a"), { start: 10, end: 18, interval: 15 });
-  assert.deepEqual(pacing.get("b"), { start: 9, end: 21, interval: 15 });
+  assert.deepEqual(pacing.get("a"), { start: 10, end: 18, interval: 15, limit: 40 });
+  assert.deepEqual(pacing.get("b"), { start: 9, end: 21, interval: 15, limit: 40 });
   const missing = { from: () => ({ select() { return this; }, in: () => Promise.resolve({ data: null, error: { code: "42703", message: "no column" } }) }) };
-  assert.deepEqual((await loadSendPacing(missing, ["a"])).get("a"), { start: 9, end: 21, interval: 15 });
+  assert.deepEqual((await loadSendPacing(missing, ["a"])).get("a"), { start: 9, end: 21, interval: 15, limit: 40 });
 });
 
 test("hours read naturally", () => {
@@ -79,4 +79,21 @@ test("gaps of 15 minutes or more get a stable extra wait of up to a fifth", () =
   const gaps = waits.map((ms) => (15 * 60_000 + ms - 90_000 <= 15 * 60_000 ? 15 : 20));
   const average = gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length;
   assert.ok((12 * 60) / average >= 40, `average gap ${average}`);
+});
+
+test("a late start shortens the gap so the day's messages still fit", () => {
+  const settings = { start: 9, end: 21, interval: 15, limit: 40 };
+  // 14:40 Dubai, nothing sent: 380 minutes left for 40 messages -> every 9 minutes.
+  assert.equal(catchUpInterval(settings, 0, new Date("2026-10-23T10:40:00Z")), 9);
+  // 10:00 Dubai: 15 minutes fits, no catch-up.
+  assert.equal(catchUpInterval(settings, 0, new Date("2026-10-23T06:00:00Z")), null);
+  // Never below 5 minutes, and nothing once the limit is reached.
+  assert.equal(catchUpInterval(settings, 0, new Date("2026-10-23T16:30:00Z")), 5);
+  assert.equal(catchUpInterval(settings, 40, new Date("2026-10-23T10:40:00Z")), null);
+  // The waiting check uses the shorter gap: 10 minutes after a send, a behind account is due.
+  const now = new Date("2026-10-23T10:50:00Z");
+  const pacing = new Map([["behind", settings]]);
+  const lastSends = new Map([["behind", now.getTime() - 10 * 60 * 1000]]);
+  assert.equal(accountsNotDue({ pacing, lastSends, now, dubaiHour: 14 }).get("behind"), "spacing");
+  assert.equal(accountsNotDue({ pacing, lastSends, todayCounts: new Map([["behind", 3]]), now, dubaiHour: 14 }).has("behind"), false);
 });

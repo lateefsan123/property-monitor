@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { customStatusDays, loadCustomStatusDays } from "../_shared/custom-statuses.js";
-import { accountsNotDue, loadLastAutoSends, loadSendPacing } from "../_shared/send-pacing.js";
+import { accountsNotDue, loadLastAutoSends, loadSendPacing, loadTodayAutoCounts } from "../_shared/send-pacing.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { loadAutomaticAliases } from "../_shared/automatic-aliases.js";
 import { loadTransactionBuildingMatches } from "../_shared/transaction-building-matches.js";
@@ -911,7 +911,8 @@ Deno.serve(async (req) => {
     // automated message hasn't passed, wait for a later run.
     const pacing = await loadSendPacing(adminClient, [...accountByUser.keys()], { start: sendWindowStart, end: sendWindowEnd });
     const lastSends = await loadLastAutoSends(adminClient, [...accountByUser.keys()], startedAt);
-    const waitingAccounts = accountsNotDue({ pacing, lastSends, now: startedAt, dubaiHour, enforceWindow: !dryRun && enforceSendWindow });
+    const todayCounts = await loadTodayAutoCounts(adminClient, [...accountByUser.keys()], startedAt);
+    const waitingAccounts = accountsNotDue({ pacing, lastSends, todayCounts, now: startedAt, dubaiHour, enforceWindow: !dryRun && enforceSendWindow });
     const pacingSkips = { outsideSendWindow: 0, spacing: 0 };
     const reportUsersBeforePacing = accountByUser.size;
     for (const [userId, reason] of waitingAccounts) {

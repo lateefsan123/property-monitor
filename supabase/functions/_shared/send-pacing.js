@@ -15,6 +15,8 @@ function hour(value, fallback) {
   return Number.isInteger(number) && number >= 0 && number <= 24 ? number : fallback;
 }
 
+export const DEFAULT_DAILY_LIMIT = 40;
+
 export function normalizePacing(row, defaults = DEFAULT_SEND_WINDOW) {
   let start = hour(row?.send_window_start_hour, defaults.start);
   let end = hour(row?.send_window_end_hour, defaults.end);
@@ -22,7 +24,9 @@ export function normalizePacing(row, defaults = DEFAULT_SEND_WINDOW) {
   const interval = SEND_INTERVAL_OPTIONS.includes(Number(row?.send_interval_minutes))
     ? Number(row.send_interval_minutes)
     : DEFAULT_SEND_INTERVAL_MINUTES;
-  return { start, end, interval };
+  const limitValue = Math.round(Number(row?.daily_message_limit));
+  const limit = Number.isFinite(limitValue) && limitValue >= 1 ? Math.min(45, limitValue) : DEFAULT_DAILY_LIMIT;
+  return { start, end, interval, limit };
 }
 
 // How many messages fit in a window at a given gap, capped at the daily limit.
@@ -46,7 +50,7 @@ export async function loadSendPacing(client, userIds, defaults = DEFAULT_SEND_WI
   if (!ids.length) return result;
   const { data, error } = await client
     .from("seller_signal_automation_settings")
-    .select("user_id, send_window_start_hour, send_window_end_hour, send_interval_minutes")
+    .select("user_id, send_window_start_hour, send_window_end_hour, send_interval_minutes, daily_message_limit")
     .in("user_id", ids);
   if (error) {
     // 42703: the pacing columns aren't in this database yet; use the defaults.
@@ -80,6 +84,39 @@ export async function loadLastAutoSends(client, userIds, now = new Date()) {
   return result;
 }
 
+// Automated messages each account has sent so far this Dubai day.
+export async function loadTodayAutoCounts(client, userIds, now = new Date()) {
+  const result = new Map();
+  const ids = [...new Set((userIds || []).map(String).filter(Boolean))];
+  if (!ids.length) return result;
+  const dubaiDay = new Date(now.getTime() + 4 * 60 * 60 * 1000).toISOString().slice(0, 10);
+  const since = new Date(`${dubaiDay}T00:00:00+04:00`).toISOString();
+  const { data, error } = await client
+    .from("whatsapp_messages")
+    .select("user_id")
+    .in("user_id", ids)
+    .eq("direction", "outbound")
+    .eq("send_source", "auto")
+    .in("status", ["queued", "sending", "sent", "delivered", "read"])
+    .gte("created_at", since)
+    .limit(ids.length * 50);
+  if (error) throw new Error(`Could not load today's sends: ${error.message}`);
+  for (const row of data || []) result.set(String(row.user_id), (result.get(String(row.user_id)) || 0) + 1);
+  return result;
+}
+
+// Catch-up: when the chosen gap can't fit the messages still left today
+// before the window closes (e.g. the day's sales data only lands at 2:40 pm),
+// shorten the gap to what fits, never below 5 minutes, without the extra wait.
+export function catchUpInterval({ end, interval, limit = DEFAULT_DAILY_LIMIT }, sentToday, now = new Date()) {
+  const left = limit - (sentToday || 0);
+  if (left <= 0) return null;
+  const dubaiMinutes = (now.getUTCHours() * 60 + now.getUTCMinutes() + 240) % 1440;
+  const minutesLeft = end * 60 - dubaiMinutes;
+  if (minutesLeft <= 0 || interval * left <= minutesLeft) return null;
+  return Math.max(5, Math.floor(minutesLeft / left));
+}
+
 // Gaps of 15 minutes or more get a little extra wait (up to a fifth of the
 // gap) so sends don't land on an exact rhythm. The 5-minute scheduler rounds
 // it up, so a 15-minute gap becomes 15 or 20 and 40 still fit 9 am to 9 pm.
@@ -93,15 +130,18 @@ export function jitterMs(userId, lastSendMs, interval) {
 
 // Accounts that must wait this run, with the reason: outside their hours, or
 // their gap since the last automated message hasn't passed.
-export function accountsNotDue({ pacing, lastSends, now = new Date(), dubaiHour, enforceWindow = true }) {
+export function accountsNotDue({ pacing, lastSends, todayCounts, now = new Date(), dubaiHour, enforceWindow = true }) {
   const waiting = new Map();
-  for (const [userId, { start, end, interval }] of pacing) {
+  for (const [userId, settings] of pacing) {
+    const { start, end, interval } = settings;
     if (enforceWindow && (dubaiHour === null || dubaiHour < start || dubaiHour >= end)) {
       waiting.set(userId, "outsideSendWindow");
       continue;
     }
     const last = lastSends.get(userId);
-    if (last && now.getTime() - last < interval * 60 * 1000 + jitterMs(userId, last, interval) - DRIFT_MS) waiting.set(userId, "spacing");
+    const catchUp = todayCounts ? catchUpInterval(settings, todayCounts.get(userId), now) : null;
+    const gapMs = catchUp ? catchUp * 60 * 1000 : interval * 60 * 1000 + jitterMs(userId, last, interval);
+    if (last && now.getTime() - last < gapMs - DRIFT_MS) waiting.set(userId, "spacing");
   }
   return waiting;
 }

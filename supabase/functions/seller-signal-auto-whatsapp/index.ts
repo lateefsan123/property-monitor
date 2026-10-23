@@ -11,7 +11,7 @@ import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
 import { followUpPending } from "../_shared/seller-follow-up.js";
 import { pickTemplateForStatus } from "../_shared/template-status.js";
 import { customStatusDays, loadCustomStatusDays } from "../_shared/custom-statuses.js";
-import { accountsNotDue, loadLastAutoSends, loadSendPacing } from "../_shared/send-pacing.js";
+import { accountsNotDue, loadLastAutoSends, loadSendPacing, loadTodayAutoCounts } from "../_shared/send-pacing.js";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -1130,7 +1130,8 @@ Deno.serve(async (req) => {
     // automated message hasn't passed, wait for a later run.
     const pacing = await loadSendPacing(adminClient, [...accountByUser.keys()], { start: sendWindowStart, end: sendWindowEnd });
     const lastSends = await loadLastAutoSends(adminClient, [...accountByUser.keys()], startedAt);
-    const waitingAccounts = accountsNotDue({ pacing, lastSends, now: startedAt, dubaiHour, enforceWindow: !dryRun && enforceSendWindow });
+    const todayCounts = await loadTodayAutoCounts(adminClient, [...accountByUser.keys()], startedAt);
+    const waitingAccounts = accountsNotDue({ pacing, lastSends, todayCounts, now: startedAt, dubaiHour, enforceWindow: !dryRun && enforceSendWindow });
     const pacingSkips = { outsideSendWindow: 0, spacing: 0 };
     for (const [userId, reason] of waitingAccounts) {
       accountByUser.delete(userId);

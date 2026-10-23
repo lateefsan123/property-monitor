@@ -4,7 +4,7 @@ import { templateMediaType, templateMediaPayload } from '../_shared/template-med
 import { hasPriorWhatsAppContact } from '../_shared/intro-attachment.js';
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { baileysReachabilityError, isNotOnWhatsApp, markNotOnWhatsApp } from "../_shared/whatsapp-reachability.js";
-import { accountsNotDue, loadLastAutoSends, loadSendPacing } from "../_shared/send-pacing.js";
+import { accountsNotDue, loadLastAutoSends, loadSendPacing, loadTodayAutoCounts } from "../_shared/send-pacing.js";
 import { dueFollowUps, renderFollowUp, sendableStatuses } from "../_shared/status-followups.js";
 
 // Status follow-ups (see _shared/status-followups.js): for accounts that turned
@@ -122,7 +122,8 @@ Deno.serve(async (req) => {
 
     const pacing = await loadSendPacing(client, [...accountByUser.keys()]);
     const lastSends = await loadLastAutoSends(client, [...accountByUser.keys()], startedAt);
-    const waiting = accountsNotDue({ pacing, lastSends, now: startedAt, dubaiHour: dubaiHour(startedAt), enforceWindow: !dryRun && input?.enforceSendWindow !== false });
+    const todayCounts = await loadTodayAutoCounts(client, [...accountByUser.keys()], startedAt);
+    const waiting = accountsNotDue({ pacing, lastSends, todayCounts, now: startedAt, dubaiHour: dubaiHour(startedAt), enforceWindow: !dryRun && input?.enforceSendWindow !== false });
     for (const userId of waiting.keys()) accountByUser.delete(userId);
 
     const summary = { runId, dryRun, sent: 0, failed: 0, matches: [] as unknown[], waitingAccounts: waiting.size, accounts: accountByUser.size, errors: [] as string[] };
