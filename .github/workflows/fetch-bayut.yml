@@ -1,8 +1,13 @@
 name: Fetch DLD Transactions
 
 on:
-  # Scheduled DLD imports run on Railway. Keep this workflow as a manual
-  # fallback so an operator can trigger a recovery scan from GitHub.
+  # Railway runs the DLD scans (10:30 UTC afternoon, plus evening). This is the
+  # backup: it runs 45 minutes after Railway's, so a Railway outage (as on
+  # 21-22 October 2026) delays sales data by under an hour instead of days.
+  # The import skips rows already stored, so a second run after a good one
+  # changes nothing. Also runnable by hand for a recovery scan.
+  schedule:
+    - cron: "15 11 * * *"
   workflow_dispatch:
 
 jobs:

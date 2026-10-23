@@ -726,9 +726,23 @@ async function main() {
   } else {
     dldCsvText = await readTextFromSource(options.input);
   }
+  // Keep one copy of the export in memory: parse, drop the text, then build
+  // each record only while it's being read. Holding the text, the rows and a
+  // full set of record objects at once ran Railway's 512 MB job out of memory.
   const dldRows = parseCsvText(dldCsvText);
-  const { headers, records } = rowsToObjects(dldRows);
+  dldCsvText = "";
+  const dldRecordCount = Math.max(0, dldRows.length - 1);
+  const { headers } = rowsToObjects(dldRows.slice(0, 1));
   const columns = resolveDldColumns(headers);
+  function* dldRecords() {
+    for (let index = 1; index < dldRows.length; index += 1) {
+      const cells = dldRows[index];
+      dldRows[index] = null;
+      const record = { __row: index + 1 };
+      headers.forEach((header, headerIndex) => { record[header] = cells?.[headerIndex] ?? ""; });
+      yield record;
+    }
+  }
 
   if (!columns.project && !columns.masterProject) {
     throw new Error("Could not find Project or Master Project columns in the DLD CSV.");
@@ -745,7 +759,7 @@ async function main() {
   let skippedInvalidRows = 0;
   let skippedNonSaleRows = 0;
 
-  for (const record of records) {
+  for (const record of dldRecords()) {
     if (!isSaleTransaction(record, columns)) {
       skippedNonSaleRows += 1;
       continue;
@@ -857,7 +871,7 @@ async function main() {
   const totalTransactions = Object.values(buildingsByKey).reduce((sum, building) => sum + building.transactions.length, 0);
   const matchedBuildings = summarizeMatchedBuildings(buildingsByKey);
 
-  console.log(`DLD rows scanned: ${records.length}`);
+  console.log(`DLD rows scanned: ${dldRecordCount}`);
   console.log(`Sale rows considered: ${saleRows}`);
   console.log(`Matched transactions: ${matchedRows}`);
   console.log(`Imported buildings: ${Object.keys(buildingsByKey).length}`);
@@ -880,7 +894,7 @@ async function main() {
     fuzzyMatching: ENABLE_FUZZY_MATCHING,
     summary: {
       targetBuildings: targets.size,
-      dldRows: records.length,
+      dldRows: dldRecordCount,
       saleRows,
       matchedTransactions: matchedRows,
       importedBuildings: Object.keys(buildingsByKey).length,
@@ -909,7 +923,7 @@ async function main() {
       `- Input: ${summary.input}`,
       livePeriod ? `- Live period: ${livePeriod.fromDate} to ${livePeriod.toDate}` : null,
       `- Target buildings: ${targets.size}`,
-      `- DLD rows scanned: ${records.length}`,
+      `- DLD rows scanned: ${dldRecordCount}`,
       `- Matched transactions: ${matchedRows}`,
       `- Imported buildings: ${Object.keys(buildingsByKey).length}`,
       syncSummary.synced
