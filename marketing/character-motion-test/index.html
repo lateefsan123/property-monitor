@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Repeat AI · Character motion test</title><style>*{box-sizing:border-box}body{margin:0;background:#f5f5f1;color:#26382e;font-family:system-ui,sans-serif;display:grid;justify-items:center;padding:22px}h1{font-size:16px;font-weight:500;margin:0 0 14px}canvas{display:block;width:min(100%,720px);height:auto;background:#fff;border-radius:14px}button{font:inherit;margin:16px 0;padding:10px 20px;border:1px solid #c3cfc4;border-radius:8px;background:white;cursor:pointer}p{font-size:12px;color:#697668;max-width:600px;line-height:1.6}</style></head><body><h1>Repeat AI · Character motion test</h1><canvas width="1000" height="1000" aria-label="Animated broker reacting to a buzzing phone"></canvas><button id="toggle">Pause animation</button><p>Original approved drawing, animated as a simple 2D puppet. A motion experiment, not a finished episode.</p><script>
+const canvas=document.querySelector('canvas'),ctx=canvas.getContext('2d');const image=new Image();image.src='./approved-broker.png';
+const DURATION=7;let ready=false,playing=true,base=performance.now(),held=0;
+const head=[[405,31],[720,31],[728,360],[691,409],[615,431],[553,416],[483,391],[418,343],[398,246]];
+const arm=[[654,556],[701,494],[708,432],[734,344],[779,334],[827,353],[838,400],[826,470],[811,528],[780,583],[726,630],[677,628]];
+function poly(points){ctx.moveTo(...points[0]);for(const p of points.slice(1))ctx.lineTo(...p);ctx.closePath();}
+function ease(a,b,t){const v=Math.max(0,Math.min(1,(t-a)/(b-a)));return v*v*(3-2*v);}
+function pulse(t,start,end){return ease(start,start+.25,t)*(1-ease(end-.25,end,t));}
+function part(points,px,py,angle,dx=0,dy=0){ctx.save();ctx.translate(px+dx,py+dy);ctx.rotate(angle);ctx.translate(-px,-py);ctx.beginPath();poly(points);ctx.clip();ctx.drawImage(image,0,0);ctx.restore();}
+function frame(time){if(!ready)return;const t=((time%DURATION)+DURATION)%DURATION;const buzz=pulse(t,1.1,2.0);const look=pulse(t,2.0,4.9);const settle=pulse(t,5.2,6.4);const breath=Math.sin(t/DURATION*Math.PI*2)*1.2;
+ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#fff';ctx.fillRect(0,0,1000,1000);ctx.save();ctx.translate(-90,100);ctx.scale(.83,.83);
+// Original backdrop and tripod remain fixed.
+ctx.save();ctx.beginPath();ctx.rect(0,0,1402,1122);ctx.rect(386,20,457,1050);ctx.clip('evenodd');ctx.drawImage(image,0,0);ctx.restore();
+ctx.save();ctx.translate(0,breath);
+// Skin and sleeve bridges sit BEHIND the original torso/collar artwork.
+ctx.fillStyle='#c9813e';ctx.fillRect(549,374,79,76);
+ctx.fillStyle='#173f30';ctx.beginPath();ctx.moveTo(643,521);ctx.lineTo(704,514);ctx.lineTo(746,576);ctx.lineTo(716,620);ctx.lineTo(668,612);ctx.closePath();ctx.fill();
+// Torso and legs, with independently rigged head and phone arm removed.
+ctx.save();ctx.beginPath();ctx.rect(386,20,457,1050);poly(head);poly(arm);ctx.clip('evenodd');ctx.drawImage(image,0,0);ctx.restore();
+// Readable anticipation: phone jitters, arm rises, head then tilts towards it.
+const armAngle=-look*.025+Math.sin(t*73)*.012*buzz;
+part(arm,687,565,armAngle,Math.sin(t*65)*1.9*buzz,-look*1);
+ctx.save();ctx.translate(578,405);ctx.rotate(-look*.04+settle*.018);ctx.translate(-578,-405);ctx.beginPath();poly(head);ctx.clip();ctx.drawImage(image,0,0);
+// Brief blink: simple curved eyelids in the approved dot-eye style.
+const blink=(pulse(t,.55,.72)+pulse(t,3.15,3.32)+pulse(t,6.35,6.52));
+if(blink>.35){ctx.fillStyle='#c9813e';ctx.beginPath();ctx.ellipse(585,285,16,18,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(664,267,15,18,0,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#080908';ctx.lineWidth=7;ctx.lineCap='round';for(const [x,y]of [[585,285],[664,267]]){ctx.beginPath();ctx.moveTo(x-7,y);ctx.quadraticCurveTo(x,y+4,x+7,y-1);ctx.stroke();}}
+ctx.restore();ctx.restore();
+// The drawn notification marks are static in the original: redraw this tiny
+// white area and animate simple marks only during the actual buzz.
+ctx.fillStyle='#fff';ctx.fillRect(797,297,73,54);
+if(buzz>.05){ctx.strokeStyle='#111';ctx.lineWidth=7;ctx.lineCap='round';const wob=Math.sin(t*70)*3;ctx.beginPath();ctx.moveTo(813+wob,332);ctx.lineTo(823+wob,312);ctx.moveTo(839+wob,345);ctx.lineTo(855+wob,333);ctx.stroke();}
+ctx.restore();window.motionTestTime=t;}
+window.seekMotion=t=>frame(t);window.motionTestReady=false;
+image.onload=()=>{ready=true;window.motionTestReady=true;frame(0);};
+function tick(now){if(playing)frame((now-base)/1000);requestAnimationFrame(tick);}requestAnimationFrame(tick);
+document.querySelector('#toggle').onclick=()=>{playing=!playing;if(!playing)held=window.motionTestTime;else base=performance.now()-held*1000;document.querySelector('#toggle').textContent=playing?'Pause animation':'Play animation';};
+</script></body></html>
