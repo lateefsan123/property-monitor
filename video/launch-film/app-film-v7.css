@@ -1,0 +1,72 @@
+/* v7 film: desktop-first, immersive — inspired by v5's approach. */
+:root { --bg: #0a0a0a; --ink: #f0f0f0; --soft: #888; --accent: #5eead4; }
+html, body { margin: 0; background: var(--bg); }
+body { font-family: "Geist", system-ui, sans-serif; -webkit-font-smoothing: antialiased; color: var(--ink); }
+.stage { position: relative; overflow: hidden; background: var(--bg); }
+.glow {
+  position: absolute; left: 50%; top: 45%; width: 1500px; height: 1500px; margin: -750px 0 0 -750px; border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0));
+}
+.type { position: absolute; z-index: 5; letter-spacing: -0.045em; line-height: 1; }
+.line { padding-bottom: 0.14em; margin-bottom: -0.08em; white-space: nowrap; }
+.count { font-variant-numeric: tabular-nums; }
+
+/* Desktop stage — fills the frame, no chrome */
+.desktop-stage {
+  position: absolute; z-index: 2; overflow: hidden; border-radius: 12px;
+  box-shadow: 0 40px 120px -30px rgba(0, 0, 0, 0.6);
+  transform-origin: 50% 20%;
+}
+.desktop-img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover; }
+
+/* Click indicator — concentric ring that appears at the click point */
+.click-ring {
+  position: absolute; z-index: 10; pointer-events: none;
+  width: 48px; height: 48px; border-radius: 50%;
+  border: 2.5px solid rgba(94, 234, 212, 0.6);
+  background: rgba(94, 234, 212, 0.12);
+  box-shadow: 0 0 16px rgba(94, 234, 212, 0.15);
+}
+
+/* Teal highlight marks on product UI */
+.mark {
+  position: absolute; z-index: 3; box-sizing: border-box; border-radius: 8px;
+  border: 2px solid rgba(94, 234, 212, 0.5); background: rgba(94, 234, 212, 0.06);
+}
+
+/* Phone (mobile scenes) */
+.phone {
+  position: absolute; z-index: 3; box-sizing: border-box; background: #1b1b1d;
+  box-shadow: inset 0 0 0 2px #3a3a3e, inset 0 0 0 5px #0d0d0f, 0 60px 140px -40px rgba(0, 0, 0, 0.8);
+  transform-origin: 50% 30%;
+}
+.screen { position: relative; overflow: hidden; background: #111; }
+.status { position: absolute; left: 0; right: 0; top: 0; z-index: 2; background: #111; color: #fff; font-weight: 600; }
+.status-time { position: absolute; left: 12%; top: 50%; transform: translateY(-35%); letter-spacing: -0.01em; }
+.island { position: absolute; left: 50%; transform: translateX(-50%); border-radius: 999px; background: #000; }
+.status-icons { position: absolute; right: 8%; top: 50%; transform: translateY(-35%); }
+.viewport { position: absolute; left: 0; overflow: hidden; }
+.viewport img { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tap { position: absolute; z-index: 3; border-radius: 50%; background: rgba(255, 255, 255, 0.85); box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.18); }
+
+/* Close */
+.lockup { position: absolute; left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 44px; z-index: 6; }
+.lockup img { width: auto; }
+.tagline { display: flex; gap: 0.26em; color: var(--ink); font-size: 58px; font-weight: 600; letter-spacing: -0.03em; }
+.tagline span { display: inline-block; }
+.url { padding: 16px 34px; border-radius: 999px; border: 1px solid #2d2b29; color: var(--ink); font-size: 40px; font-weight: 600; letter-spacing: -0.01em; }
+
+/* Early access */
+.early-access {
+  position: absolute; z-index: 6;
+  color: rgba(255, 255, 255, 0.35); font-size: 16px; font-weight: 500;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 6px; padding: 4px 12px;
+}
+
+/* Demo label */
+.demo-label {
+  position: absolute; bottom: 40px; right: 40px; z-index: 6;
+  color: rgba(255, 255, 255, 0.18); font-size: 14px; font-weight: 500;
+  letter-spacing: 0.05em; text-transform: uppercase;
+}
