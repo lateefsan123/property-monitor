@@ -13,6 +13,7 @@ import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadClips } from "../lib/clips.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("D:/Users/Lateef/Documents/property/video/node_modules/playwright-core");
@@ -84,10 +85,9 @@ cue.buzz = endOf(1) + 0.3;
 cue.cutInt = cue.buzz + 0.12;
 start[2] = cue.cutInt + 0.35;
 cue.zoom = W(2, "send", 1) - 0.75;             // land on the composer as he says "send the same seller update"
-cue.tap = endOf(2) + 0.2;
-cue.toTpl = cue.tap + 0.45;
+cue.toTpl = endOf(2) + 0.45;
 start[3] = cue.toTpl + 0.2;
-cue.toUse = W(3, "follow-ups", 1) - 0.05;
+cue.toUse = cue.toTpl + 1.25;                   // preview sheet, then "Use for"
 start[4] = endOf(3) + 0.4;
 cue.toAuto = start[4] - 0.35;
 cue.toggle = W(4, "due", 1, "end") - 0.05;
@@ -99,6 +99,38 @@ start[5] = cue.toPay + 0.65;
 cue.endCard = endOf(5) + 0.55;
 start[6] = cue.endCard + 0.35;
 const END = r2(endOf(6) + 1.5);
+
+// ── App proof: recorded film-mode clips (marketing/shorts/app-clips, lib/app-phone.js)
+const clips = loadClips(["composer-manual", "template-appraisal", "template-use-for", "automations-status", "whatsapp-connected", "send-activity"], DIR);
+const ev = (c, k) => clips[c].events[k];
+const RATE = 1.25;
+const lastT = c => (clips[c].frames - 1) / 30;
+const stopCam = { sx: 590, sy: 1380, z: 1.14, cy: 1120 };
+const app = { beats: [
+  { a: cue.zoom, b: cue.toTpl, clip: "composer-manual", c0: 0, rate: 1, cam: { sx: 590, sy: 2150, z: 1.04, cy: 1150 },
+    hl: [{ a: cue.zoom + 0.7, b: cue.toTpl, box: [40, 1870, 1100, 470] }] },
+  { a: cue.toTpl, b: cue.toUse, clip: "template-appraisal", c0: ev("template-appraisal", "tap:preview") - 0.15, rate: RATE,
+    cam: { sx: 590, sy: 1900, z: 1.04, cy: 1200 }, hl: [{ a: cue.toTpl + 0.75, b: cue.toUse, box: [44, 1410, 1092, 1084] }] },
+  { a: cue.toUse, b: cue.toAuto, clip: "template-use-for", c0: ev("template-use-for", "tap:use-for") - 0.1, rate: RATE,
+    cam: { sx: 590, sy: 1950, z: 1.06, cy: 1200 }, hl: [{ a: cue.toUse + (ev("template-use-for", "appraisal-on") - ev("template-use-for", "tap:use-for") + 0.1) / RATE, b: cue.toAuto, box: [30, 2160, 1120, 115] }] },
+  { a: cue.toAuto, b: cue.toWa, clip: "automations-status", c0: Math.max(0, ev("automations-status", "tap:status-switch") - (cue.toggle - cue.toAuto) * RATE), rate: RATE,
+    cam: { sx: 590, sy: 1300, z: 1.08, cy: 1160 }, hl: [{ a: cue.toggle - 0.2, b: cue.toWa, box: [30, 1195, 1120, 225] }] },
+  { a: cue.toWa, b: cue.backAuto, clip: "whatsapp-connected", c0: ev("whatsapp-connected", "tap:whatsapp") - 0.1, rate: RATE,
+    cam: { sx: 590, sy: 560, z: 1.08, cy: 1120 }, hl: [{ a: cue.toWa + 0.8, b: cue.backAuto, box: [44, 300, 1092, 256] }] },
+  { a: cue.backAuto, b: cue.toPay + 0.6, clip: "automations-status", c0: lastT("automations-status"), rate: 0,
+    camKeys: [[cue.backAuto, stopCam], [cue.toPay - 0.05, stopCam], [cue.toPay + 0.45, { ...stopCam, cy: 2900 }]],
+    hl: [{ a: cue.stop, b: cue.toPay, box: [280, 1345, 436, 68] }] },
+  { a: cue.endCard, b: END + 1, clip: "send-activity", c0: ev("send-activity", "tap:send-activity") - 0.1, rate: RATE,
+    camKeys: [[cue.endCard, { sx: 590, sy: 1000, z: 0.9, cy: 1500 }], [cue.endCard + 0.7, { sx: 590, sy: 1100, z: 0.72, cy: 1420 }]],
+    hl: [{ a: cue.endCard + 1.2, b: END + 1, box: [38, 875, 1104, 365] }] },
+] };
+for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); }
+// a tap sound on every recorded tap that plays on screen
+const tapTimes = [];
+for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
+  const ft = bt.a + (tp.t - bt.c0) / bt.rate;
+  if (ft >= bt.a && ft < bt.b) tapTimes.push(r2(ft));
+}
 
 // Captions: chunks of spoken words, with a few emphasised words in teal
 const EM = new Set(["same", "seller", "update", "routine", "follow-ups", "whatsapp", "stops", "myself", "kitchen"]);
@@ -126,7 +158,7 @@ cRight.html = "Right.";
 cKitchen.html = "Right. This is the <em>kitchen.</em>";
 
 for (const k in cue) cue[k] = r2(cue[k]);
-const timeline = { end: END, cue, captions, lines: Object.values(L).map(l => ({ n: l.n, start: r2(start[l.n]), end: r2(endOf(l.n)), file: l.mp3.replace(DIR, "") })) };
+const timeline = { end: END, cue, captions, app, clips, tapTimes, lines: Object.values(L).map(l => ({ n: l.n, start: r2(start[l.n]), end: r2(endOf(l.n)), file: l.mp3.replace(DIR, "") })) };
 writeFileSync(join(DIR, "timeline.json"), JSON.stringify(timeline, null, 1));
 console.log(`Timeline: ${END}s`, cue);
 if (process.argv.includes("--timeline-only")) process.exit(0);
@@ -152,8 +184,7 @@ function buildAudio() {
     ["switch.wav", cue.lightOn, 0.9],
     ["buzz.wav", cue.buzz, 1.0],
     ["air.wav", cue.zoom, 0.8],
-    ["tap.wav", cue.tap, 1.0],
-    ["tap.wav", cue.toggle, 1.0],
+    ...tapTimes.map(t => ["tap.wav", t, 0.9]),
     ["rec.wav", cue.toPay + 0.15, 1.0],
     ["chime.wav", cue.endCard + 0.2, 0.9],
   ];

@@ -134,3 +134,15 @@ All assets ready: Oliver reference, three transparent poses, both app captures, 
 **Credits:** 106,263 before → **105,719 after**, **544 used**, including auditions and the revised line 4 (fresh final UI read). Existing Creator balance only. Final settings/balance screenshot: `narration/elevenlabs-settings.png`.
 
 **Art/captures:** see checkpoint above. Built-in imagegen prompt set in `art-prompts.md`, PNG dimensions/alpha/hashes in `art-checks.json`. Captures visually verified, 1179x2556 dark theme; 23 Oct fictional sale, full sales rows/message visible. Browser Date uses an advancing offset; app/fixtures unchanged. `capture-app.mjs` and `capture-checks.json` provide reproduction/evidence. No physical-device or live-send claim. Expo film server on 8083 left running for Claude; unrelated services untouched.
+
+## Recast request — Oliver's voice (24 October 2026)
+
+The user wants a different voice for Oliver. Please re-record **lines 1–5 only** with
+**Rupert - Natural British** (`5yPNUy2ZGgvEkNjAmzo1`, your line-1 audition). Same settings as
+before: Eleven v4, stability 0.5, similarity 0.75, style/effects off, MP3 44.1 kHz / 192 kbps,
+unprocessed. Lines exactly as in section 4 (line 4 is the "just sold" version). Same reads:
+deadpan → resigned → flat → slowly interested → short and curious.
+
+Three takes per line, named `narration/vo-002-<line>-rupert-take-<n>.mp3` with `.words.json`
+beside each. Leave the Jonathan and Brady files where they are. Existing credits only. Append a
+short results note below (take lengths, checks, credits before/after). No commits.

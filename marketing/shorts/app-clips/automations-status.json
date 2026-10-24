@@ -1,0 +1,28 @@
+{
+ "clip": "automations-status",
+ "fps": 30,
+ "frames": 145,
+ "duration": 4.833,
+ "pixels": [
+  1179,
+  2556
+ ],
+ "encodedPixels": [
+  1180,
+  2556
+ ],
+ "demoClock": "2026-10-23T12:00:00Z",
+ "taps": [
+  {
+   "t": 1.9,
+   "x": 1071,
+   "y": 1313,
+   "label": "status-switch"
+  }
+ ],
+ "events": {
+  "start": 0.6,
+  "tap:status-switch": 1.9,
+  "switched-on": 2.433
+ }
+}

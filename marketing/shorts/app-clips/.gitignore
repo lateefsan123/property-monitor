@@ -1,0 +1,5 @@
+# Recorded clips and their extracted frames are local media, not committed
+*.mp4
+frames/
+frames-raw/
+failed-*.png

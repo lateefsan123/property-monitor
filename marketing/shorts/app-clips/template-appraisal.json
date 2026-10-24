@@ -1,0 +1,36 @@
+{
+ "clip": "template-appraisal",
+ "fps": 30,
+ "frames": 146,
+ "duration": 4.867,
+ "pixels": [
+  1179,
+  2556
+ ],
+ "encodedPixels": [
+  1180,
+  2556
+ ],
+ "demoClock": "2026-10-23T12:00:00Z",
+ "taps": [
+  {
+   "t": 0.8,
+   "x": 590,
+   "y": 923,
+   "label": "edit-appraisal"
+  },
+  {
+   "t": 2.033,
+   "x": 1048,
+   "y": 1692,
+   "label": "preview"
+  }
+ ],
+ "events": {
+  "start": 0.8,
+  "tap:edit-appraisal": 0.8,
+  "editor-open": 2.033,
+  "tap:preview": 2.033,
+  "preview-settled": 4.067
+ }
+}

@@ -12,6 +12,7 @@ import { execSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadClips } from "../lib/clips.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("D:/Users/Lateef/Documents/property/video/node_modules/playwright-core");
@@ -48,7 +49,9 @@ const VOICE_LUFS = -19.3;
 // ── 1. Narration ─────────────────────────────────────────────────────────────
 function loadLine(n) {
   const take = sel.takes[String(n)];
-  const mp3 = join(NARR, `vo-002-${n}-take-${take}.mp3`);
+  // a take is a number, or "<voice>-<n>" for a recast (e.g. "rupert-2")
+  const m = String(take).match(/^([a-z]+)-(\d+)$/);
+  const mp3 = join(NARR, m ? `vo-002-${n}-${m[1]}-take-${m[2]}.mp3` : `vo-002-${n}-take-${take}.mp3`);
   const words = JSON.parse(readFileSync(mp3.replace(/\.mp3$/, ".words.json"), "utf8"));
   const dur = parseFloat(execSync(`ffprobe -v error -show_entries format=duration -of csv=p=0 "${mp3}"`, { encoding: "utf8" }));
   const lead = Math.max(0, words[0].start - 0.04);
@@ -103,7 +106,7 @@ cue.toMsg = W(6, "into") - 0.2;
 cue.endCard = endOf(6) + 0.55;
 start[7] = cue.endCard + 0.3;
 cue.endLine = W(7, "have") - 0.05;
-const END = r2(endOf(7) + 1.3);
+let END = r2(endOf(7) + 1.3);
 for (const k in cue) if (!Array.isArray(cue[k])) cue[k] = r2(cue[k]);
 
 const EM = new Set(["tuesday", "every", "week", "something", "just", "sold", "latest", "sales", "building"]);
@@ -135,18 +138,37 @@ for (const [k, files] of Object.entries(POSES)) {
   poses[k] = { src: f, standIn: f.startsWith(".."), x0: b[0], y0: b[1], x1: b[2], y1: b[3] };
 }
 
-// App captures: Codex's fresh scrolled captures when present (see app-config.json), else v5s takes
-const appCfg = existsSync(join(DIR, "app-config.json")) ? JSON.parse(readFileSync(join(DIR, "app-config.json"), "utf8")) : {};
-const app = {
-  sales: appCfg.sales || relRoot(join(TAKES, "oliver.png")),
-  msg: appCfg.msg || relRoot(join(TAKES, "oliver-message.png")),
-  camAuto: { sx: 590, sy: 520, z: 1.08, cy: 1150 },
-  camSales: appCfg.camSales || { sx: 590, sy: 1950, z: 1.08, cy: 1150 },
-  camMsg: appCfg.camMsg || { sx: 590, sy: 2000, z: 1.08, cy: 1150 },
-  boxSales: appCfg.boxSales || [20, 2240, 1140, 110],
-  boxMsg: appCfg.boxMsg || [20, 2200, 1140, 130],
-};
-const timeline = { end: END, cue, captions, poses, app, lines: Object.values(L).map(l => ({ n: l.n, start: r2(start[l.n]), end: r2(endOf(l.n)), file: rel(l.mp3) })) };
+// App proof: recorded film-mode clips (marketing/shorts/app-clips, lib/app-phone.js)
+const clips = loadClips(["oliver-sheet-sales", "oliver-message-tab"], DIR);
+const ev = (c, k) => clips[c].events[k];
+const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };          // whole screen under the caption
+const RATE = 1.25;                                               // a brisk but natural pace
+const app = { beats: [] };
+{
+  // 1. Sellers → tap Oliver (on "Repeat puts…") → his sheet → scroll to "Sales in Burj Khalifa"
+  const a = cue.toApp, b = cue.toMsg;
+  const c0 = Math.max(0, ev("oliver-sheet-sales", "tap:oliver") - (start[6] + 0.15 - a) * RATE);
+  const salesAt = a + (ev("oliver-sheet-sales", "sales-visible") - c0) / RATE;
+  app.beats.push({ a, b, clip: "oliver-sheet-sales", c0, rate: RATE,
+    camKeys: [[a, FULL], [salesAt - 0.5, FULL], [salesAt + 0.3, { sx: 590, sy: 1960, z: 1.12, cy: 1250 }]],
+    hl: [{ a: salesAt + 0.2, b, box: [22, 2008, 1136, 90] }] });
+}
+{
+  // 2. Message tab → the same sale in his update; stays under the end card
+  const a = cue.toMsg;
+  const c0 = Math.max(0, ev("oliver-message-tab", "tap:message-tab") - 0.35 * RATE);
+  const msgAt = a + (ev("oliver-message-tab", "message-visible") - c0) / RATE;
+  // hold the end card until the message has been on screen long enough to read
+  const shift = Math.max(0, r2(msgAt + 1.4 - cue.endCard));
+  if (shift) { cue.endCard = r2(cue.endCard + shift); cue.endLine = r2(cue.endLine + shift); start[7] += shift; END = r2(END + shift); }
+  const close = { sx: 590, sy: 1660, z: 1.12, cy: 1180 };
+  app.beats.push({ a, b: END + 1, clip: "oliver-message-tab", c0, rate: RATE,
+    camKeys: [[a, { sx: 590, sy: 1300, z: 0.9, cy: 1150 }], [msgAt - 0.3, { sx: 590, sy: 1300, z: 0.9, cy: 1150 }], [msgAt + 0.4, close],
+              [cue.endCard, close], [cue.endCard + 0.7, { sx: 590, sy: 1500, z: 0.66, cy: 1430 }]],
+    hl: [{ a: msgAt + 0.2, b: END + 1, box: [22, 1606, 1136, 124] }] });
+}
+for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); }
+const timeline = { end: END, cue, captions, poses, app, clips, lines: Object.values(L).map(l => ({ n: l.n, start: r2(start[l.n]), end: r2(endOf(l.n)), file: rel(l.mp3) })) };
 writeFileSync(join(DIR, "timeline.json"), JSON.stringify(timeline, null, 1));
 console.log(`Timeline: ${END}s`, cue, Object.entries(poses).map(([k, p]) => `${k}:${p.src}`).join(" "));
 if (process.argv.includes("--timeline-only")) process.exit(0);

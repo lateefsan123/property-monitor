@@ -49,7 +49,7 @@
   #caption span { font: 900 74px/1.08 "Outfit", sans-serif; color: #fff; letter-spacing: -0.5px;
                   -webkit-text-stroke: 14px #141414; paint-order: stroke fill; text-wrap: balance; }
   #caption em { font-style: normal; color: #6FF0DD; }
-  #label { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; z-index: 50;
+  #label { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; z-index: 50; width: max-content; margin: 0 auto; padding: 8px 20px; border-radius: 22px; background: rgba(11,12,13,.78);
            font: 600 24px "Inter", sans-serif; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,.5); }
 
   /* End card */
@@ -63,6 +63,9 @@
   #cta { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); white-space: nowrap; z-index: 60;
          padding: 26px 44px; border-radius: 60px; background: #fff; color: #0B0C0D; font: 600 40px "Inter", sans-serif; }
   #cta b { font-weight: 600; color: #11806F; }
+  #endtop { position: absolute; left: 0; right: 0; top: 0; height: 700px; z-index: 0;
+            background: linear-gradient(to bottom, #0B0C0D 0%, #0B0C0D 72%, rgba(11,12,13,0) 100%); }
+  #wordmark, #endline { z-index: 2; }
   #endfade { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; z-index: 55;
              background: linear-gradient(to bottom, rgba(11,12,13,0), #0B0C0D 62%); }
 </style>
@@ -125,36 +128,7 @@
 
 <!-- ───────── App ───────── -->
 <div class="layer" id="appLayer">
-  <div class="abs" id="phone">
-    <div id="screen">
-      <div id="statusbar"><span class="time">9:41</span><span class="island"></span>
-        <span class="icons"><span class="bars"><i style="height:12px"></i><i style="height:17px"></i><i style="height:22px"></i><i style="height:27px"></i></span><span class="batt"><b></b></span></span>
-      </div>
-      <div class="app" id="sSend"><img src="../../../video/launch-film/out/app/takes-v6/mobile-send.png">
-        <div id="tapDim" style="left:66px; top:2392px; width:1046px; height:120px; opacity:0"></div>
-        <div class="hl" id="hSend" style="left:40px; top:1850px; width:1100px; height:480px"></div>
-      </div>
-      <div class="app" id="sTpl"><img src="../../../video/launch-film/out/app/takes-v5s/tpl-preview.png">
-        <div class="hl" id="hTpl" style="left:52px; top:1402px; width:1076px; height:1102px"></div>
-      </div>
-      <div class="app" id="sUse"><img src="../../../video/launch-film/out/app/takes-v5s/tpl-uses-on.png">
-        <div class="hl" id="hUse" style="left:30px; top:2170px; width:1120px; height:106px"></div>
-      </div>
-      <div class="app" id="sAuto"><img src="../../../video/launch-film/out/app/takes-v5s/sc-auto.png">
-        <!-- the "on" switch from the row above, used to show the real tap result on this row -->
-        <div class="crop" id="tOn" style="left:996px; top:1402px; width:150px; height:80px;
-             background-image:url(../../../video/launch-film/out/app/takes-v5s/sc-auto.png); background-position:-996px -300px"></div>
-        <div class="hl" id="hAuto" style="left:30px; top:1340px; width:1120px; height:200px"></div>
-        <div class="hl" id="hStop" style="left:950px; top:1488px; width:0; height:0"></div>
-      </div>
-      <div class="app" id="sWa"><img src="../../../video/launch-film/out/app/takes-v5s/whatsapp.png">
-        <div class="hl" id="hWa" style="left:44px; top:300px; width:1092px; height:256px"></div>
-      </div>
-      <div class="app" id="sAct"><img src="../../../video/launch-film/out/app/takes-v6/mobile-activity.png">
-        <div class="hl" id="hAct" style="left:38px; top:885px; width:1104px; height:345px"></div>
-      </div>
-    </div>
-  </div>
+  <div class="abs" id="appStage"></div>
   <div id="topband"></div>
   <div id="label">Dramatisation · demo data</div>
 </div>
@@ -163,12 +137,14 @@
 <div class="layer" id="endcard">
   <img id="wordmark" src="../../../mobile/assets/repeat-ai-logo.png">
   <div id="endline">Build your brand.<br><span>Keep your follow-ups organised.</span></div>
+  <div id="endtop"></div>
   <div id="endfade"></div>
   <div id="cta">Watch the demo · <b>repeatai.org</b></div>
 </div>
 
 <div id="caption"><span id="capText"></span></div>
 
+<script src="../lib/app-phone.js"></script>
 <script>
 // Timeline; build-short.mjs replaces this with times measured from the chosen narration takes.
 window.TL = window.TL || {
@@ -196,39 +172,8 @@ const POSE = {
 };
 const at = (p, sx, sy) => [p.x + sx * p.s, p.y + sy * p.s];
 
-// Phone camera: show source point (sx, sy) of the screenshot at canvas (cx, cy) with zoom z.
-const K = 972 / 1179;
-function phoneCam(sx, sy, z, cx = 540, cy = 1180, rot = 0) {
-  const lx = 14 + sx * K, ly = 14 + 80 + sy * K;
-  return { x: cx - z * lx, y: cy - z * ly, z, rot, lx, ly };
-}
-function placePhone(c) {
-  set($("phone"), { transform: `translate(${c.x}px, ${c.y}px) translate(${c.lx * c.z}px, ${c.ly * c.z}px) rotate(${c.rot}deg) scale(${c.z}) translate(${-c.lx}px, ${-c.ly}px)` });
-}
 const mixCam = (a, b, u) => ({ sx: lerp(a.sx, b.sx, u), sy: lerp(a.sy, b.sy, u), z: lerp(a.z, b.z, u), cx: lerp(a.cx ?? 540, b.cx ?? 540, u), cy: lerp(a.cy ?? 1180, b.cy ?? 1180, u), rot: lerp(a.rot ?? 0, b.rot ?? 0, u) });
-
-// App screens: which one is showing, with a short push transition between them
-const SCREENS = ["sSend", "sTpl", "sUse", "sAuto", "sWa", "sAct"];
-function showScreens(t, C) {
-  const order = [["sSend", -1], ["sTpl", C.toTpl], ["sUse", C.toUse], ["sAuto", C.toAuto], ["sWa", C.toWa], ["sAuto", C.backAuto], ["sAct", C.endCard]];
-  let cur = 0;
-  for (let i = 0; i < order.length; i++) if (t >= order[i][1]) cur = i;
-  const u = ease(prog(t, order[cur][1], 0.26));
-  const back = order[cur][0] === "sAuto" && cur === 5;
-  for (const id of SCREENS) set($(id), { opacity: 0, transform: `scale(${K})` });
-  const curEl = $(order[cur][0]);
-  const dir = back ? -1 : 1;
-  set(curEl, { opacity: 1, transform: `translateX(${(1 - u) * 972 * 0.35 * dir}px) scale(${K})` });
-  if (cur > 0 && u < 1) {
-    const prev = $(order[cur - 1][0]);
-    set(prev, { opacity: clamp(1 - u * 1.8), transform: `translateX(${-u * 972 * 0.2 * dir}px) scale(${K})` });
-    set(curEl, { opacity: u });
-  }
-}
-function hl(id, t, a, b) {
-  const u = out(prog(t, a, 0.28)) * (1 - prog(t, b - 0.2, 0.2));
-  set($(id), { opacity: u, transform: `scale(${lerp(1.04, 1, u)})` });
-}
+let PH = null;
 
 function render(t) {
   const C = TL.cue;
@@ -306,62 +251,25 @@ function render(t) {
     set($("room"), { clipPath: "none" }); set($("iris"), { display: "none" });
   }
 
-  // ── App layer
+  // ── App layer: recorded film-mode clips (lib/app-phone.js)
   set($("appLayer"), { display: inApp || inEnd ? "block" : "none", background: inEnd ? "#0B0C0D" : `rgba(11,12,13,${clamp((t - C.zoom - 0.15) / 0.35)})`, zIndex: inEnd ? 40 : 20, opacity: inEnd ? out(prog(t, C.endCard, 0.5)) : 1 });
   set($("topband"), { opacity: inApp && !inEnd && t > C.zoom + 0.4 ? 1 : 0 });
   set($("room"), { display: (t < C.zoom + 0.6 || t >= C.toPay) && !(t >= C.endCard + 0.4) ? "block" : "none", zIndex: t >= C.toPay ? 30 : 10 });
-  showScreens(t, C);
-
-  // phone camera keyframes
-  const P = POSE.int, [ppx, ppy] = at(P, 855, 564);
-  const camHand = { sx: 589, sy: 1278, z: 0.124, cx: ppx, cy: ppy, rot: 21 };
-  const camSend = { sx: 590, sy: 2060, z: 1.04, cy: 1160 };
-  const camTpl  = { sx: 590, sy: 1950, z: 1.08, cy: 1200 };
-  const camUse  = { sx: 590, sy: 1960, z: 1.08, cy: 1200 };
-  const camAuto = { sx: 590, sy: 1340, z: 1.08, cy: 1160 };
-  const camWa   = { sx: 590, sy: 560,  z: 1.08, cy: 1120 };
-  const camStop = { sx: 590, sy: 1450, z: 1.14, cy: 1120 };
-  const camEnd  = { sx: 590, sy: 1040, z: 0.74, cy: 1300 };
-  const camOut  = { sx: 590, sy: 1450, z: 1.14, cy: 2900 };
-  const keys = [
-    [C.zoom, camHand, 0.6], [C.toTpl, camTpl, 0.45], [C.toUse, camUse, 0.4], [C.toAuto, camAuto, 0.45],
-    [C.toWa, camWa, 0.45], [C.backAuto, camStop, 0.5], [C.toPay - 0.05, camOut, 0.45], [C.endCard, camEnd, 0.6],
-  ];
-  let cam = camSend;
-  if (t < C.zoom + 0.65) {
-    // ride with the room zoom from his hand, then settle into the app framing
-    const s = lerp(1, 1.04, prog(t, C.cutInt, 3)) * lerp(1, 7, ease(prog(t, C.zoom, 0.55)));
-    cam = mixCam({ ...camHand, z: camHand.z * s }, camSend, ease(prog(t, C.zoom + 0.18, 0.47)));
-  }
-  else {
-    cam = camSend;
-    for (let i = 1; i < keys.length; i++) {
-      const [ta, target, d] = keys[i];
-      if (t >= ta) {
-        const prev = i === 1 ? camSend : keys[i - 1][1];
-        cam = mixCam(prev, target, ease(prog(t, ta, d)));
-      }
+  if (!PH) PH = AppPhone.create($("appStage"));
+  let pending = null;
+  if (inApp || inEnd) {
+    let cam = null;
+    if (t < C.zoom + 0.65) {
+      // match-cut: ride the room zoom out of his drawn phone, then settle into the first beat's framing
+      const P = POSE.int, [ppx, ppy] = at(P, 855, 564);
+      const s = lerp(1, 1.04, prog(t, C.cutInt, 3)) * lerp(1, 7, ease(prog(t, C.zoom, 0.55)));
+      const hand = { sx: 589, sy: 1278, z: 0.124 * s, cx: ppx, cy: ppy, rot: 21 };
+      cam = mixCam(hand, AppPhone.camAt(TL.app.beats[0], t), ease(prog(t, C.zoom + 0.18, 0.47)));
     }
-    if (t >= C.endCard) cam = mixCam({ ...camEnd, cy: 1700 }, camEnd, out(prog(t, C.endCard, 0.6)));
+    pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, cam ? { cam } : {});
+    set(PH.phone, { opacity: t < C.zoom + 0.08 ? 0 : 1 });
   }
-  placePhone(phoneCam(cam.sx, cam.sy, cam.z, cam.cx, cam.cy, cam.rot));
-  set($("phone"), { opacity: t < C.zoom + 0.08 ? 0 : 1 });
   set($("label"), { opacity: inApp && t > C.zoom + 0.6 && t < C.toPay ? 1 : 0 });
-
-  // in-app interactions and highlights
-  hl("hSend", t, C.zoom + 0.7, C.toTpl);
-  set($("tapDim"), { opacity: t > C.tap && t < C.tap + 0.22 ? 1 : 0 });
-  hl("hTpl", t, C.toTpl + 0.5, C.toUse);
-  hl("hUse", t, C.toUse + 0.45, C.toAuto);
-  const tog = ease(prog(t, C.toggle, 0.18));
-  set($("tOn"), { opacity: t >= C.backAuto ? 1 : tog });
-  hl("hAuto", t, C.toggle - 0.35, C.toWa);
-  hl("hWa", t, C.toWa + 0.45, C.backAuto);
-  const st = $("hStop");
-  set(st, { left: "930px", top: "1435px", width: "0px", height: "0px" });
-  { const u = out(prog(t, C.stop, 0.3)) * (1 - prog(t, C.toPay - 0.2, 0.2));
-    set(st, { left: "250px", top: "1482px", width: "466px", height: "66px", opacity: u, transform: `scale(${lerp(1.04, 1, u)})` }); }
-  hl("hAct", t, C.endCard + 1.0, TL.end + 1);
 
   // ── End card
   const e = out(prog(t, C.endCard, 0.5));
@@ -382,10 +290,11 @@ function render(t) {
     const u = out(prog(t, cap.a, 0.16));
     set(ce, { opacity: u, transform: `translateY(${(1 - u) * 18}px) scale(${lerp(0.96, 1, u)})` });
   } else set(ce, { opacity: 0 });
+  return pending;
 }
 
 window.setTime = t => render(t);
-window.ready = Promise.all([...document.images].map(i => i.decode().catch(() => {})).concat(document.fonts.ready));
+window.ready = new Promise(r => setTimeout(r, 0)).then(() => Promise.all([...document.images].map(i => i.decode().catch(() => {})).concat(document.fonts.ready)));
 if (!navigator.webdriver) {
   // Plain preview in a browser: loop it
   const t0 = performance.now();

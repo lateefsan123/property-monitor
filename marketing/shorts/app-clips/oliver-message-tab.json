@@ -1,0 +1,28 @@
+{
+ "clip": "oliver-message-tab",
+ "fps": 30,
+ "frames": 136,
+ "duration": 4.533,
+ "pixels": [
+  1179,
+  2556
+ ],
+ "encodedPixels": [
+  1180,
+  2556
+ ],
+ "demoClock": "2026-10-23T12:00:00Z",
+ "taps": [
+  {
+   "t": 0.8,
+   "x": 719,
+   "y": 1145,
+   "label": "message-tab"
+  }
+ ],
+ "events": {
+  "start": 0.8,
+  "tap:message-tab": 0.8,
+  "message-visible": 2.533
+ }
+}

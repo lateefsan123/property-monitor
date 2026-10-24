@@ -99,3 +99,20 @@ capture.
 
 `node build-short.mjs` (needs the narration takes in `narration/`). `node still.mjs <s…>` renders
 stills.
+
+## Version 2: real app motion (24 October 2026)
+
+The app proof is now two real recordings (`../app-clips/`, `../lib/app-phone.js`):
+
+1. Sellers: a real tap on Oliver Grant, then his sheet slides up and scrolls to "Sales in Burj
+   Khalifa", where the 23 Oct AED 4,671,000 sale is highlighted.
+2. A real tap on the Message tab: the same sale in Sara's update, highlighted. It stays under
+   the end card, larger than before.
+
+The end card waits until the message is readable, which brings the film to 29.77 s
+(-14.3 LUFS, full decode).
+
+**Pending:** the user asked to recast Oliver with Rupert ("Natural British"). The request is in
+`codex-requests.md`, but Codex hasn't picked it up yet. This render still uses Jonathan. Once
+the Rupert takes land, set `"rupert-<n>"` takes in `narration-selection.json` and re-run
+`node build-short.mjs`.

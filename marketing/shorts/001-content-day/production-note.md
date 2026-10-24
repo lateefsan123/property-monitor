@@ -92,3 +92,21 @@ state a tap produces; no other UI is drawn.
 `node build-short.mjs` (Playwright Chromium + ffmpeg). `node still.mjs <seconds…>` renders
 single stills. Frames, sfx and media outputs are git-ignored. The rejected first pass is
 kept under `drafts/v1/`.
+
+## Version 4: real app motion (24 October 2026)
+
+The user's feedback: the app section felt flat, because it was still screenshots with camera
+pans, plus a tiny end-card phone. The app section is now cut from real recordings of the app in
+film mode (`../app-clips/`, `../lib/app-phone.js`):
+
+- the composer
+- "Appraisal follow-up": a real tap on Preview, and the sheet rises
+- "Use for": a real tap on Appraisal, and the switch turns on
+- Automations: a real tap turns Status follow-ups on
+- WhatsApp: Connected
+- back to Automations with "Stops when they reply."
+- the end card shows Send activity, larger, with the logo and line above it
+
+Tap ripples and tap sounds come from the recorded tap positions and times. The old pasted "on"
+switch and the drawn tap on Send are gone. Clips play at 1.25×. The render is 25.38 s,
+-14.1 LUFS, and decodes fully.
