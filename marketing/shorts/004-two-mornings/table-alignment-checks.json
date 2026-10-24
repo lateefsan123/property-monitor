@@ -1,0 +1,93 @@
+{
+  "method": "Heuristic warm opaque wood pixel spans at selected native image rows; not full segmentation or pixel identity. Tabletop sample spans at y610 and y630 agree within two pixels.",
+  "samples": {
+    "pose-table-laptop.png": {
+      "610": [
+        389,
+        1022
+      ],
+      "630": [
+        387,
+        1023
+      ],
+      "650": [
+        416,
+        988
+      ],
+      "665": [
+        443,
+        838
+      ],
+      "1050": [
+        529,
+        901
+      ]
+    },
+    "pose-table-neutral.png": {
+      "610": [
+        390,
+        1021
+      ],
+      "630": [
+        388,
+        1022
+      ],
+      "650": [
+        418,
+        987
+      ],
+      "665": [
+        444,
+        833
+      ],
+      "1050": [
+        531,
+        901
+      ]
+    },
+    "pose-table-phone.png": {
+      "610": [
+        389,
+        1023
+      ],
+      "630": [
+        387,
+        1024
+      ],
+      "650": [
+        415,
+        989
+      ],
+      "665": [
+        443,
+        839
+      ],
+      "1050": [
+        530,
+        901
+      ]
+    },
+    "pose-table-sip.png": {
+      "610": [
+        389,
+        1021
+      ],
+      "630": [
+        387,
+        1022
+      ],
+      "650": [
+        416,
+        987
+      ],
+      "665": [
+        443,
+        839
+      ],
+      "1050": [
+        531,
+        901
+      ]
+    }
+  }
+}

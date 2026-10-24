@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Short 004 — Two mornings</title>
+<style>
+  @font-face { font-family: "Outfit"; font-weight: 900; src: url("../../../mobile/assets/fonts/Outfit-Black.ttf"); }
+  @font-face { font-family: "Inter"; font-weight: 400; src: url("../../../mobile/assets/fonts/Inter-Regular.ttf"); }
+  @font-face { font-family: "Inter"; font-weight: 600; src: url("../../../mobile/assets/fonts/Inter-SemiBold.ttf"); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0B0C0D; }
+  .layer { position: absolute; inset: 0; overflow: hidden; display: none; }
+  .pose { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+
+  /* Two lanes: the same kitchen on two mornings */
+  .lane { position: absolute; left: 0; width: 1080px; height: 954px; overflow: hidden; }
+  #laneA { top: 0; }
+  #laneB { top: 966px; }
+  #divider { position: absolute; left: 0; right: 0; top: 954px; height: 12px; background: #141414; z-index: 5; }
+  .lane .set { position: absolute; inset: 0; }
+  .lane .dim { position: absolute; inset: 0; background: #141414; opacity: 0; pointer-events: none; z-index: 4; }
+  .chip { position: absolute; left: 36px; z-index: 6; padding: 12px 24px; border: 6px solid #141414; border-radius: 40px;
+          font: 900 40px "Outfit", sans-serif; color: #141414; }
+  #chipA { top: 36px; background: #F3E3C3; }
+  #chipB { top: 1820px; background: #BFEFE4; }
+  .steam { position: absolute; z-index: 3; pointer-events: none; overflow: visible; }
+
+  /* The spreadsheet he squints at (drawn, fictional) */
+  #sheet { position: absolute; z-index: 3; left: 560px; top: 150px; width: 470px; border: 7px solid #141414; border-radius: 22px;
+           background: #FBFAF6; transform-origin: 0 0; overflow: hidden; }
+  #sheet .hd { background: #1F7A4D; height: 44px; border-bottom: 6px solid #141414; }
+  #sheet table { width: 100%; border-collapse: collapse; font: 600 25px "Inter", sans-serif; color: #141414; }
+  #sheet td { border: 3px solid #CFC9BC; padding: 8px 10px; white-space: nowrap; }
+  #sheet tr:first-child td { background: #EDE8DC; }
+  #sheet .q { color: #C0392B; font-weight: 600; }
+
+  #topband { position: absolute; left: 0; right: 0; top: 0; height: 470px; z-index: 30; pointer-events: none;
+             background: linear-gradient(to bottom, #0B0C0D 0%, rgba(11,12,13,.92) 62%, rgba(11,12,13,0) 100%); }
+  #label { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; z-index: 50; width: max-content; margin: 0 auto; padding: 8px 20px; border-radius: 22px; background: rgba(11,12,13,.78);
+           font: 600 24px "Inter", sans-serif; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,.5); }
+
+  #caption { position: absolute; left: 60px; right: 60px; top: 120px; height: 230px; display: flex;
+             align-items: center; justify-content: center; text-align: center; z-index: 60; }
+  #caption span { font: 900 74px/1.08 "Outfit", sans-serif; color: #fff; letter-spacing: -0.5px;
+                  -webkit-text-stroke: 14px #141414; paint-order: stroke fill; text-wrap: balance; }
+  #caption em { font-style: normal; color: #6FF0DD; }
+
+  #endcard { background: transparent; }
+  #wordmark { position: absolute; left: 50%; top: 170px; width: 520px; transform: translateX(-50%); z-index: 2; }
+  #endline { position: absolute; left: 60px; right: 60px; top: 300px; text-align: center; z-index: 2;
+             font: 900 92px/1.04 "Outfit", sans-serif; color: #fff; letter-spacing: -1px; }
+  #endline span { color: #6FF0DD; }
+  #endtop { position: absolute; left: 0; right: 0; top: 0; height: 640px; z-index: 0;
+            background: linear-gradient(to bottom, #0B0C0D 0%, #0B0C0D 70%, rgba(11,12,13,0) 100%); }
+  #cta { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); white-space: nowrap; z-index: 60;
+         padding: 26px 44px; border-radius: 60px; background: #fff; color: #0B0C0D; font: 600 40px "Inter", sans-serif; }
+  #cta b { font-weight: 600; color: #11806F; }
+  #endfade { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; z-index: 55;
+             background: linear-gradient(to bottom, rgba(11,12,13,0), #0B0C0D 62%); }
+</style>
+</head>
+<body>
+
+<template id="kitchen">
+  <svg class="set" width="1080" height="954" viewBox="0 0 1080 954" stroke="#141414" stroke-width="6" stroke-linejoin="round">
+    <rect width="1080" height="954" fill="#EDE4D3" stroke="none"/>
+    <rect x="640" y="90" width="360" height="380" rx="8" fill="#F8F4EC"/>
+    <rect x="664" y="114" width="312" height="332" fill="#CFE6EC" stroke-width="5"/>
+    <circle cx="900" cy="190" r="40" fill="#FFE8A3" stroke-width="5"/>
+    <path d="M664,446 L664,370 L700,370 L700,340 L730,340 L730,390 L760,390 L760,300 L770,270 L774,210 L778,270 L788,300 L788,400 L830,400 L830,360 L870,360 L870,410 L976,410 L976,446 Z" fill="#A9CCD5" stroke-width="4"/>
+    <line x1="820" y1="114" x2="820" y2="446" stroke-width="5"/>
+    <rect x="60" y="150" width="240" height="170" rx="6" fill="#F6F1E7"/>
+    <path d="M90,290 L140,210 L180,260 L210,230 L270,290 Z" fill="#9FB4AA" stroke-width="4"/>
+    <rect x="-10" y="720" width="1100" height="260" fill="#D3BE99"/>
+    <line x1="-10" y1="720" x2="1090" y2="720"/>
+  </svg>
+</template>
+
+<div class="layer" id="split">
+  <div class="lane" id="laneA"><div class="setHost"></div>
+    <img class="pose" id="pA">
+    <svg class="steam" id="steamA" width="160" height="220" viewBox="0 0 160 220"></svg>
+    <div id="sheet"><div class="hd"></div><table>
+      <tr><td>Name</td><td>Building</td><td>Last call</td></tr>
+      <tr><td>O. Grant</td><td>Burj Khalifa</td><td class="q">?</td></tr>
+      <tr><td>E. Petrova</td><td>Claren 2</td><td>Sept?</td></tr>
+      <tr><td>Y. Rahman</td><td>Vida</td><td class="q">??</td></tr>
+      <tr><td>M. Cohen</td><td>Act One</td><td>…</td></tr>
+    </table></div>
+    <div class="dim" id="dimA"></div>
+  </div>
+  <div class="lane" id="laneB"><div class="setHost"></div>
+    <img class="pose" id="pB">
+    <svg class="steam" id="steamB" width="160" height="220" viewBox="0 0 160 220"></svg>
+    <div class="dim" id="dimB"></div>
+  </div>
+  <div id="divider"></div>
+  <div class="chip" id="chipA">Spreadsheet</div>
+  <div class="chip" id="chipB">Repeat</div>
+</div>
+
+<div class="layer" id="appLayer" style="background:#0B0C0D">
+  <div class="pose" id="appStage"></div>
+  <div id="topband"></div>
+  <div id="label">Dramatisation · demo data</div>
+</div>
+
+<div class="layer" id="endcard">
+  <div id="endtop"></div>
+  <img id="wordmark" src="../../../mobile/assets/repeat-ai-logo.png">
+  <div id="endline">A clearer start<br><span>to the day.</span></div>
+  <div id="endfade"></div>
+  <div id="cta">Watch the demo · <b>repeatai.org</b></div>
+</div>
+
+<div id="caption"><span id="capText"></span></div>
+
+<script src="../lib/app-phone.js"></script>
+<script>
+// build-short.mjs injects window.TL (cues from narration word timings, captions, pose bounds, steam spots, app beats)
+const $ = id => document.getElementById(id);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, u) => a + (b - a) * u;
+const out = u => 1 - Math.pow(1 - u, 3);
+const prog = (t, a, d) => clamp((t - a) / d);
+const set = (el, css) => Object.assign(el.style, css);
+
+// Same placement for every table pose, so the two lanes match: bbox bottom on the floor line
+const LANE = { cx: 470, floor: 900, h: 820 };
+function placePose(el, key) {
+  const p = TL.poses[key];
+  const s = LANE.h / (p.y1 - p.y0);
+  const x = LANE.cx - ((p.x0 + p.x1) / 2) * s, y = LANE.floor - p.y1 * s;
+  if (el.dataset.key !== key) { el.src = p.src; el.dataset.key = key; }
+  set(el, { transform: `translate(${x}px, ${y}px) scale(${s})` });
+  return { s, x, y, p };
+}
+// Three wisps of steam over the mug; strength 0 = cold
+function steam(svg, P, spot, t, strength) {
+  if (!spot || strength <= 0.01) { svg.style.opacity = 0; return; }
+  const mx = P.x + (P.p.x0 + (P.p.x1 - P.p.x0) * spot[0]) * P.s, my = P.y + (P.p.y0 + (P.p.y1 - P.p.y0) * spot[1]) * P.s;
+  set(svg, { left: `${mx - 80}px`, top: `${my - 215}px`, opacity: strength });
+  let d = "";
+  for (let k = 0; k < 3; k++) {
+    const x0 = 52 + k * 28, ph = t * 2.4 + k * 1.7;
+    let path = `M${x0},205`;
+    for (let y = 205; y >= 40; y -= 15) path += ` L${(x0 + Math.sin(ph + y * 0.05) * 9 * (1 - y / 260)).toFixed(1)},${y}`;
+    d += `<path d="${path}" fill="none" stroke="#ffffff" stroke-width="9" stroke-linecap="round" opacity="${(0.75 - k * 0.12).toFixed(2)}"/>`;
+  }
+  svg.innerHTML = d;
+}
+
+let PH = null, built = false;
+function render(t) {
+  const C = TL.cue;
+  if (!built) {
+    const tpl = $("kitchen");
+    for (const host of document.querySelectorAll(".setHost")) host.appendChild(tpl.content.cloneNode(true));
+    PH = AppPhone.create($("appStage"));
+    built = true;
+  }
+  const shot = t < C.toApp ? "split1" : t < C.toSplit2 ? "app" : t < C.endCard ? "split2" : "end";
+  for (const id of ["split", "appLayer", "endcard"]) set($(id), { display: "none" });
+  let pending = null;
+
+  if (shot === "split1" || shot === "split2") {
+    set($("split"), { display: "block" });
+    // which pose each lane shows
+    const a = shot === "split2" || t >= C.toLaptop ? "laptop" : "neutral";
+    const b = shot === "split2" ? "sip" : t >= C.toPhone ? "phone" : "neutral";
+    const PA = placePose($("pA"), a), PB = placePose($("pB"), b);
+    // the top coffee cools from the moment he opens the laptop
+    const coolA = 1 - prog(t, C.toLaptop + 0.4, 2.2);
+    steam($("steamA"), PA, TL.steam[a], t, shot === "split2" ? 0 : coolA);
+    steam($("steamB"), PB, TL.steam[b], t, 1);
+    // focus: one lane at a time while it's talked about
+    const focusA = shot === "split1" && t >= C.toLaptop && t < C.toPhone, focusB = shot === "split1" && t >= C.toPhone;
+    set($("dimA"), { opacity: focusB ? 0.5 * out(prog(t, C.toPhone, 0.3)) : 0 });
+    set($("dimB"), { opacity: focusA ? 0.5 * out(prog(t, C.toLaptop, 0.3)) : 0 });
+    // the spreadsheet card pops up beside him
+    const sh = shot === "split1" ? out(prog(t, C.toSheet, 0.35)) * (1 - prog(t, C.toPhone, 0.25)) : 0;
+    set($("sheet"), { opacity: sh, transform: `scale(${lerp(0.85, 1, sh)}) rotate(${lerp(-4, 2, sh)}deg)` });
+    // slow push on each lane
+    const push = lerp(1, 1.04, prog(t, shot === "split1" ? 0 : C.toSplit2, 6));
+    for (const id of ["laneA", "laneB"]) set($(id), { transform: `scale(${push})`, transformOrigin: "50% 60%" });
+    // on "warm", the good coffee's steam gives a little lift
+    if (shot === "split2") set($("steamB"), { transform: `scale(${lerp(1, 1.25, Math.max(0, 1 - Math.abs(t - C.warm) / 0.5))})`, transformOrigin: "50% 100%" });
+  }
+  if (shot === "app" || shot === "end") {
+    set($("appLayer"), { display: "block", zIndex: 2 });
+    const rise = shot === "app" ? out(prog(t, C.toApp, 0.45)) : 1;
+    pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, { dy: (1 - rise) * 1500 });
+    set($("topband"), { opacity: shot === "app" ? 1 : 0 });
+    set($("label"), { opacity: shot === "app" ? 1 : 0 });
+  }
+  if (shot === "end") {
+    set($("endcard"), { display: "block", zIndex: 5, opacity: out(prog(t, C.endCard, 0.5)) });
+    const w = out(prog(t, C.endCard + 0.1, 0.4)), l = out(prog(t, C.endLine - 0.1, 0.4)), c = out(prog(t, C.endLine + 0.9, 0.4));
+    set($("wordmark"), { opacity: w, transform: `translateX(-50%) translateY(${(1 - w) * 30}px)` });
+    set($("endline"), { opacity: l, transform: `translateY(${(1 - l) * 30}px)` });
+    set($("cta"), { opacity: c, transform: `translateX(-50%) scale(${lerp(0.92, 1, c)})` });
+  }
+
+  let f = "";
+  for (const c of [C.toLaptop, C.toPhone]) { const d = 1 - Math.abs(t - c) / 0.07; if (d > 0) f = `brightness(${1 + d * 0.2})`; }
+  const fadeOut = prog(t, TL.end - 0.5, 0.5);
+  if (fadeOut > 0) f = `brightness(${1 - fadeOut})`;
+  document.body.style.filter = f || "none";
+
+  let cap = null;
+  for (const c of TL.captions) if (t >= c.a && t < c.b) cap = c;
+  if (cap && shot !== "end") {
+    $("capText").innerHTML = cap.html;
+    const u = out(prog(t, cap.a, 0.16));
+    // over the split, the caption sits on the divider so it covers neither lane's face
+    const top = shot === "app" ? 120 : 840;
+    set($("caption"), { opacity: u, transform: `translateY(${(1 - u) * 18}px) scale(${lerp(0.96, 1, u)})`, top: `${top}px` });
+  } else set($("caption"), { opacity: 0 });
+  return pending;
+}
+
+window.setTime = t => render(t);
+window.ready = new Promise(r => setTimeout(r, 0)).then(() => { render(0); return Promise.all([...document.images].map(i => i.decode().catch(() => {})).concat(document.fonts.ready)); });
+if (!navigator.webdriver && window.TL) {
+  const t0 = performance.now();
+  const tick = () => { render(((performance.now() - t0) / 1000) % TL.end); requestAnimationFrame(tick); };
+  window.ready.then(tick);
+}
+</script>
+</body>
+</html>

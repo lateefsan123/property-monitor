@@ -1,0 +1,38 @@
+[
+  {
+    "file": "pose-table-laptop.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "f2169e9e62631908880bfe8fa7d326162bfda02a8ea0608d30446ef4d514fd2d"
+  },
+  {
+    "file": "pose-table-neutral.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "703469cc251d47d1444793db6af078699a8e8dcc392e44682936b21c5f043792"
+  },
+  {
+    "file": "pose-table-phone.png",
+    "size": [
+      1354,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "4ea6e374127bf1f1523cfa9190737e724aed0c8136b5fe5fb0cdd4e72a33c80d"
+  },
+  {
+    "file": "pose-table-sip.png",
+    "size": [
+      1354,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "ab30993c844d0a81d16a3f57255ba6aa2217ca837317f924dc97795767d6742e"
+  }
+]

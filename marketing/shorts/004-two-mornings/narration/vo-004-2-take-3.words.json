@@ -1,0 +1,67 @@
+[
+ {
+  "word": "On",
+  "start": 0.0,
+  "end": 0.2
+ },
+ {
+  "word": "this",
+  "start": 0.2,
+  "end": 0.38
+ },
+ {
+  "word": "one,",
+  "start": 0.38,
+  "end": 0.66
+ },
+ {
+  "word": "I",
+  "start": 0.94,
+  "end": 1.12
+ },
+ {
+  "word": "open",
+  "start": 1.12,
+  "end": 1.34
+ },
+ {
+  "word": "the",
+  "start": 1.34,
+  "end": 1.54
+ },
+ {
+  "word": "spreadsheet",
+  "start": 1.54,
+  "end": 1.92
+ },
+ {
+  "word": "and",
+  "start": 1.92,
+  "end": 2.46
+ },
+ {
+  "word": "try",
+  "start": 2.46,
+  "end": 2.76
+ },
+ {
+  "word": "to",
+  "start": 2.76,
+  "end": 2.9
+ },
+ {
+  "word": "remember",
+  "start": 2.9,
+  "end": 3.22
+ },
+ {
+  "word": "who's",
+  "start": 3.22,
+  "end": 3.64
+ },
+ {
+  "word": "due.",
+  "start": 3.64,
+  "end": 3.88
+ }
+]

@@ -1,0 +1,200 @@
+{
+  "passed": true,
+  "rows": [
+    {
+      "file": "vo-004-1-take-1.mp3",
+      "duration": 2.272625,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "a621357e20e3b6cbbdc415f61bb637199081499cf32d6b707941bc57012810a3",
+      "decodedPcmSha256": "433c5fef5e9776110884948140989c8b71c67df114c6b2bdde6c81cbc5451294",
+      "transcript": "Two mornings. Same coffee."
+    },
+    {
+      "file": "vo-004-1-take-2.mp3",
+      "duration": 2.272625,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "b17aeb69ebf2a357b1efe5729c994e7d5a242f29078f2f86ccd7aee702706318",
+      "decodedPcmSha256": "55a8e2a3b9c15dcb3ffab4ae0fe25ff10bfafff32b81dd5611230e4d41611d04",
+      "transcript": "Two mornings. Same coffee."
+    },
+    {
+      "file": "vo-004-1-take-3.mp3",
+      "duration": 2.272625,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "fe2b7a7dfe82291d7e1951b13e868b196788f82a5e7054570e7f93f890ff5027",
+      "decodedPcmSha256": "761e1e2dc94ffee91ba44f0feb6ef94f4471e646564b19c7c74a2c372beeef4c",
+      "transcript": "Two mornings, same coffee."
+    },
+    {
+      "file": "vo-004-2-take-1.mp3",
+      "duration": 4.284083,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "6cd382d974f15b062cd20ff88d8804825ba078e1b5219a4d7139a8d6641b3a93",
+      "decodedPcmSha256": "fce0e805e216ecd048a657eeb9e18732b85813928055fdad4d40dcfa7bed167b",
+      "transcript": "On this one, I open the spreadsheet and try to remember who's due."
+    },
+    {
+      "file": "vo-004-2-take-2.mp3",
+      "duration": 4.362417,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "fd61ad1374b92a4a593aeacd87788ad9da779c013ac3d8f8c9308e3724f8e935",
+      "decodedPcmSha256": "981d5b8e88fc83c6bebf195bb042d52a39e90ee5c4d674e59a0fb8b87d023674",
+      "transcript": "On this one, I open the spreadsheet and try to remember who's due."
+    },
+    {
+      "file": "vo-004-2-take-3.mp3",
+      "duration": 4.284083,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "a2cf97bebfbb878cbe9b4cbdb16eee521150aedd0ce3362d98085b7b378ac2a3",
+      "decodedPcmSha256": "d96c58aa849f1319bb1ecea1941368c7a43b10a153caf97e95a10f451e216d84",
+      "transcript": "On this one, I open the spreadsheet and try to remember who's due."
+    },
+    {
+      "file": "vo-004-3-take-1.mp3",
+      "duration": 5.485708,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "11b013188b0f0154fee06a15341ada3a956b2f72abed82c3f11b650039a0256c",
+      "decodedPcmSha256": "52c7479092c64054c0a43ec4adababd41581bbfdfff5c9ebf8b3f1fb7d95d4bd",
+      "transcript": "On this one, I open due today. Everyone due for a follow -up is already on the list."
+    },
+    {
+      "file": "vo-004-3-take-2.mp3",
+      "duration": 5.564083,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "90aa7632ab8d8d142bf16f65cd66a3d330a6f89828025ecba75d3ef62c576eff",
+      "decodedPcmSha256": "681edccc2ac7599b4774fc148751c47409c531c41974096c1e8e1ace333be68f",
+      "transcript": "On this one, I open due today. Everyone due for a follow -up is already on the list."
+    },
+    {
+      "file": "vo-004-3-take-3.mp3",
+      "duration": 5.485708,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "016293fc2f6aeaf0f28ff1276eb8f246b797973f9fedb4032e0ceedac7dc85a8",
+      "decodedPcmSha256": "9badcf31122cde3b31ee3673ac3183b224544efd9fad530cc0cf46d6a7ef3983",
+      "transcript": "On this one, I open due today. Everyone due for a follow -up is already on the list."
+    },
+    {
+      "file": "vo-004-4-take-1.mp3",
+      "duration": 3.552625,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "721e650507fb1e392c457e86f823b57e42b7119c6c1a63c4478a365bd77b35ec",
+      "decodedPcmSha256": "45757b0f561d6bcdb62f8d6407e4d9dbf8c8ee64e8ccea2788f8540607242682",
+      "transcript": "Both coffees are real. Only one is still warm."
+    },
+    {
+      "file": "vo-004-4-take-2.mp3",
+      "duration": 3.709375,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "61fe97122938f5a20c6df2e1a0c37e5d33adecbc74873389dd1b6bb388387f81",
+      "decodedPcmSha256": "95fe92707de42c94211e75b59a0494b4da4adca9bd7514c25c8e29608dd4eee3",
+      "transcript": "Both coffees are real. Only one is still warm."
+    },
+    {
+      "file": "vo-004-4-take-3.mp3",
+      "duration": 3.78775,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "5ea919a6610ae77f5c4ee5eb9124f4e3080e863c1108d8c3e469343ce43eb759",
+      "decodedPcmSha256": "8060ef0dbc4dcc66012a402af12a61dd8099cbe3968b5e57aa7357400ef50ef0",
+      "transcript": "Both coffees are real. Only one is still warm."
+    },
+    {
+      "file": "vo-004-5-take-1.mp3",
+      "duration": 3.317542,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "d2e37e3222e1fcf2a11cc5cd132a17b151411a1218600d7ba69833d0fd00c5e3",
+      "decodedPcmSha256": "7459d6e8d2088bcb6e807585eddd9de0231b1c3fa3a29bfc678a4841c4c22c25",
+      "transcript": "Repeat AI, a clearer start to the day."
+    },
+    {
+      "file": "vo-004-5-take-2.mp3",
+      "duration": 3.395917,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "d649882f78be2987b88b9d835186218b60350334215762145359aa5e86f87458",
+      "decodedPcmSha256": "5284b52cf6441c1f0f5e64e0b4da5e31878b6e841822307ba1ca089d13aac5ab",
+      "transcript": "Repeat AI, a clearer start to the day."
+    },
+    {
+      "file": "vo-004-5-take-3.mp3",
+      "duration": 3.317542,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "814ce6d734d5f2749c12743d34d3258bc86ce758a692ed22e62b9c4fb7a08f18",
+      "decodedPcmSha256": "e320dc3435d4009a0c8bfe53174fad1172416391511a7e8cdcb773337dd59d5c",
+      "transcript": "Repeat AI, a clearer start to the day."
+    }
+  ]
+}

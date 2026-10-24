@@ -1,0 +1,47 @@
+[
+ {
+  "word": "Both",
+  "start": 0.0,
+  "end": 0.3
+ },
+ {
+  "word": "coffees",
+  "start": 0.3,
+  "end": 0.78
+ },
+ {
+  "word": "are",
+  "start": 0.78,
+  "end": 0.92
+ },
+ {
+  "word": "real.",
+  "start": 0.92,
+  "end": 1.26
+ },
+ {
+  "word": "Only",
+  "start": 1.84,
+  "end": 2.02
+ },
+ {
+  "word": "one",
+  "start": 2.02,
+  "end": 2.38
+ },
+ {
+  "word": "is",
+  "start": 2.38,
+  "end": 2.64
+ },
+ {
+  "word": "still",
+  "start": 2.64,
+  "end": 2.9
+ },
+ {
+  "word": "warm.",
+  "start": 2.9,
+  "end": 3.24
+ }
+]

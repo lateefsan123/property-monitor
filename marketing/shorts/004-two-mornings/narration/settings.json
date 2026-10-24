@@ -1,0 +1,13 @@
+{
+  "voice": "Brady J - Confident Real Estate Agent",
+  "voiceId": "SGoiiadNvlgcANZ3wLyn",
+  "model": "Eleven v4",
+  "stability": 0.5,
+  "similarity": 0.75,
+  "cloneStrength": 0,
+  "effects": [],
+  "output": "mp3_44100_192",
+  "creditsBefore": 105132,
+  "creditsAfter": 104873,
+  "creditsUsed": 259
+}

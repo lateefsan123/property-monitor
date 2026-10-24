@@ -153,6 +153,18 @@ const CLIPS = {
     r.mark("picker-9pm");
     await r.hold(1.6);
   },
+  // Short 004: Home → Due today list → Scheduled
+  async "home-due-today"(page, r) {
+    await nav(page, "Home");
+    await r.hold(1.0); r.mark("home");
+    await r.tap(page.getByText("View sellers", { exact: true }).last(), "view-sellers");
+    await r.hold(1.0); r.mark("due-list");
+    await r.scrollTo(page.getByText("Yusuf Rahman", { exact: true }).first(), 0.55, 1.4);
+    await r.hold(0.8); r.mark("due-scrolled");
+    await r.tap(page.getByText(/^Scheduled/).last(), "scheduled-tab");
+    await r.hold(0.8); r.mark("scheduled");
+    await r.hold(1.4);
+  },
   // Short 001
   async "composer-manual"(page, r) {
     await nav(page, "Sellers");
