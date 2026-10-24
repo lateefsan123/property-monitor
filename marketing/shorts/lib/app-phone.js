@@ -8,7 +8,8 @@
 //         clip: "name" | still: "src", // recorded clip, or a still screenshot
 //         c0: 0, rate: 1,              // clip seconds at `a`, playback rate
 //         cam: { sx, sy, z, cy } | camKeys: [[t, cam], …],   // screenshot px → canvas
-//         hl: [{ a, b, box: [x, y, w, h] }] }                // screenshot px
+//         hl: [{ a, b, box: [x, y, w, h] }],                 // screenshot px
+//         screen: { kind, … } }        // or a drawn screen (lib/drawn-screens.js) instead of a clip
 // Clips: { name: { dir, frames, fps, taps: [{ t, x, y }] } }
 (function () {
   const W = 1179, H = 2556, SCREEN_W = 972, K = SCREEN_W / W, BAR = 80;
@@ -34,13 +35,18 @@
   .ap-hl { display: none; position: absolute; border: 6px solid #3FD3C0; border-radius: 26px; opacity: 0;
            box-shadow: 0 0 0 6px rgba(63,211,192,.18), 0 0 40px rgba(63,211,192,.35); }
   .ap-tap { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; opacity: 0;
-            background: radial-gradient(circle, rgba(255,255,255,.55) 0%, rgba(255,255,255,.18) 55%, rgba(255,255,255,0) 72%); }`;
+            background: radial-gradient(circle, rgba(255,255,255,.55) 0%, rgba(255,255,255,.18) 55%, rgba(255,255,255,0) 72%); }
+  .ap-drawn { position: absolute; left: 0; top: 0; width: ${W}px; height: ${H}px; display: none; overflow: hidden; }
+  .ap-phone.light .ap-screen, .ap-phone.light .ap-bar { background: #fff; color: #141414; }
+  .ap-phone.light .ap-bar .bars i, .ap-phone.light .ap-bar .batt b { background: #141414; }
+  .ap-phone.light .ap-bar .batt { border-color: rgba(20,20,20,.8); }
+  .ap-phone.light .ap-tap { background: radial-gradient(circle, rgba(20,20,20,.3) 0%, rgba(20,20,20,.1) 55%, rgba(20,20,20,0) 72%); }`;
 
   function el(tag, cls, parent) { const e = document.createElement(tag); if (cls) e.className = cls; parent && parent.appendChild(e); return e; }
 
-  function create(parent) {
+  function create(parent, opts = {}) {
     if (!document.getElementById("ap-css")) { const s = el("style"); s.id = "ap-css"; s.textContent = CSS; document.head.appendChild(s); }
-    const phone = el("div", "ap-phone", parent);
+    const phone = el("div", "ap-phone" + (opts.light ? " light" : ""), parent);
     const screen = el("div", "ap-screen", phone);
     const bar = el("div", "ap-bar", screen);
     bar.innerHTML = `<span class="time">9:41</span><span class="island"></span><span class="icons"><span class="bars"><i style="height:12px"></i><i style="height:17px"></i><i style="height:22px"></i><i style="height:27px"></i></span><span class="batt"><b></b></span></span>`;
@@ -50,7 +56,8 @@
       const img = el("img", "", L);
       const hls = [0, 1, 2].map(() => el("div", "ap-hl", L));
       const tap = el("div", "ap-tap", L);
-      return { L, img, hls, tap, src: "" };
+      const drawn = el("div", "ap-drawn", L);
+      return { L, img, hls, tap, drawn, src: "" };
     });
     return { phone, layers };
   }
@@ -78,6 +85,13 @@
 
   // Fill one layer for a beat at film time t
   function paint(layer, beat, clips, t) {
+    if (beat.screen) {
+      set(layer.img, { display: "none" }); set(layer.drawn, { display: "block" });
+      layer.hls.forEach(h => h.style.opacity = 0); layer.tap.style.opacity = 0;
+      window.DrawnScreens.paint(layer.drawn, beat.screen, t);
+      return { decode: () => Promise.resolve() };
+    }
+    set(layer.img, { display: "block" }); set(layer.drawn, { display: "none" });
     const { src, ct } = frameSrc(beat, clips, t);
     if (layer.src !== src) { layer.img.src = src; layer.src = src; }
     (beat.hl || []).concat([{}, {}, {}]).slice(0, 3).forEach((h, i) => {

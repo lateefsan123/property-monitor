@@ -11,7 +11,9 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0B0C0D; }
   .layer { position: absolute; inset: 0; overflow: hidden; }
-  #cards { position: absolute; inset: 0; z-index: 35; pointer-events: none; }
+  #pCorner { position: absolute; left: 0; top: 0; transform-origin: 0 0; z-index: 26; display: none; }
+  #chip { position: absolute; left: 60px; top: 418px; z-index: 50; padding: 10px 26px; border-radius: 30px; background: #141414; color: #fff;
+          font: 600 30px "Inter", sans-serif; letter-spacing: .3px; white-space: nowrap; opacity: 0; }
   .abs { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 
   /* Set: one kitchen, framed differently per shot */
@@ -129,7 +131,8 @@
 </div>
 
 <!-- ───────── Demo cards: live crops of the real app, and the seller's side ───────── -->
-<div id="cards"></div>
+<img id="pCorner" src="pose-setup.png">
+<div id="chip"></div>
 
 <!-- ───────── App ───────── -->
 <div class="layer" id="appLayer">
@@ -150,7 +153,7 @@
 <div id="caption"><span id="capText"></span></div>
 
 <script src="../lib/app-phone.js"></script>
-<script src="../lib/crop-cards.js"></script>
+<script src="../lib/drawn-screens.js"></script>
 <script>
 // Timeline; build-short.mjs replaces this with times measured from the chosen narration takes.
 window.TL = window.TL || {
@@ -181,7 +184,6 @@ const at = (p, sx, sy) => [p.x + sx * p.s, p.y + sy * p.s];
 const mixCam = (a, b, u) => ({ sx: lerp(a.sx, b.sx, u), sy: lerp(a.sy, b.sy, u), z: lerp(a.z, b.z, u), cx: lerp(a.cx ?? 540, b.cx ?? 540, u), cy: lerp(a.cy ?? 1180, b.cy ?? 1180, u), rot: lerp(a.rot ?? 0, b.rot ?? 0, u) });
 let PH = null;
 
-let pendingCards = null;
 function render(t) {
   const C = TL.cue;
 
@@ -215,13 +217,13 @@ function render(t) {
     set($("glow"), { display: "block", opacity: on * (0.9 + 0.1 * Math.sin(t * 9)), left: `${rx - 420}px`, top: `${ry - 420}px`, width: "840px", height: "840px" });
     const [fx, fy] = at(P, 715, 1072);
     set($("shadow"), { left: `${fx - 360}px`, top: `${fy - 26}px`, width: "720px", height: "52px" });
-  } else if (intOn && t >= C.toTpl) {
+  } else if (intOn && t >= C.cardsIn) {
     // the demo: he sets it up on his phone while the real app sits beside him as cards
     set($("pInt"), { display: "none" }); set($("buzz"), { display: "none" });
     const s = 820 / 1088, x = 470 - 695.5 * s, y = 1885 - 1112 * s;
     const push = lerp(1, 1.03, prog(t, C.toTpl, 8));
     camS = push; camX = 540 * (1 - push); camY = 1500 * (1 - push);
-    set($("pSetup"), { display: "block", transform: `translate(${x}px, ${y + 1112 * s * (1 - breathe)}px) scale(${s}, ${s * breathe})` });
+    // the phone is the subject now; he stands small in the corner in front of it (#pCorner)
     set($("glow"), { display: "none" });
     set($("shadow"), { display: "block", left: "305px", top: "1860px", width: "330px", height: "42px" });
   } else if (intOn) {
@@ -254,7 +256,6 @@ function render(t) {
     set($("pHook"), { display: "none" });
   }
   set($("room"), { transform: `translate(${camX}px, ${camY}px) scale(${camS})`, transformOrigin: "0 0" });
-  if (TL.cards) pendingCards = CropCards.render($("cards"), TL.cards, TL.clips, t);
   // The room is scaled as one camera; keep it clipped to the frame by the body overflow.
 
   // Iris: the ring light opens on the payoff shot
@@ -269,23 +270,37 @@ function render(t) {
     set($("room"), { clipPath: "none" }); set($("iris"), { display: "none" });
   }
 
+  // ── Demo: the light-theme phone is the subject, he stands small in the corner
+  const phoneOn = t >= C.cardsIn && t < C.toPay + 0.6;
+  if (phoneOn) {
+    const s = 760 / 1088, x = 112 - 695.5 * s, y = 2110 - 1112 * s + (1 - out(prog(t, C.cardsIn, 0.5))) * 500;
+    set($("pCorner"), { display: t < C.toPay ? "block" : "none", transform: `translate(${x}px, ${y + 1112 * s * (1 - breathe)}px) scale(${s}, ${s * breathe})` });
+  } else set($("pCorner"), { display: "none" });
+  let beatNow = null;
+  for (const b of TL.app.beats) if (t >= b.a && t < b.b) beatNow = b;
+  $("chip").textContent = beatNow && beatNow.chip ? beatNow.chip : $("chip").textContent;
+  set($("chip"), { opacity: phoneOn && beatNow && beatNow.chip && t < C.toPay ? out(prog(t, beatNow.a, 0.25)) : 0 });
+
   // ── App layer: recorded film-mode clips (lib/app-phone.js)
-  set($("appLayer"), { display: inApp || inEnd ? "block" : "none", background: inEnd ? "#0B0C0D" : `rgba(11,12,13,${clamp((t - C.zoom - 0.15) / 0.35)})`, zIndex: inEnd ? 40 : 20, opacity: inEnd ? out(prog(t, C.endCard, 0.5)) : 1 });
-  set($("topband"), { opacity: inApp && !inEnd && t > C.zoom + 0.4 ? 1 : 0 });
+  set($("appLayer"), { display: inApp || inEnd || phoneOn ? "block" : "none", ...(phoneOn && !inEnd ? { background: "transparent", zIndex: 20, opacity: 1 } : {}) });
+  if (!(phoneOn && !inEnd)) set($("appLayer"), { background: inEnd ? "#0B0C0D" : `rgba(11,12,13,${clamp((t - C.zoom - 0.15) / 0.35)})`, zIndex: inEnd ? 40 : 20, opacity: inEnd ? out(prog(t, C.endCard, 0.5)) : 1 });
+  set($("topband"), { opacity: (inApp && !inEnd && t > C.zoom + 0.4) || (phoneOn && t < C.toPay) ? 1 : 0,
+    background: phoneOn ? "linear-gradient(to bottom, #EDE5D7 0%, rgba(237,229,215,.94) 62%, rgba(237,229,215,0) 100%)" : "" });
   set($("room"), { display: (t < C.zoom + 0.6 || t >= C.toPay) && !(t >= C.endCard + 0.4) ? "block" : "none", zIndex: t >= C.toPay ? 30 : 10 });
-  if (!PH) PH = AppPhone.create($("appStage"));
+  if (!PH) PH = AppPhone.create($("appStage"), { light: true });
   let pending = null;
-  if (inApp || inEnd) {
+  if (inApp || inEnd || phoneOn) {
     let cam = null;
-    if (!inEnd && t < C.zoom + 0.65) {
+    if (!inEnd && !phoneOn && t < C.zoom + 0.65) {
       // match-cut: ride the room zoom out of his drawn phone, then settle into the first beat's framing
       const P = POSE.int, [ppx, ppy] = at(P, 855, 564);
       const s = lerp(1, 1.04, prog(t, C.cutInt, 3)) * lerp(1, 7, ease(prog(t, C.zoom, 0.55)));
       const hand = { sx: 589, sy: 1278, z: 0.124 * s, cx: ppx, cy: ppy, rot: 21 };
       cam = mixCam(hand, AppPhone.camAt(TL.app.beats[0], t), ease(prog(t, C.zoom + 0.18, 0.47)));
     }
-    pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, cam ? { cam } : {});
-    set(PH.phone, { opacity: !inEnd && t < C.zoom + 0.08 ? 0 : 1 });
+    const rise = phoneOn && !inEnd ? (1 - out(prog(t, C.cardsIn, 0.5))) * 1700 : 0;
+    pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, cam ? { cam } : { dy: rise });
+    set(PH.phone, { opacity: !inEnd && !phoneOn && t < C.zoom + 0.08 ? 0 : 1 });
   }
   set($("label"), { opacity: (inApp && t > C.zoom + 0.6 && t < C.toPay) || (t > C.cardsIn + 0.3 && t < C.toPay) ? 1 : 0 });
 
@@ -308,7 +323,7 @@ function render(t) {
     const u = out(prog(t, cap.a, 0.16));
     set(ce, { opacity: u, transform: `translateY(${(1 - u) * 18}px) scale(${lerp(0.96, 1, u)})` });
   } else set(ce, { opacity: 0 });
-  return Promise.all([pending, pendingCards]);
+  return pending;
 }
 
 window.setTime = t => render(t);

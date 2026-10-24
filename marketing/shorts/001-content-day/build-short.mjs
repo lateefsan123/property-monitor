@@ -114,30 +114,44 @@ const END = r2(endOf(9) + 1.5);
 // (marketing/shorts/app-clips/*-light, lib/crop-cards.js), plus the seller's side.
 cue.cardsIn = r2(W(2, "type") - 0.5);
 cue.zoom = 999;                                 // no full-screen phone in this cut
-const clips = loadClips(["composer-manual-light", "template-appraisal-light", "template-use-for-light", "automations-status-light", "whatsapp-connected-light", "send-activity-light"], DIR);
+const clips = loadClips(["template-appraisal-light", "template-use-for-light", "automations-status-light", "whatsapp-connected-light", "send-activity-light"], DIR);
 const ev = (c, k) => clips[c].events[k];
-const TOP = 420;
+// Light-theme phone, big, with the camera on one feature at a time. What isn't Repeat (plain
+// WhatsApp, Elena's own phone) is drawn as a phone screen (lib/drawn-screens.js).
+const FULL = { sx: 590, sy: 1278, z: 0.8, cx: 640, cy: 1360 };
 const useTap = W(4, "statuses");
-const cards = [
-  { a: cue.cardsIn, b: cue.toTpl, top: 1330, chip: "Typing it by hand", kind: "clip", clip: "composer-manual-light", c0: 2.3, rate: 0, region: [0, 2070, 1179, 480] },
-  { a: cue.toTpl, b: cue.toUse, top: TOP, chip: "Repeat · Templates", kind: "clip", clip: "template-appraisal-light", c0: 2.0, rate: 0, region: [0, 170, 1179, 780] },
-  { a: cue.toUse, b: cue.toAuto, top: TOP, chip: "Template · Use for", kind: "clip", clip: "template-use-for-light",
-    c0: Math.max(1.5, ev("template-use-for-light", "tap:appraisal-on") - (useTap - cue.toUse)), rate: 1, region: [0, 1405, 1179, 865] },
-  { a: cue.toAuto, b: cue.toWa, top: TOP, chip: "Repeat · Automations", kind: "clip", clip: "automations-status-light",
-    c0: Math.max(0, ev("automations-status-light", "tap:status-switch") - (cue.toggle - cue.toAuto)), rate: 1, region: [0, 1190, 1179, 240] },
-  { a: W(5, "so"), b: start[6] - 0.1, top: TOP + 300, chip: "Elena's phone", kind: "note", meta: "WhatsApp · now", title: "+971 50 555 0100",
-    body: "Hi Elena Petrova, hope you're well. Just wanted to keep you updated on the latest activity in Claren Tower 2." },
-  { a: start[6] - 0.1, b: cue.toWa, top: TOP + 300, chip: "Your WhatsApp", kind: "chat", items: [
-    { at: W(6, "seller") - 0.1, side: "in", text: "Thanks! Could you call me on Thursday?" },
-    { at: W(6, "answer"), side: "out", text: "Of course. I'll call you Thursday at 11." }] },
-  { a: cue.toWa, b: cue.toPay, top: TOP, chip: "Repeat · WhatsApp", kind: "clip", clip: "whatsapp-connected-light", c0: ev("whatsapp-connected-light", "connected") + 0.1, rate: 0, region: [0, 200, 1179, 380] },
-];
-for (const c of cards) { c.a = r2(c.a); c.b = r2(c.b); c.c0 = r2(c.c0 || 0); for (const it of c.items || []) it.at = r2(it.at); }
+const waCam = { sx: 590, sy: 380, z: 0.9, cx: 630, cy: 900 };
+cue.noteIn = W(5, "so");
 const app = { beats: [
+  { a: cue.cardsIn, b: cue.toTpl, chip: "The old way: WhatsApp, by hand", cam: FULL,
+    screen: { kind: "wa", id: "oliver", name: "Oliver Grant", sub: "last seen today at 11:40", keyboard: true,
+      typing: { text: "Hi Oliver, hope you're well. Just wanted to keep you updated on the latest activity in Burj Khalifa…", ta: cue.cardsIn + 0.5, tb: cue.toTpl - 0.4 } } },
+  { a: cue.toTpl, b: cue.toUse, chip: "Repeat · Templates", clip: "template-appraisal-light", c0: 2.0, rate: 0,
+    camKeys: [[cue.toTpl, { sx: 590, sy: 700, z: 0.86, cx: 630, cy: 1150 }], [cue.toUse, { sx: 590, sy: 760, z: 0.9, cx: 630, cy: 1150 }]] },
+  { a: cue.toUse, b: cue.toAuto, chip: "Template · Use for", clip: "template-use-for-light",
+    c0: Math.max(1.5, ev("template-use-for-light", "tap:appraisal-on") - (useTap - cue.toUse)), rate: 1,
+    cam: { sx: 590, sy: 1840, z: 0.9, cx: 630, cy: 1150 } },
+  { a: cue.toAuto, b: cue.noteIn, chip: "Repeat · Automations", clip: "automations-status-light",
+    c0: Math.max(0, ev("automations-status-light", "tap:status-switch") - (cue.toggle - cue.toAuto)), rate: 1,
+    cam: { sx: 590, sy: 1310, z: 0.9, cx: 630, cy: 1100 } },
+  { a: cue.noteIn, b: start[6] - 0.1, chip: "Elena's phone", cam: { ...FULL, sy: 1150, cy: 1260 },
+    screen: { kind: "lock", id: "elena", time: "12:00", date: "Friday 23 October",
+      note: { at: cue.noteIn + 0.35, app: "WhatsApp", title: "+971 50 555 0100",
+        body: "Hi Elena Petrova, hope you're well. Just wanted to keep you updated on the latest activity in Claren Tower 2." } } },
+  { a: start[6] - 0.1, b: cue.toWa, chip: "Your WhatsApp", cam: { ...FULL, sy: 1150, cy: 1260 },
+    screen: { kind: "wa", id: "elena-chat", name: "Elena Petrova", sub: "online", items: [
+      { at: start[6] - 0.1, side: "out", text: "Hi Elena Petrova, hope you're well. Just wanted to keep you updated on the latest activity in Claren Tower 2." },
+      { at: W(6, "seller") - 0.1, side: "in", text: "Thanks! Could you call me on Thursday?" },
+      { at: W(6, "answer") + 0.2, side: "out", text: "Of course. I'll call you Thursday at 11." }],
+      typing: { text: "Of course. I'll call you Thursday at 11.", ta: W(6, "answer") - 0.9, tb: W(6, "answer") - 0.05 } } },
+  { a: cue.toWa, b: cue.toPay + 0.6, chip: "Repeat · WhatsApp", clip: "whatsapp-connected-light", c0: ev("whatsapp-connected-light", "connected") + 0.1, rate: 0,
+    camKeys: [[cue.toWa, waCam], [cue.toPay - 0.05, waCam], [cue.toPay + 0.45, { ...waCam, cy: 2900 }]] },
   { a: cue.endCard, b: END + 1, clip: "send-activity-light", c0: ev("send-activity-light", "tap:send-activity") - 0.1, rate: 1.25,
     camKeys: [[cue.endCard, { sx: 590, sy: 1000, z: 0.9, cy: 1500 }], [cue.endCard + 0.7, { sx: 590, sy: 1100, z: 0.72, cy: 1420 }]] },
 ] };
-for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); bt.rate = r2(bt.rate); }
+for (const bt of app.beats) for (const o of [bt.screen?.typing, bt.screen?.note, ...(bt.screen?.items || [])]) if (o) for (const k of ["at", "ta", "tb"]) if (o[k] !== undefined) o[k] = r2(o[k]);
+const cards = [];
+for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const k in cue) cue[k] = r2(cue[k]);
 // a tap sound on every recorded tap that plays on screen
 const tapTimes = [];
