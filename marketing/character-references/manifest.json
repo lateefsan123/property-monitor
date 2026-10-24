@@ -1,0 +1,31 @@
+{
+  "created": "2026-10-24",
+  "purpose": "Reusable agent character reference sheets",
+  "generator": "built-in imagegen",
+  "files": [
+    {
+      "file": "agent-angles-v1.png",
+      "width": 1402,
+      "height": 1122,
+      "mode": "RGB",
+      "sha256": "b500f272793f618ba136156c78c3a1b5cc5a7c28d0bdb44d7d315c0e65b50d8f",
+      "decodePassed": true
+    },
+    {
+      "file": "agent-expressions-v1.png",
+      "width": 1402,
+      "height": 1122,
+      "mode": "RGB",
+      "sha256": "888dbfdbc17d380789a00a6cdba044072b20e53f8703cf0b3e4f5e300d04ff71",
+      "decodePassed": true
+    },
+    {
+      "file": "agent-outfits-v1.png",
+      "width": 1402,
+      "height": 1122,
+      "mode": "RGB",
+      "sha256": "7b2dd0021b974adb21902e7a310c064e101cdd9267ba49dd078a0bf56438f96b",
+      "decodePassed": true
+    }
+  ]
+}
