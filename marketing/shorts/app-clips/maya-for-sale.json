@@ -1,0 +1,37 @@
+{
+ "clip": "maya-for-sale",
+ "fps": 30,
+ "frames": 266,
+ "duration": 8.867,
+ "pixels": [
+  1179,
+  2556
+ ],
+ "encodedPixels": [
+  1180,
+  2556
+ ],
+ "demoClock": "2026-10-23T12:00:00Z",
+ "taps": [
+  {
+   "t": 2.1,
+   "x": 464,
+   "y": 1196,
+   "label": "maya"
+  },
+  {
+   "t": 5.233,
+   "x": 719,
+   "y": 809,
+   "label": "message-tab"
+  }
+ ],
+ "events": {
+  "start": 0.8,
+  "tap:maya": 2.1,
+  "sheet-open": 3.033,
+  "status-visible": 3.833,
+  "tap:message-tab": 5.233,
+  "message-visible": 6.867
+ }
+}

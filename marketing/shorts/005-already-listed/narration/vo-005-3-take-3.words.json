@@ -1,0 +1,57 @@
+[
+ {
+  "word": "In",
+  "start": 0.0,
+  "end": 0.2
+ },
+ {
+  "word": "repeat,",
+  "start": 0.2,
+  "end": 0.6
+ },
+ {
+  "word": "every",
+  "start": 1.04,
+  "end": 1.3
+ },
+ {
+  "word": "seller",
+  "start": 1.3,
+  "end": 1.6
+ },
+ {
+  "word": "has",
+  "start": 1.6,
+  "end": 1.92
+ },
+ {
+  "word": "a",
+  "start": 1.92,
+  "end": 2.08
+ },
+ {
+  "word": "stage.",
+  "start": 2.08,
+  "end": 2.48
+ },
+ {
+  "word": "Mayas",
+  "start": 3.2,
+  "end": 3.56
+ },
+ {
+  "word": "is",
+  "start": 3.56,
+  "end": 3.82
+ },
+ {
+  "word": "for",
+  "start": 3.82,
+  "end": 4.04
+ },
+ {
+  "word": "sale.",
+  "start": 4.04,
+  "end": 4.32
+ }
+]

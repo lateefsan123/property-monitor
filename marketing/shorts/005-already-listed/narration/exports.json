@@ -1,0 +1,122 @@
+[
+  {
+    "saved": "auditions/maya-ava-line-1.mp3",
+    "source": "ElevenLabs_2026-10-24T13_35_15__s50_v4.mp3",
+    "bytes": 85273,
+    "voice": "Ava - Neutral Conversational British"
+  },
+  {
+    "saved": "auditions/maya-maya-line-1.mp3",
+    "source": "ElevenLabs_2026-10-24T13_37_18__s50_v4.mp3",
+    "bytes": 87154,
+    "voice": "Maya - Friendly, Capable, Conversational"
+  },
+  {
+    "saved": "auditions/maya-beth-line-1.mp3",
+    "source": "ElevenLabs_2026-10-24T13_39_03__s50_v4.mp3",
+    "bytes": 83392,
+    "voice": "Beth - British female"
+  },
+  {
+    "saved": "vo-005-1-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T13_42_22__s50_v4.mp3",
+    "bytes": 83392,
+    "voice": "Ava - Neutral Conversational British"
+  },
+  {
+    "saved": "vo-005-1-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T13_42_21__s50_v4.mp3",
+    "bytes": 83392,
+    "voice": "Ava - Neutral Conversational British"
+  },
+  {
+    "saved": "vo-005-2-take-1.mp3",
+    "source": "ElevenLabs_2026-10-24T13_43_04__s50_v4.mp3",
+    "bytes": 77123,
+    "voice": "Ava - Neutral Conversational British"
+  },
+  {
+    "saved": "vo-005-2-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T13_43_03__s50_v4.mp3",
+    "bytes": 75242,
+    "voice": "Ava - Neutral Conversational British"
+  },
+  {
+    "saved": "vo-005-2-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T13_42_44__s50_v4.mp3",
+    "bytes": 75242,
+    "voice": "Ava - Neutral Conversational British"
+  },
+  {
+    "saved": "vo-005-5-take-1.mp3",
+    "source": "ElevenLabs_2026-10-24T13_44_06__s50_v4.mp3",
+    "bytes": 69599,
+    "voice": "Ava - Neutral Conversational British"
+  },
+  {
+    "saved": "vo-005-5-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T13_44_05__s50_v4.mp3",
+    "bytes": 69599,
+    "voice": "Ava - Neutral Conversational British"
+  },
+  {
+    "saved": "vo-005-5-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T13_43_42__s50_v4.mp3",
+    "bytes": 69599,
+    "voice": "Ava - Neutral Conversational British"
+  },
+  {
+    "saved": "vo-005-3-take-1.mp3",
+    "source": "ElevenLabs_2026-10-24T13_48_31__s50_v4.mp3",
+    "bytes": 131039,
+    "voice": "Brady J - Confident Real Estate Agent"
+  },
+  {
+    "saved": "vo-005-3-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T13_48_30__s50_v4.mp3",
+    "bytes": 129159,
+    "voice": "Brady J - Confident Real Estate Agent"
+  },
+  {
+    "saved": "vo-005-3-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T13_47_44__s50_v4.mp3",
+    "bytes": 129159,
+    "voice": "Brady J - Confident Real Estate Agent"
+  },
+  {
+    "saved": "vo-005-4-take-1.mp3",
+    "source": "ElevenLabs_2026-10-24T13_49_25__s50_v4.mp3",
+    "bytes": 121635,
+    "voice": "Brady J - Confident Real Estate Agent"
+  },
+  {
+    "saved": "vo-005-4-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T13_49_24__s50_v4.mp3",
+    "bytes": 127278,
+    "voice": "Brady J - Confident Real Estate Agent"
+  },
+  {
+    "saved": "vo-005-4-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T13_48_59__s50_v4.mp3",
+    "bytes": 127278,
+    "voice": "Brady J - Confident Real Estate Agent"
+  },
+  {
+    "saved": "vo-005-6-take-1.mp3",
+    "source": "ElevenLabs_2026-10-24T13_50_10__s50_v4.mp3",
+    "bytes": 115993,
+    "voice": "Brady J - Confident Real Estate Agent"
+  },
+  {
+    "saved": "vo-005-6-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T13_50_09__s50_v4.mp3",
+    "bytes": 112231,
+    "voice": "Brady J - Confident Real Estate Agent"
+  },
+  {
+    "saved": "vo-005-6-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T13_49_40__s50_v4.mp3",
+    "bytes": 112231,
+    "voice": "Brady J - Confident Real Estate Agent"
+  }
+]

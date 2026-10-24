@@ -1,0 +1,38 @@
+[
+  {
+    "file": "maya-reference.png",
+    "size": [
+      1402,
+      1122
+    ],
+    "mode": "RGB",
+    "sha256": "d7c3553e6046ec7b7a37932ddd4aea44c7daaef307f049ef552aaa1487204cd3"
+  },
+  {
+    "file": "pose-maya-eyeroll.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "16ee02da447fbae72ba7d7fd7769abd80c7abf3a51addd3cff5df91f7bd10b4d"
+  },
+  {
+    "file": "pose-maya-phone.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "5b00e2d3e8676b6c8ab76b21f781bf6ff75e5b56e09ed621aba65ec0f6884451"
+  },
+  {
+    "file": "pose-maya-pleased.png",
+    "size": [
+      1355,
+      1160
+    ],
+    "mode": "RGBA",
+    "sha256": "bc51ccc6dec5bf818d2b87a015e3ed3a7a43725c0cc52260173db7661c3f3bc3"
+  }
+]

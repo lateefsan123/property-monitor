@@ -1,0 +1,47 @@
+[
+ {
+  "word": "My",
+  "start": 0.0,
+  "end": 0.22
+ },
+ {
+  "word": "flat's",
+  "start": 0.22,
+  "end": 0.58
+ },
+ {
+  "word": "been",
+  "start": 0.58,
+  "end": 0.7
+ },
+ {
+  "word": "on",
+  "start": 0.7,
+  "end": 0.82
+ },
+ {
+  "word": "the",
+  "start": 0.82,
+  "end": 0.94
+ },
+ {
+  "word": "market",
+  "start": 0.94,
+  "end": 1.22
+ },
+ {
+  "word": "for",
+  "start": 1.22,
+  "end": 1.48
+ },
+ {
+  "word": "three",
+  "start": 1.48,
+  "end": 1.88
+ },
+ {
+  "word": "weeks.",
+  "start": 1.88,
+  "end": 2.3
+ }
+]

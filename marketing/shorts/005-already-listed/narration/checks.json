@@ -1,0 +1,299 @@
+{
+  "passed": true,
+  "rows": [
+    {
+      "file": "auditions/maya-ava-line-1.mp3",
+      "role": "audition",
+      "duration": 2.847333,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "2b8eb740050070e38460d174f75240a3c1eb67dc2817f5e15d2dcbbf59ecf821",
+      "decodedPcmSha256": "ad5e68ac9ff81a11038a0f75cebd2fc2a3acabb7dba1e1350044bef2e90148c0",
+      "transcript": "My flat's been on the market for three weeks."
+    },
+    {
+      "file": "auditions/maya-beth-line-1.mp3",
+      "role": "audition",
+      "duration": 2.768958,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "651d7095c5735a1221eae5f967df7ffc8da862a9dddda1f0fa2d32f73f2f22ae",
+      "decodedPcmSha256": "5c4c2edb0abb37a5318a7809ee87da5b9270fa8ed88ef857e3df985f15a8f0f7",
+      "transcript": "My flat's been on the market for three weeks."
+    },
+    {
+      "file": "auditions/maya-maya-line-1.mp3",
+      "role": "audition",
+      "duration": 2.925708,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "b64826e75444c5d5defbf004ef33a464080d3370fb60dd6b738a7efb2b5b4f3d",
+      "decodedPcmSha256": "faf197cf892926790bfa6b287bc96f1a9e39b908028a49de5a1386ce7205a3e5",
+      "transcript": "My flat's been on the market for three weeks."
+    },
+    {
+      "file": "vo-005-1-take-1.mp3",
+      "role": "production",
+      "duration": 2.847333,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "2b8eb740050070e38460d174f75240a3c1eb67dc2817f5e15d2dcbbf59ecf821",
+      "decodedPcmSha256": "ad5e68ac9ff81a11038a0f75cebd2fc2a3acabb7dba1e1350044bef2e90148c0",
+      "transcript": "My flat's been on the market for three weeks."
+    },
+    {
+      "file": "vo-005-1-take-2.mp3",
+      "role": "production",
+      "duration": 2.768958,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "3c558e57bba1b692cb3818c5f0ee6b1537e69e719d3a71e9e83818b1ee2f7f54",
+      "decodedPcmSha256": "1d8d82b0efe782bdc1433b4806516b70da8fc500d44f8bcd9ea23139f760838e",
+      "transcript": "My flat's been on the market for three weeks."
+    },
+    {
+      "file": "vo-005-1-take-3.mp3",
+      "role": "production",
+      "duration": 2.768958,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "ae5f4c1f069440615f3e9bada83b77b8ce7ae0c63b915ae18481d5b02f950c3b",
+      "decodedPcmSha256": "73aab88a47f67e94193c16800a51485314357bae3b5875c617450fe8265359e2",
+      "transcript": "My flat's been on the market for three weeks."
+    },
+    {
+      "file": "vo-005-2-take-1.mp3",
+      "role": "production",
+      "duration": 2.50775,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "c501f6f3a8e8f5132b09890b5e06f98e4c864e8652c9ec8b615e3c7b7109e424",
+      "decodedPcmSha256": "81c4a3b9f05bcb4314e166a7d3e8ae4e40d27c8c33ef4d427713a487c1014f00",
+      "transcript": "Would you consider putting it on the market?"
+    },
+    {
+      "file": "vo-005-2-take-2.mp3",
+      "role": "production",
+      "duration": 2.429375,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "3c060aa02dd7385070a12d66e02cfa32be1f41acbf3ccd6b8ed2a08d1d254fff",
+      "decodedPcmSha256": "2b056541a0b1fec279cbf71ad70da94a04edcd723089d0677835202a3dfc8998",
+      "transcript": "Would you consider putting it on the market?"
+    },
+    {
+      "file": "vo-005-2-take-3.mp3",
+      "role": "production",
+      "duration": 2.429375,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "c3f11bc2c65ab0f7f02da80fbddc9e4f5a36bf99d61ddde4f61e352ace36111c",
+      "decodedPcmSha256": "20fc5caf52947d9832572b3fa77545e08f2fda88ef40564600c11b0995985036",
+      "transcript": "Would you consider putting it on the market?"
+    },
+    {
+      "file": "vo-005-3-take-1.mp3",
+      "role": "production",
+      "duration": 4.75425,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "613d69692261c26c6edfc59954577e3ff00a56012a7b2d49de44dc0e60f37bb1",
+      "decodedPcmSha256": "3e57fa0d3242f7639083d38f3dbeb8df6ffc7f7e1b0ad46891fb92d993d1e3e6",
+      "transcript": "In repeat, every seller has a stage. Mayas is for sale."
+    },
+    {
+      "file": "vo-005-3-take-2.mp3",
+      "role": "production",
+      "duration": 4.675917,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "19deb0254f5ed85d4d14423f121324fe00a13dc80a3c8ed4e98f4fe2ae878a0c",
+      "decodedPcmSha256": "35ff94bf92eb8bf4eee7ea16110bd019aeed2aee4955cf6b48ddf5863eaf62f4",
+      "transcript": "In repeat, every seller has a stage. Mayas is for sale."
+    },
+    {
+      "file": "vo-005-3-take-3.mp3",
+      "role": "production",
+      "duration": 4.675917,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "611ca512eddb03a0c5f96fddc94a670ff6e2b963f9f0406c059d7d28dbee173a",
+      "decodedPcmSha256": "46ec330547d91a1f98e4b57e8d9790d3d869b93c72079e1511fd33fb8c0b9a99",
+      "transcript": "In repeat, every seller has a stage. Mayas is for sale."
+    },
+    {
+      "file": "vo-005-4-take-1.mp3",
+      "role": "production",
+      "duration": 4.362417,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "76a85d691b6ed6bb8d95bdb93677113de9c2e2a6127bbaef9931dc9e6a13239f",
+      "decodedPcmSha256": "a0a90de14299c5adeccc44892707320d49f30f5a11036127a1418154d946174f",
+      "transcript": "So her message compares recent sales in her building with her asking price."
+    },
+    {
+      "file": "vo-005-4-take-2.mp3",
+      "role": "production",
+      "duration": 4.597542,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "5bf21955834103013d547155fdd4edd1a465d4de84b8680c69e80c458f8160c5",
+      "decodedPcmSha256": "e20161dc7967cf839a4dccdab2c2e33d8dca272393b50acb03f1ed230744262e",
+      "transcript": "So, her message compares recent sales in her building with her asking price."
+    },
+    {
+      "file": "vo-005-4-take-3.mp3",
+      "role": "production",
+      "duration": 4.597542,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "9c277ed2f738784012b1bf1592a4f160a9b35357627e923c0c5d869e2f0107d0",
+      "decodedPcmSha256": "d92d935afb41233d7ef5c15732943cbbb731c2d5e606db7946dfb19c390f834c",
+      "transcript": "So, her message compares recent sales in her building with her asking price."
+    },
+    {
+      "file": "vo-005-5-take-1.mp3",
+      "role": "production",
+      "duration": 2.19425,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "cef63917939907fed1fb81c145e0192dc0aeac37138112b47a334db8c078b7b0",
+      "decodedPcmSha256": "db829f3a6f122151982c36df720042c044433f86d22a33fafd47c1c9c544b01d",
+      "transcript": "Okay, that one I'll answer."
+    },
+    {
+      "file": "vo-005-5-take-2.mp3",
+      "role": "production",
+      "duration": 2.19425,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "6cd1fb846c8f9506c211d95a35329c4a982a988abf807c2e2f42f50827031580",
+      "decodedPcmSha256": "58a08a74f2af09c548127d18c689c3f27f878268d19850343fcd28c4de363cc7",
+      "transcript": "Okay, that one I'll answer."
+    },
+    {
+      "file": "vo-005-5-take-3.mp3",
+      "role": "production",
+      "duration": 2.19425,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "523cbbabf0b14edb3c35dee943f0e5a18a2376b62940fa922f330461a35f72ed",
+      "decodedPcmSha256": "4a75fbb4c6e13d8c66cf7dd18f21d6248bff495a841a02d53fc374115ead4a2a",
+      "transcript": "Okay, that one I'll answer."
+    },
+    {
+      "file": "vo-005-6-take-1.mp3",
+      "role": "production",
+      "duration": 4.127333,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "6590da63578aa4e0ceb6c45502421babd37f367bdcee9d1d95e5b6382b01122c",
+      "decodedPcmSha256": "56573ddef1c15eb549c9c86ab1d85672474952c613991e9e1641903b6e2b6ccc",
+      "transcript": "Repeat AI. Know the stage before the message."
+    },
+    {
+      "file": "vo-005-6-take-2.mp3",
+      "role": "production",
+      "duration": 3.970583,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "a5551ee6971467c549d195ba1817d3be99745bf66f45db2d5cce1166a78cefc5",
+      "decodedPcmSha256": "7ecbf1721ba6450e13292b368570ca2567d0dc2928d45370390ac1bff03db711",
+      "transcript": "Repeat AI. Know the stage before the message."
+    },
+    {
+      "file": "vo-005-6-take-3.mp3",
+      "role": "production",
+      "duration": 3.970583,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "e3a23c85c122bcd06c05c2666a945ec55610f22bf4560b39b150dc2c48a40028",
+      "decodedPcmSha256": "aafdeb5bb7b1cdc60bdf201ee0a8d78ed65a9ddbb1d17d90784494e9356d297d",
+      "transcript": "Repeat AI. Know the stage before the message."
+    }
+  ]
+}

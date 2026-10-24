@@ -1,0 +1,33 @@
+[
+  {
+    "name": "Ava - Neutral Conversational British",
+    "id": "wCizWKvnaS3LOIUwHo98",
+    "role": "audition",
+    "selected": true,
+    "lines": [
+      1,
+      2,
+      5
+    ]
+  },
+  {
+    "name": "Maya - Friendly, Capable, Conversational",
+    "id": "x4UhiuorV3bFSbPFPR8Z",
+    "role": "audition"
+  },
+  {
+    "name": "Beth - British female, playful & witty",
+    "id": "zH7TN9vEZAsEway9xWev",
+    "role": "audition"
+  },
+  {
+    "name": "Brady J - Confident Real Estate Agent",
+    "id": "SGoiiadNvlgcANZ3wLyn",
+    "role": "broker",
+    "lines": [
+      3,
+      4,
+      6
+    ]
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "creditsBefore": 104873,
+  "model": "Eleven v4",
+  "stability": 0.5,
+  "similarity": 0.75,
+  "cloneStrength": 0,
+  "effects": [],
+  "output": "mp3_44100_192",
+  "brokerVoiceId": "SGoiiadNvlgcANZ3wLyn",
+  "selectedMayaVoice": "Ava - Neutral Conversational British",
+  "selectedMayaVoiceId": "wCizWKvnaS3LOIUwHo98",
+  "castingRationale": "Neutral British conversational profile; complete opening transcript and calm pace. Subjective listening approval remains with Claude/user.",
+  "creditsAfter": 104444,
+  "creditsUsed": 429
+}

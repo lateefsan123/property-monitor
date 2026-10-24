@@ -1,0 +1,42 @@
+[
+ {
+  "word": "Would",
+  "start": 0.0,
+  "end": 0.2
+ },
+ {
+  "word": "you",
+  "start": 0.2,
+  "end": 0.38
+ },
+ {
+  "word": "consider",
+  "start": 0.38,
+  "end": 0.74
+ },
+ {
+  "word": "putting",
+  "start": 0.74,
+  "end": 1.06
+ },
+ {
+  "word": "it",
+  "start": 1.06,
+  "end": 1.28
+ },
+ {
+  "word": "on",
+  "start": 1.28,
+  "end": 1.42
+ },
+ {
+  "word": "the",
+  "start": 1.42,
+  "end": 1.52
+ },
+ {
+  "word": "market?",
+  "start": 1.52,
+  "end": 1.84
+ }
+]

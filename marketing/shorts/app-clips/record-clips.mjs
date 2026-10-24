@@ -165,6 +165,25 @@ const CLIPS = {
     await r.hold(0.8); r.mark("scheduled");
     await r.hold(1.4);
   },
+  // Short 005: Maya Cohen (For Sale) → her status → her For Sale message
+  async "maya-for-sale"(page, r) {
+    await nav(page, "Sellers");
+    await r.hold(0.8); r.mark("start");
+    const maya = page.getByText("Maya Cohen", { exact: true }).first();
+    await r.scrollTo(maya, 0.35, 1.0);
+    await r.hold(0.3);
+    await r.tap(maya, "maya");
+    await r.hold(0.9); r.mark("sheet-open");
+    await r.scrollTo(page.getByText("Status", { exact: true }).last(), 0.6, 0.8);
+    r.mark("status-visible");
+    await r.hold(1.4);
+    await r.tap(page.getByRole("tab", { name: "Message", exact: true }), "message-tab");
+    await r.hold(0.3); await grow(page);
+    await r.hold(0.3);
+    await r.scrollTo(page.getByLabel("Seller message", { exact: true }), 0.55, 1.0);
+    r.mark("message-visible");
+    await r.hold(2.0);
+  },
   // Short 001
   async "composer-manual"(page, r) {
     await nav(page, "Sellers");
