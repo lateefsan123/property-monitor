@@ -1,0 +1,72 @@
+{
+  "checked_on": "2026-10-24",
+  "account": "repeataiorg",
+  "method": "Authenticated Instagram profiles in Codex Chrome; each new follow verified by the Following button.",
+  "new_follows": 14,
+  "following_total_after": 15,
+  "existing_follow_preserved": "musadowntown",
+  "comments_sent": 0,
+  "messages_sent": 0,
+  "hiring_or_payment_commitments": 0,
+  "evidence": "following-2026-10-24.jpg",
+  "real_estate_accounts": [
+    { "handle": "dubaijord", "url": "https://www.instagram.com/dubaijord/", "reason": "Dubai real estate agent and White & Co partner", "status": "following" },
+    { "handle": "simonmartynbaker", "url": "https://www.instagram.com/simonmartynbaker/", "reason": "Dubai real estate; haus & haus founder", "status": "following" },
+    { "handle": "meydanmorris", "url": "https://www.instagram.com/meydanmorris/", "reason": "Dubai real estate agent at White & Co", "status": "following" },
+    { "handle": "thevillaexpert", "url": "https://www.instagram.com/thevillaexpert/", "reason": "Dubai and Abu Dhabi villa/off-plan specialist", "status": "following" },
+    { "handle": "abudhabijoe", "url": "https://www.instagram.com/abudhabijoe/", "reason": "Abu Dhabi property agent with Dubai sales experience", "status": "following" },
+    { "handle": "whiteandcodxb", "url": "https://www.instagram.com/whiteandcodxb/", "reason": "Dubai brokerage covering sales, leasing, off-plan and commercial", "status": "following" },
+    { "handle": "dubairealestateacademy", "url": "https://www.instagram.com/dubairealestateacademy/", "reason": "UAE property education and off-plan content", "status": "following" },
+    { "handle": "ahmedkhan.dubairealtor", "url": "https://www.instagram.com/ahmedkhan.dubairealtor/", "reason": "Dubai property advisor covering off-plan and villas", "status": "following" },
+    { "handle": "alessia_sheglova", "url": "https://www.instagram.com/alessia_sheglova/", "reason": "Dubai real estate content and Dacha CEO", "status": "following" },
+    { "handle": "calum", "url": "https://www.instagram.com/calum/", "reason": "White & Co founder; real estate sales and training content", "status": "following" },
+    { "handle": "bayutuae", "url": "https://www.instagram.com/bayutuae/", "reason": "UAE property portal and broker community content", "status": "following" }
+  ],
+  "ugc_candidates": [
+    {
+      "handle": "itssetayeshsf",
+      "name": "Setayesh",
+      "url": "https://www.instagram.com/itssetayeshsf/",
+      "status": "following",
+      "followers_at_check": 11026,
+      "fit": "Profile explicitly identifies a Dubai real estate agent and UGC creator; Real estate and PR/collab highlights are present.",
+      "public_contact": "Itssetayeshsf@gmail.com",
+      "sample_url": "https://www.instagram.com/itssetayeshsf/reel/DeOo7zhKnyk/",
+      "sample_observation": "Public caption presents perfume products and tags the brand; inspected caption and profile, not a full audiovisual review.",
+      "caveat": "Recent visible posts lean toward beauty, products and lifestyle. App-demo quality, real estate examples, rates and availability are unverified.",
+      "possible_brief": "A broker day-in-the-life video showing seller follow-up with Repeat AI; assess app-demo samples first."
+    },
+    {
+      "handle": "kta.barros",
+      "name": "Catalina Barros",
+      "url": "https://www.instagram.com/kta.barros/",
+      "status": "following",
+      "followers_at_check": 1332,
+      "fit": "Profile explicitly says Dubai Real Estate & UGC and invites DMs for properties and collaborations.",
+      "public_contact": "Instagram DM",
+      "related_property_account": "https://www.instagram.com/property_catalina/",
+      "related_property_account_reviewed": false,
+      "sample_url": "https://www.instagram.com/kta.barros/p/DejysgfjPNz/",
+      "sample_observation": "Pinned introduction describes being a real estate agent living in Dubai; recent visible reel captions cover lifestyle and products.",
+      "caveat": "Portfolio quality, language options, app-demo experience, rates and availability are unverified.",
+      "possible_brief": "A relatable Dubai agent workflow or seller follow-up explainer; request relevant video samples."
+    },
+    {
+      "handle": "hlydiak",
+      "name": "Lydia",
+      "url": "https://www.instagram.com/hlydiak/",
+      "status": "following",
+      "followers_at_check": 9677,
+      "fit": "Profile name includes Dubai, UGC and Real Estate; biography lists a business development role at Arada Living.",
+      "public_contact": "Instagram DM",
+      "caveat": "Visible recent grid is travel/lifestyle. Paid UGC availability, property-video examples, app-demo experience and rates are unverified.",
+      "possible_brief": "A Dubai property professional perspective, subject to confirming commercial availability and suitable examples."
+    }
+  ],
+  "next_steps": [
+    "Publish introductory and product-demo posts: the Repeat AI profile currently has zero posts.",
+    "Assess complete creator videos and request relevant property or software-demo samples before selecting a creator.",
+    "For a paid pilot, request a quote for one 20-30 second vertical video, two hook variants, captions and an app demonstration. Clarify revision terms, organic/paid usage, raw footage and delivery date.",
+    "Rates, rights, availability and hiring remain unconfirmed; no outreach has been sent."
+  ]
+}
