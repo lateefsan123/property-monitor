@@ -184,13 +184,14 @@ if (process.argv.includes("--timeline-only")) process.exit(0);
 function voiceClean(l) {
   const gaps = [];
   for (let i = 0; i < l.words.length - 1; i++) {
-    const a = l.words[i].end + 0.05, b = l.words[i + 1].start - 0.03;
-    if (b - a > 0.08) gaps.push(`between(t,${a.toFixed(3)},${b.toFixed(3)})`);
+    // generous margins: the recogniser marks word starts after soft onsets like the "s" in "sir"
+    const a = l.words[i].end + 0.08, b = l.words[i + 1].start - 0.15;
+    if (b - a > 0.1) gaps.push(`between(t,${a.toFixed(3)},${b.toFixed(3)})`);
   }
   const tail = l.words[l.words.length - 1].end + 0.08;
   gaps.push(`gte(t,${tail.toFixed(3)})`);
   const duck = `volume='if(${gaps.join("+")},0.1,1)':eval=frame`;
-  return `afftdn=nr=8:nf=-45,deesser=i=0.5:m=0.5:f=0.5,lowpass=f=11500,${duck}`;
+  return `afftdn=nr=8:nf=-45,deesser=i=0.3:m=0.5:f=0.5,lowpass=f=13000,${duck}`;
 }
 
 function buildAudio() {
