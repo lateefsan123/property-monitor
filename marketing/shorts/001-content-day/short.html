@@ -11,7 +11,7 @@
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0B0C0D; }
   .layer { position: absolute; inset: 0; overflow: hidden; }
-  #pCorner { position: absolute; left: 0; top: 0; transform-origin: 0 0; z-index: 26; display: none; }
+  #pCorner, #pElena { position: absolute; left: 0; top: 0; transform-origin: 0 0; z-index: 26; display: none; }
   #chip { position: absolute; left: 60px; top: 418px; z-index: 50; padding: 10px 26px; border-radius: 30px; background: #141414; color: #fff;
           font: 600 30px "Inter", sans-serif; letter-spacing: .3px; white-space: nowrap; opacity: 0; }
   .abs { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
@@ -132,7 +132,7 @@
 
 <!-- ───────── Demo cards: live crops of the real app, and the seller's side ───────── -->
 <img id="pCorner" src="pose-setup.png">
-<div id="chip"></div>
+<img id="pElena" src="pose-elena-cafe.png">
 
 <!-- ───────── App ───────── -->
 <div class="layer" id="appLayer">
@@ -272,14 +272,16 @@ function render(t) {
 
   // ── Demo: the light-theme phone is the subject, he stands small in the corner
   const phoneOn = t >= C.cardsIn && t < C.toPay + 0.6;
-  if (phoneOn) {
+  // while Elena's follow-up arrives, she takes the corner (at her café table); otherwise the broker
+  const eIn = out(prog(t, C.noteIn - 0.1, 0.45)) * (1 - out(prog(t, C.elenaOut, 0.45)));
+  if (phoneOn && t < C.toPay) {
     const s = 760 / 1088, x = 112 - 695.5 * s, y = 2110 - 1112 * s + (1 - out(prog(t, C.cardsIn, 0.8))) * 500;
-    set($("pCorner"), { display: t < C.toPay ? "block" : "none", transform: `translate(${x}px, ${y + 1112 * s * (1 - breathe)}px) scale(${s}, ${s * breathe})` });
-  } else set($("pCorner"), { display: "none" });
-  let beatNow = null;
-  for (const b of TL.app.beats) if (t >= b.a && t < b.b) beatNow = b;
-  $("chip").textContent = beatNow && beatNow.chip ? beatNow.chip : $("chip").textContent;
-  set($("chip"), { opacity: phoneOn && beatNow && beatNow.chip && t < C.toPay ? out(prog(t, beatNow.a, 0.45)) : 0 });
+    set($("pCorner"), { display: eIn < 1 ? "block" : "none", opacity: 1 - eIn,
+      transform: `translate(${x}px, ${y + 1112 * s * (1 - breathe) + eIn * 120}px) scale(${s}, ${s * breathe})` });
+    const se = 600 / 1098, xe = 150 - 678 * se, ye = 1930 - 1116 * se;
+    set($("pElena"), { display: eIn > 0 ? "block" : "none", opacity: eIn,
+      transform: `translate(${xe}px, ${ye + (1 - eIn) * 120 + 1116 * se * (1 - breathe)}px) scale(${se}, ${se * breathe})` });
+  } else { set($("pCorner"), { display: "none" }); set($("pElena"), { display: "none" }); }
 
   // ── App layer: recorded film-mode clips (lib/app-phone.js)
   set($("appLayer"), { display: inApp || inEnd || phoneOn ? "block" : "none", ...(phoneOn && !inEnd ? { background: "transparent", zIndex: 20, opacity: 1 } : {}) });
@@ -302,7 +304,7 @@ function render(t) {
     pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, cam ? { cam } : { dy: rise, push: phoneOn ? 0.6 : 0.28 });
     set(PH.phone, { opacity: !inEnd && !phoneOn && t < C.zoom + 0.08 ? 0 : 1 });
   }
-  set($("label"), { opacity: (inApp && t > C.zoom + 0.6 && t < C.toPay) || (t > C.cardsIn + 0.3 && t < C.toPay) ? 1 : 0 });
+  set($("label"), { opacity: 0 });
 
   // ── End card
   const e = out(prog(t, C.endCard, 0.5));

@@ -122,29 +122,30 @@ const FULL = { sx: 590, sy: 1278, z: 0.8, cx: 640, cy: 1360 };
 const useTap = W(4, "statuses");
 const waCam = { sx: 590, sy: 380, z: 0.9, cx: 630, cy: 900 };
 cue.noteIn = W(5, "so");
+cue.elenaOut = start[6] - 0.35;              // back to him for her reply
 const app = { beats: [
-  { a: cue.cardsIn, b: cue.toTpl, chip: "The old way: WhatsApp, by hand", cam: FULL,
+  { a: cue.cardsIn, b: cue.toTpl, cam: FULL,
     screen: { kind: "wa", id: "oliver", name: "Oliver Grant", sub: "last seen today at 11:40", keyboard: true,
       typing: { text: "Hi Oliver, hope you're well. Just wanted to keep you updated on the latest activity in Burj Khalifa…", ta: cue.cardsIn + 0.5, tb: cue.toTpl - 0.4 } } },
-  { a: cue.toTpl, b: cue.toUse, chip: "Repeat · Templates", clip: "template-appraisal-light", c0: 2.0, rate: 0,
+  { a: cue.toTpl, b: cue.toUse, clip: "template-appraisal-light", c0: 2.0, rate: 0,
     camKeys: [[cue.toTpl, { sx: 590, sy: 700, z: 0.86, cx: 630, cy: 1150 }], [cue.toUse, { sx: 590, sy: 760, z: 0.9, cx: 630, cy: 1150 }]] },
-  { a: cue.toUse, b: cue.toAuto, chip: "Template · Use for", clip: "template-use-for-light",
+  { a: cue.toUse, b: cue.toAuto, clip: "template-use-for-light",
     c0: Math.max(1.5, ev("template-use-for-light", "tap:appraisal-on") - (useTap - cue.toUse)), rate: 1,
     cam: { sx: 590, sy: 1840, z: 0.9, cx: 630, cy: 1150 } },
-  { a: cue.toAuto, b: cue.noteIn, chip: "Repeat · Automations", clip: "automations-status-light",
+  { a: cue.toAuto, b: cue.noteIn, clip: "automations-status-light",
     c0: Math.max(0, ev("automations-status-light", "tap:status-switch") - (cue.toggle - cue.toAuto)), rate: 1,
     cam: { sx: 590, sy: 1310, z: 0.9, cx: 630, cy: 1100 } },
-  { a: cue.noteIn, b: start[6] - 0.3, chip: "Elena's phone", cam: { ...FULL, sy: 1150, cy: 1260 },
+  { a: cue.noteIn, b: start[6] - 0.3, cam: { ...FULL, sy: 1150, cy: 1260 },
     screen: { kind: "lock", id: "elena", time: "12:00", date: "Friday 23 October",
       note: { at: cue.noteIn + 0.35, app: "WhatsApp", title: "+971 50 555 0100",
         body: "Hi Elena Petrova, hope you're well. Just wanted to keep you updated on the latest activity in Claren Tower 2." } } },
-  { a: start[6] - 0.3, b: cue.toWa, chip: "Your WhatsApp", cam: { ...FULL, sy: 1150, cy: 1260 },
+  { a: start[6] - 0.3, b: cue.toWa, cam: { ...FULL, sy: 1150, cy: 1260 },
     screen: { kind: "wa", id: "elena-chat", name: "Elena Petrova", sub: "online", items: [
       { at: start[6] - 0.3, side: "out", text: "Hi Elena Petrova, hope you're well. Just wanted to keep you updated on the latest activity in Claren Tower 2." },
       { at: W(6, "seller") - 0.1, side: "in", text: "Thanks! Could you call me on Thursday?" },
       { at: W(6, "answer") + 0.2, side: "out", text: "Of course. I'll call you Thursday at 11." }],
       typing: { text: "Of course. I'll call you Thursday at 11.", ta: W(6, "answer") - 0.9, tb: W(6, "answer") - 0.05 } } },
-  { a: cue.toWa, b: cue.toPay + 0.6, chip: "Repeat · WhatsApp", clip: "whatsapp-connected-light", c0: ev("whatsapp-connected-light", "connected") + 0.1, rate: 0,
+  { a: cue.toWa, b: cue.toPay + 0.6, clip: "whatsapp-connected-light", c0: ev("whatsapp-connected-light", "connected") + 0.1, rate: 0,
     camKeys: [[cue.toWa, waCam], [cue.toPay - 0.05, waCam], [cue.toPay + 0.45, { ...waCam, cy: 2900 }]] },
   { a: cue.endCard, b: END + 1, clip: "send-activity-light", c0: ev("send-activity-light", "tap:send-activity") - 0.1, rate: 1.25,
     camKeys: [[cue.endCard, { sx: 590, sy: 1000, z: 0.9, cy: 1500 }], [cue.endCard + 0.7, { sx: 590, sy: 1100, z: 0.72, cy: 1420 }]] },
