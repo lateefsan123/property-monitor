@@ -290,7 +290,7 @@ function render(t) {
       const mk = out(prog(t, C.markTx, 0.35));
       // no highlight on the sale line (user found the teal highlights annoying)
       const r = back(prog(t, C.sendReply, 0.3));
-      set($("reply"), { top: "1130px", opacity: clamp(r * 1.5), transform: `scale(${lerp(0.6, 1, r)})`, transformOrigin: "100% 0" });
+      set($("reply"), { top: `${$("saraMsg").offsetTop + $("saraMsg").offsetHeight + 44}px`, opacity: clamp(r * 1.5), transform: `scale(${lerp(0.6, 1, r)})`, transformOrigin: "100% 0" });
       // zoom on the message
       const z = shot === "thread" && t >= C.toReplyChat ? 1 : lerp(1, 1.08, ease(prog(t, C.toThread + 0.3, 1.2)));
       set($("cphone"), { transform: `scale(${z})`, transformOrigin: "50% 40%" });
