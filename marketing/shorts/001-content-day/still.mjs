@@ -17,6 +17,7 @@ const tl = existsSync(tlPath) ? JSON.parse(readFileSync(tlPath, "utf8")) : null;
 const browser = await chromium.launch({ executablePath: BROWSER, args: ["--allow-file-access-from-files"] });
 const page = await browser.newPage({ viewport: { width: 1080, height: 1920 } });
 if (tl) await page.addInitScript(t => { window.TL = t; }, tl);
+page.on("pageerror", e => console.log("PAGEERR", e.message)); page.on("console", m => console.log("CONSOLE", m.text()));
 await page.goto("file:///" + join(DIR, "short.html").replace(/\\/g, "/"));
 await page.evaluate(() => window.ready);
 for (const t of times) {

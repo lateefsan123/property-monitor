@@ -1,0 +1,28 @@
+{
+ "clip": "whatsapp-connected-light",
+ "fps": 30,
+ "frames": 97,
+ "duration": 3.233,
+ "pixels": [
+  1179,
+  2556
+ ],
+ "encodedPixels": [
+  1180,
+  2556
+ ],
+ "demoClock": "2026-10-23T12:00:00Z",
+ "taps": [
+  {
+   "t": 0.6,
+   "x": 600,
+   "y": 1545,
+   "label": "whatsapp"
+  }
+ ],
+ "events": {
+  "start": 0.6,
+  "tap:whatsapp": 0.6,
+  "connected": 1.433
+ }
+}

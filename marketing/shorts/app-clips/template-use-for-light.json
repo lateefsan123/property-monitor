@@ -1,0 +1,36 @@
+{
+ "clip": "template-use-for-light",
+ "fps": 30,
+ "frames": 125,
+ "duration": 4.167,
+ "pixels": [
+  1179,
+  2556
+ ],
+ "encodedPixels": [
+  1180,
+  2556
+ ],
+ "demoClock": "2026-10-23T12:00:00Z",
+ "taps": [
+  {
+   "t": 0.8,
+   "x": 590,
+   "y": 2106,
+   "label": "use-for"
+  },
+  {
+   "t": 1.833,
+   "x": 1053,
+   "y": 2220,
+   "label": "appraisal-on"
+  }
+ ],
+ "events": {
+  "start": 0.8,
+  "tap:use-for": 0.8,
+  "use-for-open": 1.833,
+  "tap:appraisal-on": 1.833,
+  "appraisal-on": 2.367
+ }
+}

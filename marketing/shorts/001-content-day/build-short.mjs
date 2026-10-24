@@ -110,26 +110,31 @@ cue.endCard = endOf(8) + 0.55;
 start[9] = cue.endCard + 0.35;
 const END = r2(endOf(9) + 1.5);
 
-// ── App proof: recorded film-mode clips (marketing/shorts/app-clips, lib/app-phone.js)
-const clips = loadClips(["composer-manual", "template-appraisal", "template-use-for", "automations-status", "whatsapp-connected", "send-activity"], DIR);
+// ── App proof: one feature at a time, as big live crops of the light-theme app beside him
+// (marketing/shorts/app-clips/*-light, lib/crop-cards.js), plus the seller's side.
+cue.cardsIn = r2(W(2, "type") - 0.5);
+cue.zoom = 999;                                 // no full-screen phone in this cut
+const clips = loadClips(["composer-manual-light", "template-appraisal-light", "template-use-for-light", "automations-status-light", "whatsapp-connected-light", "send-activity-light"], DIR);
 const ev = (c, k) => clips[c].events[k];
-const lastT = c => (clips[c].frames - 1) / 30;
-const stopCam = { sx: 590, sy: 1380, z: 1.12, cy: 1120 };
-const waCam = { sx: 590, sy: 560, z: 1.08, cy: 1120 };
+const TOP = 420;
+const useTap = W(4, "statuses");
+const cards = [
+  { a: cue.cardsIn, b: cue.toTpl, top: 1330, chip: "Typing it by hand", kind: "clip", clip: "composer-manual-light", c0: 2.3, rate: 0, region: [0, 2070, 1179, 480] },
+  { a: cue.toTpl, b: cue.toUse, top: TOP, chip: "Repeat · Templates", kind: "clip", clip: "template-appraisal-light", c0: 2.0, rate: 0, region: [0, 170, 1179, 780] },
+  { a: cue.toUse, b: cue.toAuto, top: TOP, chip: "Template · Use for", kind: "clip", clip: "template-use-for-light",
+    c0: Math.max(1.5, ev("template-use-for-light", "tap:appraisal-on") - (useTap - cue.toUse)), rate: 1, region: [0, 1405, 1179, 865] },
+  { a: cue.toAuto, b: cue.toWa, top: TOP, chip: "Repeat · Automations", kind: "clip", clip: "automations-status-light",
+    c0: Math.max(0, ev("automations-status-light", "tap:status-switch") - (cue.toggle - cue.toAuto)), rate: 1, region: [0, 1190, 1179, 240] },
+  { a: W(5, "so"), b: start[6] - 0.1, top: TOP + 300, chip: "Elena's phone", kind: "note", meta: "WhatsApp · now", title: "+971 50 555 0100",
+    body: "Hi Elena Petrova, hope you're well. Just wanted to keep you updated on the latest activity in Claren Tower 2." },
+  { a: start[6] - 0.1, b: cue.toWa, top: TOP + 300, chip: "Your WhatsApp", kind: "chat", items: [
+    { at: W(6, "seller") - 0.1, side: "in", text: "Thanks! Could you call me on Thursday?" },
+    { at: W(6, "answer"), side: "out", text: "Of course. I'll call you Thursday at 11." }] },
+  { a: cue.toWa, b: cue.toPay, top: TOP, chip: "Repeat · WhatsApp", kind: "clip", clip: "whatsapp-connected-light", c0: ev("whatsapp-connected-light", "connected") + 0.1, rate: 0, region: [0, 200, 1179, 380] },
+];
+for (const c of cards) { c.a = r2(c.a); c.b = r2(c.b); c.c0 = r2(c.c0 || 0); for (const it of c.items || []) it.at = r2(it.at); }
 const app = { beats: [
-  { a: cue.zoom, b: cue.toTpl, clip: "composer-manual", c0: 0, rate: 1, cam: { sx: 590, sy: 2150, z: 1.04, cy: 1150 } },
-  { a: cue.toTpl, b: cue.toUse, clip: "template-appraisal", c0: ev("template-appraisal", "tap:edit-appraisal") - 0.3,
-    rate: Math.max(0.8, Math.min(1.4, (ev("template-appraisal", "preview-settled") - ev("template-appraisal", "tap:edit-appraisal") + 0.3) / (cue.toUse - cue.toTpl - 0.6))),
-    cam: { sx: 590, sy: 1500, z: 0.92, cy: 1180 } },
-  { a: cue.toUse, b: cue.toAuto, clip: "template-use-for", c0: ev("template-use-for", "tap:use-for") - 0.1, rate: 1,
-    cam: { sx: 590, sy: 1950, z: 1.06, cy: 1200 } },
-  { a: cue.toAuto, b: cue.backAuto, clip: "automations-status", c0: Math.max(0, ev("automations-status", "tap:status-switch") - (cue.toggle - cue.toAuto)), rate: 1,
-    cam: { sx: 590, sy: 1300, z: 1.08, cy: 1160 } },
-  { a: cue.backAuto, b: cue.toWa, clip: "automations-status", c0: lastT("automations-status"), rate: 0, cut: true,
-    camKeys: [[cue.backAuto, { sx: 590, sy: 1300, z: 1.08, cy: 1160 }], [cue.stop, stopCam]] },
-  { a: cue.toWa, b: cue.toPay + 0.6, clip: "whatsapp-connected", c0: ev("whatsapp-connected", "tap:whatsapp") - 0.1, rate: 1,
-    camKeys: [[cue.toWa, waCam], [cue.toPay - 0.05, waCam], [cue.toPay + 0.45, { ...waCam, cy: 2900 }]] },
-  { a: cue.endCard, b: END + 1, clip: "send-activity", c0: ev("send-activity", "tap:send-activity") - 0.1, rate: 1.25,
+  { a: cue.endCard, b: END + 1, clip: "send-activity-light", c0: ev("send-activity-light", "tap:send-activity") - 0.1, rate: 1.25,
     camKeys: [[cue.endCard, { sx: 590, sy: 1000, z: 0.9, cy: 1500 }], [cue.endCard + 0.7, { sx: 590, sy: 1100, z: 0.72, cy: 1420 }]] },
 ] };
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); bt.rate = r2(bt.rate); }
@@ -139,6 +144,10 @@ const tapTimes = [];
 for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
   const ft = bt.a + (tp.t - bt.c0) / bt.rate;
   if (ft >= bt.a && ft < bt.b) tapTimes.push(r2(ft));
+}
+for (const c of cards) if (c.kind === "clip" && c.rate) for (const tp of clips[c.clip].taps) {
+  const ft = c.a + (tp.t - c.c0) / c.rate;
+  if (ft >= c.a && ft < c.b) tapTimes.push(r2(ft));
 }
 
 // Captions: chunks of spoken words, with a few emphasised words in teal
@@ -164,7 +173,7 @@ for (let i = 0; i < captions.length - 1; i++) {
   if (gap < 0.5) captions[i].b = captions[i + 1].a;
 }
 
-const timeline = { end: END, cue, captions, app, clips, tapTimes, lines: Object.values(L).map(l => ({ n: l.n, start: r2(start[l.n]), end: r2(endOf(l.n)), file: l.mp3.replace(DIR, "") })) };
+const timeline = { end: END, cue, captions, app, cards, clips, tapTimes, lines: Object.values(L).map(l => ({ n: l.n, start: r2(start[l.n]), end: r2(endOf(l.n)), file: l.mp3.replace(DIR, "") })) };
 writeFileSync(join(DIR, "timeline.json"), JSON.stringify(timeline, null, 1));
 console.log(`Timeline: ${END}s`, cue);
 if (process.argv.includes("--timeline-only")) process.exit(0);

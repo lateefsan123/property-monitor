@@ -1,0 +1,20 @@
+{
+ "clip": "composer-manual-light",
+ "fps": 30,
+ "frames": 72,
+ "duration": 2.4,
+ "pixels": [
+  1179,
+  2556
+ ],
+ "encodedPixels": [
+  1180,
+  2556
+ ],
+ "demoClock": "2026-10-23T12:00:00Z",
+ "taps": [],
+ "events": {
+  "start": 0.6,
+  "composer-visible": 0.6
+ }
+}

@@ -16,18 +16,21 @@ const BROWSER = "C:/Users/lateef/AppData/Local/ms-playwright/chromium-1217/chrom
 const DIR = fileURLToPath(new URL(".", import.meta.url));
 const BASE = "http://127.0.0.1:8083";
 const FPS = 30, DT = 1000 / FPS, SCALE = 3;
+// THEME=light records the light theme into <clip>-light.mp4/.json
+const THEME = process.env.THEME === "light" ? "light" : "dark";
+const SUFFIX = THEME === "light" ? "-light" : "";
 const ease = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
 
 async function openApp() {
   const browser = await chromium.launch({ executablePath: BROWSER });
-  const page = await browser.newPage({ viewport: { width: 393, height: 852 }, deviceScaleFactor: SCALE, colorScheme: "dark", hasTouch: true, isMobile: true });
+  const page = await browser.newPage({ viewport: { width: 393, height: 852 }, deviceScaleFactor: SCALE, colorScheme: THEME, hasTouch: true, isMobile: true });
   const errors = [];
   page.on("pageerror", e => errors.push(String(e)));
   await page.route("**/*", route => {
     const u = new URL(route.request().url());
     return ["127.0.0.1", "localhost"].includes(u.hostname) || !["http:", "https:"].includes(u.protocol) ? route.continue() : route.abort();
   });
-  await page.addInitScript(() => { try { localStorage.setItem("seller-signal-theme", "dark"); } catch {} });
+  await page.addInitScript(t => { try { localStorage.setItem("seller-signal-theme", t); } catch {} }, THEME);
   await page.clock.install({ time: new Date("2026-10-23T12:00:00Z") });
   await page.goto(BASE, { waitUntil: "load", timeout: 180000 });
   await page.getByLabel("Open navigation").first().waitFor({ timeout: 180000 });
@@ -275,7 +278,7 @@ for (const name of wanted) {
   try {
     await page.clock.pauseAt(new Date("2026-10-23T12:00:10Z"));
     const cdp = await page.context().newCDPSession(page);
-    const r = recorder(page, name, cdp);
+    const r = recorder(page, name + SUFFIX, cdp);
     await CLIPS[name](page, r);
     await r.save();
     if (errors.length) console.log(`  page errors: ${errors.length} (first: ${errors[0].slice(0, 120)})`);
