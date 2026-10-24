@@ -1,0 +1,11 @@
+# Generated intermediates — not committed
+frames/
+sfx/
+build.log
+timeline.json
+out/*.mp4
+out/*.mov
+# Only the chosen narration takes are kept in git (see narration-selection.json)
+narration/**/*.mp3
+narration/**/*.words.json
+!narration/vo-007-*-take-2.*

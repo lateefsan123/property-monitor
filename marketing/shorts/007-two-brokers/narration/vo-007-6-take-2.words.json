@@ -1,0 +1,42 @@
+[
+ {
+  "word": "Repeat",
+  "start": 0.0,
+  "end": 0.48
+ },
+ {
+  "word": "AI.",
+  "start": 0.48,
+  "end": 1.02
+ },
+ {
+  "word": "The",
+  "start": 1.76,
+  "end": 1.86
+ },
+ {
+  "word": "camera",
+  "start": 1.86,
+  "end": 2.2
+ },
+ {
+  "word": "is",
+  "start": 2.2,
+  "end": 2.52
+ },
+ {
+  "word": "still",
+  "start": 2.52,
+  "end": 2.8
+ },
+ {
+  "word": "your",
+  "start": 2.8,
+  "end": 3.08
+ },
+ {
+  "word": "job.",
+  "start": 3.08,
+  "end": 3.38
+ }
+]

@@ -1,0 +1,47 @@
+[
+ {
+  "word": "Every",
+  "start": 0.0,
+  "end": 0.34
+ },
+ {
+  "word": "message",
+  "start": 0.34,
+  "end": 0.72
+ },
+ {
+  "word": "is",
+  "start": 0.72,
+  "end": 1.02
+ },
+ {
+  "word": "exclusive.",
+  "start": 1.02,
+  "end": 1.58
+ },
+ {
+  "word": "None",
+  "start": 2.4,
+  "end": 2.44
+ },
+ {
+  "word": "of",
+  "start": 2.44,
+  "end": 2.58
+ },
+ {
+  "word": "them",
+  "start": 2.58,
+  "end": 2.76
+ },
+ {
+  "word": "say",
+  "start": 2.76,
+  "end": 3.0
+ },
+ {
+  "word": "anything.",
+  "start": 3.0,
+  "end": 3.54
+ }
+]

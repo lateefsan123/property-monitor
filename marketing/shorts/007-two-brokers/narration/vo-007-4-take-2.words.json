@@ -1,0 +1,42 @@
+[
+ {
+  "word": "So",
+  "start": 0.0,
+  "end": 0.4
+ },
+ {
+  "word": "I",
+  "start": 0.4,
+  "end": 1.2
+ },
+ {
+  "word": "still",
+  "start": 1.2,
+  "end": 1.52
+ },
+ {
+  "word": "have",
+  "start": 1.52,
+  "end": 1.74
+ },
+ {
+  "word": "to",
+  "start": 1.74,
+  "end": 1.88
+ },
+ {
+  "word": "learn",
+  "start": 1.88,
+  "end": 2.02
+ },
+ {
+  "word": "my",
+  "start": 2.02,
+  "end": 2.22
+ },
+ {
+  "word": "lines?",
+  "start": 2.22,
+  "end": 2.5
+ }
+]

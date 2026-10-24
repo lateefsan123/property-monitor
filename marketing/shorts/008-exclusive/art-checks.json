@@ -1,0 +1,40 @@
+[
+  {
+    "file": "pose-oliver-kitchen-read.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "4250da8953099f84827b93b338058c2bf45d02045548477557afa3d0a62bf0e8",
+    "alpha": [
+      0,
+      255
+    ],
+    "alphaBounds": [
+      0,
+      38,
+      1206,
+      1142
+    ]
+  },
+  {
+    "file": "pose-oliver-kitchen-spam.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "3162be5ce4b163946508461c3bbf1bf7ceeb2b438e1f68e67eea7448aeea431e",
+    "alpha": [
+      0,
+      255
+    ],
+    "alphaBounds": [
+      0,
+      60,
+      1250,
+      1161
+    ]
+  }
+]

@@ -1,0 +1,87 @@
+[
+  {
+    "file": "kai-reference.png",
+    "size": [
+      1402,
+      1122
+    ],
+    "mode": "RGB",
+    "sha256": "1b9939dd141d5ac380235bde8b82be3e37b2c51c151e42a5dc6352a76815baff"
+  },
+  {
+    "file": "pose-broker-calm.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "c8bb29eb0a60aa90b99884ecabd93cbd06d96ca5106333fbe597a2da043560ff",
+    "alpha": [
+      0,
+      255
+    ],
+    "alphaBounds": [
+      0,
+      29,
+      1309,
+      1137
+    ]
+  },
+  {
+    "file": "pose-broker-shrug.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "707d723fbd55962e2aed46825dd31cda620e1323aa5c58e94ba633c6e635397f",
+    "alpha": [
+      0,
+      255
+    ],
+    "alphaBounds": [
+      2,
+      33,
+      1317,
+      1135
+    ]
+  },
+  {
+    "file": "pose-kai-confused.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "bb21e2e0a20645b902ece7d95fb87976e6c72fc50b270248ae7054abf5df8ad2",
+    "alpha": [
+      0,
+      255
+    ],
+    "alphaBounds": [
+      275,
+      96,
+      1051,
+      1094
+    ]
+  },
+  {
+    "file": "pose-kai-frazzled.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "781849b16903d034cd527d47864a8fb3847fcc49f273b3d65a23831fa648537f",
+    "alpha": [
+      0,
+      255
+    ],
+    "alphaBounds": [
+      33,
+      82,
+      1335,
+      1098
+    ]
+  }
+]

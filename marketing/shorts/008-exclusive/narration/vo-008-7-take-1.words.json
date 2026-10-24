@@ -1,0 +1,37 @@
+[
+ {
+  "word": "Repeat",
+  "start": 0.0,
+  "end": 0.48
+ },
+ {
+  "word": "AI.",
+  "start": 0.48,
+  "end": 0.94
+ },
+ {
+  "word": "An",
+  "start": 1.76,
+  "end": 1.76
+ },
+ {
+  "word": "actual",
+  "start": 1.76,
+  "end": 2.18
+ },
+ {
+  "word": "update",
+  "start": 2.18,
+  "end": 2.68
+ },
+ {
+  "word": "is",
+  "start": 2.68,
+  "end": 2.92
+ },
+ {
+  "word": "enough.",
+  "start": 2.92,
+  "end": 3.18
+ }
+]

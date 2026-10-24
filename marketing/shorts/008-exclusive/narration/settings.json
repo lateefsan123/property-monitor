@@ -1,0 +1,25 @@
+{
+  "model": "Eleven v4",
+  "stability": 0.5,
+  "similarity": 0.75,
+  "cloneStrength": 0,
+  "effects": [],
+  "output": "mp3_44100_192",
+  "creditsBeforeBatch": 104059,
+  "creditsAfterBatch": 103414,
+  "creditsUsedBatch": 645,
+  "selectedVoices": {
+    "Hype": {
+      "name": "David - Sports Arena Announcer",
+      "id": "DduhIyyKkOosbP8VefhP"
+    },
+    "Oliver": {
+      "name": "Rupert - Natural British",
+      "id": "5yPNUy2ZGgvEkNjAmzo1"
+    },
+    "Brady": {
+      "name": "Brady J - Confident Real Estate Agent",
+      "id": "SGoiiadNvlgcANZ3wLyn"
+    }
+  }
+}

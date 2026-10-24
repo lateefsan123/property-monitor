@@ -1,0 +1,30 @@
+[
+  {
+    "short": 8,
+    "role": "Hype audition",
+    "name": "David - Sports Arena Announcer",
+    "id": "DduhIyyKkOosbP8VefhP",
+    "selected": true
+  },
+  {
+    "short": 8,
+    "role": "Hype audition",
+    "name": "Guy - Upbeat TV Radio Announcer",
+    "id": "34lPwSZ54D8fWbX1aHzk",
+    "selected": false
+  },
+  {
+    "short": 8,
+    "role": "Oliver",
+    "name": "Rupert - Natural British",
+    "id": "5yPNUy2ZGgvEkNjAmzo1",
+    "selected": true
+  },
+  {
+    "short": 8,
+    "role": "Our broker",
+    "name": "Brady J - Confident Real Estate Agent",
+    "id": "SGoiiadNvlgcANZ3wLyn",
+    "selected": true
+  }
+]

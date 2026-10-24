@@ -1,0 +1,141 @@
+[
+  {
+    "short": 7,
+    "saved": "auditions/kai-ollie-line-1.mp3",
+    "source": "ElevenLabs_2026-10-24T15_52_35__s50_v4.mp3",
+    "bytes": 67719,
+    "voice": "Ollie"
+  },
+  {
+    "short": 7,
+    "saved": "auditions/kai-sam-line-1.mp3",
+    "source": "ElevenLabs_2026-10-24T15_53_05__s50_v4.mp3",
+    "bytes": 71480,
+    "voice": "Sam"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-4-take-1.mp3",
+    "source": "ElevenLabs_2026-10-24T15_58_03__s50_v4.mp3",
+    "bytes": 85273,
+    "voice": "Ollie"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-4-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T15_58_02__s50_v4.mp3",
+    "bytes": 87154,
+    "voice": "Ollie"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-4-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T15_58_01__s50_v4.mp3",
+    "bytes": 89035,
+    "voice": "Ollie"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-1-take-1.mp3",
+    "source": "ElevenLabs_2026-10-24T15_57_54__s50_v4.mp3",
+    "bytes": 65838,
+    "voice": "Ollie"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-1-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T15_57_53__s50_v4.mp3",
+    "bytes": 69599,
+    "voice": "Ollie"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-6-take-1.mp3",
+    "source": "ElevenLabs_2026-10-24T16_07_20__s50_v4.mp3",
+    "bytes": 105962,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-6-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T16_07_19__s50_v4.mp3",
+    "bytes": 105962,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-6-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T16_07_15__s50_v4.mp3",
+    "bytes": 105962,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-5-take-1.mp3",
+    "source": "ElevenLabs_2026-10-24T16_07_03__s50_v4.mp3",
+    "bytes": 33237,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-5-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T16_07_01__s50_v4.mp3",
+    "bytes": 33237,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-5-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T16_06_59__s50_v4.mp3",
+    "bytes": 33237,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-3-take-1.mp3",
+    "source": "ElevenLabs_2026-10-24T16_06_52__s50_v4.mp3",
+    "bytes": 121635,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-3-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T16_06_50__s50_v4.mp3",
+    "bytes": 121635,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-3-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T16_06_45__s50_v4.mp3",
+    "bytes": 121635,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-2-take-1.mp3",
+    "source": "ElevenLabs_2026-10-24T16_06_18__s50_v4.mp3",
+    "bytes": 123516,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-2-take-2.mp3",
+    "source": "ElevenLabs_2026-10-24T16_06_16__s50_v4.mp3",
+    "bytes": 121635,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-2-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T16_06_14__s50_v4.mp3",
+    "bytes": 123516,
+    "voice": "Brady"
+  },
+  {
+    "short": 7,
+    "saved": "vo-007-1-take-3.mp3",
+    "source": "auditions/kai-ollie-line-1.mp3",
+    "intentionalAuditionReuse": true
+  }
+]

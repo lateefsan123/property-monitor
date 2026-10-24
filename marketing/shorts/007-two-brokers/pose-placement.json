@@ -1,0 +1,61 @@
+{
+  "canvas": [
+    1355,
+    1161
+  ],
+  "note": "Apply scale about each sole anchor, then place soles on common y=1100. This compensates for image-generation differences in size/baseline without resampling the original PNGs. Kai faces right; broker faces left.",
+  "poses": {
+    "pose-broker-calm.png": {
+      "solidAlphaBounds": [
+        510,
+        32,
+        864,
+        1134
+      ],
+      "soleY": 1133,
+      "translationYForCommonFloor": -33,
+      "commonFloorY": 1100,
+      "scale": 0.9,
+      "translateY": 80.3
+    },
+    "pose-broker-shrug.png": {
+      "solidAlphaBounds": [
+        377,
+        39,
+        978,
+        1129
+      ],
+      "soleY": 1128,
+      "translationYForCommonFloor": -28,
+      "commonFloorY": 1100,
+      "scale": 0.9,
+      "translateY": 84.8
+    },
+    "pose-kai-confused.png": {
+      "solidAlphaBounds": [
+        508,
+        99,
+        868,
+        1089
+      ],
+      "soleY": 1088,
+      "translationYForCommonFloor": 12,
+      "commonFloorY": 1100,
+      "scale": 1.0,
+      "translateY": 12.0
+    },
+    "pose-kai-frazzled.png": {
+      "solidAlphaBounds": [
+        404,
+        110,
+        1112,
+        1094
+      ],
+      "soleY": 1093,
+      "translationYForCommonFloor": 7,
+      "commonFloorY": 1100,
+      "scale": 1.0,
+      "translateY": 7.0
+    }
+  }
+}

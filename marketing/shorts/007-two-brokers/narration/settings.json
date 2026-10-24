@@ -1,0 +1,21 @@
+{
+  "model": "Eleven v4",
+  "stability": 0.5,
+  "similarity": 0.75,
+  "cloneStrength": 0,
+  "effects": [],
+  "output": "mp3_44100_192",
+  "creditsBeforeBatch": 104059,
+  "creditsAfterBatch": 103414,
+  "creditsUsedBatch": 645,
+  "selectedVoices": {
+    "Kai": {
+      "name": "Ollie - Natural Young British",
+      "id": "eOI2ur2q3RYLvOJKFn3s"
+    },
+    "Brady": {
+      "name": "Brady J - Confident Real Estate Agent",
+      "id": "SGoiiadNvlgcANZ3wLyn"
+    }
+  }
+}
