@@ -1,0 +1,9 @@
+{
+  "note": "Codex's fresh film-mode captures (see capture-checks.json). Boxes and cameras are in screenshot pixels.",
+  "sales": "app-oliver-sales.png",
+  "msg": "app-oliver-message.png",
+  "camSales": { "sx": 590, "sy": 1780, "z": 1.08, "cy": 1180 },
+  "camMsg": { "sx": 590, "sy": 1820, "z": 1.08, "cy": 1180 },
+  "boxSales": [22, 2008, 1136, 90],
+  "boxMsg": [22, 1866, 1136, 132]
+}

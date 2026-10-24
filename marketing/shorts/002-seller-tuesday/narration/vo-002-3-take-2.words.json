@@ -1,0 +1,32 @@
+[
+ {
+  "word": "Any",
+  "start": 0.0,
+  "end": 0.3
+ },
+ {
+  "word": "property",
+  "start": 0.3,
+  "end": 0.66
+ },
+ {
+  "word": "available,",
+  "start": 0.66,
+  "end": 1.0
+ },
+ {
+  "word": "sir?",
+  "start": 1.32,
+  "end": 1.46
+ },
+ {
+  "word": "Every",
+  "start": 2.22,
+  "end": 2.44
+ },
+ {
+  "word": "week.",
+  "start": 2.44,
+  "end": 2.74
+ }
+]

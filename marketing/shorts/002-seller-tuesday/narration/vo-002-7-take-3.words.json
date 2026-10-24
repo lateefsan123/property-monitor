@@ -1,0 +1,42 @@
+[
+ {
+  "word": "Repeat",
+  "start": 0.0,
+  "end": 0.46
+ },
+ {
+  "word": "AI.",
+  "start": 0.46,
+  "end": 0.94
+ },
+ {
+  "word": "Have",
+  "start": 1.66,
+  "end": 1.78
+ },
+ {
+  "word": "a",
+  "start": 1.78,
+  "end": 1.96
+ },
+ {
+  "word": "reason",
+  "start": 1.96,
+  "end": 2.22
+ },
+ {
+  "word": "to",
+  "start": 2.22,
+  "end": 2.56
+ },
+ {
+  "word": "follow",
+  "start": 2.56,
+  "end": 2.78
+ },
+ {
+  "word": "up.",
+  "start": 2.78,
+  "end": 3.1
+ }
+]

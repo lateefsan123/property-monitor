@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Short 002 — It's Tuesday</title>
+<style>
+  @font-face { font-family: "Outfit"; font-weight: 900; src: url("../../../mobile/assets/fonts/Outfit-Black.ttf"); }
+  @font-face { font-family: "Inter"; font-weight: 400; src: url("../../../mobile/assets/fonts/Inter-Regular.ttf"); }
+  @font-face { font-family: "Inter"; font-weight: 600; src: url("../../../mobile/assets/fonts/Inter-SemiBold.ttf"); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0B0C0D; }
+  .layer { position: absolute; inset: 0; overflow: hidden; }
+  .abs { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .pose { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .shadow { position: absolute; border-radius: 50%; background: rgba(30, 30, 40, .16); filter: blur(6px); }
+
+  /* Oliver's flat: a high floor in Burj Khalifa */
+  #room { background: #DCE2E1; }
+  #close { background: #DCE2E1; }
+
+  /* Oliver's phone, drawn like the cartoon: thick ink outline, flat colours */
+  #cphone { position: absolute; left: 110px; top: 330px; width: 860px; height: 1560px; border: 12px solid #141414; border-radius: 96px;
+            background: #141414; padding: 14px; }
+  #cscreen { position: relative; width: 100%; height: 100%; border-radius: 74px; overflow: hidden; background: #F7F5F0; }
+  .cbar { height: 96px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 64px 12px;
+          font: 600 34px "Inter", sans-serif; color: #141414; }
+  .chead { display: flex; align-items: center; gap: 22px; padding: 18px 40px 22px; border-bottom: 4px solid #141414; background: #EFEBE2; }
+  .chead h2 { font: 900 64px "Outfit", sans-serif; color: #141414; }
+  .rows { position: relative; }
+  .row { position: absolute; left: 0; right: 0; height: 206px; display: flex; align-items: center; gap: 26px; padding: 0 40px;
+         border-bottom: 3px solid #D9D3C6; background: #F7F5F0; }
+  .av { flex: none; width: 124px; height: 124px; border-radius: 50%; border: 5px solid #141414; background: #C9CFD3; position: relative; overflow: hidden; }
+  .av::before { content: ""; position: absolute; left: 39px; top: 22px; width: 38px; height: 38px; border-radius: 50%; background: #8E979D; }
+  .av::after { content: ""; position: absolute; left: 22px; top: 70px; width: 72px; height: 60px; border-radius: 34px 34px 0 0; background: #8E979D; }
+  .av.s { background: #1E3B28; }
+  .av.s::before, .av.s::after { display: none; }
+  .av.s span { position: absolute; inset: 0; display: grid; place-items: center; font: 900 52px "Outfit", sans-serif; color: #fff; }
+  .rtxt { flex: 1; min-width: 0; }
+  .rtxt b { display: block; font: 600 44px "Inter", sans-serif; color: #141414; margin-bottom: 6px; }
+  .rtxt i { display: block; font: 400 41px "Inter", sans-serif; font-style: normal; color: #5D646A; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .rmeta { flex: none; display: grid; justify-items: end; gap: 10px; font: 400 32px "Inter", sans-serif; color: #2E8B57; }
+  .badge { min-width: 46px; height: 46px; padding: 0 12px; border-radius: 23px; background: #2E9F62; color: #fff; display: grid; place-items: center; font: 600 26px "Inter", sans-serif; }
+  .row.sara .rtxt i { color: #141414; }
+
+  #thread { position: absolute; inset: 0; background: #ECE6DA; }
+  #thread .chead { background: #EFEBE2; }
+  #thread .chead .who b { display: block; font: 600 40px "Inter", sans-serif; color: #141414; }
+  #thread .chead .who i { display: block; font: 400 28px "Inter", sans-serif; font-style: normal; color: #5D646A; }
+  .back { width: 40px; height: 40px; border-left: 7px solid #141414; border-bottom: 7px solid #141414; transform: rotate(45deg); margin-right: 4px; }
+  .day { margin: 34px auto 10px; width: max-content; padding: 8px 22px; border-radius: 16px; background: #DCD5C6; font: 600 26px "Inter", sans-serif; color: #5D646A; }
+  .bub { position: absolute; border: 5px solid #141414; border-radius: 34px; background: #fff; padding: 14px; font: 400 33px/1.36 "Inter", sans-serif; color: #141414; }
+  .bub.in { left: 34px; width: 690px; border-top-left-radius: 8px; }
+  .bub.out { right: 34px; background: #CFF0D8; border-top-right-radius: 8px; padding: 18px 26px; font-size: 38px; }
+  .bub img { display: block; width: 100%; border-radius: 22px; border: 3px solid #141414; margin-bottom: 14px; }
+  .bub p { padding: 0 10px; }
+  .bub .t { display: block; text-align: right; font-size: 24px; color: #6B7277; margin-top: 4px; }
+  .mark { background: rgba(63, 211, 192, 0); border-radius: 8px; box-shadow: 0 0 0 0 rgba(63,211,192,0); }
+
+  /* Comic reply bubble in the close-up */
+  #say { position: absolute; z-index: 5; padding: 30px 44px; border: 9px solid #141414; border-radius: 60px; background: #fff;
+         font: 900 84px "Outfit", sans-serif; color: #141414; white-space: nowrap; transform-origin: 0 100%; }
+  #say::after { content: ""; position: absolute; left: 70px; bottom: -52px; width: 60px; height: 60px; background: #fff;
+                border-right: 9px solid #141414; border-bottom: 9px solid #141414; transform: skewY(40deg) rotate(10deg); }
+
+  /* Real app phone (same as Short 001) */
+  #phone { width: 1000px; border-radius: 118px; background: #1C1D20; padding: 14px;
+           box-shadow: 0 0 0 3px #2E3034, 0 40px 120px rgba(0,0,0,.55); }
+  #screen { position: relative; width: 972px; height: 2187px; border-radius: 104px; overflow: hidden; background: #0E0E0F; }
+  #statusbar { position: absolute; left: 0; top: 0; width: 972px; height: 80px; background: #0E0E0F; z-index: 5;
+               font: 600 34px "Inter", sans-serif; color: #fff; }
+  #statusbar .time { position: absolute; left: 92px; top: 26px; }
+  #statusbar .island { position: absolute; left: 376px; top: 18px; width: 220px; height: 54px; border-radius: 30px; background: #000; }
+  #statusbar .icons { position: absolute; right: 80px; top: 30px; display: flex; gap: 12px; align-items: flex-end; }
+  #statusbar .bars i { display: inline-block; width: 7px; margin-right: 3px; background: #fff; border-radius: 2px; }
+  #statusbar .batt { width: 52px; height: 24px; border: 3px solid rgba(255,255,255,.8); border-radius: 7px; padding: 2px; }
+  #statusbar .batt b { display: block; height: 100%; width: 78%; background: #fff; border-radius: 3px; }
+  .app { position: absolute; left: 0; top: 80px; width: 1179px; height: 2556px; transform-origin: 0 0; }
+  .app img { position: absolute; left: 0; top: 0; width: 1179px; height: 2556px; }
+  .hl { position: absolute; border: 6px solid #3FD3C0; border-radius: 26px;
+        box-shadow: 0 0 0 6px rgba(63, 211, 192, .18), 0 0 40px rgba(63, 211, 192, .35); opacity: 0; }
+  #topband { position: absolute; left: 0; right: 0; top: 0; height: 470px; z-index: 30; pointer-events: none;
+             background: linear-gradient(to bottom, #0B0C0D 0%, rgba(11,12,13,.92) 62%, rgba(11,12,13,0) 100%); }
+  #label { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; z-index: 50;
+           font: 600 24px "Inter", sans-serif; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,.5); }
+
+  #caption { position: absolute; left: 60px; right: 60px; top: 120px; height: 230px; display: flex;
+             align-items: center; justify-content: center; text-align: center; z-index: 60; }
+  #caption span { font: 900 74px/1.08 "Outfit", sans-serif; color: #fff; letter-spacing: -0.5px;
+                  -webkit-text-stroke: 14px #141414; paint-order: stroke fill; text-wrap: balance; }
+  #caption em { font-style: normal; color: #6FF0DD; }
+
+  #endcard { background: transparent; }
+  #wordmark { position: absolute; left: 50%; top: 170px; width: 520px; transform: translateX(-50%); }
+  #endline { position: absolute; left: 60px; right: 60px; top: 300px; text-align: center;
+             font: 900 92px/1.04 "Outfit", sans-serif; color: #fff; letter-spacing: -1px; }
+  #endline span { color: #6FF0DD; }
+  #cta { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); white-space: nowrap; z-index: 60;
+         padding: 26px 44px; border-radius: 60px; background: #fff; color: #0B0C0D; font: 600 40px "Inter", sans-serif; }
+  #cta b { font-weight: 600; color: #11806F; }
+  #endfade { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; z-index: 55;
+             background: linear-gradient(to bottom, rgba(11,12,13,0), #0B0C0D 62%); }
+</style>
+</head>
+<body>
+
+<!-- ───────── Living room ───────── -->
+<div class="layer" id="room">
+  <div class="abs" id="set">
+    <svg width="1080" height="1920" viewBox="0 0 1080 1920" stroke="#141414" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+      <!-- floor-to-ceiling window: we're above the clouds -->
+      <rect x="120" y="230" width="840" height="1000" rx="8" fill="#F8F6F1"/>
+      <rect x="146" y="256" width="788" height="948" fill="#BFDDE6" stroke-width="5"/>
+      <g stroke="none">
+        <ellipse cx="300" cy="880" rx="150" ry="34" fill="#F4F8F9"/><ellipse cx="380" cy="860" rx="110" ry="36" fill="#F4F8F9"/>
+        <ellipse cx="760" cy="760" rx="160" ry="30" fill="#F4F8F9"/><ellipse cx="840" cy="742" rx="90" ry="30" fill="#F4F8F9"/>
+      </g>
+      <path d="M146,1204 L146,1080 L190,1080 L190,1040 L232,1040 L232,1100 L300,1100 L300,1010 L340,1010 L340,1120 L420,1120 L420,1060 L470,1060 L470,1130 L560,1130 L560,1030 L600,1030 L600,1110 L690,1110 L690,1050 L736,1050 L736,1140 L820,1140 L820,1070 L870,1070 L870,1150 L934,1150 L934,1204 Z" fill="#A6C3CC" stroke-width="4"/>
+      <line x1="540" y1="256" x2="540" y2="1204" stroke-width="5"/>
+      <!-- floor and rug -->
+      <rect x="-10" y="1230" width="1100" height="700" fill="#CBB79A"/>
+      <line x1="-10" y1="1230" x2="1090" y2="1230"/>
+      <ellipse cx="540" cy="1640" rx="470" ry="120" fill="#9FB4AA"/>
+      <!-- floor lamp -->
+      <line x1="960" y1="1230" x2="960" y2="660" stroke-width="7"/>
+      <path d="M900,660 L1020,660 L990,560 L930,560 Z" fill="#F2E1BC"/>
+      <ellipse cx="960" cy="1236" rx="50" ry="12" fill="#141414"/>
+    </svg>
+  </div>
+  <div class="shadow" id="shadow"></div>
+  <img class="pose" id="pScroll" data-pose="scroll">
+  <img class="pose" id="pSit" data-pose="sitUp">
+</div>
+
+<!-- ───────── Close-up: "Which floor?" ───────── -->
+<div class="layer" id="close">
+  <svg class="abs" width="1080" height="1920" viewBox="0 0 1080 1920" stroke="#141414" stroke-width="7">
+    <rect x="-20" y="120" width="1120" height="1300" fill="#BFDDE6"/>
+    <g stroke="none"><ellipse cx="260" cy="760" rx="220" ry="46" fill="#F4F8F9"/><ellipse cx="860" cy="560" rx="200" ry="40" fill="#F4F8F9"/></g>
+    <line x1="540" y1="120" x2="540" y2="1420"/>
+  </svg>
+  <img class="pose" id="pReply" data-pose="reply">
+  <div id="say">Which floor?</div>
+</div>
+
+<!-- ───────── Oliver's phone (drawn) ───────── -->
+<div class="layer" id="chat" style="background:#DCE2E1">
+  <div id="cphone"><div id="cscreen">
+    <div class="cbar"><span>Tue 9:41</span><span>●●●</span></div>
+    <div class="chead"><h2>Chats</h2></div>
+    <div class="rows" id="rows"></div>
+    <div id="thread">
+      <div class="cbar" style="background:#EFEBE2"><span>Tue 10:12</span><span>●●●</span></div>
+      <div class="chead"><span class="back"></span><span class="av s"><span>S</span></span>
+        <span class="who"><b>+971 50 555 0100</b><i>Sara · broker</i></span></div>
+      <div class="day">Today</div>
+      <div class="bub in" id="saraMsg" style="top:330px">
+        <img src="assets/template-card.png">
+        <p>Hi Oliver Grant, I’m Sara, a broker specialising in Burj Khalifa, Downtown Dubai.<br><br>
+        Here are the latest transactions in your building:<br><br>
+        <span class="mark" id="txLine">- Burj Khalifa | 2 Bed | 4.67M AED | 1,568 sqft | 23 Oct 2026</span><br><br>
+        If you ever think about selling, I’d be happy to tell you what your unit could achieve.</p>
+        <span class="t">10:12</span>
+      </div>
+      <div class="bub out" id="reply">Which floor? <span class="t" style="display:inline; margin-left:12px">10:14 ✓✓</span></div>
+    </div>
+  </div></div>
+</div>
+
+<!-- ───────── Real app ───────── -->
+<div class="layer" id="appLayer">
+  <div class="abs" id="phone">
+    <div id="screen">
+      <div id="statusbar"><span class="time">9:41</span><span class="island"></span>
+        <span class="icons"><span class="bars"><i style="height:12px"></i><i style="height:17px"></i><i style="height:22px"></i><i style="height:27px"></i></span><span class="batt"><b></b></span></span>
+      </div>
+      <div class="app" id="sAuto"><img src="../../../video/launch-film/out/app/takes-v5s/sc-auto.png">
+        <div class="hl" id="hAuto" style="left:30px; top:240px; width:1120px; height:190px"></div>
+      </div>
+      <div class="app" id="sSales"><img id="imgSales">
+        <div class="hl" id="hSales"></div>
+      </div>
+      <div class="app" id="sMsg"><img id="imgMsg">
+        <div class="hl" id="hMsg"></div>
+      </div>
+    </div>
+  </div>
+  <div id="topband"></div>
+  <div id="label">Dramatisation · demo data</div>
+</div>
+
+<div class="layer" id="endcard">
+  <img id="wordmark" src="../../../mobile/assets/repeat-ai-logo.png">
+  <div id="endline">Have a reason<br><span>to follow up.</span></div>
+  <div id="endfade"></div>
+  <div id="cta">Watch the demo · <b>repeatai.org</b></div>
+</div>
+
+<div id="caption"><span id="capText"></span></div>
+
+<script>
+// build-short.mjs injects window.TL (cues from narration word timings, captions, pose bounds, app capture choice)
+const $ = id => document.getElementById(id);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, u) => a + (b - a) * u;
+const ease = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+const out = u => 1 - Math.pow(1 - u, 3);
+const back = u => { const c = 1.70158; return 1 + (c + 1) * Math.pow(u - 1, 3) + c * Math.pow(u - 1, 2); };
+const prog = (t, a, d) => clamp((t - a) / d);
+const set = (el, css) => Object.assign(el.style, css);
+
+const SPAM = [
+  ["+971 55 555 0143", "Any property available sir?", "9:02", 1],
+  ["+971 52 555 0178", "Hello sir any property for sale??", "9:17", 2],
+  ["+971 56 555 0109", "Any property available sir?", "9:31", 1],
+  ["+971 55 555 0122", "Sir you are looking to sell? Good buyer ready", "9:44", 3],
+  ["+971 58 555 0190", "Any property available sir?", "9:58", 1],
+  ["+971 50 555 0167", "Dear owner, any property available?", "10:05", 2],
+];
+function buildRows() {
+  const rows = $("rows");
+  rows.innerHTML = "";
+  [["+971 50 555 0100", "Hi Oliver Grant, I’m Sara, a broker specialising…", "10:12", 1, true], ...SPAM].forEach((r, i) => {
+    const d = document.createElement("div");
+    d.className = "row" + (r[4] ? " sara" : "");
+    d.id = r[4] ? "rowSara" : `spam${i - 1}`;
+    d.innerHTML = `<span class="av${r[4] ? " s" : ""}">${r[4] ? "<span>S</span>" : ""}</span>
+      <span class="rtxt"><b>${r[0]}</b><i>${r[1]}</i></span><span class="rmeta">${r[2]}<span class="badge">${r[3]}</span></span>`;
+    rows.appendChild(d);
+  });
+}
+
+// Place a pose by its artwork bounds: bbox bottom on `floor`, centred on `cx`, `h` px tall
+function placePose(el, key, cx, floor, h) {
+  const p = TL.poses[key];
+  if (!p) { el.style.display = "none"; return null; }
+  const s = h / (p.y1 - p.y0);
+  const x = cx - ((p.x0 + p.x1) / 2) * s, y = floor - p.y1 * s;
+  return { s, x, y, p };
+}
+
+// Real app phone camera (as in Short 001)
+const K = 972 / 1179;
+function placePhone(sx, sy, z, cx = 540, cy = 1180) {
+  const lx = 14 + sx * K, ly = 14 + 80 + sy * K;
+  set($("phone"), { transform: `translate(${cx - z * lx}px, ${cy - z * ly}px) scale(${z})` });
+}
+const mixCam = (a, b, u) => ({ sx: lerp(a.sx, b.sx, u), sy: lerp(a.sy, b.sy, u), z: lerp(a.z, b.z, u), cy: lerp(a.cy, b.cy, u) });
+function hl(id, t, a, b, box) {
+  const el = $(id);
+  if (box) set(el, { left: box[0] + "px", top: box[1] + "px", width: box[2] + "px", height: box[3] + "px" });
+  const u = out(prog(t, a, 0.28)) * (1 - prog(t, b - 0.2, 0.2));
+  set(el, { opacity: u, transform: `scale(${lerp(1.04, 1, u)})` });
+}
+
+let built = false;
+function render(t) {
+  const C = TL.cue;
+  if (!built) {
+    buildRows();
+    for (const el of document.querySelectorAll("[data-pose]")) if (TL.poses[el.dataset.pose]) el.src = TL.poses[el.dataset.pose].src;
+    $("imgSales").src = TL.app.sales; $("imgMsg").src = TL.app.msg;
+    built = true;
+  }
+  const breathe = 1 + 0.004 * Math.sin(t * 2.2);
+
+  // Which shot
+  const shot =
+    t < C.toChat ? "room1" :
+    t < C.toSit ? "chat" :
+    t < C.toThread ? "room2" :
+    t < C.toClose ? "thread" :
+    t < C.toReplyChat ? "close" :
+    t < C.toApp ? "thread" :
+    t < C.endCard ? "app" : "end";
+  for (const id of ["room", "close", "chat", "appLayer", "endcard"]) set($(id), { display: "none", zIndex: 1, opacity: 1 });
+
+  // ── Room shots
+  if (shot === "room1" || shot === "room2") {
+    set($("room"), { display: "block" });
+    const sit = shot === "room2";
+    const key = sit ? "sitUp" : "scroll";
+    const el = sit ? $("pSit") : $("pScroll");
+    set($("pScroll"), { display: sit ? "none" : "block" });
+    set($("pSit"), { display: sit ? "block" : "none" });
+    const P = placePose(el, key, 540, 1700, 1080);
+    if (P) {
+      // buzz shake on the scroll shot as the first message lands
+      const bz = prog(t, C.buzz0 - 0.02, 0.5);
+      const shake = !sit && bz > 0 && bz < 1 ? Math.sin(t * 110) * 4 * (1 - bz) : 0;
+      // sitting up: a little pop
+      const pop = sit ? lerp(0.97, 1, back(prog(t, C.toSit, 0.3))) : 1;
+      const s = P.s * pop;
+      set(el, { transform: `translate(${P.x + shake + (1 - pop) * 540}px, ${P.y + P.p.y1 * s * (1 - breathe) + (1 - pop) * 1700}px) scale(${s}, ${s * breathe})` });
+      set($("shadow"), { display: "block", left: `${540 - 420}px`, top: `${1700 - 30}px`, width: "840px", height: "60px" });
+    }
+    // "It's Tuesday." gets a hard punch-in on his face
+    const punched = !sit && t >= C.punch;
+    const push = sit ? lerp(1.06, 1.1, prog(t, C.toSit, 2)) : punched ? lerp(1.55, 1.6, prog(t, C.punch, 1)) : lerp(1, 1.05, prog(t, 0, C.punch));
+    const fy = punched ? 900 : 1300;
+    set($("room"), { transform: `translate(${540 * (1 - push)}px, ${fy * (1 - push)}px) scale(${push})`, transformOrigin: "0 0" });
+  }
+
+  // ── Oliver's phone
+  if (shot === "chat" || shot === "thread") {
+    set($("chat"), { display: "block" });
+    const thread = shot === "thread";
+    set($("thread"), { display: thread ? "block" : "none" });
+    // phone rises in on first entry
+    const rise = shot === "chat" ? out(prog(t, C.toChat, 0.35)) : 1;
+    const lz = shot === "chat" ? lerp(1, 1.06, prog(t, C.toChat, C.toSit - C.toChat)) : 1;
+    set($("cphone"), { transform: `translateY(${(1 - rise) * 500}px) rotate(${(1 - rise) * 4}deg) scale(${lz})`, transformOrigin: "50% 20%" });
+    // spam rows drop in one by one, pushing older ones down
+    const n = C.spam.filter(x => t >= x).length;
+    SPAM.forEach((_, i) => {
+      const k = SPAM.length - 1 - i;               // newest arrives last, sits on top
+      const arrived = C.spam[k] !== undefined && t >= C.spam[k];
+      const el = $(`spam${i}`);
+      const order = arrived ? (n - 1 - k) : -1;
+      const ua = arrived ? back(prog(t, C.spam[k], 0.28)) : 0;
+      set(el, { top: `${Math.max(0, order) * 206}px`, opacity: arrived ? clamp(ua * 1.4) : 0, transform: `translateX(${(1 - ua) * -60}px)` });
+    });
+    // Sara's row lands on top at toSaraRow (seen from the room shot via the ping; shown when we return here)
+    set($("rowSara"), { display: "none" });
+
+    if (thread) {
+      const u = out(prog(t, C.toThread, 0.3));
+      set($("thread"), { transform: `translateX(${(1 - u) * 100}%)` });
+      const mk = out(prog(t, C.markTx, 0.35));
+      set($("txLine"), { background: `rgba(63,211,192,${0.35 * mk})`, boxShadow: `0 0 0 ${6 * mk}px rgba(63,211,192,${0.35 * mk})` });
+      const r = back(prog(t, C.sendReply, 0.3));
+      set($("reply"), { top: "1130px", opacity: clamp(r * 1.5), transform: `scale(${lerp(0.6, 1, r)})`, transformOrigin: "100% 0" });
+      // zoom on the message
+      const z = shot === "thread" && t >= C.toReplyChat ? 1 : lerp(1, 1.08, ease(prog(t, C.toThread + 0.3, 1.2)));
+      set($("cphone"), { transform: `scale(${z})`, transformOrigin: "50% 40%" });
+    }
+  }
+
+  // ── Close-up
+  if (shot === "close") {
+    set($("close"), { display: "block" });
+    const P = placePose($("pReply"), "reply", 470, 1920, 1500);
+    if (P) {
+      const push = lerp(1, 1.04, prog(t, C.toClose, 1.5));
+      set($("pReply"), { transform: `translate(${P.x}px, ${P.y}px) scale(${P.s * push})` });
+    }
+    const u = back(prog(t, C.sayPop, 0.32));
+    set($("say"), { left: "120px", top: "430px", opacity: clamp(u * 1.5), transform: `scale(${lerp(0.4, 1, u)}) rotate(${lerp(-6, -3, u)}deg)` });
+  }
+
+  // ── Real app proof
+  if (shot === "app" || shot === "end") {
+    set($("appLayer"), { display: "block", background: "#0B0C0D", zIndex: 2 });
+    const scr = t < C.toMsg ? (t < C.toSales ? "sAuto" : "sSales") : "sMsg";
+    for (const id of ["sAuto", "sSales", "sMsg"]) set($(id), { opacity: id === scr ? 1 : 0, transform: `scale(${K})` });
+    const ent = out(prog(t, C.toApp, 0.45));
+    const camA = TL.app.camAuto, camS = TL.app.camSales, camM = TL.app.camMsg, camE = { sx: 590, sy: 1650, z: 0.62, cy: 1521 };
+    let cam = mixCam({ ...camA, cy: camA.cy + 1400 }, camA, ent);
+    if (t >= C.toSales) cam = mixCam(camA, camS, ease(prog(t, C.toSales, 0.45)));
+    if (t >= C.toMsg) cam = mixCam(camS, camM, ease(prog(t, C.toMsg, 0.45)));
+    if (shot === "end") cam = mixCam(camM, camE, ease(prog(t, C.endCard, 0.6)));
+    placePhone(cam.sx, cam.sy, cam.z, 540, cam.cy);
+    // screen change: quick push
+    const sw = t >= C.toMsg ? prog(t, C.toMsg, 0.26) : t >= C.toSales ? prog(t, C.toSales, 0.26) : 1;
+    set($(scr), { transform: `translateX(${(1 - ease(sw)) * 300}px) scale(${K})`, opacity: ease(sw) });
+    hl("hAuto", t, C.toApp + 0.45, C.toSales);
+    hl("hSales", t, C.toSales + 0.4, C.toMsg, TL.app.boxSales);
+    hl("hMsg", t, C.toMsg + 0.4, TL.end + 1, TL.app.boxMsg);
+    set($("topband"), { opacity: shot === "app" ? 1 : 0 });
+    set($("label"), { opacity: shot === "app" ? 1 : 0 });
+  }
+  if (shot === "end") {
+    set($("endcard"), { display: "block", zIndex: 5, opacity: out(prog(t, C.endCard, 0.5)) });
+    const w = out(prog(t, C.endCard + 0.1, 0.4)), l = out(prog(t, C.endLine - 0.1, 0.4)), c = out(prog(t, C.endLine + 0.9, 0.4));
+    set($("wordmark"), { opacity: w, transform: `translateX(-50%) translateY(${(1 - w) * 30}px)` });
+    set($("endline"), { opacity: l, transform: `translateY(${(1 - l) * 30}px)` });
+    set($("cta"), { opacity: c, transform: `translateX(-50%) scale(${lerp(0.92, 1, c)})` });
+  }
+
+  // Shot transitions: a quick dip through the paper colour between the cartoon shots
+  const cuts = [C.punch, C.toChat, C.toSit, C.toThread, C.toClose, C.toReplyChat];
+  let dip = 0;
+  for (const c of cuts) dip = Math.max(dip, 1 - Math.abs(t - c) / 0.07);
+  document.body.style.filter = dip > 0 ? `brightness(${1 + dip * 0.25})` : "none";
+  const fadeOut = prog(t, TL.end - 0.5, 0.5);
+  if (fadeOut > 0) document.body.style.filter = `brightness(${1 - fadeOut})`;
+
+  // Captions
+  let cap = null;
+  for (const c of TL.captions) if (t >= c.a && t < c.b) cap = c;
+  if (cap && shot !== "end") {
+    $("capText").innerHTML = cap.html;
+    const u = out(prog(t, cap.a, 0.16));
+    set($("caption"), { opacity: u, transform: `translateY(${(1 - u) * 18}px) scale(${lerp(0.96, 1, u)})`, top: shot === "close" ? "1480px" : "120px" });
+  } else set($("caption"), { opacity: 0 });
+}
+
+window.setTime = t => render(t);
+window.ready = new Promise(r => setTimeout(r, 0)).then(() => { render(0); return Promise.all([...document.images].map(i => i.decode().catch(() => {})).concat(document.fonts.ready)); });
+if (!navigator.webdriver && window.TL) {
+  const t0 = performance.now();
+  const tick = () => { render(((performance.now() - t0) / 1000) % TL.end); requestAnimationFrame(tick); };
+  window.ready.then(tick);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,40 @@
+{
+  "settings": {
+    "model": "Eleven v4",
+    "stability": 0.5,
+    "similarity": 0.75,
+    "clone_strength": 0,
+    "effects": [],
+    "format": "mp3_44100_192"
+  },
+  "auditions": [
+    {
+      "name": "Jonathan - Your grounded British mate",
+      "id": "K130COXALy2ZgNlI3Ezo"
+    },
+    {
+      "name": "Marcus - Confident and conversational British Male",
+      "id": "85o4S4rAEvTIDGtpFNUq"
+    },
+    {
+      "name": "Rupert - Natural British",
+      "id": "5yPNUy2ZGgvEkNjAmzo1"
+    }
+  ],
+  "credits_before": 106263,
+  "selected_seller": {
+    "name": "Jonathan - Your grounded British mate",
+    "id": "K130COXALy2ZgNlI3Ezo",
+    "rationale": "Grounded British conversational character fit; provisional casting, final subjective audition remains with Claude/user."
+  },
+  "brady": {
+    "name": "Brady J - Confident Real Estate Agent",
+    "id": "SGoiiadNvlgcANZ3wLyn",
+    "lines": [
+      6,
+      7
+    ]
+  },
+  "credits_after": 105719,
+  "credits_used": 544
+}

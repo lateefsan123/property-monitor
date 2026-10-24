@@ -1,0 +1,67 @@
+[
+ {
+  "word": "Repeat",
+  "start": 0.0,
+  "end": 0.42
+ },
+ {
+  "word": "puts",
+  "start": 0.42,
+  "end": 0.78
+ },
+ {
+  "word": "the",
+  "start": 0.78,
+  "end": 0.98
+ },
+ {
+  "word": "latest",
+  "start": 0.98,
+  "end": 1.28
+ },
+ {
+  "word": "sales",
+  "start": 1.28,
+  "end": 1.64
+ },
+ {
+  "word": "from",
+  "start": 1.64,
+  "end": 1.9
+ },
+ {
+  "word": "each",
+  "start": 1.9,
+  "end": 2.18
+ },
+ {
+  "word": "seller's",
+  "start": 2.18,
+  "end": 2.66
+ },
+ {
+  "word": "own",
+  "start": 2.66,
+  "end": 2.86
+ },
+ {
+  "word": "building",
+  "start": 2.86,
+  "end": 3.26
+ },
+ {
+  "word": "into",
+  "start": 3.26,
+  "end": 3.68
+ },
+ {
+  "word": "your",
+  "start": 3.68,
+  "end": 3.86
+ },
+ {
+  "word": "updates.",
+  "start": 3.86,
+  "end": 4.22
+ }
+]

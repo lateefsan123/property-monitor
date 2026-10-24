@@ -1,0 +1,48 @@
+{
+  "source": "Current Expo web mobile components, EXPO_PUBLIC_FILM=1, offline mobile/film fixtures",
+  "commit": "6231dcab",
+  "demoClock": "Advancing browser Date offset, starting 2026-10-23T12:00:00Z, for scripted sale date",
+  "viewport": [
+    393,
+    852
+  ],
+  "scale": 3,
+  "pixels": [
+    1179,
+    2556
+  ],
+  "theme": "dark",
+  "salesText": "Sales in Burj Khalifa\n23 Oct 2026\nBurj Khalifa\nAED\u00c2\u00a04,671,000\n2 bed\n17 Oct 2026\nBurj Khalifa\nAED\u00c2\u00a04,143,000\n2 bed\nAED\u00c2\u00a04,143,000 - AED\u00c2\u00a05,517,000",
+  "messageText": "Hi Oliver Grant, I\u00e2\u20ac\u2122m Sara, a broker specialising in Burj Khalifa, Downtown Dubai.\n\nHere are the latest transactions in your building:\n\n- Burj Khalifa | 2 Bed | 4.67M AED | 1,568 sqft | 23 Oct 2026\n\nIf you ever think about selling, I\u00e2\u20ac\u2122d be happy to tell you what your unit could achieve.",
+  "salesBounds": {
+    "x": 20,
+    "y": 642.8125,
+    "width": 353,
+    "height": 108
+  },
+  "messageBounds": {
+    "x": 20,
+    "y": 510.8125,
+    "width": 353,
+    "height": 224
+  },
+  "errors": [
+    "In HTML, %s cannot be a descendant of <%s>.\nThis will cause a hydration error.%s <button> button \n\n  ...\n    <ScrollView data={[...]} keyExtractor={function} contentContainerStyle={{padding:16, ...}} ...>\n      <View data={[...]} keyExtractor={function} renderItem={function renderProp} ...>\n        <div onTouchStart={function} onTouchEnd={function} onScroll={function handleScroll} onTouchMove={function} ...>\n          <View onLayout={function} collapsable={false} ref={function} style={[...]}>\n            <div dir={null} ref={function forwardRef} className=\"css-view-g...\">\n              <CellRenderer CellRendererComponent={undefined} ItemSeparatorComponent={function ItemSeparatorComponent} ...>\n                <VirtualizedListCellContextProvider cellKey=\"22\">\n                  <View style={null} onFocusCapture={function onCellFocusCapture} onLayout={function}>\n                    <div dir={null} ref={function forwardRef} className=\"css-view-g...\">\n                      <LeadCard lead={{id:22,rowNumber:22, ...}} insight={undefined} colors={{isDark:true, ...}} ...>\n                        <Pressable onPress={function onPress} accessibilityRole=\"button\" ...>\n                          <View accessibilityRole=\"button\" accessibilityLabel=\"Open selle...\" ...>\n>                           <button\n>                             onKeyDown={function}\n>                             onClick={function onClick}\n>                             onContextMenu={function}\n>                             onBlur={function}\n>                             onFocus={function}\n>                             dir={null}\n>                             ref={function forwardRef}\n>                             aria-label=\"Open seller Oliver Grant\"\n>                             role=\"button\"\n>                             tabIndex={0}\n>                             className=\"css-view-g5y9jx r-cursor-1loqt21 r-touchAction-1otgn73\"\n>                             type=\"button\"\n>                           >\n                              ...\n                                <Pressable accessibilityRole=\"button\" accessibilityLabel=\"Pin seller\" ...>\n                                  <View accessibilityRole=\"button\" accessibilityLabel=\"Pin seller\" ...>\n>                                   <button\n>                                     onKeyDown={function}\n>                                     onClick={function onClick}\n>                                     onContextMenu={function}\n>                                     onBlur={function}\n>                                     onFocus={function}\n>                                     dir={null}\n>                                     ref={function forwardRef}\n>                                     aria-label=\"Pin seller\"\n>                                     role=\"button\"\n>                                     tabIndex={0}\n>                                     className=\"css-view-g5y9jx r-cursor-1loqt21 r-touchAction-1otgn73\"\n>                                     style={{paddingLeft:\"10px\",paddingRight:\"10px\",paddingTop:\"10px\",paddingBottom:\"10px\", ...}}\n>                                     type=\"button\"\n>                                   >\n                              ...\n                      ...\n              ...\n",
+    "<%s> cannot contain a nested %s.\nSee this log for the ancestor stack trace. button <button>",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")",
+    "Error: <rect> attribute width: A negative value is not valid. (\"-1.2342857142857144\")"
+  ],
+  "physicalDeviceTest": false
+}

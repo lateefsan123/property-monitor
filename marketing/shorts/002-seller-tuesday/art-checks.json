@@ -1,0 +1,57 @@
+[
+  {
+    "file": "oliver-reference.png",
+    "size": [
+      1402,
+      1122
+    ],
+    "mode": "RGB",
+    "alpha_bounds": null,
+    "sha256": "7249594c9edc6f08a99f61d36cdf95d14dcb5f9923a462669f884046529da957"
+  },
+  {
+    "file": "pose-oliver-reply.png",
+    "size": [
+      1354,
+      1161
+    ],
+    "mode": "RGBA",
+    "alpha_bounds": [
+      65,
+      63,
+      1319,
+      1161
+    ],
+    "sha256": "469247445f8d74b1a5c05b0dfc345aa71de9bddc7f961418c25222f6dd5c8977"
+  },
+  {
+    "file": "pose-oliver-scroll.png",
+    "size": [
+      1443,
+      1090
+    ],
+    "mode": "RGBA",
+    "alpha_bounds": [
+      0,
+      27,
+      1423,
+      1090
+    ],
+    "sha256": "bdf562973a288395127f8a1555f5d2567f36572e2a8de648eb7d22042d6ba2c5"
+  },
+  {
+    "file": "pose-oliver-sit-up.png",
+    "size": [
+      1444,
+      1089
+    ],
+    "mode": "RGBA",
+    "alpha_bounds": [
+      46,
+      87,
+      1397,
+      1071
+    ],
+    "sha256": "8f830077950e80a8a0ff4d99e53861a85002f191d79eb41b4f22cb00d50ea8a4"
+  }
+]
