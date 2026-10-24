@@ -1,0 +1,27 @@
+[
+ {
+  "word": "Not",
+  "start": 0.0,
+  "end": 0.26
+ },
+ {
+  "word": "now.",
+  "start": 0.26,
+  "end": 0.66
+ },
+ {
+  "word": "Maybe",
+  "start": 1.24,
+  "end": 1.38
+ },
+ {
+  "word": "next",
+  "start": 1.38,
+  "end": 1.7
+ },
+ {
+  "word": "month.",
+  "start": 1.7,
+  "end": 1.92
+ }
+]

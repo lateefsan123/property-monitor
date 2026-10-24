@@ -184,6 +184,26 @@ const CLIPS = {
     r.mark("message-visible");
     await r.hold(2.0);
   },
+  // Short 006: Elena Petrova → Set follow-up → 30 days → Save → Scheduled
+  async "elena-follow-up"(page, r) {
+    await nav(page, "Sellers");
+    await r.hold(0.8); r.mark("start");
+    await r.tap(page.getByText("Elena Petrova", { exact: true }).first(), "elena");
+    await r.hold(0.9); r.mark("sheet-open");
+    await r.scrollTo(page.getByText("Set follow-up", { exact: true }).last(), 0.6, 0.8);
+    r.mark("follow-up-visible");
+    await r.hold(0.6);
+    await r.tap(page.getByText("Set follow-up", { exact: true }).last(), "set-follow-up");
+    await r.hold(0.9); r.mark("sheet-follow-up");
+    await r.tap(page.getByText("30 days", { exact: true }).last(), "30-days");
+    await r.hold(0.4); r.mark("30-selected");
+    await r.hold(1.2);
+    await r.tap(page.getByText("Save follow-up", { exact: true }).last(), "save");
+    await r.hold(1.0); r.mark("saved");
+    await r.scrollTo(page.getByText(/^Scheduled for/).last(), 0.55, 0.6);
+    r.mark("scheduled-visible");
+    await r.hold(1.6);
+  },
   // Short 001
   async "composer-manual"(page, r) {
     await nav(page, "Sellers");

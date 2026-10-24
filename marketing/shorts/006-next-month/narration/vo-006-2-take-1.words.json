@@ -1,0 +1,27 @@
+[
+ {
+  "word": "Hi",
+  "start": 0.0,
+  "end": 0.24
+ },
+ {
+  "word": "Elena,",
+  "start": 0.24,
+  "end": 0.52
+ },
+ {
+  "word": "just",
+  "start": 1.0,
+  "end": 1.12
+ },
+ {
+  "word": "checking",
+  "start": 1.12,
+  "end": 1.42
+ },
+ {
+  "word": "in!",
+  "start": 1.42,
+  "end": 1.7
+ }
+]

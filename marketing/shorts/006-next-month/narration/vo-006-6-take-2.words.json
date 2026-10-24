@@ -1,0 +1,72 @@
+[
+ {
+  "word": "When",
+  "start": 0.0,
+  "end": 0.22
+ },
+ {
+  "word": "a",
+  "start": 0.22,
+  "end": 0.34
+ },
+ {
+  "word": "seller",
+  "start": 0.34,
+  "end": 0.52
+ },
+ {
+  "word": "says",
+  "start": 0.52,
+  "end": 0.86
+ },
+ {
+  "word": "next",
+  "start": 0.86,
+  "end": 1.22
+ },
+ {
+  "word": "month,",
+  "start": 1.22,
+  "end": 1.64
+ },
+ {
+  "word": "I",
+  "start": 2.1,
+  "end": 2.2
+ },
+ {
+  "word": "set",
+  "start": 2.2,
+  "end": 2.38
+ },
+ {
+  "word": "her",
+  "start": 2.38,
+  "end": 2.54
+ },
+ {
+  "word": "follow",
+  "start": 2.54,
+  "end": 2.78
+ },
+ {
+  "word": "-up",
+  "start": 2.78,
+  "end": 3.0
+ },
+ {
+  "word": "to",
+  "start": 3.0,
+  "end": 3.2
+ },
+ {
+  "word": "30",
+  "start": 3.2,
+  "end": 3.54
+ },
+ {
+  "word": "days.",
+  "start": 3.54,
+  "end": 3.78
+ }
+]

@@ -1,0 +1,63 @@
+[
+  {
+    "file": "elena-reference.png",
+    "size": [
+      1402,
+      1122
+    ],
+    "mode": "RGB",
+    "sha256": "b5d1aef3866ecba947cb41e7e5dadf85897278b59df3f04e3114c9352416d307"
+  },
+  {
+    "file": "pose-elena-cafe.png",
+    "size": [
+      1354,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "9da494741ed9a7d5df17e574ed23b20feef0384cd050d59d296bf1c9be50efc6",
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "pose-elena-call.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "023ccf83be3cf4b4c370db11f4d9a79f728fd10a23bd8464652d90e1fe8693ec",
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "pose-elena-exasperated.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "431b6651e470065f7567ed4e6ab84db7ebb9800ae7c6cab071ab926fe2c6c5a3",
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "pose-broker-tablet-phone.png",
+    "size": [
+      1354,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "21f39f6566c033e8e74c007f971fc914ee9941412ec444c251ed739065968332",
+    "alpha": [
+      0,
+      255
+    ]
+  }
+]

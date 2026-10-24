@@ -1,0 +1,27 @@
+[
+ {
+  "word": "Automatic",
+  "start": 0.0,
+  "end": 0.52
+ },
+ {
+  "word": "updates",
+  "start": 0.52,
+  "end": 1.06
+ },
+ {
+  "word": "wait",
+  "start": 1.06,
+  "end": 1.52
+ },
+ {
+  "word": "until",
+  "start": 1.52,
+  "end": 1.82
+ },
+ {
+  "word": "then.",
+  "start": 1.82,
+  "end": 2.12
+ }
+]

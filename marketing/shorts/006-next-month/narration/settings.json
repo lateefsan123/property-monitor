@@ -1,0 +1,26 @@
+{
+  "creditsBefore": 104444,
+  "model": "Eleven v4",
+  "stability": 0.5,
+  "similarity": 0.75,
+  "cloneStrength": 0,
+  "effects": [],
+  "output": "mp3_44100_192",
+  "brokerVoiceId": "SGoiiadNvlgcANZ3wLyn",
+  "creditsAfter": 104059,
+  "creditsUsed": 385,
+  "selectedVoices": {
+    "Elena": {
+      "name": "Nina - Mature, Calm",
+      "id": "othsitkiTCdLyCKCIC1P"
+    },
+    "Pushy": {
+      "name": "Justin - Enthusiastic Young Adult Male",
+      "id": "guZ5txGiatiDmC3jrjOO"
+    },
+    "Brady": {
+      "name": "Brady J - Confident Real Estate Agent",
+      "id": "SGoiiadNvlgcANZ3wLyn"
+    }
+  }
+}
