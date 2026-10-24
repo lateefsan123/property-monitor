@@ -97,7 +97,7 @@ cue.toApp = endOf(4) + 0.4;
 start[5] = cue.toApp + 0.35;
 
 // App proof: Settings → Automations, Monthly reports on (../app-clips/automations-transaction)
-const clips = loadClips(["automations-transaction"], DIR);
+const clips = loadClips(["automations-transaction"], DIR, { theme: "light" });
 const ev = k => clips["automations-transaction"].events[k];
 const app = { beats: [] };
 const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };

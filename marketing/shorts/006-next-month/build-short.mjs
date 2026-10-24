@@ -108,7 +108,7 @@ start[6] = cue.toBroker + 0.35;
 cue.toApp = W(6, "I") - 0.1;
 
 // App proof: Elena → Set follow-up → 30 days → Save → "Scheduled for…" (../app-clips/elena-follow-up)
-const clips = loadClips(["elena-follow-up"], DIR);
+const clips = loadClips(["elena-follow-up"], DIR, { theme: "light" });
 const ev = k => clips["elena-follow-up"].events[k];
 const app = { beats: [] };
 const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };

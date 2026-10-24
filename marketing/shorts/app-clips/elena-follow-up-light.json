@@ -1,0 +1,54 @@
+{
+ "clip": "elena-follow-up-light",
+ "fps": 30,
+ "frames": 268,
+ "duration": 8.933,
+ "pixels": [
+  1179,
+  2556
+ ],
+ "encodedPixels": [
+  1180,
+  2556
+ ],
+ "demoClock": "2026-10-23T12:00:00Z",
+ "taps": [
+  {
+   "t": 0.8,
+   "x": 464,
+   "y": 1232,
+   "label": "elena"
+  },
+  {
+   "t": 3.133,
+   "x": 955,
+   "y": 1804,
+   "label": "set-follow-up"
+  },
+  {
+   "t": 4.067,
+   "x": 174,
+   "y": 1398,
+   "label": "30-days"
+  },
+  {
+   "t": 5.7,
+   "x": 590,
+   "y": 2418,
+   "label": "save"
+  }
+ ],
+ "events": {
+  "start": 0.8,
+  "tap:elena": 0.8,
+  "sheet-open": 1.733,
+  "follow-up-visible": 2.533,
+  "tap:set-follow-up": 3.133,
+  "sheet-follow-up": 4.067,
+  "tap:30-days": 4.067,
+  "30-selected": 4.5,
+  "tap:save": 5.7,
+  "saved": 6.733,
+  "scheduled-visible": 7.333
+ }
+}

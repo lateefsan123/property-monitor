@@ -10,9 +10,11 @@ const CLIPS = join(SHORTS, "app-clips");
 const CACHE = join(CLIPS, "frames");
 
 // Returns { name: { dir (relative to fromDir, for the page), frames, fps, taps, events } }
-export function loadClips(names, fromDir) {
+export function loadClips(names, fromDir, opts = {}) {
   const out = {};
-  for (const name of new Set(names)) {
+  for (const key of new Set(names)) {
+    // opts.theme === "light": the THEME=light recording, still keyed by the plain name
+    const name = opts.theme === "light" && !key.endsWith("-light") ? `${key}-light` : key;
     const mp4 = join(CLIPS, `${name}.mp4`);
     if (!existsSync(mp4)) throw new Error(`missing app clip ${mp4}`);
     const dir = join(CACHE, name);
@@ -27,7 +29,7 @@ export function loadClips(names, fromDir) {
     const frames = readdirSync(dir).filter(f => f.endsWith(".jpg")).length;
     const metaPath = join(CLIPS, `${name}.json`);
     const meta = existsSync(metaPath) ? JSON.parse(readFileSync(metaPath, "utf8")) : {};
-    out[name] = {
+    out[key] = {
       dir: relative(fromDir, dir).replace(/\\/g, "/"),
       frames, fps: 30,
       taps: (meta.taps || []).map(x => ({ t: x.t ?? x.time, x: x.x, y: x.y })),

@@ -1,0 +1,31 @@
+{
+ "clip": "automations-window-light",
+ "fps": 30,
+ "frames": 259,
+ "duration": 8.633,
+ "pixels": [
+  1179,
+  2556
+ ],
+ "encodedPixels": [
+  1180,
+  2556
+ ],
+ "demoClock": "2026-10-23T12:00:00Z",
+ "taps": [
+  {
+   "t": 3.8,
+   "x": 442,
+   "y": 1592,
+   "label": "send-between"
+  }
+ ],
+ "events": {
+  "start": 0.8,
+  "window-visible": 2.2,
+  "tap:send-between": 3.8,
+  "picker-open": 4.733,
+  "picker-9am": 5.633,
+  "picker-9pm": 7.033
+ }
+}

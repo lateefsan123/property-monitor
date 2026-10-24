@@ -103,7 +103,7 @@ start[3] = cue.toPhone + 0.3;
 cue.toApp = W(3, "open") - 0.1;
 
 // App proof: Home → View sellers → Due today → Scheduled (../app-clips/home-due-today)
-const clips = loadClips(["home-due-today"], DIR);
+const clips = loadClips(["home-due-today"], DIR, { theme: "light" });
 const ev = k => clips["home-due-today"].events[k];
 const app = { beats: [] };
 const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };

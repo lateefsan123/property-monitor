@@ -144,7 +144,7 @@ for (const [k, files] of Object.entries(POSES)) {
 }
 
 // App proof: recorded film-mode clips (marketing/shorts/app-clips, lib/app-phone.js)
-const clips = loadClips(["oliver-sheet-sales", "oliver-message-tab"], DIR);
+const clips = loadClips(["oliver-sheet-sales", "oliver-message-tab"], DIR, { theme: "light" });
 const ev = (c, k) => clips[c].events[k];
 const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };          // whole screen under the caption
 const RATE = 1.25;                                               // a brisk but natural pace

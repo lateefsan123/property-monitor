@@ -119,7 +119,7 @@
     const cam = place.cam || camAt(beat, t);
     const lx = 14 + cam.sx * K, ly = 14 + BAR + cam.sy * K;
     const z = cam.z * (place.zMul || 1);
-    const cx = cam.cx ?? 540, cy = (cam.cy ?? 1180) + (place.dy || 0);
+    const cx = (cam.cx ?? 540) + (place.dx || 0), cy = (cam.cy ?? 1180) + (place.dy || 0);
     set(ph.phone, { transform: `translate(${cx}px, ${cy}px) rotate(${cam.rot || 0}deg) scale(${z}) translate(${-lx}px, ${-ly}px)` });
 
     const cur = ph.layers[i % 2], prev = ph.layers[(i + 1) % 2];

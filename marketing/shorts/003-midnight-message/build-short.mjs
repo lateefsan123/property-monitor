@@ -106,7 +106,7 @@ cue.toApp = W(4, "only") - 0.15;
 start[5] = endOf(4) + 0.3;
 
 // App proof: the real Automations screen, recorded in film mode (../app-clips/automations-window)
-const clips = loadClips(["automations-window"], DIR);
+const clips = loadClips(["automations-window"], DIR, { theme: "light" });
 const ev = k => clips["automations-window"].events[k];
 const app = { beats: [] };
 const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };

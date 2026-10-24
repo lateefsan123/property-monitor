@@ -109,7 +109,7 @@
 <div class="layer" id="appLayer" style="background:#0B0C0D">
   <div class="abs" id="appStage"></div>
   <div id="topband"></div>
-  <div id="label">Dramatisation · demo data</div>
+  <div id="label" style="display:none"></div>
 </div>
 
 <div class="layer" id="endcard">
@@ -117,12 +117,13 @@
   <img id="wordmark" src="../../../mobile/assets/repeat-ai-logo.png">
   <div id="endline">Know the stage<br><span>before the message.</span></div>
   <div id="endfade"></div>
-  <div id="cta">Watch the demo · <b>repeatai.org</b></div>
+  <div id="cta" style="display:none"></div>
 </div>
 
 <div id="caption"><span id="capText"></span></div>
 
 <script src="../lib/app-phone.js"></script>
+<script src="../lib/phone-first.js"></script>
 <script>
 // build-short.mjs injects window.TL (cues from narration word timings, captions, pose bounds, app beats)
 const $ = id => document.getElementById(id);
@@ -145,7 +146,7 @@ function render(t) {
   const C = TL.cue;
   if (!built) {
     for (const el of document.querySelectorAll("[data-pose]")) el.src = TL.poses[el.dataset.pose].src;
-    PH = AppPhone.create($("appStage"));
+    PH = AppPhone.create($("appStage"), { light: true }); PhoneFirst.setup($("appLayer"));
     built = true;
   }
   const shot =
@@ -183,7 +184,7 @@ function render(t) {
   if (shot === "app" || shot === "end") {
     set($("appLayer"), { display: "block", zIndex: 2 });
     const rise = shot === "app" ? out(prog(t, C.toApp, 0.45)) : 1;
-    pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, { dy: (1 - rise) * 1500 });
+    pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, shot === "app" ? PhoneFirst.frame(t, { on: true, enter: C.toApp }) : PhoneFirst.frame(t, { on: false }));
     set($("topband"), { opacity: shot === "app" ? 1 : 0 });
     set($("label"), { opacity: shot === "app" ? 1 : 0 });
   }

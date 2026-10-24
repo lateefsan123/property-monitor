@@ -99,7 +99,7 @@ cue.toApp = start[3] - 0.3;
 start[4] = endOf(3) + 0.35;
 start[5] = endOf(4) + 0.35;
 
-const clips = loadClips(["template-use-for", "automations-status", "automations-window"], DIR);
+const clips = loadClips(["template-use-for", "automations-status", "automations-window"], DIR, { theme: "light" });
 const ev = (c, k) => clips[c].events[k];
 const lastT = c => (clips[c].frames - 1) / 30;
 const app = { beats: [] };

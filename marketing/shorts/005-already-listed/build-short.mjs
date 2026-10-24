@@ -103,7 +103,7 @@ start[3] = cue.toApp + 0.35;
 start[4] = endOf(3) + 0.35;
 
 // App proof: Maya's seller sheet → For Sale status → her message (../app-clips/maya-for-sale)
-const clips = loadClips(["maya-for-sale"], DIR);
+const clips = loadClips(["maya-for-sale"], DIR, { theme: "light" });
 const ev = k => clips["maya-for-sale"].events[k];
 const app = { beats: [] };
 const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };
