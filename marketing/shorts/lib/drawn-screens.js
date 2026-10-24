@@ -84,12 +84,12 @@
     if (root.dataset.id !== sc.id) { root._n = build(root, sc); root.dataset.id = sc.id; }
     const n = root._n;
     if (sc.kind === "lock") {
-      const u = out(clamp((t - sc.note.at) / 0.4));
+      const u = out(clamp((t - sc.note.at) / 0.6));
       set(n.note, { opacity: u, transform: `translateY(${(1 - u) * -80}px) scale(${0.96 + 0.04 * u})` });
       return;
     }
     (sc.items || []).forEach((it, j) => {
-      const p = out(clamp((t - it.at) / 0.3));
+      const p = out(clamp((t - it.at) / 0.45));
       set(n.bubs[j], { opacity: p, transform: `translateY(${(1 - p) * 30}px) scale(${0.94 + 0.06 * p})` });
     });
     const ty = sc.typing;

@@ -273,13 +273,13 @@ function render(t) {
   // ── Demo: the light-theme phone is the subject, he stands small in the corner
   const phoneOn = t >= C.cardsIn && t < C.toPay + 0.6;
   if (phoneOn) {
-    const s = 760 / 1088, x = 112 - 695.5 * s, y = 2110 - 1112 * s + (1 - out(prog(t, C.cardsIn, 0.5))) * 500;
+    const s = 760 / 1088, x = 112 - 695.5 * s, y = 2110 - 1112 * s + (1 - out(prog(t, C.cardsIn, 0.8))) * 500;
     set($("pCorner"), { display: t < C.toPay ? "block" : "none", transform: `translate(${x}px, ${y + 1112 * s * (1 - breathe)}px) scale(${s}, ${s * breathe})` });
   } else set($("pCorner"), { display: "none" });
   let beatNow = null;
   for (const b of TL.app.beats) if (t >= b.a && t < b.b) beatNow = b;
   $("chip").textContent = beatNow && beatNow.chip ? beatNow.chip : $("chip").textContent;
-  set($("chip"), { opacity: phoneOn && beatNow && beatNow.chip && t < C.toPay ? out(prog(t, beatNow.a, 0.25)) : 0 });
+  set($("chip"), { opacity: phoneOn && beatNow && beatNow.chip && t < C.toPay ? out(prog(t, beatNow.a, 0.45)) : 0 });
 
   // ── App layer: recorded film-mode clips (lib/app-phone.js)
   set($("appLayer"), { display: inApp || inEnd || phoneOn ? "block" : "none", ...(phoneOn && !inEnd ? { background: "transparent", zIndex: 20, opacity: 1 } : {}) });
@@ -298,8 +298,8 @@ function render(t) {
       const hand = { sx: 589, sy: 1278, z: 0.124 * s, cx: ppx, cy: ppy, rot: 21 };
       cam = mixCam(hand, AppPhone.camAt(TL.app.beats[0], t), ease(prog(t, C.zoom + 0.18, 0.47)));
     }
-    const rise = phoneOn && !inEnd ? (1 - out(prog(t, C.cardsIn, 0.5))) * 1700 : 0;
-    pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, cam ? { cam } : { dy: rise });
+    const rise = phoneOn && !inEnd ? (1 - ease(prog(t, C.cardsIn, 0.8))) * 1700 : 0;
+    pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, cam ? { cam } : { dy: rise, push: phoneOn ? 0.6 : 0.28 });
     set(PH.phone, { opacity: !inEnd && !phoneOn && t < C.zoom + 0.08 ? 0 : 1 });
   }
   set($("label"), { opacity: (inApp && t > C.zoom + 0.6 && t < C.toPay) || (t > C.cardsIn + 0.3 && t < C.toPay) ? 1 : 0 });

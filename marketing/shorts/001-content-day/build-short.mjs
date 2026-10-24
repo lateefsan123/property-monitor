@@ -92,18 +92,18 @@ cue.buzz = endOf(1) + 0.3;
 cue.cutInt = cue.buzz + 0.12;
 start[2] = cue.cutInt + 0.35;
 cue.zoom = W(2, "type") - 0.5;                 // into his phone as he says "type the same follow-up"
-start[3] = endOf(2) + 0.45;
-cue.toTpl = start[3] - 0.15;                   // the template editor, then its preview
-start[4] = endOf(3) + 0.3;
-cue.toUse = W(4, "choose") - 0.15;             // "Use for": which statuses get it
-start[5] = endOf(4) + 0.4;
-cue.toAuto = start[5] - 0.25;
+start[3] = endOf(2) + 0.75;
+cue.toTpl = start[3] - 0.35;                   // the template editor, then its preview
+start[4] = endOf(3) + 0.65;
+cue.toUse = W(4, "choose") - 0.45;             // "Use for": which statuses get it
+start[5] = endOf(4) + 0.75;
+cue.toAuto = start[5] - 0.4;
 cue.toggle = W(5, "Status") + 0.1;             // the real tap on Status follow-ups
-start[6] = endOf(5) + 0.4;
+start[6] = endOf(5) + 0.75;
 cue.backAuto = start[6] - 0.2;                 // hold on "Stops when they reply."
 cue.stop = W(6, "stops");
-start[7] = endOf(6) + 0.4;
-cue.toWa = start[7] - 0.2;                     // WhatsApp: Connected
+start[7] = endOf(6) + 0.75;
+cue.toWa = start[7] - 0.4;                     // WhatsApp: Connected
 start[8] = endOf(7) + 0.9;
 cue.toPay = start[8] - 0.55;                   // ring-light iris back to filming
 cue.endCard = endOf(8) + 0.55;
@@ -134,13 +134,13 @@ const app = { beats: [
   { a: cue.toAuto, b: cue.noteIn, chip: "Repeat · Automations", clip: "automations-status-light",
     c0: Math.max(0, ev("automations-status-light", "tap:status-switch") - (cue.toggle - cue.toAuto)), rate: 1,
     cam: { sx: 590, sy: 1310, z: 0.9, cx: 630, cy: 1100 } },
-  { a: cue.noteIn, b: start[6] - 0.1, chip: "Elena's phone", cam: { ...FULL, sy: 1150, cy: 1260 },
+  { a: cue.noteIn, b: start[6] - 0.3, chip: "Elena's phone", cam: { ...FULL, sy: 1150, cy: 1260 },
     screen: { kind: "lock", id: "elena", time: "12:00", date: "Friday 23 October",
       note: { at: cue.noteIn + 0.35, app: "WhatsApp", title: "+971 50 555 0100",
         body: "Hi Elena Petrova, hope you're well. Just wanted to keep you updated on the latest activity in Claren Tower 2." } } },
-  { a: start[6] - 0.1, b: cue.toWa, chip: "Your WhatsApp", cam: { ...FULL, sy: 1150, cy: 1260 },
+  { a: start[6] - 0.3, b: cue.toWa, chip: "Your WhatsApp", cam: { ...FULL, sy: 1150, cy: 1260 },
     screen: { kind: "wa", id: "elena-chat", name: "Elena Petrova", sub: "online", items: [
-      { at: start[6] - 0.1, side: "out", text: "Hi Elena Petrova, hope you're well. Just wanted to keep you updated on the latest activity in Claren Tower 2." },
+      { at: start[6] - 0.3, side: "out", text: "Hi Elena Petrova, hope you're well. Just wanted to keep you updated on the latest activity in Claren Tower 2." },
       { at: W(6, "seller") - 0.1, side: "in", text: "Thanks! Could you call me on Thursday?" },
       { at: W(6, "answer") + 0.2, side: "out", text: "Of course. I'll call you Thursday at 11." }],
       typing: { text: "Of course. I'll call you Thursday at 11.", ta: W(6, "answer") - 0.9, tb: W(6, "answer") - 0.05 } } },

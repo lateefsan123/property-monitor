@@ -124,7 +124,7 @@
 
     const cur = ph.layers[i % 2], prev = ph.layers[(i + 1) % 2];
     const decodes = [paint(cur, beat, clips, t)];
-    const push = i > 0 && !beat.cut ? ease(clamp((t - beat.a) / 0.28)) : 1;
+    const push = i > 0 && !beat.cut ? ease(clamp((t - beat.a) / (place.push || 0.28))) : 1;
     set(cur.L, { opacity: push, transform: `translateX(${(1 - push) * 300}px) scale(${K})`, zIndex: 2 });
     if (push < 1) {
       decodes.push(paint(prev, beats[i - 1], clips, beats[i - 1].b - 0.001));
