@@ -188,7 +188,6 @@ function buildAudio() {
   run(`ffmpeg -y -v error -f lavfi -i "sine=f=1175:d=0.5" -f lavfi -i "sine=f=1568:d=0.6" -filter_complex "[0]volume=0.18,afade=t=out:st=0.02:d=0.45[a];[1]adelay=120|120,volume=0.15,afade=t=out:st=0.14:d=0.45[b];[a][b]amix=inputs=2:normalize=0" "${f("ping.wav")}"`);
   // Reply sent: a small pop
   run(`ffmpeg -y -v error -f lavfi -i "sine=f=600:d=0.09" -af "asetrate=44100*1.0,vibrato=f=0.1,afade=t=out:st=0.02:d=0.07,volume=0.4" "${f("pop.wav")}"`);
-  run(`ffmpeg -y -v error -f lavfi -i "anoisesrc=d=0.5:c=pink:a=0.5" -af "bandpass=f=1000:w=700,afade=t=in:d=0.3,afade=t=out:st=0.3:d=0.2,volume=0.3" "${f("air.wav")}"`);
   run(`ffmpeg -y -v error -f lavfi -i "sine=f=2400:d=0.03" -f lavfi -i "anoisesrc=d=0.02:c=white:a=0.3" -filter_complex "[0]afade=t=out:d=0.03,volume=0.35[a];[1]highpass=f=3000,volume=0.5[b];[a][b]amix=inputs=2:normalize=0" "${f("tap.wav")}"`);
   run(`ffmpeg -y -v error -f lavfi -i "sine=f=880:d=1.6" -f lavfi -i "sine=f=1318.5:d=1.6" -filter_complex "[0]volume=0.16[a];[1]volume=0.09[b];[a][b]amix=inputs=2:normalize=0,afade=t=in:d=0.01,afade=t=out:st=0.05:d=1.55" "${f("chime.wav")}"`);
 
@@ -198,7 +197,6 @@ function buildAudio() {
     ["ping.wav", cue.toSit - 0.05, 1.0],
     ["tap.wav", cue.sendReply - 0.12, 0.9],
     ["pop.wav", cue.sendReply, 1.0],
-    ["air.wav", cue.toApp - 0.1, 0.8],
     ["chime.wav", cue.endCard + 0.2, 0.9],
   ];
   const inputs = [`-ss ${MUSIC_START} -t ${END + 1} -i "${MUSIC}"`];

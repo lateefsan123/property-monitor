@@ -172,7 +172,6 @@ function buildAudio() {
   // Phone vibration: two short buzzes
   run(`ffmpeg -y -v error -f lavfi -i "sine=f=165:d=0.62" -af "volume='if(lt(mod(t,0.31),0.19),1,0)':eval=frame,tremolo=f=28:d=0.5,lowpass=f=900,volume=0.9,afade=t=out:st=0.5:d=0.12" "${f("buzz.wav")}"`);
   // Soft air move for the zoom into the phone
-  run(`ffmpeg -y -v error -f lavfi -i "anoisesrc=d=0.6:c=pink:a=0.5" -af "bandpass=f=900:w=600,afade=t=in:d=0.35,afade=t=out:st=0.35:d=0.25,volume=0.35" "${f("air.wav")}"`);
   // UI tap
   run(`ffmpeg -y -v error -f lavfi -i "sine=f=2400:d=0.03" -f lavfi -i "anoisesrc=d=0.02:c=white:a=0.3" -filter_complex "[0]afade=t=out:d=0.03,volume=0.35[a];[1]highpass=f=3000,volume=0.5[b];[a][b]amix=inputs=2:normalize=0" "${f("tap.wav")}"`);
   // Record start: two-tone beep
@@ -183,7 +182,6 @@ function buildAudio() {
   const fx = [
     ["switch.wav", cue.lightOn, 0.9],
     ["buzz.wav", cue.buzz, 1.0],
-    ["air.wav", cue.zoom, 0.8],
     ...tapTimes.map(t => ["tap.wav", t, 0.9]),
     ["rec.wav", cue.toPay + 0.15, 1.0],
     ["chime.wav", cue.endCard + 0.2, 0.9],
