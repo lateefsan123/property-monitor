@@ -200,7 +200,7 @@ function buildAudio() {
   // Sound effects: ElevenLabs takes the user picked (../sfx-elevenlabs/chosen), trimmed of lead-in
   // silence and peak-normalised per sound so the cue volumes below stay meaningful
   const PEAK = { switch: -13, buzz: -14, tap: -18, ping: -16, pop: -17, rec: -16, chime: -19 };   // well under the voice
-  for (const name of ["buzz", "ping", "pop", "tap", "chime"]) {
+  for (const name of ["pop", "tap", "chime"]) {
     const src = join(DIR, "../sfx-elevenlabs/chosen", `${name}.mp3`);
     const trim = "silenceremove=start_periods=1:start_threshold=-50dB";
     const vd = execSync(`ffmpeg -hide_banner -i "${src}" -af ${trim},volumedetect -f null - 2>&1`, { encoding: "utf8" });
@@ -209,9 +209,6 @@ function buildAudio() {
   }
 
   const fx = [
-    ["buzz.wav", cue.buzz0, 1.0],
-    ...cue.spam.slice(1).map((t, i) => ["buzz.wav", t, 0.75 - i * 0.08]),
-    ["ping.wav", cue.toSit - 0.05, 1.0],
     ["tap.wav", cue.sendReply - 0.12, 0.9],
     ["pop.wav", cue.sendReply, 1.0],
     ["chime.wav", cue.endCard + 0.2, 0.9],
