@@ -182,17 +182,16 @@ function voiceClean(l) {
 function buildAudio() {
   mkdirSync(SFX, { recursive: true });
   const f = name => join(SFX, name);
-  // Ring-light switch: a short click with a low thump
-  run(`ffmpeg -y -v error -f lavfi -i "aevalsrc='0.7*sin(2*PI*130*t)*exp(-t*32)+0.22*sin(2*PI*900*t)*exp(-t*160)':s=48000:d=0.18" "${f("switch.wav")}"`);
-  // Phone vibration: two short buzzes
-  run(`ffmpeg -y -v error -f lavfi -i "aevalsrc='0.55*sin(2*PI*150*t)*(sin(PI*min(mod(t,0.31),0.2)/0.2))^2*lt(mod(t,0.31),0.2)':s=48000:d=0.62" -af "lowpass=f=400" "${f("buzz.wav")}"`);
-  // Soft air move for the zoom into the phone
-  // UI tap
-  run(`ffmpeg -y -v error -f lavfi -i "aevalsrc='(0.32*sin(2*PI*1500*t)+0.12*sin(2*PI*750*t))*exp(-t*85)':s=48000:d=0.08" "${f("tap.wav")}"`);
-  // Record start: two-tone beep
-  run(`ffmpeg -y -v error -f lavfi -i "sine=f=1046:d=0.09" -f lavfi -i "sine=f=1568:d=0.14" -filter_complex "[0]afade=t=out:st=0.06:d=0.03,volume=0.22[a];[1]adelay=110|110,afade=t=in:d=0.01,afade=t=out:st=0.2:d=0.05,volume=0.22[b];[a][b]amix=inputs=2:normalize=0" "${f("rec.wav")}"`);
-  // End card: soft chime
-  run(`ffmpeg -y -v error -f lavfi -i "sine=f=880:d=1.6" -f lavfi -i "sine=f=1318.5:d=1.6" -filter_complex "[0]volume=0.16[a];[1]volume=0.09[b];[a][b]amix=inputs=2:normalize=0,afade=t=in:d=0.01,afade=t=out:st=0.05:d=1.55" "${f("chime.wav")}"`);
+  // Sound effects: ElevenLabs takes the user picked (../sfx-elevenlabs/chosen), trimmed of lead-in
+  // silence and peak-normalised per sound so the cue volumes below stay meaningful
+  const PEAK = { switch: -6, buzz: -6, tap: -10, ping: -9, pop: -9, rec: -9, chime: -12 };
+  for (const name of ["switch", "buzz", "tap", "rec", "chime"]) {
+    const src = join(DIR, "../sfx-elevenlabs/chosen", `${name}.mp3`);
+    const trim = "silenceremove=start_periods=1:start_threshold=-50dB";
+    const vd = execSync(`ffmpeg -hide_banner -i "${src}" -af ${trim},volumedetect -f null - 2>&1`, { encoding: "utf8" });
+    const max = parseFloat(vd.match(/max_volume: (-?[\d.]+) dB/)[1]);
+    run(`ffmpeg -y -v error -i "${src}" -af "${trim},volume=${(PEAK[name] - max).toFixed(1)}dB,aresample=48000" "${f(name + ".wav")}"`);
+  }
 
   const fx = [
     ["switch.wav", cue.lightOn, 0.9],
