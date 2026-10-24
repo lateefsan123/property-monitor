@@ -164,16 +164,30 @@ console.log(`Timeline: ${END}s`, cue);
 if (process.argv.includes("--timeline-only")) process.exit(0);
 
 // ── 2. Audio ─────────────────────────────────────────────────────────────────
+// ElevenLabs takes carry hissy breaths between phrases and harsh "s" sounds. Duck the gaps between
+// words (from the word timings), de-ess, roll off the top and take out a little broadband noise.
+function voiceClean(l) {
+  const gaps = [];
+  for (let i = 0; i < l.words.length - 1; i++) {
+    const a = l.words[i].end + 0.05, b = l.words[i + 1].start - 0.03;
+    if (b - a > 0.08) gaps.push(`between(t,${a.toFixed(3)},${b.toFixed(3)})`);
+  }
+  const tail = l.words[l.words.length - 1].end + 0.08;
+  gaps.push(`gte(t,${tail.toFixed(3)})`);
+  const duck = `volume='if(${gaps.join("+")},0.1,1)':eval=frame`;
+  return `afftdn=nr=8:nf=-45,deesser=i=0.5:m=0.5:f=0.5,lowpass=f=11500,${duck}`;
+}
+
 function buildAudio() {
   mkdirSync(SFX, { recursive: true });
   const f = name => join(SFX, name);
   // Ring-light switch: a short click with a low thump
-  run(`ffmpeg -y -v error -f lavfi -i "anoisesrc=d=0.05:c=white:a=0.6" -f lavfi -i "sine=f=95:d=0.12" -filter_complex "[0]highpass=f=1800,afade=t=out:d=0.05[c];[1]afade=t=out:d=0.12,volume=0.7[t];[c][t]amix=inputs=2:normalize=0" "${f("switch.wav")}"`);
+  run(`ffmpeg -y -v error -f lavfi -i "aevalsrc='0.7*sin(2*PI*130*t)*exp(-t*32)+0.22*sin(2*PI*900*t)*exp(-t*160)':s=48000:d=0.18" "${f("switch.wav")}"`);
   // Phone vibration: two short buzzes
-  run(`ffmpeg -y -v error -f lavfi -i "sine=f=165:d=0.62" -af "volume='if(lt(mod(t,0.31),0.19),1,0)':eval=frame,tremolo=f=28:d=0.5,lowpass=f=900,volume=0.9,afade=t=out:st=0.5:d=0.12" "${f("buzz.wav")}"`);
+  run(`ffmpeg -y -v error -f lavfi -i "aevalsrc='0.55*sin(2*PI*150*t)*(sin(PI*min(mod(t,0.31),0.2)/0.2))^2*lt(mod(t,0.31),0.2)':s=48000:d=0.62" -af "lowpass=f=400" "${f("buzz.wav")}"`);
   // Soft air move for the zoom into the phone
   // UI tap
-  run(`ffmpeg -y -v error -f lavfi -i "sine=f=2400:d=0.03" -f lavfi -i "anoisesrc=d=0.02:c=white:a=0.3" -filter_complex "[0]afade=t=out:d=0.03,volume=0.35[a];[1]highpass=f=3000,volume=0.5[b];[a][b]amix=inputs=2:normalize=0" "${f("tap.wav")}"`);
+  run(`ffmpeg -y -v error -f lavfi -i "aevalsrc='(0.32*sin(2*PI*1500*t)+0.12*sin(2*PI*750*t))*exp(-t*85)':s=48000:d=0.08" "${f("tap.wav")}"`);
   // Record start: two-tone beep
   run(`ffmpeg -y -v error -f lavfi -i "sine=f=1046:d=0.09" -f lavfi -i "sine=f=1568:d=0.14" -filter_complex "[0]afade=t=out:st=0.06:d=0.03,volume=0.22[a];[1]adelay=110|110,afade=t=in:d=0.01,afade=t=out:st=0.2:d=0.05,volume=0.22[b];[a][b]amix=inputs=2:normalize=0" "${f("rec.wav")}"`);
   // End card: soft chime
@@ -192,7 +206,7 @@ function buildAudio() {
   Object.values(L).forEach((l, i) => {
     inputs.push(`-ss ${r2(l.lead)} -i "${l.mp3}"`);
     const ms = Math.round(start[l.n] * 1000);
-    filters.push(`[${i + 1}]aresample=48000,aformat=channel_layouts=stereo,adelay=${ms}|${ms},volume=${l.gain}dB[v${i}]`);
+    filters.push(`[${i + 1}]aresample=48000,${voiceClean(l)},aformat=channel_layouts=stereo,adelay=${ms}|${ms},volume=${l.gain}dB[v${i}]`);
     voice.push(`[v${i}]`);
   });
   fx.forEach(([file, t, vol], j) => {
