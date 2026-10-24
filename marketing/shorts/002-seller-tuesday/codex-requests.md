@@ -146,3 +146,24 @@ deadpan → resigned → flat → slowly interested → short and curious.
 Three takes per line, named `narration/vo-002-<line>-rupert-take-<n>.mp3` with `.words.json`
 beside each. Leave the Jonathan and Brady files where they are. Existing credits only. Append a
 short results note below (take lengths, checks, credits before/after). No commits.
+
+
+### Codex Rupert recast results — 24 October 2026
+
+Completed **15 fresh unprocessed originals**, three per Oliver line 1–5, as `narration/vo-002-<line>-rupert-take-<n>.mp3`, with adjacent `.words.json` files. Line 4 uses the current “just sold” wording, without a date. All Jonathan/Brady originals remain unchanged (21 files verified against SHA-256 preservation baseline). No film edits or commits.
+
+Voice: **Rupert - Natural British**, ID `5yPNUy2ZGgvEkNjAmzo1`, freshly confirmed with Copy voice ID. Eleven v4, stability 0.5, similarity 0.75, clone strength 0, Auto language; style/effects/tags off; original mono MP3 44.1 kHz / 192 kbps. No trimming, normalization, stretching or re-encoding. Original exports downloaded from each matching Rupert history entry at the original 192 kbps option.
+
+| Line | Take 1 | Take 2 | Take 3 |
+|---|---:|---:|---:|
+| 1 | 3.239 s | 3.239 s | 3.318 s |
+| 2 | 1.567 s | 1.489 s | 1.567 s |
+| 3 | 3.082 s | 3.161 s | 3.318 s |
+| 4 | 6.609 s | 6.531 s | 6.531 s |
+| 5 | 0.914 s | 0.914 s | 0.914 s |
+
+Checks passed: 15 distinct hashes; all fully decode; correct MP3 format; valid word-time bounds; complete current-script transcripts after punctuation, hyphen, contraction and numeric normalization. Local faster-whisper small.en, single CPU thread, generated timings relative to each original. ASR writes the amount as `4 .67 million`; use the brief as the caption text. No subjective listening approval claimed. Details/hashes/durations/credits: `narration/rupert-recast-checks.json`.
+
+Opening take selection: two generated options gave uncertain building-name transcripts (Burt-Felifur / Berge Khalifa, independently Burch Khalifa). Generated one additional pair using the exact same script/settings and selected a clean “Burj Khalifa” transcript as final take 3. Prior uncertain options and extra opening variants are preserved in `narration/recast-asr-review/`; the standard 15 filenames are the final handoff. Takes 1/2 generally use the regenerated pair; take 3 an initial option, except the opening replacement. All five lines were generated afresh rather than reusing the earlier audition.
+
+Credits: **105,719 before → 105,456 after; 263 used**, including the extra opening pair. Fresh final UI balance verified; existing Creator credits only, no plan/billing changes. Settings/balance evidence: `narration/rupert-recast-settings.png`.

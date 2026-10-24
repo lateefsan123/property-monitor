@@ -1,0 +1,196 @@
+{
+  "passed": true,
+  "originalsPreserved": 21,
+  "voice": "Rupert - Natural British",
+  "voiceId": "5yPNUy2ZGgvEkNjAmzo1",
+  "model": "Eleven v4",
+  "stability": 0.5,
+  "similarity": 0.75,
+  "cloneStrength": 0,
+  "effects": [],
+  "rows": [
+    {
+      "file": "vo-002-1-rupert-take-1.mp3",
+      "duration": 3.239167,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "4e7617580834b9e86fd0410e097aacef45b9606e37c459272638c1d785765309",
+      "transcript": "I own a two bed in Burj Khalifa. It's Tuesday."
+    },
+    {
+      "file": "vo-002-1-rupert-take-2.mp3",
+      "duration": 3.239167,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "674b21fa4282c1a317c44e294526cb1895669f7547dfca0dfce50803db5d4a5a",
+      "transcript": "I own a two bed in Burj Khalifa. It's Tuesday."
+    },
+    {
+      "file": "vo-002-1-rupert-take-3.mp3",
+      "duration": 3.317542,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "29dcb682397100bed00a7c208d767a8d66b87b7049bc28f38b36a1f1a59b6bee",
+      "transcript": "I own a two bed in Burj Khalifa. It's Tuesday."
+    },
+    {
+      "file": "vo-002-2-rupert-take-1.mp3",
+      "duration": 1.567333,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "9b9e6d85560b144a990ffdbf41b7eed3938e07a7fc92948f55f0b44ebc6360d2",
+      "transcript": "So, naturally..."
+    },
+    {
+      "file": "vo-002-2-rupert-take-2.mp3",
+      "duration": 1.488958,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "2e795e9cc7733ac6a3b464ceb5f94f94cebd04d4dc2d3a21d5f8db70284f93d4",
+      "transcript": "So, naturally..."
+    },
+    {
+      "file": "vo-002-2-rupert-take-3.mp3",
+      "duration": 1.567333,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "64b9d5deacc7d7d8be6a7d2fefdcd3b13b6ecb90f6a1d8369de08690e3996b02",
+      "transcript": "So, naturally..."
+    },
+    {
+      "file": "vo-002-3-rupert-take-1.mp3",
+      "duration": 3.082417,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "c152a886c96a158763f5014685d12e772ea126b448d81ddff6c3cae48a8a042e",
+      "transcript": "Any property available, sir? Every week."
+    },
+    {
+      "file": "vo-002-3-rupert-take-2.mp3",
+      "duration": 3.160792,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "92615e365967799cdf26744611d1ffa9069181691e29bada25f1c1ab9bf4fe63",
+      "transcript": "Any property available, sir? Every week."
+    },
+    {
+      "file": "vo-002-3-rupert-take-3.mp3",
+      "duration": 3.317542,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "0bbf83805ff7ede5e52f9fed501e6c27df2cc7c94be7bd24781385001888f8dc",
+      "transcript": "Any property available, sir? Every week."
+    },
+    {
+      "file": "vo-002-4-rupert-take-1.mp3",
+      "duration": 6.608958,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "41c5188e0a1d4ce6349f0f8f2690be1555267874c9d3a8d67264e05f995c5721",
+      "transcript": "Then one actually tells me something. A two bed in my building just sold. 4 .67 million."
+    },
+    {
+      "file": "vo-002-4-rupert-take-2.mp3",
+      "duration": 6.530583,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "b2bd935e9bd25677e6b05f0c3e8908352ddb99b4bba52bd7248c963a1199d3c4",
+      "transcript": "Then one actually tells me something. A two bed in my building just sold. 4 .67 million."
+    },
+    {
+      "file": "vo-002-4-rupert-take-3.mp3",
+      "duration": 6.530583,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "872c44f328543e69f3094fefa354bdf9dfb3ebb759cbba98e123795cccf8829c",
+      "transcript": "Then one actually tells me something. A two bed in my building just sold. 4 .67 million."
+    },
+    {
+      "file": "vo-002-5-rupert-take-1.mp3",
+      "duration": 0.91425,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "8ad551bdafa97be6aafcae316a9c1b1d0fbc96eb1cea93050028eea0208aaacc",
+      "transcript": "Which floor?"
+    },
+    {
+      "file": "vo-002-5-rupert-take-2.mp3",
+      "duration": 0.91425,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "3d7aa1e691cec1712de1ff20f8aef9b5025ac0a89003369f0bffc71dc1d25986",
+      "transcript": "Which floor?"
+    },
+    {
+      "file": "vo-002-5-rupert-take-3.mp3",
+      "duration": 0.91425,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "def76ae1a16568dad47550dd62206c2aabe137f3943af1bd4a88f5f198762a6d",
+      "transcript": "Which floor?"
+    }
+  ],
+  "creditsBefore": 105719,
+  "creditsAfter": 105456,
+  "creditsUsed": 263
+}

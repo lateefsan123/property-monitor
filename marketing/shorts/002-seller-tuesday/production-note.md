@@ -112,7 +112,8 @@ The app proof is now two real recordings (`../app-clips/`, `../lib/app-phone.js`
 The end card waits until the message is readable, which brings the film to 29.77 s
 (-14.3 LUFS, full decode).
 
-**Pending:** the user asked to recast Oliver with Rupert ("Natural British"). The request is in
-`codex-requests.md`, but Codex hasn't picked it up yet. This render still uses Jonathan. Once
-the Rupert takes land, set `"rupert-<n>"` takes in `narration-selection.json` and re-run
-`node build-short.mjs`.
+**Recast done:** Oliver is now Rupert ("Natural British", `5yPNUy2ZGgvEkNjAmzo1`), recorded by
+Codex at the same settings. The chosen takes are in `narration-selection.json`; Jonathan's takes stay
+in `narration/`. The build now aligns recogniser words to the script by merging tokens ("two" "bed"
+→ "two-bed"). The render is 28.91 s, -14.2 LUFS, true peak -1.4 dBFS, and decodes fully. Speech
+recognition on the final mix recovers all seven lines in order.

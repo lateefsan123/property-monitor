@@ -45,6 +45,7 @@ const SCRIPT = {
   7: "Repeat AI. Have a reason to follow up.",
 };
 const VOICE_LUFS = -19.3;
+const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 // ── 1. Narration ─────────────────────────────────────────────────────────────
 function loadLine(n) {
@@ -55,21 +56,25 @@ function loadLine(n) {
   const words = JSON.parse(readFileSync(mp3.replace(/\.mp3$/, ".words.json"), "utf8"));
   const dur = parseFloat(execSync(`ffprobe -v error -show_entries format=duration -of csv=p=0 "${mp3}"`, { encoding: "utf8" }));
   const lead = Math.max(0, words[0].start - 0.04);
-  const merged = [];
-  for (const w of words) {
-    if (/^[-.]/.test(w.word) && merged.length) { const m = merged[merged.length - 1]; m.word += w.word; m.end = w.end; }
-    else merged.push({ ...w });
-  }
+  // Align heard words to the script: merge recogniser tokens ("two" "bed", "4" ".67") until they
+  // spell the next script word, then show the script's spelling
   const script = SCRIPT[n].split(/\s+/);
-  if (script.length !== merged.length) throw new Error(`line ${n} take ${take}: heard ${merged.length} words (${merged.map(w => w.word).join(" ")}), script has ${script.length}`);
-  merged.forEach((w, i) => { w.heard = w.word; w.word = script[i]; });
+  const merged = [];
+  let i = 0;
+  for (const sw of script) {
+    if (i >= words.length) throw new Error(`line ${n} take ${take}: ran out of heard words at "${sw}"`);
+    const m = { ...words[i++] };
+    let heard = m.word;
+    while (norm(heard) !== norm(sw) && i < words.length && norm(sw).startsWith(norm(heard))) { heard += words[i].word; m.end = words[i++].end; }
+    if (norm(heard) !== norm(sw)) throw new Error(`line ${n} take ${take}: heard "${heard}", script "${sw}"`);
+    merged.push({ ...m, heard, word: sw });
+  }
   const loud = execSync(`ffmpeg -hide_banner -i "${mp3}" -af ebur128 -f null - 2>&1`, { encoding: "utf8" });
   const lufs = parseFloat(loud.slice(loud.lastIndexOf("Integrated loudness")).match(/I:\s+(-?[\d.]+) LUFS/)[1]);
   return { n, mp3, lead, gain: r2(VOICE_LUFS - lufs), words: merged.map(w => ({ ...w, start: w.start - lead, end: w.end - lead })), dur: dur - lead };
 }
 const L = {};
 for (const n of [1, 2, 3, 4, 5, 6, 7]) L[n] = loadLine(n);
-const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 function word(line, w, nth = 1) {
   let k = 0;
   for (const x of line.words) if (norm(x.word) === norm(w) && ++k === nth) return x;

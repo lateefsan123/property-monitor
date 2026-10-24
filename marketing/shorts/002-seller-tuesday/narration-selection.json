@@ -1,4 +1,4 @@
 {
-  "note": "Oliver = Jonathan (K130COXALy2ZgNlI3Ezo), lines 1-5; Brady J (SGoiiadNvlgcANZ3wLyn), lines 6-7. Eleven v4, stability 0.5, similarity 0.75. Picked on complete text, natural pauses and pacing.",
-  "takes": { "1": 1, "2": 1, "3": 2, "4": 2, "5": 3, "6": 2, "7": 3 }
+  "note": "Oliver = Rupert - Natural British (5yPNUy2ZGgvEkNjAmzo1), lines 1-5, recast at the user's request; Brady J (SGoiiadNvlgcANZ3wLyn), lines 6-7. Eleven v4, stability 0.5, similarity 0.75. Picked on complete text, pauses and pacing. Jonathan's takes remain in narration/.",
+  "takes": { "1": "rupert-2", "2": "rupert-2", "3": "rupert-1", "4": "rupert-2", "5": "rupert-2", "6": 2, "7": 3 }
 }

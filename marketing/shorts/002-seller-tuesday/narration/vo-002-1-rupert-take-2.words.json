@@ -1,0 +1,52 @@
+[
+ {
+  "word": "I",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "own",
+  "start": 0.18,
+  "end": 0.34
+ },
+ {
+  "word": "a",
+  "start": 0.34,
+  "end": 0.48
+ },
+ {
+  "word": "two",
+  "start": 0.48,
+  "end": 0.74
+ },
+ {
+  "word": "bed",
+  "start": 0.74,
+  "end": 0.94
+ },
+ {
+  "word": "in",
+  "start": 0.94,
+  "end": 1.12
+ },
+ {
+  "word": "Burj",
+  "start": 1.12,
+  "end": 1.36
+ },
+ {
+  "word": "Khalifa.",
+  "start": 1.36,
+  "end": 1.82
+ },
+ {
+  "word": "It's",
+  "start": 2.34,
+  "end": 2.6
+ },
+ {
+  "word": "Tuesday.",
+  "start": 2.6,
+  "end": 2.76
+ }
+]

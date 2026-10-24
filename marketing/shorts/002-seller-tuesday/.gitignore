@@ -15,3 +15,8 @@ narration/**/*.words.json
 !narration/vo-002-5-take-3.*
 !narration/vo-002-6-take-2.*
 !narration/vo-002-7-take-3.*
+!narration/vo-002-1-rupert-take-2.*
+!narration/vo-002-2-rupert-take-2.*
+!narration/vo-002-3-rupert-take-1.*
+!narration/vo-002-4-rupert-take-2.*
+!narration/vo-002-5-rupert-take-2.*
