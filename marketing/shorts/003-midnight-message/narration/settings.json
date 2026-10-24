@@ -1,0 +1,15 @@
+{
+  "credits_before": 105396,
+  "model": "Eleven v4",
+  "stability": 0.5,
+  "similarity": 0.75,
+  "clone_strength": 0,
+  "effects": [],
+  "output": "mp3_44100_192",
+  "voices": {
+    "Rupert": "5yPNUy2ZGgvEkNjAmzo1",
+    "Brady": "SGoiiadNvlgcANZ3wLyn"
+  },
+  "credits_after": 105132,
+  "credits_used": 264
+}

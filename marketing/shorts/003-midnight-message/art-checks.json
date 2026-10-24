@@ -1,0 +1,38 @@
+[
+  {
+    "file": "pose-broker-desk.png",
+    "size": [
+      1354,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "aad296811bf20ccafc39d75d0948bd7dd1553e687907d14c317785c55f6658cc"
+  },
+  {
+    "file": "pose-oliver-bed-reply.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "38a21043e0aeb10a20645bd24b1fbdd4343f264e9f10af88da9b3798d2b89e03"
+  },
+  {
+    "file": "pose-oliver-bed.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "69a5fa4ed05d888aad25520dfdacfc9970f77948af98a7b93e76eb6537f8db3e"
+  },
+  {
+    "file": "pose-oliver-morning.png",
+    "size": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "c5e31e91f4b5bd27775dd7a54547dbba42856f521151c8713195cc71c0ba33dc"
+  }
+]

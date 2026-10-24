@@ -71,7 +71,7 @@
   function frameSrc(beat, clips, t) {
     if (beat.still) return { src: beat.still, ct: 0 };
     const c = clips[beat.clip];
-    const ct = clamp((beat.c0 || 0) + (t - beat.a) * (beat.rate || 1), 0, (c.frames - 1) / c.fps);
+    const ct = clamp((beat.c0 || 0) + (t - beat.a) * (beat.rate ?? 1), 0, (c.frames - 1) / c.fps);
     const n = Math.round(ct * c.fps) + 1;
     return { src: `${c.dir}/${String(n).padStart(5, "0")}.jpg`, ct };
   }

@@ -135,6 +135,24 @@ const CLIPS = {
     await r.hold(0.8); r.mark("automations-open");
     await r.hold(1.6);
   },
+  // Short 003: the sending window and spacing, then the real hours picker
+  async "automations-window"(page, r) {
+    await nav(page, "Settings");
+    await page.getByText("Automations", { exact: true }).last().click();
+    await page.clock.runFor(1200);
+    await r.hold(0.8); r.mark("start");
+    await r.scrollTo(page.getByText("Space messages", { exact: true }), 0.42, 1.4);
+    r.mark("window-visible");
+    await r.hold(1.6);
+    await r.tap(page.getByText("Send between", { exact: true }).first(), "send-between");
+    await r.hold(0.9); r.mark("picker-open");
+    await r.scrollTo(page.getByText("9 am", { exact: true }).last(), 0.5, 0.9);
+    r.mark("picker-9am");
+    await r.hold(0.5);
+    await r.scrollTo(page.getByText("9 pm", { exact: true }).last(), 0.5, 0.9);
+    r.mark("picker-9pm");
+    await r.hold(1.6);
+  },
   // Short 001
   async "composer-manual"(page, r) {
     await nav(page, "Sellers");

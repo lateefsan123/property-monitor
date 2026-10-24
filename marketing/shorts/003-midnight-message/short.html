@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Short 003 — 11:47pm</title>
+<style>
+  @font-face { font-family: "Outfit"; font-weight: 900; src: url("../../../mobile/assets/fonts/Outfit-Black.ttf"); }
+  @font-face { font-family: "Inter"; font-weight: 400; src: url("../../../mobile/assets/fonts/Inter-Regular.ttf"); }
+  @font-face { font-family: "Inter"; font-weight: 600; src: url("../../../mobile/assets/fonts/Inter-SemiBold.ttf"); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0B0C0D; }
+  .layer { position: absolute; inset: 0; overflow: hidden; display: none; }
+  .abs { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .pose { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .shadow { position: absolute; border-radius: 50%; background: rgba(20, 20, 30, .18); filter: blur(6px); }
+
+  /* Night: the scene is drawn in day colours and dimmed; the phone throws a cool glow on his face */
+  .night .pose { filter: brightness(.58) saturate(.8) hue-rotate(-8deg); }
+  .glow { position: absolute; border-radius: 50%; pointer-events: none; mix-blend-mode: screen;
+          background: radial-gradient(circle, rgba(170, 205, 255, .55) 0%, rgba(140, 180, 255, .22) 40%, rgba(140, 180, 255, 0) 70%); }
+
+  /* Drawn lock screen, same ink style as Oliver's phone in Short 002 */
+  #lphone { position: absolute; left: 110px; top: 330px; width: 860px; height: 1560px; border: 12px solid #141414; border-radius: 96px;
+            background: #141414; padding: 14px; }
+  #lscreen { position: relative; width: 100%; height: 100%; border-radius: 74px; overflow: hidden; }
+  #lscreen .wall { position: absolute; inset: 0; }
+  #ltime { position: absolute; left: 0; right: 0; top: 190px; text-align: center; font: 900 220px/1 "Outfit", sans-serif; color: #fff;
+           -webkit-text-stroke: 10px #141414; paint-order: stroke fill; letter-spacing: -4px; }
+  #lday { position: absolute; left: 0; right: 0; top: 140px; text-align: center; font: 600 44px "Inter", sans-serif; color: #fff;
+          -webkit-text-stroke: 6px #141414; paint-order: stroke fill; }
+  .note { position: absolute; left: 40px; right: 40px; top: 560px; display: flex; gap: 24px; align-items: flex-start;
+          padding: 28px 30px; border: 6px solid #141414; border-radius: 40px; background: #FAF8F3; }
+  .note .ic { flex: none; width: 92px; height: 92px; border-radius: 24px; border: 5px solid #141414; background: #2E9F62; position: relative; }
+  .note .ic::after { content: ""; position: absolute; left: 22px; top: 22px; width: 38px; height: 30px; border-radius: 16px; background: #fff; }
+  .note b { display: flex; justify-content: space-between; font: 600 38px "Inter", sans-serif; color: #141414; margin-bottom: 8px; }
+  .note b span { font-weight: 400; font-size: 30px; color: #6B7277; }
+  .note p { font: 400 40px/1.3 "Inter", sans-serif; color: #141414; }
+  .note .mark { border-radius: 8px; }
+
+  /* Comic reply bubble in the close-up */
+  #say { position: absolute; z-index: 5; padding: 30px 44px; border: 9px solid #141414; border-radius: 60px; background: #fff;
+         font: 900 84px "Outfit", sans-serif; color: #141414; white-space: nowrap; transform-origin: 0 100%; }
+  #say::after { content: ""; position: absolute; left: 70px; bottom: -52px; width: 60px; height: 60px; background: #fff;
+                border-right: 9px solid #141414; border-bottom: 9px solid #141414; transform: skewY(40deg) rotate(10deg); }
+
+  #topband { position: absolute; left: 0; right: 0; top: 0; height: 470px; z-index: 30; pointer-events: none;
+             background: linear-gradient(to bottom, #0B0C0D 0%, rgba(11,12,13,.92) 62%, rgba(11,12,13,0) 100%); }
+  #label { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; z-index: 50; width: max-content; margin: 0 auto; padding: 8px 20px; border-radius: 22px; background: rgba(11,12,13,.78);
+           font: 600 24px "Inter", sans-serif; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,.5); }
+
+  #caption { position: absolute; left: 60px; right: 60px; top: 120px; height: 230px; display: flex;
+             align-items: center; justify-content: center; text-align: center; z-index: 60; }
+  #caption span { font: 900 74px/1.08 "Outfit", sans-serif; color: #fff; letter-spacing: -0.5px;
+                  -webkit-text-stroke: 14px #141414; paint-order: stroke fill; text-wrap: balance; }
+  #caption em { font-style: normal; color: #6FF0DD; }
+
+  #endcard { background: transparent; }
+  #wordmark { position: absolute; left: 50%; top: 170px; width: 520px; transform: translateX(-50%); z-index: 2; }
+  #endline { position: absolute; left: 60px; right: 60px; top: 300px; text-align: center; z-index: 2;
+             font: 900 92px/1.04 "Outfit", sans-serif; color: #fff; letter-spacing: -1px; }
+  #endline span { color: #6FF0DD; }
+  #endtop { position: absolute; left: 0; right: 0; top: 0; height: 640px; z-index: 0;
+            background: linear-gradient(to bottom, #0B0C0D 0%, #0B0C0D 70%, rgba(11,12,13,0) 100%); }
+  #cta { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); white-space: nowrap; z-index: 60;
+         padding: 26px 44px; border-radius: 60px; background: #fff; color: #0B0C0D; font: 600 40px "Inter", sans-serif; }
+  #cta b { font-weight: 600; color: #11806F; }
+  #endfade { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; z-index: 55;
+             background: linear-gradient(to bottom, rgba(11,12,13,0), #0B0C0D 62%); }
+</style>
+</head>
+<body>
+
+<!-- ───────── Night: bedroom ───────── -->
+<div class="layer night" id="bed">
+  <div class="abs" id="bedSet">
+    <svg width="1080" height="1920" viewBox="0 0 1080 1920" stroke="#141414" stroke-width="6" stroke-linejoin="round">
+      <rect width="1080" height="1920" fill="#1C2433" stroke="none"/>
+      <!-- window: Downtown at night -->
+      <rect x="120" y="230" width="840" height="760" rx="8" fill="#2A3346"/>
+      <rect x="146" y="256" width="788" height="708" fill="#0F1626" stroke-width="5"/>
+      <circle cx="790" cy="380" r="46" fill="#E9E3C8" stroke-width="5"/>
+      <path d="M146,964 L146,820 L200,820 L200,770 L250,770 L250,850 L320,850 L320,700 L344,640 L348,520 L352,640 L376,700 L376,860 L460,860 L460,790 L520,790 L520,880 L620,880 L620,800 L680,800 L680,870 L770,870 L770,810 L830,810 L830,890 L934,890 L934,964 Z" fill="#26304A" stroke-width="4"/>
+      <g fill="#F4D36B" stroke="none"><rect x="210" y="800" width="10" height="10"/><rect x="232" y="830" width="10" height="10"/><rect x="342" y="720" width="8" height="8"/><rect x="340" y="770" width="8" height="8"/><rect x="480" y="820" width="10" height="10"/><rect x="640" y="830" width="10" height="10"/><rect x="790" y="840" width="10" height="10"/></g>
+      <line x1="540" y1="256" x2="540" y2="964" stroke-width="5"/>
+      <rect x="-10" y="1300" width="1100" height="640" fill="#161C28"/>
+      <line x1="-10" y1="1300" x2="1090" y2="1300"/>
+    </svg>
+  </div>
+  <img class="pose" id="pBed" data-pose="bed">
+  <div class="glow" id="bedGlow"></div>
+</div>
+
+<!-- ───────── Night: close-up reply ───────── -->
+<div class="layer night" id="close">
+  <svg class="abs" width="1080" height="1920" viewBox="0 0 1080 1920" stroke="#141414" stroke-width="7">
+    <rect width="1080" height="1920" fill="#1C2433" stroke="none"/>
+    <rect x="-20" y="120" width="1120" height="1300" fill="#0F1626"/>
+    <circle cx="860" cy="360" r="60" fill="#E9E3C8" stroke-width="6"/>
+    <line x1="540" y1="120" x2="540" y2="1420"/>
+  </svg>
+  <img class="pose" id="pReply" data-pose="bedReply">
+  <div class="glow" id="replyGlow"></div>
+  <div id="say">Tomorrow, please.</div>
+</div>
+
+<!-- ───────── Lock screens (night and morning) ───────── -->
+<div class="layer" id="lock">
+  <div id="lphone"><div id="lscreen">
+    <div class="wall" id="lwall"></div>
+    <div id="lday">Tuesday</div>
+    <div id="ltime">23:47</div>
+    <div class="note" id="note">
+      <span class="ic"></span>
+      <span><b><span id="nFrom">+971 55 555 0182</span><span>now</span></b><p id="nText">Good evening! Quick property question.</p></span>
+    </div>
+  </div></div>
+</div>
+
+<!-- ───────── Day: broker at his desk ───────── -->
+<div class="layer" id="desk">
+  <svg class="abs" width="1080" height="1920" viewBox="0 0 1080 1920" stroke="#141414" stroke-width="6" stroke-linejoin="round">
+    <rect width="1080" height="1920" fill="#EDE4D3" stroke="none"/>
+    <rect x="600" y="300" width="400" height="460" rx="10" fill="#F8F4EC"/>
+    <rect x="624" y="324" width="352" height="412" fill="#CFE6EC" stroke-width="5"/>
+    <path d="M624,736 L624,640 L670,640 L670,600 L700,600 L700,660 L740,660 L740,560 L752,520 L756,440 L760,520 L772,560 L772,670 L820,670 L820,620 L860,620 L860,690 L976,690 L976,736 Z" fill="#A9CCD5" stroke-width="4"/>
+    <line x1="800" y1="324" x2="800" y2="736" stroke-width="5"/>
+    <rect x="70" y="440" width="300" height="220" rx="6" fill="#F6F1E7"/>
+    <path d="M110,620 L170,520 L220,580 L260,540 L330,620 Z" fill="#9FB4AA" stroke-width="4"/>
+    <rect x="-10" y="1500" width="1100" height="430" fill="#D3BE99"/>
+    <line x1="-10" y1="1500" x2="1090" y2="1500"/>
+  </svg>
+  <img class="pose" id="pDesk" data-pose="desk">
+</div>
+
+<!-- ───────── Morning: Oliver's flat ───────── -->
+<div class="layer" id="morning">
+  <svg class="abs" width="1080" height="1920" viewBox="0 0 1080 1920" stroke="#141414" stroke-width="6" stroke-linejoin="round">
+    <rect width="1080" height="1920" fill="#E4E8E4" stroke="none"/>
+    <rect x="120" y="230" width="840" height="1000" rx="8" fill="#FBF9F3"/>
+    <rect x="146" y="256" width="788" height="948" fill="#CFE8F0" stroke-width="5"/>
+    <circle cx="300" cy="420" r="70" fill="#FFE8A3" stroke-width="5"/>
+    <g stroke="none"><ellipse cx="700" cy="600" rx="170" ry="34" fill="#F7FBFC"/><ellipse cx="780" cy="580" rx="100" ry="34" fill="#F7FBFC"/></g>
+    <path d="M146,1204 L146,1080 L190,1080 L190,1040 L232,1040 L232,1100 L300,1100 L300,1010 L340,1010 L340,1120 L420,1120 L420,1060 L470,1060 L470,1130 L560,1130 L560,1030 L600,1030 L600,1110 L690,1110 L690,1050 L736,1050 L736,1140 L820,1140 L820,1070 L870,1070 L870,1150 L934,1150 L934,1204 Z" fill="#B3D0D8" stroke-width="4"/>
+    <line x1="540" y1="256" x2="540" y2="1204" stroke-width="5"/>
+    <rect x="-10" y="1230" width="1100" height="700" fill="#CBB79A"/>
+    <line x1="-10" y1="1230" x2="1090" y2="1230"/>
+    <ellipse cx="540" cy="1640" rx="470" ry="120" fill="#9FB4AA"/>
+  </svg>
+  <div class="shadow" id="mShadow"></div>
+  <img class="pose" id="pMorning" data-pose="morning">
+</div>
+
+<!-- ───────── Real app ───────── -->
+<div class="layer" id="appLayer" style="background:#0B0C0D">
+  <div class="abs" id="appStage"></div>
+  <div id="topband"></div>
+  <div id="label">Dramatisation · demo data</div>
+</div>
+
+<div class="layer" id="endcard">
+  <div id="endtop"></div>
+  <img id="wordmark" src="../../../mobile/assets/repeat-ai-logo.png">
+  <div id="endline">Good content.<br><span>Better timing.</span></div>
+  <div id="endfade"></div>
+  <div id="cta">Watch the demo · <b>repeatai.org</b></div>
+</div>
+
+<div id="caption"><span id="capText"></span></div>
+
+<script src="../lib/app-phone.js"></script>
+<script>
+// build-short.mjs injects window.TL (cues from narration word timings, captions, pose bounds, app beats)
+const $ = id => document.getElementById(id);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, u) => a + (b - a) * u;
+const ease = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+const out = u => 1 - Math.pow(1 - u, 3);
+const back = u => { const c = 1.70158; return 1 + (c + 1) * Math.pow(u - 1, 3) + c * Math.pow(u - 1, 2); };
+const prog = (t, a, d) => clamp((t - a) / d);
+const set = (el, css) => Object.assign(el.style, css);
+
+// Place a pose by its artwork bounds: bbox bottom on `floor`, centred on `cx`, `h` px tall
+function placePose(el, key, cx, floor, h, zoom = 1) {
+  const p = TL.poses[key];
+  if (!p) { el.style.display = "none"; return null; }
+  const s = h / (p.y1 - p.y0) * zoom;
+  const x = cx - ((p.x0 + p.x1) / 2) * s, y = floor - p.y1 * s;
+  set(el, { display: "block", transform: `translate(${x}px, ${y}px) scale(${s})` });
+  return { s, x, y, p };
+}
+// Glow centred on a point given as a fraction of the pose's bounds
+function glowOn(el, P, fx, fy, r, a) {
+  const gx = P.x + (P.p.x0 + (P.p.x1 - P.p.x0) * fx) * P.s, gy = P.y + (P.p.y0 + (P.p.y1 - P.p.y0) * fy) * P.s;
+  set(el, { left: `${gx - r}px`, top: `${gy - r}px`, width: `${2 * r}px`, height: `${2 * r}px`, opacity: a });
+}
+
+let PH = null, built = false;
+function render(t) {
+  const C = TL.cue;
+  if (!built) {
+    for (const el of document.querySelectorAll("[data-pose]")) if (TL.poses[el.dataset.pose]) el.src = TL.poses[el.dataset.pose].src;
+    PH = AppPhone.create($("appStage"));
+    built = true;
+  }
+  const shot =
+    t < C.toLock ? "bed" :
+    t < C.toClose ? "lockNight" :
+    t < C.toDesk ? "close" :
+    t < C.toApp ? "desk" :
+    t < C.toMorning ? "app" :
+    t < C.toMorningPhone ? "morning" :
+    t < C.endCard ? "lockMorning" : "end";
+  for (const id of ["bed", "close", "lock", "desk", "morning", "appLayer", "endcard"]) set($(id), { display: "none" });
+  const breathe = 1 + 0.004 * Math.sin(t * 2.2);
+  let pending = null;
+
+  if (shot === "bed") {
+    set($("bed"), { display: "block" });
+    const push = lerp(1, 1.06, prog(t, 0, C.toLock));
+    set($("bedSet"), { transform: `scale(${push})`, transformOrigin: "540px 1300px" });
+    const P = placePose($("pBed"), "bed", 540, 1640, 1050, push);
+    // the screen lights up his face just before the line
+    if (P) glowOn($("bedGlow"), P, TL.glow.bed[0], TL.glow.bed[1], 420, out(prog(t, C.phoneOn, 0.15)) * (0.9 + 0.1 * Math.sin(t * 7)));
+  }
+  if (shot === "lockNight" || shot === "lockMorning") {
+    set($("lock"), { display: "block", background: shot === "lockNight" ? "#1C2433" : "#E4E8E4" });
+    const night = shot === "lockNight";
+    $("ltime").textContent = night ? "23:47" : "9:20";
+    $("nFrom").textContent = night ? "+971 55 555 0182" : "+971 50 555 0100";
+    $("nText").textContent = night ? "Good evening! Quick property question." : "Hi Oliver Grant, quick update on recent sales in Burj Khalifa.";
+    set($("lwall"), { background: night ? "linear-gradient(#22304D, #10172A)" : "linear-gradient(#BFE0EA, #F5E6C8)" });
+    const a = night ? C.toLock : C.toMorningPhone;
+    const rise = out(prog(t, a, 0.35));
+    set($("lphone"), { transform: `translateY(${(1 - rise) * 500}px) rotate(${(1 - rise) * 3}deg) scale(${lerp(1, 1.05, prog(t, a, 3))})`, transformOrigin: "50% 40%" });
+    const n = back(prog(t, a + 0.25, 0.35));
+    set($("note"), { opacity: clamp(n * 1.4), transform: `translateY(${(1 - n) * -60}px) scale(${lerp(0.9, 1, n)})` });
+  }
+  if (shot === "close") {
+    set($("close"), { display: "block" });
+    const P = placePose($("pReply"), "bedReply", 470, 1920, 1500, lerp(1, 1.04, prog(t, C.toClose, 1.5)));
+    if (P) glowOn($("replyGlow"), P, TL.glow.reply[0], TL.glow.reply[1], 520, 0.85);
+    const u = back(prog(t, C.sayPop, 0.32));
+    set($("say"), { left: "90px", top: "430px", opacity: clamp(u * 1.5), transform: `scale(${lerp(0.4, 1, u)}) rotate(${lerp(-6, -3, u)}deg)` });
+  }
+  if (shot === "desk") {
+    set($("desk"), { display: "block" });
+    // morning light: a quick brightening as we cut to day
+    const P = placePose($("pDesk"), "desk", 540, 1700, 1150, lerp(1, 1.05, prog(t, C.toDesk, 2)));
+  }
+  if (shot === "app" || shot === "end") {
+    set($("appLayer"), { display: "block", zIndex: 2 });
+    const rise = shot === "app" ? out(prog(t, C.toApp, 0.45)) : 1;
+    pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, { dy: (1 - rise) * 1500 });
+    set($("topband"), { opacity: shot === "app" ? 1 : 0 });
+    set($("label"), { opacity: shot === "app" ? 1 : 0 });
+  }
+  if (shot === "morning") {
+    set($("morning"), { display: "block" });
+    const P = placePose($("pMorning"), "morning", 560, 1720, 1250, lerp(1, 1.04, prog(t, C.toMorning, 2)));
+    set($("mShadow"), { left: "300px", top: "1690px", width: "520px", height: "50px" });
+  }
+  if (shot === "end") {
+    set($("endcard"), { display: "block", zIndex: 5, opacity: out(prog(t, C.endCard, 0.5)) });
+    const w = out(prog(t, C.endCard + 0.1, 0.4)), l = out(prog(t, C.endLine - 0.1, 0.4)), c = out(prog(t, C.endLine + 0.9, 0.4));
+    set($("wordmark"), { opacity: w, transform: `translateX(-50%) translateY(${(1 - w) * 30}px)` });
+    set($("endline"), { opacity: l, transform: `translateY(${(1 - l) * 30}px)` });
+    set($("cta"), { opacity: c, transform: `translateX(-50%) scale(${lerp(0.92, 1, c)})` });
+  }
+
+  // a quick dip on the drawn cuts; a longer fade from night into day
+  const cuts = [C.toLock, C.toClose, C.toMorningPhone];
+  let dip = 0;
+  for (const c of cuts) dip = Math.max(dip, 1 - Math.abs(t - c) / 0.07);
+  let f = dip > 0 ? `brightness(${1 + dip * 0.25})` : "";
+  const dawn = 1 - Math.abs(t - C.toDesk) / 0.25;
+  if (dawn > 0) f = `brightness(${1 + dawn * 0.9})`;
+  const fadeOut = prog(t, TL.end - 0.5, 0.5);
+  if (fadeOut > 0) f = `brightness(${1 - fadeOut})`;
+  document.body.style.filter = f || "none";
+
+  let cap = null;
+  for (const c of TL.captions) if (t >= c.a && t < c.b) cap = c;
+  if (cap && shot !== "end") {
+    $("capText").innerHTML = cap.html;
+    const u = out(prog(t, cap.a, 0.16));
+    set($("caption"), { opacity: u, transform: `translateY(${(1 - u) * 18}px) scale(${lerp(0.96, 1, u)})`, top: shot === "close" ? "1480px" : "120px" });
+  } else set($("caption"), { opacity: 0 });
+  return pending;
+}
+
+window.setTime = t => render(t);
+window.ready = new Promise(r => setTimeout(r, 0)).then(() => { render(0); return Promise.all([...document.images].map(i => i.decode().catch(() => {})).concat(document.fonts.ready)); });
+if (!navigator.webdriver && window.TL) {
+  const t0 = performance.now();
+  const tick = () => { render(((performance.now() - t0) / 1000) % TL.end); requestAnimationFrame(tick); };
+  window.ready.then(tick);
+}
+</script>
+</body>
+</html>

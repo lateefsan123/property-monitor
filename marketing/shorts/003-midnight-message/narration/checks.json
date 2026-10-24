@@ -1,0 +1,278 @@
+{
+  "passed": true,
+  "rows": [
+    {
+      "file": "vo-003-1-take-1.mp3",
+      "duration": 1.959167,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "5bc8fadbf9058a182e39cee481d89feee06e5c2a3793733a02543d9aa313abfd",
+      "decodedPcmSha256": "3687ab155e89590fcc6f811594a4d4a557df1ad4839ab7f417242c1e507501e5",
+      "transcript": "11 47 p .m"
+    },
+    {
+      "file": "vo-003-1-take-2.mp3",
+      "duration": 1.959167,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "33a9233700931f422b09a8c01085b2f3b19d76acb8a2d72540c0f0f9a674ef64",
+      "decodedPcmSha256": "a6f8fb9332fc78a01cf99cf8e0784439a0a423d624267a8676f6148af614aed9",
+      "transcript": "11 .47pm"
+    },
+    {
+      "file": "vo-003-1-take-3.mp3",
+      "duration": 2.115917,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "af9f20dab1a3a2f2cd87031ea5db6cb6cde399bc98790b834321cacc0f169131",
+      "decodedPcmSha256": "c165f9db1cab99ffabc6718a4e14926b87b50dea0f62182a3fd742a7c5659541",
+      "transcript": "11 .47pm"
+    },
+    {
+      "file": "vo-003-2-take-1.mp3",
+      "duration": 2.586083,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "a787ccc0cef8bfdd2e421160e2d94ee105fd431854dcc2664fcac917f6fe4e67",
+      "decodedPcmSha256": "4f378f91e462887bee63281d085e7f17a86befd773e2bc89a1bd218d22f93a70",
+      "transcript": "Good evening. Quick property question."
+    },
+    {
+      "file": "vo-003-2-take-2.mp3",
+      "duration": 2.50775,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "762eb2d32762279c49066bfded5f95cc146755fdc78142b8dfa25f989891fbcb",
+      "decodedPcmSha256": "5d63516955a85c3d3aaa4d7c53b03a62230d788527ee065355d8ac908ae1f3c7",
+      "transcript": "Good evening. Quick property question."
+    },
+    {
+      "file": "vo-003-2-take-3.mp3",
+      "duration": 2.586083,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "04624405094d7927c0db9aeb80d10e098400938d4fd607f206ea0673f2416445",
+      "decodedPcmSha256": "37367cbeb3a75a93603c531adb4dd37664cc78dceba7862ab6b5c7fdc38ec6a9",
+      "transcript": "Good evening. Quick property question."
+    },
+    {
+      "file": "vo-003-3-take-1.mp3",
+      "duration": 1.567333,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "628a383d513785da43161ca16e910e3014e4952a2d2aaf5668e4d10e36dc984b",
+      "decodedPcmSha256": "bbdc8993f0aca8c4c35b8cfd5a06e6e60c0b002983f11f2ae819736bb37c8693",
+      "transcript": "Tomorrow, please."
+    },
+    {
+      "file": "vo-003-3-take-2.mp3",
+      "duration": 1.567333,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "893196df042319ef7205e2643c2dc185f87951b0c7e76b42fd8c7e6cffad8396",
+      "decodedPcmSha256": "5c1daa542311076d81e9c0982026cff4f4e908c5bbdf2842a5dca222c3aa6357",
+      "transcript": "Tomorrow, please."
+    },
+    {
+      "file": "vo-003-3-take-3.mp3",
+      "duration": 1.567333,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "505a884447d5d7a20be87ec7b60881de0d53d9049f582f4f870b5ed314e5fc71",
+      "decodedPcmSha256": "b429c1fb49d3f5682aee0bb946ca05c9d9d4589e0b745f544f87a895f5217dd3",
+      "transcript": "Tomorrow, please."
+    },
+    {
+      "file": "vo-003-4-take-1.mp3",
+      "duration": 4.519167,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "72a96273dffc392b84be93cd11d71d6ae9fd3616556f9a4db2be942a730721fb",
+      "decodedPcmSha256": "d587cf65834ff65bdcf023d6271c074b7a078b7f6ff5e774f8b44de6e313fd77",
+      "transcript": "That's why my follow -ups only go out between 9 and 9. Dubai time."
+    },
+    {
+      "file": "vo-003-4-take-2.mp3",
+      "duration": 4.362417,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "94f45efff49963d1e1319c36c4876e61ab2dbb9e74dccc9d2a9564bf4932b6ec",
+      "decodedPcmSha256": "e51b958446fbc20ab9586382c11f5a6f073f76de686ef7042bac53bc6c4b6346",
+      "transcript": "That's why my follow -ups only go out between 9 and 9. Dubai time."
+    },
+    {
+      "file": "vo-003-4-take-3.mp3",
+      "duration": 4.597542,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "2da80a2c59f63ce733e83f75bd31f6942bfd59192e2337fb8ee233bf95e9db17",
+      "decodedPcmSha256": "613fe766b5b61507105408998c489556a3550fb12fd4978483c1a167c24724d9",
+      "transcript": "That's why my follow -ups only go out between 9 and 9. Dubai time."
+    },
+    {
+      "file": "vo-003-5-take-1.mp3",
+      "duration": 2.351,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "db71cae4f57977537ac2bee6ec2a8fa9f4c2f5d0290b588659b4f032d87ee7c0",
+      "decodedPcmSha256": "55646586c4f8f83cecaf29a6b42898a03be79b64a9aae8cb7b21bc019362d80b",
+      "transcript": "and they're spaced 15 minutes apart."
+    },
+    {
+      "file": "vo-003-5-take-2.mp3",
+      "duration": 2.272625,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "d9a8e3b898bfb599c8e033cf7c5f1cd1cac2aa922c0abceb6aab04089cf1b4a3",
+      "decodedPcmSha256": "8a40ff96e81eef6deb5c11028462cd5328fb864c9481154f233bd97148db3c8e",
+      "transcript": "and they're spaced 15 minutes apart."
+    },
+    {
+      "file": "vo-003-5-take-3.mp3",
+      "duration": 2.272625,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "8df97420f10032cf0741a0e496ad9db046eeec748ff898c768cde47d110810db",
+      "decodedPcmSha256": "0950c879896f2a93b7f4ae54cbc9cdc4c24a40300523ab8283fafb7d322bb3d3",
+      "transcript": "and they're spaced 15 minutes apart."
+    },
+    {
+      "file": "vo-003-6-take-1.mp3",
+      "duration": 3.082417,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "03964f2343c17f21d64999343d52dcb32b813c8a1e0bd9a434c0b49f1562e962",
+      "decodedPcmSha256": "8f748f8940987ac4c84849ee5417b28914a50d3b963b46d809d9af96197215c6",
+      "transcript": "920. Now that, I'll read."
+    },
+    {
+      "file": "vo-003-6-take-2.mp3",
+      "duration": 3.004083,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "b565a6667eac525b6ee98a16b09f851dd8931c406c9ef8c87eb7f6653632fc65",
+      "decodedPcmSha256": "8e83b4eaabf71b661d75fce4126f3f353d7fc72caa0ea0e47e6b65b16dfac42e",
+      "transcript": "920. Now that I'll read."
+    },
+    {
+      "file": "vo-003-6-take-3.mp3",
+      "duration": 3.004083,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "4135210c9401c52f4d1a608f9db088cb38b8cae5bc39bbc6ea5cc21df70ad205",
+      "decodedPcmSha256": "fc517aa1c3983a025cedd05c75d891ca5ab0674ee6a98b5fdf2136c6435a2177",
+      "transcript": "920. Now that I'll read."
+    },
+    {
+      "file": "vo-003-7-take-1.mp3",
+      "duration": 3.78775,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "11ba6712c5465c8633321d70019854d3e6d9a9ca6fdcc707b2154508f2a73d64",
+      "decodedPcmSha256": "45b256a16d41057179e14d907f0130e4ba8b54fdcda2a6bc27987b561c90b1c0",
+      "transcript": "Repeat AI. Good content. Better timing."
+    },
+    {
+      "file": "vo-003-7-take-2.mp3",
+      "duration": 3.78775,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "206103fb49d1acbefed85945846f8ffeb411730ef08a548cf885497813227f68",
+      "decodedPcmSha256": "daab561ae1658164c048c4f3fb612d06396a8fbfb8561ef9d1e63c0b5aaa8851",
+      "transcript": "Repeat AI. Good content. Better timing."
+    },
+    {
+      "file": "vo-003-7-take-3.mp3",
+      "duration": 3.78775,
+      "stream": {
+        "codec_name": "mp3",
+        "sample_rate": "44100",
+        "channels": 1,
+        "bit_rate": "192000"
+      },
+      "sha256": "015807a0fe50c1e0cf268da2e2479d5abeedb9344a6325195f726941ef03456c",
+      "decodedPcmSha256": "f947a59d30c0a22d06247596501d5cbf98b8695892ad9e26000074bb65803539",
+      "transcript": "Repeat AI. Good content. Better timing."
+    }
+  ]
+}
