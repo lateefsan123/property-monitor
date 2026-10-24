@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Short 001 — Content Day</title>
+<style>
+  @font-face { font-family: "Outfit"; font-weight: 900; src: url("../../../mobile/assets/fonts/Outfit-Black.ttf"); }
+  @font-face { font-family: "Inter"; font-weight: 400; src: url("../../../mobile/assets/fonts/Inter-Regular.ttf"); }
+  @font-face { font-family: "Inter"; font-weight: 600; src: url("../../../mobile/assets/fonts/Inter-SemiBold.ttf"); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0B0C0D; }
+  .layer { position: absolute; inset: 0; overflow: hidden; }
+  .abs { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+
+  /* Set: one kitchen, framed differently per shot */
+  #room { background: #EDE4D3; }
+  #set { width: 1080px; height: 1920px; }
+  .pose { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .shadow { position: absolute; border-radius: 50%; background: rgba(40, 28, 10, .16); filter: blur(6px); }
+
+  /* Ring light switch-on: a multiply wash greys the ring until it turns on */
+  #ringOff { position: absolute; border-radius: 50%; mix-blend-mode: multiply; }
+  .glow { position: absolute; border-radius: 50%; pointer-events: none;
+          background: radial-gradient(circle, rgba(255, 236, 196, .75) 0%, rgba(255, 228, 180, .32) 38%, rgba(255, 228, 180, 0) 70%); }
+
+  /* Phone */
+  #phone { width: 1000px; border-radius: 118px; background: #1C1D20; padding: 14px;
+           box-shadow: 0 0 0 3px #2E3034, 0 40px 120px rgba(0,0,0,.55); }
+  #screen { position: relative; width: 972px; height: 2187px; border-radius: 104px; overflow: hidden; background: #0E0E0F; }
+  #statusbar { position: absolute; left: 0; top: 0; width: 972px; height: 80px; background: #0E0E0F; z-index: 5;
+               font: 600 34px "Inter", sans-serif; color: #fff; }
+  #statusbar .time { position: absolute; left: 92px; top: 26px; }
+  #statusbar .island { position: absolute; left: 376px; top: 18px; width: 220px; height: 54px; border-radius: 30px; background: #000; }
+  #statusbar .icons { position: absolute; right: 80px; top: 30px; display: flex; gap: 12px; align-items: flex-end; }
+  #statusbar .bars i { display: inline-block; width: 7px; margin-right: 3px; background: #fff; border-radius: 2px; }
+  #statusbar .batt { width: 52px; height: 24px; border: 3px solid rgba(255,255,255,.8); border-radius: 7px; padding: 2px; }
+  #statusbar .batt b { display: block; height: 100%; width: 78%; background: #fff; border-radius: 3px; }
+  .app { position: absolute; left: 0; top: 80px; width: 1179px; height: 2556px; transform-origin: 0 0; }
+  .app img { position: absolute; left: 0; top: 0; width: 1179px; height: 2556px; }
+  .hl { position: absolute; border: 6px solid #3FD3C0; border-radius: 26px;
+        box-shadow: 0 0 0 6px rgba(63, 211, 192, .18), 0 0 40px rgba(63, 211, 192, .35); }
+  .crop { position: absolute; background-repeat: no-repeat; background-size: 1179px 2556px; }
+  #tapDim { position: absolute; border-radius: 30px; background: rgba(255,255,255,.14); }
+
+  /* Captions: white with a heavy ink outline, like the drawings */
+  #caption { position: absolute; left: 60px; right: 60px; top: 150px; height: 250px; display: flex;
+             align-items: center; justify-content: center; text-align: center; z-index: 50; }
+  #caption span { font: 900 74px/1.08 "Outfit", sans-serif; color: #fff; letter-spacing: -0.5px;
+                  -webkit-text-stroke: 14px #141414; paint-order: stroke fill; text-wrap: balance; }
+  #caption em { font-style: normal; color: #6FF0DD; }
+  #label { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; z-index: 50;
+           font: 600 24px "Inter", sans-serif; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,.5); }
+
+  /* End card */
+  #endcard { background: transparent; }
+  #topband { position: absolute; left: 0; right: 0; top: 0; height: 470px; z-index: 30; pointer-events: none;
+             background: linear-gradient(to bottom, #0B0C0D 0%, rgba(11,12,13,.92) 62%, rgba(11,12,13,0) 100%); }
+  #wordmark { position: absolute; left: 50%; top: 170px; width: 520px; transform: translateX(-50%); }
+  #endline { position: absolute; left: 60px; right: 60px; top: 300px; text-align: center;
+             font: 900 84px/1.04 "Outfit", sans-serif; color: #fff; letter-spacing: -1px; }
+  #endline span { color: #6FF0DD; }
+  #cta { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); white-space: nowrap; z-index: 60;
+         padding: 26px 44px; border-radius: 60px; background: #fff; color: #0B0C0D; font: 600 40px "Inter", sans-serif; }
+  #cta b { font-weight: 600; color: #11806F; }
+  #endfade { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; z-index: 55;
+             background: linear-gradient(to bottom, rgba(11,12,13,0), #0B0C0D 62%); }
+</style>
+</head>
+<body>
+
+<!-- ───────── Kitchen set + poses ───────── -->
+<div class="layer" id="room">
+  <div class="abs" id="set">
+    <svg width="1080" height="1920" viewBox="0 0 1080 1920" stroke="#141414" stroke-width="6" stroke-linejoin="round" stroke-linecap="round">
+      <!-- window with a skyline -->
+      <rect x="640" y="300" width="380" height="430" rx="10" fill="#F8F4EC"/>
+      <rect x="664" y="324" width="332" height="382" fill="#CFE6EC" stroke-width="5"/>
+      <path d="M664,706 L664,640 L700,640 L700,600 L728,600 L728,660 L760,660 L760,560 L772,520 L776,430 L780,520 L792,560 L792,668 L828,668 L828,612 L866,612 L866,676 L900,676 L900,640 L940,640 L940,690 L996,690 L996,706 Z" fill="#A9CCD5" stroke-width="4"/>
+      <line x1="830" y1="324" x2="830" y2="706" stroke-width="5"/>
+      <line x1="664" y1="515" x2="996" y2="515" stroke-width="5"/>
+      <!-- pendant lamp -->
+      <line x1="190" y1="0" x2="190" y2="250"/>
+      <path d="M120,330 C120,280 150,250 190,250 C230,250 260,280 260,330 Z" fill="#1E3B28"/>
+      <ellipse cx="190" cy="336" rx="34" ry="10" fill="#FFF3D6" stroke-width="4"/>
+      <!-- upper cabinets -->
+      <rect x="-10" y="420" width="400" height="320" fill="#F6F1E7"/>
+      <line x1="190" y1="420" x2="190" y2="740"/>
+      <line x1="160" y1="560" x2="160" y2="610" stroke-width="8"/>
+      <line x1="220" y1="560" x2="220" y2="610" stroke-width="8"/>
+      <!-- splashback tiles -->
+      <g stroke="#D7CCB8" stroke-width="3">
+        <line x1="0" y1="820" x2="390" y2="820"/><line x1="0" y1="900" x2="390" y2="900"/><line x1="0" y1="980" x2="390" y2="980"/><line x1="0" y1="1060" x2="390" y2="1060"/>
+      </g>
+      <!-- lower cabinets + counter -->
+      <rect x="-10" y="1130" width="420" height="44" fill="#2A2A2A"/>
+      <rect x="-10" y="1174" width="400" height="330" fill="#F6F1E7"/>
+      <line x1="190" y1="1174" x2="190" y2="1504"/>
+      <line x1="160" y1="1240" x2="160" y2="1290" stroke-width="8"/>
+      <line x1="220" y1="1240" x2="220" y2="1290" stroke-width="8"/>
+      <!-- kettle and plant on the counter -->
+      <path d="M60,1130 L66,1060 C68,1040 130,1040 132,1060 L138,1130 Z" fill="#E7D3B0"/>
+      <path d="M132,1072 C160,1070 162,1100 140,1108" fill="none"/>
+      <rect x="276" y="1066" width="64" height="64" rx="8" fill="#C98A5B"/>
+      <path d="M308,1066 C290,1020 262,1010 252,990 C282,994 300,1020 308,1050 C312,1012 330,990 356,984 C350,1016 326,1040 310,1066 Z" fill="#5E8C61" stroke-width="5"/>
+      <!-- floor -->
+      <rect x="-10" y="1504" width="1100" height="430" fill="#D3BE99"/>
+      <line x1="-10" y1="1504" x2="1090" y2="1504"/>
+      <g stroke="#BFA77F" stroke-width="3"><line x1="0" y1="1640" x2="1080" y2="1640"/><line x1="0" y1="1800" x2="1080" y2="1800"/></g>
+    </svg>
+  </div>
+
+  <div class="glow" id="glow"></div>
+  <div class="shadow" id="shadow"></div>
+  <img class="pose" id="pHook" src="pose-hook.png">
+  <div id="ringOff"></div>
+  <img class="pose" id="pInt" src="pose-interrupted.png">
+  <svg class="pose" id="buzz" width="1355" height="1161" viewBox="0 0 1355 1161" fill="none" stroke="#141414" stroke-width="7" stroke-linecap="round">
+    <path d="M948,452 L968,420"/><path d="M966,480 L1004,462"/><path d="M760,452 L738,424"/>
+  </svg>
+  <img class="pose" id="pPay" src="pose-payoff.png">
+  <div class="glow" id="recGlow" style="background: radial-gradient(circle, rgba(255,60,50,.65) 0%, rgba(255,60,50,0) 70%)"></div>
+  <svg class="abs" id="iris" width="1080" height="1920" style="pointer-events:none"><circle id="irisRing" fill="none" stroke="#FFF6E6" stroke-width="40"/></svg>
+</div>
+
+<!-- ───────── App ───────── -->
+<div class="layer" id="appLayer">
+  <div class="abs" id="phone">
+    <div id="screen">
+      <div id="statusbar"><span class="time">9:41</span><span class="island"></span>
+        <span class="icons"><span class="bars"><i style="height:12px"></i><i style="height:17px"></i><i style="height:22px"></i><i style="height:27px"></i></span><span class="batt"><b></b></span></span>
+      </div>
+      <div class="app" id="sSend"><img src="../../../video/launch-film/out/app/takes-v6/mobile-send.png">
+        <div id="tapDim" style="left:66px; top:2392px; width:1046px; height:120px; opacity:0"></div>
+        <div class="hl" id="hSend" style="left:40px; top:1850px; width:1100px; height:480px"></div>
+      </div>
+      <div class="app" id="sTpl"><img src="../../../video/launch-film/out/app/takes-v5s/tpl-preview.png">
+        <div class="hl" id="hTpl" style="left:52px; top:1402px; width:1076px; height:1102px"></div>
+      </div>
+      <div class="app" id="sUse"><img src="../../../video/launch-film/out/app/takes-v5s/tpl-uses-on.png">
+        <div class="hl" id="hUse" style="left:30px; top:2170px; width:1120px; height:106px"></div>
+      </div>
+      <div class="app" id="sAuto"><img src="../../../video/launch-film/out/app/takes-v5s/sc-auto.png">
+        <!-- the "on" switch from the row above, used to show the real tap result on this row -->
+        <div class="crop" id="tOn" style="left:996px; top:1402px; width:150px; height:80px;
+             background-image:url(../../../video/launch-film/out/app/takes-v5s/sc-auto.png); background-position:-996px -300px"></div>
+        <div class="hl" id="hAuto" style="left:30px; top:1340px; width:1120px; height:200px"></div>
+        <div class="hl" id="hStop" style="left:950px; top:1488px; width:0; height:0"></div>
+      </div>
+      <div class="app" id="sWa"><img src="../../../video/launch-film/out/app/takes-v5s/whatsapp.png">
+        <div class="hl" id="hWa" style="left:44px; top:300px; width:1092px; height:256px"></div>
+      </div>
+      <div class="app" id="sAct"><img src="../../../video/launch-film/out/app/takes-v6/mobile-activity.png">
+        <div class="hl" id="hAct" style="left:38px; top:885px; width:1104px; height:345px"></div>
+      </div>
+    </div>
+  </div>
+  <div id="topband"></div>
+  <div id="label">Dramatisation · demo data</div>
+</div>
+
+<!-- ───────── End card ───────── -->
+<div class="layer" id="endcard">
+  <img id="wordmark" src="../../../mobile/assets/repeat-ai-logo.png">
+  <div id="endline">Build your brand.<br><span>Keep your follow-ups organised.</span></div>
+  <div id="endfade"></div>
+  <div id="cta">Watch the demo · <b>repeatai.org</b></div>
+</div>
+
+<div id="caption"><span id="capText"></span></div>
+
+<script>
+// Timeline; build-short.mjs replaces this with times measured from the chosen narration takes.
+window.TL = window.TL || {
+  end: 24.0,
+  lines: [], captions: [],
+  cue: {
+    lightOn: 0.35, buzz: 2.05, cutInt: 2.2, zoom: 4.75, tap: 6.35, toTpl: 7.05, toUse: 8.75,
+    toAuto: 9.85, toggle: 10.6, toWa: 11.75, backAuto: 13.05, stop: 13.4, toPay: 15.75, endCard: 19.2,
+  },
+};
+
+const $ = id => document.getElementById(id);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, u) => a + (b - a) * u;
+const ease = u => u < .5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2;
+const out = u => 1 - Math.pow(1 - u, 3);
+const prog = (t, a, d) => clamp((t - a) / d);
+const set = (el, css) => Object.assign(el.style, css);
+
+// ── Shot framings (canvas px). Each pose is placed by scale + offset of its source image.
+const POSE = {
+  hook: { s: 1.26, x: 560 - 715 * 1.26, y: 1660 - 1076 * 1.26 },
+  int:  { s: 1.45, x: 540 - 650 * 1.45, y: 1920 - 1161 * 1.45 },
+  pay:  { s: 1.22, x: 520 - 708 * 1.22, y: 1660 - 1099 * 1.22 },
+};
+const at = (p, sx, sy) => [p.x + sx * p.s, p.y + sy * p.s];
+
+// Phone camera: show source point (sx, sy) of the screenshot at canvas (cx, cy) with zoom z.
+const K = 972 / 1179;
+function phoneCam(sx, sy, z, cx = 540, cy = 1180, rot = 0) {
+  const lx = 14 + sx * K, ly = 14 + 80 + sy * K;
+  return { x: cx - z * lx, y: cy - z * ly, z, rot, lx, ly };
+}
+function placePhone(c) {
+  set($("phone"), { transform: `translate(${c.x}px, ${c.y}px) translate(${c.lx * c.z}px, ${c.ly * c.z}px) rotate(${c.rot}deg) scale(${c.z}) translate(${-c.lx}px, ${-c.ly}px)` });
+}
+const mixCam = (a, b, u) => ({ sx: lerp(a.sx, b.sx, u), sy: lerp(a.sy, b.sy, u), z: lerp(a.z, b.z, u), cx: lerp(a.cx ?? 540, b.cx ?? 540, u), cy: lerp(a.cy ?? 1180, b.cy ?? 1180, u), rot: lerp(a.rot ?? 0, b.rot ?? 0, u) });
+
+// App screens: which one is showing, with a short push transition between them
+const SCREENS = ["sSend", "sTpl", "sUse", "sAuto", "sWa", "sAct"];
+function showScreens(t, C) {
+  const order = [["sSend", -1], ["sTpl", C.toTpl], ["sUse", C.toUse], ["sAuto", C.toAuto], ["sWa", C.toWa], ["sAuto", C.backAuto], ["sAct", C.endCard]];
+  let cur = 0;
+  for (let i = 0; i < order.length; i++) if (t >= order[i][1]) cur = i;
+  const u = ease(prog(t, order[cur][1], 0.26));
+  const back = order[cur][0] === "sAuto" && cur === 5;
+  for (const id of SCREENS) set($(id), { opacity: 0, transform: `scale(${K})` });
+  const curEl = $(order[cur][0]);
+  const dir = back ? -1 : 1;
+  set(curEl, { opacity: 1, transform: `translateX(${(1 - u) * 972 * 0.35 * dir}px) scale(${K})` });
+  if (cur > 0 && u < 1) {
+    const prev = $(order[cur - 1][0]);
+    set(prev, { opacity: clamp(1 - u * 1.8), transform: `translateX(${-u * 972 * 0.2 * dir}px) scale(${K})` });
+    set(curEl, { opacity: u });
+  }
+}
+function hl(id, t, a, b) {
+  const u = out(prog(t, a, 0.28)) * (1 - prog(t, b - 0.2, 0.2));
+  set($(id), { opacity: u, transform: `scale(${lerp(1.04, 1, u)})` });
+}
+
+function render(t) {
+  const C = TL.cue;
+
+  // ── Which layer is visible
+  const inApp = t >= C.zoom && t < C.toPay + 0.55;
+  const inEnd = t >= C.endCard;
+
+  // ── Room shots
+  let roomOn = true;
+  const hookOn = t < C.cutInt, intOn = t >= C.cutInt && t < C.toPay, payOn = t >= C.toPay;
+  set($("pHook"), { display: hookOn ? "block" : "none" });
+  set($("ringOff"), { display: hookOn ? "block" : "none" });
+  set($("pInt"), { display: intOn ? "block" : "none" });
+  set($("buzz"), { display: intOn ? "block" : "none" });
+  set($("pPay"), { display: payOn ? "block" : "none" });
+  set($("recGlow"), { display: payOn ? "block" : "none" });
+
+  let camS = 1, camX = 0, camY = 0;   // room camera (scale about origin)
+  const breathe = 1 + 0.004 * Math.sin(t * 2.2);
+
+  if (hookOn) {
+    const P = POSE.hook;
+    const push = lerp(1, 1.05, ease(prog(t, 0, C.cutInt)));
+    camS = push; camX = 540 * (1 - push); camY = 1100 * (1 - push);
+    set($("pHook"), { transform: `translate(${P.x}px, ${P.y + 1076 * P.s * (1 - breathe)}px) scale(${P.s}, ${P.s * breathe})` });
+    const [rx, ry] = at(P, 873, 374);
+    const on = out(prog(t, C.lightOn, 0.12));
+    set($("ringOff"), { left: `${rx - 140 * P.s}px`, top: `${ry - 140 * P.s}px`, width: `${280 * P.s}px`, height: `${280 * P.s}px`,
+                         background: `radial-gradient(circle, rgba(255,255,255,1) 0 ${92 * P.s}px, rgba(150,146,138,${1 - on}) ${93 * P.s}px ${138 * P.s}px, rgba(255,255,255,1) ${139 * P.s}px)` });
+    set($("glow"), { display: "block", opacity: on * (0.9 + 0.1 * Math.sin(t * 9)), left: `${rx - 420}px`, top: `${ry - 420}px`, width: "840px", height: "840px" });
+    const [fx, fy] = at(P, 715, 1072);
+    set($("shadow"), { left: `${fx - 360}px`, top: `${fy - 26}px`, width: "720px", height: "52px" });
+  } else if (intOn) {
+    const P = POSE.int;
+    // closer framing of the same set, slow push; zoom into his phone for the cut to the app
+    const push = lerp(1, 1.04, prog(t, C.cutInt, 3));
+    const [px, py] = at(P, 855, 564);
+    const z = ease(prog(t, C.zoom, 0.55));
+    const s = push * lerp(1, 7, z);
+    camS = s; camX = px * (1 - s); camY = py * (1 - s);
+    // the phone buzz: tiny shake + vibration marks
+    const bz = prog(t, C.cutInt - 0.05, 0.75);
+    const shake = bz > 0 && bz < 1 ? Math.sin(t * 120) * 5 * (1 - bz) : 0;
+    set($("pInt"), { transform: `translate(${P.x + shake}px, ${P.y + 1161 * P.s * (1 - breathe)}px) scale(${P.s}, ${P.s * breathe})` });
+    set($("buzz"), { transform: `translate(${P.x + shake}px, ${P.y}px) scale(${P.s})`, opacity: bz > 0 && bz < 1 ? (Math.sin(t * 40) > -0.3 ? 1 : 0.2) : 0 });
+    set($("glow"), { display: "block", opacity: 0.55, left: `${at(P, 1300, 470)[0] - 420}px`, top: `${at(P, 1300, 470)[1] - 420}px`, width: "840px", height: "840px" });
+    set($("shadow"), { display: "none" });
+  } else {
+    const P = POSE.pay;
+    const push = lerp(1.03, 1, out(prog(t, C.toPay, 3.2)));
+    camS = push; camX = 540 * (1 - push); camY = 1200 * (1 - push);
+    set($("pPay"), { transform: `translate(${P.x}px, ${P.y + 1099 * P.s * (1 - breathe)}px) scale(${P.s}, ${P.s * breathe})` });
+    const [rx, ry] = at(P, 984, 417);
+    set($("glow"), { display: "block", opacity: 0.95, left: `${rx - 420}px`, top: `${ry - 420}px`, width: "840px", height: "840px" });
+    const [dx, dy] = at(P, 1032, 411);
+    const blink = ((t - C.toPay) % 1) < 0.6 ? 1 : 0.15;
+    set($("recGlow"), { opacity: blink, left: `${dx - 40}px`, top: `${dy - 40}px`, width: "80px", height: "80px" });
+    const [fx, fy] = at(P, 515, 1095);
+    set($("shadow"), { display: "block", left: `${fx - 300}px`, top: `${fy - 24}px`, width: "600px", height: "48px" });
+    set($("pHook"), { display: "none" });
+  }
+  set($("room"), { transform: `translate(${camX}px, ${camY}px) scale(${camS})`, transformOrigin: "0 0" });
+  // The room is scaled as one camera; keep it clipped to the frame by the body overflow.
+
+  // Iris: the ring light opens on the payoff shot
+  const ir = ease(prog(t, C.toPay, 0.55));
+  if (payOn && ir < 1) {
+    const [rx, ry] = at(POSE.pay, 984, 417);
+    const r = lerp(0, 2300, ir);
+    set($("room"), { clipPath: `circle(${r}px at ${rx}px ${ry}px)` });
+    $("irisRing").setAttribute("cx", rx); $("irisRing").setAttribute("cy", ry); $("irisRing").setAttribute("r", Math.max(0, r - 20));
+    set($("iris"), { display: "block", opacity: 1 - ir });
+  } else {
+    set($("room"), { clipPath: "none" }); set($("iris"), { display: "none" });
+  }
+
+  // ── App layer
+  set($("appLayer"), { display: inApp || inEnd ? "block" : "none", background: inEnd ? "#0B0C0D" : `rgba(11,12,13,${clamp((t - C.zoom - 0.15) / 0.35)})`, zIndex: inEnd ? 40 : 20, opacity: inEnd ? out(prog(t, C.endCard, 0.5)) : 1 });
+  set($("topband"), { opacity: inApp && !inEnd && t > C.zoom + 0.4 ? 1 : 0 });
+  set($("room"), { display: (t < C.zoom + 0.6 || t >= C.toPay) && !(t >= C.endCard + 0.4) ? "block" : "none", zIndex: t >= C.toPay ? 30 : 10 });
+  showScreens(t, C);
+
+  // phone camera keyframes
+  const P = POSE.int, [ppx, ppy] = at(P, 855, 564);
+  const camHand = { sx: 589, sy: 1278, z: 0.124, cx: ppx, cy: ppy, rot: 21 };
+  const camSend = { sx: 590, sy: 2060, z: 1.04, cy: 1160 };
+  const camTpl  = { sx: 590, sy: 1950, z: 1.08, cy: 1200 };
+  const camUse  = { sx: 590, sy: 1960, z: 1.08, cy: 1200 };
+  const camAuto = { sx: 590, sy: 1340, z: 1.08, cy: 1160 };
+  const camWa   = { sx: 590, sy: 560,  z: 1.08, cy: 1120 };
+  const camStop = { sx: 590, sy: 1450, z: 1.14, cy: 1120 };
+  const camEnd  = { sx: 590, sy: 1040, z: 0.74, cy: 1300 };
+  const camOut  = { sx: 590, sy: 1450, z: 1.14, cy: 2900 };
+  const keys = [
+    [C.zoom, camHand, 0.6], [C.toTpl, camTpl, 0.45], [C.toUse, camUse, 0.4], [C.toAuto, camAuto, 0.45],
+    [C.toWa, camWa, 0.45], [C.backAuto, camStop, 0.5], [C.toPay - 0.05, camOut, 0.45], [C.endCard, camEnd, 0.6],
+  ];
+  let cam = camSend;
+  if (t < C.zoom + 0.65) {
+    // ride with the room zoom from his hand, then settle into the app framing
+    const s = lerp(1, 1.04, prog(t, C.cutInt, 3)) * lerp(1, 7, ease(prog(t, C.zoom, 0.55)));
+    cam = mixCam({ ...camHand, z: camHand.z * s }, camSend, ease(prog(t, C.zoom + 0.18, 0.47)));
+  }
+  else {
+    cam = camSend;
+    for (let i = 1; i < keys.length; i++) {
+      const [ta, target, d] = keys[i];
+      if (t >= ta) {
+        const prev = i === 1 ? camSend : keys[i - 1][1];
+        cam = mixCam(prev, target, ease(prog(t, ta, d)));
+      }
+    }
+    if (t >= C.endCard) cam = mixCam({ ...camEnd, cy: 1700 }, camEnd, out(prog(t, C.endCard, 0.6)));
+  }
+  placePhone(phoneCam(cam.sx, cam.sy, cam.z, cam.cx, cam.cy, cam.rot));
+  set($("phone"), { opacity: t < C.zoom + 0.08 ? 0 : 1 });
+  set($("label"), { opacity: inApp && t > C.zoom + 0.6 && t < C.toPay ? 1 : 0 });
+
+  // in-app interactions and highlights
+  hl("hSend", t, C.zoom + 0.7, C.toTpl);
+  set($("tapDim"), { opacity: t > C.tap && t < C.tap + 0.22 ? 1 : 0 });
+  hl("hTpl", t, C.toTpl + 0.5, C.toUse);
+  hl("hUse", t, C.toUse + 0.45, C.toAuto);
+  const tog = ease(prog(t, C.toggle, 0.18));
+  set($("tOn"), { opacity: t >= C.backAuto ? 1 : tog });
+  hl("hAuto", t, C.toggle - 0.35, C.toWa);
+  hl("hWa", t, C.toWa + 0.45, C.backAuto);
+  const st = $("hStop");
+  set(st, { left: "930px", top: "1435px", width: "0px", height: "0px" });
+  { const u = out(prog(t, C.stop, 0.3)) * (1 - prog(t, C.toPay - 0.2, 0.2));
+    set(st, { left: "250px", top: "1482px", width: "466px", height: "66px", opacity: u, transform: `scale(${lerp(1.04, 1, u)})` }); }
+  hl("hAct", t, C.endCard + 1.0, TL.end + 1);
+
+  // ── End card
+  const e = out(prog(t, C.endCard, 0.5));
+  set($("endcard"), { display: inEnd ? "block" : "none", opacity: e, zIndex: 45 });
+  set($("wordmark"), { opacity: out(prog(t, C.endCard + 0.15, 0.4)), transform: `translateX(-50%) translateY(${(1 - out(prog(t, C.endCard + 0.15, 0.4))) * 30}px)` });
+  set($("endline"), { opacity: out(prog(t, C.endCard + 0.35, 0.4)), transform: `translateY(${(1 - out(prog(t, C.endCard + 0.35, 0.4))) * 30}px)` });
+  const ctaU = out(prog(t, C.endCard + 1.6, 0.4));
+  set($("cta"), { opacity: ctaU, transform: `translateX(-50%) scale(${lerp(0.92, 1, ctaU)})` });
+  const fadeOut = prog(t, TL.end - 0.5, 0.5);
+  document.body.style.filter = fadeOut > 0 ? `brightness(${1 - fadeOut})` : "none";
+
+  // ── Captions
+  let cap = null;
+  for (const c of TL.captions) if (t >= c.a && t < c.b) cap = c;
+  const ce = $("caption");
+  if (cap && !inEnd) {
+    $("capText").innerHTML = cap.html;
+    const u = out(prog(t, cap.a, 0.16));
+    set(ce, { opacity: u, transform: `translateY(${(1 - u) * 18}px) scale(${lerp(0.96, 1, u)})` });
+  } else set(ce, { opacity: 0 });
+}
+
+window.setTime = t => render(t);
+window.ready = Promise.all([...document.images].map(i => i.decode().catch(() => {})).concat(document.fonts.ready));
+if (!navigator.webdriver) {
+  // Plain preview in a browser: loop it
+  const t0 = performance.now();
+  const tick = () => { render(((performance.now() - t0) / 1000) % TL.end); requestAnimationFrame(tick); };
+  window.ready.then(tick);
+}
+</script>
+</body>
+</html>

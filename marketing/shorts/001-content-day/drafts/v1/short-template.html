@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  width: 1080px; height: 1920px;
+  overflow: hidden;
+  background: #0d0d14;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  color: #fff;
+}
+.scene { position: absolute; inset: 0; opacity: 0; pointer-events: none; }
+
+/* ─── Caption bar ─── */
+.caption-bar {
+  position: absolute;
+  bottom: 180px; left: 70px; right: 70px;
+  text-align: center; z-index: 100;
+}
+.caption-text {
+  display: inline;
+  font-size: 54px; font-weight: 700;
+  line-height: 1.4; color: #fff;
+  background: rgba(0,0,0,0.5);
+  padding: 8px 20px; border-radius: 12px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+.demo-label {
+  position: absolute; bottom: 120px;
+  left: 0; right: 0; text-align: center;
+  font-size: 20px; color: rgba(255,255,255,0.35);
+  letter-spacing: 2px; text-transform: uppercase; z-index: 100;
+}
+
+/* ═══════ SCENE 1 — HOOK: ready to film ═══════ */
+.scene-hook {
+  background: linear-gradient(170deg, #1e1c28 0%, #0d0d14 55%, #14131e 100%);
+}
+.scene-hook .hero {
+  position: absolute;
+  left: 50%; top: 48%;
+  transform: translate(-50%, -50%);
+  max-width: 900px; max-height: 1300px;
+  object-fit: contain;
+}
+.scene-hook .warm-glow {
+  position: absolute; top: 0; right: 0;
+  width: 650px; height: 650px;
+  background: radial-gradient(circle at 65% 30%,
+    rgba(255,215,140,0.14) 0%, transparent 65%);
+}
+
+/* ═══════ SCENE 2 — TENSION: interrupted ═══════ */
+.scene-tension {
+  background: linear-gradient(170deg, #1e1c28 0%, #0d0d14 55%, #14131e 100%);
+}
+.scene-tension .hero {
+  position: absolute;
+  left: 50%; top: 46%;
+  transform: translate(-50%, -50%);
+  max-width: 920px; max-height: 1300px;
+  object-fit: contain;
+}
+.scene-tension .notif-banner {
+  position: absolute;
+  top: 240px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(25,25,40,0.92);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 22px;
+  padding: 16px 32px;
+  display: flex; align-items: center; gap: 16px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+  z-index: 10;
+  opacity: 0;
+}
+.notif-dot {
+  width: 14px; height: 14px;
+  background: #e74c3c; border-radius: 50%;
+  box-shadow: 0 0 10px 4px rgba(231,76,60,0.4);
+  flex-shrink: 0;
+}
+.notif-label {
+  font-size: 28px; color: rgba(255,255,255,0.8); font-weight: 500;
+}
+.scene-tension .red-wash {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 50% 35%,
+    rgba(200,50,50,0.05) 0%, transparent 55%);
+}
+
+/* ═══════ SCENES 3-5 — APP SCREENS ═══════ */
+.scene-app {
+  background: #080810;
+}
+.phone-shell {
+  position: absolute;
+  top: 70px; left: 50%; transform: translateX(-50%);
+  width: 880px; height: 1520px;
+  border-radius: 44px;
+  border: 3px solid rgba(255,255,255,0.1);
+  overflow: hidden; background: #000;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+}
+.phone-shell img {
+  width: 100%; height: 100%; object-fit: cover;
+}
+.phone-shell.sellers img   { object-position: top; }
+.phone-shell.message img   { object-position: 0 -1100px; }
+.phone-shell.activity img  { object-position: top; }
+
+/* ═══════ SCENE 6 — PAYOFF: back filming ═══════ */
+.scene-payoff {
+  background: linear-gradient(170deg, #1e1c28 0%, #0d0d14 55%, #14131e 100%);
+}
+.scene-payoff .hero {
+  position: absolute;
+  left: 50%; top: 48%;
+  transform: translate(-50%, -50%);
+  max-width: 900px; max-height: 1300px;
+  object-fit: contain;
+}
+.scene-payoff .warm-glow {
+  position: absolute; top: 0; right: 0;
+  width: 700px; height: 700px;
+  background: radial-gradient(circle at 65% 30%,
+    rgba(255,215,140,0.18) 0%, transparent 65%);
+}
+.rec-bar {
+  position: absolute; top: 170px; left: 75px;
+  display: flex; align-items: center; gap: 12px; z-index: 10;
+}
+.rec-bar .dot {
+  width: 18px; height: 18px;
+  background: #e74c3c; border-radius: 50%;
+  box-shadow: 0 0 10px 4px rgba(231,76,60,0.4);
+}
+.rec-bar .txt {
+  font-size: 28px; font-weight: 700;
+  color: rgba(231,76,60,0.85); letter-spacing: 3px;
+}
+/* Viewfinder corners */
+.vf { position: absolute; width: 48px; height: 48px;
+  border-color: rgba(255,255,255,0.2); border-style: solid;
+  border-width: 0; z-index: 5; }
+.vf-tl { top: 250px; left: 90px;  border-top-width: 3px; border-left-width: 3px; }
+.vf-tr { top: 250px; right: 90px; border-top-width: 3px; border-right-width: 3px; }
+.vf-bl { bottom: 350px; left: 90px;  border-bottom-width: 3px; border-left-width: 3px; }
+.vf-br { bottom: 350px; right: 90px; border-bottom-width: 3px; border-right-width: 3px; }
+
+/* ═══════ SCENE 7 — END CARD ═══════ */
+.scene-end {
+  background: linear-gradient(170deg, #141828 0%, #0a0a0f 60%);
+  display: flex; flex-direction: column;
+  align-items: center; padding-top: 150px;
+}
+.end-fox {
+  width: 110px; height: 110px;
+  background: linear-gradient(135deg, #e8843c, #d4702e);
+  border-radius: 28px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 56px;
+  box-shadow: 0 8px 30px rgba(232,132,60,0.3);
+  margin-bottom: 28px;
+}
+.end-logo {
+  font-size: 78px; font-weight: 800;
+  letter-spacing: -1.5px; margin-bottom: 14px;
+}
+.end-logo .hi { color: #e8843c; }
+.end-tagline {
+  font-size: 40px; font-weight: 500;
+  color: rgba(255,255,255,0.7);
+  text-align: center; line-height: 1.4;
+  max-width: 750px; margin-bottom: 48px;
+}
+.end-app {
+  width: 620px; height: 900px;
+  border-radius: 36px;
+  border: 3px solid rgba(255,255,255,0.1);
+  overflow: hidden; background: #000;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+}
+.end-app img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: top;
+}
+.end-cta {
+  position: absolute; bottom: 90px;
+  font-size: 32px; font-weight: 600;
+  color: rgba(255,255,255,0.4);
+}
+</style>
+</head>
+<body>
+
+<!-- Scene 1: HOOK — pose-hook.png -->
+<div class="scene scene-hook" id="scene-hook">
+  <div class="warm-glow"></div>
+  <img class="hero" id="img-hook" src="" alt="">
+  <div class="caption-bar">
+    <span class="caption-text">The ring light is finally on.</span>
+  </div>
+</div>
+
+<!-- Scene 2: TENSION — pose-interrupted.png -->
+<div class="scene scene-tension" id="scene-tension">
+  <div class="red-wash"></div>
+  <img class="hero" id="img-tension" src="" alt="">
+  <div class="notif-banner" id="notif-banner">
+    <div class="notif-dot" id="notif-dot"></div>
+    <span class="notif-label">3 sellers overdue</span>
+  </div>
+  <div class="caption-bar">
+    <span class="caption-text">I keep stopping to type<br>the same seller update.</span>
+  </div>
+</div>
+
+<!-- Scene 3: APP — sellers list -->
+<div class="scene scene-app" id="scene-sellers">
+  <div class="phone-shell sellers"><img id="img-sellers" src="" alt=""></div>
+  <div class="caption-bar">
+    <span class="caption-text">Five sellers. All overdue.</span>
+  </div>
+  <div class="demo-label">Dramatisation &middot; Demo data</div>
+</div>
+
+<!-- Scene 4: APP — message body -->
+<div class="scene scene-app" id="scene-message">
+  <div class="phone-shell message"><img id="img-message" src="" alt=""></div>
+  <div class="caption-bar">
+    <span class="caption-text">The follow-ups are set up.</span>
+  </div>
+  <div class="demo-label">Dramatisation &middot; Demo data</div>
+</div>
+
+<!-- Scene 5: APP — activity -->
+<div class="scene scene-app" id="scene-activity">
+  <div class="phone-shell activity"><img id="img-activity" src="" alt=""></div>
+  <div class="caption-bar">
+    <span class="caption-text">I still handle the replies.</span>
+  </div>
+  <div class="demo-label">Dramatisation &middot; Demo data</div>
+</div>
+
+<!-- Scene 6: PAYOFF — pose-payoff.png -->
+<div class="scene scene-payoff" id="scene-payoff">
+  <div class="warm-glow"></div>
+  <div class="rec-bar" id="rec-bar">
+    <div class="dot" id="rec-dot"></div>
+    <span class="txt">REC</span>
+  </div>
+  <div class="vf vf-tl"></div><div class="vf vf-tr"></div>
+  <div class="vf vf-bl"></div><div class="vf vf-br"></div>
+  <img class="hero" id="img-payoff" src="" alt="">
+  <div class="caption-bar">
+    <span class="caption-text">Right. This is the kitchen.</span>
+  </div>
+</div>
+
+<!-- Scene 7: END CARD -->
+<div class="scene scene-end" id="scene-end">
+  <div class="end-fox">🦊</div>
+  <div class="end-logo">Repeat <span class="hi">AI</span></div>
+  <div class="end-tagline">Keep your voice for the camera.</div>
+  <div class="end-app"><img id="img-end" src="" alt=""></div>
+  <div class="end-cta">repeatai.app</div>
+</div>
+
+<script>
+window.setFrame = function(frame, a) {
+  if (frame === 0) {
+    document.getElementById('img-hook').src    = a.hook;
+    document.getElementById('img-tension').src = a.tension;
+    document.getElementById('img-payoff').src  = a.payoff;
+    document.getElementById('img-sellers').src = a.sellers;
+    document.getElementById('img-message').src = a.message;
+    document.getElementById('img-activity').src= a.activity;
+    document.getElementById('img-end').src     = a.sellers;
+  }
+
+  // 30 fps, 660 frames = 22 s
+  var tl = [
+    { id:'scene-hook',     s:0,   e:75  },
+    { id:'scene-tension',  s:65,  e:210 },
+    { id:'scene-sellers',  s:200, e:285 },
+    { id:'scene-message',  s:275, e:365 },
+    { id:'scene-activity', s:355, e:430 },
+    { id:'scene-payoff',   s:420, e:555 },
+    { id:'scene-end',      s:545, e:660 },
+  ];
+  var F = 12;
+  for (var i = 0; i < tl.length; i++) {
+    var t = tl[i], el = document.getElementById(t.id);
+    if (frame < t.s || frame >= t.e) { el.style.opacity='0'; continue; }
+    var o = 1;
+    if (frame < t.s+F) o = (frame-t.s)/F;
+    if (frame >= t.e-F) o = (t.e-frame)/F;
+    el.style.opacity = String(Math.max(0, Math.min(1, o)));
+  }
+
+  // Notification banner slides down
+  var nb = document.getElementById('notif-banner');
+  if (frame >= 65 && frame < 210) {
+    var p = Math.min(1, Math.max(0, (frame-80)/15));
+    var ease = p*(2-p);
+    nb.style.opacity = String(ease);
+    nb.style.transform = 'translateX(-50%) translateY('+(-30+30*ease)+'px)';
+    // Dot pulse
+    var pulse = Math.sin((frame-90)*0.12);
+    document.getElementById('notif-dot').style.transform =
+      'scale('+(1+0.25*Math.max(0,pulse))+')';
+  }
+
+  // REC dot blink
+  if (frame >= 420 && frame < 555) {
+    document.getElementById('rec-dot').style.opacity =
+      (Math.floor((frame-420)/18)%2===0) ? '1' : '0.12';
+  }
+
+  // Subtle Ken Burns on hook
+  if (frame >= 0 && frame < 75) {
+    var z = 1 + 0.018*(frame/75);
+    document.getElementById('img-hook').style.transform =
+      'translate(-50%,-50%) scale('+z+')';
+  }
+  // Subtle Ken Burns on payoff
+  if (frame >= 420 && frame < 555) {
+    var q = (frame-420)/135;
+    document.getElementById('img-payoff').style.transform =
+      'translate(-50%,-50%) scale('+(1+0.012*q)+')';
+  }
+};
+</script>
+</body>
+</html>

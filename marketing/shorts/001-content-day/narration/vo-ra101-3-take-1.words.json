@@ -1,0 +1,52 @@
+[
+ {
+  "word": "So,",
+  "start": 0.0,
+  "end": 0.3
+ },
+ {
+  "word": "I",
+  "start": 0.46,
+  "end": 0.66
+ },
+ {
+  "word": "set",
+  "start": 0.66,
+  "end": 0.84
+ },
+ {
+  "word": "the",
+  "start": 0.84,
+  "end": 1.0
+ },
+ {
+  "word": "Routine",
+  "start": 1.0,
+  "end": 1.32
+ },
+ {
+  "word": "Follow",
+  "start": 1.32,
+  "end": 1.62
+ },
+ {
+  "word": "-Ups",
+  "start": 1.62,
+  "end": 1.96
+ },
+ {
+  "word": "up",
+  "start": 1.96,
+  "end": 2.16
+ },
+ {
+  "word": "in",
+  "start": 2.16,
+  "end": 2.32
+ },
+ {
+  "word": "Repeat.",
+  "start": 2.32,
+  "end": 2.64
+ }
+]

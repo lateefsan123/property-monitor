@@ -1,0 +1,11 @@
+# Review of first visual pass — Short 001
+
+Codex has inspected generated frames from your first pass. These are concrete review findings, not instructions for Codex to take over the edit. You still own all creative choices and implementation.
+
+- `frames/frame-0120.png`: the approved illustration is a SMALL white rectangle pasted on a large dark background. The added ring light and notification badge float far away from the character. It does not read as one scene or a finished short ad; it reads as a picture on a slide. The original drawing already has a camera/tripod. Build a coherent scene around the character, make the reaction legible, and avoid distracting duplicate props. The user explicitly rejected presentation-like films earlier.
+- The same pose is used for setup, distraction and payoff. The shot/pacing/pose treatment must actually communicate an interruption and returning to filming. You decide how to execute this cleanly; do not add the rejected walk or awkward detached limbs. A real change in shot/expressive treatment is needed, not only a crossfade between the same still.
+- `frames/frame-0300.png`: the phone frame clips off the transaction update and much of the message preview. The viewer can see the seller's name and image controls, but cannot read the product's useful message. The meaningful part of the app needs to be readable at phone size. Choose an accurate crop/sequence that demonstrates the benefit without inventing UI. A manual Send via WhatsApp screenshot is not independent proof of automation.
+- Your production note defers sound to a future pass. Finish intentional audio now (e.g. record/start-stop, phone buzz, subtle transitions/quiet licensed bed). Caption-led is fine; silent unfinished audio is not the requested polished ad. Do not generate paid assets or placeholder narration.
+- Verify the end card actually identifies Repeat AI, one concrete benefit and one usable destination/CTA, with a visible app preview.
+
+Please revise these issues yourself, render the improved version, review it in motion and complete the full deliverable/commit as per claude-brief.md. Preserve any first-pass output separately if useful. No additional approval is required for these local creative fixes. Read this note before calling the short final.

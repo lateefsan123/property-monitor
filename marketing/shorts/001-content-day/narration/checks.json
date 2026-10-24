@@ -1,0 +1,200 @@
+[
+  {
+    "file": "vo-ra101-1-take-1.mp3",
+    "duration": 1.880792,
+    "sha256": "08dde863980a5bed0ada2f3810e791e597354e395a299b3eb9139964aa803cf5",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-1-take-2.mp3",
+    "duration": 1.880792,
+    "sha256": "582fcdae0b2a01a20f8a7b40482e0fda4a1224ce0bbd43a5f07989d93926a5a1",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-1-take-3.mp3",
+    "duration": 1.724083,
+    "sha256": "7f8ebe87f2aa193e6407aa70c537b809c7d275bad59efc11314b4d5b01285497",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-2-take-1.mp3",
+    "duration": 3.78775,
+    "sha256": "b4602db6a9192f6042f898a9a87919973c8887401f162c243ec4871dfc3909a0",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-2-take-2.mp3",
+    "duration": 3.709375,
+    "sha256": "9d65a3114e576e6c7ddb57c7af56f1f83b064164e86729cec23f1f55c7f76747",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-2-take-3.mp3",
+    "duration": 3.866083,
+    "sha256": "88697ad3ebb39670d14b3d4f5025e0a0bb6f94166696968c3714e6aa05c08422",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-3-take-1.mp3",
+    "duration": 3.082417,
+    "sha256": "45f31130308e1d4c9b378a98dccb25821da053e6529c1e350033b4d168bf7bdc",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-3-take-2.mp3",
+    "duration": 3.082417,
+    "sha256": "245c037da48720ed085c61f1baeccb255f16e02465436f7aa8a234c2eba9e604",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-3-take-3.mp3",
+    "duration": 3.160792,
+    "sha256": "8319f31fb4d0e536dc20da5ac8444ff69885b5a77f309c5c51fc9f101b139fc9",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-4-take-1.mp3",
+    "duration": 6.922417,
+    "sha256": "57abfd2c8d9f92976e4fa522028d32922688338fe1c1528b2c5220203c71c83c",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-4-take-2.mp3",
+    "duration": 6.922417,
+    "sha256": "93e3eae0f81e8c1a7be1efc917bf8c9e09ec0c66fcbe7981c837af9d4c8dcb10",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-4-take-3.mp3",
+    "duration": 6.687333,
+    "sha256": "674144f39adc4345a80a76615fa3580f5e54eabc7068c3e24be17b916679e9e2",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-5-take-1.mp3",
+    "duration": 2.19425,
+    "sha256": "2c577723814bdad1987e12c41d6aab5e50f737898ba1a46859aa0b592694ebb8",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-5-take-2.mp3",
+    "duration": 2.115917,
+    "sha256": "fcf993fbe08058478c52434eb0cec6161066bef53809d0535d0aab6dad04ba90",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-5-take-3.mp3",
+    "duration": 2.19425,
+    "sha256": "2bef7019935b49781921b8b53d0eae99544b3badfaf06e3fd0e8fcf87045100a",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-6-take-1.mp3",
+    "duration": 4.675917,
+    "sha256": "4c530613b1c7a76094a1c3a12d592f167fbaa6382cfab7ad472683745d5bbd6e",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-6-take-2.mp3",
+    "duration": 4.675917,
+    "sha256": "fd8321919aebab2fd6fed5fe5b8cd697cbb5a41159dce3579f6e12ba6ee966c4",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  },
+  {
+    "file": "vo-ra101-6-take-3.mp3",
+    "duration": 4.519167,
+    "sha256": "14565e514142bd69095a894f58d3f54b435c8d11991c4859ad3e8c096b7f32da",
+    "stream": {
+      "codec_name": "mp3",
+      "sample_rate": "44100",
+      "channels": 1,
+      "bit_rate": "192000"
+    }
+  }
+]
