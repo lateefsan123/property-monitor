@@ -1,0 +1,102 @@
+[
+ {
+  "word": "Every",
+  "start": 0.0,
+  "end": 0.36
+ },
+ {
+  "word": "seller",
+  "start": 0.36,
+  "end": 0.62
+ },
+ {
+  "word": "due",
+  "start": 0.62,
+  "end": 0.88
+ },
+ {
+  "word": "for",
+  "start": 0.88,
+  "end": 1.1
+ },
+ {
+  "word": "a",
+  "start": 1.1,
+  "end": 1.22
+ },
+ {
+  "word": "follow",
+  "start": 1.22,
+  "end": 1.46
+ },
+ {
+  "word": "-up",
+  "start": 1.46,
+  "end": 1.72
+ },
+ {
+  "word": "is",
+  "start": 1.72,
+  "end": 1.94
+ },
+ {
+  "word": "already",
+  "start": 1.94,
+  "end": 2.38
+ },
+ {
+  "word": "on",
+  "start": 2.38,
+  "end": 2.62
+ },
+ {
+  "word": "the",
+  "start": 2.62,
+  "end": 2.74
+ },
+ {
+  "word": "list,",
+  "start": 2.74,
+  "end": 3.06
+ },
+ {
+  "word": "with",
+  "start": 3.3,
+  "end": 3.48
+ },
+ {
+  "word": "their",
+  "start": 3.48,
+  "end": 3.64
+ },
+ {
+  "word": "status",
+  "start": 3.64,
+  "end": 3.98
+ },
+ {
+  "word": "and",
+  "start": 3.98,
+  "end": 4.5
+ },
+ {
+  "word": "how",
+  "start": 4.5,
+  "end": 4.76
+ },
+ {
+  "word": "overdue",
+  "start": 4.76,
+  "end": 5.1
+ },
+ {
+  "word": "they",
+  "start": 5.1,
+  "end": 5.38
+ },
+ {
+  "word": "are.",
+  "start": 5.38,
+  "end": 5.6
+ }
+]

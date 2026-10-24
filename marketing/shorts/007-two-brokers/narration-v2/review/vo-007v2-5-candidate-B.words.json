@@ -1,0 +1,77 @@
+[
+ {
+  "word": "And",
+  "start": 0.0,
+  "end": 0.2
+ },
+ {
+  "word": "they",
+  "start": 0.2,
+  "end": 0.32
+ },
+ {
+  "word": "stop",
+  "start": 0.32,
+  "end": 0.68
+ },
+ {
+  "word": "as",
+  "start": 0.68,
+  "end": 0.94
+ },
+ {
+  "word": "soon",
+  "start": 0.94,
+  "end": 1.26
+ },
+ {
+  "word": "as",
+  "start": 1.26,
+  "end": 1.44
+ },
+ {
+  "word": "a",
+  "start": 1.44,
+  "end": 1.56
+ },
+ {
+  "word": "seller",
+  "start": 1.56,
+  "end": 1.82
+ },
+ {
+  "word": "replies,",
+  "start": 1.82,
+  "end": 2.32
+ },
+ {
+  "word": "so",
+  "start": 2.72,
+  "end": 3.0
+ },
+ {
+  "word": "the",
+  "start": 3.0,
+  "end": 3.22
+ },
+ {
+  "word": "conversation",
+  "start": 3.22,
+  "end": 3.6
+ },
+ {
+  "word": "stays",
+  "start": 3.6,
+  "end": 4.12
+ },
+ {
+  "word": "with",
+  "start": 4.12,
+  "end": 4.34
+ },
+ {
+  "word": "me.",
+  "start": 4.34,
+  "end": 4.54
+ }
+]

@@ -1,0 +1,42 @@
+[
+ {
+  "word": "Repeat",
+  "start": 0.0,
+  "end": 0.44
+ },
+ {
+  "word": "AI.",
+  "start": 0.44,
+  "end": 0.9
+ },
+ {
+  "word": "Set",
+  "start": 1.6,
+  "end": 1.7
+ },
+ {
+  "word": "up",
+  "start": 1.7,
+  "end": 1.84
+ },
+ {
+  "word": "your",
+  "start": 1.84,
+  "end": 1.98
+ },
+ {
+  "word": "follow",
+  "start": 1.98,
+  "end": 2.22
+ },
+ {
+  "word": "-ups",
+  "start": 2.22,
+  "end": 2.48
+ },
+ {
+  "word": "once.",
+  "start": 2.48,
+  "end": 2.86
+ }
+]

@@ -20,23 +20,25 @@ const ROOT = resolve(DIR, "../../../");
 const FRAMES = join(DIR, "frames");
 const SFX = join(DIR, "sfx");
 const OUT = process.env.OUT_DIR || join(DIR, "out");
-const NARR = process.env.NARR_DIR || join(DIR, "narration");
+const NARR = process.env.NARR_DIR || join(DIR, "narration-v2");
 const FPS = 30;
 const MUSIC = join(ROOT, "video/launch-film/out/music-vastness-andrew-ev.mp3"); // Mixkit Free License, as in v5
 const MUSIC_START = 55;
 
-const sel = JSON.parse(readFileSync(process.env.SEL || join(DIR, "narration-selection.json"), "utf8"));
+const sel = JSON.parse(readFileSync(process.env.SEL || join(DIR, "narration-selection-v2.json"), "utf8"));
 const run = cmd => execSync(cmd, { stdio: "pipe", maxBuffer: 1 << 26 });
 const r2 = v => Math.round(v * 100) / 100;
 const rel = p => p.replace(DIR, "").replace(/\\/g, "/");
 
 const SCRIPT = {
-  1: "How do you ever finish filming?",
-  2: "I set up the repeatable follow-ups first. I still handle the replies.",
-  3: "Templates for each seller status, and they stop when a seller replies.",
-  4: "So… I still have to learn my lines?",
-  5: "Yeah.",
-  6: "Repeat AI. The camera is still your job.",
+  1: "How do you keep up with seller follow-ups and still find time to film?",
+  2: "I set up the routine ones once, in Repeat.",
+  3: "Each seller status gets its own template, so a new prospect and a seller who's already listed get different messages.",
+  4: "Status follow-ups send each one when that seller is due.",
+  5: "And they stop as soon as a seller replies, so the conversation stays with me.",
+  6: "So the follow-ups keep going while I'm filming?",
+  7: "Yes, within the sending hours and daily limit you set.",
+  8: "Repeat AI. Set up your follow-ups once.",
 };
 const VOICE_LUFS = -19.3;
 const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -46,7 +48,7 @@ function loadLine(n) {
   const take = sel.takes[String(n)];
   // a take is a number, or "<voice>-<n>" for a recast (e.g. "rupert-2")
   const m = String(take).match(/^([a-z]+)-(\d+)$/);
-  const mp3 = join(NARR, m ? `vo-007-${n}-${m[1]}-take-${m[2]}.mp3` : `vo-007-${n}-take-${take}.mp3`);
+  const mp3 = join(NARR, m ? `vo-007v2-${n}-${m[1]}-take-${m[2]}.mp3` : `vo-007v2-${n}-take-${take}.mp3`);
   const words = JSON.parse(readFileSync(mp3.replace(/\.mp3$/, ".words.json"), "utf8"));
   const dur = parseFloat(execSync(`ffprobe -v error -show_entries format=duration -of csv=p=0 "${mp3}"`, { encoding: "utf8" }));
   const lead = Math.max(0, words[0].start - 0.04);
@@ -77,7 +79,7 @@ function loadLine(n) {
   return { n, mp3, lead, gain: r2(VOICE_LUFS - lufs), words: merged.map(w => ({ ...w, start: w.start - lead, end: w.end - lead })), dur: dur - lead };
 }
 const L = {};
-for (const n of [1, 2, 3, 4, 5, 6]) L[n] = loadLine(n);
+for (const n of [1, 2, 3, 4, 5, 6, 7, 8]) L[n] = loadLine(n);
 function word(line, w, nth = 1) {
   let k = 0;
   for (const x of line.words) if (norm(x.word) === norm(w) && ++k === nth) return x;
@@ -88,41 +90,49 @@ const W = (n, w, k = 1, f = "start") => start[n] + word(L[n], w, k)[f];
 const endOf = n => start[n] + L[n].words[L[n].words.length - 1].end;
 
 // ── 2. Timeline ──────────────────────────────────────────────────────────────
+// v2 script (24 Oct 2026): plain Q&A between two brokers; no "learn my lines" gag.
 start[1] = 0.6;
 start[2] = endOf(1) + 0.4;
-cue.toApp = W(2, "set") - 0.15;
 cue.usTalks = start[2] - 0.1;
-start[3] = endOf(2) + 0.35;
+start[3] = endOf(2) + 0.4;
+cue.toApp = start[3] - 0.3;
+start[4] = endOf(3) + 0.35;
+start[5] = endOf(4) + 0.35;
 
-// App proof: template "Use for" statuses, then Status follow-ups (../app-clips)
-const clips = loadClips(["template-use-for", "automations-status"], DIR);
+const clips = loadClips(["template-use-for", "automations-status", "automations-window"], DIR);
 const ev = (c, k) => clips[c].events[k];
+const lastT = c => (clips[c].frames - 1) / 30;
 const app = { beats: [] };
 const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };
 {
-  // A: "Use for" sheet, Appraisal switches on, during line 2
-  const a = cue.toApp, c0 = ev("template-use-for", "tap:use-for") - 0.4, rate = 1.0;
-  const b = start[3] + 0.2;
-  app.beats.push({ a, b, clip: "template-use-for", c0, rate,
+  // line 3: the template's "Use for" sheet; a different template per status
+  const a = cue.toApp, c0 = ev("template-use-for", "tap:use-for") - 0.4;
+  app.beats.push({ a, b: start[4] - 0.2, clip: "template-use-for", c0, rate: 1,
     camKeys: [[a, FULL], [a + 0.6, FULL], [a + 1.1, { sx: 590, sy: 1950, z: 1.06, cy: 1200 }]] });
-  cue.toStatus = b;
+  // line 4: the real tap on Status follow-ups as he says "Status follow-ups"
+  const b0 = start[4] - 0.2, tap = W(4, "Status") + 0.1;
+  app.beats.push({ a: b0, b: start[5] - 0.2, clip: "automations-status", c0: Math.max(0, ev("automations-status", "tap:status-switch") - (tap - b0)), rate: 1, cut: true,
+    cam: { sx: 590, sy: 1300, z: 1.0, cy: 1160 } });
+  // line 5: hold on "Stops when they reply."
+  app.beats.push({ a: start[5] - 0.2, b: endOf(5) + 0.5, clip: "automations-status", c0: lastT("automations-status"), rate: 0, cut: true,
+    camKeys: [[start[5] - 0.2, { sx: 590, sy: 1300, z: 1.0, cy: 1160 }], [W(5, "stop"), { sx: 590, sy: 1380, z: 1.12, cy: 1120 }]] });
+  cue.toTwo2 = endOf(5) + 0.5;
 }
+start[6] = cue.toTwo2 + 0.35;
+cue.toShrug = 999;                             // v2 keeps him calm; no shrug
+cue.toApp2 = endOf(6) + 0.35;
+start[7] = cue.toApp2 + 0.3;
 {
-  // B: Status follow-ups switch on; hold on "Stops when they reply" for "they stop when a seller replies"
-  const a = cue.toStatus, c0 = Math.max(0, ev("automations-status", "tap:status-switch") - 0.6), rate = 1.0;
-  const b = endOf(3) + 0.5;
-  app.beats.push({ a, b, clip: "automations-status", c0, rate, cut: true,
-    camKeys: [[a, { sx: 590, sy: 1300, z: 1.0, cy: 1160 }], [W(3, "stop") - 0.3, { sx: 590, sy: 1300, z: 1.0, cy: 1160 }], [W(3, "stop") + 0.2, { sx: 590, sy: 1380, z: 1.12, cy: 1120 }]] });
-  cue.toTwo2 = b;
+  // line 7: sending hours and daily limit on the real Automations screen
+  const a = cue.toApp2, c0 = ev("automations-window", "window-visible") - 0.2;
+  app.beats.push({ a, b: endOf(7) + 0.6, clip: "automations-window", c0, rate: 0,
+    camKeys: [[a, { sx: 590, sy: 1550, z: 0.95, cy: 1200 }], [W(7, "hours"), { sx: 590, sy: 1450, z: 1.0, cy: 1180 }]] });
 }
-start[4] = cue.toTwo2 + 0.4;
-cue.toShrug = endOf(4) + 0.3;
-start[5] = cue.toShrug + 0.15;
-cue.endCard = endOf(5) + 0.8;
-start[6] = cue.endCard + 0.3;
-cue.endLine = W(6, "the", 1) - 0.05;
-let END = r2(endOf(6) + 1.3);
-app.beats.push({ a: cue.endCard, b: END + 1, clip: "automations-status", c0: (clips["automations-status"].frames - 1) / 30, rate: 0,
+cue.endCard = endOf(7) + 0.6;
+start[8] = cue.endCard + 0.3;
+cue.endLine = W(8, "set") - 0.05;
+let END = r2(endOf(8) + 1.3);
+app.beats.push({ a: cue.endCard, b: END + 1, clip: "automations-status", c0: lastT("automations-status"), rate: 0,
   camKeys: [[cue.endCard, { sx: 590, sy: 1300, z: 0.9, cy: 1600 }], [cue.endCard + 0.7, { sx: 590, sy: 1300, z: 0.62, cy: 1440 }]] });
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); bt.rate = r2(bt.rate); }
 for (const k in cue) cue[k] = r2(cue[k]);
@@ -132,8 +142,7 @@ for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
   if (ft >= bt.a && ft < bt.b) tapTimes.push(r2(ft));
 }
 
-const EM = new Set(["finish", "repeatable", "replies", "status", "stop", "lines"]);
-const SHOW = [];
+const EM = new Set(["film", "once", "status", "template", "due", "replies", "hours", "limit", "filming"]);
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 function chunk(n, from, to) {
   const ws = L[n].words.slice(from, to);
@@ -141,8 +150,12 @@ function chunk(n, from, to) {
   return { a: r2(start[n] + ws[0].start - 0.12), b: r2(start[n] + ws[ws.length - 1].end + 0.35), html };
 }
 const captions = [
-  chunk(1, 0), chunk(2, 0, idx(2, "I", 2)), chunk(2, idx(2, "I", 2)),
-  chunk(3, 0, idx(3, "and")), chunk(3, idx(3, "and")), chunk(4, 0), chunk(5, 0),
+  chunk(1, 0, idx(1, "and")), chunk(1, idx(1, "and")),
+  chunk(2, 0),
+  chunk(3, 0, idx(3, "so")), chunk(3, idx(3, "so")),
+  chunk(4, 0),
+  chunk(5, 0, idx(5, "so")), chunk(5, idx(5, "so")),
+  chunk(6, 0), chunk(7, 0),
 ];
 for (let i = 0; i < captions.length - 1; i++) if (captions[i + 1].a - captions[i].b < 0.5) captions[i].b = captions[i + 1].a;
 

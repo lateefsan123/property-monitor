@@ -1,0 +1,41 @@
+[
+  {
+    "short": 4,
+    "line": 3,
+    "file": "review/vo-004v2-3-candidate-A.mp3",
+    "source": "ElevenLabs_2026-10-24T17_52_58__s50_v4.mp3",
+    "bytes": 79003,
+    "voice": {
+      "name": "Brady J - Confident Real Estate Agent",
+      "id": "SGoiiadNvlgcANZ3wLyn"
+    },
+    "extraCandidate": true
+  },
+  {
+    "short": 4,
+    "line": 3,
+    "file": "review/vo-004v2-3-candidate-B.mp3",
+    "source": "ElevenLabs_2026-10-24T17_52_57__s50_v4.mp3",
+    "bytes": 79003,
+    "voice": {
+      "name": "Brady J - Confident Real Estate Agent",
+      "id": "SGoiiadNvlgcANZ3wLyn"
+    },
+    "extraCandidate": true
+  },
+  {
+    "short": 4,
+    "line": 3,
+    "file": "vo-004v2-3-take-3.mp3",
+    "source": "ElevenLabs_2026-10-24T17_52_57__s50_v4.mp3",
+    "bytes": 79003,
+    "voice": {
+      "name": "Brady J - Confident Real Estate Agent",
+      "id": "SGoiiadNvlgcANZ3wLyn"
+    },
+    "extraCandidate": true,
+    "replacesFlaggedTake": true,
+    "selectedCandidate": "vo-004v2-3-candidate-B.mp3",
+    "take": 3
+  }
+]

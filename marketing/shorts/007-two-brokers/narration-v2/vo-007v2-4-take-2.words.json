@@ -1,0 +1,57 @@
+[
+ {
+  "word": "Status",
+  "start": 0.0,
+  "end": 0.42
+ },
+ {
+  "word": "follow",
+  "start": 0.42,
+  "end": 0.7
+ },
+ {
+  "word": "-ups",
+  "start": 0.7,
+  "end": 1.0
+ },
+ {
+  "word": "send",
+  "start": 1.0,
+  "end": 1.38
+ },
+ {
+  "word": "each",
+  "start": 1.38,
+  "end": 1.68
+ },
+ {
+  "word": "one",
+  "start": 1.68,
+  "end": 2.06
+ },
+ {
+  "word": "when",
+  "start": 2.06,
+  "end": 2.3
+ },
+ {
+  "word": "that",
+  "start": 2.3,
+  "end": 2.5
+ },
+ {
+  "word": "seller",
+  "start": 2.5,
+  "end": 2.8
+ },
+ {
+  "word": "is",
+  "start": 2.8,
+  "end": 3.0
+ },
+ {
+  "word": "due.",
+  "start": 3.0,
+  "end": 3.22
+ }
+]

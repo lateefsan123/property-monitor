@@ -24,22 +24,24 @@ const ROOT = resolve(DIR, "../../../");
 const FRAMES = join(DIR, "frames");
 const SFX = join(DIR, "sfx");
 const OUT = process.env.OUT_DIR || join(DIR, "out");
-const NARR = process.env.NARR_DIR || join(DIR, "narration");
+const NARR = process.env.NARR_DIR || join(DIR, "narration-v2");
 const FPS = 30;
 const MUSIC = join(ROOT, "video/launch-film/out/music-vastness-andrew-ev.mp3"); // Mixkit Free License, as in v5
 const MUSIC_START = 140;
 
-const sel = JSON.parse(readFileSync(process.env.SEL || join(DIR, "narration-selection.json"), "utf8"));
+const sel = JSON.parse(readFileSync(process.env.SEL || join(DIR, "narration-selection-v2.json"), "utf8"));
 const run = cmd => execSync(cmd, { stdio: "pipe", maxBuffer: 1 << 26 });
 const r2 = v => Math.round(v * 100) / 100;
 const rel = p => p.replace(DIR, "").replace(/\\/g, "/");
 
 const SCRIPT = {
-  1: "Two mornings. Same coffee.",
-  2: "On this one, I open the spreadsheet and try to remember who's due.",
-  3: "On this one, I open Due today. Everyone due for a follow-up is already on the list.",
-  4: "Both coffees are real. Only one is still warm.",
-  5: "Repeat AI. A clearer start to the day.",
+  1: "Two ways to start the same morning.",
+  2: "Without Repeat, I open a spreadsheet and try to work out who I'm meant to follow up with.",
+  3: "With Repeat, I open Due today.",
+  4: "Every seller due for a follow-up is already on the list, with their status and how overdue they are.",
+  5: "Sellers I've scheduled for later wait under Scheduled until their date comes round.",
+  6: "So I start the day knowing exactly who to contact.",
+  7: "Repeat AI. A clearer start to the day.",
 };
 const VOICE_LUFS = -19.3;
 const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -49,7 +51,7 @@ function loadLine(n) {
   const take = sel.takes[String(n)];
   // a take is a number, or "<voice>-<n>" for a recast (e.g. "rupert-2")
   const m = String(take).match(/^([a-z]+)-(\d+)$/);
-  const mp3 = join(NARR, m ? `vo-004-${n}-${m[1]}-take-${m[2]}.mp3` : `vo-004-${n}-take-${take}.mp3`);
+  const mp3 = join(NARR, m ? `vo-004v2-${n}-${m[1]}-take-${m[2]}.mp3` : `vo-004v2-${n}-take-${take}.mp3`);
   const words = JSON.parse(readFileSync(mp3.replace(/\.mp3$/, ".words.json"), "utf8"));
   const dur = parseFloat(execSync(`ffprobe -v error -show_entries format=duration -of csv=p=0 "${mp3}"`, { encoding: "utf8" }));
   const lead = Math.max(0, words[0].start - 0.04);
@@ -80,7 +82,7 @@ function loadLine(n) {
   return { n, mp3, lead, gain: r2(VOICE_LUFS - lufs), words: merged.map(w => ({ ...w, start: w.start - lead, end: w.end - lead })), dur: dur - lead };
 }
 const L = {};
-for (const n of [1, 2, 3, 4, 5]) L[n] = loadLine(n);
+for (const n of [1, 2, 3, 4, 5, 6, 7]) L[n] = loadLine(n);
 function word(line, w, nth = 1) {
   let k = 0;
   for (const x of line.words) if (norm(x.word) === norm(w) && ++k === nth) return x;
@@ -91,10 +93,11 @@ const W = (n, w, k = 1, f = "start") => start[n] + word(L[n], w, k)[f];
 const endOf = n => start[n] + L[n].words[L[n].words.length - 1].end;
 
 // ── 2. Timeline ──────────────────────────────────────────────────────────────
+// v2 script (24 Oct 2026): plain and benefit-led; the coffee joke is gone.
 start[1] = 0.6;
 cue.toLaptop = endOf(1) + 0.35;              // top lane: the spreadsheet morning
-cue.toSheet = cue.toLaptop + 0.6;
 start[2] = cue.toLaptop + 0.35;
+cue.toSheet = W(2, "spreadsheet") - 0.1;
 cue.toPhone = endOf(2) + 0.4;                // bottom lane: the Repeat morning
 start[3] = cue.toPhone + 0.3;
 cue.toApp = W(3, "open") - 0.1;
@@ -104,26 +107,34 @@ const clips = loadClips(["home-due-today"], DIR);
 const ev = k => clips["home-due-today"].events[k];
 const app = { beats: [] };
 const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };
+start[4] = endOf(3) + 0.3;
+start[5] = endOf(4) + 0.4;
 {
-  const a = cue.toApp, c0 = ev("tap:view-sellers") - 0.45, rate = 1.15;
+  // A: Home → tap View sellers → the Due today list, held while line 4 describes it
+  const a = cue.toApp, c0 = ev("tap:view-sellers") - 0.6, rate = 1.0;
   const listAt = a + (ev("due-list") - c0) / rate;
-  const b = endOf(3) + 0.5;
-  app.beats.push({ a, b, clip: "home-due-today", c0, rate,
-    camKeys: [[a, FULL], [listAt, FULL], [listAt + 0.6, { sx: 590, sy: 1000, z: 0.95, cy: 1150 }]],
-    hl: [{ a: a + 0.15, b: a + (ev("tap:view-sellers") - c0) / rate, box: [60, 480, 350, 320] },
-         { a: listAt, b, box: [210, 200, 388, 130] }] });
-  cue.toSplit2 = b;
+  const holdAt = listAt + 0.8;
+  const list = { sx: 590, sy: 1000, z: 1.0, cy: 1150 };
+  app.beats.push({ a, b: holdAt, clip: "home-due-today", c0, rate,
+    camKeys: [[a, FULL], [listAt, FULL], [listAt + 0.6, list]] });
+  // freeze on the list (the clip would otherwise scroll and tap Scheduled early)
+  app.beats.push({ a: holdAt, b: start[5] - 0.2, clip: "home-due-today", c0: ev("due-list") + 0.8, rate: 0, cut: true,
+    camKeys: [[holdAt, list], [W(4, "status"), { sx: 590, sy: 800, z: 1.15, cy: 1150 }]] });
+  // B: scroll → tap Scheduled while line 5 explains it
+  const b0 = start[5] - 0.2, c1 = ev("due-list") + 0.8, r1 = 1.0;
+  app.beats.push({ a: b0, b: endOf(5) + 0.6, clip: "home-due-today", c0: c1, rate: r1, cut: true,
+    camKeys: [[b0, { sx: 590, sy: 800, z: 1.0, cy: 1150 }]] });
+  cue.toSplit2 = endOf(5) + 0.6;
 }
-start[4] = cue.toSplit2 + 0.35;
-cue.warm = W(4, "warm");
-cue.endCard = endOf(4) + 0.6;
-start[5] = cue.endCard + 0.3;
-cue.endLine = W(5, "clearer") - 0.3;
-let END = r2(endOf(5) + 1.3);
+start[6] = cue.toSplit2 + 0.4;
+cue.warm = W(6, "contact");
+cue.endCard = endOf(6) + 0.6;
+start[7] = cue.endCard + 0.3;
+cue.endLine = W(7, "clearer") - 0.3;
+let END = r2(endOf(7) + 1.3);
 // under the end card: Home with today's numbers
 app.beats.push({ a: cue.endCard, b: END + 1, clip: "home-due-today", c0: 0.5, rate: 0,
-  camKeys: [[cue.endCard, { sx: 590, sy: 900, z: 0.9, cy: 1300 }], [cue.endCard + 0.7, { sx: 590, sy: 900, z: 0.62, cy: 1180 }]],
-  hl: [{ a: cue.endCard + 0.9, b: END + 1, box: [60, 476, 1058, 470] }] });
+  camKeys: [[cue.endCard, { sx: 590, sy: 900, z: 0.9, cy: 1300 }], [cue.endCard + 0.7, { sx: 590, sy: 900, z: 0.62, cy: 1180 }]] });
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); bt.rate = r2(bt.rate); }
 for (const k in cue) cue[k] = r2(cue[k]);
 const tapTimes = [];
@@ -132,16 +143,22 @@ for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
   if (ft >= bt.a && ft < bt.b) tapTimes.push(r2(ft));
 }
 
-const EM = new Set(["spreadsheet", "remember", "due", "today", "everyone", "warm"]);
+const EM = new Set(["spreadsheet", "due", "today", "status", "overdue", "scheduled", "exactly"]);
 const SHOW = [];
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 function chunk(n, from, to) {
   const ws = L[n].words.slice(from, to);
   let html = ws.map(w => EM.has(norm(w.word)) ? `<em>${w.word}</em>` : w.word).join(" ");
-  for (const [a, b] of SHOW) html = html.replace(a, b);
   return { a: r2(start[n] + ws[0].start - 0.12), b: r2(start[n] + ws[ws.length - 1].end + 0.35), html };
 }
-const captions = [chunk(1, 0), chunk(2, 0), chunk(3, 0, idx(3, "Everyone")), chunk(3, idx(3, "Everyone")), chunk(4, 0)];
+const captions = [
+  chunk(1, 0),
+  chunk(2, 0, idx(2, "and")), chunk(2, idx(2, "and")),
+  chunk(3, 0),
+  chunk(4, 0, idx(4, "with")), chunk(4, idx(4, "with")),
+  chunk(5, 0, idx(5, "wait")), chunk(5, idx(5, "wait")),
+  chunk(6, 0),
+];
 for (let i = 0; i < captions.length - 1; i++) if (captions[i + 1].a - captions[i].b < 0.5) captions[i].b = captions[i + 1].a;
 
 // Poses: Codex's art when it lands, earlier poses as stand-ins until then

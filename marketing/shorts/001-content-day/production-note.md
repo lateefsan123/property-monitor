@@ -110,3 +110,19 @@ film mode (`../app-clips/`, `../lib/app-phone.js`):
 Tap ripples and tap sounds come from the recorded tap positions and times. The old pasted "on"
 switch and the drawn tap on Send are gone. Clips play at 1.25×. The render is 25.38 s,
 -14.1 LUFS, and decodes fully.
+
+## Version 2: clearer script (24 October 2026)
+
+The user found the earlier punchline corny and the short too short. The film is re-cut to a
+plain, benefit-led script of about 30–35 s, with more real app proof:
+- the script is in `build-short.mjs` (`SCRIPT`)
+- narration is in `narration-v2/` (Codex, Eleven v4, existing credits)
+- chosen takes are in `narration-selection-v2.json`
+
+Checks:
+- full decode
+- about -14 LUFS
+- every line confirmed by speech recognition (isolated per line where the full-mix pass garbled
+  short phrases)
+
+Nobody has listened to it yet.

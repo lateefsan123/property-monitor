@@ -1,0 +1,67 @@
+[
+ {
+  "word": "It",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "stops",
+  "start": 0.18,
+  "end": 0.52
+ },
+ {
+  "word": "as",
+  "start": 0.52,
+  "end": 0.86
+ },
+ {
+  "word": "soon",
+  "start": 0.86,
+  "end": 1.16
+ },
+ {
+  "word": "as",
+  "start": 1.16,
+  "end": 1.32
+ },
+ {
+  "word": "a",
+  "start": 1.32,
+  "end": 1.46
+ },
+ {
+  "word": "seller",
+  "start": 1.46,
+  "end": 1.68
+ },
+ {
+  "word": "replies,",
+  "start": 1.68,
+  "end": 2.16
+ },
+ {
+  "word": "and",
+  "start": 2.6,
+  "end": 2.88
+ },
+ {
+  "word": "I",
+  "start": 2.88,
+  "end": 3.12
+ },
+ {
+  "word": "answer",
+  "start": 3.12,
+  "end": 3.4
+ },
+ {
+  "word": "them",
+  "start": 3.4,
+  "end": 3.62
+ },
+ {
+  "word": "myself.",
+  "start": 3.62,
+  "end": 3.94
+ }
+]

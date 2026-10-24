@@ -1,0 +1,57 @@
+[
+ {
+  "word": "I",
+  "start": 0.0,
+  "end": 0.16
+ },
+ {
+  "word": "write",
+  "start": 0.16,
+  "end": 0.34
+ },
+ {
+  "word": "a",
+  "start": 0.34,
+  "end": 0.5
+ },
+ {
+  "word": "template",
+  "start": 0.5,
+  "end": 0.8
+ },
+ {
+  "word": "and",
+  "start": 0.8,
+  "end": 1.28
+ },
+ {
+  "word": "choose",
+  "start": 1.28,
+  "end": 1.56
+ },
+ {
+  "word": "which",
+  "start": 1.56,
+  "end": 1.92
+ },
+ {
+  "word": "seller",
+  "start": 1.92,
+  "end": 2.24
+ },
+ {
+  "word": "statuses",
+  "start": 2.24,
+  "end": 2.78
+ },
+ {
+  "word": "it's",
+  "start": 2.78,
+  "end": 3.04
+ },
+ {
+  "word": "for.",
+  "start": 3.04,
+  "end": 3.28
+ }
+]

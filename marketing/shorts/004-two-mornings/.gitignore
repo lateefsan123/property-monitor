@@ -13,3 +13,12 @@ narration/**/*.words.json
 !narration/vo-004-3-take-1.*
 !narration/vo-004-4-take-1.*
 !narration/vo-004-5-take-1.*
+narration-v2/*.mp3
+narration-v2/*.words.json
+!narration-v2/vo-004v2-1-take-1.*
+!narration-v2/vo-004v2-2-take-1.*
+!narration-v2/vo-004v2-3-take-1.*
+!narration-v2/vo-004v2-4-take-1.*
+!narration-v2/vo-004v2-5-take-1.*
+!narration-v2/vo-004v2-6-take-1.*
+!narration-v2/vo-004v2-7-take-2.*

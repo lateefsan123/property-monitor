@@ -1,0 +1,92 @@
+[
+ {
+  "word": "Without",
+  "start": 0.0,
+  "end": 0.32
+ },
+ {
+  "word": "repeat,",
+  "start": 0.32,
+  "end": 0.76
+ },
+ {
+  "word": "I",
+  "start": 1.12,
+  "end": 1.26
+ },
+ {
+  "word": "open",
+  "start": 1.26,
+  "end": 1.4
+ },
+ {
+  "word": "a",
+  "start": 1.4,
+  "end": 1.58
+ },
+ {
+  "word": "spreadsheet",
+  "start": 1.58,
+  "end": 1.92
+ },
+ {
+  "word": "and",
+  "start": 1.92,
+  "end": 2.42
+ },
+ {
+  "word": "try",
+  "start": 2.42,
+  "end": 2.68
+ },
+ {
+  "word": "to",
+  "start": 2.68,
+  "end": 2.8
+ },
+ {
+  "word": "work",
+  "start": 2.8,
+  "end": 3.0
+ },
+ {
+  "word": "out",
+  "start": 3.0,
+  "end": 3.2
+ },
+ {
+  "word": "who",
+  "start": 3.2,
+  "end": 3.5
+ },
+ {
+  "word": "I'm",
+  "start": 3.5,
+  "end": 3.72
+ },
+ {
+  "word": "meant",
+  "start": 3.72,
+  "end": 3.82
+ },
+ {
+  "word": "to",
+  "start": 3.82,
+  "end": 4.0
+ },
+ {
+  "word": "follow",
+  "start": 4.0,
+  "end": 4.2
+ },
+ {
+  "word": "up",
+  "start": 4.2,
+  "end": 4.42
+ },
+ {
+  "word": "with.",
+  "start": 4.42,
+  "end": 4.66
+ }
+]

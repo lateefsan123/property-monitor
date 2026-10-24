@@ -1,0 +1,42 @@
+[
+ {
+  "word": "Everything",
+  "start": 0.0,
+  "end": 0.42
+ },
+ {
+  "word": "goes",
+  "start": 0.42,
+  "end": 0.64
+ },
+ {
+  "word": "out",
+  "start": 0.64,
+  "end": 0.9
+ },
+ {
+  "word": "from",
+  "start": 0.9,
+  "end": 1.08
+ },
+ {
+  "word": "my",
+  "start": 1.08,
+  "end": 1.28
+ },
+ {
+  "word": "own",
+  "start": 1.28,
+  "end": 1.58
+ },
+ {
+  "word": "connected",
+  "start": 1.58,
+  "end": 2.0
+ },
+ {
+  "word": "WhatsApp.",
+  "start": 2.0,
+  "end": 2.36
+ }
+]

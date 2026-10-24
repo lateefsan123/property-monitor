@@ -1,0 +1,42 @@
+[
+ {
+  "word": "Now",
+  "start": 0.0,
+  "end": 0.24
+ },
+ {
+  "word": "I",
+  "start": 0.24,
+  "end": 0.4
+ },
+ {
+  "word": "can",
+  "start": 0.4,
+  "end": 0.54
+ },
+ {
+  "word": "finish",
+  "start": 0.54,
+  "end": 0.78
+ },
+ {
+  "word": "the",
+  "start": 0.78,
+  "end": 0.98
+ },
+ {
+  "word": "tour",
+  "start": 0.98,
+  "end": 1.24
+ },
+ {
+  "word": "without",
+  "start": 1.24,
+  "end": 1.56
+ },
+ {
+  "word": "stopping.",
+  "start": 1.56,
+  "end": 1.98
+ }
+]

@@ -1,0 +1,37 @@
+[
+ {
+  "word": "Two",
+  "start": 0.0,
+  "end": 0.26
+ },
+ {
+  "word": "ways",
+  "start": 0.26,
+  "end": 0.5
+ },
+ {
+  "word": "to",
+  "start": 0.5,
+  "end": 0.78
+ },
+ {
+  "word": "start",
+  "start": 0.78,
+  "end": 1.02
+ },
+ {
+  "word": "the",
+  "start": 1.02,
+  "end": 1.2
+ },
+ {
+  "word": "same",
+  "start": 1.2,
+  "end": 1.54
+ },
+ {
+  "word": "morning.",
+  "start": 1.54,
+  "end": 1.9
+ }
+]

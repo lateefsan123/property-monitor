@@ -1,0 +1,52 @@
+[
+ {
+  "word": "So",
+  "start": 0.0,
+  "end": 0.22
+ },
+ {
+  "word": "I",
+  "start": 0.22,
+  "end": 0.32
+ },
+ {
+  "word": "start",
+  "start": 0.32,
+  "end": 0.58
+ },
+ {
+  "word": "the",
+  "start": 0.58,
+  "end": 0.76
+ },
+ {
+  "word": "day",
+  "start": 0.76,
+  "end": 0.98
+ },
+ {
+  "word": "knowing",
+  "start": 0.98,
+  "end": 1.32
+ },
+ {
+  "word": "exactly",
+  "start": 1.32,
+  "end": 1.9
+ },
+ {
+  "word": "who",
+  "start": 1.9,
+  "end": 2.3
+ },
+ {
+  "word": "to",
+  "start": 2.3,
+  "end": 2.4
+ },
+ {
+  "word": "contact.",
+  "start": 2.4,
+  "end": 2.86
+ }
+]

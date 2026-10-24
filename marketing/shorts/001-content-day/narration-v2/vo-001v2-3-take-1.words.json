@@ -1,0 +1,42 @@
+[
+ {
+  "word": "So",
+  "start": 0.0,
+  "end": 0.3
+ },
+ {
+  "word": "I",
+  "start": 0.3,
+  "end": 0.56
+ },
+ {
+  "word": "set",
+  "start": 0.56,
+  "end": 0.78
+ },
+ {
+  "word": "it",
+  "start": 0.78,
+  "end": 0.88
+ },
+ {
+  "word": "up",
+  "start": 0.88,
+  "end": 1.04
+ },
+ {
+  "word": "once,",
+  "start": 1.04,
+  "end": 1.42
+ },
+ {
+  "word": "in",
+  "start": 1.84,
+  "end": 1.96
+ },
+ {
+  "word": "repeat.",
+  "start": 1.96,
+  "end": 2.32
+ }
+]

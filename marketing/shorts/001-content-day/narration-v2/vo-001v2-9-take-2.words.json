@@ -1,0 +1,67 @@
+[
+ {
+  "word": "Repeat",
+  "start": 0.0,
+  "end": 0.42
+ },
+ {
+  "word": "AI.",
+  "start": 0.42,
+  "end": 0.88
+ },
+ {
+  "word": "Set",
+  "start": 1.54,
+  "end": 1.62
+ },
+ {
+  "word": "up",
+  "start": 1.62,
+  "end": 1.76
+ },
+ {
+  "word": "your",
+  "start": 1.76,
+  "end": 1.9
+ },
+ {
+  "word": "follow",
+  "start": 1.9,
+  "end": 2.12
+ },
+ {
+  "word": "-ups",
+  "start": 2.12,
+  "end": 2.36
+ },
+ {
+  "word": "once",
+  "start": 2.36,
+  "end": 2.72
+ },
+ {
+  "word": "and",
+  "start": 2.72,
+  "end": 3.22
+ },
+ {
+  "word": "get",
+  "start": 3.22,
+  "end": 3.36
+ },
+ {
+  "word": "back",
+  "start": 3.36,
+  "end": 3.58
+ },
+ {
+  "word": "to",
+  "start": 3.58,
+  "end": 3.76
+ },
+ {
+  "word": "work.",
+  "start": 3.76,
+  "end": 3.96
+ }
+]

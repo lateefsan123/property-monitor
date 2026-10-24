@@ -9,3 +9,13 @@ out/*.mov
 narration/**/*.mp3
 narration/**/*.words.json
 !narration/vo-007-*-take-2.*
+narration-v2/*.mp3
+narration-v2/*.words.json
+!narration-v2/vo-007v2-1-take-2.*
+!narration-v2/vo-007v2-2-take-2.*
+!narration-v2/vo-007v2-3-take-2.*
+!narration-v2/vo-007v2-4-take-2.*
+!narration-v2/vo-007v2-5-take-1.*
+!narration-v2/vo-007v2-6-take-2.*
+!narration-v2/vo-007v2-7-take-1.*
+!narration-v2/vo-007v2-8-take-2.*

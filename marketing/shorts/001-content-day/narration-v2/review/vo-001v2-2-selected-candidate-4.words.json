@@ -1,0 +1,77 @@
+[
+ {
+  "word": "But",
+  "start": 0.0,
+  "end": 0.22
+ },
+ {
+  "word": "every",
+  "start": 0.22,
+  "end": 0.52
+ },
+ {
+  "word": "few",
+  "start": 0.52,
+  "end": 0.78
+ },
+ {
+  "word": "minutes,",
+  "start": 0.78,
+  "end": 1.12
+ },
+ {
+  "word": "I",
+  "start": 1.42,
+  "end": 1.52
+ },
+ {
+  "word": "stop",
+  "start": 1.52,
+  "end": 1.78
+ },
+ {
+  "word": "to",
+  "start": 1.78,
+  "end": 1.94
+ },
+ {
+  "word": "type",
+  "start": 1.94,
+  "end": 2.14
+ },
+ {
+  "word": "the",
+  "start": 2.14,
+  "end": 2.28
+ },
+ {
+  "word": "same",
+  "start": 2.28,
+  "end": 2.64
+ },
+ {
+  "word": "follow",
+  "start": 2.64,
+  "end": 3.0
+ },
+ {
+  "word": "-up",
+  "start": 3.0,
+  "end": 3.26
+ },
+ {
+  "word": "to",
+  "start": 3.26,
+  "end": 3.46
+ },
+ {
+  "word": "another",
+  "start": 3.46,
+  "end": 3.74
+ },
+ {
+  "word": "seller.",
+  "start": 3.74,
+  "end": 4.06
+ }
+]

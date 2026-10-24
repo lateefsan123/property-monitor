@@ -105,7 +105,7 @@
 <div class="layer" id="endcard">
   <div id="endtop"></div>
   <img id="wordmark" src="../../../mobile/assets/repeat-ai-logo.png">
-  <div id="endline">The camera is<br><span>still your job.</span></div>
+  <div id="endline">Set up your<br><span>follow-ups once.</span></div>
   <div id="endfade"></div>
   <div id="cta">Watch the demo · <b>repeatai.org</b></div>
 </div>
@@ -138,7 +138,7 @@ function render(t) {
     PH = AppPhone.create($("appStage"));
     built = true;
   }
-  const shot = t < C.toApp ? "two1" : t < C.toTwo2 ? "app" : t < C.endCard ? "two2" : "end";
+  const shot = t < C.toApp ? "two1" : t < C.toTwo2 ? "app" : t < C.toApp2 ? "two2" : t < C.endCard ? "app" : "end";
   for (const id of ["office", "appLayer", "endcard"]) set($(id), { display: "none" });
   let pending = null;
 
@@ -161,7 +161,7 @@ function render(t) {
   }
   if (shot === "app" || shot === "end") {
     set($("appLayer"), { display: "block", zIndex: 2 });
-    const rise = shot === "app" ? out(prog(t, C.toApp, 0.45)) : 1;
+    const rise = shot === "app" ? out(prog(t, t >= C.toApp2 ? C.toApp2 : C.toApp, 0.45)) : 1;
     pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, { dy: (1 - rise) * 1500 });
     set($("topband"), { opacity: shot === "app" ? 1 : 0 });
     set($("label"), { opacity: shot === "app" ? 1 : 0 });

@@ -24,49 +24,56 @@ const ROOT = resolve(DIR, "../../../");
 const FRAMES = join(DIR, "frames");
 const SFX = join(DIR, "sfx");
 const OUT = process.env.OUT_DIR || join(DIR, "out");
-const NARR = process.env.NARR_DIR || join(DIR, "narration");
+const NARR = process.env.NARR_DIR || join(DIR, "narration-v2");
 const FPS = 30;
 const MUSIC = join(ROOT, "video/launch-film/out/music-vastness-andrew-ev.mp3"); // Mixkit Free License, as in v5
 const MUSIC_START = 18;
 
-const sel = JSON.parse(readFileSync(process.env.SEL || join(DIR, "narration-selection.json"), "utf8"));
+const sel = JSON.parse(readFileSync(process.env.SEL || join(DIR, "narration-selection-v2.json"), "utf8"));
 const run = cmd => execSync(cmd, { stdio: "pipe", maxBuffer: 1 << 26 });
 const r2 = v => Math.round(v * 100) / 100;
 
+// v2 script (24 Oct 2026): plain, benefit-led, ~35 s. The v1 punchline ("This is the kitchen.")
+// read as corny, so every line now says what Repeat does.
 const SCRIPT = {
-  1: "Ring light's finally on.",
-  2: "And I've stopped mid-take again, to send the same seller update.",
-  3: "So I set the routine follow-ups up in Repeat.",
-  4: "When a seller's due, their update goes out on WhatsApp. If they reply, it stops, and I answer them myself.",
-  5: "Right. This is the kitchen.",
-  6: "Repeat AI. Build your brand, and keep your follow-ups organised.",
+  1: "I'm trying to film a property tour.",
+  2: "But every few minutes, I stop to type the same follow-up to another seller.",
+  3: "So I set it up once, in Repeat.",
+  4: "I write a template and choose which seller statuses it's for.",
+  5: "Then I turn on Status follow-ups, so each seller gets their message when they're due.",
+  6: "It stops as soon as a seller replies, and I answer them myself.",
+  7: "Everything goes out from my own connected WhatsApp.",
+  8: "Now I can finish the tour without stopping.",
+  9: "Repeat AI. Set up your follow-ups once, and get back to work.",
 };
 const VOICE_LUFS = -19.3; // even level across lines before the master
+const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
 
 // ── 1. Timeline from narration ───────────────────────────────────────────────
 function loadLine(n) {
   const take = sel.takes[String(n)];
-  const mp3 = join(NARR, `vo-ra101-${n}-take-${take}.mp3`);
+  const mp3 = join(NARR, `vo-001v2-${n}-take-${take}.mp3`);
   const words = JSON.parse(readFileSync(mp3.replace(/\.mp3$/, ".words.json"), "utf8"));
   const dur = parseFloat(execSync(`ffprobe -v error -show_entries format=duration -of csv=p=0 "${mp3}"`, { encoding: "utf8" }));
-  // Trim lead-in silence so a line starts on its first word
   const lead = Math.max(0, words[0].start - 0.04);
-  // Recogniser splits hyphenated words ("mid", "-take"); join them, then show the script's spelling
-  const merged = [];
-  for (const w of words) {
-    if (w.word.startsWith("-") && merged.length) { const m = merged[merged.length - 1]; m.word += w.word; m.end = w.end; }
-    else merged.push({ ...w });
-  }
+  // merge recogniser tokens ("follow" "-up") until they spell the next script word
   const script = SCRIPT[n].split(/\s+/);
-  if (script.length !== merged.length) throw new Error(`line ${n} take ${take}: ${merged.length} words heard, ${script.length} in script`);
-  merged.forEach((w, i) => { w.heard = w.word; w.word = script[i]; });
+  const merged = [];
+  let i = 0;
+  for (const sw of script) {
+    if (i >= words.length) throw new Error(`line ${n} take ${take}: ran out of heard words at "${sw}"`);
+    const m = { ...words[i++] };
+    let heard = m.word;
+    while (norm(heard) !== norm(sw) && i < words.length && norm(sw).startsWith(norm(heard))) { heard += words[i].word; m.end = words[i++].end; }
+    if (norm(heard) !== norm(sw)) throw new Error(`line ${n} take ${take}: heard "${heard}", script "${sw}"`);
+    merged.push({ ...m, heard, word: sw });
+  }
   const loud = execSync(`ffmpeg -hide_banner -i "${mp3}" -af ebur128 -f null - 2>&1`, { encoding: "utf8" });
   const lufs = parseFloat(loud.slice(loud.lastIndexOf("Integrated loudness")).match(/I:\s+(-?[\d.]+) LUFS/)[1]);
   return { n, mp3, lead, gain: r2(VOICE_LUFS - lufs), words: merged.map(w => ({ ...w, start: w.start - lead, end: w.end - lead })), dur: dur - lead };
 }
 const L = {};
-for (const n of [1, 2, 3, 4, 5, 6]) L[n] = loadLine(n);
-const norm = s => s.toLowerCase().replace(/[^a-z']/g, "");
+for (const n of [1, 2, 3, 4, 5, 6, 7, 8, 9]) L[n] = loadLine(n);
 function word(line, w, nth = 1) {
   let k = 0;
   for (const x of line.words) if (norm(x.word) === norm(w) && ++k === nth) return x;
@@ -76,7 +83,7 @@ const lastWord = line => line.words[line.words.length - 1];
 
 const start = {};
 const cue = {};
-const W = (n, w, k, f = "start") => start[n] + word(L[n], w, k)[f];
+const W = (n, w, k = 1, f = "start") => start[n] + word(L[n], w, k)[f];
 const endOf = n => start[n] + lastWord(L[n]).end;
 
 start[1] = 0.6;
@@ -84,47 +91,49 @@ cue.lightOn = 0.3;
 cue.buzz = endOf(1) + 0.3;
 cue.cutInt = cue.buzz + 0.12;
 start[2] = cue.cutInt + 0.35;
-cue.zoom = W(2, "send", 1) - 0.75;             // land on the composer as he says "send the same seller update"
-cue.toTpl = endOf(2) + 0.45;
-start[3] = cue.toTpl + 0.2;
-cue.toUse = cue.toTpl + 1.25;                   // preview sheet, then "Use for"
-start[4] = endOf(3) + 0.4;
-cue.toAuto = start[4] - 0.35;
-cue.toggle = W(4, "due", 1, "end") - 0.05;
-cue.toWa = W(4, "goes", 1) - 0.2;
-cue.backAuto = W(4, "if", 1) - 0.3;
-cue.stop = W(4, "stops", 1) - 0.05;
-cue.toPay = endOf(4) + 0.35;
-start[5] = cue.toPay + 0.65;
-cue.endCard = endOf(5) + 0.55;
-start[6] = cue.endCard + 0.35;
-const END = r2(endOf(6) + 1.5);
+cue.zoom = W(2, "type") - 0.5;                 // into his phone as he says "type the same follow-up"
+start[3] = endOf(2) + 0.45;
+cue.toTpl = start[3] - 0.15;                   // the template editor, then its preview
+start[4] = endOf(3) + 0.3;
+cue.toUse = W(4, "choose") - 0.15;             // "Use for": which statuses get it
+start[5] = endOf(4) + 0.4;
+cue.toAuto = start[5] - 0.25;
+cue.toggle = W(5, "Status") + 0.1;             // the real tap on Status follow-ups
+start[6] = endOf(5) + 0.4;
+cue.backAuto = start[6] - 0.2;                 // hold on "Stops when they reply."
+cue.stop = W(6, "stops");
+start[7] = endOf(6) + 0.4;
+cue.toWa = start[7] - 0.2;                     // WhatsApp: Connected
+start[8] = endOf(7) + 0.9;
+cue.toPay = start[8] - 0.55;                   // ring-light iris back to filming
+cue.endCard = endOf(8) + 0.55;
+start[9] = cue.endCard + 0.35;
+const END = r2(endOf(9) + 1.5);
 
 // ── App proof: recorded film-mode clips (marketing/shorts/app-clips, lib/app-phone.js)
 const clips = loadClips(["composer-manual", "template-appraisal", "template-use-for", "automations-status", "whatsapp-connected", "send-activity"], DIR);
 const ev = (c, k) => clips[c].events[k];
-const RATE = 1.25;
 const lastT = c => (clips[c].frames - 1) / 30;
-const stopCam = { sx: 590, sy: 1380, z: 1.14, cy: 1120 };
+const stopCam = { sx: 590, sy: 1380, z: 1.12, cy: 1120 };
+const waCam = { sx: 590, sy: 560, z: 1.08, cy: 1120 };
 const app = { beats: [
-  { a: cue.zoom, b: cue.toTpl, clip: "composer-manual", c0: 0, rate: 1, cam: { sx: 590, sy: 2150, z: 1.04, cy: 1150 },
-    hl: [{ a: cue.zoom + 0.7, b: cue.toTpl, box: [40, 1870, 1100, 470] }] },
-  { a: cue.toTpl, b: cue.toUse, clip: "template-appraisal", c0: ev("template-appraisal", "tap:preview") - 0.15, rate: RATE,
-    cam: { sx: 590, sy: 1900, z: 1.04, cy: 1200 }, hl: [{ a: cue.toTpl + 0.75, b: cue.toUse, box: [44, 1410, 1092, 1084] }] },
-  { a: cue.toUse, b: cue.toAuto, clip: "template-use-for", c0: ev("template-use-for", "tap:use-for") - 0.1, rate: RATE,
-    cam: { sx: 590, sy: 1950, z: 1.06, cy: 1200 }, hl: [{ a: cue.toUse + (ev("template-use-for", "appraisal-on") - ev("template-use-for", "tap:use-for") + 0.1) / RATE, b: cue.toAuto, box: [30, 2160, 1120, 115] }] },
-  { a: cue.toAuto, b: cue.toWa, clip: "automations-status", c0: Math.max(0, ev("automations-status", "tap:status-switch") - (cue.toggle - cue.toAuto) * RATE), rate: RATE,
-    cam: { sx: 590, sy: 1300, z: 1.08, cy: 1160 }, hl: [{ a: cue.toggle - 0.2, b: cue.toWa, box: [30, 1195, 1120, 225] }] },
-  { a: cue.toWa, b: cue.backAuto, clip: "whatsapp-connected", c0: ev("whatsapp-connected", "tap:whatsapp") - 0.1, rate: RATE,
-    cam: { sx: 590, sy: 560, z: 1.08, cy: 1120 }, hl: [{ a: cue.toWa + 0.8, b: cue.backAuto, box: [44, 300, 1092, 256] }] },
-  { a: cue.backAuto, b: cue.toPay + 0.6, clip: "automations-status", c0: lastT("automations-status"), rate: 0,
-    camKeys: [[cue.backAuto, stopCam], [cue.toPay - 0.05, stopCam], [cue.toPay + 0.45, { ...stopCam, cy: 2900 }]],
-    hl: [{ a: cue.stop, b: cue.toPay, box: [280, 1345, 436, 68] }] },
-  { a: cue.endCard, b: END + 1, clip: "send-activity", c0: ev("send-activity", "tap:send-activity") - 0.1, rate: RATE,
-    camKeys: [[cue.endCard, { sx: 590, sy: 1000, z: 0.9, cy: 1500 }], [cue.endCard + 0.7, { sx: 590, sy: 1100, z: 0.72, cy: 1420 }]],
-    hl: [{ a: cue.endCard + 1.2, b: END + 1, box: [38, 875, 1104, 365] }] },
+  { a: cue.zoom, b: cue.toTpl, clip: "composer-manual", c0: 0, rate: 1, cam: { sx: 590, sy: 2150, z: 1.04, cy: 1150 } },
+  { a: cue.toTpl, b: cue.toUse, clip: "template-appraisal", c0: ev("template-appraisal", "tap:edit-appraisal") - 0.3,
+    rate: Math.max(0.8, Math.min(1.4, (ev("template-appraisal", "preview-settled") - ev("template-appraisal", "tap:edit-appraisal") + 0.3) / (cue.toUse - cue.toTpl - 0.6))),
+    cam: { sx: 590, sy: 1500, z: 0.92, cy: 1180 } },
+  { a: cue.toUse, b: cue.toAuto, clip: "template-use-for", c0: ev("template-use-for", "tap:use-for") - 0.1, rate: 1,
+    cam: { sx: 590, sy: 1950, z: 1.06, cy: 1200 } },
+  { a: cue.toAuto, b: cue.backAuto, clip: "automations-status", c0: Math.max(0, ev("automations-status", "tap:status-switch") - (cue.toggle - cue.toAuto)), rate: 1,
+    cam: { sx: 590, sy: 1300, z: 1.08, cy: 1160 } },
+  { a: cue.backAuto, b: cue.toWa, clip: "automations-status", c0: lastT("automations-status"), rate: 0, cut: true,
+    camKeys: [[cue.backAuto, { sx: 590, sy: 1300, z: 1.08, cy: 1160 }], [cue.stop, stopCam]] },
+  { a: cue.toWa, b: cue.toPay + 0.6, clip: "whatsapp-connected", c0: ev("whatsapp-connected", "tap:whatsapp") - 0.1, rate: 1,
+    camKeys: [[cue.toWa, waCam], [cue.toPay - 0.05, waCam], [cue.toPay + 0.45, { ...waCam, cy: 2900 }]] },
+  { a: cue.endCard, b: END + 1, clip: "send-activity", c0: ev("send-activity", "tap:send-activity") - 0.1, rate: 1.25,
+    camKeys: [[cue.endCard, { sx: 590, sy: 1000, z: 0.9, cy: 1500 }], [cue.endCard + 0.7, { sx: 590, sy: 1100, z: 0.72, cy: 1420 }]] },
 ] };
-for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); }
+for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); bt.rate = r2(bt.rate); }
+for (const k in cue) cue[k] = r2(cue[k]);
 // a tap sound on every recorded tap that plays on screen
 const tapTimes = [];
 for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
@@ -133,31 +142,28 @@ for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
 }
 
 // Captions: chunks of spoken words, with a few emphasised words in teal
-const EM = new Set(["same", "seller", "update", "routine", "follow-ups", "whatsapp", "stops", "myself", "kitchen"]);
+const EM = new Set(["same", "followup", "once", "template", "statuses", "status", "followups", "due", "replies", "myself", "whatsapp", "finish"]);
 function chunk(n, from, to) {
   const ws = L[n].words.slice(from, to === undefined ? undefined : to);
-  const html = ws.map(w => EM.has(norm(w.word).replace(/'/g, "")) || EM.has(w.word.toLowerCase().replace(/[.,]/g, "")) ? `<em>${w.word}</em>` : w.word).join(" ");
+  const html = ws.map(w => EM.has(norm(w.word)) ? `<em>${w.word}</em>` : w.word).join(" ");
   return { a: r2(start[n] + ws[0].start - 0.12), b: r2(start[n] + ws[ws.length - 1].end + 0.35), html };
 }
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 const captions = [
   chunk(1, 0),
-  chunk(2, 0, idx(2, "to")), chunk(2, idx(2, "to")),
+  chunk(2, 0, idx(2, "I")), chunk(2, idx(2, "I")),
   chunk(3, 0),
-  chunk(4, 0, idx(4, "their")), chunk(4, idx(4, "their"), idx(4, "if")), chunk(4, idx(4, "if"), idx(4, "and", 1)), chunk(4, idx(4, "and", 1)),
-  chunk(5, 0, 1), chunk(5, 1),
+  chunk(4, 0, idx(4, "and")), chunk(4, idx(4, "and")),
+  chunk(5, 0, idx(5, "so")), chunk(5, idx(5, "so")),
+  chunk(6, 0, idx(6, "and")), chunk(6, idx(6, "and")),
+  chunk(7, 0), chunk(8, 0),
 ];
 // Each caption holds until the next one starts (no flashing gaps inside a line)
 for (let i = 0; i < captions.length - 1; i++) {
   const gap = captions[i + 1].a - captions[i].b;
   if (gap < 0.5) captions[i].b = captions[i + 1].a;
 }
-const [cRight, cKitchen] = captions.slice(-2);
-cRight.b = cKitchen.b; // keep "Right." up with "This is the kitchen."
-cRight.html = "Right.";
-cKitchen.html = "Right. This is the <em>kitchen.</em>";
 
-for (const k in cue) cue[k] = r2(cue[k]);
 const timeline = { end: END, cue, captions, app, clips, tapTimes, lines: Object.values(L).map(l => ({ n: l.n, start: r2(start[l.n]), end: r2(endOf(l.n)), file: l.mp3.replace(DIR, "") })) };
 writeFileSync(join(DIR, "timeline.json"), JSON.stringify(timeline, null, 1));
 console.log(`Timeline: ${END}s`, cue);
@@ -209,7 +215,7 @@ function buildAudio() {
     voice.push(`[v${i}]`);
   });
   fx.forEach(([file, t, vol], j) => {
-    const k = 7 + j, ms = Math.round(t * 1000);
+    const k = 1 + Object.keys(L).length + j, ms = Math.round(t * 1000);
     inputs.push(`-i "${f(file)}"`);
     filters.push(`[${k}]aresample=48000,aformat=channel_layouts=stereo,adelay=${ms}|${ms},volume=${vol}[s${j}]`);
   });

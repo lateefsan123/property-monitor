@@ -1,0 +1,67 @@
+[
+ {
+  "word": "Sellers",
+  "start": 0.0,
+  "end": 0.44
+ },
+ {
+  "word": "I've",
+  "start": 0.44,
+  "end": 0.66
+ },
+ {
+  "word": "scheduled",
+  "start": 0.66,
+  "end": 0.9
+ },
+ {
+  "word": "for",
+  "start": 0.9,
+  "end": 1.16
+ },
+ {
+  "word": "later",
+  "start": 1.16,
+  "end": 1.54
+ },
+ {
+  "word": "wait",
+  "start": 1.54,
+  "end": 1.98
+ },
+ {
+  "word": "under",
+  "start": 1.98,
+  "end": 2.28
+ },
+ {
+  "word": "scheduled",
+  "start": 2.28,
+  "end": 2.74
+ },
+ {
+  "word": "until",
+  "start": 2.74,
+  "end": 3.32
+ },
+ {
+  "word": "their",
+  "start": 3.32,
+  "end": 3.5
+ },
+ {
+  "word": "date",
+  "start": 3.5,
+  "end": 3.7
+ },
+ {
+  "word": "comes",
+  "start": 3.7,
+  "end": 3.96
+ },
+ {
+  "word": "round.",
+  "start": 3.96,
+  "end": 4.2
+ }
+]
