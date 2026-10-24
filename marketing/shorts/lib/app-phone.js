@@ -31,7 +31,7 @@
   .ap-bar .batt b { display: block; height: 100%; width: 78%; background: #fff; border-radius: 3px; }
   .ap-layer { position: absolute; left: 0; top: ${BAR}px; width: ${W}px; height: ${H}px; transform-origin: 0 0; }
   .ap-layer img { position: absolute; left: 0; top: 0; width: ${W}px; height: ${H}px; }
-  .ap-hl { position: absolute; border: 6px solid #3FD3C0; border-radius: 26px; opacity: 0;
+  .ap-hl { display: none; position: absolute; border: 6px solid #3FD3C0; border-radius: 26px; opacity: 0;
            box-shadow: 0 0 0 6px rgba(63,211,192,.18), 0 0 40px rgba(63,211,192,.35); }
   .ap-tap { position: absolute; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%; opacity: 0;
             background: radial-gradient(circle, rgba(255,255,255,.55) 0%, rgba(255,255,255,.18) 55%, rgba(255,255,255,0) 72%); }`;

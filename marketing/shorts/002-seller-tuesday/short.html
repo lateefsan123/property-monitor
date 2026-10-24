@@ -287,7 +287,7 @@ function render(t) {
       const u = out(prog(t, C.toThread, 0.3));
       set($("thread"), { transform: `translateX(${(1 - u) * 100}%)` });
       const mk = out(prog(t, C.markTx, 0.35));
-      set($("txLine"), { background: `rgba(63,211,192,${0.35 * mk})`, boxShadow: `0 0 0 ${6 * mk}px rgba(63,211,192,${0.35 * mk})` });
+      // no highlight on the sale line (user found the teal highlights annoying)
       const r = back(prog(t, C.sendReply, 0.3));
       set($("reply"), { top: "1130px", opacity: clamp(r * 1.5), transform: `scale(${lerp(0.6, 1, r)})`, transformOrigin: "100% 0" });
       // zoom on the message
