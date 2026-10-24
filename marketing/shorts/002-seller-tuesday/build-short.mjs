@@ -199,7 +199,7 @@ function buildAudio() {
   const f = name => join(SFX, name);
   // Sound effects: ElevenLabs takes the user picked (../sfx-elevenlabs/chosen), trimmed of lead-in
   // silence and peak-normalised per sound so the cue volumes below stay meaningful
-  const PEAK = { switch: -6, buzz: -6, tap: -10, ping: -9, pop: -9, rec: -9, chime: -12 };
+  const PEAK = { switch: -13, buzz: -14, tap: -18, ping: -16, pop: -17, rec: -16, chime: -19 };   // well under the voice
   for (const name of ["buzz", "ping", "pop", "tap", "chime"]) {
     const src = join(DIR, "../sfx-elevenlabs/chosen", `${name}.mp3`);
     const trim = "silenceremove=start_periods=1:start_threshold=-50dB";
