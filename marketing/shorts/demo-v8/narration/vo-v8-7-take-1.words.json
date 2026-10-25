@@ -1,0 +1,57 @@
+[
+ {
+  "word": "Each",
+  "start": 0.0,
+  "end": 0.24
+ },
+ {
+  "word": "morning,",
+  "start": 0.24,
+  "end": 0.68
+ },
+ {
+  "word": "due",
+  "start": 1.16,
+  "end": 1.24
+ },
+ {
+  "word": "today",
+  "start": 1.24,
+  "end": 1.6
+ },
+ {
+  "word": "shows",
+  "start": 1.6,
+  "end": 1.94
+ },
+ {
+  "word": "who",
+  "start": 1.94,
+  "end": 2.22
+ },
+ {
+  "word": "to",
+  "start": 2.22,
+  "end": 2.34
+ },
+ {
+  "word": "contact",
+  "start": 2.34,
+  "end": 2.8
+ },
+ {
+  "word": "and",
+  "start": 2.8,
+  "end": 3.38
+ },
+ {
+  "word": "who's",
+  "start": 3.38,
+  "end": 3.7
+ },
+ {
+  "word": "overdue.",
+  "start": 3.7,
+  "end": 4.12
+ }
+]

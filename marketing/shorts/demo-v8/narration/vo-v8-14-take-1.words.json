@@ -1,0 +1,67 @@
+[
+ {
+  "word": "And",
+  "start": 0.0,
+  "end": 0.2
+ },
+ {
+  "word": "when",
+  "start": 0.2,
+  "end": 0.34
+ },
+ {
+  "word": "a",
+  "start": 0.34,
+  "end": 0.48
+ },
+ {
+  "word": "seller",
+  "start": 0.48,
+  "end": 0.66
+ },
+ {
+  "word": "replies,",
+  "start": 0.66,
+  "end": 1.24
+ },
+ {
+  "word": "their",
+  "start": 1.74,
+  "end": 1.86
+ },
+ {
+  "word": "follow",
+  "start": 1.86,
+  "end": 2.16
+ },
+ {
+  "word": "-ups",
+  "start": 2.16,
+  "end": 2.36
+ },
+ {
+  "word": "stop.",
+  "start": 2.36,
+  "end": 2.82
+ },
+ {
+  "word": "That",
+  "start": 3.4,
+  "end": 3.58
+ },
+ {
+  "word": "conversation",
+  "start": 3.58,
+  "end": 4.0
+ },
+ {
+  "word": "is",
+  "start": 4.0,
+  "end": 4.64
+ },
+ {
+  "word": "mine.",
+  "start": 4.64,
+  "end": 4.98
+ }
+]

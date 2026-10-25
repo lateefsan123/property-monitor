@@ -1,0 +1,42 @@
+[
+ {
+  "word": "That's",
+  "start": 0.0,
+  "end": 0.36
+ },
+ {
+  "word": "a",
+  "start": 0.36,
+  "end": 0.46
+ },
+ {
+  "word": "lot",
+  "start": 0.46,
+  "end": 0.76
+ },
+ {
+  "word": "of",
+  "start": 0.76,
+  "end": 0.92
+ },
+ {
+  "word": "follow",
+  "start": 0.92,
+  "end": 1.2
+ },
+ {
+  "word": "-ups",
+  "start": 1.2,
+  "end": 1.42
+ },
+ {
+  "word": "to",
+  "start": 1.42,
+  "end": 1.62
+ },
+ {
+  "word": "remember.",
+  "start": 1.62,
+  "end": 1.96
+ }
+]

@@ -1,0 +1,52 @@
+[
+ {
+  "word": "When",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "something",
+  "start": 0.18,
+  "end": 0.5
+ },
+ {
+  "word": "sells",
+  "start": 0.5,
+  "end": 0.86
+ },
+ {
+  "word": "in",
+  "start": 0.86,
+  "end": 1.06
+ },
+ {
+  "word": "their",
+  "start": 1.06,
+  "end": 1.18
+ },
+ {
+  "word": "building,",
+  "start": 1.18,
+  "end": 1.54
+ },
+ {
+  "word": "they",
+  "start": 2.02,
+  "end": 2.12
+ },
+ {
+  "word": "get",
+  "start": 2.12,
+  "end": 2.24
+ },
+ {
+  "word": "the",
+  "start": 2.24,
+  "end": 2.4
+ },
+ {
+  "word": "update.",
+  "start": 2.4,
+  "end": 2.7
+ }
+]

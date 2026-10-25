@@ -1,0 +1,52 @@
+[
+ {
+  "word": "I",
+  "start": 0.0,
+  "end": 0.16
+ },
+ {
+  "word": "bring",
+  "start": 0.16,
+  "end": 0.34
+ },
+ {
+  "word": "my",
+  "start": 0.34,
+  "end": 0.52
+ },
+ {
+  "word": "sellers",
+  "start": 0.52,
+  "end": 0.82
+ },
+ {
+  "word": "in",
+  "start": 0.82,
+  "end": 1.12
+ },
+ {
+  "word": "from",
+  "start": 1.12,
+  "end": 1.34
+ },
+ {
+  "word": "Google",
+  "start": 1.34,
+  "end": 1.6
+ },
+ {
+  "word": "Sheets",
+  "start": 1.6,
+  "end": 2.16
+ },
+ {
+  "word": "or",
+  "start": 2.16,
+  "end": 2.38
+ },
+ {
+  "word": "Excel.",
+  "start": 2.38,
+  "end": 2.74
+ }
+]

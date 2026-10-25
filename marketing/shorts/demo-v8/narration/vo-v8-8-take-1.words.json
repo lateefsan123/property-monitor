@@ -1,0 +1,37 @@
+[
+ {
+  "word": "I",
+  "start": 0.0,
+  "end": 0.16
+ },
+ {
+  "word": "write",
+  "start": 0.16,
+  "end": 0.36
+ },
+ {
+  "word": "one",
+  "start": 0.36,
+  "end": 0.72
+ },
+ {
+  "word": "template",
+  "start": 0.72,
+  "end": 1.14
+ },
+ {
+  "word": "for",
+  "start": 1.14,
+  "end": 1.44
+ },
+ {
+  "word": "each",
+  "start": 1.44,
+  "end": 1.66
+ },
+ {
+  "word": "stage.",
+  "start": 1.66,
+  "end": 2.02
+ }
+]

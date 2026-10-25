@@ -1,0 +1,82 @@
+[
+ {
+  "word": "And",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "Ask",
+  "start": 0.18,
+  "end": 0.48
+ },
+ {
+  "word": "Repeat,",
+  "start": 0.48,
+  "end": 0.86
+ },
+ {
+  "word": "in",
+  "start": 1.18,
+  "end": 1.36
+ },
+ {
+  "word": "early",
+  "start": 1.36,
+  "end": 1.6
+ },
+ {
+  "word": "access,",
+  "start": 1.6,
+  "end": 2.02
+ },
+ {
+  "word": "can",
+  "start": 2.52,
+  "end": 2.58
+ },
+ {
+  "word": "tell",
+  "start": 2.58,
+  "end": 2.78
+ },
+ {
+  "word": "me",
+  "start": 2.78,
+  "end": 2.94
+ },
+ {
+  "word": "which",
+  "start": 2.94,
+  "end": 3.22
+ },
+ {
+  "word": "buildings",
+  "start": 3.22,
+  "end": 3.66
+ },
+ {
+  "word": "sold",
+  "start": 3.66,
+  "end": 4.0
+ },
+ {
+  "word": "the",
+  "start": 4.0,
+  "end": 4.16
+ },
+ {
+  "word": "most",
+  "start": 4.16,
+  "end": 4.4
+ },
+ {
+  "word": "last",
+  "start": 4.4,
+  "end": 4.7
+ },
+ {
+  "word": "month.",
+  "start": 4.7,
+  "end": 4.96
+ }
+]

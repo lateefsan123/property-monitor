@@ -1,0 +1,72 @@
+[
+ {
+  "word": "Every",
+  "start": 0.0,
+  "end": 0.3
+ },
+ {
+  "word": "seller",
+  "start": 0.3,
+  "end": 0.58
+ },
+ {
+  "word": "gets",
+  "start": 0.58,
+  "end": 0.84
+ },
+ {
+  "word": "a",
+  "start": 0.84,
+  "end": 1.02
+ },
+ {
+  "word": "stage,",
+  "start": 1.02,
+  "end": 1.36
+ },
+ {
+  "word": "like",
+  "start": 1.9,
+  "end": 2.06
+ },
+ {
+  "word": "prospect",
+  "start": 2.06,
+  "end": 2.64
+ },
+ {
+  "word": "or",
+  "start": 2.64,
+  "end": 3.22
+ },
+ {
+  "word": "appraisal,",
+  "start": 3.22,
+  "end": 3.62
+ },
+ {
+  "word": "and",
+  "start": 4.16,
+  "end": 4.48
+ },
+ {
+  "word": "a",
+  "start": 4.48,
+  "end": 4.64
+ },
+ {
+  "word": "follow",
+  "start": 4.64,
+  "end": 4.84
+ },
+ {
+  "word": "-up",
+  "start": 4.84,
+  "end": 5.06
+ },
+ {
+  "word": "date.",
+  "start": 5.06,
+  "end": 5.36
+ }
+]

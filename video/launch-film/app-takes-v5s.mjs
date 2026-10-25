@@ -9,7 +9,8 @@ import { openApp } from './app-browser.mjs';
 import { rankBuildings, summarizeSales } from '../../shared/assistant-market.js';
 import { TAKES } from './app-pacing-v5s.mjs';
 
-const out = path.join(import.meta.dirname, 'out', 'app', TAKES);
+// TAKES_DIR / FILM_BASE / THEME let another film reuse these flows (e.g. light-theme stills on 8083)
+const out = path.join(import.meta.dirname, 'out', 'app', process.env.TAKES_DIR || TAKES);
 mkdirSync(out, { recursive: true });
 
 // Optional names limit the run: node app-takes.mjs ask schedule
@@ -58,7 +59,7 @@ const SCENES = {
 };
 async function take(name, steps) {
   if (only.length && !only.includes(name)) return;
-  const { browser, page, settle, errors } = await openApp({ base: 'http://127.0.0.1:8093' });
+  const { browser, page, settle, errors } = await openApp({ base: process.env.FILM_BASE || 'http://127.0.0.1:8093', theme: process.env.THEME || 'dark' });
   await settle(2500);
   const shots = [];
   for (const step of steps) {

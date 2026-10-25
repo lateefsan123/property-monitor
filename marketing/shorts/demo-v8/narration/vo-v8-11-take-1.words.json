@@ -1,0 +1,67 @@
+[
+ {
+  "word": "Follow",
+  "start": 0.0,
+  "end": 0.3
+ },
+ {
+  "word": "ups",
+  "start": 0.3,
+  "end": 0.52
+ },
+ {
+  "word": "go",
+  "start": 0.52,
+  "end": 0.72
+ },
+ {
+  "word": "out",
+  "start": 0.72,
+  "end": 0.92
+ },
+ {
+  "word": "from",
+  "start": 0.92,
+  "end": 1.1
+ },
+ {
+  "word": "my",
+  "start": 1.1,
+  "end": 1.26
+ },
+ {
+  "word": "own",
+  "start": 1.26,
+  "end": 1.52
+ },
+ {
+  "word": "WhatsApp,",
+  "start": 1.52,
+  "end": 1.94
+ },
+ {
+  "word": "as",
+  "start": 2.42,
+  "end": 2.5
+ },
+ {
+  "word": "each",
+  "start": 2.5,
+  "end": 2.72
+ },
+ {
+  "word": "seller",
+  "start": 2.72,
+  "end": 3.0
+ },
+ {
+  "word": "comes",
+  "start": 3.0,
+  "end": 3.3
+ },
+ {
+  "word": "due.",
+  "start": 3.3,
+  "end": 3.58
+ }
+]
