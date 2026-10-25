@@ -1,0 +1,67 @@
+[
+ {
+  "word": "It's",
+  "start": 0.0,
+  "end": 0.3
+ },
+ {
+  "word": "6",
+  "start": 0.3,
+  "end": 0.48
+ },
+ {
+  "word": "o",
+  "start": 0.48,
+  "end": 0.56
+ },
+ {
+  "word": "'clock,",
+  "start": 0.56,
+  "end": 0.92
+ },
+ {
+  "word": "and",
+  "start": 1.32,
+  "end": 1.34
+ },
+ {
+  "word": "I",
+  "start": 1.34,
+  "end": 1.46
+ },
+ {
+  "word": "can't",
+  "start": 1.46,
+  "end": 1.76
+ },
+ {
+  "word": "remember",
+  "start": 1.76,
+  "end": 2.06
+ },
+ {
+  "word": "which",
+  "start": 2.06,
+  "end": 2.36
+ },
+ {
+  "word": "sellers",
+  "start": 2.36,
+  "end": 2.74
+ },
+ {
+  "word": "I",
+  "start": 2.74,
+  "end": 2.96
+ },
+ {
+  "word": "messaged",
+  "start": 2.96,
+  "end": 3.42
+ },
+ {
+  "word": "today.",
+  "start": 3.42,
+  "end": 3.7
+ }
+]

@@ -1,0 +1,57 @@
+[
+ {
+  "word": "so",
+  "start": 0.0,
+  "end": 0.16
+ },
+ {
+  "word": "I",
+  "start": 0.16,
+  "end": 0.34
+ },
+ {
+  "word": "know",
+  "start": 0.34,
+  "end": 0.44
+ },
+ {
+  "word": "exactly",
+  "start": 0.44,
+  "end": 0.88
+ },
+ {
+  "word": "where",
+  "start": 0.88,
+  "end": 1.24
+ },
+ {
+  "word": "I",
+  "start": 1.24,
+  "end": 1.38
+ },
+ {
+  "word": "stand",
+  "start": 1.38,
+  "end": 1.72
+ },
+ {
+  "word": "before",
+  "start": 1.72,
+  "end": 2.08
+ },
+ {
+  "word": "I",
+  "start": 2.08,
+  "end": 2.22
+ },
+ {
+  "word": "head",
+  "start": 2.22,
+  "end": 2.36
+ },
+ {
+  "word": "home.",
+  "start": 2.36,
+  "end": 2.68
+ }
+]

@@ -1,0 +1,57 @@
+[
+ {
+  "word": "So",
+  "start": 0.0,
+  "end": 0.28
+ },
+ {
+  "word": "Oliver",
+  "start": 0.28,
+  "end": 0.72
+ },
+ {
+  "word": "sees",
+  "start": 0.72,
+  "end": 1.02
+ },
+ {
+  "word": "a",
+  "start": 1.02,
+  "end": 1.26
+ },
+ {
+  "word": "name",
+  "start": 1.26,
+  "end": 1.42
+ },
+ {
+  "word": "he",
+  "start": 1.42,
+  "end": 1.68
+ },
+ {
+  "word": "already",
+  "start": 1.68,
+  "end": 2.06
+ },
+ {
+  "word": "knows,",
+  "start": 2.06,
+  "end": 2.64
+ },
+ {
+  "word": "not",
+  "start": 3.16,
+  "end": 3.34
+ },
+ {
+  "word": "a",
+  "start": 3.34,
+  "end": 3.48
+ },
+ {
+  "word": "stranger.",
+  "start": 3.48,
+  "end": 3.82
+ }
+]

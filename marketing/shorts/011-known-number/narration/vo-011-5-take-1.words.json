@@ -1,0 +1,37 @@
+[
+ {
+  "word": "Oh,",
+  "start": 0.0,
+  "end": 0.28
+ },
+ {
+  "word": "it's",
+  "start": 0.48,
+  "end": 0.76
+ },
+ {
+  "word": "Sara.",
+  "start": 0.76,
+  "end": 1.04
+ },
+ {
+  "word": "Okay,",
+  "start": 1.48,
+  "end": 1.8
+ },
+ {
+  "word": "I'll",
+  "start": 2.06,
+  "end": 2.26
+ },
+ {
+  "word": "read",
+  "start": 2.26,
+  "end": 2.42
+ },
+ {
+  "word": "that.",
+  "start": 2.42,
+  "end": 2.62
+ }
+]

@@ -1,0 +1,57 @@
+[
+ {
+  "word": "Send",
+  "start": 0.0,
+  "end": 0.3
+ },
+ {
+  "word": "activity",
+  "start": 0.3,
+  "end": 0.68
+ },
+ {
+  "word": "shows",
+  "start": 0.68,
+  "end": 1.1
+ },
+ {
+  "word": "everything",
+  "start": 1.1,
+  "end": 1.6
+ },
+ {
+  "word": "that",
+  "start": 1.6,
+  "end": 1.92
+ },
+ {
+  "word": "went",
+  "start": 1.92,
+  "end": 2.1
+ },
+ {
+  "word": "out",
+  "start": 2.1,
+  "end": 2.28
+ },
+ {
+  "word": "today,",
+  "start": 2.28,
+  "end": 2.6
+ },
+ {
+  "word": "automated",
+  "start": 3.36,
+  "end": 3.36
+ },
+ {
+  "word": "and",
+  "start": 3.36,
+  "end": 3.88
+ },
+ {
+  "word": "manual.",
+  "start": 3.88,
+  "end": 4.26
+ }
+]

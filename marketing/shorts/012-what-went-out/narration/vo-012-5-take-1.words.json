@@ -1,0 +1,47 @@
+[
+ {
+  "word": "14",
+  "start": 0.0,
+  "end": 0.5
+ },
+ {
+  "word": "sellers",
+  "start": 0.5,
+  "end": 0.92
+ },
+ {
+  "word": "contacted.",
+  "start": 0.92,
+  "end": 1.6
+ },
+ {
+  "word": "12",
+  "start": 2.28,
+  "end": 2.38
+ },
+ {
+  "word": "of",
+  "start": 2.38,
+  "end": 2.56
+ },
+ {
+  "word": "those",
+  "start": 2.56,
+  "end": 2.84
+ },
+ {
+  "word": "went",
+  "start": 2.84,
+  "end": 3.08
+ },
+ {
+  "word": "out",
+  "start": 3.08,
+  "end": 3.3
+ },
+ {
+  "word": "automatically.",
+  "start": 3.3,
+  "end": 3.76
+ }
+]

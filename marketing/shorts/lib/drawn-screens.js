@@ -3,6 +3,8 @@
 //   { kind: "wa", id, name, sub, items: [{ at, side: "in"|"out", text }],
 //     typing: { text, ta, tb, clear }, keyboard: true } // a WhatsApp chat; `typing` fills the input (ta = tb: pasted)
 //   { kind: "lock", id, time, date, note: { at, app, title, body } }   // a lock screen notification
+//   { kind: "lock", …, notes: [{ at, app, title, body, when }] }   // or several, stacked newest on top
+//   { kind: "chats", id, chats: [{ name, last, time }], scroll: [t0, t1, px] }   // a WhatsApp chat list
 //   { kind: "splash", id, at }                         // the Repeat launch screen (app.json: black, icon 200 pt), icon lands at `at`
 (function () {
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -33,6 +35,18 @@
               display: flex; align-items: center; justify-content: center; font: 400 64px ${F}; }
   .ds-kb .k.w { width: 160px; background: #ADB1BA; font-size: 40px; }
   .ds-kb .k.sp { width: 560px; font-size: 44px; }
+  .ds-lock .notes { position: absolute; left: 44px; right: 44px; top: 700px; display: flex; flex-direction: column; gap: 22px; }
+  .ds-lock .notes .ds-note { position: relative; left: 0; right: 0; top: 0; }
+  .ds-chats { position: absolute; inset: 0; background: #fff; font-family: ${F}; color: #141414; overflow: hidden; }
+  .ds-chats .bar { position: absolute; left: 0; right: 0; top: 0; height: 250px; background: #fff; z-index: 2; padding: 40px 48px 0; border-bottom: 2px solid #E4E5E8; }
+  .ds-chats .bar h2 { font: 600 84px ${F}; letter-spacing: -1px; }
+  .ds-chats .list { position: absolute; left: 0; right: 0; top: 250px; }
+  .ds-chats .row { display: flex; gap: 34px; align-items: center; padding: 34px 48px; border-bottom: 2px solid #EEF0F2; }
+  .ds-chats .ds-av { flex: none; width: 128px; height: 128px; border-radius: 50%; background: #DCE5E1; display: flex; align-items: center; justify-content: center; font: 600 48px ${F}; color: #4F6B60; }
+  .ds-chats .txt { flex: 1; min-width: 0; }
+  .ds-chats .top { display: flex; justify-content: space-between; font: 600 50px ${F}; }
+  .ds-chats .top span { font: 400 36px ${F}; color: #6B6E73; }
+  .ds-chats .last { margin-top: 8px; font: 400 42px ${F}; color: #5F6368; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .ds-splash { position: absolute; inset: 0; background: #000; }
   .ds-splash img { position: absolute; left: 289px; top: 978px; width: 600px; height: 600px; }
   .ds-lock { position: absolute; inset: 0; background: linear-gradient(180deg, #CFDCE6 0%, #E9E3D8 70%, #E4D6C4 100%); font-family: ${F}; color: #1D2430; text-align: center; }
@@ -53,6 +67,31 @@
     if (sc.kind === "splash") {
       const sp = el("div", "ds-splash", root);
       n.icon = el("img", "", sp); n.icon.src = "../../../mobile/assets/repeat-ai-icon.png";
+      return n;
+    }
+    if (sc.kind === "chats") {
+      const C = el("div", "ds-chats", root);
+      el("h2", "", el("div", "bar", C), "Chats");
+      n.list = el("div", "list", C);
+      for (const c of sc.chats) {
+        const r = el("div", "row", n.list);
+        el("div", "ds-av", r, c.name.split(" ").map(x => x[0]).join("").slice(0, 2));
+        const tx = el("div", "txt", r), top = el("div", "top", tx);
+        el("b", "", top, c.name); el("span", "", top, c.time);
+        el("div", "last", tx, c.last);
+      }
+      return n;
+    }
+    if (sc.kind === "lock" && sc.notes) {
+      const L = el("div", "ds-lock", root);
+      el("div", "date", L, sc.date); el("div", "time", L, sc.time);
+      const box = el("div", "notes", L);
+      n.notes = sc.notes.map(nt => {
+        const d = el("div", "ds-note", box);
+        const m = el("div", "meta", d); el("span", "", m, nt.app); el("span", "", m, nt.when || "now");
+        el("div", "title", d, nt.title); el("div", "body", d, nt.body);
+        return d;
+      });
       return n;
     }
     if (sc.kind === "lock") {
@@ -94,6 +133,20 @@
     if (sc.kind === "splash") {
       const u = out(clamp((t - sc.at) / 0.35));
       set(n.icon, { opacity: u, transform: `scale(${0.82 + 0.18 * u})` });
+      return;
+    }
+    if (sc.kind === "chats") {
+      const [t0, t1, px] = sc.scroll || [0, 1, 0];
+      const u = clamp((t - t0) / (t1 - t0));
+      set(n.list, { transform: `translateY(${-px * (u < .5 ? 2 * u * u : 1 - Math.pow(-2 * u + 2, 2) / 2)}px)` });
+      return;
+    }
+    if (sc.kind === "lock" && sc.notes) {
+      // newest on top: notes arrive in order, each pushing the earlier ones down
+      sc.notes.forEach((nt, j) => {
+        const u = out(clamp((t - nt.at) / 0.45));
+        set(n.notes[j], { display: t >= nt.at ? "block" : "none", order: String(-j), opacity: u, transform: `translateY(${(1 - u) * -60}px) scale(${0.96 + 0.04 * u})` });
+      });
       return;
     }
     if (sc.kind === "lock") {
