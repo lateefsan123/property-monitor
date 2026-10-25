@@ -211,6 +211,12 @@ b.push({ a: W(16, "most") - 0.1, b: cue.endCard + 0.1, still: ST + "rank-answer.
 // under the end card: Send activity
 b.push({ a: cue.endCard, b: END + 1, clip: "send-activity", c0: lastT("send-activity"), rate: 0,
   camKeys: [[cue.endCard, near(1000, 0.9, 1600)], [cue.endCard + 0.7, near(1100, 0.66, 1420)]] });
+// One fixed framing for the whole film: the whole phone under the captions, never moving.
+// Only the screens change (with the push between beats). The end card keeps its own pull-back.
+const FIXED = { sx: 590, sy: 1278, z: 0.8, cy: 1175 };
+for (const bt of b) if (bt.a < cue.endCard) { delete bt.camKeys; bt.cam = FIXED; }
+// the end card pulls back from the same framing, so there is no jump
+b.find(bt => bt.a >= cue.endCard).camKeys = [[cue.endCard, FIXED], [cue.endCard + 0.9, near(1100, 0.66, 1420)]];
 const app = { beats: b.sort((x, y) => x.a - y.a) };
 capSplash(app.beats);
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
