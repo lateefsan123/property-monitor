@@ -1,0 +1,87 @@
+[
+ {
+  "word": "That's",
+  "start": 0.0,
+  "end": 0.34
+ },
+ {
+  "word": "why",
+  "start": 0.34,
+  "end": 0.48
+ },
+ {
+  "word": "I",
+  "start": 0.48,
+  "end": 0.72
+ },
+ {
+  "word": "use",
+  "start": 0.72,
+  "end": 0.98
+ },
+ {
+  "word": "repeat.",
+  "start": 0.98,
+  "end": 1.4
+ },
+ {
+  "word": "My",
+  "start": 2.08,
+  "end": 2.2
+ },
+ {
+  "word": "follow",
+  "start": 2.2,
+  "end": 2.44
+ },
+ {
+  "word": "-ups",
+  "start": 2.44,
+  "end": 2.64
+ },
+ {
+  "word": "only",
+  "start": 2.64,
+  "end": 3.0
+ },
+ {
+  "word": "go",
+  "start": 3.0,
+  "end": 3.26
+ },
+ {
+  "word": "out",
+  "start": 3.26,
+  "end": 3.46
+ },
+ {
+  "word": "between",
+  "start": 3.46,
+  "end": 3.74
+ },
+ {
+  "word": "9",
+  "start": 3.74,
+  "end": 4.16
+ },
+ {
+  "word": "and",
+  "start": 4.16,
+  "end": 4.38
+ },
+ {
+  "word": "9.",
+  "start": 4.38,
+  "end": 4.76
+ },
+ {
+  "word": "Dubai",
+  "start": 5.08,
+  "end": 5.2
+ },
+ {
+  "word": "Time.",
+  "start": 5.2,
+  "end": 5.56
+ }
+]

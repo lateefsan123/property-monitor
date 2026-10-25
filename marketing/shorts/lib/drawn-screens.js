@@ -3,6 +3,7 @@
 //   { kind: "wa", id, name, sub, items: [{ at, side: "in"|"out", text }],
 //     typing: { text, ta, tb, clear }, keyboard: true } // a WhatsApp chat; `typing` fills the input (ta = tb: pasted)
 //   { kind: "lock", id, time, date, note: { at, app, title, body } }   // a lock screen notification
+//   { kind: "splash", id, at }                         // the Repeat launch screen (app.json: black, icon 200 pt), icon lands at `at`
 (function () {
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
   const out = u => 1 - Math.pow(1 - u, 3);
@@ -32,6 +33,8 @@
               display: flex; align-items: center; justify-content: center; font: 400 64px ${F}; }
   .ds-kb .k.w { width: 160px; background: #ADB1BA; font-size: 40px; }
   .ds-kb .k.sp { width: 560px; font-size: 44px; }
+  .ds-splash { position: absolute; inset: 0; background: #000; }
+  .ds-splash img { position: absolute; left: 289px; top: 978px; width: 600px; height: 600px; }
   .ds-lock { position: absolute; inset: 0; background: linear-gradient(180deg, #CFDCE6 0%, #E9E3D8 70%, #E4D6C4 100%); font-family: ${F}; color: #1D2430; text-align: center; }
   .ds-lock .date { position: absolute; left: 0; right: 0; top: 170px; font: 600 58px ${F}; opacity: .8; }
   .ds-lock .time { position: absolute; left: 0; right: 0; top: 240px; font: 600 300px/1 ${F}; letter-spacing: -6px; }
@@ -47,6 +50,11 @@
   function build(root, sc) {
     root.innerHTML = "";
     const n = {};
+    if (sc.kind === "splash") {
+      const sp = el("div", "ds-splash", root);
+      n.icon = el("img", "", sp); n.icon.src = "../../../mobile/assets/repeat-ai-icon.png";
+      return n;
+    }
     if (sc.kind === "lock") {
       const L = el("div", "ds-lock", root);
       el("div", "date", L, sc.date); el("div", "time", L, sc.time);
@@ -83,6 +91,11 @@
     if (!document.getElementById("ds-css")) { const s = el("style"); s.id = "ds-css"; s.textContent = CSS; document.head.appendChild(s); }
     if (root.dataset.id !== sc.id) { root._n = build(root, sc); root.dataset.id = sc.id; }
     const n = root._n;
+    if (sc.kind === "splash") {
+      const u = out(clamp((t - sc.at) / 0.35));
+      set(n.icon, { opacity: u, transform: `scale(${0.82 + 0.18 * u})` });
+      return;
+    }
     if (sc.kind === "lock") {
       const u = out(clamp((t - sc.note.at) / 0.6));
       set(n.note, { opacity: u, transform: `translateY(${(1 - u) * -80}px) scale(${0.96 + 0.04 * u})` });

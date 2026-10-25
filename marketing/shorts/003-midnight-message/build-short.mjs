@@ -14,6 +14,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFile
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadClips } from "../lib/clips.mjs";
+import { capSplash } from "../lib/splash.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("D:/Users/Lateef/Documents/property/video/node_modules/playwright-core");
@@ -38,13 +39,15 @@ const SCRIPT = {
   1: "Eleven forty-seven p.m.",
   2: "\"Good evening! Quick property question.\"",
   3: "Tomorrow, please.",
-  4: "That's why my follow-ups only go out between nine and nine, Dubai time.",
+  4: "That's why I use Repeat. My follow-ups only go out between nine and nine, Dubai time.",
   5: "And they're spaced fifteen minutes apart.",
   6: "Nine twenty. Now that, I'll read.",
   7: "Repeat AI. Good content. Better timing.",
 };
 const VOICE_LUFS = -19.3;
-const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+// the recogniser writes small numbers as digits ("9", "15", "30"); compare them as words
+const NUMS = { 9: "nine", 11: "eleven", 15: "fifteen", 20: "twenty", 30: "thirty" };
+const norm = s => { const t = s.toLowerCase().replace(/[^a-z0-9]/g, ""); return NUMS[t] || t; };
 
 // ── 1. Narration ─────────────────────────────────────────────────────────────
 function loadLine(n) {
@@ -102,7 +105,9 @@ start[3] = cue.toClose + 0.35;
 cue.sayPop = start[3] - 0.05;
 cue.toDesk = endOf(3) + 0.6;
 start[4] = cue.toDesk + 0.4;
-cue.toApp = W(4, "only") - 0.15;
+cue.splash = W(4, "Repeat");
+cue.toApp = cue.splash - 0.5;                 // the phone comes up on the Repeat launch screen
+cue.appIn = W(4, "My") - 0.15;
 start[5] = endOf(4) + 0.3;
 
 // App proof: the real Automations screen, recorded in film mode (../app-clips/automations-window)
@@ -112,7 +117,7 @@ const app = { beats: [] };
 const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };
 {
   // A: scroll to "Send between 9 am – 9 pm" and "Space messages 15m" during lines 4–5
-  const a = cue.toApp, c0 = ev("start");
+  const a = cue.appIn, c0 = ev("start");
   let b = endOf(5) + 0.3;
   const rate = Math.min(1.6, Math.max(0.7, (ev("tap:send-between") - 0.05 - c0) / (b - a)));
   b = a + (ev("tap:send-between") - 0.05 - c0) / rate;
@@ -143,7 +148,12 @@ let END = r2(endOf(7) + 1.3);
 app.beats.push({ a: cue.endCard, b: END + 1, clip: "automations-window", c0: ev("window-visible") + 0.3, rate: 0,
   camKeys: [[cue.endCard, { sx: 590, sy: 1660, z: 0.9, cy: 1600 }], [cue.endCard + 0.7, { sx: 590, sy: 1660, z: 0.6, cy: 1440 }]],
   hl: [{ a: cue.endCard + 0.9, b: END + 1, box: [30, 1555, 1120, 215] }] });
-for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); bt.rate = r2(bt.rate); }
+
+// "Repeat" lands as the answer: the phone opens on the Repeat launch screen as the word is said
+app.beats.push({ a: cue.toApp, b: cue.appIn, cam: FULL, screen: { kind: "splash", id: "splash", at: cue.splash } });
+app.beats.sort((x, y) => x.a - y.a);
+capSplash(app.beats);
+for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const k in cue) cue[k] = r2(cue[k]);
 // a tap sound on every recorded tap that plays on screen
 const tapTimes = [];
@@ -152,7 +162,7 @@ for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
   if (ft >= bt.a && ft < bt.b) tapTimes.push(r2(ft));
 }
 
-const EM = new Set(["tomorrow", "between", "dubai", "time", "fifteen", "minutes", "read"]);
+const EM = new Set(["repeat", "tomorrow", "between", "dubai", "time", "fifteen", "minutes", "read"]);
 const SHOW = [["Eleven forty-seven p.m.", "11:47 PM."], ["nine and nine,", "9 and 9,"], ["fifteen", "15"], ["Nine twenty.", "9:20."]];
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 function chunk(n, from, to) {
@@ -163,7 +173,7 @@ function chunk(n, from, to) {
 }
 const captions = [
   chunk(1, 0), chunk(2, 0),
-  chunk(4, 0, idx(4, "between")), chunk(4, idx(4, "between")), chunk(5, 0), chunk(6, 0),
+  chunk(4, 0, idx(4, "My")), chunk(4, idx(4, "My"), idx(4, "between")), chunk(4, idx(4, "between")), chunk(5, 0), chunk(6, 0),
 ];
 for (let i = 0; i < captions.length - 1; i++) if (captions[i + 1].a - captions[i].b < 0.5) captions[i].b = captions[i + 1].a;
 

@@ -1,0 +1,52 @@
+[
+ {
+  "word": "I",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "use",
+  "start": 0.18,
+  "end": 0.42
+ },
+ {
+  "word": "repeat.",
+  "start": 0.42,
+  "end": 0.9
+ },
+ {
+  "word": "I",
+  "start": 1.54,
+  "end": 1.62
+ },
+ {
+  "word": "set",
+  "start": 1.62,
+  "end": 1.78
+ },
+ {
+  "word": "up",
+  "start": 1.78,
+  "end": 1.9
+ },
+ {
+  "word": "the",
+  "start": 1.9,
+  "end": 2.02
+ },
+ {
+  "word": "routine",
+  "start": 2.02,
+  "end": 2.36
+ },
+ {
+  "word": "ones",
+  "start": 2.36,
+  "end": 2.72
+ },
+ {
+  "word": "once.",
+  "start": 2.72,
+  "end": 3.02
+ }
+]

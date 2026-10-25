@@ -14,6 +14,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFile
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadClips } from "../lib/clips.mjs";
+import { capSplash } from "../lib/splash.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("D:/Users/Lateef/Documents/property/video/node_modules/playwright-core");
@@ -37,7 +38,7 @@ const rel = p => p.replace(DIR, "").replace(/\\/g, "/");
 const SCRIPT = {
   1: "Dinner's on the table, and I'm still on my phone.",
   2: "Every evening, I'd send the same follow-ups to sellers, one by one.",
-  3: "Now Repeat handles the routine ones.",
+  3: "Now, Repeat does the routine ones for me.",
   4: "I turned on Status follow-ups, so each seller gets their template when they're due.",
   5: "They only go out between nine in the morning and nine at night, Dubai time.",
   6: "If a seller replies, they stop, and I answer them myself.",
@@ -45,7 +46,9 @@ const SCRIPT = {
   8: "Repeat AI. Give routine work a boundary.",
 };
 const VOICE_LUFS = -19.3;
-const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+// the recogniser writes small numbers as digits ("9", "15", "30"); compare them as words
+const NUMS = { 9: "nine", 11: "eleven", 15: "fifteen", 20: "twenty", 30: "thirty" };
+const norm = s => { const t = s.toLowerCase().replace(/[^a-z0-9]/g, ""); return NUMS[t] || t; };
 
 // ── 1. Narration ─────────────────────────────────────────────────────────────
 function loadLine(n) {
@@ -100,7 +103,9 @@ start[1] = 0.6;
 cue.toApp = endOf(1) + 0.5;                    // the phone comes up: the old way, by hand
 start[2] = cue.toApp + 0.45;
 start[3] = endOf(2) + 0.8;
-cue.toRepeat = start[3] - 0.4;                 // Repeat: Automations
+cue.splash = W(3, "Repeat");                   // "Repeat" lands: the phone opens on its launch screen
+cue.splashIn = cue.splash - 0.35;
+cue.toRepeat = W(3, "routine") - 0.1;          // Repeat: Automations
 start[4] = endOf(3) + 0.7;
 cue.toAuto = start[4] - 0.35;
 cue.toggle = W(4, "Status") + 0.1;             // the real tap on Status follow-ups
@@ -121,9 +126,10 @@ const lastT = c => (clips[c].frames - 1) / 30;
 const FULL = { sx: 590, sy: 1278, z: 0.8, cy: 1360 };
 const statusCam = { sx: 590, sy: 1330, z: 0.92, cy: 1150 };
 const app = { beats: [
-  { a: cue.toApp, b: cue.toRepeat, cam: FULL,
+  { a: cue.toApp, b: cue.splashIn, cam: FULL,
     screen: { kind: "wa", id: "yusuf", name: "Yusuf Rahman", sub: "last seen today at 19:20", keyboard: true,
-      typing: { text: "Hi Yusuf, hope you're well. Just wanted to keep you updated on the latest…", ta: start[2] + 0.2, tb: cue.toRepeat - 0.3 } } },
+      typing: { text: "Hi Yusuf, hope you're well. Just wanted to keep you updated on the latest…", ta: start[2] + 0.2, tb: cue.splashIn - 0.3 } } },
+  { a: cue.splashIn, b: cue.toRepeat, cam: FULL, screen: { kind: "splash", id: "splash", at: cue.splash } },   // the Repeat launch screen as "Repeat" is said
   { a: cue.toRepeat, b: cue.toAuto, clip: "automations-status", c0: 0.3, rate: 0,
     camKeys: [[cue.toRepeat, { sx: 590, sy: 900, z: 0.86, cy: 1200 }], [cue.toAuto, { sx: 590, sy: 1000, z: 0.88, cy: 1200 }]] },
   { a: cue.toAuto, b: cue.toWindow, clip: "automations-status",
@@ -136,6 +142,7 @@ const app = { beats: [
   { a: cue.endCard, b: END + 1, clip: "send-activity", c0: ev("send-activity", "tap:send-activity") - 0.1, rate: 1.25,
     camKeys: [[cue.endCard, { sx: 590, sy: 1000, z: 0.9, cy: 1500 }], [cue.endCard + 0.7, { sx: 590, sy: 1100, z: 0.72, cy: 1420 }]] },
 ] };
+capSplash(app.beats);
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const bt of app.beats) for (const o of [bt.screen?.typing, ...(bt.screen?.items || [])]) if (o) for (const k of ["at", "ta", "tb"]) if (o[k] !== undefined) o[k] = r2(o[k]);
 for (const k in cue) cue[k] = r2(cue[k]);
@@ -145,7 +152,7 @@ for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
   if (ft >= bt.a && ft < bt.b) tapTimes.push(r2(ft));
 }
 
-const EM = new Set(["dinner", "same", "routine", "status", "followups", "due", "nine", "dubai", "replies", "myself", "tonight"]);
+const EM = new Set(["repeat", "dinner", "same", "routine", "status", "followups", "due", "nine", "dubai", "replies", "myself", "tonight"]);
 const SHOW = [];
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 function chunk(n, from, to) {

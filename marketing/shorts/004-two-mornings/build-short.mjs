@@ -14,6 +14,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFile
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadClips } from "../lib/clips.mjs";
+import { capSplash } from "../lib/splash.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("D:/Users/Lateef/Documents/property/video/node_modules/playwright-core");
@@ -37,14 +38,16 @@ const rel = p => p.replace(DIR, "").replace(/\\/g, "/");
 const SCRIPT = {
   1: "Two ways to start the same morning.",
   2: "Without Repeat, I open a spreadsheet and try to work out who I'm meant to follow up with.",
-  3: "With Repeat, I open Due today.",
+  3: "With Repeat, it's different. I open Due today.",
   4: "Every seller due for a follow-up is already on the list, with their status and how overdue they are.",
   5: "Sellers I've scheduled for later wait under Scheduled until their date comes round.",
   6: "So I start the day knowing exactly who to contact.",
   7: "Repeat AI. A clearer start to the day.",
 };
 const VOICE_LUFS = -19.3;
-const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+// the recogniser writes small numbers as digits ("9", "15", "30"); compare them as words
+const NUMS = { 9: "nine", 11: "eleven", 15: "fifteen", 20: "twenty", 30: "thirty" };
+const norm = s => { const t = s.toLowerCase().replace(/[^a-z0-9]/g, ""); return NUMS[t] || t; };
 
 // ── 1. Narration ─────────────────────────────────────────────────────────────
 function loadLine(n) {
@@ -100,7 +103,9 @@ start[2] = cue.toLaptop + 0.35;
 cue.toSheet = W(2, "spreadsheet") - 0.1;
 cue.toPhone = endOf(2) + 0.4;                // bottom lane: the Repeat morning
 start[3] = cue.toPhone + 0.3;
-cue.toApp = W(3, "open") - 0.1;
+cue.splash = W(3, "Repeat");
+cue.toApp = cue.splash - 0.5;                 // the phone comes up on the Repeat launch screen
+cue.appIn = W(3, "open") - 0.1;
 
 // App proof: Home → View sellers → Due today → Scheduled (../app-clips/home-due-today)
 const clips = loadClips(["home-due-today"], DIR, { theme: "light" });
@@ -111,7 +116,7 @@ start[4] = endOf(3) + 0.3;
 start[5] = endOf(4) + 0.4;
 {
   // A: Home → tap View sellers → the Due today list, held while line 4 describes it
-  const a = cue.toApp, c0 = ev("tap:view-sellers") - 0.6, rate = 1.0;
+  const a = cue.appIn, c0 = ev("tap:view-sellers") - 0.6, rate = 1.0;
   const listAt = a + (ev("due-list") - c0) / rate;
   const holdAt = listAt + 0.8;
   const list = { sx: 590, sy: 1000, z: 1.0, cy: 1150 };
@@ -135,7 +140,12 @@ let END = r2(endOf(7) + 1.3);
 // under the end card: Home with today's numbers
 app.beats.push({ a: cue.endCard, b: END + 1, clip: "home-due-today", c0: 0.5, rate: 0,
   camKeys: [[cue.endCard, { sx: 590, sy: 900, z: 0.9, cy: 1300 }], [cue.endCard + 0.7, { sx: 590, sy: 900, z: 0.62, cy: 1180 }]] });
-for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); bt.rate = r2(bt.rate); }
+
+// "Repeat" lands as the answer: the phone opens on the Repeat launch screen as the word is said
+app.beats.push({ a: cue.toApp, b: cue.appIn, cam: FULL, screen: { kind: "splash", id: "splash", at: cue.splash } });
+app.beats.sort((x, y) => x.a - y.a);
+capSplash(app.beats);
+for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const k in cue) cue[k] = r2(cue[k]);
 const tapTimes = [];
 for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
@@ -143,7 +153,7 @@ for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
   if (ft >= bt.a && ft < bt.b) tapTimes.push(r2(ft));
 }
 
-const EM = new Set(["spreadsheet", "due", "today", "status", "overdue", "scheduled", "exactly"]);
+const EM = new Set(["repeat", "spreadsheet", "due", "today", "status", "overdue", "scheduled", "exactly"]);
 const SHOW = [];
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 function chunk(n, from, to) {
@@ -154,7 +164,7 @@ function chunk(n, from, to) {
 const captions = [
   chunk(1, 0),
   chunk(2, 0, idx(2, "and")), chunk(2, idx(2, "and")),
-  chunk(3, 0),
+  chunk(3, 0, idx(3, "I")), chunk(3, idx(3, "I")),
   chunk(4, 0, idx(4, "with")), chunk(4, idx(4, "with")),
   chunk(5, 0, idx(5, "wait")), chunk(5, idx(5, "wait")),
   chunk(6, 0),

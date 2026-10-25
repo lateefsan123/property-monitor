@@ -16,3 +16,4 @@ narration/**/*.words.json
 !narration/vo-010-6-take-1.*
 !narration/vo-010-7-take-1.*
 !narration/vo-010-8-take-1.*
+!narration/vo-010-4-rep-take-2.*

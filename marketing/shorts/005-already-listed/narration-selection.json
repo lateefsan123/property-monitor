@@ -1,4 +1,11 @@
 {
-  "note": "Maya = Codex's cast (see codex-requests.md results / narration/voices.json), lines 1, 2, 5; Brady J (SGoiiadNvlgcANZ3wLyn), lines 3, 4, 6. Eleven v4, stability 0.5, similarity 0.75. Picked on complete text, pauses and pacing.",
-  "takes": { "1": 3, "2": 1, "3": 3, "4": 1, "5": 3, "6": 3 }
+ "note": "Maya = Codex's cast (see codex-requests.md results / narration/voices.json), lines 1, 2, 5; Brady J (SGoiiadNvlgcANZ3wLyn), lines 3, 4, 6. Eleven v4, stability 0.5, similarity 0.75. Picked on complete text, pauses and pacing. Line 3 re-recorded 25 Oct 2026 so \"Repeat\" lands as the answer (ElevenLabs connector, Eleven v4 at its unadjustable default settings): take rep-1.",
+ "takes": {
+  "1": 3,
+  "2": 1,
+  "3": "rep-1",
+  "4": 1,
+  "5": 3,
+  "6": 3
+ }
 }

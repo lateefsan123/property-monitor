@@ -1,4 +1,12 @@
 {
-  "note": "Oliver = Rupert - Natural British (5yPNUy2ZGgvEkNjAmzo1), lines 1-5, recast at the user's request; Brady J (SGoiiadNvlgcANZ3wLyn), lines 6-7. Eleven v4, stability 0.5, similarity 0.75. Picked on complete text, pauses and pacing. Jonathan's takes remain in narration/.",
-  "takes": { "1": "rupert-2", "2": "rupert-2", "3": "rupert-1", "4": "rupert-2", "5": "rupert-2", "6": 2, "7": 3 }
+ "note": "Oliver = Rupert - Natural British (5yPNUy2ZGgvEkNjAmzo1), lines 1-5, recast at the user's request; Brady J (SGoiiadNvlgcANZ3wLyn), lines 6-7. Eleven v4, stability 0.5, similarity 0.75. Picked on complete text, pauses and pacing. Jonathan's takes remain in narration/. Line 6 re-recorded 25 Oct 2026 so \"Repeat\" lands as the answer (ElevenLabs connector, Eleven v4 at its unadjustable default settings): take rep-1.",
+ "takes": {
+  "1": "rupert-2",
+  "2": "rupert-2",
+  "3": "rupert-1",
+  "4": "rupert-2",
+  "5": "rupert-2",
+  "6": "rep-1",
+  "7": 3
+ }
 }

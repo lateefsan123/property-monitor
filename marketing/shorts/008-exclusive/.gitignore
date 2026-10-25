@@ -15,3 +15,4 @@ narration/**/*.words.json
 !narration/vo-008-5-take-1.*
 !narration/vo-008-6-take-2.*
 !narration/vo-008-7-take-1.*
+!narration/vo-008-5-rep-take-1.*

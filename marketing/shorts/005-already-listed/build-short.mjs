@@ -13,6 +13,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFile
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadClips } from "../lib/clips.mjs";
+import { capSplash } from "../lib/splash.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("D:/Users/Lateef/Documents/property/video/node_modules/playwright-core");
@@ -36,13 +37,15 @@ const rel = p => p.replace(DIR, "").replace(/\\/g, "/");
 const SCRIPT = {
   1: "My flat's been on the market for three weeks.",
   2: "\"Would you consider putting it on the market?\"",
-  3: "In Repeat, every seller has a stage. Maya's is For Sale.",
+  3: "Repeat knows that. Every seller has a stage, and Maya's is For Sale.",
   4: "So her message compares recent sales in her building with her asking price.",
   5: "Okay. That one I'll answer.",
   6: "Repeat AI. Know the stage before the message.",
 };
 const VOICE_LUFS = -19.3;
-const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+// the recogniser writes small numbers as digits ("9", "15", "30"); compare them as words
+const NUMS = { 9: "nine", 11: "eleven", 15: "fifteen", 20: "twenty", 30: "thirty" };
+const norm = s => { const t = s.toLowerCase().replace(/[^a-z0-9]/g, ""); return NUMS[t] || t; };
 
 // ── 1. Narration ─────────────────────────────────────────────────────────────
 function loadLine(n) {
@@ -101,6 +104,8 @@ cue.sayPop = cue.toClose + 0.25;
 cue.toApp = cue.sayPop + 1.4;
 start[3] = cue.toApp + 0.35;
 start[4] = endOf(3) + 0.35;
+cue.splash = W(3, "Repeat");
+cue.appIn = W(3, "Every") - 0.15;
 
 // App proof: Maya's seller sheet → For Sale status → her message (../app-clips/maya-for-sale)
 const clips = loadClips(["maya-for-sale"], DIR, { theme: "light" });
@@ -109,7 +114,7 @@ const app = { beats: [] };
 const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };
 {
   // A: tap Maya → sheet → her status ("Maya's is For Sale")
-  const a = cue.toApp, c0 = ev("tap:maya") - 0.5, rate = 1.15;
+  const a = cue.appIn, c0 = ev("tap:maya") - 0.5, rate = 1.15;
   const statusAt = a + (ev("status-visible") - c0) / rate;
   const b = Math.max(statusAt + 1.0, start[4] - 0.2);
   const hold = statusAt + 0.6, near = { sx: 590, sy: 1500, z: 1.1, cy: 1180 };
@@ -135,7 +140,12 @@ cue.endLine = W(6, "know") - 0.05;
 let END = r2(endOf(6) + 1.3);
 app.beats.push({ a: cue.endCard, b: END + 1, clip: "maya-for-sale", c0: (clips["maya-for-sale"].frames - 1) / 30, rate: 0,
   camKeys: [[cue.endCard, { sx: 590, sy: 1620, z: 0.9, cy: 1600 }], [cue.endCard + 0.7, { sx: 590, sy: 1620, z: 0.62, cy: 1440 }]] });
-for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); bt.rate = r2(bt.rate); }
+
+// "Repeat" lands as the answer: the phone opens on the Repeat launch screen as the word is said
+app.beats.push({ a: cue.toApp, b: cue.appIn, cam: FULL, screen: { kind: "splash", id: "splash", at: cue.splash } });
+app.beats.sort((x, y) => x.a - y.a);
+capSplash(app.beats);
+for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const k in cue) cue[k] = r2(cue[k]);
 const tapTimes = [];
 for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
@@ -143,7 +153,7 @@ for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
   if (ft >= bt.a && ft < bt.b) tapTimes.push(r2(ft));
 }
 
-const EM = new Set(["three", "weeks", "stage", "for", "sale", "asking", "price", "answer"]);
+const EM = new Set(["repeat", "three", "weeks", "stage", "for", "sale", "asking", "price", "answer"]);
 const SHOW = [["three weeks.", "3 weeks."]];
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 function chunk(n, from, to) {
@@ -154,7 +164,7 @@ function chunk(n, from, to) {
 }
 const captions = [
   chunk(1, 0), chunk(2, 0),
-  chunk(3, 0, idx(3, "Maya's")), chunk(3, idx(3, "Maya's")),
+  chunk(3, 0, idx(3, "Every")), chunk(3, idx(3, "Every"), idx(3, "and")), chunk(3, idx(3, "and")),
   chunk(4, 0, idx(4, "in")), chunk(4, idx(4, "in")), chunk(5, 0),
 ];
 for (let i = 0; i < captions.length - 1; i++) if (captions[i + 1].a - captions[i].b < 0.5) captions[i].b = captions[i + 1].a;

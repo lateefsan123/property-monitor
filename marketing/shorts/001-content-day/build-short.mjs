@@ -14,6 +14,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFile
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadClips } from "../lib/clips.mjs";
+import { capSplash } from "../lib/splash.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("D:/Users/Lateef/Documents/property/video/node_modules/playwright-core");
@@ -38,7 +39,7 @@ const r2 = v => Math.round(v * 100) / 100;
 const SCRIPT = {
   1: "I'm trying to film a property tour.",
   2: "But every few minutes, I stop to type the same follow-up to another seller.",
-  3: "So I set it up once, in Repeat.",
+  3: "So I set it up once. With Repeat.",
   4: "I write a template and choose which seller statuses it's for.",
   5: "Then I turn on Status follow-ups, so each seller gets their message when they're due.",
   6: "It stops as soon as a seller replies, and I answer them myself.",
@@ -47,12 +48,15 @@ const SCRIPT = {
   9: "Repeat AI. Set up your follow-ups once, and get back to work.",
 };
 const VOICE_LUFS = -19.3; // even level across lines before the master
-const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+// the recogniser writes small numbers as digits ("9", "15", "30"); compare them as words
+const NUMS = { 9: "nine", 11: "eleven", 15: "fifteen", 20: "twenty", 30: "thirty" };
+const norm = s => { const t = s.toLowerCase().replace(/[^a-z0-9]/g, ""); return NUMS[t] || t; };
 
 // ── 1. Timeline from narration ───────────────────────────────────────────────
 function loadLine(n) {
   const take = sel.takes[String(n)];
-  const mp3 = join(NARR, `vo-001v2-${n}-take-${take}.mp3`);
+  const m = String(take).match(/^([a-z]+)-(\d+)$/);   // "rep-2": a re-recorded line
+  const mp3 = join(NARR, m ? `vo-001v2-${n}-${m[1]}-take-${m[2]}.mp3` : `vo-001v2-${n}-take-${take}.mp3`);
   const words = JSON.parse(readFileSync(mp3.replace(/\.mp3$/, ".words.json"), "utf8"));
   const dur = parseFloat(execSync(`ffprobe -v error -show_entries format=duration -of csv=p=0 "${mp3}"`, { encoding: "utf8" }));
   const lead = Math.max(0, words[0].start - 0.04);
@@ -93,7 +97,9 @@ cue.cutInt = cue.buzz + 0.12;
 start[2] = cue.cutInt + 0.35;
 cue.zoom = W(2, "type") - 0.5;                 // into his phone as he says "type the same follow-up"
 start[3] = endOf(2) + 0.75;
-cue.toTpl = start[3] - 0.35;                   // the template editor, then its preview
+cue.splash = W(3, "Repeat");                   // "Repeat" lands: the phone opens on its launch screen
+cue.splashIn = cue.splash - 0.35;
+cue.toTpl = cue.splash + 0.8;                  // the template editor, then its preview
 start[4] = endOf(3) + 0.65;
 cue.toUse = W(4, "choose") - 0.45;             // "Use for": which statuses get it
 start[5] = endOf(4) + 0.75;
@@ -124,9 +130,10 @@ const waCam = { sx: 590, sy: 380, z: 0.9, cx: 630, cy: 900 };
 cue.noteIn = W(5, "so");
 cue.elenaOut = start[6] - 0.35;              // back to him for her reply
 const app = { beats: [
-  { a: cue.cardsIn, b: cue.toTpl, cam: FULL,
+  { a: cue.cardsIn, b: cue.splashIn, cam: FULL,
     screen: { kind: "wa", id: "oliver", name: "Oliver Grant", sub: "last seen today at 11:40", keyboard: true,
-      typing: { text: "Hi Oliver, hope you're well. Just wanted to keep you updated on the latest activity in Burj Khalifa…", ta: cue.cardsIn + 0.5, tb: cue.toTpl - 0.4 } } },
+      typing: { text: "Hi Oliver, hope you're well. Just wanted to keep you updated on the latest activity in Burj Khalifa…", ta: cue.cardsIn + 0.5, tb: cue.splashIn - 0.3 } } },
+  { a: cue.splashIn, b: cue.toTpl, cam: FULL, screen: { kind: "splash", id: "splash", at: cue.splash } },   // the Repeat launch screen as "Repeat" is said
   { a: cue.toTpl, b: cue.toUse, clip: "template-appraisal-light", c0: 2.0, rate: 0,
     camKeys: [[cue.toTpl, { sx: 590, sy: 700, z: 0.86, cx: 630, cy: 1150 }], [cue.toUse, { sx: 590, sy: 760, z: 0.9, cx: 630, cy: 1150 }]] },
   { a: cue.toUse, b: cue.toAuto, clip: "template-use-for-light",
@@ -150,6 +157,7 @@ const app = { beats: [
   { a: cue.endCard, b: END + 1, clip: "send-activity-light", c0: ev("send-activity-light", "tap:send-activity") - 0.1, rate: 1.25,
     camKeys: [[cue.endCard, { sx: 590, sy: 1000, z: 0.9, cy: 1500 }], [cue.endCard + 0.7, { sx: 590, sy: 1100, z: 0.72, cy: 1420 }]] },
 ] };
+capSplash(app.beats);
 for (const bt of app.beats) for (const o of [bt.screen?.typing, bt.screen?.note, ...(bt.screen?.items || [])]) if (o) for (const k of ["at", "ta", "tb"]) if (o[k] !== undefined) o[k] = r2(o[k]);
 const cards = [];
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
@@ -166,7 +174,7 @@ for (const c of cards) if (c.kind === "clip" && c.rate) for (const tp of clips[c
 }
 
 // Captions: chunks of spoken words, with a few emphasised words in teal
-const EM = new Set(["same", "followup", "once", "template", "statuses", "status", "followups", "due", "replies", "myself", "whatsapp", "finish"]);
+const EM = new Set(["repeat", "same", "followup", "once", "template", "statuses", "status", "followups", "due", "replies", "myself", "whatsapp", "finish"]);
 function chunk(n, from, to) {
   const ws = L[n].words.slice(from, to === undefined ? undefined : to);
   const html = ws.map(w => EM.has(norm(w.word)) ? `<em>${w.word}</em>` : w.word).join(" ");
@@ -176,7 +184,7 @@ const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 const captions = [
   chunk(1, 0),
   chunk(2, 0, idx(2, "I")), chunk(2, idx(2, "I")),
-  chunk(3, 0),
+  chunk(3, 0, idx(3, "With")), chunk(3, idx(3, "With")),
   chunk(4, 0, idx(4, "and")), chunk(4, idx(4, "and")),
   chunk(5, 0, idx(5, "so")), chunk(5, idx(5, "so")),
   chunk(6, 0, idx(6, "and")), chunk(6, idx(6, "and")),

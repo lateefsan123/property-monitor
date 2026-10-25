@@ -15,6 +15,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFile
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadClips } from "../lib/clips.mjs";
+import { capSplash } from "../lib/splash.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("D:/Users/Lateef/Documents/property/video/node_modules/playwright-core");
@@ -39,14 +40,16 @@ const SCRIPT = {
   1: "I used to copy my last follow-up and paste it to the next seller.",
   2: "Then I sent Elena a message that started with someone else's name.",
   3: "Who's Oliver?",
-  4: "Now I write it once, as a template in Repeat.",
+  4: "Now I use Repeat. I write it once, as a template.",
   5: "It fills in each seller's own name and building for me.",
   6: "And Preview shows me how it reads before I use it.",
   7: "Oh, that's useful. Thank you.",
   8: "Repeat AI. Personal follow-ups, written once.",
 };
 const VOICE_LUFS = -19.3;
-const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+// the recogniser writes small numbers as digits ("9", "15", "30"); compare them as words
+const NUMS = { 9: "nine", 11: "eleven", 15: "fifteen", 20: "twenty", 30: "thirty" };
+const norm = s => { const t = s.toLowerCase().replace(/[^a-z0-9]/g, ""); return NUMS[t] || t; };
 
 // ── 1. Narration ─────────────────────────────────────────────────────────────
 function loadLine(n) {
@@ -112,6 +115,9 @@ cue.sayPop = cue.noteIn + 0.6;
 start[3] = cue.sayPop + 0.1;
 cue.toTpl = endOf(3) + 0.7;                    // Repeat: Templates → Appraisal follow-up
 start[4] = cue.toTpl + 0.4;
+cue.splash = W(4, "Repeat");                   // "Repeat" lands: the phone opens on its launch screen
+cue.splashIn = cue.toTpl;
+cue.tplIn = W(4, "I", 2) - 0.1;                // then Templates → Appraisal follow-up
 start[5] = endOf(4) + 0.75;
 start[6] = endOf(5) + 0.75;
 cue.preview = W(6, "Preview") - 0.1;           // the real tap on Preview
@@ -135,19 +141,21 @@ const app = { beats: [
     screen: { kind: "wa", id: "elena-wrong", name: "Elena Petrova", sub: "online", keyboard: true,
       items: [{ at: cue.send, side: "out", text: WRONG }],
       typing: { text: WRONG, ta: cue.paste, tb: cue.paste, clear: cue.send } } },
+  { a: cue.splashIn, b: cue.tplIn, cam: FULL, screen: { kind: "splash", id: "splash", at: cue.splash } },   // the Repeat launch screen as "Repeat" is said
   // Templates list → tap Appraisal follow-up → the editor
   // (the recording taps Preview as soon as the editor opens, so the editor is held from here)
-  { a: cue.toTpl, b: cue.toTpl + (ev("editor-open") - ev("tap:edit-appraisal") + 0.5), clip: "template-appraisal", c0: ev("tap:edit-appraisal") - 0.5, rate: 1,
-    camKeys: [[cue.toTpl, { sx: 590, sy: 600, z: 0.86, cy: 1200 }], [cue.toTpl + 1.0, { sx: 590, sy: 600, z: 0.86, cy: 1200 }]] },
+  { a: cue.tplIn, b: cue.tplIn + (ev("editor-open") - ev("tap:edit-appraisal") + 0.5), clip: "template-appraisal", c0: ev("tap:edit-appraisal") - 0.5, rate: 1,
+    camKeys: [[cue.tplIn, { sx: 590, sy: 600, z: 0.86, cy: 1200 }], [cue.tplIn + 1.0, { sx: 590, sy: 600, z: 0.86, cy: 1200 }]] },
   // hold on the editor, then its fields: {{name}}, {{building}}
-  { a: cue.toTpl + (ev("editor-open") - ev("tap:edit-appraisal") + 0.5), b: cue.preview - 0.2, clip: "template-appraisal", c0: ev("tap:preview") - 0.05, rate: 0, cut: true,
-    camKeys: [[cue.toTpl + 1.75, { sx: 590, sy: 600, z: 0.86, cy: 1200 }], [cue.toTpl + 2.4, editorCam], [W(5, "name"), fieldsCam]] },
+  { a: cue.tplIn + (ev("editor-open") - ev("tap:edit-appraisal") + 0.5), b: cue.preview - 0.2, clip: "template-appraisal", c0: ev("tap:preview") - 0.05, rate: 0, cut: true,
+    camKeys: [[cue.tplIn + 1.75, { sx: 590, sy: 600, z: 0.86, cy: 1200 }], [cue.tplIn + 2.4, editorCam], [W(5, "name"), fieldsCam]] },
   // tap Preview → the sheet rises with a sample seller's details filled in
   { a: cue.preview - 0.2, b: cue.toCafe2, clip: "template-appraisal", c0: ev("tap:preview") - 0.2, rate: 1, cut: true,
     camKeys: [[cue.preview - 0.2, fieldsCam], [cue.preview + 0.9, previewCam]] },
   { a: cue.endCard, b: END + 1, clip: "template-appraisal", c0: lastT, rate: 0,
     camKeys: [[cue.endCard, { sx: 590, sy: 1700, z: 0.9, cy: 1600 }], [cue.endCard + 0.7, { sx: 590, sy: 1700, z: 0.66, cy: 1480 }]] },
 ] };
+capSplash(app.beats);
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const bt of app.beats) for (const o of [bt.screen?.typing, ...(bt.screen?.items || [])]) if (o) for (const k of ["at", "ta", "tb", "clear"]) if (o[k] !== undefined) o[k] = r2(o[k]);
 for (const k in cue) cue[k] = r2(cue[k]);
@@ -157,7 +165,7 @@ for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
   if (ft >= bt.a && ft < bt.b) tapTimes.push(r2(ft));
 }
 
-const EM = new Set(["copy", "paste", "someone", "else's", "once", "template", "name", "building", "preview"]);
+const EM = new Set(["repeat", "copy", "paste", "someone", "else's", "once", "template", "name", "building", "preview"]);
 const SHOW = [];
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 function chunk(n, from, to) {
@@ -170,7 +178,7 @@ function chunk(n, from, to) {
 const captions = [
   chunk(1, 0, idx(1, "and")), chunk(1, idx(1, "and")),
   chunk(2, 0, idx(2, "that")), chunk(2, idx(2, "that")),
-  chunk(4, 0),
+  chunk(4, 0, idx(4, "I", 2)), chunk(4, idx(4, "I", 2)),
   chunk(5, 0),
   chunk(6, 0),
   chunk(7, 0),

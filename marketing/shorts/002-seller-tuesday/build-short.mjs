@@ -13,6 +13,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFile
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadClips } from "../lib/clips.mjs";
+import { capSplash } from "../lib/splash.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("D:/Users/Lateef/Documents/property/video/node_modules/playwright-core");
@@ -41,11 +42,13 @@ const SCRIPT = {
   3: "\"Any property available, sir?\" Every week.",
   4: "Then one actually tells me something. A two-bed in my building just sold. 4.67 million.",
   5: "Which floor?",
-  6: "Repeat puts the latest sales from each seller's own building into your updates.",
+  6: "That's what Repeat does. It puts the latest sales from each seller's own building into your updates.",
   7: "Repeat AI. Have a reason to follow up.",
 };
 const VOICE_LUFS = -19.3;
-const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+// the recogniser writes small numbers as digits ("9", "15", "30"); compare them as words
+const NUMS = { 9: "nine", 11: "eleven", 15: "fifteen", 20: "twenty", 30: "thirty" };
+const norm = s => { const t = s.toLowerCase().replace(/[^a-z0-9]/g, ""); return NUMS[t] || t; };
 
 // ── 1. Narration ─────────────────────────────────────────────────────────────
 function loadLine(n) {
@@ -108,13 +111,15 @@ cue.toApp = cue.sendReply + 0.6;
 start[6] = cue.toApp + 0.35;
 cue.toSales = W(6, "sales") - 0.25;
 cue.toMsg = W(6, "into") - 0.2;
+cue.splash = W(6, "Repeat");
+cue.appIn = W(6, "It") - 0.15;
 cue.endCard = endOf(6) + 0.55;
 start[7] = cue.endCard + 0.3;
 cue.endLine = W(7, "have") - 0.05;
 let END = r2(endOf(7) + 1.3);
 for (const k in cue) if (!Array.isArray(cue[k])) cue[k] = r2(cue[k]);
 
-const EM = new Set(["tuesday", "every", "week", "something", "just", "sold", "latest", "sales", "building"]);
+const EM = new Set(["repeat", "tuesday", "every", "week", "something", "just", "sold", "latest", "sales", "building"]);
 const SHOW = [["4.67 million.", "AED 4.67 million."]];
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 function chunk(n, from, to) {
@@ -126,7 +131,7 @@ function chunk(n, from, to) {
 const captions = [
   chunk(1, 0, idx(1, "It's")), chunk(1, idx(1, "It's")), chunk(2, 0), chunk(3, 0),
   chunk(4, 0, idx(4, "A")), chunk(4, idx(4, "A"), idx(4, "4.67")), chunk(4, idx(4, "4.67")),
-  chunk(6, 0, idx(6, "from")), chunk(6, idx(6, "from")),
+  chunk(6, 0, idx(6, "It")), chunk(6, idx(6, "It"), idx(6, "from")), chunk(6, idx(6, "from")),
 ];
 for (let i = 0; i < captions.length - 1; i++) if (captions[i + 1].a - captions[i].b < 0.5) captions[i].b = captions[i + 1].a;
 
@@ -151,8 +156,8 @@ const RATE = 1.25;                                               // a brisk but 
 const app = { beats: [] };
 {
   // 1. Sellers → tap Oliver (on "Repeat puts…") → his sheet → scroll to "Sales in Burj Khalifa"
-  const a = cue.toApp, b = cue.toMsg;
-  const c0 = Math.max(0, ev("oliver-sheet-sales", "tap:oliver") - (start[6] + 0.15 - a) * RATE);
+  const a = cue.appIn, b = cue.toMsg;
+  const c0 = Math.max(0, ev("oliver-sheet-sales", "tap:oliver") - (W(6, "It") + 0.15 - a) * RATE);
   const salesAt = a + (ev("oliver-sheet-sales", "sales-visible") - c0) / RATE;
   app.beats.push({ a, b, clip: "oliver-sheet-sales", c0, rate: RATE,
     camKeys: [[a, FULL], [salesAt - 0.5, FULL], [salesAt + 0.3, { sx: 590, sy: 1960, z: 1.12, cy: 1250 }]],
@@ -172,6 +177,11 @@ const app = { beats: [] };
               [cue.endCard, close], [cue.endCard + 0.7, { sx: 590, sy: 1500, z: 0.66, cy: 1430 }]],
     hl: [{ a: msgAt + 0.2, b: END + 1, box: [22, 1606, 1136, 124] }] });
 }
+
+// "Repeat" lands as the answer: the phone opens on the Repeat launch screen as the word is said
+app.beats.push({ a: cue.toApp, b: cue.appIn, cam: FULL, screen: { kind: "splash", id: "splash", at: cue.splash } });
+app.beats.sort((x, y) => x.a - y.a);
+capSplash(app.beats);
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); }
 const timeline = { end: END, cue, captions, poses, app, clips, lines: Object.values(L).map(l => ({ n: l.n, start: r2(start[l.n]), end: r2(endOf(l.n)), file: rel(l.mp3) })) };
 writeFileSync(join(DIR, "timeline.json"), JSON.stringify(timeline, null, 1));

@@ -10,6 +10,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFile
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadClips } from "../lib/clips.mjs";
+import { capSplash } from "../lib/splash.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("D:/Users/Lateef/Documents/property/video/node_modules/playwright-core");
@@ -32,7 +33,7 @@ const rel = p => p.replace(DIR, "").replace(/\\/g, "/");
 
 const SCRIPT = {
   1: "How do you keep up with seller follow-ups and still find time to film?",
-  2: "I set up the routine ones once, in Repeat.",
+  2: "I use Repeat. I set up the routine ones once.",
   3: "Each seller status gets its own template, so a new prospect and a seller who's already listed get different messages.",
   4: "Status follow-ups send each one when that seller is due.",
   5: "And they stop as soon as a seller replies, so the conversation stays with me.",
@@ -41,7 +42,9 @@ const SCRIPT = {
   8: "Repeat AI. Set up your follow-ups once.",
 };
 const VOICE_LUFS = -19.3;
-const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+// the recogniser writes small numbers as digits ("9", "15", "30"); compare them as words
+const NUMS = { 9: "nine", 11: "eleven", 15: "fifteen", 20: "twenty", 30: "thirty" };
+const norm = s => { const t = s.toLowerCase().replace(/[^a-z0-9]/g, ""); return NUMS[t] || t; };
 
 // ── 1. Narration ─────────────────────────────────────────────────────────────
 function loadLine(n) {
@@ -95,7 +98,9 @@ start[1] = 0.6;
 start[2] = endOf(1) + 0.4;
 cue.usTalks = start[2] - 0.1;
 start[3] = endOf(2) + 0.4;
-cue.toApp = start[3] - 0.3;
+cue.splash = W(2, "Repeat");
+cue.toApp = cue.splash - 0.5;                 // the phone comes up on the Repeat launch screen
+cue.appIn = start[3] - 0.3;
 start[4] = endOf(3) + 0.35;
 start[5] = endOf(4) + 0.35;
 
@@ -106,7 +111,7 @@ const app = { beats: [] };
 const FULL = { sx: 590, sy: 1278, z: 0.78, cy: 1225 };
 {
   // line 3: the template's "Use for" sheet; a different template per status
-  const a = cue.toApp, c0 = ev("template-use-for", "tap:use-for") - 0.4;
+  const a = cue.appIn, c0 = ev("template-use-for", "tap:use-for") - 0.4;
   app.beats.push({ a, b: start[4] - 0.2, clip: "template-use-for", c0, rate: 1,
     camKeys: [[a, FULL], [a + 0.6, FULL], [a + 1.1, { sx: 590, sy: 1950, z: 1.06, cy: 1200 }]] });
   // line 4: the real tap on Status follow-ups as he says "Status follow-ups"
@@ -134,7 +139,12 @@ cue.endLine = W(8, "set") - 0.05;
 let END = r2(endOf(8) + 1.3);
 app.beats.push({ a: cue.endCard, b: END + 1, clip: "automations-status", c0: lastT("automations-status"), rate: 0,
   camKeys: [[cue.endCard, { sx: 590, sy: 1300, z: 0.9, cy: 1600 }], [cue.endCard + 0.7, { sx: 590, sy: 1300, z: 0.62, cy: 1440 }]] });
-for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); bt.rate = r2(bt.rate); }
+
+// "Repeat" lands as the answer: the phone opens on the Repeat launch screen as the word is said
+app.beats.push({ a: cue.toApp, b: cue.appIn, cam: FULL, screen: { kind: "splash", id: "splash", at: cue.splash } });
+app.beats.sort((x, y) => x.a - y.a);
+capSplash(app.beats);
+for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const k in cue) cue[k] = r2(cue[k]);
 const tapTimes = [];
 for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
@@ -142,7 +152,7 @@ for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
   if (ft >= bt.a && ft < bt.b) tapTimes.push(r2(ft));
 }
 
-const EM = new Set(["film", "once", "status", "template", "due", "replies", "hours", "limit", "filming"]);
+const EM = new Set(["repeat", "film", "once", "status", "template", "due", "replies", "hours", "limit", "filming"]);
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 function chunk(n, from, to) {
   const ws = L[n].words.slice(from, to);
@@ -151,7 +161,7 @@ function chunk(n, from, to) {
 }
 const captions = [
   chunk(1, 0, idx(1, "and")), chunk(1, idx(1, "and")),
-  chunk(2, 0),
+  chunk(2, 0, idx(2, "I", 2)), chunk(2, idx(2, "I", 2)),
   chunk(3, 0, idx(3, "so")), chunk(3, idx(3, "so")),
   chunk(4, 0),
   chunk(5, 0, idx(5, "so")), chunk(5, idx(5, "so")),

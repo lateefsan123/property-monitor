@@ -14,6 +14,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, unlinkSync, writeFile
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { loadClips } from "../lib/clips.mjs";
+import { capSplash } from "../lib/splash.mjs";
 
 const require = createRequire(import.meta.url);
 const { chromium } = require("D:/Users/Lateef/Documents/property/video/node_modules/playwright-core");
@@ -40,13 +41,15 @@ const SCRIPT = {
   3: "Any update?",
   4: "Still thinking about selling?",
   5: "I said next month.",
-  6: "When a seller says next month, I set her follow-up to thirty days.",
+  6: "That's where Repeat comes in. When a seller says next month, I set her follow-up to thirty days.",
   7: "Automatic updates wait until then.",
   8: "A month later, right on time. Perfect.",
   9: "Repeat AI. Give later a place.",
 };
 const VOICE_LUFS = -19.3;
-const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, "");
+// the recogniser writes small numbers as digits ("9", "15", "30"); compare them as words
+const NUMS = { 9: "nine", 11: "eleven", 15: "fifteen", 20: "twenty", 30: "thirty" };
+const norm = s => { const t = s.toLowerCase().replace(/[^a-z0-9]/g, ""); return NUMS[t] || t; };
 
 // ── 1. Narration ─────────────────────────────────────────────────────────────
 function loadLine(n) {
@@ -105,7 +108,9 @@ cue.sayPop = cue.toClose + 0.25;
 start[5] = cue.sayPop + 0.1;
 cue.toBroker = endOf(5) + 0.45;
 start[6] = cue.toBroker + 0.35;
-cue.toApp = W(6, "I") - 0.1;
+cue.splash = W(6, "Repeat");
+cue.toApp = cue.splash - 0.5;                 // the phone comes up on the Repeat launch screen
+cue.appIn = W(6, "I") - 0.1;
 
 // App proof: Elena → Set follow-up → 30 days → Save → "Scheduled for…" (../app-clips/elena-follow-up)
 const clips = loadClips(["elena-follow-up"], DIR, { theme: "light" });
@@ -116,8 +121,8 @@ start[7] = endOf(6) + 0.3;
 {
   // the clip runs from opening her sheet to the saved follow-up; the 30-day tap lands on "thirty"
   const c0 = ev("tap:elena") - 0.4;
-  const rate = Math.min(1.8, Math.max(1.0, (ev("tap:30-days") - c0) / (W(6, "thirty") - cue.toApp)));
-  const a = cue.toApp, at = s => a + (s - c0) / rate;
+  const rate = Math.min(1.8, Math.max(1.0, (ev("tap:30-days") - c0) / (W(6, "thirty") - cue.appIn)));
+  const a = cue.appIn, at = s => a + (s - c0) / rate;
   const b = Math.max(at(ev("scheduled-visible")) + 1.2, endOf(7) + 0.5);
   app.beats.push({ a, b, clip: "elena-follow-up", c0, rate,
     camKeys: [[a, FULL], [at(ev("sheet-follow-up")) - 0.2, FULL], [at(ev("sheet-follow-up")) + 0.3, { sx: 590, sy: 1500, z: 0.95, cy: 1180 }],
@@ -131,7 +136,12 @@ cue.endLine = W(9, "give") - 0.05;
 let END = r2(endOf(9) + 1.3);
 app.beats.push({ a: cue.endCard, b: END + 1, clip: "elena-follow-up", c0: (clips["elena-follow-up"].frames - 1) / 30, rate: 0,
   camKeys: [[cue.endCard, { sx: 590, sy: 1400, z: 0.9, cy: 1600 }], [cue.endCard + 0.7, { sx: 590, sy: 1400, z: 0.62, cy: 1440 }]] });
-for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0); bt.rate = r2(bt.rate); }
+
+// "Repeat" lands as the answer: the phone opens on the Repeat launch screen as the word is said
+app.beats.push({ a: cue.toApp, b: cue.appIn, cam: FULL, screen: { kind: "splash", id: "splash", at: cue.splash } });
+app.beats.sort((x, y) => x.a - y.a);
+capSplash(app.beats);
+for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const k in cue) cue[k] = r2(cue[k]);
 const tapTimes = [];
 for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
@@ -139,7 +149,7 @@ for (const bt of app.beats) if (bt.rate) for (const tp of clips[bt.clip].taps) {
   if (ft >= bt.a && ft < bt.b) tapTimes.push(r2(ft));
 }
 
-const EM = new Set(["next", "month", "thirty", "days", "wait", "time", "perfect"]);
+const EM = new Set(["repeat", "next", "month", "thirty", "days", "wait", "time", "perfect"]);
 const SHOW = [["<em>thirty</em> <em>days.</em>", "<em>30 days.</em>"]];
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
 function chunk(n, from, to) {
@@ -150,7 +160,7 @@ function chunk(n, from, to) {
 }
 const captions = [
   chunk(1, 0), chunk(2, 0), chunk(3, 0), chunk(4, 0),
-  chunk(6, 0, idx(6, "I")), chunk(6, idx(6, "I")), chunk(7, 0), chunk(8, 0),
+  chunk(6, 0, idx(6, "When")), chunk(6, idx(6, "When"), idx(6, "I")), chunk(6, idx(6, "I")), chunk(7, 0), chunk(8, 0),
 ];
 for (let i = 0; i < captions.length - 1; i++) if (captions[i + 1].a - captions[i].b < 0.5) captions[i].b = captions[i + 1].a;
 

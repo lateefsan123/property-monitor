@@ -1,0 +1,87 @@
+[
+ {
+  "word": "That's",
+  "start": 0.0,
+  "end": 0.36
+ },
+ {
+  "word": "what",
+  "start": 0.36,
+  "end": 0.46
+ },
+ {
+  "word": "repeat",
+  "start": 0.46,
+  "end": 0.84
+ },
+ {
+  "word": "does.",
+  "start": 0.84,
+  "end": 1.2
+ },
+ {
+  "word": "It",
+  "start": 1.76,
+  "end": 1.88
+ },
+ {
+  "word": "puts",
+  "start": 1.88,
+  "end": 2.02
+ },
+ {
+  "word": "the",
+  "start": 2.02,
+  "end": 2.26
+ },
+ {
+  "word": "latest",
+  "start": 2.26,
+  "end": 2.54
+ },
+ {
+  "word": "sales",
+  "start": 2.54,
+  "end": 2.88
+ },
+ {
+  "word": "from",
+  "start": 2.88,
+  "end": 3.16
+ },
+ {
+  "word": "each",
+  "start": 3.16,
+  "end": 3.44
+ },
+ {
+  "word": "seller's",
+  "start": 3.44,
+  "end": 3.92
+ },
+ {
+  "word": "own",
+  "start": 3.92,
+  "end": 4.12
+ },
+ {
+  "word": "building",
+  "start": 4.12,
+  "end": 4.58
+ },
+ {
+  "word": "into",
+  "start": 4.58,
+  "end": 5.0
+ },
+ {
+  "word": "your",
+  "start": 5.0,
+  "end": 5.34
+ },
+ {
+  "word": "updates.",
+  "start": 5.34,
+  "end": 5.78
+ }
+]
