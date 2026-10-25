@@ -213,7 +213,7 @@ b.push({ a: cue.endCard, b: END + 1, clip: "send-activity", c0: lastT("send-acti
   camKeys: [[cue.endCard, near(1000, 0.9, 1600)], [cue.endCard + 0.7, near(1100, 0.66, 1420)]] });
 // One fixed framing for the whole film: the whole phone under the captions, never moving.
 // Only the screens change (with the push between beats). The end card keeps its own pull-back.
-const FIXED = { sx: 590, sy: 1278, z: 0.8, cy: 1175 };
+const FIXED = { sx: 590, sy: 1278, z: 0.75, cy: 1147 };   // the whole phone in frame, under the headline
 for (const bt of b) if (bt.a < cue.endCard) { delete bt.camKeys; bt.cam = FIXED; }
 // the end card pulls back from the same framing, so there is no jump
 b.find(bt => bt.a >= cue.endCard).camKeys = [[cue.endCard, FIXED], [cue.endCard + 0.9, near(1100, 0.66, 1420)]];
@@ -238,20 +238,101 @@ function chunk(n, from, to) {
   for (const [a, b] of SHOW) html = html.replace(a, b);
   return { a: r2(start[n] + ws[0].start - 0.12), b: r2(start[n] + ws[ws.length - 1].end + 0.35), html };
 }
-const captions = [
-  chunk(1, 0, idx(1, "Every")), chunk(1, idx(1, "Every")),
-  chunk(2, 0), chunk(3, 0), chunk(4, 0),
-  chunk(5, 0, idx(5, "and")), chunk(5, idx(5, "and")),
-  chunk(6, 0),
-  chunk(7, 0, idx(7, "Due")), chunk(7, idx(7, "Due")),
-  chunk(8, 0),
-  chunk(9, 0, idx(9, "and", 2)), chunk(9, idx(9, "and", 2)),
-  chunk(10, 0), chunk(11, 0), chunk(12, 0), chunk(13, 0),
-  chunk(14, 0, idx(14, "That")), chunk(14, idx(14, "That")),
-  chunk(15, 0),
-  chunk(16, 0, idx(16, "can")), chunk(16, idx(16, "can")),
+// Headlines, not subtitles (the user's note, 25 Oct 2026): a few short key phrases, each landing on
+// its word and held until the next one or a beat after its line ends.
+const HEADLINES = [
+ [
+  1,
+  "Ten",
+  "<em>10,000</em> sellers"
+ ],
+ [
+  2,
+  "lot",
+  "That's a lot of follow-ups"
+ ],
+ [
+  3,
+  "Repeat",
+  "That's why I use <em>Repeat</em>"
+ ],
+ [
+  4,
+  "Google",
+  "Import from <em>Sheets or Excel</em>"
+ ],
+ [
+  5,
+  "stage",
+  "Every seller: <em>a stage</em> and <em>a date</em>"
+ ],
+ [
+  6,
+  "own",
+  "Add <em>your own</em> stages"
+ ],
+ [
+  7,
+  "Due",
+  "<em>Due today</em>"
+ ],
+ [
+  8,
+  "template",
+  "<em>One template</em> per stage"
+ ],
+ [
+  9,
+  "name",
+  "Names, buildings, <em>sales</em>: filled in"
+ ],
+ [
+  9,
+  "broker",
+  "Plus your <em>broker card</em>"
+ ],
+ [
+  10,
+  "run",
+  "Then <em>let it run</em>"
+ ],
+ [
+  11,
+  "own",
+  "From <em>your WhatsApp</em>"
+ ],
+ [
+  12,
+  "sending",
+  "Your hours · spaced · <em>a daily limit</em>"
+ ],
+ [
+  13,
+  "sells",
+  "A sale in their building? <em>An update.</em>"
+ ],
+ [
+  14,
+  "replies",
+  "They reply? <em>It stops.</em>"
+ ],
+ [
+  15,
+  "Send",
+  "<em>Send activity</em>"
+ ],
+ [
+  16,
+  "Ask",
+  "<em>Ask Repeat</em> · early access"
+ ]
 ];
-for (let i = 0; i < captions.length - 1; i++) if (captions[i + 1].a - captions[i].b < 0.5) captions[i].b = captions[i + 1].a;
+const captions = HEADLINES.map(([n, w, html]) => ({ a: W(n, w) - 0.15, n, html }));
+captions.forEach((c, i) => {
+  const next = captions[i + 1], lineEnd = endOf(c.n) + 0.9;
+  c.b = r2(next && next.a < lineEnd + 1.2 ? next.a : lineEnd);
+  c.a = r2(c.a); delete c.n;
+});
 
 const POSES = {
   desk: ["../003-midnight-message/pose-broker-desk.png"],

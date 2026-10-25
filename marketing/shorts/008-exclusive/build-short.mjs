@@ -126,6 +126,18 @@ app.beats.push({ a: cue.endCard, b: END + 1, clip: "automations-transaction", c0
 app.beats.push({ a: cue.toApp, b: cue.appIn, cam: FULL, screen: { kind: "splash", id: "splash", at: cue.splash } });
 app.beats.sort((x, y) => x.a - y.a);
 capSplash(app.beats);
+// The phone stays in one place (the user's note, 25 Oct 2026): one framing for every beat, and
+// the end card pulls back from it, so the phone never jumps around the frame.
+{
+  const FIXED = { sx: 590, sy: 1278, z: 0.75, cy: 1147 };   // the whole phone in frame, under the headline
+  for (const bt of app.beats) if (bt.a < cue.endCard) { delete bt.camKeys; bt.cam = FIXED; }
+  const endBeat = app.beats.find(bt => bt.a >= cue.endCard);
+  if (endBeat) {
+    const last = endBeat.camKeys ? endBeat.camKeys[endBeat.camKeys.length - 1][1] : endBeat.cam;
+    delete endBeat.cam;
+    endBeat.camKeys = [[cue.endCard, FIXED], [cue.endCard + 0.9, last]];
+  }
+}
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const k in cue) cue[k] = r2(cue[k]);
 var CUTS = ["toRead"];
@@ -143,12 +155,41 @@ function chunk(n, from, to) {
   return { a: r2(start[n] + ws[0].start - 0.12), b: r2(start[n] + ws[ws.length - 1].end + 0.35), html };
 }
 // the hype lines are on the stickers, so no captions for them
-const captions = [
-  chunk(4, 0, idx(4, "None")), chunk(4, idx(4, "None")),
-  chunk(5, 0, idx(5, "Monthly")), chunk(5, idx(5, "Monthly"), idx(5, "a")), chunk(5, idx(5, "a")),
-  chunk(6, 0, idx(6, "Now")), chunk(6, idx(6, "Now")),
+// Headlines, not subtitles (the user's note, 25 Oct 2026): a few short key phrases, each landing on
+// its word and held until the next one or a beat after its line ends.
+const HEADLINES = [
+ [
+  1,
+  "Exclusive",
+  "“EXCLUSIVE!!”"
+ ],
+ [
+  4,
+  "None",
+  "None of them <em>say anything</em>"
+ ],
+ [
+  5,
+  "Repeat",
+  "This one's from <em>Repeat</em>"
+ ],
+ [
+  5,
+  "Monthly",
+  "<em>Monthly reports</em>"
+ ],
+ [
+  6,
+  "Two",
+  "<em>2 sales</em> in his building"
+ ]
 ];
-for (let i = 0; i < captions.length - 1; i++) if (captions[i + 1].a - captions[i].b < 0.5) captions[i].b = captions[i + 1].a;
+const captions = HEADLINES.map(([n, w, html]) => ({ a: W(n, w) - 0.15, n, html }));
+captions.forEach((c, i) => {
+  const next = captions[i + 1], lineEnd = endOf(c.n) + 0.9;
+  c.b = r2(next && next.a < lineEnd + 1.2 ? next.a : lineEnd);
+  c.a = r2(c.a); delete c.n;
+});
 
 const POSES = {
   spam: ["pose-oliver-kitchen-spam.png", "../002-seller-tuesday/pose-oliver-scroll.png"],

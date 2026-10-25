@@ -160,6 +160,18 @@ const app = { beats: [
 capSplash(app.beats);
 for (const bt of app.beats) for (const o of [bt.screen?.typing, bt.screen?.note, ...(bt.screen?.items || [])]) if (o) for (const k of ["at", "ta", "tb"]) if (o[k] !== undefined) o[k] = r2(o[k]);
 const cards = [];
+// The phone stays in one place (the user's note, 25 Oct 2026): one framing for every beat, and
+// the end card pulls back from it, so the phone never jumps around the frame.
+{
+  const FIXED = { sx: 590, sy: 1278, z: 0.66, cx: 630, cy: 1147 };   // the whole phone in frame, under the headline
+  for (const bt of app.beats) if (bt.a < cue.endCard) { delete bt.camKeys; bt.cam = FIXED; }
+  const endBeat = app.beats.find(bt => bt.a >= cue.endCard);
+  if (endBeat) {
+    const last = endBeat.camKeys ? endBeat.camKeys[endBeat.camKeys.length - 1][1] : endBeat.cam;
+    delete endBeat.cam;
+    endBeat.camKeys = [[cue.endCard, FIXED], [cue.endCard + 0.9, last]];
+  }
+}
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const k in cue) cue[k] = r2(cue[k]);
 // a tap sound on every recorded tap that plays on screen
@@ -181,20 +193,51 @@ function chunk(n, from, to) {
   return { a: r2(start[n] + ws[0].start - 0.12), b: r2(start[n] + ws[ws.length - 1].end + 0.35), html };
 }
 const idx = (n, w, k = 1) => L[n].words.indexOf(word(L[n], w, k));
-const captions = [
-  chunk(1, 0),
-  chunk(2, 0, idx(2, "I")), chunk(2, idx(2, "I")),
-  chunk(3, 0, idx(3, "With")), chunk(3, idx(3, "With")),
-  chunk(4, 0, idx(4, "and")), chunk(4, idx(4, "and")),
-  chunk(5, 0, idx(5, "so")), chunk(5, idx(5, "so")),
-  chunk(6, 0, idx(6, "and")), chunk(6, idx(6, "and")),
-  chunk(7, 0), chunk(8, 0),
+// Headlines, not subtitles (the user's note, 25 Oct 2026): a few short key phrases, each landing on
+// its word and held until the next one or a beat after its line ends.
+const HEADLINES = [
+ [
+  2,
+  "same",
+  "The same follow-up. <em>Again.</em>"
+ ],
+ [
+  3,
+  "With",
+  "Set it up once. <em>With Repeat.</em>"
+ ],
+ [
+  4,
+  "template",
+  "One <em>template</em> per status"
+ ],
+ [
+  5,
+  "Status",
+  "<em>Status follow-ups</em>: on"
+ ],
+ [
+  6,
+  "stops",
+  "Stops when they <em>reply</em>"
+ ],
+ [
+  7,
+  "own",
+  "From your own <em>WhatsApp</em>"
+ ],
+ [
+  8,
+  "finish",
+  "Back to <em>filming</em>"
+ ]
 ];
-// Each caption holds until the next one starts (no flashing gaps inside a line)
-for (let i = 0; i < captions.length - 1; i++) {
-  const gap = captions[i + 1].a - captions[i].b;
-  if (gap < 0.5) captions[i].b = captions[i + 1].a;
-}
+const captions = HEADLINES.map(([n, w, html]) => ({ a: W(n, w) - 0.15, n, html }));
+captions.forEach((c, i) => {
+  const next = captions[i + 1], lineEnd = endOf(c.n) + 0.9;
+  c.b = r2(next && next.a < lineEnd + 1.2 ? next.a : lineEnd);
+  c.a = r2(c.a); delete c.n;
+});
 
 const timeline = { end: END, cue, captions, app, cards, clips, tapTimes, lines: Object.values(L).map(l => ({ n: l.n, start: r2(start[l.n]), end: r2(endOf(l.n)), file: l.mp3.replace(DIR, "") })) };
 writeFileSync(join(DIR, "timeline.json"), JSON.stringify(timeline, null, 1));

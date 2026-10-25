@@ -132,6 +132,18 @@ const app = { beats: [
 app.beats.push({ a: cue.toApp, b: cue.appIn, cam: FULL, screen: { kind: "splash", id: "splash", at: cue.splash } });
 app.beats.sort((x, y) => x.a - y.a);
 capSplash(app.beats);
+// The phone stays in one place (the user's note, 25 Oct 2026): one framing for every beat, and
+// the end card pulls back from it, so the phone never jumps around the frame.
+{
+  const FIXED = { sx: 590, sy: 1278, z: 0.75, cy: 1147 };   // the whole phone in frame, under the headline
+  for (const bt of app.beats) if (bt.a < cue.endCard) { delete bt.camKeys; bt.cam = FIXED; }
+  const endBeat = app.beats.find(bt => bt.a >= cue.endCard);
+  if (endBeat) {
+    const last = endBeat.camKeys ? endBeat.camKeys[endBeat.camKeys.length - 1][1] : endBeat.cam;
+    delete endBeat.cam;
+    endBeat.camKeys = [[cue.endCard, FIXED], [cue.endCard + 0.9, last]];
+  }
+}
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const k in cue) cue[k] = r2(cue[k]);
 const tapTimes = [];
@@ -149,14 +161,41 @@ function chunk(n, from, to) {
   for (const [a, b] of SHOW) html = html.replace(a, b);
   return { a: r2(start[n] + ws[0].start - 0.12), b: r2(start[n] + ws[ws.length - 1].end + 0.35), html };
 }
-const captions = [
-  chunk(1, 0, idx(1, "I", 2)), chunk(1, idx(1, "I", 2)),
-  chunk(2, 0),
-  chunk(3, 0, idx(3, "My")), chunk(3, idx(3, "My")),
-  chunk(4, 0, idx(4, "not")), chunk(4, idx(4, "not")),
-  chunk(5, 0),
+// Headlines, not subtitles (the user's note, 25 Oct 2026): a few short key phrases, each landing on
+// its word and held until the next one or a beat after its line ends.
+const HEADLINES = [
+ [
+  1,
+  "apart",
+  "Every broker <em>looks the same</em>"
+ ],
+ [
+  2,
+  "hi",
+  "“Hi, it's me again”"
+ ],
+ [
+  3,
+  "Repeat",
+  "That's why I use <em>Repeat</em>"
+ ],
+ [
+  3,
+  "broker",
+  "Your <em>broker card</em> in the template"
+ ],
+ [
+  5,
+  "Sara",
+  "“Oh, it's <em>Sara</em>.”"
+ ]
 ];
-for (let i = 0; i < captions.length - 1; i++) if (captions[i + 1].a - captions[i].b < 0.5) captions[i].b = captions[i + 1].a;
+const captions = HEADLINES.map(([n, w, html]) => ({ a: W(n, w) - 0.15, n, html }));
+captions.forEach((c, i) => {
+  const next = captions[i + 1], lineEnd = endOf(c.n) + 0.9;
+  c.b = r2(next && next.a < lineEnd + 1.2 ? next.a : lineEnd);
+  c.a = r2(c.a); delete c.n;
+});
 
 const POSES = {
   eyeroll: ["../005-already-listed/pose-maya-eyeroll.png"],

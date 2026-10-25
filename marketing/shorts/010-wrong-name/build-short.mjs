@@ -156,6 +156,18 @@ const app = { beats: [
     camKeys: [[cue.endCard, { sx: 590, sy: 1700, z: 0.9, cy: 1600 }], [cue.endCard + 0.7, { sx: 590, sy: 1700, z: 0.66, cy: 1480 }]] },
 ] };
 capSplash(app.beats);
+// The phone stays in one place (the user's note, 25 Oct 2026): one framing for every beat, and
+// the end card pulls back from it, so the phone never jumps around the frame.
+{
+  const FIXED = { sx: 590, sy: 1278, z: 0.75, cy: 1147 };   // the whole phone in frame, under the headline
+  for (const bt of app.beats) if (bt.a < cue.endCard) { delete bt.camKeys; bt.cam = FIXED; }
+  const endBeat = app.beats.find(bt => bt.a >= cue.endCard);
+  if (endBeat) {
+    const last = endBeat.camKeys ? endBeat.camKeys[endBeat.camKeys.length - 1][1] : endBeat.cam;
+    delete endBeat.cam;
+    endBeat.camKeys = [[cue.endCard, FIXED], [cue.endCard + 0.9, last]];
+  }
+}
 for (const bt of app.beats) { bt.a = r2(bt.a); bt.b = r2(bt.b); bt.c0 = r2(bt.c0 || 0); bt.rate = r2(bt.rate ?? 0); }
 for (const bt of app.beats) for (const o of [bt.screen?.typing, ...(bt.screen?.items || [])]) if (o) for (const k of ["at", "ta", "tb", "clear"]) if (o[k] !== undefined) o[k] = r2(o[k]);
 for (const k in cue) cue[k] = r2(cue[k]);
@@ -175,15 +187,41 @@ function chunk(n, from, to) {
   return { a: r2(start[n] + ws[0].start - 0.12), b: r2(start[n] + ws[ws.length - 1].end + 0.35), html };
 }
 // line 3 ("Who's Oliver?") is her speech bubble, not a caption
-const captions = [
-  chunk(1, 0, idx(1, "and")), chunk(1, idx(1, "and")),
-  chunk(2, 0, idx(2, "that")), chunk(2, idx(2, "that")),
-  chunk(4, 0, idx(4, "I", 2)), chunk(4, idx(4, "I", 2)),
-  chunk(5, 0),
-  chunk(6, 0),
-  chunk(7, 0),
+// Headlines, not subtitles (the user's note, 25 Oct 2026): a few short key phrases, each landing on
+// its word and held until the next one or a beat after its line ends.
+const HEADLINES = [
+ [
+  1,
+  "copy",
+  "<em>Copy</em>, paste, send"
+ ],
+ [
+  2,
+  "someone",
+  "…with the <em>wrong name</em>"
+ ],
+ [
+  4,
+  "Repeat",
+  "Now: <em>Repeat</em> templates"
+ ],
+ [
+  5,
+  "name",
+  "Their own <em>name and building</em>"
+ ],
+ [
+  6,
+  "Preview",
+  "<em>Preview</em> it first"
+ ]
 ];
-for (let i = 0; i < captions.length - 1; i++) if (captions[i + 1].a - captions[i].b < 0.5) captions[i].b = captions[i + 1].a;
+const captions = HEADLINES.map(([n, w, html]) => ({ a: W(n, w) - 0.15, n, html }));
+captions.forEach((c, i) => {
+  const next = captions[i + 1], lineEnd = endOf(c.n) + 0.9;
+  c.b = r2(next && next.a < lineEnd + 1.2 ? next.a : lineEnd);
+  c.a = r2(c.a); delete c.n;
+});
 
 const POSES = {
   typing: ["pose-broker-typing.png", "../006-next-month/pose-broker-tablet-phone.png"],
