@@ -1,0 +1,72 @@
+[
+ {
+  "word": "up",
+  "start": 0.0,
+  "end": 0.16
+ },
+ {
+  "word": "to",
+  "start": 0.16,
+  "end": 0.32
+ },
+ {
+  "word": "40",
+  "start": 0.32,
+  "end": 0.68
+ },
+ {
+  "word": "a",
+  "start": 0.68,
+  "end": 0.86
+ },
+ {
+  "word": "day,",
+  "start": 0.86,
+  "end": 1.14
+ },
+ {
+  "word": "15",
+  "start": 1.58,
+  "end": 1.94
+ },
+ {
+  "word": "minutes",
+  "start": 1.94,
+  "end": 2.18
+ },
+ {
+  "word": "apart,",
+  "start": 2.18,
+  "end": 2.56
+ },
+ {
+  "word": "and",
+  "start": 2.88,
+  "end": 3.0
+ },
+ {
+  "word": "only",
+  "start": 3.0,
+  "end": 3.32
+ },
+ {
+  "word": "within",
+  "start": 3.32,
+  "end": 3.66
+ },
+ {
+  "word": "my",
+  "start": 3.66,
+  "end": 3.86
+ },
+ {
+  "word": "sending",
+  "start": 3.86,
+  "end": 4.12
+ },
+ {
+  "word": "hours.",
+  "start": 4.12,
+  "end": 4.48
+ }
+]

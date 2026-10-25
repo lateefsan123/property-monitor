@@ -44,7 +44,7 @@ const SCRIPT = {
 };
 const VOICE_LUFS = -19.3;
 // the recogniser writes small numbers as digits ("9", "15", "30"); compare them as words
-const NUMS = { 6: "six", 9: "nine", 11: "eleven", 12: "twelve", 14: "fourteen", 15: "fifteen", 20: "twenty", 30: "thirty" };
+const NUMS = { 6: "six", 40: "forty", 9: "nine", 11: "eleven", 12: "twelve", 14: "fourteen", 15: "fifteen", 20: "twenty", 30: "thirty" };
 const norm = s => { const t = s.toLowerCase().replace(/[^a-z0-9]/g, ""); return NUMS[t] || t; };
 
 // ── 1. Narration ─────────────────────────────────────────────────────────────

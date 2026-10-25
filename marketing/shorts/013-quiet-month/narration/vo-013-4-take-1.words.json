@@ -1,0 +1,67 @@
+[
+ {
+  "word": "When",
+  "start": 0.0,
+  "end": 0.2
+ },
+ {
+  "word": "a",
+  "start": 0.2,
+  "end": 0.32
+ },
+ {
+  "word": "seller's",
+  "start": 0.32,
+  "end": 0.74
+ },
+ {
+  "word": "building",
+  "start": 0.74,
+  "end": 0.98
+ },
+ {
+  "word": "is",
+  "start": 0.98,
+  "end": 1.18
+ },
+ {
+  "word": "quiet,",
+  "start": 1.18,
+  "end": 1.62
+ },
+ {
+  "word": "her",
+  "start": 2.08,
+  "end": 2.18
+ },
+ {
+  "word": "update",
+  "start": 2.18,
+  "end": 2.54
+ },
+ {
+  "word": "shows",
+  "start": 2.54,
+  "end": 2.88
+ },
+ {
+  "word": "recent",
+  "start": 2.88,
+  "end": 3.28
+ },
+ {
+  "word": "sales",
+  "start": 3.28,
+  "end": 3.74
+ },
+ {
+  "word": "nearby",
+  "start": 3.74,
+  "end": 4.14
+ },
+ {
+  "word": "instead.",
+  "start": 4.14,
+  "end": 4.6
+ }
+]

@@ -1,0 +1,77 @@
+[
+ {
+  "word": "That's",
+  "start": 0.0,
+  "end": 0.34
+ },
+ {
+  "word": "why",
+  "start": 0.34,
+  "end": 0.48
+ },
+ {
+  "word": "I",
+  "start": 0.48,
+  "end": 0.7
+ },
+ {
+  "word": "use",
+  "start": 0.7,
+  "end": 0.9
+ },
+ {
+  "word": "repeat.",
+  "start": 0.9,
+  "end": 1.32
+ },
+ {
+  "word": "It",
+  "start": 1.9,
+  "end": 2.0
+ },
+ {
+  "word": "sends",
+  "start": 2.0,
+  "end": 2.24
+ },
+ {
+  "word": "at",
+  "start": 2.24,
+  "end": 2.46
+ },
+ {
+  "word": "a",
+  "start": 2.46,
+  "end": 2.54
+ },
+ {
+  "word": "steady",
+  "start": 2.54,
+  "end": 2.86
+ },
+ {
+  "word": "pace,",
+  "start": 2.86,
+  "end": 3.3
+ },
+ {
+  "word": "not",
+  "start": 3.72,
+  "end": 3.84
+ },
+ {
+  "word": "in",
+  "start": 3.84,
+  "end": 4.0
+ },
+ {
+  "word": "one",
+  "start": 4.0,
+  "end": 4.18
+ },
+ {
+  "word": "burst.",
+  "start": 4.18,
+  "end": 4.48
+ }
+]

@@ -1,0 +1,42 @@
+[
+ {
+  "word": "Repeat",
+  "start": 0.0,
+  "end": 0.46
+ },
+ {
+  "word": "AI.",
+  "start": 0.46,
+  "end": 1.04
+ },
+ {
+  "word": "Follow",
+  "start": 1.92,
+  "end": 2.02
+ },
+ {
+  "word": "up",
+  "start": 2.02,
+  "end": 2.3
+ },
+ {
+  "word": "at",
+  "start": 2.3,
+  "end": 2.52
+ },
+ {
+  "word": "a",
+  "start": 2.52,
+  "end": 2.68
+ },
+ {
+  "word": "human",
+  "start": 2.68,
+  "end": 2.88
+ },
+ {
+  "word": "pace.",
+  "start": 2.88,
+  "end": 3.28
+ }
+]

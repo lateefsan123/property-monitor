@@ -1,0 +1,42 @@
+[
+ {
+  "word": "Some",
+  "start": 0.0,
+  "end": 0.26
+ },
+ {
+  "word": "months,",
+  "start": 0.26,
+  "end": 0.62
+ },
+ {
+  "word": "nothing",
+  "start": 1.08,
+  "end": 1.34
+ },
+ {
+  "word": "sells",
+  "start": 1.34,
+  "end": 1.76
+ },
+ {
+  "word": "in",
+  "start": 1.76,
+  "end": 1.94
+ },
+ {
+  "word": "a",
+  "start": 1.94,
+  "end": 2.04
+ },
+ {
+  "word": "seller's",
+  "start": 2.04,
+  "end": 2.38
+ },
+ {
+  "word": "building.",
+  "start": 2.38,
+  "end": 2.62
+ }
+]

@@ -256,6 +256,19 @@ const CLIPS = {
     await r.hold(0.5); r.mark("switched-on");
     await r.hold(2.4);
   },
+  async "automations-nearby"(page, r) {
+    // Nearby sales: when a seller's building has no recent sales, send recent sales nearby instead
+    await nav(page, "Settings");
+    await page.getByText("Automations", { exact: true }).last().click();
+    await page.clock.runFor(1200);
+    await r.hold(0.6); r.mark("start");
+    await r.scrollTo(page.getByText("Nearby sales", { exact: true }), 0.45, 0.9);
+    await r.hold(0.4);
+    const row = page.getByText("Nearby sales", { exact: true }).locator("xpath=ancestor::*[.//*[@role='switch']][1]");
+    await r.tap(row.getByRole("switch").first(), "nearby-switch");
+    await r.hold(0.5); r.mark("switched-on");
+    await r.hold(2.4);
+  },
   async "whatsapp-connected"(page, r) {
     await nav(page, "Settings");
     await r.hold(0.6); r.mark("start");

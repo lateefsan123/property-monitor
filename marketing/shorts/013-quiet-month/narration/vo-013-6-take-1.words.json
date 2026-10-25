@@ -1,0 +1,52 @@
+[
+ {
+  "word": "Repeat",
+  "start": 0.0,
+  "end": 0.42
+ },
+ {
+  "word": "AI,",
+  "start": 0.42,
+  "end": 0.96
+ },
+ {
+  "word": "something",
+  "start": 1.78,
+  "end": 1.92
+ },
+ {
+  "word": "worth",
+  "start": 1.92,
+  "end": 2.18
+ },
+ {
+  "word": "reading,",
+  "start": 2.18,
+  "end": 2.7
+ },
+ {
+  "word": "even",
+  "start": 3.12,
+  "end": 3.34
+ },
+ {
+  "word": "in",
+  "start": 3.34,
+  "end": 3.5
+ },
+ {
+  "word": "a",
+  "start": 3.5,
+  "end": 3.66
+ },
+ {
+  "word": "quiet",
+  "start": 3.66,
+  "end": 3.86
+ },
+ {
+  "word": "month.",
+  "start": 3.86,
+  "end": 4.16
+ }
+]

@@ -1,0 +1,42 @@
+[
+ {
+  "word": "a",
+  "start": 0.0,
+  "end": 0.14
+ },
+ {
+  "word": "sale",
+  "start": 0.14,
+  "end": 0.5
+ },
+ {
+  "word": "right",
+  "start": 0.5,
+  "end": 0.88
+ },
+ {
+  "word": "next",
+  "start": 0.88,
+  "end": 1.22
+ },
+ {
+  "word": "door.",
+  "start": 1.22,
+  "end": 1.6
+ },
+ {
+  "word": "Now",
+  "start": 2.18,
+  "end": 2.22
+ },
+ {
+  "word": "that's",
+  "start": 2.22,
+  "end": 2.88
+ },
+ {
+  "word": "useful.",
+  "start": 2.88,
+  "end": 3.2
+ }
+]

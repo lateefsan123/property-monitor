@@ -1,0 +1,47 @@
+[
+ {
+  "word": "So",
+  "start": 0.0,
+  "end": 0.2
+ },
+ {
+  "word": "it",
+  "start": 0.2,
+  "end": 0.32
+ },
+ {
+  "word": "feels",
+  "start": 0.32,
+  "end": 0.56
+ },
+ {
+  "word": "like",
+  "start": 0.56,
+  "end": 0.82
+ },
+ {
+  "word": "a",
+  "start": 0.82,
+  "end": 0.98
+ },
+ {
+  "word": "person,",
+  "start": 0.98,
+  "end": 1.44
+ },
+ {
+  "word": "not",
+  "start": 1.82,
+  "end": 2.04
+ },
+ {
+  "word": "a",
+  "start": 2.04,
+  "end": 2.16
+ },
+ {
+  "word": "blast.",
+  "start": 2.16,
+  "end": 2.48
+ }
+]

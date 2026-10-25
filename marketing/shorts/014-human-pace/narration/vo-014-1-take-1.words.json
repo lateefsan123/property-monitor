@@ -1,0 +1,62 @@
+[
+ {
+  "word": "I",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "just",
+  "start": 0.18,
+  "end": 0.34
+ },
+ {
+  "word": "sent",
+  "start": 0.34,
+  "end": 0.56
+ },
+ {
+  "word": "the",
+  "start": 0.56,
+  "end": 0.7
+ },
+ {
+  "word": "same",
+  "start": 0.7,
+  "end": 1.02
+ },
+ {
+  "word": "message",
+  "start": 1.02,
+  "end": 1.4
+ },
+ {
+  "word": "to",
+  "start": 1.4,
+  "end": 1.74
+ },
+ {
+  "word": "200",
+  "start": 1.74,
+  "end": 2.3
+ },
+ {
+  "word": "sellers,",
+  "start": 2.3,
+  "end": 2.94
+ },
+ {
+  "word": "all",
+  "start": 3.32,
+  "end": 3.54
+ },
+ {
+  "word": "at",
+  "start": 3.54,
+  "end": 3.68
+ },
+ {
+  "word": "once.",
+  "start": 3.68,
+  "end": 3.98
+ }
+]
