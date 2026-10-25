@@ -1,0 +1,52 @@
+[
+ {
+  "word": "Dinner's",
+  "start": 0.0,
+  "end": 0.42
+ },
+ {
+  "word": "on",
+  "start": 0.42,
+  "end": 0.52
+ },
+ {
+  "word": "the",
+  "start": 0.52,
+  "end": 0.66
+ },
+ {
+  "word": "table",
+  "start": 0.66,
+  "end": 1.06
+ },
+ {
+  "word": "and",
+  "start": 1.06,
+  "end": 1.6
+ },
+ {
+  "word": "I'm",
+  "start": 1.6,
+  "end": 2.0
+ },
+ {
+  "word": "still",
+  "start": 2.0,
+  "end": 2.32
+ },
+ {
+  "word": "on",
+  "start": 2.32,
+  "end": 2.52
+ },
+ {
+  "word": "my",
+  "start": 2.52,
+  "end": 2.64
+ },
+ {
+  "word": "phone.",
+  "start": 2.64,
+  "end": 3.02
+ }
+]

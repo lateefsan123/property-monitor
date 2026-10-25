@@ -1,0 +1,57 @@
+[
+ {
+  "word": "If",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "a",
+  "start": 0.18,
+  "end": 0.32
+ },
+ {
+  "word": "seller",
+  "start": 0.32,
+  "end": 0.54
+ },
+ {
+  "word": "replies,",
+  "start": 0.54,
+  "end": 1.14
+ },
+ {
+  "word": "they",
+  "start": 1.52,
+  "end": 1.74
+ },
+ {
+  "word": "stop",
+  "start": 1.74,
+  "end": 2.1
+ },
+ {
+  "word": "and",
+  "start": 2.1,
+  "end": 2.7
+ },
+ {
+  "word": "I",
+  "start": 2.7,
+  "end": 3.04
+ },
+ {
+  "word": "answer",
+  "start": 3.04,
+  "end": 3.38
+ },
+ {
+  "word": "them",
+  "start": 3.38,
+  "end": 3.6
+ },
+ {
+  "word": "myself.",
+  "start": 3.6,
+  "end": 3.96
+ }
+]

@@ -1,0 +1,21 @@
+{
+  "model": "Eleven v4",
+  "stability": 0.5,
+  "similarity": 0.75,
+  "effects": [],
+  "output": "mp3_44100_192",
+  "creditsBeforeBatch": 101812,
+  "creditsAfterBatch": 100851,
+  "creditsUsedBatch": 961,
+  "cloneStrength": 0,
+  "selectedVoices": {
+    "Brady": {
+      "name": "Brady J - Confident Real Estate Agent",
+      "id": "SGoiiadNvlgcANZ3wLyn"
+    },
+    "Nina": {
+      "name": "Nina - Mature, Calm",
+      "id": "othsitkiTCdLyCKCIC1P"
+    }
+  }
+}

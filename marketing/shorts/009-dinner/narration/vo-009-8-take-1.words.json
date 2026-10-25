@@ -1,0 +1,37 @@
+[
+ {
+  "word": "Repeat",
+  "start": 0.0,
+  "end": 0.52
+ },
+ {
+  "word": "AI.",
+  "start": 0.52,
+  "end": 1.16
+ },
+ {
+  "word": "Give",
+  "start": 1.96,
+  "end": 2.14
+ },
+ {
+  "word": "routine",
+  "start": 2.14,
+  "end": 2.6
+ },
+ {
+  "word": "work",
+  "start": 2.6,
+  "end": 3.04
+ },
+ {
+  "word": "a",
+  "start": 3.04,
+  "end": 3.32
+ },
+ {
+  "word": "boundary.",
+  "start": 3.32,
+  "end": 3.7
+ }
+]

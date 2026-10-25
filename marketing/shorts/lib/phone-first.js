@@ -9,12 +9,14 @@
   const set = (el, css) => Object.assign(el.style, css);
   // the standing broker with his phone (Short 006's pose-broker-tablet-phone.png), alpha bounds
   const POSE = { src: "../006-next-month/pose-broker-tablet-phone.png", x0: 507, y0: 24, x1: 884, y1: 1112 };
-  let corner = null, layer = null;
+  let corner = null, layer = null, pose = POSE;
 
   function setup(appLayer, opts = {}) {
     layer = appLayer;
     corner = document.createElement("img");
-    corner.src = opts.pose || POSE.src;
+    // opts.pose: { src, x0, y0, x1, y1 } (alpha bounds) for a different corner character
+    pose = opts.pose || POSE;
+    corner.src = pose.src;
     set(corner, { position: "absolute", left: 0, top: 0, transformOrigin: "0 0", zIndex: 40, display: "none" });
     appLayer.appendChild(corner);
     const tb = appLayer.querySelector("#topband");
@@ -34,8 +36,8 @@
     if (tb) tb.style.background = tb.dataset.pfBg;
     const u = out(clamp((t - enter) / 0.8));
     const breathe = 1 + 0.004 * Math.sin(t * 2.2);
-    const s = 760 / (POSE.y1 - POSE.y0), x = 112 - (POSE.x0 + POSE.x1) / 2 * s, y = 2110 - POSE.y1 * s + (1 - u) * 500;
-    set(corner, { display: "block", transform: `translate(${x}px, ${y + POSE.y1 * s * (1 - breathe)}px) scale(${s}, ${s * breathe})` });
+    const s = 760 / (pose.y1 - pose.y0), x = 112 - (pose.x0 + pose.x1) / 2 * s, y = 2110 - pose.y1 * s + (1 - u) * 500;
+    set(corner, { display: "block", transform: `translate(${x}px, ${y + pose.y1 * s * (1 - breathe)}px) scale(${s}, ${s * breathe})` });
     return { dy: (1 - ease(clamp((t - enter) / 0.8))) * 1700, dx: 90, zMul: 0.88, push: 0.6 };
   }
 

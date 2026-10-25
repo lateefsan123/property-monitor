@@ -1,0 +1,50 @@
+[
+  {
+    "file": "sara-reference.png",
+    "dimensions": [
+      1402,
+      1122
+    ],
+    "mode": "RGB",
+    "sha256": "2b1854a14d745199aa770ab80ba97c2f230339fda4317c391d7a97867ecc5a36"
+  },
+  {
+    "file": "pose-sara-dinner-eat.png",
+    "dimensions": [
+      1355,
+      1160
+    ],
+    "mode": "RGBA",
+    "sha256": "f6f2a037aa8161b4edb74183929514d2f3bbfff234e1f366689acacdfd9a4696",
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "pose-sara-dinner-phone.png",
+    "dimensions": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "5aecb4b41e09674f3a32ac23843c88102f0104f9679aa58def923d641ae56cd5",
+    "alpha": [
+      0,
+      255
+    ]
+  },
+  {
+    "file": "pose-sara-standing-phone.png",
+    "dimensions": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "sha256": "e89e93fd43c7d58db9cbb17d31c7014d48fd4edde18244363a119744b596fe57",
+    "alpha": [
+      0,
+      255
+    ]
+  }
+]

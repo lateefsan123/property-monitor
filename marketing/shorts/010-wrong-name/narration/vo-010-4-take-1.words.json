@@ -1,0 +1,52 @@
+[
+ {
+  "word": "Now",
+  "start": 0.0,
+  "end": 0.28
+ },
+ {
+  "word": "I",
+  "start": 0.28,
+  "end": 0.54
+ },
+ {
+  "word": "write",
+  "start": 0.54,
+  "end": 0.72
+ },
+ {
+  "word": "it",
+  "start": 0.72,
+  "end": 0.86
+ },
+ {
+  "word": "once,",
+  "start": 0.86,
+  "end": 1.16
+ },
+ {
+  "word": "as",
+  "start": 1.6,
+  "end": 1.78
+ },
+ {
+  "word": "a",
+  "start": 1.78,
+  "end": 1.92
+ },
+ {
+  "word": "template",
+  "start": 1.92,
+  "end": 2.3
+ },
+ {
+  "word": "in",
+  "start": 2.3,
+  "end": 2.6
+ },
+ {
+  "word": "repeat.",
+  "start": 2.6,
+  "end": 2.92
+ }
+]

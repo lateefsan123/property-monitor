@@ -1,0 +1,41 @@
+[
+  {
+    "file": "pose-broker-cringe.png",
+    "dimensions": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "alpha": [
+      0,
+      255
+    ],
+    "sha256": "6ee297392b55af39bcc341d8d9ed1197a9de8eaa3b460d983e1fafca8795e4b7"
+  },
+  {
+    "file": "pose-broker-typing.png",
+    "dimensions": [
+      1355,
+      1161
+    ],
+    "mode": "RGBA",
+    "alpha": [
+      0,
+      255
+    ],
+    "sha256": "0e5968f5f612b59fc701ca740c4fb14201dc7ecff4f4012b0fcb50a393f01231"
+  },
+  {
+    "file": "pose-elena-confused.png",
+    "dimensions": [
+      1354,
+      1161
+    ],
+    "mode": "RGBA",
+    "alpha": [
+      0,
+      255
+    ],
+    "sha256": "8c40d5d224cbcf9779381daf56eb629c24a756996e04186153df29e6ca7e688a"
+  }
+]

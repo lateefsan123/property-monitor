@@ -1,0 +1,77 @@
+[
+ {
+  "word": "I",
+  "start": 0.0,
+  "end": 0.2
+ },
+ {
+  "word": "used",
+  "start": 0.2,
+  "end": 0.34
+ },
+ {
+  "word": "to",
+  "start": 0.34,
+  "end": 0.56
+ },
+ {
+  "word": "copy",
+  "start": 0.56,
+  "end": 0.84
+ },
+ {
+  "word": "my",
+  "start": 0.84,
+  "end": 1.02
+ },
+ {
+  "word": "last",
+  "start": 1.02,
+  "end": 1.38
+ },
+ {
+  "word": "follow",
+  "start": 1.38,
+  "end": 1.68
+ },
+ {
+  "word": "up",
+  "start": 1.68,
+  "end": 1.96
+ },
+ {
+  "word": "and",
+  "start": 1.96,
+  "end": 2.3
+ },
+ {
+  "word": "paste",
+  "start": 2.3,
+  "end": 2.58
+ },
+ {
+  "word": "it",
+  "start": 2.58,
+  "end": 2.8
+ },
+ {
+  "word": "to",
+  "start": 2.8,
+  "end": 2.94
+ },
+ {
+  "word": "the",
+  "start": 2.94,
+  "end": 3.02
+ },
+ {
+  "word": "next",
+  "start": 3.02,
+  "end": 3.22
+ },
+ {
+  "word": "seller.",
+  "start": 3.22,
+  "end": 3.5
+ }
+]

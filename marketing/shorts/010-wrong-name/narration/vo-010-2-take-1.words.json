@@ -1,0 +1,62 @@
+[
+ {
+  "word": "Then,",
+  "start": 0.0,
+  "end": 0.3
+ },
+ {
+  "word": "I",
+  "start": 0.44,
+  "end": 0.58
+ },
+ {
+  "word": "sent",
+  "start": 0.58,
+  "end": 0.78
+ },
+ {
+  "word": "Elena",
+  "start": 0.78,
+  "end": 1.04
+ },
+ {
+  "word": "a",
+  "start": 1.04,
+  "end": 1.36
+ },
+ {
+  "word": "message",
+  "start": 1.36,
+  "end": 1.58
+ },
+ {
+  "word": "that",
+  "start": 1.58,
+  "end": 1.96
+ },
+ {
+  "word": "started",
+  "start": 1.96,
+  "end": 2.26
+ },
+ {
+  "word": "with",
+  "start": 2.26,
+  "end": 2.52
+ },
+ {
+  "word": "someone",
+  "start": 2.52,
+  "end": 2.9
+ },
+ {
+  "word": "else's",
+  "start": 2.9,
+  "end": 3.38
+ },
+ {
+  "word": "name.",
+  "start": 3.38,
+  "end": 3.66
+ }
+]

@@ -1,7 +1,7 @@
 // Drawn phone screens for lib/app-phone.js beats ({ screen: … }), in screenshot px (1179 × 2556,
 // below the status bar). Used for what isn't Repeat: plain WhatsApp, and the seller's own phone.
 //   { kind: "wa", id, name, sub, items: [{ at, side: "in"|"out", text }],
-//     typing: { text, ta, tb }, keyboard: true }       // a WhatsApp chat; `typing` fills the input
+//     typing: { text, ta, tb, clear }, keyboard: true } // a WhatsApp chat; `typing` fills the input (ta = tb: pasted)
 //   { kind: "lock", id, time, date, note: { at, app, title, body } }   // a lock screen notification
 (function () {
   const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
@@ -93,7 +93,8 @@
       set(n.bubs[j], { opacity: p, transform: `translateY(${(1 - p) * 30}px) scale(${0.94 + 0.06 * p})` });
     });
     const ty = sc.typing;
-    const k = ty ? Math.round(ty.text.length * clamp((t - ty.ta) / (ty.tb - ty.ta))) : 0;
+    // typing.clear: the field empties (the message was sent)
+    const k = ty && !(ty.clear !== undefined && t >= ty.clear) ? Math.round(ty.text.length * clamp((t - ty.ta) / Math.max(0.01, ty.tb - ty.ta))) : 0;
     n.typed.textContent = ty ? ty.text.slice(0, k) : "";
     n.ph.style.display = k ? "none" : "inline";
     n.caret.style.display = ty ? "inline-block" : "none";

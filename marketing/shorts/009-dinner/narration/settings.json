@@ -1,0 +1,17 @@
+{
+  "model": "Eleven v4",
+  "stability": 0.5,
+  "similarity": 0.75,
+  "effects": [],
+  "output": "mp3_44100_192",
+  "creditsBeforeBatch": 101812,
+  "creditsAfterBatch": 100851,
+  "creditsUsedBatch": 961,
+  "cloneStrength": 0,
+  "selectedVoices": {
+    "Sara": {
+      "name": "Amara - Warm, versatile Black British female voice",
+      "id": "wwhH7LnHwekglU0w37aP"
+    }
+  }
+}
