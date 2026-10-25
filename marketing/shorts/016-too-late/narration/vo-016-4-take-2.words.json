@@ -1,0 +1,52 @@
+[
+ {
+  "word": "And",
+  "start": 0.0,
+  "end": 0.22
+ },
+ {
+  "word": "due",
+  "start": 0.22,
+  "end": 0.42
+ },
+ {
+  "word": "today",
+  "start": 0.42,
+  "end": 0.86
+ },
+ {
+  "word": "shows",
+  "start": 0.86,
+  "end": 1.26
+ },
+ {
+  "word": "who's",
+  "start": 1.26,
+  "end": 1.68
+ },
+ {
+  "word": "overdue",
+  "start": 1.68,
+  "end": 2.22
+ },
+ {
+  "word": "before",
+  "start": 2.22,
+  "end": 3.02
+ },
+ {
+  "word": "they",
+  "start": 3.02,
+  "end": 3.2
+ },
+ {
+  "word": "go",
+  "start": 3.2,
+  "end": 3.36
+ },
+ {
+  "word": "quiet.",
+  "start": 3.36,
+  "end": 3.7
+ }
+]

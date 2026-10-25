@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Short 015 — A face they remember</title>
+<style>
+  @font-face { font-family: "Outfit"; font-weight: 900; src: url("../../../mobile/assets/fonts/Outfit-Black.ttf"); }
+  @font-face { font-family: "Inter"; font-weight: 400; src: url("../../../mobile/assets/fonts/Inter-Regular.ttf"); }
+  @font-face { font-family: "Inter"; font-weight: 600; src: url("../../../mobile/assets/fonts/Inter-SemiBold.ttf"); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0B0C0D; }
+  .layer { position: absolute; inset: 0; overflow: hidden; display: none; }
+  .abs { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+  .pose { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+
+  /* Maya's drawn phone (same ink style as Short 002) */
+  #cphone { position: absolute; left: 110px; top: 330px; width: 860px; height: 1560px; border: 12px solid #141414; border-radius: 96px;
+            background: #141414; padding: 14px; }
+  #cscreen { position: relative; width: 100%; height: 100%; border-radius: 74px; overflow: hidden; background: #ECE6DA; }
+  .cbar { height: 96px; display: flex; align-items: flex-end; justify-content: space-between; padding: 0 64px 12px;
+          font: 600 34px "Inter", sans-serif; color: #141414; background: #EFEBE2; }
+  .chead { display: flex; align-items: center; gap: 22px; padding: 18px 40px 22px; border-bottom: 4px solid #141414; background: #EFEBE2; }
+  .chead .who b { display: block; font: 600 40px "Inter", sans-serif; color: #141414; }
+  .chead .who i { display: block; font: 400 28px "Inter", sans-serif; font-style: normal; color: #5D646A; }
+  .av { flex: none; width: 104px; height: 104px; border-radius: 50%; border: 5px solid #141414; background: #C9CFD3; position: relative; overflow: hidden; }
+  .av::before { content: ""; position: absolute; left: 32px; top: 18px; width: 32px; height: 32px; border-radius: 50%; background: #8E979D; }
+  .av::after { content: ""; position: absolute; left: 18px; top: 58px; width: 60px; height: 50px; border-radius: 30px 30px 0 0; background: #8E979D; }
+  .back { width: 40px; height: 40px; border-left: 7px solid #141414; border-bottom: 7px solid #141414; transform: rotate(45deg); margin-right: 4px; }
+  .day { margin: 34px auto 10px; width: max-content; padding: 8px 22px; border-radius: 16px; background: #DCD5C6; font: 600 26px "Inter", sans-serif; color: #5D646A; }
+  .bub { position: absolute; border: 5px solid #141414; border-radius: 34px; background: #fff; padding: 22px 28px; font: 400 42px/1.32 "Inter", sans-serif; color: #141414; }
+  .bub.in { left: 34px; width: 700px; border-top-left-radius: 8px; }
+  .bub.out { right: 34px; max-width: 700px; background: #CFF0D8; border-top-right-radius: 8px; }
+  .bub .t { display: block; text-align: right; font-size: 26px; color: #6B7277; margin-top: 6px; }
+
+  /* Comic bubble in the close-up */
+  #say { position: absolute; z-index: 5; padding: 30px 44px; border: 9px solid #141414; border-radius: 60px; background: #fff;
+         font: 900 80px "Outfit", sans-serif; color: #141414; white-space: nowrap; transform-origin: 0 100%; }
+  #say::after { content: ""; position: absolute; left: 70px; bottom: -52px; width: 60px; height: 60px; background: #fff;
+                border-right: 9px solid #141414; border-bottom: 9px solid #141414; transform: skewY(40deg) rotate(10deg); }
+
+  .day2 { position: absolute; left: 0; right: 0; text-align: center; }
+  .day2 span { display: inline-block; padding: 8px 22px; border-radius: 16px; background: #DCD5C6; font: 600 26px "Inter", sans-serif; color: #5D646A; }
+  .nt > span:last-child { flex: 1; min-width: 0; }
+  .nt { position: absolute; left: 60px; right: 60px; z-index: 6; opacity: 0; display: flex; gap: 24px; align-items: flex-start;
+          padding: 26px 30px; border: 7px solid #141414; border-radius: 40px; background: #FAF8F3; }
+  .nt .ic { flex: none; width: 88px; height: 88px; border-radius: 24px; border: 5px solid #141414; background: #2E9F62; position: relative; }
+  .nt .ic::after { content: ""; position: absolute; left: 20px; top: 20px; width: 38px; height: 30px; border-radius: 16px; background: #fff; }
+  .nt b { display: flex; justify-content: space-between; font: 600 34px "Inter", sans-serif; color: #141414; margin-bottom: 6px; }
+  .nt b span { font-weight: 400; font-size: 28px; color: #6B7277; }
+  .nt p { font: 400 38px/1.3 "Inter", sans-serif; color: #141414; }
+  #topband { position: absolute; left: 0; right: 0; top: 0; height: 470px; z-index: 30; pointer-events: none;
+             background: linear-gradient(to bottom, #0B0C0D 0%, rgba(11,12,13,.92) 62%, rgba(11,12,13,0) 100%); }
+  #label { position: absolute; left: 0; right: 0; bottom: 64px; text-align: center; z-index: 50; width: max-content; margin: 0 auto; padding: 8px 20px; border-radius: 22px; background: rgba(11,12,13,.78);
+           font: 600 24px "Inter", sans-serif; letter-spacing: 3px; text-transform: uppercase; color: rgba(255,255,255,.5); }
+
+  #caption { position: absolute; left: 60px; right: 60px; top: 120px; height: 230px; display: flex;
+             align-items: center; justify-content: center; text-align: center; z-index: 60; }
+  #caption span { font: 900 74px/1.08 "Outfit", sans-serif; color: #fff; letter-spacing: -0.5px;
+                  -webkit-text-stroke: 14px #141414; paint-order: stroke fill; text-wrap: balance; }
+  #caption em { font-style: normal; color: #6FF0DD; }
+
+  #endcard { background: transparent; }
+  #wordmark { position: absolute; left: 50%; top: 170px; width: 520px; transform: translateX(-50%); z-index: 2; }
+  #endline { position: absolute; left: 60px; right: 60px; top: 300px; text-align: center; z-index: 2;
+             font: 900 88px/1.04 "Outfit", sans-serif; color: #fff; letter-spacing: -1px; }
+  #endline span { color: #6FF0DD; }
+  #endtop { position: absolute; left: 0; right: 0; top: 0; height: 640px; z-index: 0;
+            background: linear-gradient(to bottom, #0B0C0D 0%, #0B0C0D 70%, rgba(11,12,13,0) 100%); }
+  #cta { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); white-space: nowrap; z-index: 60;
+         padding: 26px 44px; border-radius: 60px; background: #fff; color: #0B0C0D; font: 600 40px "Inter", sans-serif; }
+  #cta b { font-weight: 600; color: #11806F; }
+  #endfade { position: absolute; left: 0; right: 0; bottom: 0; height: 520px; z-index: 55;
+             background: linear-gradient(to bottom, rgba(11,12,13,0), #0B0C0D 62%); }
+</style>
+</head>
+<body>
+<style>
+  .nt .thumb { display: block; width: 100%; margin-top: 14px; border-radius: 18px; border: 4px solid #141414; }
+</style>
+<div class="layer" id="room">
+  <div class="abs" id="roomSet">
+    <svg width="1080" height="1920" viewBox="0 0 1080 1920" stroke="#141414" stroke-width="6" stroke-linejoin="round">
+      <rect width="1080" height="1920" fill="#E9E1EC" stroke="none"/>
+      <rect x="560" y="300" width="420" height="520" rx="8" fill="#F8F4EC"/>
+      <rect x="584" y="324" width="372" height="472" fill="#CFE6EC" stroke-width="5"/>
+      <path d="M584,796 L584,690 L630,690 L630,650 L670,650 L670,720 L720,720 L720,600 L736,560 L740,480 L744,560 L760,600 L760,730 L830,730 L830,670 L880,670 L880,760 L956,760 L956,796 Z" fill="#A9CCD5" stroke-width="4"/>
+      <line x1="770" y1="324" x2="770" y2="796" stroke-width="5"/>
+      <rect x="80" y="380" width="260" height="200" rx="6" fill="#F6F1E7"/>
+      <circle cx="210" cy="480" r="56" fill="#E7B9A0" stroke-width="5"/>
+      <rect x="-10" y="1360" width="1100" height="580" fill="#C9B79F"/>
+      <line x1="-10" y1="1360" x2="1090" y2="1360"/>
+    </svg>
+  </div>
+  <img class="pose" id="pEye" data-pose="eyeroll">
+  <img class="pose" id="pPleased" data-pose="pleased">
+  <div class="nt" id="n1"><span class="ic"></span><span><b>+971 55 302 7714<span>now</span></b><p>Hi, it's me again!</p></span></div>
+  <div class="nt" id="n2"><span class="ic"></span><span><b>+971 52 845 1190<span>now</span></b><p>Hello! It's me, your broker</p></span></div>
+  <div class="nt" id="n3"><span class="ic"></span><span><b>+971 58 116 4031<span>now</span></b><p>Hi again, any plans to sell?</p></span></div>
+  <div class="nt" id="nSara"><span class="ic"></span><span><b>Sara · Broker<span>now</span></b><p>Hi Maya Cohen, quick update on recent sales in Act One, Downtown Dubai.</p><img class="thumb" src="../002-seller-tuesday/assets/template-card.png"></span></div>
+</div>
+
+<!-- ───────── The phone: Repeat ───────── -->
+<div class="layer" id="appLayer" style="background:#0B0C0D">
+  <div class="abs" id="appStage"></div>
+  <div id="topband"></div>
+</div>
+
+<div class="layer" id="endcard">
+  <div id="endtop"></div>
+  <img id="wordmark" src="../../../mobile/assets/repeat-ai-logo.png">
+  <div id="endline">Follow-ups<br><span>they recognise.</span></div>
+  <div id="endfade"></div>
+</div>
+
+<div id="caption"><span id="capText"></span></div>
+
+<script src="../lib/app-phone.js"></script>
+<script src="../lib/drawn-screens.js"></script>
+<script src="../lib/phone-first.js"></script>
+<script>
+// build-short.mjs injects window.TL (cues from narration word timings, captions, pose bounds, app beats)
+const $ = id => document.getElementById(id);
+const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, u) => a + (b - a) * u;
+const out = u => 1 - Math.pow(1 - u, 3);
+const prog = (t, a, d) => clamp((t - a) / d);
+const set = (el, css) => Object.assign(el.style, css);
+
+function placePose(el, key, cx, floor, h, zoom = 1) {
+  const p = TL.poses[key];
+  const s = h / (p.y1 - p.y0) * zoom;
+  const x = cx - ((p.x0 + p.x1) / 2) * s, y = floor - p.y1 * s;
+  set(el, { display: "block", transform: `translate(${x}px, ${y}px) scale(${s})` });
+}
+// a notification banner sliding down into place
+function banner(el, t, at, top) {
+  const n = out(prog(t, at, 0.45));
+  set(el, { display: t >= at ? "flex" : "none", top: top + "px", opacity: n, transform: `translateY(${(1 - n) * -80}px) scale(${lerp(0.94, 1, n)})` });
+}
+let PH = null, built = false;
+function render(t) {
+  const C = TL.cue;
+  if (!built) {
+    for (const el of document.querySelectorAll("[data-pose]")) el.src = TL.poses[el.dataset.pose].src;
+    PH = AppPhone.create($("appStage"), { light: true });
+    PhoneFirst.setup($("appLayer"), { pose: TL.poses.standing });
+    built = true;
+  }
+  const shot = t < C.toApp ? "texts" : t < C.toMaya ? "app" : t < C.endCard ? "card" : "end";
+  for (const id of ["room", "appLayer", "endcard"]) set($(id), { display: "none" });
+  for (const id of ["pEye", "pPleased", "n1", "n2", "n3", "nSara"]) set($(id), { display: "none" });
+  let pending = null;
+
+  if (shot === "texts" || shot === "card") {
+    set($("room"), { display: "block" });
+    const a = shot === "texts" ? 0 : C.toMaya;
+    const z = lerp(1, 1.04, prog(t, a, 3));
+    set($("roomSet"), { transform: `scale(${z})`, transformOrigin: "540px 1500px" });
+    if (shot === "texts") {
+      placePose($("pEye"), "eyeroll", 560, 1900, 1000, z);
+      const at = [C.n1, C.n2, C.n3], landed = at.filter(x => t >= x).length;
+      ["n1", "n2", "n3"].forEach((id, j) => banner($(id), t, at[j], 360 + (landed - 1 - j) * 150));
+    } else {
+      placePose($("pPleased"), "pleased", 560, 1900, 960, z);
+      banner($("nSara"), t, C.noteIn, 340);
+    }
+  }
+  if (shot === "app" || shot === "end") {
+    set($("appLayer"), { display: "block", zIndex: 2 });
+    pending = AppPhone.render(PH, TL.app.beats, TL.clips, t, shot === "app" ? PhoneFirst.frame(t, { on: true, enter: C.toApp }) : PhoneFirst.frame(t, { on: false }));
+    set($("topband"), { opacity: shot === "app" ? 1 : 0 });
+  }
+  if (shot === "end") {
+    set($("endcard"), { display: "block", zIndex: 5, opacity: out(prog(t, C.endCard, 0.5)) });
+    const w = out(prog(t, C.endCard + 0.1, 0.4)), l = out(prog(t, C.endLine - 0.1, 0.4));
+    set($("wordmark"), { opacity: w, transform: `translateX(-50%) translateY(${(1 - w) * 30}px)` });
+    set($("endline"), { opacity: l, transform: `translateY(${(1 - l) * 30}px)` });
+  }
+
+  let f = "";
+  for (const c of [C.toMaya]) { const d = 1 - Math.abs(t - c) / 0.07; if (d > 0) f = `brightness(${1 + d * 0.22})`; }
+  const fadeOut = prog(t, TL.end - 0.5, 0.5);
+  if (fadeOut > 0) f = `brightness(${1 - fadeOut})`;
+  document.body.style.filter = f || "none";
+
+  let cap = null;
+  for (const c of TL.captions) if (t >= c.a && t < c.b) cap = c;
+  if (cap && shot !== "end") {
+    $("capText").innerHTML = cap.html;
+    const u = out(prog(t, cap.a, 0.16));
+    set($("caption"), { opacity: u, transform: `translateY(${(1 - u) * 18}px) scale(${lerp(0.96, 1, u)})` });
+  } else set($("caption"), { opacity: 0 });
+  return pending;
+}
+
+window.setTime = t => render(t);
+window.ready = new Promise(r => setTimeout(r, 0)).then(() => { render(0); return Promise.all([...document.images].map(i => i.decode().catch(() => {})).concat(document.fonts.ready)); });
+if (!navigator.webdriver && window.TL) {
+  const t0 = performance.now();
+  const tick = () => { render(((performance.now() - t0) / 1000) % TL.end); requestAnimationFrame(tick); };
+  window.ready.then(tick);
+}
+</script>
+</body>
+</html>

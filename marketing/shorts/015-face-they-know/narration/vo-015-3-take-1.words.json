@@ -1,0 +1,57 @@
+[
+ {
+  "word": "That's",
+  "start": 0.0,
+  "end": 0.4
+ },
+ {
+  "word": "why",
+  "start": 0.4,
+  "end": 0.62
+ },
+ {
+  "word": "I",
+  "start": 0.62,
+  "end": 0.9
+ },
+ {
+  "word": "use",
+  "start": 0.9,
+  "end": 1.14
+ },
+ {
+  "word": "repeat.",
+  "start": 1.14,
+  "end": 1.56
+ },
+ {
+  "word": "My",
+  "start": 2.34,
+  "end": 2.44
+ },
+ {
+  "word": "template",
+  "start": 2.44,
+  "end": 2.88
+ },
+ {
+  "word": "carries",
+  "start": 2.88,
+  "end": 3.32
+ },
+ {
+  "word": "my",
+  "start": 3.32,
+  "end": 3.58
+ },
+ {
+  "word": "broker",
+  "start": 3.58,
+  "end": 3.82
+ },
+ {
+  "word": "card.",
+  "start": 3.82,
+  "end": 4.18
+ }
+]

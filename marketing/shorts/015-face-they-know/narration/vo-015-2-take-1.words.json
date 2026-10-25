@@ -1,0 +1,42 @@
+[
+ {
+  "word": "They",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "all",
+  "start": 0.18,
+  "end": 0.32
+ },
+ {
+  "word": "just",
+  "start": 0.32,
+  "end": 0.5
+ },
+ {
+  "word": "say,",
+  "start": 0.5,
+  "end": 0.88
+ },
+ {
+  "word": "hi,",
+  "start": 1.18,
+  "end": 1.52
+ },
+ {
+  "word": "it's",
+  "start": 1.9,
+  "end": 2.1
+ },
+ {
+  "word": "me",
+  "start": 2.1,
+  "end": 2.22
+ },
+ {
+  "word": "again.",
+  "start": 2.22,
+  "end": 2.5
+ }
+]

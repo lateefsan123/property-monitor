@@ -1,0 +1,52 @@
+[
+ {
+  "word": "so",
+  "start": 0.0,
+  "end": 0.28
+ },
+ {
+  "word": "I",
+  "start": 0.28,
+  "end": 0.62
+ },
+ {
+  "word": "catch",
+  "start": 0.62,
+  "end": 0.86
+ },
+ {
+  "word": "them",
+  "start": 0.86,
+  "end": 1.14
+ },
+ {
+  "word": "while",
+  "start": 1.14,
+  "end": 1.32
+ },
+ {
+  "word": "they",
+  "start": 1.32,
+  "end": 1.48
+ },
+ {
+  "word": "still",
+  "start": 1.48,
+  "end": 1.74
+ },
+ {
+  "word": "want",
+  "start": 1.74,
+  "end": 1.94
+ },
+ {
+  "word": "to",
+  "start": 1.94,
+  "end": 2.1
+ },
+ {
+  "word": "talk.",
+  "start": 2.1,
+  "end": 2.38
+ }
+]

@@ -1,0 +1,62 @@
+[
+ {
+  "word": "I",
+  "start": 0.0,
+  "end": 0.16
+ },
+ {
+  "word": "get",
+  "start": 0.16,
+  "end": 0.32
+ },
+ {
+  "word": "so",
+  "start": 0.32,
+  "end": 0.64
+ },
+ {
+  "word": "many",
+  "start": 0.64,
+  "end": 0.88
+ },
+ {
+  "word": "messages",
+  "start": 0.88,
+  "end": 1.22
+ },
+ {
+  "word": "from",
+  "start": 1.22,
+  "end": 1.54
+ },
+ {
+  "word": "brokers,",
+  "start": 1.54,
+  "end": 1.92
+ },
+ {
+  "word": "I",
+  "start": 2.26,
+  "end": 2.34
+ },
+ {
+  "word": "can't",
+  "start": 2.34,
+  "end": 2.64
+ },
+ {
+  "word": "tell",
+  "start": 2.64,
+  "end": 2.76
+ },
+ {
+  "word": "them",
+  "start": 2.76,
+  "end": 2.9
+ },
+ {
+  "word": "apart.",
+  "start": 2.9,
+  "end": 3.28
+ }
+]

@@ -1,0 +1,57 @@
+[
+ {
+  "word": "I",
+  "start": 0.0,
+  "end": 0.2
+ },
+ {
+  "word": "meant",
+  "start": 0.2,
+  "end": 0.32
+ },
+ {
+  "word": "to",
+  "start": 0.32,
+  "end": 0.5
+ },
+ {
+  "word": "call",
+  "start": 0.5,
+  "end": 0.76
+ },
+ {
+  "word": "Oliver",
+  "start": 0.76,
+  "end": 1.12
+ },
+ {
+  "word": "back,",
+  "start": 1.12,
+  "end": 1.52
+ },
+ {
+  "word": "that",
+  "start": 2.06,
+  "end": 2.16
+ },
+ {
+  "word": "was",
+  "start": 2.16,
+  "end": 2.32
+ },
+ {
+  "word": "three",
+  "start": 2.32,
+  "end": 2.7
+ },
+ {
+  "word": "weeks",
+  "start": 2.7,
+  "end": 2.98
+ },
+ {
+  "word": "ago.",
+  "start": 2.98,
+  "end": 3.32
+ }
+]
