@@ -1,0 +1,107 @@
+[
+ {
+  "word": "Give",
+  "start": 0.0,
+  "end": 0.24
+ },
+ {
+  "word": "each",
+  "start": 0.24,
+  "end": 0.52
+ },
+ {
+  "word": "seller",
+  "start": 0.52,
+  "end": 0.84
+ },
+ {
+  "word": "a",
+  "start": 0.84,
+  "end": 1.02
+ },
+ {
+  "word": "status,",
+  "start": 1.02,
+  "end": 1.44
+ },
+ {
+  "word": "like",
+  "start": 1.92,
+  "end": 2.04
+ },
+ {
+  "word": "Prospect,",
+  "start": 2.04,
+  "end": 2.64
+ },
+ {
+  "word": "Appraisal,",
+  "start": 3.14,
+  "end": 3.58
+ },
+ {
+  "word": "or",
+  "start": 3.94,
+  "end": 4.0
+ },
+ {
+  "word": "For",
+  "start": 4.0,
+  "end": 4.26
+ },
+ {
+  "word": "Sale,",
+  "start": 4.26,
+  "end": 4.5
+ },
+ {
+  "word": "and",
+  "start": 4.98,
+  "end": 5.1
+ },
+ {
+  "word": "they",
+  "start": 5.1,
+  "end": 5.22
+ },
+ {
+  "word": "get",
+  "start": 5.22,
+  "end": 5.36
+ },
+ {
+  "word": "the",
+  "start": 5.36,
+  "end": 5.52
+ },
+ {
+  "word": "right",
+  "start": 5.52,
+  "end": 5.74
+ },
+ {
+  "word": "message",
+  "start": 5.74,
+  "end": 6.16
+ },
+ {
+  "word": "at",
+  "start": 6.16,
+  "end": 6.48
+ },
+ {
+  "word": "the",
+  "start": 6.48,
+  "end": 6.64
+ },
+ {
+  "word": "right",
+  "start": 6.64,
+  "end": 6.84
+ },
+ {
+  "word": "time.",
+  "start": 6.84,
+  "end": 7.2
+ }
+]

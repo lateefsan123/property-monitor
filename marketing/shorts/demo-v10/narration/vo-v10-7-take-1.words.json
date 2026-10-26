@@ -1,0 +1,62 @@
+[
+ {
+  "word": "And",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "your",
+  "start": 0.18,
+  "end": 0.3
+ },
+ {
+  "word": "broker",
+  "start": 0.3,
+  "end": 0.58
+ },
+ {
+  "word": "card",
+  "start": 0.58,
+  "end": 0.92
+ },
+ {
+  "word": "goes",
+  "start": 0.92,
+  "end": 1.12
+ },
+ {
+  "word": "with",
+  "start": 1.12,
+  "end": 1.36
+ },
+ {
+  "word": "it,",
+  "start": 1.36,
+  "end": 1.6
+ },
+ {
+  "word": "so",
+  "start": 1.7,
+  "end": 1.98
+ },
+ {
+  "word": "they",
+  "start": 1.98,
+  "end": 2.2
+ },
+ {
+  "word": "know",
+  "start": 2.2,
+  "end": 2.34
+ },
+ {
+  "word": "it's",
+  "start": 2.34,
+  "end": 2.56
+ },
+ {
+  "word": "you.",
+  "start": 2.56,
+  "end": 2.72
+ }
+]

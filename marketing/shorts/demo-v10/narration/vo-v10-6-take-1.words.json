@@ -1,0 +1,77 @@
+[
+ {
+  "word": "Every",
+  "start": 0.0,
+  "end": 0.32
+ },
+ {
+  "word": "update",
+  "start": 0.32,
+  "end": 0.7
+ },
+ {
+  "word": "shows",
+  "start": 0.7,
+  "end": 0.98
+ },
+ {
+  "word": "the",
+  "start": 0.98,
+  "end": 1.22
+ },
+ {
+  "word": "latest",
+  "start": 1.22,
+  "end": 1.48
+ },
+ {
+  "word": "transactions",
+  "start": 1.48,
+  "end": 2.04
+ },
+ {
+  "word": "in",
+  "start": 2.04,
+  "end": 2.38
+ },
+ {
+  "word": "their",
+  "start": 2.38,
+  "end": 2.5
+ },
+ {
+  "word": "own",
+  "start": 2.5,
+  "end": 2.78
+ },
+ {
+  "word": "building,",
+  "start": 2.78,
+  "end": 3.22
+ },
+ {
+  "word": "so",
+  "start": 3.52,
+  "end": 3.8
+ },
+ {
+  "word": "it's",
+  "start": 3.8,
+  "end": 4.1
+ },
+ {
+  "word": "actually",
+  "start": 4.1,
+  "end": 4.36
+ },
+ {
+  "word": "worth",
+  "start": 4.36,
+  "end": 4.58
+ },
+ {
+  "word": "reading.",
+  "start": 4.58,
+  "end": 4.94
+ }
+]

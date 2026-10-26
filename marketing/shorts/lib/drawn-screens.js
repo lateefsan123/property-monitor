@@ -1,6 +1,6 @@
 // Drawn phone screens for lib/app-phone.js beats ({ screen: … }), in screenshot px (1179 × 2556,
 // below the status bar). Used for what isn't Repeat: plain WhatsApp, and the seller's own phone.
-//   { kind: "wa", id, name, sub, items: [{ at, side: "in"|"out", text }],
+//   { kind: "wa", id, name, sub, dark, bottom, items: [{ at, side: "in"|"out", text, img }],   // dark: WhatsApp's dark theme; bottom: newest message at the foot
 //     typing: { text, ta, tb, clear }, keyboard: true } // a WhatsApp chat; `typing` fills the input (ta = tb: pasted)
 //   { kind: "lock", id, time, date, note: { at, app, title, body } }   // a lock screen notification
 //   { kind: "lock", …, notes: [{ at, app, title, body, when }] }   // or several, stacked newest on top
@@ -21,6 +21,21 @@
   .ds-wall { flex: 1; background: #EFE7DD; display: flex; flex-direction: column; gap: 30px; padding: 60px 48px; }
   .ds-bub { max-width: 80%; padding: 30px 40px; border-radius: 42px; font: 400 52px/1.32 ${F}; opacity: 0;
             box-shadow: 0 2px 0 rgba(0,0,0,.08); }
+  .ds-bub { white-space: pre-line; }
+  .ds .ds-bub img { position: static; display: block; width: 100%; height: auto; border-radius: 26px; margin-bottom: 18px; }
+  .ds.bottom .ds-wall { justify-content: flex-end; overflow: hidden; }
+  .ds.bottom .ds-bub { flex: none; }
+  .ds.dark { background: #0B141A; color: #E9EDEF; }
+  .ds.dark .ds-head, .ds.dark .ds-input { background: #1F2C33; border-color: #2A3942; }
+  .ds.dark .ds-head .sub { color: #8696A0; }
+  .ds.dark .ds-wall { background: #0B141A; }
+  .ds.dark .ds-bub.in { background: #202C33; color: #E9EDEF; }
+  .ds.dark .ds-bub.out { background: #005C4B; color: #E9EDEF; }
+  .ds.dark .ds-field { background: #2A3942; border-color: #2A3942; color: #E9EDEF; }
+  .ds.dark .ds-field .ph { color: #8696A0; }
+  .ds.dark .ds-kb { background: #1C1C1E; }
+  .ds.dark .ds-kb .k { background: #3A3A3C; color: #fff; box-shadow: 0 3px 0 #111; }
+  .ds.dark .ds-kb .k.w { background: #2C2C2E; }
   .ds-bub.in { align-self: flex-start; background: #fff; border-top-left-radius: 10px; }
   .ds-bub.out { align-self: flex-end; background: #D9FDD3; border-top-right-radius: 10px; }
   .ds-input { flex: none; display: flex; align-items: flex-end; gap: 30px; padding: 26px 40px 34px; background: #F6F6F7; border-top: 2px solid #E4E5E8; }
@@ -102,12 +117,17 @@
       el("div", "title", n.note, sc.note.title); el("div", "body", n.note, sc.note.body);
       return n;
     }
-    const S = el("div", "ds", root);
+    const S = el("div", "ds" + (sc.dark ? " dark" : "") + (sc.bottom ? " bottom" : ""), root);
     const head = el("div", "ds-head", S);
     el("div", "back", head, "‹");
     const who = el("div", "", head); el("div", "name", who, sc.name); el("div", "sub", who, sc.sub || "");
     const wall = el("div", "ds-wall", S);
-    n.bubs = (sc.items || []).map(it => el("div", "ds-bub " + it.side, wall, it.text));
+    n.bubs = (sc.items || []).map(it => {
+      const b = el("div", "ds-bub " + it.side, wall);
+      if (it.img) el("img", "", b).src = it.img;
+      b.appendChild(document.createTextNode(it.text));
+      return b;
+    });
     const bar = el("div", "ds-input", S);
     const field = el("div", "ds-field", bar);
     n.typed = el("span", "", field); n.caret = el("span", "ds-caret", field); n.ph = el("span", "ph", field, "Message");
