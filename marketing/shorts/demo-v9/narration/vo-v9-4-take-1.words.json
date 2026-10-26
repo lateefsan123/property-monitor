@@ -1,0 +1,42 @@
+[
+ {
+  "word": "It's",
+  "start": 0.0,
+  "end": 0.24
+ },
+ {
+  "word": "a",
+  "start": 0.24,
+  "end": 0.38
+ },
+ {
+  "word": "follow",
+  "start": 0.38,
+  "end": 0.58
+ },
+ {
+  "word": "-up",
+  "start": 0.58,
+  "end": 0.8
+ },
+ {
+  "word": "assistant",
+  "start": 0.8,
+  "end": 1.18
+ },
+ {
+  "word": "for",
+  "start": 1.18,
+  "end": 1.48
+ },
+ {
+  "word": "property",
+  "start": 1.48,
+  "end": 1.88
+ },
+ {
+  "word": "brokers.",
+  "start": 1.88,
+  "end": 2.2
+ }
+]

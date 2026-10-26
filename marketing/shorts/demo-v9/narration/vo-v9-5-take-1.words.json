@@ -1,0 +1,52 @@
+[
+ {
+  "word": "Every",
+  "start": 0.0,
+  "end": 0.3
+ },
+ {
+  "word": "morning,",
+  "start": 0.3,
+  "end": 0.64
+ },
+ {
+  "word": "it",
+  "start": 0.9,
+  "end": 1.04
+ },
+ {
+  "word": "shows",
+  "start": 1.04,
+  "end": 1.26
+ },
+ {
+  "word": "you",
+  "start": 1.26,
+  "end": 1.5
+ },
+ {
+  "word": "exactly",
+  "start": 1.5,
+  "end": 1.9
+ },
+ {
+  "word": "which",
+  "start": 1.9,
+  "end": 2.4
+ },
+ {
+  "word": "sellers",
+  "start": 2.4,
+  "end": 2.72
+ },
+ {
+  "word": "are",
+  "start": 2.72,
+  "end": 2.98
+ },
+ {
+  "word": "due.",
+  "start": 2.98,
+  "end": 3.2
+ }
+]

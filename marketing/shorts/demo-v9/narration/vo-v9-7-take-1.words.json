@@ -1,0 +1,52 @@
+[
+ {
+  "word": "from",
+  "start": 0.0,
+  "end": 0.2
+ },
+ {
+  "word": "your",
+  "start": 0.2,
+  "end": 0.38
+ },
+ {
+  "word": "own",
+  "start": 0.38,
+  "end": 0.64
+ },
+ {
+  "word": "WhatsApp",
+  "start": 0.64,
+  "end": 1.14
+ },
+ {
+  "word": "at",
+  "start": 1.14,
+  "end": 1.74
+ },
+ {
+  "word": "a",
+  "start": 1.74,
+  "end": 1.86
+ },
+ {
+  "word": "pace",
+  "start": 1.86,
+  "end": 2.06
+ },
+ {
+  "word": "that",
+  "start": 2.06,
+  "end": 2.28
+ },
+ {
+  "word": "feels",
+  "start": 2.28,
+  "end": 2.58
+ },
+ {
+  "word": "human.",
+  "start": 2.58,
+  "end": 3.04
+ }
+]

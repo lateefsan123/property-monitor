@@ -1,0 +1,62 @@
+[
+ {
+  "word": "And",
+  "start": 0.0,
+  "end": 0.14
+ },
+ {
+  "word": "when",
+  "start": 0.14,
+  "end": 0.28
+ },
+ {
+  "word": "a",
+  "start": 0.28,
+  "end": 0.4
+ },
+ {
+  "word": "seller",
+  "start": 0.4,
+  "end": 0.62
+ },
+ {
+  "word": "replies,",
+  "start": 0.62,
+  "end": 1.1
+ },
+ {
+  "word": "it",
+  "start": 1.48,
+  "end": 1.66
+ },
+ {
+  "word": "steps",
+  "start": 1.66,
+  "end": 1.9
+ },
+ {
+  "word": "aside.",
+  "start": 1.9,
+  "end": 2.28
+ },
+ {
+  "word": "The",
+  "start": 2.84,
+  "end": 2.96
+ },
+ {
+  "word": "conversation",
+  "start": 2.96,
+  "end": 3.38
+ },
+ {
+  "word": "is",
+  "start": 3.38,
+  "end": 3.94
+ },
+ {
+  "word": "yours.",
+  "start": 3.94,
+  "end": 4.22
+ }
+]
