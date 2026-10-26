@@ -1,0 +1,102 @@
+[
+ {
+  "word": "It's",
+  "start": 0.0,
+  "end": 0.26
+ },
+ {
+  "word": "one",
+  "start": 0.26,
+  "end": 0.54
+ },
+ {
+  "word": "workspace",
+  "start": 0.54,
+  "end": 1.02
+ },
+ {
+  "word": "for",
+  "start": 1.02,
+  "end": 1.36
+ },
+ {
+  "word": "all",
+  "start": 1.36,
+  "end": 1.68
+ },
+ {
+  "word": "your",
+  "start": 1.68,
+  "end": 1.88
+ },
+ {
+  "word": "spreadsheets.",
+  "start": 1.88,
+  "end": 2.52
+ },
+ {
+  "word": "One",
+  "start": 2.98,
+  "end": 3.04
+ },
+ {
+  "word": "for",
+  "start": 3.04,
+  "end": 3.22
+ },
+ {
+  "word": "each",
+  "start": 3.22,
+  "end": 3.4
+ },
+ {
+  "word": "building,",
+  "start": 3.4,
+  "end": 3.78
+ },
+ {
+  "word": "one",
+  "start": 4.12,
+  "end": 4.28
+ },
+ {
+  "word": "for",
+  "start": 4.28,
+  "end": 4.46
+ },
+ {
+  "word": "each",
+  "start": 4.46,
+  "end": 4.62
+ },
+ {
+  "word": "list,",
+  "start": 4.62,
+  "end": 4.96
+ },
+ {
+  "word": "all",
+  "start": 5.44,
+  "end": 5.64
+ },
+ {
+  "word": "managed",
+  "start": 5.64,
+  "end": 6.0
+ },
+ {
+  "word": "in",
+  "start": 6.0,
+  "end": 6.32
+ },
+ {
+  "word": "one",
+  "start": 6.32,
+  "end": 6.62
+ },
+ {
+  "word": "place.",
+  "start": 6.62,
+  "end": 6.92
+ }
+]

@@ -1,0 +1,82 @@
+[
+ {
+  "word": "Write",
+  "start": 0.0,
+  "end": 0.24
+ },
+ {
+  "word": "one",
+  "start": 0.24,
+  "end": 0.6
+ },
+ {
+  "word": "template",
+  "start": 0.6,
+  "end": 0.96
+ },
+ {
+  "word": "for",
+  "start": 0.96,
+  "end": 1.24
+ },
+ {
+  "word": "each",
+  "start": 1.24,
+  "end": 1.48
+ },
+ {
+  "word": "status,",
+  "start": 1.48,
+  "end": 1.92
+ },
+ {
+  "word": "once,",
+  "start": 2.5,
+  "end": 2.7
+ },
+ {
+  "word": "and",
+  "start": 3.24,
+  "end": 3.32
+ },
+ {
+  "word": "repeat",
+  "start": 3.32,
+  "end": 3.7
+ },
+ {
+  "word": "fills",
+  "start": 3.7,
+  "end": 4.12
+ },
+ {
+  "word": "in",
+  "start": 4.12,
+  "end": 4.3
+ },
+ {
+  "word": "each",
+  "start": 4.3,
+  "end": 4.6
+ },
+ {
+  "word": "seller's",
+  "start": 4.6,
+  "end": 5.04
+ },
+ {
+  "word": "name",
+  "start": 5.04,
+  "end": 5.2
+ },
+ {
+  "word": "and",
+  "start": 5.2,
+  "end": 5.5
+ },
+ {
+  "word": "building.",
+  "start": 5.5,
+  "end": 5.74
+ }
+]

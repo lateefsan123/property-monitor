@@ -1,0 +1,77 @@
+[
+ {
+  "word": "Set",
+  "start": 0.0,
+  "end": 0.26
+ },
+ {
+  "word": "a",
+  "start": 0.26,
+  "end": 0.42
+ },
+ {
+  "word": "schedule",
+  "start": 0.42,
+  "end": 0.7
+ },
+ {
+  "word": "for",
+  "start": 0.7,
+  "end": 1.04
+ },
+ {
+  "word": "each",
+  "start": 1.04,
+  "end": 1.3
+ },
+ {
+  "word": "building",
+  "start": 1.3,
+  "end": 1.74
+ },
+ {
+  "word": "and",
+  "start": 1.74,
+  "end": 2.18
+ },
+ {
+  "word": "choose",
+  "start": 2.18,
+  "end": 2.42
+ },
+ {
+  "word": "the",
+  "start": 2.42,
+  "end": 2.64
+ },
+ {
+  "word": "days",
+  "start": 2.64,
+  "end": 2.86
+ },
+ {
+  "word": "its",
+  "start": 2.86,
+  "end": 3.14
+ },
+ {
+  "word": "sellers",
+  "start": 3.14,
+  "end": 3.5
+ },
+ {
+  "word": "hear",
+  "start": 3.5,
+  "end": 3.82
+ },
+ {
+  "word": "from",
+  "start": 3.82,
+  "end": 4.06
+ },
+ {
+  "word": "you.",
+  "start": 4.06,
+  "end": 4.26
+ }
+]
