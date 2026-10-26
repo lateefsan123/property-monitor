@@ -1,0 +1,57 @@
+[
+ {
+  "word": "The",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "latest",
+  "start": 0.18,
+  "end": 0.42
+ },
+ {
+  "word": "transactions",
+  "start": 0.42,
+  "end": 1.06
+ },
+ {
+  "word": "in",
+  "start": 1.06,
+  "end": 1.4
+ },
+ {
+  "word": "each",
+  "start": 1.4,
+  "end": 1.66
+ },
+ {
+  "word": "seller's",
+  "start": 1.66,
+  "end": 2.14
+ },
+ {
+  "word": "building",
+  "start": 2.14,
+  "end": 2.44
+ },
+ {
+  "word": "show",
+  "start": 2.44,
+  "end": 2.8
+ },
+ {
+  "word": "up",
+  "start": 2.8,
+  "end": 2.98
+ },
+ {
+  "word": "straight",
+  "start": 2.98,
+  "end": 3.32
+ },
+ {
+  "word": "away.",
+  "start": 3.32,
+  "end": 3.62
+ }
+]

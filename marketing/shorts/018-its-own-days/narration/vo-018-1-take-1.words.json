@@ -1,0 +1,52 @@
+[
+ {
+  "word": "I",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "used",
+  "start": 0.18,
+  "end": 0.34
+ },
+ {
+  "word": "to",
+  "start": 0.34,
+  "end": 0.52
+ },
+ {
+  "word": "message",
+  "start": 0.52,
+  "end": 0.82
+ },
+ {
+  "word": "every",
+  "start": 0.82,
+  "end": 1.32
+ },
+ {
+  "word": "building",
+  "start": 1.32,
+  "end": 1.66
+ },
+ {
+  "word": "on",
+  "start": 1.66,
+  "end": 1.98
+ },
+ {
+  "word": "the",
+  "start": 1.98,
+  "end": 2.08
+ },
+ {
+  "word": "same",
+  "start": 2.08,
+  "end": 2.36
+ },
+ {
+  "word": "day.",
+  "start": 2.36,
+  "end": 2.7
+ }
+]

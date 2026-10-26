@@ -1,0 +1,42 @@
+[
+ {
+  "word": "So",
+  "start": 0.0,
+  "end": 0.28
+ },
+ {
+  "word": "I'm",
+  "start": 0.28,
+  "end": 0.72
+ },
+ {
+  "word": "messaging",
+  "start": 0.72,
+  "end": 1.0
+ },
+ {
+  "word": "sellers",
+  "start": 1.0,
+  "end": 1.42
+ },
+ {
+  "word": "in",
+  "start": 1.42,
+  "end": 1.72
+ },
+ {
+  "word": "minutes,",
+  "start": 1.72,
+  "end": 2.14
+ },
+ {
+  "word": "not",
+  "start": 2.56,
+  "end": 2.78
+ },
+ {
+  "word": "hours.",
+  "start": 2.78,
+  "end": 3.2
+ }
+]

@@ -1,0 +1,52 @@
+[
+ {
+  "word": "Act",
+  "start": 0.0,
+  "end": 0.28
+ },
+ {
+  "word": "1",
+  "start": 0.28,
+  "end": 0.64
+ },
+ {
+  "word": "on",
+  "start": 0.64,
+  "end": 0.88
+ },
+ {
+  "word": "Monday",
+  "start": 0.88,
+  "end": 1.24
+ },
+ {
+  "word": "and",
+  "start": 1.24,
+  "end": 1.58
+ },
+ {
+  "word": "Thursday,",
+  "start": 1.58,
+  "end": 2.04
+ },
+ {
+  "word": "Opera",
+  "start": 2.94,
+  "end": 2.94
+ },
+ {
+  "word": "Grand",
+  "start": 2.94,
+  "end": 3.28
+ },
+ {
+  "word": "on",
+  "start": 3.28,
+  "end": 3.54
+ },
+ {
+  "word": "Tuesday.",
+  "start": 3.54,
+  "end": 3.92
+ }
+]

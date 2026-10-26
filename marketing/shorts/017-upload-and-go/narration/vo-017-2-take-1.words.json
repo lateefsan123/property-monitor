@@ -1,0 +1,42 @@
+[
+ {
+  "word": "That",
+  "start": 0.0,
+  "end": 0.24
+ },
+ {
+  "word": "used",
+  "start": 0.24,
+  "end": 0.38
+ },
+ {
+  "word": "to",
+  "start": 0.38,
+  "end": 0.58
+ },
+ {
+  "word": "take",
+  "start": 0.58,
+  "end": 0.78
+ },
+ {
+  "word": "me",
+  "start": 0.78,
+  "end": 0.96
+ },
+ {
+  "word": "the",
+  "start": 0.96,
+  "end": 1.08
+ },
+ {
+  "word": "whole",
+  "start": 1.08,
+  "end": 1.5
+ },
+ {
+  "word": "afternoon.",
+  "start": 1.5,
+  "end": 2.12
+ }
+]

@@ -1,0 +1,52 @@
+[
+ {
+  "word": "Now",
+  "start": 0.0,
+  "end": 0.26
+ },
+ {
+  "word": "I",
+  "start": 0.26,
+  "end": 0.52
+ },
+ {
+  "word": "use",
+  "start": 0.52,
+  "end": 0.74
+ },
+ {
+  "word": "repeat.",
+  "start": 0.74,
+  "end": 1.18
+ },
+ {
+  "word": "Each",
+  "start": 1.82,
+  "end": 1.98
+ },
+ {
+  "word": "building",
+  "start": 1.98,
+  "end": 2.3
+ },
+ {
+  "word": "gets",
+  "start": 2.3,
+  "end": 2.56
+ },
+ {
+  "word": "its",
+  "start": 2.56,
+  "end": 2.76
+ },
+ {
+  "word": "own",
+  "start": 2.76,
+  "end": 3.02
+ },
+ {
+  "word": "days.",
+  "start": 3.02,
+  "end": 3.34
+ }
+]

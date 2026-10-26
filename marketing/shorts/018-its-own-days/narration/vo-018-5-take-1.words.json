@@ -1,0 +1,57 @@
+[
+ {
+  "word": "So",
+  "start": 0.0,
+  "end": 0.18
+ },
+ {
+  "word": "my",
+  "start": 0.18,
+  "end": 0.34
+ },
+ {
+  "word": "week",
+  "start": 0.34,
+  "end": 0.56
+ },
+ {
+  "word": "stays",
+  "start": 0.56,
+  "end": 0.84
+ },
+ {
+  "word": "steady,",
+  "start": 0.84,
+  "end": 1.3
+ },
+ {
+  "word": "and",
+  "start": 1.64,
+  "end": 1.8
+ },
+ {
+  "word": "every",
+  "start": 1.8,
+  "end": 2.24
+ },
+ {
+  "word": "seller",
+  "start": 2.24,
+  "end": 2.58
+ },
+ {
+  "word": "hears",
+  "start": 2.58,
+  "end": 2.86
+ },
+ {
+  "word": "from",
+  "start": 2.86,
+  "end": 3.12
+ },
+ {
+  "word": "me.",
+  "start": 3.12,
+  "end": 3.3
+ }
+]

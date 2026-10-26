@@ -1,0 +1,57 @@
+[
+ {
+  "word": "Now",
+  "start": 0.0,
+  "end": 0.28
+ },
+ {
+  "word": "I",
+  "start": 0.28,
+  "end": 0.54
+ },
+ {
+  "word": "use",
+  "start": 0.54,
+  "end": 0.72
+ },
+ {
+  "word": "repeat.",
+  "start": 0.72,
+  "end": 1.16
+ },
+ {
+  "word": "I",
+  "start": 1.84,
+  "end": 1.86
+ },
+ {
+  "word": "upload",
+  "start": 1.86,
+  "end": 2.14
+ },
+ {
+  "word": "the",
+  "start": 2.14,
+  "end": 2.32
+ },
+ {
+  "word": "spreadsheet",
+  "start": 2.32,
+  "end": 2.74
+ },
+ {
+  "word": "and",
+  "start": 2.74,
+  "end": 3.28
+ },
+ {
+  "word": "that's",
+  "start": 3.28,
+  "end": 3.52
+ },
+ {
+  "word": "it.",
+  "start": 3.52,
+  "end": 3.66
+ }
+]
