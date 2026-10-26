@@ -722,11 +722,20 @@ async function main() {
   const overrides = await loadBuildingOverrides(options.overridesFile);
   const registryAliases = await loadRegistryAliases(options.registryFile);
 
+  // The seller sheet is an optional extra list of buildings. The live leads are the main source, so
+  // a sheet that can't be read (the default one returns 410 Gone since 24 Oct 2026) must not stop
+  // the daily scan; only finding no target buildings at all does.
   console.log("Loading seller sheet...");
-  const { targets } = await loadTargetBuildings(options.sheetUrl, overrides, registryAliases);
-  console.log(`Loaded ${targets.size} target buildings from seller sheet.`);
+  let targets = new Map();
+  try {
+    ({ targets } = await loadTargetBuildings(options.sheetUrl, overrides, registryAliases));
+    console.log(`Loaded ${targets.size} target buildings from seller sheet.`);
+  } catch (error) {
+    console.warn(`Skipping the seller sheet: ${error.message}`);
+  }
   const addedLiveTargets = await addSupabaseLeadTargets(targets, envMap, overrides, registryAliases);
   console.log(`Added ${addedLiveTargets} target buildings from live Seller Signal leads.`);
+  if (targets.size === 0) throw new Error("No target buildings: the seller sheet and the live leads are both empty.");
   const aliasLookup = buildTargetAliasLookup(targets);
 
   console.log("Loading DLD CSV...");
