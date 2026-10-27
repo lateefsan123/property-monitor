@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { listingPhotoUrl } from "../../../../shared/listing-photo-url.js";
 import { useQuery } from "@tanstack/react-query";
 import {
   IconBookmark,
@@ -116,7 +117,7 @@ export default function ListingDetailPage({
     ? `AED ${Math.round(shownPrice / Number(listing.areaSqft)).toLocaleString("en-US")}`
     : null;
   const photos = [...new Set([listing.coverPhoto, ...(listing.photos || []), ...(gallery.data || [])]
-    .filter((url) => typeof url === "string" && /^https?:\/\//.test(url)))];
+    .filter((url) => typeof url === "string" && /^https?:\/\//.test(url)).map(listingPhotoUrl))];
 
   const facts = [
     { label: "Bedrooms", value: Number.isFinite(Number(listing.beds)) && listing.beds !== null ? (Number(listing.beds) === 0 ? "Studio" : listing.beds) : null },

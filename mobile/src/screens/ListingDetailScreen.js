@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { listingPhotoUrl } from "../../../shared/listing-photo-url.js";
 import { supabase } from "../supabase";
 import ListingPhotoGallery from "../components/listing-photo-gallery";
 import { getRecentPriceDrop } from "../../../src/features/listing-alerts/price-drop-utils";
@@ -351,7 +352,7 @@ export default function ListingDetailScreen({
 
   const chartWidth = Math.max(260, screenWidth - 32);
   const reversedHistory = (listing.priceHistory || []).slice().reverse();
-  const photos = [...new Set([listing.coverPhoto, ...(listing.photos || []), ...(gallery.data || [])].filter(url => typeof url === "string" && /^https?:\/\//.test(url)))];
+  const photos = [...new Set([listing.coverPhoto, ...(listing.photos || []), ...(gallery.data || [])].filter(url => typeof url === "string" && /^https?:\/\//.test(url)).map(listingPhotoUrl))];
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.bg }}>

@@ -1,4 +1,5 @@
 import ContentSkeleton from "../components/ContentSkeleton";
+import { listingPhotoUrl } from "../../../shared/listing-photo-url.js";
 import CollectionEmptyState from "../components/CollectionEmptyState";
 import { getRecentPriceDrop } from "../../../src/features/listing-alerts/price-drop-utils";
 import AppIcon from "../components/AppIcon";
@@ -245,7 +246,7 @@ function ListingHistoryRow({ listing, colors, onPress, onOpenExternal, showBuild
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [{ flexDirection: "row", alignItems: "center", gap: 12 }, pressed && { opacity: 0.85 }]}>
       {listing.coverPhoto ? (
-        <Image source={{ uri: listing.coverPhoto }} style={{ width: 64, height: 76, borderRadius: 10, backgroundColor: colors.bgBadge }} />
+        <Image source={{ uri: listingPhotoUrl(listing.coverPhoto) }} style={{ width: 64, height: 76, borderRadius: 10, backgroundColor: colors.bgBadge }} />
       ) : (
         <View style={{ width: 64, height: 76, borderRadius: 10, backgroundColor: colors.bgBadge }} />
       )}

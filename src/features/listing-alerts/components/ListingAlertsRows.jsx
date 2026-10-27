@@ -1,3 +1,4 @@
+import { listingPhotoUrl } from "../../../../shared/listing-photo-url.js";
 import {
   IconArrowDown,
   IconArrowUp,
@@ -278,7 +279,7 @@ export function ListingCard({ listing, hideBuildingName, onPress, onOpenExternal
       />
       <div className="sheet-card-preview la-card-listing-preview" aria-hidden>
         {listing.coverPhoto ? (
-          <img src={listing.coverPhoto} alt="" className="la-card-listing-img" />
+          <img src={listingPhotoUrl(listing.coverPhoto)} alt="" className="la-card-listing-img" />
         ) : (
           <div className="la-card-listing-img la-card-listing-img-placeholder" />
         )}
@@ -348,7 +349,7 @@ export function ListingHistoryRow({ listing, hideBuildingName, onPress, onOpenEx
     >
       <span className="la-row-thumb-wrap" aria-hidden>
         {listing.coverPhoto ? (
-          <img className="la-row-thumb" src={listing.coverPhoto} alt="" />
+          <img className="la-row-thumb" src={listingPhotoUrl(listing.coverPhoto)} alt="" />
         ) : (
           <div className="la-row-thumb la-row-thumb-placeholder" />
         )}
