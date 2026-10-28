@@ -27,7 +27,6 @@ import CreateNewModal from "./features/home/CreateNewModal";
 import MessageTemplatesPanel from "./features/seller-signal/components/MessageTemplatesPanel";
 import { useSellerSignalMessageTemplates } from "./features/seller-signal/useSellerSignalMessageTemplates";
 import ThemeToggleButton from "./components/ThemeToggleButton";
-import ProductTour from "./components/ProductTour";
 import VoicePanel from "./voice/VoicePanel";
 import SendVolumeDialog from "./features/seller-signal/components/SendVolumeDialog";
 import { useAutoSheetSync } from "./features/seller-signal/useAutoSheetSync";
@@ -114,7 +113,6 @@ export default function AppShell({ displayName, subscription, userId }) {
   useSavedSellerList(userId);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [scrolled, setScrolled] = useState(false);
-  const [assistantOpen, setAssistantOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
   const [messageTemplatesOpen, setMessageTemplatesOpen] = useState(false);
   const [billingPortalState, setBillingPortalState] = useState({ error: null, pending: false });
@@ -250,8 +248,7 @@ export default function AppShell({ displayName, subscription, userId }) {
         />
       )}
 
-      {!createOpen && !messageTemplatesOpen && !assistantOpen && <ProductTour key={`tour:${userId}`} userId={userId} onNavigate={handleNavigate} onAction={handleSidebarAction} />}
-      <VoicePanel key={`voice:${userId}`} userId={userId} onOpenChange={setAssistantOpen} />
+      <VoicePanel key={`voice:${userId}`} userId={userId} />
       <SendVolumeDialog />
 
       <div className="app-main">
