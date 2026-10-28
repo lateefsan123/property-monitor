@@ -34,6 +34,9 @@ const DEFAULT_DAILY_CAP = 45;
 // 1,000 rows, so fetchScannableLeads paginates until the full set is loaded.
 const DEFAULT_MAX_LEADS_PER_RUN = 0;
 const DEFAULT_LOOKBACK_DAYS = 2;
+// Sellers never messaged look back a week: a sheet uploaded a few days after a
+// building's last sale still gets that sale, instead of nothing until the next.
+const NEW_SELLER_LOOKBACK_DAYS = 7;
 // Nearby sales: sellers per account looked at each run (one is sent at most).
 const NEARBY_LEADS_PER_ACCOUNT = 60;
 // Per-seller cooldown: hot buildings trade several times a week, and unlimited
@@ -1048,11 +1051,13 @@ Deno.serve(async (req) => {
     // batch arrives after the send window closes, so keep a two-day recovery
     // window. Lead/date and recipient/date dedupe still prevent repeat sends.
     const lookbackDays = Math.max(0, Math.floor(getNumber(input?.lookbackDays, getNumber(Deno.env.get("SELLER_SIGNAL_AUTO_WHATSAPP_LOOKBACK_DAYS"), DEFAULT_LOOKBACK_DAYS))));
-    const activeDateKeys: string[] = [];
-    for (let offset = 0; offset <= lookbackDays; offset += 1) {
+    const newSellerDateKeys: string[] = [];
+    for (let offset = 0; offset <= Math.max(lookbackDays, NEW_SELLER_LOOKBACK_DAYS); offset += 1) {
       const key = getDubaiDateKey(new Date(startedAt.getTime() - offset * 24 * 60 * 60 * 1000));
-      if (key) activeDateKeys.push(key);
+      if (key) newSellerDateKeys.push(key);
     }
+    const activeDateKeys = newSellerDateKeys.slice(0, lookbackDays + 1);
+    const dateKeysForLead = (lead: any) => lead.sent_at ? activeDateKeys : newSellerDateKeys;
     const startDubaiDateKey = getDubaiStartDateKey(input?.startDubaiDate);
 
     if (!enabled && !dryRun) {
@@ -1201,11 +1206,15 @@ Deno.serve(async (req) => {
       for (const id of input.previewNearbyUserIds) if (accountByUser.has(String(id))) nearbyUsers.add(String(id));
     }
     const salesByArea = nearbyUsers.size ? new Map<string, any[]>() : undefined;
-    const transactionsByKey = await fetchRecentTransactions(adminClient, [...allBuildingKeys], activeDateKeys, salesByArea);
-    // Only sellers whose building had a sale in the lookback can be sent anything,
+    const transactionsByKey = await fetchRecentTransactions(adminClient, [...allBuildingKeys], newSellerDateKeys, salesByArea);
+    // Only sellers whose building had a sale in their lookback can be sent anything,
     // so the per-seller checks below run on them alone (not every seller, every run).
-    const candidateLeads = leads.filter((lead: any) =>
-      (keysByLead.get(Number(lead.id)) || []).some((key) => (transactionsByKey.get(key) || []).length > 0));
+    const hasSaleInLookback = (lead: any) => {
+      const dates = dateKeysForLead(lead);
+      return (keysByLead.get(Number(lead.id)) || []).some((key) =>
+        (transactionsByKey.get(key) || []).some((transaction: any) => dates.includes(transaction.date)));
+    };
+    const candidateLeads = leads.filter(hasSaleInLookback);
 
     // Nearby sales (accounts that turned it on): after those sellers, a few
     // others not contacted within the cooldown, sent sales in their area or,
@@ -1234,12 +1243,12 @@ Deno.serve(async (req) => {
     const existingMessagePairs = await fetchExistingMarketMessagePairs(
       adminClient,
       [...candidateLeads, ...nearbyLeads].map((lead: any) => Number(lead.id)),
-      activeDateKeys,
+      newSellerDateKeys,
     );
     const existingRecipientDateKeys = await fetchExistingMarketRecipientDateKeys(
       adminClient,
       [...accountByUser.keys()],
-      activeDateKeys,
+      newSellerDateKeys,
     );
     const dailyBounds = getDubaiDayBoundsUtc(todayDateKey);
     if (!dailyBounds) throw new HttpError(500, "Could not resolve today's Dubai day boundaries.");
@@ -1328,7 +1337,7 @@ Deno.serve(async (req) => {
       const keys = keysByLead.get(leadId) || [];
       const isNearby = !candidateIds.has(leadId);
       // Prefer the freshest transaction date that has not been messaged yet
-      // (today first, then the lookback days).
+      // (today first, then the lookback days; a week for sellers never messaged).
       let matchedTransactions: any[] = [];
       let matchedDateKey: string | null = null;
       let listings: any = null;
@@ -1367,7 +1376,7 @@ Deno.serve(async (req) => {
       for (const key of isNearby ? [] : keys) {
         const transactions = transactionsByKey.get(key) || [];
         if (!transactions.length) continue;
-        for (const dateKey of activeDateKeys) {
+        for (const dateKey of dateKeysForLead(lead)) {
           if (existingMessagePairs.has(`${leadId}:${dateKey}`)) continue;
           const forDate = transactions.filter((transaction: any) => transaction.date === dateKey);
           if (forDate.length) {
@@ -1380,8 +1389,7 @@ Deno.serve(async (req) => {
       }
 
       if (!isNearby && (!matchedTransactions.length || !matchedDateKey)) {
-        const hadAnyTransactions = keys.some((key) => (transactionsByKey.get(key) || []).length > 0);
-        if (hadAnyTransactions) summary.skipped.alreadySentForDate += 1;
+        if (hasSaleInLookback(lead)) summary.skipped.alreadySentForDate += 1;
         else summary.skipped.noTodayTransactions += 1;
         continue;
       }
