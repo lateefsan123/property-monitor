@@ -49,11 +49,24 @@ test('resolves development sales only without conflicting DLD tower records and 
   assert.equal(resolve('Creek Gate Tower 2'), null);
 });
 
-const client = (pages, error = null) => ({ from(table) {
-  assert.equal(table, 'buildings');
-  return { select() { return this; }, eq() { return this; }, order() { return this; },
-    range(from) { return Promise.resolve({ data: pages[from / 1000] || [], error }); } };
+const client = (pages, error = null, projects = []) => ({ from(table) {
+  assert.ok(['buildings', 'building_resolutions'].includes(table));
+  return { select() { return this; }, in() { return this; }, eq() { return this; }, order() { return this; },
+    range(from) { return Promise.resolve({ data: table === 'buildings' ? pages[from / 1000] || [] : projects.slice(from, from + 1000), error: table === 'buildings' ? error : null }); } };
 } });
+
+test('reviewed project scope survives aliases without affecting another account or a changed target', async () => {
+  const project = row('CELESTIA', 'DUBAI SOUTH');
+  const aliases = new Map([['u:celestiaa', new Set([project.search_name])], ['other:celestiaa', new Set([project.search_name])]]);
+  const leads = [{ user_id: 'u', building: 'Celestia A' }, { user_id: 'other', building: 'Celestia A' }];
+  const choices = [{ user_id: 'u', raw_name: 'Celestia A', building_key: project.key }];
+  const result = await loadTransactionBuildingMatches(client([[project]], null, choices), leads, aliases, () => []);
+  assert.equal(result.matches.get('u|Celestia A').scope, 'development');
+  assert.equal(result.matches.get('other|Celestia A').scope, 'building');
+  choices[0].building_key = 'different-project';
+  const changed = await loadTransactionBuildingMatches(client([[project]], null, choices), leads, aliases, () => []);
+  assert.equal(changed.matches.get('u|Celestia A').scope, 'building');
+});
 test('reads the full catalogue and respects account aliases ahead of global choices', async () => {
   const aliases = new Map([['u:raw', new Set(['Ahad residence'])], ['*:raw', new Set(['ZADA TOWER'])],
     ['other:raw', new Set(['Marina Tower 2'])]]);

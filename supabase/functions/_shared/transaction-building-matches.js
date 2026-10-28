@@ -68,6 +68,21 @@ export function createTransactionBuildingResolver(buildings) {
 }
 
 export async function loadTransactionBuildingMatches(client, leads, aliasLookup, getBaseKeys) {
+  // Explicitly reviewed project associations must keep their wider scope even
+  // after an alias resolves directly to a catalogue key. Account-scoped only.
+  const projectChoices = new Map();
+  const users = [...new Set(leads.map(lead => lead.user_id).filter(Boolean))];
+  for (let start = 0; start < users.length; start += 100) {
+    for (let from = 0; ; from += PAGE) {
+      const { data, error } = await client.from('building_resolutions')
+        .select('user_id, raw_name, building_key').in('user_id', users.slice(start, start + 100))
+        .eq('status', 'matched').eq('method', 'reviewed_project')
+        .order('id', { ascending: true }).range(from, from + PAGE - 1);
+      if (error) throw new Error(`Could not load reviewed project matches: ${error.message}`);
+      for (const row of data || []) projectChoices.set(`${row.user_id}|${row.raw_name}`, row.building_key);
+      if (!data || data.length < PAGE) break;
+    }
+  }
   const buildings = [];
   for (let from = 0; ; from += PAGE) {
     const { data, error } = await client.from('buildings')
@@ -95,7 +110,8 @@ export async function loadTransactionBuildingMatches(client, leads, aliasLookup,
       const match = resolve(name);
       if (match) resolved.set(match.key, match);
     }
-    const match = resolved.size === 1 ? [...resolved.values()][0] : null;
+    let match = resolved.size === 1 ? [...resolved.values()][0] : null;
+    if (match && projectChoices.get(id) === match.key) match = { ...match, scope: 'development' };
     matches.set(id, match);
     summary.buildings += 1;
     if (match) summary.matched += 1;

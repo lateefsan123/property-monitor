@@ -7,6 +7,7 @@ import { loadScheduleQueue } from "../_shared/building-schedule.js";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { loadAutomaticAliases } from "../_shared/automatic-aliases.js";
 import { loadTransactionBuildingMatches } from "../_shared/transaction-building-matches.js";
+import { projectMessageContext, projectMessageTemplate } from "../_shared/project-message.js";
 import { hasPriorWhatsAppContact } from "../_shared/intro-attachment.js";
 import { followUpPending } from "../_shared/seller-follow-up.js";
 import { pickTemplateForStatus } from "../_shared/template-status.js";
@@ -376,7 +377,11 @@ function buildMessage(
   fallbackLocation: string | null,
   templateContent = DEFAULT_MESSAGE_TEMPLATE,
   nearby = false,
+  marketMatch: any = null,
 ) {
+  const context = projectMessageContext(lead, marketMatch, nearby);
+  lead = context.lead;
+  if (context.projectWide) fallbackLocation = cleanBuildingName(lead.building);
   const name = cleanString(lead.name) || "there";
   const cleanedBuilding = cleanBuildingName(lead.building) || "your building";
   const transactionLines: string[] = [];
@@ -396,7 +401,8 @@ function buildMessage(
   const chosenTemplate = String(templateContent || DEFAULT_MESSAGE_TEMPLATE).includes("{{transactions}}")
     ? String(templateContent || DEFAULT_MESSAGE_TEMPLATE)
     : DEFAULT_MESSAGE_TEMPLATE;
-  const safeTemplate = nearby ? nearbyTemplate(chosenTemplate) : chosenTemplate;
+  const scopedTemplate = projectMessageTemplate(chosenTemplate, context.projectWide);
+  const safeTemplate = nearby ? nearbyTemplate(scopedTemplate) : scopedTemplate;
 
   return safeTemplate
     .replaceAll("{{name}}", name)
@@ -1448,13 +1454,12 @@ Deno.serve(async (req) => {
         const body = listings
           ? buildListingsMessage(cleanString(lead.name) || "there", cleanBuildingName(lead.building) || "your building", listings)
           : buildMessage(
-            transactionBuildingMatches.matches.get(`${lead.user_id}|${lead.building}`)?.scope === 'development' && !isNearby
-              ? { ...lead, building: transactionBuildingMatches.matches.get(`${lead.user_id}|${lead.building}`)!.name }
-              : lead,
+            lead,
             matchedTransactions,
             isNearby ? null : cleanBuildingName(lead.building),
             template?.content,
             isNearby,
+            transactionBuildingMatches.matches.get(`${lead.user_id}|${lead.building}`),
           );
         const isFollowUp = template?.imagePath && await hasPriorWhatsAppContact(adminClient, { userId: lead.user_id, phone: to, sentAt: lead.sent_at });
         const imageUrl = await createTemplateImageUrl(adminClient, isFollowUp ? null : template?.imagePath || null);
