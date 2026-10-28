@@ -17,7 +17,8 @@ test("web and mobile both build the send flag from the shared policy", () => {
   const web = readFileSync(new URL("../src/features/seller-signal/useSellerSignalActions.js", import.meta.url), "utf8");
   const mobile = readFileSync(new URL("../mobile/src/features/seller-signal/services.js", import.meta.url), "utf8");
   for (const source of [web, mobile]) {
-    assert.match(source, /requireTodaysTransaction: manualSendRequiresTodaysTransaction\(/);
+    // The automation account never needs a same-day sale, so web puts that check first.
+    assert.match(source, /requireTodaysTransaction: (?:!isAutomationAccount\(userId\) && )?manualSendRequiresTodaysTransaction\(/);
   }
   assert.doesNotMatch(mobile, /requireTodaysTransaction: !customImage/);
 });

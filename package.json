@@ -20,7 +20,6 @@
     "mcp:dev": "npm --prefix services/seller-signal-mcp run dev",
     "mcp:start": "npm --prefix services/seller-signal-mcp start",
     "mcp:check": "npm --prefix services/seller-signal-mcp run check",
-    "daily:enrich": "node scripts/daily-enrichment-report.mjs",
     "fetch:bayut": "node scripts/fetch-bayut-all.mjs",
     "fetch:bayut-images": "node scripts/fetch-bayut-apartment-images.mjs",
     "fetch:dld": "node --max-old-space-size=400 scripts/import-dubai-market.mjs --live && node --max-old-space-size=400 scripts/import-dld-transactions.mjs --live",

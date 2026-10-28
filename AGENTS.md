@@ -3,6 +3,7 @@
 - Web code lives in `src/`, mobile in `mobile/`, desktop in `desktop/`, and backend code in `api/`, `server/`, `services/`, and `supabase/`.
 - Inspect the affected package's scripts for validation; root checks include `lint` and `build`.
 - Keep account data scoped to the authenticated user and preserve existing data during changes.
+- Don't hoard unused code. When a change leaves a file, export, script, style, test or fallback unused, delete it in the same change; git history keeps it. Don't comment code out or keep old paths "just in case".
 
 ## Delivery and commits
 

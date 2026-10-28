@@ -16,7 +16,6 @@ import {
   rowsToObjects,
 } from "./lib/dld-import-utils.mjs";
 
-export const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1-DgZjG5T93t5zmrHmyekKkOLwCRIYEMMOK4AbOrYOVU/export?format=csv&gid=865690319";
 export const DEFAULT_BUILDING_REGISTRY_FILE = "public/data/downtown-dubai-building-registry.json";
 const SUMMARY_FILE = "reports/dld-import-summary.json";
 const DLD_EXPORT_URL = "https://gateway.dubailand.gov.ae/open-data/transactions/export/csv";
@@ -59,7 +58,7 @@ Usage:
   npm run import:dld -- --live [--days=120] [--dry-run] [--sheet-url=<url>] [--overrides=<json-file>]
 
 Environment:
-  SHEET_URL or --sheet-url       Google Sheet CSV used to decide which buildings to import
+  SHEET_URL or --sheet-url       Optional Google Sheet CSV with extra buildings to import
   DLD_BUILDING_OVERRIDES_FILE    Optional JSON file mapping seller buildings to DLD aliases
   DLD_BUILDING_REGISTRY_FILE     Optional building registry JSON with canonical names and aliases
   DLD_LIVE_DAYS                  Default live DLD export window in days
@@ -75,7 +74,7 @@ function parseArgs(argv) {
     help: false,
     live: false,
     liveDays: Number(process.env.DLD_LIVE_DAYS || DEFAULT_LIVE_DAYS),
-    sheetUrl: process.env.SHEET_URL || DEFAULT_SHEET_URL,
+    sheetUrl: process.env.SHEET_URL || "",
     registryFile: process.env.DLD_BUILDING_REGISTRY_FILE || DEFAULT_BUILDING_REGISTRY_FILE,
     overridesFile: process.env.DLD_BUILDING_OVERRIDES_FILE || null,
   };
@@ -447,6 +446,21 @@ export async function loadTargetBuildings(sheetUrl, overrides, registryAliases =
   return { targets, aliasLookup: buildTargetAliasLookup(targets) };
 }
 
+// The live leads are the main list of buildings; a seller sheet only adds to it. A sheet that
+// can't be read is skipped rather than stopping the import (the old default sheet went 410 Gone).
+export async function loadSheetTargets(sheetUrl, overrides, registryAliases) {
+  if (!sheetUrl) return new Map();
+  console.log("Loading seller sheet...");
+  try {
+    const { targets } = await loadTargetBuildings(sheetUrl, overrides, registryAliases);
+    console.log(`Loaded ${targets.size} target buildings from seller sheet.`);
+    return targets;
+  } catch (error) {
+    console.warn(`Skipping the seller sheet: ${error.message}`);
+    return new Map();
+  }
+}
+
 export async function addSupabaseLeadTargets(targets, envMap, overrides, registryAliases) {
   const supabaseUrl = getEnvValue(envMap, ["SUPABASE_URL", "VITE_SUPABASE_URL"]);
   const serviceRoleKey = getEnvValue(envMap, ["SUPABASE_SERVICE_ROLE_KEY"]);
@@ -722,17 +736,7 @@ async function main() {
   const overrides = await loadBuildingOverrides(options.overridesFile);
   const registryAliases = await loadRegistryAliases(options.registryFile);
 
-  // The seller sheet is an optional extra list of buildings. The live leads are the main source, so
-  // a sheet that can't be read (the default one returns 410 Gone since 24 Oct 2026) must not stop
-  // the daily scan; only finding no target buildings at all does.
-  console.log("Loading seller sheet...");
-  let targets = new Map();
-  try {
-    ({ targets } = await loadTargetBuildings(options.sheetUrl, overrides, registryAliases));
-    console.log(`Loaded ${targets.size} target buildings from seller sheet.`);
-  } catch (error) {
-    console.warn(`Skipping the seller sheet: ${error.message}`);
-  }
+  const targets = await loadSheetTargets(options.sheetUrl, overrides, registryAliases);
   const addedLiveTargets = await addSupabaseLeadTargets(targets, envMap, overrides, registryAliases);
   console.log(`Added ${addedLiveTargets} target buildings from live Seller Signal leads.`);
   if (targets.size === 0) throw new Error("No target buildings: the seller sheet and the live leads are both empty.");

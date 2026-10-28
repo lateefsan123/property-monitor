@@ -11,7 +11,7 @@ function renderShell(data, favorites) {
   const element = (type, props) => ({ type, props });
   const dependencies = {
     "react/jsx-runtime": { jsx: element, jsxs: element },
-    react: { useState: value => [value, () => {}], useRef: value => ({ current: value }), useCallback: fn => fn, useEffect: () => {} },
+    react: { useState: value => [typeof value === "function" ? value() : value, () => {}], useRef: value => ({ current: value }), useCallback: fn => fn, useEffect: () => {} },
     "react-native": { View: "View", Text: "Text", Platform: { OS: "ios" } },
     "@tanstack/react-query": { useQuery: ({ queryKey }) => ({ data: queryKey[0] === "leads" ? data : [] }) },
     "../features/seller-signal/useHomeLeadSummary": { leadsQueryKey: id => ["leads", id] },

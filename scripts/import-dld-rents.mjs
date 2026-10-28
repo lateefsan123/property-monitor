@@ -10,7 +10,6 @@ import {
 } from "./lib/dld-import-utils.mjs";
 import {
   DEFAULT_BUILDING_REGISTRY_FILE,
-  DEFAULT_SHEET_URL,
   addSupabaseLeadTargets,
   buildTargetAliasLookup,
   formatDldDate,
@@ -18,7 +17,7 @@ import {
   getEnvValue,
   loadBuildingOverrides,
   loadRegistryAliases,
-  loadTargetBuildings,
+  loadSheetTargets,
   readEnvMap,
   resolveBuildingMatch,
 } from "./import-dld-transactions.mjs";
@@ -59,7 +58,7 @@ mapped seller buildings, and refreshes public.rent_contracts for the fetched
 registration-date window.
 
 Environment:
-  SHEET_URL or --sheet-url       Google Sheet CSV used to decide which buildings to import
+  SHEET_URL or --sheet-url       Optional Google Sheet CSV with extra buildings to import
   DLD_BUILDING_OVERRIDES_FILE    Optional JSON file mapping seller buildings to DLD aliases
   DLD_BUILDING_REGISTRY_FILE     Optional building registry JSON with canonical names and aliases
   SUPABASE_URL / VITE_SUPABASE_URL
@@ -74,7 +73,7 @@ function parseArgs(argv) {
     help: false,
     live: false,
     liveDays: Number(process.env.DLD_RENTS_LIVE_DAYS || DEFAULT_LIVE_DAYS),
-    sheetUrl: process.env.SHEET_URL || DEFAULT_SHEET_URL,
+    sheetUrl: process.env.SHEET_URL || "",
     registryFile: process.env.DLD_BUILDING_REGISTRY_FILE || DEFAULT_BUILDING_REGISTRY_FILE,
     overridesFile: process.env.DLD_BUILDING_OVERRIDES_FILE || null,
   };
@@ -240,11 +239,10 @@ async function main() {
   const overrides = await loadBuildingOverrides(options.overridesFile);
   const registryAliases = await loadRegistryAliases(options.registryFile);
 
-  console.log("Loading seller sheet...");
-  const { targets } = await loadTargetBuildings(options.sheetUrl, overrides, registryAliases);
-  console.log(`Loaded ${targets.size} target buildings from seller sheet.`);
+  const targets = await loadSheetTargets(options.sheetUrl, overrides, registryAliases);
   const addedLiveTargets = await addSupabaseLeadTargets(targets, envMap, overrides, registryAliases);
   console.log(`Added ${addedLiveTargets} target buildings from live Seller Signal leads.`);
+  if (targets.size === 0) throw new Error("No target buildings: the seller sheet and the live leads are both empty.");
   const aliasLookup = buildTargetAliasLookup(targets);
 
   console.log("Loading DLD rents CSV...");

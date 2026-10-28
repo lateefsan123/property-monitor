@@ -15,30 +15,16 @@ The React Compiler is not enabled on this template because of its impact on dev 
 
 If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
 
-## Daily GitHub Action
+## Bayut transaction cache
 
-This repo includes `.github/workflows/daily-enrichment.yml` to refresh the Bayut transaction cache in Supabase every day from a canonical building registry and generate the enrichment report.
-
-### Required secret
+`npm run fetch:bayut` refreshes the Bayut transaction cache in Supabase from a canonical building registry.
 
 - `RAPIDAPI_KEY`: your RapidAPI key for `uae-real-estate2`.
-- `SUPABASE_SERVICE_ROLE_KEY`: used by the daily Bayut cache refresh to upsert buildings and transactions.
-
-### Optional repository variables
-
-- `BUILDINGS_FILE`: optional path to a custom building registry JSON file. Defaults to `public/data/downtown-dubai-building-registry.json`.
-- `SHEET_URL`: legacy Google Sheets CSV export URL fallback if a registry file is not available.
-- `BAYUT_MONTH_WINDOW`: rolling transaction window for the daily cache refresh. Defaults to `6`.
-- `ENRICH_GROUP_LIMIT`: set to `0` for all groups, or a positive number for a test subset.
-- `REQUEST_DELAY_MS`: delay between API calls (default handled by script).
-- `REQUEST_RETRIES`: retry count for API failures.
-- `FAIL_ON_ERROR`: set to `1` to fail workflow if any group fails.
-
-### Local/manual run
-
-```bash
-npm run daily:enrich
-```
+- `SUPABASE_SERVICE_ROLE_KEY`: used to upsert buildings and transactions.
+- `BUILDINGS_FILE`: optional building registry JSON. Defaults to `public/data/downtown-dubai-building-registry.json`.
+- `SHEET_URL`: optional Google Sheets CSV export, used only if the registry file can't be loaded.
+- `BAYUT_MONTH_WINDOW`: rolling transaction window. Defaults to `6`.
+- `REQUEST_DELAY_MS` and `REQUEST_RETRIES`: pacing and retries for API calls.
 
 ## GitHub Pages build secrets
 

@@ -3,6 +3,8 @@ import { readFileSync } from "node:fs";
 import test from "node:test";
 import vm from "node:vm";
 import { transform } from "esbuild";
+import { userFacingError } from "../shared/user-facing-errors.js";
+import { AVATAR_PIXELS, AVATAR_QUALITY, saveAvatarProfile } from "../shared/profile-avatar.js";
 
 async function harness(file, props = {}, error = null) {
   const source = readFileSync(new URL(`../src/${file}`, import.meta.url), "utf8");
@@ -11,12 +13,15 @@ async function harness(file, props = {}, error = null) {
   });
   const states = []; const calls = []; let cursor = 0;
   const context = {
-    module: { exports: {} }, OnboardingFrame: "OnboardingFrame", FoxSays: "FoxSays", OnboardingInfo: "OnboardingInfo",
+    module: { exports: {} }, userFacingError, saveAvatarProfile, AVATAR_PIXELS, AVATAR_QUALITY, OnboardingFrame: "OnboardingFrame", FoxSays: "FoxSays", OnboardingInfo: "OnboardingInfo",
     ...Object.fromEntries(["IconBell", "IconBrandLinkedin", "IconCalendarEvent", "IconCheck", "IconDots", "IconPlayerPlayFilled", "IconRobot", "IconSearch", "IconShare", "IconUsers"].map(name => [name, name])),
     useEffect: () => {}, useRef: value => ({ current: value }),
     useState: initial => { const i = cursor++; if (!(i in states)) states[i] = initial; return [states[i], value => { states[i] = value; }]; },
     h: (tag, props, ...children) => ({ tag, props: props || {}, children }),
-    supabase: { auth: { updateUser: async payload => { calls.push(payload); return { error }; } } },
+    supabase: { auth: {
+      getUser: async () => ({ data: { user: { id: "user-a" } }, error: null }),
+      updateUser: async payload => { calls.push(payload); return { data: { user: { user_metadata: payload.data } }, error }; },
+    } },
   };
   vm.runInNewContext(code, context);
   return { calls, render: () => { cursor = 0; return context.module.exports.default(props); } };
@@ -63,7 +68,8 @@ test("saving errors do not advance onboarding", async () => {
   const h = await harness("WelcomeScreen.jsx", { onContinue: () => next++ }, { message: "Try again" });
   await button(h.render(), "auth-submit").props.onClick();
   assert.equal(next, 0);
-  assert.ok(flatten(h.render()).some(n => n.props.className === "auth-error" && n.children[0] === "Try again"));
+  const shown = userFacingError({ message: "Try again" });
+  assert.ok(flatten(h.render()).some(n => n.props.className === "auth-error" && n.children[0] === shown));
 });
 
 test("trial retains completion marker, checkout callback and pending guard", async () => {

@@ -18,7 +18,6 @@ import {
 } from "./lib/fetch-bayut-all-utils.mjs";
 
 const DEFAULT_BUILDINGS_FILE = "public/data/downtown-dubai-building-registry.json";
-const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/1-DgZjG5T93t5zmrHmyekKkOLwCRIYEMMOK4AbOrYOVU/export?format=csv&gid=865690319";
 const BASE_URL = "https://uae-real-estate2.p.rapidapi.com";
 const API_HOST = "uae-real-estate2.p.rapidapi.com";
 const OUTPUT_FILE = "public/data/bayut-transactions.json";
@@ -99,7 +98,7 @@ async function main() {
   if (!apiKey) throw new Error("Missing RAPIDAPI_KEY");
 
   const buildingsFile = process.env.BUILDINGS_FILE || dotEnv.BUILDINGS_FILE || DEFAULT_BUILDINGS_FILE;
-  const sheetUrl = process.env.SHEET_URL || dotEnv.SHEET_URL || DEFAULT_SHEET_URL;
+  const sheetUrl = process.env.SHEET_URL || dotEnv.SHEET_URL || "";
   const monthWindow = Math.max(1, toInt(process.env.BAYUT_MONTH_WINDOW, 6));
   const requestDelayMs = Math.max(0, toInt(process.env.REQUEST_DELAY_MS, 1200));
   const retries = Math.max(0, toInt(process.env.REQUEST_RETRIES, 4));
