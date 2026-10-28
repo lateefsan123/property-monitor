@@ -43,6 +43,7 @@ import { queryClient } from "./queryClient";
 import { pageQueries } from "./page-prefetch";
 import { prefetchHomeOnStartup } from "./startup-prefetch";
 import { supabase, supabaseConfigError, hasAuthConnectionFailure } from "./supabase";
+import { trackPixel } from "./meta-pixel.js";
 import { billingFailureState } from "./billing-state.js";
 import StartupStatus from './StartupStatus.jsx';
 import { clearSellerLists } from './features/seller-signal/seller-list-cache.js';
@@ -636,7 +637,7 @@ export function Root() {
       onSubscribe={handleSubscribeFromLanding}
     />
   ) : showAuth ? (
-    <Auth key={authStartsWithSignUp ? "sign-up" : "sign-in"} startWithSignUp={authStartsWithSignUp} onSignUpSuccess={() => updatePostAuthAction("checkout")} onBack={returnToLanding} />
+    <Auth key={authStartsWithSignUp ? "sign-up" : "sign-in"} startWithSignUp={authStartsWithSignUp} onSignUpSuccess={() => { trackPixel("CompleteRegistration"); updatePostAuthAction("checkout"); }} onBack={returnToLanding} />
   ) : (
     <LandingPage
       onGetStarted={() => openAuth("checkout")}

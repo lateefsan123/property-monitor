@@ -52,7 +52,7 @@ const POLICIES = {
       {
         title: "Sharing",
         body:
-          "We provide information to service providers needed to run the product, including hosting, database, authentication, payments, RevenueCat, AI processing, operational analytics, notifications, and connected messaging, email and calendar infrastructure. Messages and other information you choose to send are delivered to your selected recipients. We do not sell your personal data. We may disclose information when required by law or to protect the service and users.",
+          "We provide information to service providers needed to run the product, including hosting, database, authentication, payments, RevenueCat, AI processing, operational analytics, advertising measurement (the Meta pixel on our website records visits and sign-ups), notifications, and connected messaging, email and calendar infrastructure. Messages and other information you choose to send are delivered to your selected recipients. We do not sell your personal data. We may disclose information when required by law or to protect the service and users.",
       },
       {
         title: "Retention and Deletion",
