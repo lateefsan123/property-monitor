@@ -38,6 +38,10 @@
     "release-ios": {
       "extends": "production",
       "environment": "production",
+      "env": {
+        "EXPO_PUBLIC_FILM": "0",
+        "REPEAT_APP_VARIANT": "production"
+      },
       "autoIncrement": false
     },
     "release-play": {

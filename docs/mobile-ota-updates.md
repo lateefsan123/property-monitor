@@ -16,7 +16,7 @@ Phones download the update when the app opens and switch to it the next time the
 
 ## When a new build is still needed
 
-`runtimeVersion` uses the `appVersion` policy, so an update reaches every build with the same `version` (currently 1.0.0). Anything that changes native code needs a new build and a version bump (for example 1.0.1), so older binaries never receive JavaScript they cannot run:
+`runtimeVersion` uses the `appVersion` policy, so an update reaches builds with the same `version`. The next iOS release is 1.0.1 (build 36), with runtime 1.0.1. Build 35 and the older production updates remain on runtime 1.0.0. Anything that changes native code needs a new build and a version bump, so older binaries never receive JavaScript they cannot run:
 
 - adding, removing or upgrading a native module, or an Expo SDK upgrade
 - permissions, entitlements, plugins or other native settings in `app.json`
@@ -44,3 +44,22 @@ The first attempts failed locally while another session's TypeScript checks were
 
 Publish with `EXPO_PUBLIC_FILM` unset (for example `env -u EXPO_PUBLIC_FILM eas update ...`). Film mode swaps the Supabase client for the offline demo backend, so a film-mode bundle must never ship. After publishing, check that `dist/_expo/static/js/{ios,android}` contain no demo strings such as "Sara Haddad Properties".
 - 22 October 2026: update group `a743885d-a0b4-4f26-b67e-f45aad74c3e1` from main `3c6decd6`. Daily automated messages 40 by default, up to 45 in Settings; the nearby sales toggle (off unless turned on). No demo strings in the bundle. The web app was deployed from the same commit.
+
+## Next App Store release: 1.0.1 (build 36)
+
+Apple's first public release is version 1.0, binary 1.0.0 (33), which predates
+`expo-updates`. Those users need to install the next App Store version once
+before they can receive OTA updates. Build 35 is OTA-capable but was only
+uploaded to TestFlight; it did not replace the reviewed build 33.
+
+The next release keeps the production channel and EAS project URL. Update
+checks are explicitly enabled on launch, with no startup wait for a network
+download. A downloaded update applies on the next app start; no forced reload
+interrupts a seller edit or a message. Runtime 1.0.1 isolates this release from
+the existing 1.0.0 OTA stream.
+
+The iOS release profile explicitly selects the production app and disables
+film mode. Build from a clean archive of the release commit so unrelated work
+in the main checkout cannot enter the IPA. Verify the finished IPA's
+`Expo.plist` (update URL, runtime, enabled flag and production channel), not
+only app.json, before submitting the binary to TestFlight.
