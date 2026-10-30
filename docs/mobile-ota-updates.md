@@ -63,3 +63,21 @@ film mode. Build from a clean archive of the release commit so unrelated work
 in the main checkout cannot enter the IPA. Verify the finished IPA's
 `Expo.plist` (update URL, runtime, enabled flag and production channel), not
 only app.json, before submitting the binary to TestFlight.
+
+## Update prompt and settings (matches FighterCenter)
+
+The app checks for updates itself, so `app.json` sets `updates.checkAutomatically` to `NEVER` and
+`mobile/src/app-updates-context.js` does the checking. It looks at the live App Store version
+(Apple's public lookup, which never lists builds in review or TestFlight) and at EAS Update, 1.5
+seconds after launch, whenever the app returns to the foreground, and from Settings > App updates >
+Check for updates. With Automatic updates on (the default) an OTA update downloads in the
+background; the "Update ready" sheet then offers Restart app. "Later" hides that update for a day.
+
+Nothing restarts the app by itself. The sheet only opens on Home and on the top level of Settings,
+and not while the voice assistant or another sheet is open, so edits and messages are never
+interrupted. Offline or failed checks leave the app on its saved code and data. FighterCenter also
+restarts straight away on the first launch of a fresh install; Repeat AI skips that and uses the
+sheet instead.
+
+The outreach app (`REPEAT_APP_VARIANT=outreach`, channel `outreach`) has no prompt, so
+`app.config.js` keeps `ON_LOAD` native checks for it.
