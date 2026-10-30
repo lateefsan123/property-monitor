@@ -24,6 +24,7 @@ import { createAccountCacheGuard, mobileQueryDefaults } from "./src/query-cache"
 import { shouldShowOnboarding } from './src/onboarding-flow';
 import { saveProfile } from './src/workspace/profile-service';
 import AccessVerificationScreen from './src/screens/AccessVerificationScreen';
+import { AppUpdatesProvider } from './src/app-updates-context';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -45,7 +46,9 @@ export default function App() {
   if (!iconsLoaded) return <View style={{ flex: 1, alignItems: "center", justifyContent: "center" }}><ActivityIndicator accessibilityLabel="Loading app" /></View>;
   return (
     <QueryClientProvider client={queryClient}>
-      <AppInner />
+      <AppUpdatesProvider>
+        <AppInner />
+      </AppUpdatesProvider>
     </QueryClientProvider>
   );
 }

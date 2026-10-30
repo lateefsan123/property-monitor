@@ -14,6 +14,7 @@ import WorkspaceSpreadsheets from "./spreadsheets";
 import DashboardScreen from "../screens/DashboardScreen";
 import ListingAlertsScreen from "../screens/ListingAlertsScreen";
 import BottomSheet from "../components/BottomSheet";
+import AppUpdatePrompt from "../components/AppUpdatePrompt";
 import { fetchLeadSources, fetchUserLeads } from "../features/seller-signal/services";
 import { leadSourcesQueryKey } from "../features/seller-signal/useSellerSignalPage";
 import { useWorkspacePreference } from "./preferences";
@@ -53,6 +54,7 @@ export default function WorkspaceShell({
   const [signoutOpen, setSignoutOpen] = useState(false);
   const [signoutError, setSignoutError] = useState(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const favorites = useWorkspacePreference(userId, "sheet-favorites", []);
   const sellerFavorites = useWorkspacePreference(userId, "seller-favorites", []);
   const savedSellers = useQuery({
@@ -148,7 +150,7 @@ export default function WorkspaceShell({
           )}
         </MotionScreen>
       ))}
-      <VoicePanel request={assistantRequest} key={userId} userId={userId} colors={colors} hideLauncher={page === "settings" || page === "message-template"} launcherBottom={page === "sellers" ? sellerSendBarHeight + 16 : page === "schedule" ? 92 : page === "listing-alerts" ? listingFooterHeight + 16 : 16} />
+      <VoicePanel request={assistantRequest} onOpenChange={setVoiceOpen} key={userId} userId={userId} colors={colors} hideLauncher={page === "settings" || page === "message-template"} launcherBottom={page === "sellers" ? sellerSendBarHeight + 16 : page === "schedule" ? 92 : page === "listing-alerts" ? listingFooterHeight + 16 : 16} />
       <BottomSheet
         visible={createOpen}
         onDismiss={finishShortcutDismiss}
@@ -195,6 +197,8 @@ export default function WorkspaceShell({
           </Button>
         </View>
       </BottomSheet>
+      <AppUpdatePrompt colors={colors}
+        enabled={(page === "home" || (page === "settings" && !settingsHeader)) && !createOpen && !signoutOpen && !voiceOpen} />
     </NavigationDrawer>
   );
 }

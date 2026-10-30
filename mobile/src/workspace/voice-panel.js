@@ -21,9 +21,10 @@ export default function VoicePanel(props) {
   return canUsePrivateAssistant(props.userId) ? <PrivateVoicePanel key={props.userId} {...props} /> : null;
 }
 
-function PrivateVoicePanel({ colors, userId, hideLauncher = false, launcherBottom = 16, request }) {
+function PrivateVoicePanel({ colors, userId, hideLauncher = false, launcherBottom = 16, request, onOpenChange }) {
   const assistantPreference = useWorkspacePreference(userId, "ask-repeat-visible", true);
   const [open, setOpen] = useState(false);
+  useEffect(() => { onOpenChange?.(open); }, [open, onOpenChange]);
   const [draft, setDraft] = useState('');
   const [handledRequest, setHandledRequest] = useState(null);
   if (request && request !== handledRequest) {

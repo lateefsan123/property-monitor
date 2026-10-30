@@ -15,6 +15,7 @@ import EditProfileScreen from "../screens/edit-profile-screen";
 import ScheduleSettings from './schedule-settings';
 import Integrations from './integrations';
 import StatusSettings from './status-settings';
+import AppUpdatesSettings from './app-updates-settings';
 import { Feedback } from "./ui";
 import { SettingsGroup, SettingsItem, SettingsProfile, SettingsToggle, settingsBackground } from "../components/SettingsLayout";
 
@@ -210,6 +211,7 @@ export default function WorkspaceSettings({ userId, colors, active = true, onHea
         </SettingsItem>
         {assistantPreference.error ? <Text accessibilityRole="alert" style={{ color: colors.errorText, padding: 16 }}>Could not save this preference. Please try again.</Text> : null}
       </SettingsGroup>
+      <AppUpdatesSettings colors={colors} />
       <SettingsGroup title="Support" colors={colors}>
         <SettingsItem label="Help & legal" icon="document" colors={colors} last onPress={() => setPage("Help & legal")} />
       </SettingsGroup>
