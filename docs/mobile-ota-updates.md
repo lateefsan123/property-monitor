@@ -81,3 +81,12 @@ sheet instead.
 
 The outreach app (`REPEAT_APP_VARIANT=outreach`, channel `outreach`) has no prompt, so
 `app.config.js` keeps `ON_LOAD` native checks for it.
+
+## iOS 1.0.1 (build 36) — 30 October 2026
+
+Built from `a428f399` in a fresh `git archive` (`tmp/repeat-ios-1.0.1-build36-a428f399`, `node_modules` linked in so the Expo config resolves) with `EAS_NO_VCS=1`, profile `release-ios`.
+
+- Build `a8430fde-bf5e-4b8e-baff-6b2ced83684c`, FINISHED, version 1.0.1 (36), channel `production`.
+- Submission `58becdad-f615-4572-8187-77591914623a` scheduled to App Store Connect for TestFlight. This is not a public release and App Review has not been submitted.
+- The finished IPA's `Expo.plist`: enabled true, URL `https://u.expo.dev/4cae8513-9326-42eb-8cdb-3b07f6785b71`, runtime `1.0.1`, `expo-channel-name` `production`, check on launch `NEVER` (the in-app manager checks), launch wait 0. Its `main.jsbundle` has no demo strings.
+- Not yet tested on a physical iPhone: the update sheet, Restart app, and an OTA published to runtime 1.0.1.
