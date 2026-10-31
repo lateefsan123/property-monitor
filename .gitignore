@@ -33,6 +33,9 @@ desktop/release
 reports/
 
 .vercel
+.wrangler/
+.dev.vars*
+.secrets*.json
 
 # Local agent/session tooling
 .claude/

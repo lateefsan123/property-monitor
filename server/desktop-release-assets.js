@@ -8,6 +8,7 @@ function getGitHubHeaders() {
   const token = process.env.GITHUB_RELEASES_TOKEN?.trim()
     || process.env.GITHUB_TOKEN?.trim();
   const headers = {
+    "User-Agent": "Repeat-AI-Desktop-Updates",
     Accept: "application/vnd.github+json",
     "X-GitHub-Api-Version": "2022-11-28",
   };
