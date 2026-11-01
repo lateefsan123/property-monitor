@@ -5,6 +5,7 @@
   "compatibility_flags": ["nodejs_compat"],
   "keep_vars": true,
   "workers_dev": true,
+  "triggers": { "crons": ["*/15 * * * *"] },
   "routes": [
     { "pattern": "repeatai.org/*", "zone_name": "repeatai.org" },
     { "pattern": "www.repeatai.org/*", "zone_name": "repeatai.org" }
