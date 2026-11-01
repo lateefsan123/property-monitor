@@ -40,3 +40,4 @@ reports/
 # Local agent/session tooling
 .claude/
 .codex-run/
+*-private.jsonl
