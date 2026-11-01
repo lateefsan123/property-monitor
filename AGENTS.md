@@ -17,3 +17,9 @@
 - In the final response, state what changed, how it was checked, and the commit hash. If no commit was made, explain why.
 - Keep progress updates concise and regular. Make routine reversible decisions autonomously; ask when missing information materially changes the outcome.
 
+
+## Hosting
+
+- Deploy the website and API to Cloudflare with `npm run deploy:cloudflare`. Do not deploy to Vercel.
+- Cloudflare schedules are defined in `wrangler.jsonc`. Keep one scheduler active to avoid duplicate email jobs.
+
