@@ -30,7 +30,8 @@
     "import:rents": "node scripts/import-dld-rents.mjs",
     "build:listing-alerts": "node scripts/build-listing-alerts-feed.mjs",
     "verify:building-mapping": "node scripts/verify-building-mapping.mjs",
-    "audit:building-names": "node scripts/audit-master-building-names.mjs"
+    "audit:building-names": "node scripts/audit-master-building-names.mjs",
+    "deploy:cloudflare": "npm run build && npx --yes wrangler@4.156.0 deploy"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.99.2",
