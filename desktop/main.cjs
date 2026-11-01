@@ -14,7 +14,7 @@ const { autoUpdater } = require('electron-updater');
 const { getExternalUrl, isAppNavigationUrl } = require('./url-policy.cjs');
 
 const PRODUCT_NAME = 'Repeat AI';
-const PRODUCTION_URL = 'https://sellersignal.vercel.app';
+const PRODUCTION_URL = 'https://repeatai.org';
 const DESKTOP_URL_ENV = 'REPEAT_AI_DESKTOP_URL';
 const DISABLE_UPDATES_ENV = 'REPEAT_AI_DESKTOP_DISABLE_UPDATES';
 const UPDATE_CHECK_DELAY_MS = 5_000;

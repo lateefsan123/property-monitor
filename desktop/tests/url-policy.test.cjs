@@ -4,7 +4,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const { getExternalUrl, isAppNavigationUrl } = require('../url-policy.cjs');
 
-const APP_URL = 'https://sellersignal.vercel.app';
+const APP_URL = 'https://repeatai.org';
 
 test('allows navigation within the Repeat AI production origin', () => {
   assert.equal(isAppNavigationUrl(`${APP_URL}/settings?tab=automation`, APP_URL), true);
